@@ -3,3 +3,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+.env
+.DS_Store
+Thumbs.db
+examples/debug_*/
+examples/visual_review_*/
+examples/*comparison*.png
+examples/*preview*.png
+*.log
