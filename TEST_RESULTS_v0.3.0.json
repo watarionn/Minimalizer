@@ -1,0 +1,9 @@
+{
+  "version": "0.3.0",
+  "tests_collected": 156,
+  "tests_passed_in_completed_batches": 156,
+  "tests_failed": 0,
+  "corpus_processed": "16/16",
+  "compileall": "passed",
+  "full_single_process_pytest": "interactive timeout; not counted as a pass"
+}

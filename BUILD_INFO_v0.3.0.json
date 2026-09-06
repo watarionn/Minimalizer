@@ -1,0 +1,10 @@
+{
+  "product": "Minimalizer",
+  "version": "0.3.0",
+  "release_channel": "stable",
+  "status": "release",
+  "release_date": "2026-09-06",
+  "canonical_repository": "watarionn/Minimalizer",
+  "restore_from": "v0.3.0 stable",
+  "historical_not_current": ["v0.3.0-alpha8", "alpha builds", "rc builds"]
+}

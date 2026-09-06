@@ -1,0 +1,9 @@
+{
+  "version": "0.3.0",
+  "images": 16,
+  "mean_shapes": 28.375,
+  "mean_quality": 0.7892818857743252,
+  "mean_minimality": 0.6674689435463892,
+  "mean_identity": 0.9484230990085686,
+  "mean_silhouette": 0.9113803794025415
+}
