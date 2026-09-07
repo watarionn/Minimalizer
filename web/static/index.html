@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="画像をシンプルな図形へ変換する Minimalizer Web">
+  <title>Minimalizer</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Minimalizer ホーム">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Minimalizer</span>
+    </a>
+    <span class="engine-badge" id="engine-badge">Engine v0.3.0</span>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">IMAGE → MINIMAL GRAPHIC</p>
+      <h1 id="page-title">画像を、必要なかたちだけに。</h1>
+      <p class="hero-copy">画像を選んで「ミニマル化」を押すだけ。結果をSVGまたはPNGで保存できます。</p>
+    </section>
+
+    <section class="workspace" aria-label="Minimalizer ワークスペース">
+      <article class="panel source-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="step-label">01</p>
+            <h2>元画像</h2>
+          </div>
+          <button class="text-button" id="replace-button" type="button" hidden>画像を変更</button>
+        </div>
+
+        <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-describedby="drop-help">
+          <input id="file-input" type="file" accept="image/*" hidden>
+          <div class="drop-empty" id="drop-empty">
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <strong>画像をドロップ</strong>
+            <span>またはクリックして選択</span>
+            <small id="drop-help">PNG / JPEG / WebP など · 最大20MB</small>
+          </div>
+          <img id="source-preview" alt="選択した元画像のプレビュー" hidden>
+        </div>
+
+        <div class="file-meta" id="file-meta" hidden>
+          <span id="file-name"></span>
+          <span id="file-size"></span>
+        </div>
+      </article>
+
+      <article class="panel result-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="step-label">02</p>
+            <h2>ミニマル化結果</h2>
+          </div>
+          <span class="result-meta" id="result-meta"></span>
+        </div>
+
+        <div class="result-stage" id="result-stage">
+          <div class="result-empty" id="result-empty">
+            <span class="result-glyph" aria-hidden="true">◇</span>
+            <strong>ここに結果が表示されます</strong>
+            <span>元画像を選んでミニマル化してください</span>
+          </div>
+          <img id="result-preview" alt="ミニマル化された画像のプレビュー" hidden>
+          <div class="processing" id="processing" hidden aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <strong>ミニマル化しています</strong>
+            <span>画像の構造を整理中…</span>
+          </div>
+        </div>
+
+        <div class="download-row" id="download-row" hidden>
+          <button class="secondary-button" id="download-svg" type="button">SVGを保存</button>
+          <button class="secondary-button" id="download-png" type="button">PNGを保存</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="control-card" aria-label="変換設定">
+      <div class="primary-controls">
+        <label class="field compact-field">
+          <span>ミニマル度</span>
+          <select id="level-select">
+            <option value="1">1 · 原画寄り</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4 · おすすめ</option>
+            <option value="5">5 · 最小</option>
+          </select>
+        </label>
+
+        <button class="primary-button" id="minimalize-button" type="button" disabled>
+          ミニマル化
+        </button>
+      </div>
+
+      <details class="advanced-controls">
+        <summary>詳細設定</summary>
+        <div class="advanced-grid">
+          <label class="field">
+            <span>色数</span>
+            <input id="colors-input" type="number" min="2" max="32" placeholder="自動">
+          </label>
+          <label class="field">
+            <span>最大Shape数</span>
+            <input id="max-shapes-input" type="number" min="5" max="500" placeholder="自動">
+          </label>
+          <label class="field">
+            <span>背景</span>
+            <select id="background-select">
+              <option value="">自動</option>
+              <option value="source">元画像</option>
+              <option value="white">白</option>
+              <option value="transparent">透明</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Minimalizer Web</span>
+    <a href="/docs">API Docs</a>
+  </footer>
+</body>
+</html>
