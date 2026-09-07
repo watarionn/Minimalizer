@@ -28,6 +28,7 @@ def build_config(
     colors: int | None = None,
     max_shapes: int | None = None,
     background: str | None = None,
+    analysis_max_side_cap: int | None = None,
 ) -> MinimalizeConfig:
     overrides: dict[str, object] = {}
     if colors is not None:
@@ -36,7 +37,11 @@ def build_config(
         overrides["target_max_shapes"] = max_shapes
     if background is not None:
         overrides["background_mode"] = background
-    return MinimalizeConfig.from_level(level, **overrides)
+
+    config = MinimalizeConfig.from_level(level, **overrides)
+    if analysis_max_side_cap is not None and config.analysis_max_side > analysis_max_side_cap:
+        config = config.with_overrides(analysis_max_side=analysis_max_side_cap)
+    return config
 
 
 def minimalize_path(
