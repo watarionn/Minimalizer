@@ -1,4 +1,4 @@
-"""Minimalizer engine package."""
+from .config import MinimalizeConfig
+from .pipeline import minimalize
 
-__version__ = "0.3.0"
-ENGINE_VERSION = "0.3.0"
+__all__ = ["MinimalizeConfig", "minimalize"]

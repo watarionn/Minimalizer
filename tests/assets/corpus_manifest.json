@@ -1,0 +1,131 @@
+[
+  {
+    "name": "Elizabeth-Rose-Bloodflame_pr-img_01.webp",
+    "width": 950,
+    "height": 1350,
+    "mode": "RGBA",
+    "format": "WEBP",
+    "category": "subject_character"
+  },
+  {
+    "name": "Ichijou-Ririka_pr-img_01_a.webp",
+    "width": 2000,
+    "height": 2000,
+    "mode": "RGBA",
+    "format": "WEBP",
+    "category": "subject_character"
+  },
+  {
+    "name": "Isaki-Riona_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Juufuutei-Raden_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "general_thumbnail"
+  },
+  {
+    "name": "Juufuutei-Raden_pr-img_01_a.webp",
+    "width": 2000,
+    "height": 2000,
+    "mode": "RGBA",
+    "format": "WEBP",
+    "category": "subject_character"
+  },
+  {
+    "name": "Kikirara-Vivi_pr-img_01_a.webp",
+    "width": 2000,
+    "height": 2000,
+    "mode": "RGBA",
+    "format": "WEBP",
+    "category": "subject_character"
+  },
+  {
+    "name": "Koganei-Niko_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Mizumiya-Su_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Nerissa-Ravencroft_pr-img_01.webp",
+    "width": 2000,
+    "height": 2000,
+    "mode": "RGBA",
+    "format": "WEBP",
+    "category": "subject_character"
+  },
+  {
+    "name": "Omaru-Polka_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "general_thumbnail"
+  },
+  {
+    "name": "Oozora-Subaru_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "general_thumbnail"
+  },
+  {
+    "name": "Otonose-Kanade_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Rindo-Chihaya_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Shirogane-Noel_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "general_thumbnail"
+  },
+  {
+    "name": "Todoroki-Hajime_pr-img_01_a.png",
+    "width": 800,
+    "height": 1200,
+    "mode": "RGBA",
+    "format": "PNG",
+    "category": "subject_character"
+  },
+  {
+    "name": "Night-River-City_general.webp",
+    "width": 1000,
+    "height": 778,
+    "mode": "RGB",
+    "format": "WEBP",
+    "category": "general_landscape",
+    "source": "examples/input.webp"
+  }
+]
