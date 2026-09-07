@@ -20,6 +20,37 @@ def _sample_png() -> bytes:
     return buffer.getvalue()
 
 
+def test_phase2_root_serves_browser_workspace():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert 'id="drop-zone"' in response.text
+    assert 'id="source-preview"' in response.text
+    assert 'id="result-preview"' in response.text
+    assert 'id="download-svg"' in response.text
+    assert 'id="download-png"' in response.text
+
+
+def test_phase2_static_assets_are_served():
+    css = client.get("/static/styles.css")
+    javascript = client.get("/static/app.js")
+    assert css.status_code == 200
+    assert javascript.status_code == 200
+    assert ".drop-zone" in css.text
+    assert 'fetch("/api/minimalize"' in javascript.text
+
+
+def test_service_info_reports_web_and_engine_versions():
+    response = client.get("/api/info")
+    assert response.status_code == 200
+    assert response.json() == {
+        "service": "Minimalizer Web",
+        "web_version": "0.2.0",
+        "engine_version": "0.3.0",
+        "docs": "/docs",
+    }
+
+
 def test_health_reports_engine_version():
     response = client.get("/health")
     assert response.status_code == 200
