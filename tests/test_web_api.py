@@ -141,3 +141,22 @@ def test_rejects_image_above_pixel_limit(monkeypatch):
     )
     assert response.status_code == 413
     assert "pixel limit" in response.json()["detail"]
+
+
+def test_rejects_when_all_processing_slots_are_busy():
+    acquired = 0
+    try:
+        for _ in range(web_app_module.MAX_CONCURRENT_JOBS):
+            assert web_app_module._PROCESS_SLOTS.acquire(blocking=False)
+            acquired += 1
+
+        response = client.post(
+            "/api/minimalize",
+            files={"file": ("sample.png", _sample_png(), "image/png")},
+        )
+        assert response.status_code == 429
+        assert response.headers["retry-after"] == "2"
+        assert response.json()["detail"] == "Minimalizer is busy. Please retry shortly."
+    finally:
+        for _ in range(acquired):
+            web_app_module._PROCESS_SLOTS.release()
