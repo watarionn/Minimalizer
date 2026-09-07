@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import BoundedSemaphore
+from time import perf_counter
 from typing import Annotated, Literal
+from uuid import uuid4
 
 from PIL import Image, UnidentifiedImageError
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -13,14 +17,37 @@ from fastapi.staticfiles import StaticFiles
 
 from .service import build_config, minimalize_path
 
-APP_VERSION = "0.3.0"
-MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+APP_VERSION = "0.4.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
-MAX_IMAGE_PIXELS = 64_000_000
-MAX_IMAGE_SIDE = 16_384
-MAX_CONCURRENT_JOBS = 2
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
+logger = logging.getLogger("minimalizer.web")
+
+
+def _env_int(name: str, default: int, *, minimum: int, maximum: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        logger.warning("Ignoring invalid integer environment value for %s", name)
+        return default
+    if value < minimum or value > maximum:
+        logger.warning("Clamping %s to allowed range %s..%s", name, minimum, maximum)
+    return max(minimum, min(maximum, value))
+
+
+MAX_UPLOAD_MB = _env_int("WEB_MAX_UPLOAD_MB", 20, minimum=1, maximum=100)
+MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
+MAX_IMAGE_PIXELS = _env_int(
+    "WEB_MAX_IMAGE_PIXELS",
+    64_000_000,
+    minimum=1_000_000,
+    maximum=200_000_000,
+)
+MAX_IMAGE_SIDE = _env_int("WEB_MAX_IMAGE_SIDE", 16_384, minimum=512, maximum=65_535)
+MAX_CONCURRENT_JOBS = _env_int("WEB_MAX_CONCURRENT_JOBS", 2, minimum=1, maximum=8)
 _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 
 app = FastAPI(
@@ -32,8 +59,15 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
+async def add_request_metadata_and_security_headers(request: Request, call_next):
+    request_id = uuid4().hex
+    request.state.request_id = request_id
+    started = perf_counter()
     response = await call_next(request)
+    total_ms = (perf_counter() - started) * 1000.0
+
+    response.headers.setdefault("X-Request-ID", request_id)
+    response.headers.setdefault("Server-Timing", f"app;dur={total_ms:.1f}")
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "no-referrer")
@@ -66,8 +100,9 @@ def service_info() -> dict[str, str | int]:
         "web_version": APP_VERSION,
         "engine_version": _engine_version(),
         "docs": "/docs",
-        "max_upload_mb": MAX_UPLOAD_BYTES // (1024 * 1024),
+        "max_upload_mb": MAX_UPLOAD_MB,
         "max_image_pixels": MAX_IMAGE_PIXELS,
+        "max_image_side": MAX_IMAGE_SIDE,
         "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
     }
 
@@ -88,7 +123,7 @@ async def _save_upload(upload: UploadFile, destination: Path) -> int:
             if total > MAX_UPLOAD_BYTES:
                 raise HTTPException(
                     status_code=413,
-                    detail=f"Upload exceeds {MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit.",
+                    detail=f"Upload exceeds {MAX_UPLOAD_MB} MB limit.",
                 )
             out.write(chunk)
     return total
@@ -125,6 +160,7 @@ def _validate_image_file(path: Path) -> tuple[int, int, str]:
 
 @app.post("/api/minimalize")
 async def minimalize_image(
+    request: Request,
     file: Annotated[UploadFile, File(description="Source image")],
     level: Annotated[int, Form(ge=1, le=5)] = 4,
     output_format: Annotated[Literal["svg", "png"], Form()] = "svg",
@@ -132,6 +168,7 @@ async def minimalize_image(
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
 ) -> Response:
+    request_id = request.state.request_id
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
 
@@ -152,11 +189,20 @@ async def minimalize_image(
             source_width, source_height, source_format = _validate_image_file(input_path)
 
             if not _PROCESS_SLOTS.acquire(blocking=False):
+                logger.info(
+                    "minimalize_busy request_id=%s format=%s width=%s height=%s",
+                    request_id,
+                    source_format,
+                    source_width,
+                    source_height,
+                )
                 raise HTTPException(
                     status_code=429,
                     detail="Minimalizer is busy. Please retry shortly.",
                     headers={"Retry-After": "2"},
                 )
+
+            processing_started = perf_counter()
             try:
                 try:
                     result = await run_in_threadpool(
@@ -168,9 +214,21 @@ async def minimalize_image(
                 except (ValueError, OSError) as exc:
                     raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
             finally:
+                processing_ms = (perf_counter() - processing_started) * 1000.0
                 _PROCESS_SLOTS.release()
     finally:
         await file.close()
+
+    logger.info(
+        "minimalize_success request_id=%s format=%s width=%s height=%s output=%s processing_ms=%.1f shapes=%s",
+        request_id,
+        source_format,
+        source_width,
+        source_height,
+        output_format,
+        processing_ms,
+        result.shape_count,
+    )
 
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
@@ -179,5 +237,6 @@ async def minimalize_image(
         "X-Minimalizer-Source-Size": result.source_size,
         "X-Minimalizer-Validated-Source-Size": f"{source_width}x{source_height}",
         "X-Minimalizer-Source-Format": source_format,
+        "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
     }
     return Response(content=result.content, media_type=result.media_type, headers=headers)
