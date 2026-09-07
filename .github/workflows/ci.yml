@@ -6,12 +6,17 @@ on:
     branches:
       - main
 
+concurrency:
+  group: minimalizer-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   stable-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,5 +44,30 @@ jobs:
             tests/test_high_resolution_guard.py \
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
-      - name: Run Web Phase 1 API tests
+      - name: Run Web API and UI tests
         run: python -m pytest -q tests/test_web_api.py
+
+      - name: Run real-server Web smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m uvicorn web.app:app --host 127.0.0.1 --port 8000 >/tmp/minimalizer-uvicorn.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          for _ in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
+          curl --fail --silent http://127.0.0.1:8000/api/info \
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.3.0"; assert d["engine_version"] == "0.3.0"'
+          curl --fail --silent \
+            -F 'file=@examples/input.webp;type=image/webp' \
+            -F 'level=5' \
+            -F 'output_format=svg' \
+            http://127.0.0.1:8000/api/minimalize \
+            | grep -q '^<svg'
