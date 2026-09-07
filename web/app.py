@@ -123,11 +123,6 @@ def _validate_image_file(path: Path) -> tuple[int, int, str]:
     return width, height, image_format
 
 
-def _minimalize_with_slot(input_path: Path, config, output_format: str):
-    with _PROCESS_SLOTS:
-        return minimalize_path(input_path, config, output_format)
-
-
 @app.post("/api/minimalize")
 async def minimalize_image(
     file: Annotated[UploadFile, File(description="Source image")],
@@ -156,15 +151,24 @@ async def minimalize_image(
 
             source_width, source_height, source_format = _validate_image_file(input_path)
 
-            try:
-                result = await run_in_threadpool(
-                    _minimalize_with_slot,
-                    input_path,
-                    config,
-                    output_format,
+            if not _PROCESS_SLOTS.acquire(blocking=False):
+                raise HTTPException(
+                    status_code=429,
+                    detail="Minimalizer is busy. Please retry shortly.",
+                    headers={"Retry-After": "2"},
                 )
-            except (ValueError, OSError) as exc:
-                raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
+            try:
+                try:
+                    result = await run_in_threadpool(
+                        minimalize_path,
+                        input_path,
+                        config,
+                        output_format,
+                    )
+                except (ValueError, OSError) as exc:
+                    raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
+            finally:
+                _PROCESS_SLOTS.release()
     finally:
         await file.close()
 
