@@ -1,5 +1,5 @@
 numpy
-opencv-python
+opencv-python<5
 Pillow
 PySide6
 pytest
