@@ -40,17 +40,21 @@ A single-process full pytest run exceeded the interactive execution window and i
 
 ## Web Phase
 
-Web Phase 1 introduces a FastAPI adapter without changing the stable engine algorithms.
+Web Phase 1 established the FastAPI adapter without changing stable engine algorithms. Web Phase 2 adds the first browser workspace on top of that API.
 
-- `GET /` reports service and engine information.
+Current Web behavior:
+- `GET /` serves the browser UI.
+- `GET /api/info` reports Web and engine version information.
 - `GET /health` provides a lightweight health check.
 - `POST /api/minimalize` accepts one uploaded image through multipart form data.
-- Output formats: SVG and PNG.
-- Basic overrides: abstraction level, palette colors, target max shapes, and background mode.
-- Upload size is capped at 20 MB.
+- output formats: SVG and PNG.
+- basic overrides: abstraction level, palette colors, target max shapes, and background mode.
+- upload size is capped at 20 MB on both client guidance and server enforcement.
 - CPU-bound minimalization runs through a thread pool.
-- Web server dependencies are isolated from the PySide desktop GUI dependencies.
-- CI covers both the stable smoke regressions and the Web Phase 1 API integration tests.
+- browser UI supports drag-and-drop/file selection, source/result side-by-side preview, processing/error/empty states, SVG download, PNG download, and responsive mobile layout.
+- secondary settings are collapsed by default so the core image -> minimalize workflow stays primary.
+- Web server dependencies are isolated from PySide desktop GUI dependencies.
+- CI covers both stable smoke regressions and Web integration tests.
 
 Run locally with:
 
@@ -59,7 +63,7 @@ python -m pip install -r requirements-web.txt
 python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
 ```
 
-See `web/README.md` for the API contract and example request.
+See `web/README.md` for browser and API usage.
 
 ## Important stable behavior
 
@@ -76,7 +80,11 @@ See `web/README.md` for the API contract and example request.
 
 ## Recommended next work
 
-Web Phase 2 is the current product-development priority: add a browser UI for image drag-and-drop, source/result preview, processing state, and PNG/SVG download controls while continuing to use the same `/api/minimalize` boundary.
+Web Phase 3 should focus on production-readiness before choosing a hosting provider:
+1. strengthen upload validation and request/concurrency limits;
+2. add end-to-end browser verification for the drag/drop -> preview -> download flow;
+3. define deploy/runtime packaging and health/readiness behavior;
+4. then evaluate production hosting based on CPU/image-processing needs and cost.
 
 Engine maintenance remains queued in parallel:
 1. audit the direct default of `cleanup_minimal_shapes(... promote_rectangle_iou)` against the stable config default of `0.985` and add a regression test if needed;
