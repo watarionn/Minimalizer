@@ -6,19 +6,22 @@ from typing import Annotated, Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from .service import build_config, minimalize_path
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 UPLOAD_CHUNK_BYTES = 1024 * 1024
+STATIC_DIR = Path(__file__).with_name("static")
 
 app = FastAPI(
     title="Minimalizer Web API",
     version=APP_VERSION,
-    description="Minimalizer v0.3.0 stable engine exposed as a small web API.",
+    description="Minimalizer v0.3.0 stable engine with a lightweight browser UI and web API.",
 )
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 def _engine_version() -> str:
@@ -29,10 +32,15 @@ def _engine_version() -> str:
         return "unknown"
 
 
-@app.get("/")
-def root() -> dict[str, str]:
+@app.get("/", include_in_schema=False)
+def root() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
+
+
+@app.get("/api/info")
+def service_info() -> dict[str, str]:
     return {
-        "service": "Minimalizer Web API",
+        "service": "Minimalizer Web",
         "web_version": APP_VERSION,
         "engine_version": _engine_version(),
         "docs": "/docs",
