@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .service import build_config, minimalize_path
 
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.4.1"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -47,6 +47,7 @@ MAX_IMAGE_PIXELS = _env_int(
     maximum=200_000_000,
 )
 MAX_IMAGE_SIDE = _env_int("WEB_MAX_IMAGE_SIDE", 16_384, minimum=512, maximum=65_535)
+MAX_ANALYSIS_SIDE = _env_int("WEB_MAX_ANALYSIS_SIDE", 640, minimum=256, maximum=2_048)
 MAX_CONCURRENT_JOBS = _env_int("WEB_MAX_CONCURRENT_JOBS", 2, minimum=1, maximum=8)
 _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 
@@ -103,6 +104,7 @@ def service_info() -> dict[str, str | int]:
         "max_upload_mb": MAX_UPLOAD_MB,
         "max_image_pixels": MAX_IMAGE_PIXELS,
         "max_image_side": MAX_IMAGE_SIDE,
+        "max_analysis_side": MAX_ANALYSIS_SIDE,
         "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
     }
 
@@ -177,6 +179,7 @@ async def minimalize_image(
         colors=colors,
         max_shapes=max_shapes,
         background=background,
+        analysis_max_side_cap=MAX_ANALYSIS_SIDE,
     )
 
     try:
@@ -190,11 +193,13 @@ async def minimalize_image(
 
             if not _PROCESS_SLOTS.acquire(blocking=False):
                 logger.info(
-                    "minimalize_busy request_id=%s format=%s width=%s height=%s",
+                    "minimalize_busy request_id=%s format=%s width=%s height=%s level=%s analysis_max_side=%s",
                     request_id,
                     source_format,
                     source_width,
                     source_height,
+                    level,
+                    config.analysis_max_side,
                 )
                 raise HTTPException(
                     status_code=429,
@@ -220,11 +225,13 @@ async def minimalize_image(
         await file.close()
 
     logger.info(
-        "minimalize_success request_id=%s format=%s width=%s height=%s output=%s processing_ms=%.1f shapes=%s",
+        "minimalize_success request_id=%s format=%s width=%s height=%s level=%s analysis_max_side=%s output=%s processing_ms=%.1f shapes=%s",
         request_id,
         source_format,
         source_width,
         source_height,
+        level,
+        config.analysis_max_side,
         output_format,
         processing_ms,
         result.shape_count,
@@ -232,6 +239,8 @@ async def minimalize_image(
 
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
+        "X-Minimalizer-Level": str(level),
+        "X-Minimalizer-Configured-Analysis-Max-Side": str(config.analysis_max_side),
         "X-Minimalizer-Shape-Count": str(result.shape_count),
         "X-Minimalizer-Analysis-Size": result.analysis_size,
         "X-Minimalizer-Source-Size": result.source_size,
