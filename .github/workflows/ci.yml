@@ -25,10 +25,10 @@ jobs:
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install numpy opencv-python-headless Pillow pytest
+          python -m pip install -r requirements-web-test.txt
 
       - name: Compile source tree
-        run: python -m compileall -q minimalize_engine app gui tools tests
+        run: python -m compileall -q minimalize_engine app gui tools tests web
 
       - name: Run stable smoke regressions
         run: |
@@ -38,3 +38,6 @@ jobs:
             tests/test_adaptive_polygon_simplify.py \
             tests/test_high_resolution_guard.py \
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
+
+      - name: Run Web Phase 1 API tests
+        run: python -m pytest -q tests/test_web_api.py

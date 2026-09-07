@@ -5,16 +5,16 @@
 1. Read `CURRENT.md`.
 2. Read this file.
 3. Read `README.md` and `REPOSITORY_LAYOUT.md`.
-4. Treat `v0.3.0 stable` as the regression baseline.
+4. Treat `v0.3.0 stable` as the engine regression baseline.
 5. Inspect the restored code and tests before changing behavior.
 
 ## Current state
 
 Minimalizer v0.3.0 stable is complete, and its implementation snapshot has been restored into this GitHub repository. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
-GitHub now contains:
+GitHub contains:
 - `minimalize_engine/`, `app/`, `gui/` stable implementation source.
-- `tests/` with 39 `test_*.py` files.
+- the 39-file v0.3.0 stable regression suite plus Web Phase tests.
 - `tests/assets/corpus/` with all 16 original regression images.
 - `tests/assets/corpus_manifest.json` with the 16 corpus entries.
 - `tools/` evaluation utilities.
@@ -22,13 +22,12 @@ GitHub now contains:
 
 Restoration sanity validation completed on GitHub Actions:
 - 16/16 corpus entries exist.
-- 39 test files exist.
+- 39 stable test files exist.
 - Night River original SHA-256 verified as `f244e86e02c90753ab575e0f95b5c872527afe0a63bb3c314b77a84c6ef81a66`.
 - `examples/input.webp` and the Night River corpus file match that SHA.
 - `compileall` passed for `minimalize_engine`, `app`, `gui`, `tools`, and `tests`.
 
 Release validation recorded at v0.3.0:
-- 39 test files.
 - 156 tests passed / 0 failed when completed in batches.
 - 16/16 corpus images processed successfully.
 - Mean corpus quality about 0.7893.
@@ -38,6 +37,29 @@ Release validation recorded at v0.3.0:
 - `compileall` passed.
 
 A single-process full pytest run exceeded the interactive execution window and is not counted as a completed pass.
+
+## Web Phase
+
+Web Phase 1 introduces a FastAPI adapter without changing the stable engine algorithms.
+
+- `GET /` reports service and engine information.
+- `GET /health` provides a lightweight health check.
+- `POST /api/minimalize` accepts one uploaded image through multipart form data.
+- Output formats: SVG and PNG.
+- Basic overrides: abstraction level, palette colors, target max shapes, and background mode.
+- Upload size is capped at 20 MB.
+- CPU-bound minimalization runs through a thread pool.
+- Web server dependencies are isolated from the PySide desktop GUI dependencies.
+- CI covers both the stable smoke regressions and the Web Phase 1 API integration tests.
+
+Run locally with:
+
+```bash
+python -m pip install -r requirements-web.txt
+python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+```
+
+See `web/README.md` for the API contract and example request.
 
 ## Important stable behavior
 
@@ -54,8 +76,11 @@ A single-process full pytest run exceeded the interactive execution window and i
 
 ## Recommended next work
 
-First audit the direct default of `cleanup_minimal_shapes(... promote_rectangle_iou)` against the stable config default of `0.985`, and add a regression test if needed.
+Web Phase 2 is the current product-development priority: add a browser UI for image drag-and-drop, source/result preview, processing state, and PNG/SVG download controls while continuing to use the same `/api/minimalize` boundary.
 
-Then add a fully opaque RGBA high-resolution smoke test.
+Engine maintenance remains queued in parallel:
+1. audit the direct default of `cleanup_minimal_shapes(... promote_rectangle_iou)` against the stable config default of `0.985` and add a regression test if needed;
+2. add a fully opaque RGBA high-resolution smoke test;
+3. improve weaker corpus cases without regressing the stable baseline.
 
-After those maintenance checks, improve weaker corpus cases without regressing the stable baseline, especially identity/silhouette outliers. Prefer `v0.3.1` for safe fixes and `v0.4.0` for broader algorithm changes.
+Prefer `v0.3.1` for safe engine fixes and `v0.4.0` for broader algorithm changes.
