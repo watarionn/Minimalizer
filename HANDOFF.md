@@ -10,29 +10,16 @@
 
 ## Current state
 
-Minimalizer v0.3.0 stable is complete, and its implementation snapshot has been restored into this GitHub repository. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
+Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
-GitHub contains:
-- `minimalize_engine/`, `app/`, `gui/` stable implementation source.
-- the 39-file v0.3.0 stable regression suite plus Web Phase tests.
-- `tests/assets/corpus/` with all 16 original regression images.
-- `tests/assets/corpus_manifest.json` with the 16 corpus entries.
-- `tools/` evaluation utilities.
-- `examples/input.webp`, byte-identical to `tests/assets/corpus/Night-River-City_general.webp`.
-
-Restoration sanity validation completed on GitHub Actions:
-- 16/16 corpus entries exist.
-- 39 stable test files exist.
-- Night River original SHA-256 verified as `f244e86e02c90753ab575e0f95b5c872527afe0a63bb3c314b77a84c6ef81a66`.
-- `examples/input.webp` and the Night River corpus file match that SHA.
-- `compileall` passed for `minimalize_engine`, `app`, `gui`, `tools`, and `tests`.
+GitHub contains the stable engine implementation, 39-file stable regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, and permanent CI.
 
 Release validation recorded at v0.3.0:
 - 156 tests passed / 0 failed when completed in batches.
 - 16/16 corpus images processed successfully.
-- Mean corpus quality about 0.7893.
-- Mean identity about 0.9484.
-- Mean silhouette about 0.9114.
+- mean corpus quality about 0.7893.
+- mean identity about 0.9484.
+- mean silhouette about 0.9114.
 - 8192x6373 (52.21 MP) stress input completed successfully.
 - `compileall` passed.
 
@@ -40,42 +27,97 @@ A single-process full pytest run exceeded the interactive execution window and i
 
 ## Web Phase
 
-Web Phase 1 established the FastAPI adapter. Web Phase 2 added the first browser workspace. Web Phase 3 adds production-readiness safeguards and generic deploy packaging without changing stable engine algorithms.
+Web Phase 1 established the FastAPI adapter. Web Phase 2 added the browser workspace. Web Phase 3 added production safeguards and provider-neutral Docker packaging. Web Phase 4 completed the first real hosted pilot on Railway.
 
 Current Web behavior:
 - `GET /` serves the browser UI.
-- `GET /api/info` reports Web/engine versions and current Web safety limits.
+- `GET /api/info` reports Web/engine versions and safety limits.
 - `GET /health` provides a lightweight health check.
-- `POST /api/minimalize` accepts one uploaded image through multipart form data.
-- output formats: SVG and PNG.
-- basic overrides: abstraction level, palette colors, target max shapes, and background mode.
-- browser UI supports drag-and-drop/file selection, source/result side-by-side preview, processing/error/empty states, SVG download, PNG download, and responsive mobile layout.
-- accepted source formats are PNG, JPEG, and WebP.
-- upload size is capped at 20 MB.
-- images are opened with Pillow before engine processing to validate real format and dimensions.
-- Web limit is 64,000,000 total pixels and 16,384 pixels on either side.
-- a process permits two simultaneous image-processing jobs; excess jobs receive HTTP 429 with `Retry-After: 2` rather than accumulating unbounded CPU work.
-- basic security headers are returned; API/health responses use `Cache-Control: no-store`.
-- Web runtime dependencies remain isolated from the PySide desktop GUI dependencies.
-- `Dockerfile` provides a one-worker, non-root production container with a health check.
-- `.dockerignore` excludes development/test material from the production image context.
-- CI cancels superseded runs for the same ref and performs stable regressions, Web integration tests, and a real-Uvicorn server smoke request using `examples/input.webp`.
+- `POST /api/minimalize` accepts one PNG/JPEG/WebP image and returns SVG or PNG.
+- browser UI supports drag/drop, before/after preview, processing/error states, and SVG/PNG download.
+- upload size, image side, and total pixel limits are enforced before engine processing.
+- image-processing concurrency is bounded; excess overlapping work receives HTTP 429 with `Retry-After` rather than accumulating unbounded CPU jobs.
+- basic security headers are returned and API/health responses use `Cache-Control: no-store`.
+- the root `Dockerfile` runs as a non-root user and supports an explicit `WEB_BIND_PORT` override before falling back to provider `PORT`.
+- CI runs stable regressions, Web API/UI tests, and a real-Uvicorn default-level WebP -> SVG smoke request.
 
-Run locally with:
+Phase 4 hosted-pilot instrumentation adds:
+- `X-Request-ID` on responses;
+- `X-Minimalizer-Processing-Ms` on successful conversions;
+- `Server-Timing` for total application request duration;
+- privacy-conscious application logs containing request ID, validated format/dimensions, output format, processing time, and shape count, but not uploaded image contents or original filenames;
+- environment-tunable Web limits, including `WEB_MAX_CONCURRENT_JOBS`.
 
-```bash
-python -m pip install -r requirements-web.txt
-python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+Recommended hosted settings after the first pilot:
+
+```text
+WEB_WORKERS=1
+WEB_MAX_CONCURRENT_JOBS=2
+WEB_BIND_PORT=8080  # Railway pilot service only
 ```
 
-Or with Docker:
+See `docs/WEB_DEPLOYMENT.md` and `docs/WEB_PILOT_RUNBOOK.md`.
 
-```bash
-docker build -t minimalizer-web .
-docker run --rm -p 8000:8000 minimalizer-web
-```
+## Railway pilot
 
-See `web/README.md` for browser/API usage and `docs/WEB_DEPLOYMENT.md` for hosting/sizing notes.
+The first Railway hosted pilot was completed on the PR #5 branch `feature/web-phase4-hosted-pilot-20260908`.
+
+Public pilot URL:
+- `https://minimalizer-web-production-a2bc.up.railway.app`
+
+Verified endpoints:
+- `GET /` -> 200.
+- `GET /health` -> 200.
+- `GET /api/info` -> 200.
+- `GET /docs` -> 200.
+- small PNG -> SVG -> 200.
+- small PNG -> PNG -> 200.
+- representative Night River WebP -> SVG -> 200.
+- representative Night River WebP -> PNG -> 200.
+
+Representative Night River result on the final tested code commit `3a1a0f5dc8b4fc6b58e35a53204791c96577f63b`:
+- source: 1000x778 WebP;
+- analysis size: 640x498;
+- level: 4;
+- output: SVG;
+- HTTP 200;
+- 31 shapes;
+- engine processing time: 6143.0 ms;
+- total application timing: 6203.4 ms;
+- `X-Request-ID` present.
+
+An earlier successful PNG output on the same OpenCV-4-compatible code path measured about 8288 ms, and SVG about 8045 ms. Treat these as pilot measurements, not performance guarantees.
+
+Concurrency behavior was exercised on the public service. With `WEB_MAX_CONCURRENT_JOBS=2`, overlapping requests produced two successful 200 responses while the excess request returned HTTP 429 as designed. Keep this limit until additional capacity testing supports a change.
+
+Railway metrics during the pilot on a 1 GB memory limit:
+- observed memory maximum about 0.782 GB;
+- observed post-test/current memory about 0.448 GB at the captured sample;
+- observed CPU maximum about 0.357 vCPU in the captured one-hour window.
+
+The 1 GB instance has useful but not generous memory headroom. Do not raise `WEB_WORKERS`, `WEB_MAX_CONCURRENT_JOBS`, the 64 MP pixel limit, or the current image-side limit without new measurements.
+
+### Hosted-pilot issues found and fixed
+
+1. **OpenCV 5 incompatibility**
+   - Railway initially installed OpenCV 5.x from the unbounded dependency.
+   - The normal level-4 path reached `cv2.HoughLinesP`, whose returned array shape differed from the stable engine assumption and caused `TypeError: 'numpy.int32' object is not iterable` in `minimalize_engine/geometry/lines.py`.
+   - This was a dependency compatibility problem, not a WebP-format failure.
+   - `opencv-python<5` and `opencv-python-headless<5` are now pinned.
+   - CI now exercises `examples/input.webp` at level 4 so this exact path is covered.
+
+2. **Railway bind-port mismatch during setup**
+   - The generated public domain and injected/provider port state temporarily disagreed while the service was being configured.
+   - `WEB_BIND_PORT` was added as an explicit container bind override for hosted environments that need it.
+   - The final Railway pilot deployment bound Uvicorn to 8080, healthcheck `/health` returned 200, and the public domain targets the same service port.
+
+3. **Final code deployment verification**
+   - Railway deployment `98f9e487-3905-47d1-a5e4-4a115427aff7` for commit `3a1a0f5dc8b4fc6b58e35a53204791c96577f63b` completed with `SUCCESS`.
+   - Runtime log confirmed `Uvicorn running on http://0.0.0.0:8080` and `/health` 200.
+   - The representative Night River request against that deployed code returned HTTP 200 with 31 shapes.
+   - GitHub Actions CI run #17 for that code commit completed successfully.
+
+Do not add a new `railway.toml` or `railway.json` for this project. Use the root Dockerfile plus Railway service settings instead.
 
 ## Important stable behavior
 
@@ -92,19 +134,12 @@ See `web/README.md` for browser/API usage and `docs/WEB_DEPLOYMENT.md` for hosti
 
 ## Recommended next work
 
-Web Phase 4 should be the first hosted pilot rather than another large local feature batch:
-1. deploy the generic Docker image to an initial provider;
-2. run real public-URL smoke tests for UI, health, SVG, and PNG;
-3. measure peak memory and request duration with representative images;
-4. exercise the 429 busy response under concurrent requests;
-5. tune instance size, concurrency, and Web pixel limits from those measurements;
-6. keep accounts/database/billing out until pilot usage demonstrates a need.
+Web Phase 4 hosted-pilot validation is complete. PR #5 should remain unmerged until explicitly approved, but it is ready for final review once CI on the documentation-only handoff update is green.
 
-Current hosting evaluation (2026-09-07) favors Railway for the first low-traffic pilot because its Hobby plan starts with a small base commitment and usage-based resource billing. Render remains attractive when predictable always-on capacity is preferred. See `docs/WEB_DEPLOYMENT.md`; re-check provider pricing before deployment because hosting terms change.
+After PR #5 is explicitly approved and merged, shift attention back toward the product's core goal: input image -> higher-quality minimalized graphic.
 
-Engine maintenance remains queued in parallel:
+Engine maintenance / quality work remains queued:
 1. audit the direct default of `cleanup_minimal_shapes(... promote_rectangle_iou)` against the stable config default of `0.985` and add a regression test if needed;
 2. add a fully opaque RGBA high-resolution smoke test;
-3. improve weaker corpus cases without regressing the stable baseline.
-
-Prefer `v0.3.1` for safe engine fixes and `v0.4.0` for broader algorithm changes.
+3. improve weaker corpus cases without regressing the stable baseline, especially identity/silhouette outliers;
+4. keep safe maintenance fixes in `v0.3.1`, while larger quality changes belong in `v0.4.0` or later.

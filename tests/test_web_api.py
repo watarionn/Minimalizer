@@ -53,11 +53,12 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.3.0",
+        "web_version": "0.4.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
         "max_image_pixels": 64_000_000,
+        "max_image_side": 16_384,
         "max_concurrent_jobs": 2,
     }
 
@@ -68,12 +69,14 @@ def test_health_reports_engine_version():
     assert response.json() == {"status": "ok", "engine_version": "0.3.0"}
 
 
-def test_security_headers_are_present():
+def test_security_and_request_metadata_headers_are_present():
     response = client.get("/api/info")
     assert response.headers["x-content-type-options"] == "nosniff"
     assert response.headers["x-frame-options"] == "DENY"
     assert response.headers["referrer-policy"] == "no-referrer"
     assert response.headers["cache-control"] == "no-store"
+    assert len(response.headers["x-request-id"]) == 32
+    assert response.headers["server-timing"].startswith("app;dur=")
 
 
 def test_minimalize_svg_upload():
@@ -92,6 +95,8 @@ def test_minimalize_svg_upload():
     assert response.headers["x-minimalizer-source-size"] == "64x48"
     assert response.headers["x-minimalizer-validated-source-size"] == "64x48"
     assert response.headers["x-minimalizer-source-format"] == "PNG"
+    assert float(response.headers["x-minimalizer-processing-ms"]) >= 0.0
+    assert len(response.headers["x-request-id"]) == 32
 
 
 def test_minimalize_png_upload():
@@ -157,6 +162,18 @@ def test_rejects_when_all_processing_slots_are_busy():
         assert response.status_code == 429
         assert response.headers["retry-after"] == "2"
         assert response.json()["detail"] == "Minimalizer is busy. Please retry shortly."
+        assert len(response.headers["x-request-id"]) == 32
     finally:
         for _ in range(acquired):
             web_app_module._PROCESS_SLOTS.release()
+
+
+def test_env_int_uses_default_and_clamps(monkeypatch):
+    monkeypatch.delenv("MINIMALIZER_TEST_INT", raising=False)
+    assert web_app_module._env_int("MINIMALIZER_TEST_INT", 3, minimum=1, maximum=5) == 3
+
+    monkeypatch.setenv("MINIMALIZER_TEST_INT", "99")
+    assert web_app_module._env_int("MINIMALIZER_TEST_INT", 3, minimum=1, maximum=5) == 5
+
+    monkeypatch.setenv("MINIMALIZER_TEST_INT", "bad")
+    assert web_app_module._env_int("MINIMALIZER_TEST_INT", 3, minimum=1, maximum=5) == 3

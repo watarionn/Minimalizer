@@ -64,10 +64,24 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.3.0"; assert d["engine_version"] == "0.3.0"'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.4.0"; assert d["engine_version"] == "0.3.0"; assert d["max_concurrent_jobs"] == 2'
+
+          python - <<'PY'
+          import cv2
+          major = int(cv2.__version__.split('.', 1)[0])
+          assert major < 5, cv2.__version__
+          print(f"OpenCV {cv2.__version__}")
+          PY
+
           curl --fail --silent \
+            -D /tmp/minimalizer-headers.txt \
+            -o /tmp/minimalized.svg \
             -F 'file=@examples/input.webp;type=image/webp' \
-            -F 'level=5' \
+            -F 'level=4' \
             -F 'output_format=svg' \
-            http://127.0.0.1:8000/api/minimalize \
-            | grep -q '^<svg'
+            http://127.0.0.1:8000/api/minimalize
+
+          grep -qi '^x-request-id:' /tmp/minimalizer-headers.txt
+          grep -qi '^x-minimalizer-processing-ms:' /tmp/minimalizer-headers.txt
+          grep -qi '^x-minimalizer-source-format: WEBP' /tmp/minimalizer-headers.txt
+          grep -q '^<svg' /tmp/minimalized.svg

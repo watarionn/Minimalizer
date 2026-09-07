@@ -27,6 +27,6 @@ USER minimalizer
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:' + __import__('os').environ.get('PORT', '8000') + '/health', timeout=3).read()" || exit 1
+    CMD python -c "import os,urllib.request; p=os.environ.get('WEB_BIND_PORT') or os.environ.get('PORT','8000'); urllib.request.urlopen('http://127.0.0.1:' + p + '/health', timeout=3).read()" || exit 1
 
-CMD ["sh", "-c", "python -m uvicorn web.app:app --host 0.0.0.0 --port ${PORT} --workers ${WEB_WORKERS}"]
+CMD ["sh", "-c", "python -m uvicorn web.app:app --host 0.0.0.0 --port ${WEB_BIND_PORT:-${PORT:-8000}} --workers ${WEB_WORKERS:-1}"]
