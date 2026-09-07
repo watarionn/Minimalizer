@@ -5,6 +5,7 @@ from io import BytesIO
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
 
+import web.app as web_app_module
 from web.app import app
 
 client = TestClient(app)
@@ -17,6 +18,13 @@ def _sample_png() -> bytes:
     draw.ellipse((36, 12, 56, 32), fill=(210, 100, 80))
     buffer = BytesIO()
     image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _sample_gif() -> bytes:
+    image = Image.new("RGB", (16, 16), (120, 80, 50))
+    buffer = BytesIO()
+    image.save(buffer, format="GIF")
     return buffer.getvalue()
 
 
@@ -40,14 +48,17 @@ def test_phase2_static_assets_are_served():
     assert 'fetch("/api/minimalize"' in javascript.text
 
 
-def test_service_info_reports_web_and_engine_versions():
+def test_service_info_reports_web_engine_and_limits():
     response = client.get("/api/info")
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.2.0",
+        "web_version": "0.3.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
+        "max_upload_mb": 20,
+        "max_image_pixels": 64_000_000,
+        "max_concurrent_jobs": 2,
     }
 
 
@@ -55,6 +66,14 @@ def test_health_reports_engine_version():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "engine_version": "0.3.0"}
+
+
+def test_security_headers_are_present():
+    response = client.get("/api/info")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert response.headers["cache-control"] == "no-store"
 
 
 def test_minimalize_svg_upload():
@@ -71,6 +90,8 @@ def test_minimalize_svg_upload():
     assert int(response.headers["x-minimalizer-shape-count"]) >= 1
     assert "x" in response.headers["x-minimalizer-analysis-size"]
     assert response.headers["x-minimalizer-source-size"] == "64x48"
+    assert response.headers["x-minimalizer-validated-source-size"] == "64x48"
+    assert response.headers["x-minimalizer-source-format"] == "PNG"
 
 
 def test_minimalize_png_upload():
@@ -92,3 +113,31 @@ def test_rejects_non_image_upload():
         files={"file": ("notes.txt", b"not an image", "text/plain")},
     )
     assert response.status_code == 415
+
+
+def test_rejects_spoofed_image_content_type():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("fake.png", b"not actually an image", "image/png")},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Uploaded file is not a readable image."
+
+
+def test_rejects_unsupported_real_image_format():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.gif", _sample_gif(), "image/gif")},
+    )
+    assert response.status_code == 415
+    assert "Unsupported image format" in response.json()["detail"]
+
+
+def test_rejects_image_above_pixel_limit(monkeypatch):
+    monkeypatch.setattr(web_app_module, "MAX_IMAGE_PIXELS", 1_000)
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+    )
+    assert response.status_code == 413
+    assert "pixel limit" in response.json()["detail"]
