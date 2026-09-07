@@ -1,4 +1,5 @@
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 const elements = {
   dropZone: document.querySelector("#drop-zone"),
@@ -80,8 +81,8 @@ function setFile(file) {
     setStatus("画像サイズは20MB以下にしてください。", true);
     return;
   }
-  if (file.type && !file.type.startsWith("image/")) {
-    setStatus("画像ファイルを選択してください。", true);
+  if (!SUPPORTED_MIME_TYPES.has(file.type)) {
+    setStatus("PNG・JPEG・WebPの画像を選択してください。", true);
     return;
   }
 

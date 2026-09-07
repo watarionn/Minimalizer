@@ -8,17 +8,20 @@
 - `app/`: CLI/application entry points.
 - `gui/`: PySide desktop GUI surface.
 - `web/`: FastAPI Web service and Web Phase documentation.
-- `web/app.py`: FastAPI routes, browser UI mount, health/info endpoints, and upload API boundary.
+- `web/app.py`: FastAPI routes, browser UI mount, health/info endpoints, upload validation, concurrency guard, and API boundary.
 - `web/service.py`: adapter from Web requests to the stable Minimalizer engine and exporters.
-- `web/static/`: Phase 2 browser workspace HTML, CSS, and JavaScript.
+- `web/static/`: browser workspace HTML, CSS, and JavaScript.
 - `requirements-web.txt`: GUI-free Web runtime dependencies.
 - `requirements-web-test.txt`: Web API/browser-route test dependencies.
+- `Dockerfile`: provider-neutral production Web container running as a non-root user.
+- `.dockerignore`: production container context exclusions.
+- `docs/WEB_DEPLOYMENT.md`: Web runtime sizing, container contract, and dated hosting evaluation.
 - `tests/`: regression and behavior tests. The restored stable snapshot contains 39 `test_*.py` files; Web Phase adds its own integration coverage.
 - `tests/assets/corpus/`: original 16-image regression corpus. The legacy `corpus/manifest.json` is retained as historical metadata.
 - `tests/assets/corpus_manifest.json`: canonical 16-entry corpus metadata used by the stable tests.
 - `tools/`: corpus and character-quality evaluation utilities.
 - `examples/input.webp`: retained general source example; byte-identical to `tests/assets/corpus/Night-River-City_general.webp`.
-- `.github/workflows/ci.yml`: permanent GitHub Actions guard for stable smoke regressions and Web checks.
+- `.github/workflows/ci.yml`: permanent GitHub Actions guard for stable smoke regressions and Web checks, including superseded-run cancellation and a real-Uvicorn smoke request.
 - `RELEASE_NOTES_v0.3.0.md`: stable release notes.
 - `BUILD_INFO_v0.3.0.json`: stable build metadata.
 - `TEST_RESULTS_v0.3.0.json`: stable test metadata.
