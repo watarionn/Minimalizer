@@ -2,19 +2,26 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import BoundedSemaphore
 from typing import Annotated, Literal
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from PIL import Image, UnidentifiedImageError
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .service import build_config, minimalize_path
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 UPLOAD_CHUNK_BYTES = 1024 * 1024
+MAX_IMAGE_PIXELS = 64_000_000
+MAX_IMAGE_SIDE = 16_384
+MAX_CONCURRENT_JOBS = 2
+SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
+_PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 
 app = FastAPI(
     title="Minimalizer Web API",
@@ -22,6 +29,21 @@ app = FastAPI(
     description="Minimalizer v0.3.0 stable engine with a lightweight browser UI and web API.",
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=()",
+    )
+    if request.url.path.startswith("/api/") or request.url.path == "/health":
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
 
 
 def _engine_version() -> str:
@@ -38,12 +60,15 @@ def root() -> FileResponse:
 
 
 @app.get("/api/info")
-def service_info() -> dict[str, str]:
+def service_info() -> dict[str, str | int]:
     return {
         "service": "Minimalizer Web",
         "web_version": APP_VERSION,
         "engine_version": _engine_version(),
         "docs": "/docs",
+        "max_upload_mb": MAX_UPLOAD_BYTES // (1024 * 1024),
+        "max_image_pixels": MAX_IMAGE_PIXELS,
+        "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
     }
 
 
@@ -67,6 +92,40 @@ async def _save_upload(upload: UploadFile, destination: Path) -> int:
                 )
             out.write(chunk)
     return total
+
+
+def _validate_image_file(path: Path) -> tuple[int, int, str]:
+    try:
+        with Image.open(path) as image:
+            image_format = (image.format or "").upper()
+            width, height = image.size
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise HTTPException(status_code=400, detail="Uploaded file is not a readable image.") from exc
+
+    if image_format not in SUPPORTED_IMAGE_FORMATS:
+        allowed = ", ".join(sorted(SUPPORTED_IMAGE_FORMATS))
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported image format. Use one of: {allowed}.",
+        )
+    if width <= 0 or height <= 0:
+        raise HTTPException(status_code=400, detail="Image dimensions are invalid.")
+    if width > MAX_IMAGE_SIDE or height > MAX_IMAGE_SIDE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Image side exceeds {MAX_IMAGE_SIDE} pixel limit.",
+        )
+    if width * height > MAX_IMAGE_PIXELS:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Image exceeds {MAX_IMAGE_PIXELS:,} pixel limit.",
+        )
+    return width, height, image_format
+
+
+def _minimalize_with_slot(input_path: Path, config, output_format: str):
+    with _PROCESS_SLOTS:
+        return minimalize_path(input_path, config, output_format)
 
 
 @app.post("/api/minimalize")
@@ -95,15 +154,17 @@ async def minimalize_image(
             if size == 0:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
 
+            source_width, source_height, source_format = _validate_image_file(input_path)
+
             try:
                 result = await run_in_threadpool(
-                    minimalize_path,
+                    _minimalize_with_slot,
                     input_path,
                     config,
                     output_format,
                 )
             except (ValueError, OSError) as exc:
-                raise HTTPException(status_code=400, detail="Could not decode or minimalize the uploaded image.") from exc
+                raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
     finally:
         await file.close()
 
@@ -112,5 +173,7 @@ async def minimalize_image(
         "X-Minimalizer-Shape-Count": str(result.shape_count),
         "X-Minimalizer-Analysis-Size": result.analysis_size,
         "X-Minimalizer-Source-Size": result.source_size,
+        "X-Minimalizer-Validated-Source-Size": f"{source_width}x{source_height}",
+        "X-Minimalizer-Source-Format": source_format,
     }
     return Response(content=result.content, media_type=result.media_type, headers=headers)
