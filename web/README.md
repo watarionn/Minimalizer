@@ -4,7 +4,7 @@ Minimalizer Web exposes the existing Minimalizer v0.3.0 stable engine through Fa
 
 ## Current web phase
 
-**Web Phase 2** adds the first user-facing browser UI on top of the Phase 1 API.
+**Web Phase 3** hardens the Phase 2 browser experience for an initial hosted pilot without changing the stable engine algorithms.
 
 Included:
 
@@ -16,8 +16,19 @@ Included:
 - PNG download
 - responsive mobile layout
 - FastAPI Swagger UI retained at `/docs`
+- server-side actual-image validation with Pillow
+- accepted source formats limited to PNG, JPEG, and WebP
+- 20 MB upload limit
+- 64,000,000 pixel total-image limit
+- 16,384 pixel maximum side limit
+- two concurrent image-processing jobs per application process
+- immediate HTTP 429 + `Retry-After` when all processing slots are busy
+- basic security response headers and no-store API responses
+- generic production Docker image
+- CI cancellation for superseded PR runs
+- real-Uvicorn server smoke coverage in CI
 
-No account system, database, billing, or production deployment provider is introduced yet.
+No account system, database, billing, or persistent storage is required for the current product.
 
 ## Install
 
@@ -25,7 +36,7 @@ No account system, database, billing, or production deployment provider is intro
 python -m pip install -r requirements-web.txt
 ```
 
-## Run
+## Run locally
 
 ```bash
 python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
@@ -38,13 +49,24 @@ Open:
 - Health check: `http://127.0.0.1:8000/health`
 - Swagger UI: `http://127.0.0.1:8000/docs`
 
+## Run with Docker
+
+```bash
+docker build -t minimalizer-web .
+docker run --rm -p 8000:8000 minimalizer-web
+```
+
+The container reads `PORT` and `WEB_WORKERS`. Defaults are port `8000` and one Uvicorn worker.
+
+See `docs/WEB_DEPLOYMENT.md` for production sizing and hosting notes.
+
 ## Minimalize API
 
 `POST /api/minimalize` accepts `multipart/form-data`.
 
 Fields:
 
-- `file`: source image, required
+- `file`: PNG, JPEG, or WebP source image, required
 - `level`: abstraction level 1-5, default 4
 - `output_format`: `svg` or `png`, default `svg`
 - `colors`: optional palette color override, 2-32
@@ -55,18 +77,29 @@ Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/minimalize \
-  -F "file=@examples/input.webp" \
+  -F "file=@examples/input.webp;type=image/webp" \
   -F "level=4" \
   -F "output_format=svg" \
   --output minimalized.svg
 ```
 
-The response also includes shape count, analysis size, and source size in `X-Minimalizer-*` headers.
+The response includes shape count, analysis size, source size, validated source dimensions, and detected source format in `X-Minimalizer-*` headers.
 
-## Phase 2 design boundary
+If both processing slots are occupied, the service returns HTTP `429` with `Retry-After: 2` instead of starting unlimited CPU-heavy jobs.
 
-The browser UI deliberately keeps the primary flow simple: choose an image, minimalize, compare, download. Secondary controls stay inside the collapsed detail section so optional settings do not compete with the core product goal.
+## Production boundary
+
+The browser UI deliberately keeps the primary flow simple: choose an image, minimalize, compare, download. Production safeguards sit behind that flow and do not alter engine behavior.
+
+The current upload/pixel limits are Web-service safety limits. They do not redefine the capabilities of the desktop/CLI engine.
 
 ## Next web phase
 
-Web Phase 3 should focus on production-readiness around the browser experience: stronger upload validation, request limits/concurrency behavior, deployment packaging, and end-to-end browser verification before selecting a production hosting provider.
+Web Phase 4 should be the first hosted pilot:
+
+1. deploy the Docker image to the selected provider;
+2. verify the real public URL end to end;
+3. measure peak memory and request duration with representative images;
+4. test the 429 busy path under real concurrent requests;
+5. tune instance size and Web limits from measurements rather than guesses;
+6. only then decide whether accounts, job history, async queues, or billing are actually needed.
