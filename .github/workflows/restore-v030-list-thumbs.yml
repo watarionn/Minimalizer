@@ -1,0 +1,44 @@
+name: Restore v0.3.0 list thumbs
+
+on:
+  push:
+    branches:
+      - restore/v0.3.0-stable-source-20260907
+    paths:
+      - .restore-list-thumbs-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: restore/v0.3.0-stable-source-20260907
+          fetch-depth: 0
+      - name: Download and verify original list thumbs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tests/assets/corpus
+          curl -L --fail --retry 3 -o tests/assets/corpus/Oozora-Subaru_list_thumb.png https://hololive.hololivepro.com/wp-content/uploads/2020/06/Oozora-Subaru_list_thumb.png
+          echo "ceb8a9e86683d4dd4e5481fc391b29dc7ef9ecf160a1e9751a15fe9f340bec99  tests/assets/corpus/Oozora-Subaru_list_thumb.png" | sha256sum -c -
+          curl -L --fail --retry 3 -o tests/assets/corpus/Juufuutei-Raden_list_thumb.png https://hololive.hololivepro.com/wp-content/uploads/2023/09/Juufuutei-Raden_list_thumb.png
+          echo "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00  tests/assets/corpus/Juufuutei-Raden_list_thumb.png" | sha256sum -c -
+          curl -L --fail --retry 3 -o tests/assets/corpus/Shirogane-Noel_list_thumb.png https://hololive.hololivepro.com/wp-content/uploads/2020/06/Shirogane-Noel_list_thumb.png
+          echo "f0dceadc5af23eaa914d3fece271186aca428ce176d76bd91c05686b1f44ef26  tests/assets/corpus/Shirogane-Noel_list_thumb.png" | sha256sum -c -
+          curl -L --fail --retry 3 -o tests/assets/corpus/Omaru-Polka_list_thumb.png https://hololive.hololivepro.com/wp-content/uploads/2020/07/Omaru-Polka_list_thumb.png
+          echo "3afd428a781c2e5d730ce951286cac95ed83c1765b197c77659cbe2c009e6682  tests/assets/corpus/Omaru-Polka_list_thumb.png" | sha256sum -c -
+      - name: Commit verified list thumbs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/assets/corpus
+          git rm .github/workflows/restore-v030-list-thumbs.yml
+          git rm -f .restore-list-thumbs-trigger || true
+          git commit -m "restore: add verified original v0.3.0 list thumbs"
+          git push origin HEAD:restore/v0.3.0-stable-source-20260907
