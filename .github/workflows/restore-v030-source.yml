@@ -1,0 +1,72 @@
+name: Restore v0.3.0 stable source
+
+on:
+  push:
+    branches:
+      - restore/v0.3.0-stable-source-20260907
+    paths:
+      - .bootstrap/RESTORE_PAYLOAD_READY
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Rebuild and verify canonical source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat \
+            .bootstrap/source-v030-final/part00 \
+            .bootstrap/source-v030-final/part01 \
+            .bootstrap/source-v030-final/fix/part02_0 \
+            .bootstrap/source-v030-final/fix/part02_1 \
+            .bootstrap/source-v030-final/fix/part02_2 \
+            .bootstrap/source-v030-final/fix/part02_3 \
+            .bootstrap/source-v030-final/part03 \
+            .bootstrap/source-v030-final/part04 \
+            .bootstrap/source-v030-final/part05 \
+            .bootstrap/source-v030-final/part06 \
+            .bootstrap/source-v030-final/part07 \
+            .bootstrap/source-v030-final/fix/part08_0 \
+            .bootstrap/source-v030-final/fix/part08_1 \
+            .bootstrap/source-v030-final/fix/part08_2 \
+            .bootstrap/source-v030-final/fix/part08_3 \
+            .bootstrap/source-v030-final/part09 \
+            .bootstrap/source-v030-final/part10 \
+            .bootstrap/source-v030-final/fix/part11_0 \
+            .bootstrap/source-v030-final/fix/part11_1 \
+            .bootstrap/source-v030-final/fix/part11_2 \
+            .bootstrap/source-v030-final/fix/part11_3 \
+            .bootstrap/source-v030-final/fix/part12_0 \
+            .bootstrap/source-v030-final/fix/part12_1 \
+            .bootstrap/source-v030-final/fix/part12_2 \
+            > /tmp/v030_source.b64
+
+          test "$(wc -c < /tmp/v030_source.b64)" -eq 202188
+          base64 --decode /tmp/v030_source.b64 > /tmp/v030_source_final.tar.xz
+          echo "83df8a0ad5b85957ce1958b65f39c9418a4b8f90e173cc6d4f424ef70269791d  /tmp/v030_source_final.tar.xz" | sha256sum -c -
+
+          tar -xJf /tmp/v030_source_final.tar.xz -C .
+          test "$(find minimalize_engine app gui tests tools -type f | wc -l)" -eq 154
+          test "$(find tests -maxdepth 1 -name 'test_*.py' -type f | wc -l)" -eq 39
+          python -m compileall -q minimalize_engine app gui tests tools
+
+      - name: Commit restored source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .bootstrap
+          rm -f .github/workflows/restore-v030-source.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "restore: expand Minimalizer v0.3.0 stable source"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
