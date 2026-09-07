@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 
 import web.app as web_app_module
 from web.app import app
+from web.service import build_config
 
 client = TestClient(app)
 
@@ -45,6 +46,7 @@ def test_phase2_static_assets_are_served():
     assert css.status_code == 200
     assert javascript.status_code == 200
     assert ".drop-zone" in css.text
+    assert "[hidden] { display: none !important; }" in css.text
     assert 'fetch("/api/minimalize"' in javascript.text
 
 
@@ -53,12 +55,13 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.4.0",
+        "web_version": "0.4.1",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
         "max_image_pixels": 64_000_000,
         "max_image_side": 16_384,
+        "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
     }
 
@@ -79,6 +82,25 @@ def test_security_and_request_metadata_headers_are_present():
     assert response.headers["server-timing"].startswith("app;dur=")
 
 
+def test_web_analysis_cap_preserves_level_detail_controls():
+    detailed = build_config(1, analysis_max_side_cap=640)
+    medium = build_config(3, analysis_max_side_cap=640)
+    abstract = build_config(5, analysis_max_side_cap=640)
+
+    assert detailed.analysis_max_side == 640
+    assert detailed.palette_colors == 16
+    assert detailed.target_max_shapes == 180
+    assert detailed.line_mode == "standard"
+
+    assert medium.analysis_max_side == 640
+    assert medium.palette_colors == 8
+    assert medium.target_max_shapes == 80
+
+    assert abstract.analysis_max_side == 512
+    assert abstract.palette_colors == 4
+    assert abstract.target_max_shapes == 30
+
+
 def test_minimalize_svg_upload():
     response = client.post(
         "/api/minimalize",
@@ -90,6 +112,8 @@ def test_minimalize_svg_upload():
     assert response.headers["content-type"].startswith("image/svg+xml")
     assert response.content.startswith(b"<svg")
     assert response.headers["content-disposition"] == 'attachment; filename="minimalized.svg"'
+    assert response.headers["x-minimalizer-level"] == "5"
+    assert response.headers["x-minimalizer-configured-analysis-max-side"] == "512"
     assert int(response.headers["x-minimalizer-shape-count"]) >= 1
     assert "x" in response.headers["x-minimalizer-analysis-size"]
     assert response.headers["x-minimalizer-source-size"] == "64x48"
@@ -97,6 +121,18 @@ def test_minimalize_svg_upload():
     assert response.headers["x-minimalizer-source-format"] == "PNG"
     assert float(response.headers["x-minimalizer-processing-ms"]) >= 0.0
     assert len(response.headers["x-request-id"]) == 32
+
+
+def test_minimalize_level_one_uses_hosted_analysis_cap():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"level": "1", "output_format": "svg"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-level"] == "1"
+    assert response.headers["x-minimalizer-configured-analysis-max-side"] == "640"
 
 
 def test_minimalize_png_upload():
