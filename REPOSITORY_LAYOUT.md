@@ -3,16 +3,19 @@
 - `CURRENT.md`: canonical current-version pointer. Read first when restoring the project.
 - `HANDOFF.md`: current implementation state, invariants, validation, and next actions.
 - `RESTORE.md`: restoration rules and source-of-truth guidance.
-- `VERSION`: machine-readable stable version.
+- `VERSION`: machine-readable stable engine version.
 - `minimalize_engine/`: core processing engine.
 - `app/`: CLI/application entry points.
-- `gui/`: PySide GUI surface.
-- `tests/`: regression and behavior tests. The restored stable snapshot contains 39 `test_*.py` files.
+- `gui/`: PySide desktop GUI surface.
+- `web/`: FastAPI web-service adapter and Web Phase documentation.
+- `requirements-web.txt`: GUI-free Web runtime dependencies.
+- `requirements-web-test.txt`: Web API test dependencies.
+- `tests/`: regression and behavior tests. The restored stable snapshot contains 39 `test_*.py` files; Web Phase adds its own integration coverage.
 - `tests/assets/corpus/`: original 16-image regression corpus. The legacy `corpus/manifest.json` is retained as historical metadata.
 - `tests/assets/corpus_manifest.json`: canonical 16-entry corpus metadata used by the stable tests.
 - `tools/`: corpus and character-quality evaluation utilities.
 - `examples/input.webp`: retained general source example; byte-identical to `tests/assets/corpus/Night-River-City_general.webp`.
-- `.github/workflows/ci.yml`: lightweight permanent GitHub Actions regression guard.
+- `.github/workflows/ci.yml`: permanent GitHub Actions guard for stable smoke regressions and Web API checks.
 - `RELEASE_NOTES_v0.3.0.md`: stable release notes.
 - `BUILD_INFO_v0.3.0.json`: stable build metadata.
 - `TEST_RESULTS_v0.3.0.json`: stable test metadata.
