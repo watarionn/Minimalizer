@@ -5,11 +5,12 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
-from minimalize_engine import MinimalizeConfig, minimalize
+from minimalize_engine import MinimalizeConfig, minimalize, minimalize_rinka_reference, rinka_reference_config
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
 
 OutputFormat = Literal["svg", "png"]
+ProcessingMode = Literal["standard", "rinka_reference"]
 
 
 @dataclass(frozen=True)
@@ -44,13 +45,7 @@ def build_config(
     return config
 
 
-def minimalize_path(
-    input_path: str | Path,
-    config: MinimalizeConfig,
-    output_format: OutputFormat = "svg",
-) -> RenderedResult:
-    scene = minimalize(input_path, config)
-
+def _render_result(scene, output_format: OutputFormat) -> RenderedResult:
     if output_format == "svg":
         content = scene_to_svg(scene).encode("utf-8")
         media_type = "image/svg+xml"
@@ -72,3 +67,33 @@ def minimalize_path(
         analysis_size=f"{scene.width}x{scene.height}",
         source_size=f"{scene.metadata.get('source_width', scene.width)}x{scene.metadata.get('source_height', scene.height)}",
     )
+
+
+def minimalize_path(
+    input_path: str | Path,
+    config: MinimalizeConfig,
+    output_format: OutputFormat = "svg",
+) -> RenderedResult:
+    return _render_result(minimalize(input_path, config), output_format)
+
+
+def build_rinka_config(*, analysis_max_side_cap: int | None = None) -> MinimalizeConfig:
+    config = rinka_reference_config(4)
+    if analysis_max_side_cap is not None and config.analysis_max_side > analysis_max_side_cap:
+        config = config.with_overrides(analysis_max_side=analysis_max_side_cap)
+    return config
+
+
+def minimalize_rinka_path(
+    input_path: str | Path,
+    output_format: OutputFormat = "svg",
+    *,
+    analysis_max_side_cap: int | None = None,
+) -> RenderedResult:
+    config = build_rinka_config(analysis_max_side_cap=analysis_max_side_cap)
+    scene = minimalize_rinka_reference(
+        input_path,
+        level=4,
+        analysis_max_side=config.analysis_max_side,
+    )
+    return _render_result(scene, output_format)

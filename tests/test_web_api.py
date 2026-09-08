@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw
 
 import web.app as web_app_module
 from web.app import app
-from web.service import build_config
+from web.service import build_config, build_rinka_config
 
 client = TestClient(app)
 
@@ -38,6 +38,9 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="result-preview"' in response.text
     assert 'id="download-svg"' in response.text
     assert 'id="download-png"' in response.text
+    assert 'name="mode" value="standard" checked' in response.text
+    assert 'name="mode" value="rinka_reference"' in response.text
+    assert 'id="mode-description"' in response.text
 
 
 def test_phase2_static_assets_are_served():
@@ -48,6 +51,8 @@ def test_phase2_static_assets_are_served():
     assert ".drop-zone" in css.text
     assert "[hidden] { display: none !important; }" in css.text
     assert 'fetch("/api/minimalize"' in javascript.text
+    assert 'form.append("mode", mode)' in javascript.text
+    assert ".mode-switch" in css.text
 
 
 def test_service_info_reports_web_engine_and_limits():
@@ -55,7 +60,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.4.1",
+        "web_version": "0.5.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -63,6 +68,8 @@ def test_service_info_reports_web_engine_and_limits():
         "max_image_side": 16_384,
         "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
+        "supported_modes": ["standard", "rinka_reference"],
+        "rinka_reference_version": "phase6",
     }
 
 
@@ -101,6 +108,41 @@ def test_web_analysis_cap_preserves_level_detail_controls():
     assert abstract.target_max_shapes == 30
 
 
+def test_rinka_config_is_frozen_and_respects_hosted_analysis_cap():
+    config = build_rinka_config(analysis_max_side_cap=400)
+    assert config.analysis_max_side == 400
+    assert config.palette_colors == 6
+    assert config.target_max_shapes == 28
+    assert config.line_mode == "none"
+    assert config.enable_face_primitives is False
+
+
+def test_rinka_reference_svg_upload_uses_frozen_web_mode():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"mode": "rinka_reference", "level": "4", "output_format": "svg"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("image/svg+xml")
+    assert response.content.startswith(b"<svg")
+    assert response.headers["x-minimalizer-mode"] == "rinka_reference"
+    assert response.headers["x-minimalizer-level"] == "4"
+    assert response.headers["x-minimalizer-configured-analysis-max-side"] == "640"
+    assert int(response.headers["x-minimalizer-shape-count"]) >= 1
+
+
+def test_rinka_reference_rejects_custom_detail_settings():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"mode": "rinka_reference", "level": "5", "output_format": "svg"},
+    )
+    assert response.status_code == 400
+    assert "frozen level-4 profile" in response.json()["detail"]
+
+
 def test_minimalize_svg_upload():
     response = client.post(
         "/api/minimalize",
@@ -112,6 +154,7 @@ def test_minimalize_svg_upload():
     assert response.headers["content-type"].startswith("image/svg+xml")
     assert response.content.startswith(b"<svg")
     assert response.headers["content-disposition"] == 'attachment; filename="minimalized.svg"'
+    assert response.headers["x-minimalizer-mode"] == "standard"
     assert response.headers["x-minimalizer-level"] == "5"
     assert response.headers["x-minimalizer-configured-analysis-max-side"] == "512"
     assert int(response.headers["x-minimalizer-shape-count"]) >= 1

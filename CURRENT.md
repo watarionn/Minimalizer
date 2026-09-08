@@ -1,7 +1,8 @@
 # Minimalizer CURRENT
 
 Current engine release: **v0.3.0 stable**
-Current Web runtime: **v0.4.1 production-verified**
+Current production Web runtime: **v0.4.1 production-verified**
+Current Web integration candidate: **v0.5.0 Rinka Reference mode** on `feature/rinka-web-ui-mode-20260909`
 
 This file is the canonical restoration pointer.
 

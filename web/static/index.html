@@ -82,6 +82,23 @@
     </section>
 
     <section class="control-card" aria-label="変換設定">
+      <div class="mode-row">
+        <div class="mode-copy">
+          <span class="control-label">変換モード</span>
+          <p id="mode-description">通常のMinimalizer。ミニマル度や詳細設定を調整できます。</p>
+        </div>
+        <div class="mode-switch" role="radiogroup" aria-label="変換モード" aria-describedby="mode-description">
+          <label class="mode-option">
+            <input type="radio" name="mode" value="standard" checked>
+            <span>通常</span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="mode" value="rinka_reference">
+            <span>凛夏手本版</span>
+          </label>
+        </div>
+      </div>
+
       <div class="primary-controls">
         <label class="field compact-field">
           <span>ミニマル度</span>
@@ -99,7 +116,7 @@
         </button>
       </div>
 
-      <details class="advanced-controls">
+      <details class="advanced-controls" id="advanced-controls">
         <summary>詳細設定</summary>
         <div class="advanced-grid">
           <label class="field">
