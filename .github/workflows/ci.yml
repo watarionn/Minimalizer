@@ -139,6 +139,12 @@ jobs:
           assert summary['total_target_gesture_anchored_simplifications'] == 1, summary
           assert summary['total_target_gesture_hand_anchors'] >= 10, summary
           assert summary['mean_vertex_reduction_ratio'] >= 0.304, summary
+          assert summary['total_target_cap_removed'] == 0, summary
+          assert summary['total_target_macro_shadow_would_remove'] == 1, summary
+          assert summary['total_target_macro_shadow_would_remove_background'] == 1, summary
+          assert summary['total_target_macro_shadow_would_remove_subject'] == 0, summary
+          assert summary['total_target_macro_shadow_inside_subject_bbox'] == 1, summary
+          assert summary['macro_shadow_blocked_count'] == 1, summary
           assert summary['total_opaque_zone_shapes'] >= 1, summary
           assert summary['total_opaque_head_shapes'] >= 1, summary
           assert summary['total_opaque_torso_shapes'] >= 1, summary
