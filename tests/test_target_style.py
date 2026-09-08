@@ -4,6 +4,7 @@ import numpy as np
 
 from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones, estimate_structure_subject_zones
 from minimalize_engine.target_style import (
+    _abstract_gesture_shapes,
     _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -485,3 +486,77 @@ def test_phase5_does_not_merge_outfit_detail_when_hull_would_overfill():
 
     assert out.metadata["target_style"]["outfit_layer_merges"] == 0
     assert {shape.id for shape in out.shapes} == {1, 2}
+
+
+
+def _phase5_gesture_arm(side: str = "left") -> Shape:
+    return Shape(
+        id=901,
+        shape_type="polygon",
+        fill_color=(180, 120, 140),
+        points=[
+            (20, 40), (28, 38), (36, 39), (44, 42),
+            (45, 46), (36, 45), (28, 44), (20, 43),
+        ],
+        importance=0.99,
+        source_role="character_limb_base",
+        layer_name="character_body_base",
+        semantic_type=f"character_{side}_arm",
+        character_part=f"{side}_arm",
+        side_hint=side,
+    )
+
+
+def _phase5_gesture_hand(side: str = "left") -> Shape:
+    return Shape(
+        id=902,
+        shape_type="polygon",
+        fill_color=(245, 235, 225),
+        points=[(16, 38), (21, 39), (22, 43), (18, 46), (14, 43)],
+        importance=0.985,
+        source_role="character_hand_base",
+        layer_name="character_body_detail",
+        semantic_type="character_hand_open",
+        character_part=f"{side}_hand",
+        side_hint=side,
+    )
+
+
+def test_phase5_gesture_abstraction_simplifies_arm_but_keeps_hand_anchor_exact():
+    arm = _phase5_gesture_arm("left")
+    hand = _phase5_gesture_hand("left")
+    original_hand_points = list(hand.points)
+
+    out, stats = _abstract_gesture_shapes([arm, hand], 220.0)
+    by_id = {shape.id: shape for shape in out}
+
+    assert len(by_id[arm.id].points) < len(arm.points)
+    assert by_id[arm.id].side_hint == "left"
+    assert by_id[arm.id].character_part == "left_arm"
+    assert by_id[hand.id].points == original_hand_points
+    assert stats["simplified_shapes"] == 1
+    assert stats["vertices_removed"] == 3
+    assert stats["anchored_simplifications"] == 1
+
+
+def test_phase5_gesture_abstraction_does_not_simplify_hand_polygon_itself():
+    hand = _phase5_gesture_hand("left")
+    original_points = list(hand.points)
+
+    out, stats = _abstract_gesture_shapes([hand], 220.0)
+
+    assert out[0].points == original_points
+    assert stats["simplified_shapes"] == 0
+    assert stats["vertices_removed"] == 0
+
+
+def test_phase5_gesture_abstraction_never_uses_opposite_side_hand_as_anchor():
+    arm = _phase5_gesture_arm("left")
+    hand = _phase5_gesture_hand("right")
+
+    out, stats = _abstract_gesture_shapes([arm, hand], 220.0)
+
+    assert len(out[0].points) < len(arm.points)
+    assert out[0].side_hint == "left"
+    assert out[1].side_hint == "right"
+    assert stats["anchored_simplifications"] == 0

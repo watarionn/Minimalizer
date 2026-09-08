@@ -968,6 +968,159 @@ def _consolidate_outfit_layers(shapes: list[Shape], min_side: float) -> tuple[li
     return out, merged_count
 
 
+
+def _gesture_carrier_kind(shape: Shape) -> str | None:
+    part = (shape.character_part or "unknown").lower()
+    role = (shape.source_role or "").lower()
+    semantic = (shape.semantic_type or "").lower()
+    if part in {"left_hand", "right_hand"} or "character_hand" in role:
+        return "hand"
+    if part in {"left_arm", "right_arm"}:
+        return "arm"
+    if "character_limb_base" in role and "arm" in semantic:
+        return "arm"
+    if "opaque_zone:arm:" in role or semantic.startswith("target_zone_arm_"):
+        return "opaque_arm"
+    return None
+
+
+def _polygon_raster_iou(a: np.ndarray, b: np.ndarray) -> float:
+    if len(a) < 3 or len(b) < 3:
+        return 0.0
+    pts = np.vstack([a, b])
+    x0 = int(np.floor(pts[:, 0].min()))
+    y0 = int(np.floor(pts[:, 1].min()))
+    x1 = int(np.ceil(pts[:, 0].max())) + 1
+    y1 = int(np.ceil(pts[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    offset = np.asarray([x0, y0], dtype=np.float32)
+    ma = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    mb = np.zeros_like(ma)
+    cv2.fillPoly(ma, [np.round(a - offset).astype(np.int32)], 1)
+    cv2.fillPoly(mb, [np.round(b - offset).astype(np.int32)], 1)
+    union = int(np.logical_or(ma, mb).sum())
+    if union <= 0:
+        return 0.0
+    return float(np.logical_and(ma, mb).sum()) / float(union)
+
+
+def _polygon_major_axis_angle(points: np.ndarray) -> float:
+    (_cx, _cy), (w, h), angle = cv2.minAreaRect(points.astype(np.float32))
+    if w < h:
+        angle += 90.0
+    return float(angle % 180.0)
+
+
+def _axis_angle_distance(a: float, b: float) -> float:
+    delta = abs(a - b) % 180.0
+    return min(delta, 180.0 - delta)
+
+
+def _polygon_centroid(points: np.ndarray) -> np.ndarray:
+    moments = cv2.moments(points.astype(np.float32))
+    if abs(float(moments["m00"])) <= 1e-6:
+        return points.mean(axis=0)
+    return np.asarray(
+        [moments["m10"] / moments["m00"], moments["m01"] / moments["m00"]],
+        dtype=np.float32,
+    )
+
+
+def _gesture_hand_anchors(shapes: list[Shape]) -> dict[str, Shape]:
+    anchors: dict[str, Shape] = {}
+    for shape in shapes:
+        if _gesture_carrier_kind(shape) != "hand":
+            continue
+        side = (shape.side_hint or "unknown").lower()
+        if side not in {"left", "right"}:
+            continue
+        current = anchors.get(side)
+        if current is None or (_shape_metrics(shape)[0], shape.importance) > (_shape_metrics(current)[0], current.importance):
+            anchors[side] = shape
+    return anchors
+
+
+def _simplify_gesture_arm(
+    shape: Shape,
+    *,
+    min_side: float,
+    hand_anchor: Shape | None,
+) -> tuple[Shape, int, bool]:
+    kind = _gesture_carrier_kind(shape)
+    if kind not in {"arm", "opaque_arm"} or shape.shape_type != "polygon":
+        return shape, 0, False
+    points = _shape_polygon_points(shape)
+    if points is None or len(points) <= 4:
+        return shape, 0, False
+    contour = points.astype(np.float32).reshape(-1, 1, 2)
+    perimeter = float(cv2.arcLength(contour, True))
+    if perimeter <= 1e-6:
+        return shape, 0, False
+    iou_limit = 0.955 if kind == "opaque_arm" else 0.950
+    original_axis = _polygon_major_axis_angle(points)
+    original_centroid = _polygon_centroid(points)
+    original_anchor_gap = None
+    if hand_anchor is not None:
+        original_anchor_gap = _bbox_distance(_shape_bbox(shape), _shape_bbox(hand_anchor))
+    best: tuple[int, float, np.ndarray] | None = None
+    for epsilon_ratio in (0.070, 0.060, 0.050, 0.040, 0.030, 0.025, 0.020, 0.015):
+        candidate = cv2.approxPolyDP(contour, perimeter * epsilon_ratio, True).reshape(-1, 2)
+        if len(candidate) < 4 or len(candidate) >= len(points):
+            continue
+        raster_iou = _polygon_raster_iou(points, candidate)
+        if raster_iou < iou_limit:
+            continue
+        if _axis_angle_distance(original_axis, _polygon_major_axis_angle(candidate)) > 8.0:
+            continue
+        centroid_shift = float(np.linalg.norm(original_centroid - _polygon_centroid(candidate)))
+        if centroid_shift > max(1.0, min_side * 0.010):
+            continue
+        if hand_anchor is not None and original_anchor_gap is not None:
+            candidate_shape = replace(shape, points=[(float(x), float(y)) for x, y in candidate])
+            candidate_gap = _bbox_distance(_shape_bbox(candidate_shape), _shape_bbox(hand_anchor))
+            allowed_gap = original_anchor_gap + max(0.75, min_side * 0.004)
+            if candidate_gap > allowed_gap:
+                continue
+            if original_anchor_gap <= 1.0 and candidate_gap > 1.0:
+                continue
+        ranking = (len(candidate), -raster_iou)
+        if best is None or ranking < (best[0], -best[1]):
+            best = (len(candidate), raster_iou, candidate.copy())
+    if best is None:
+        return shape, 0, False
+    candidate = best[2]
+    removed = len(points) - len(candidate)
+    return replace(shape, points=[(float(x), float(y)) for x, y in candidate]), removed, hand_anchor is not None
+
+
+def _abstract_gesture_shapes(shapes: list[Shape], min_side: float) -> tuple[list[Shape], dict]:
+    anchors = _gesture_hand_anchors(shapes)
+    out: list[Shape] = []
+    simplified_shapes = 0
+    vertices_removed = 0
+    anchored_simplifications = 0
+    for shape in shapes:
+        side = (shape.side_hint or "unknown").lower()
+        anchor = anchors.get(side) if side in {"left", "right"} else None
+        simplified, removed, anchored = _simplify_gesture_arm(
+            shape,
+            min_side=min_side,
+            hand_anchor=anchor,
+        )
+        out.append(simplified)
+        if removed > 0:
+            simplified_shapes += 1
+            vertices_removed += removed
+            anchored_simplifications += int(anchored)
+    return out, {
+        "simplified_shapes": simplified_shapes,
+        "vertices_removed": vertices_removed,
+        "anchored_simplifications": anchored_simplifications,
+        "hand_anchors": len(anchors),
+    }
+
+
 def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     background = [
@@ -1116,7 +1269,8 @@ def apply_rinka_reference_style(
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
     outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
-    compressed, background_removed = _compress_background(scene, outfit_consolidated)
+    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_consolidated, min_side)
+    compressed, background_removed = _compress_background(scene, gesture_abstracted)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
     capped, cap_removed = _final_shape_cap(scene, straight, target_max_shapes)
 
@@ -1143,6 +1297,7 @@ def apply_rinka_reference_style(
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
+        "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,
         "cap_removed": cap_removed,
         "cleanup": report.to_dict(),
