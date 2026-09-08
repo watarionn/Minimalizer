@@ -133,6 +133,9 @@ jobs:
           assert summary['total_opaque_zone_shapes'] >= 1, summary
           assert summary['total_opaque_head_shapes'] >= 1, summary
           assert summary['total_opaque_torso_shapes'] >= 1, summary
+          assert summary['opaque_face_reference_count'] >= 1, summary
+          assert summary['total_opaque_inferred_hair_shapes'] >= 1, summary
+          assert summary['total_opaque_inferred_clothing_shapes'] >= 1, summary
           print('Phase 4 safety guard passed')
           PY
 
