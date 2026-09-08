@@ -2,7 +2,7 @@ from minimalize_engine.analysis.shape_cleanup import cleanup_minimal_shapes
 from minimalize_engine.models import Scene, Shape
 import numpy as np
 
-from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones
+from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones, estimate_structure_subject_zones
 from minimalize_engine.target_style import (
     _merge_mass_pair,
     apply_rinka_reference_style,
@@ -320,7 +320,8 @@ def test_phase4_opaque_zones_are_recorded_and_can_suppress_head_micro_fragment()
     assert meta["enabled"] is True
     assert meta["head_shapes"] >= 1
     assert meta["torso_shapes"] >= 1
-    assert 2 not in [shape.id for shape in out.shapes]
+    fragment = next((shape for shape in out.shapes if shape.id == 2), None)
+    assert fragment is None or fragment.semantic_type == "target_zone_head_fragment"
     assert out.metadata["target_style"]["face_fragments_removed"] >= 1
 
 
@@ -401,3 +402,33 @@ def test_phase4_arm_mass_merge_preserves_left_right_sides():
     assert _merge_mass_pair(left, right, 120.0) is None
     right.side_hint = "left"
     assert _merge_mass_pair(left, right, 120.0) is not None
+
+
+def test_phase4_structure_bridge_keeps_character_base_and_relaxes_generic_head_fragment():
+    parts = [
+        {"part_type": "subject", "bbox": [20, 5, 80, 130], "confidence": 1.0},
+        {"part_type": "head", "bbox": [42, 20, 38, 42], "confidence": 0.76},
+        {"part_type": "face", "bbox": [50, 31, 20, 20], "confidence": 0.78},
+        {"part_type": "hair", "bbox": [36, 18, 50, 55], "confidence": 0.68},
+        {"part_type": "torso", "bbox": [43, 58, 36, 34], "confidence": 0.72},
+        {"part_type": "outfit", "bbox": [38, 58, 46, 55], "confidence": 0.77},
+        {"part_type": "left_arm", "bbox": [24, 56, 16, 42], "confidence": 0.56},
+        {"part_type": "right_arm", "bbox": [82, 56, 16, 42], "confidence": 0.56},
+        {"part_type": "left_leg", "bbox": [42, 94, 18, 40], "confidence": 0.60},
+        {"part_type": "right_leg", "bbox": [62, 94, 18, 40], "confidence": 0.60},
+    ]
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": parts}}}
+    hair_base = _rect(1, 38, 20, 45, 34, importance=0.95, semantic="character_hair", part="hair", role="character_hair_base", layer="character_hair_base", fill_color=(55, 48, 58))
+    face_fragment = _rect(2, 55, 37, 3, 3, importance=0.45, semantic="subject_detail", part="head", role="misc", layer="midground", fill_color=(80, 70, 70))
+    torso = _rect(3, 46, 62, 30, 28, importance=0.98, semantic="character_torso", part="torso", role="character_torso_base", layer="character_body_base", fill_color=(80, 90, 110))
+    scene = Scene(120, 140, (245, 245, 240), [hair_base, face_fragment, torso], metadata)
+    zones = estimate_structure_subject_zones(scene)
+
+    out = apply_rinka_reference_style(scene, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["enabled"] is True
+    assert meta["zone_source"] == "character_structure"
+    assert 1 in [shape.id for shape in out.shapes]
+    fragment = next((shape for shape in out.shapes if shape.id == 2), None)
+    assert fragment is None or fragment.semantic_type == "target_zone_head_fragment"

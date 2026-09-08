@@ -214,6 +214,104 @@ class OpaqueSubjectZones:
         }
 
 
+
+def estimate_structure_subject_zones(scene: Scene) -> OpaqueSubjectZones:
+    """Build conservative part zones from existing Character Structure metadata.
+
+    This path is only for alpha/subject-mode scenes where Minimalizer has already
+    produced character structure. It reuses that analysis instead of attempting a
+    second opaque-subject guess.
+    """
+    if not bool(scene.metadata.get("subject_mode")):
+        return OpaqueSubjectZones(False, reason="not_subject_mode")
+    structure = scene.metadata.get("character", {}).get("structure", {})
+    parts = structure.get("parts", []) if isinstance(structure, dict) else []
+    if not isinstance(parts, list) or not parts:
+        return OpaqueSubjectZones(False, reason="no_character_structure")
+
+    best: dict[str, dict] = {}
+    thresholds = {
+        "subject": 0.80,
+        "head": 0.55,
+        "face": 0.45,
+        "hair": 0.55,
+        "torso": 0.60,
+        "outfit": 0.55,
+        "left_arm": 0.45,
+        "right_arm": 0.45,
+        "left_leg": 0.50,
+        "right_leg": 0.50,
+    }
+    for part in parts:
+        kind = str(part.get("part_type", ""))
+        if kind not in thresholds or len(part.get("bbox", [])) != 4:
+            continue
+        confidence = float(part.get("confidence", 0.0) or 0.0)
+        if confidence < thresholds[kind]:
+            continue
+        if kind not in best or confidence > float(best[kind].get("confidence", 0.0) or 0.0):
+            best[kind] = part
+    if "hair" not in best or ("torso" not in best and "outfit" not in best):
+        return OpaqueSubjectZones(False, reason="structure_gate")
+
+    h, w = scene.height, scene.width
+    def rect_mask(part: dict | None, *, expand: float = 0.0) -> np.ndarray:
+        out = np.zeros((h, w), dtype=np.uint8)
+        if part is None:
+            return out
+        x, y, bw, bh = [float(v) for v in part["bbox"]]
+        dx, dy = bw * expand, bh * expand
+        x0 = max(0, int(np.floor(x - dx)))
+        y0 = max(0, int(np.floor(y - dy)))
+        x1 = min(w, int(np.ceil(x + bw + dx)))
+        y1 = min(h, int(np.ceil(y + bh + dy)))
+        if x1 > x0 and y1 > y0:
+            out[y0:y1, x0:x1] = 1
+        return out
+
+    face = rect_mask(best.get("face"), expand=0.08)
+    if not np.any(face) and "head" in best:
+        hx, hy, hw, hh = [float(v) for v in best["head"]["bbox"]]
+        synthetic = {"bbox": [hx + hw * 0.18, hy + hh * 0.18, hw * 0.64, hh * 0.68]}
+        face = rect_mask(synthetic)
+    hair = rect_mask(best.get("hair"))
+    if np.any(face):
+        hair = np.where(face > 0, 0, hair).astype(np.uint8)
+
+    zones: dict[str, np.ndarray] = {}
+    # Ordered from more semantic/specific to broader body regions. Ties in
+    # dominant overlap therefore favor hair/clothing over generic body zones.
+    candidates = [
+        ("hair", hair),
+        ("clothing", rect_mask(best.get("outfit"))),
+        ("head", face if np.any(face) else rect_mask(best.get("head"))),
+        ("torso", rect_mask(best.get("torso"))),
+        ("left_arm", rect_mask(best.get("left_arm"))),
+        ("right_arm", rect_mask(best.get("right_arm"))),
+        ("left_leg", rect_mask(best.get("left_leg"))),
+        ("right_leg", rect_mask(best.get("right_leg"))),
+    ]
+    for name, mask in candidates:
+        if np.any(mask):
+            zones[name] = mask
+    if "head" not in zones or not any(name in zones for name in ("torso", "clothing")):
+        return OpaqueSubjectZones(False, reason="structure_zone_gate")
+
+    subject_part = best.get("subject")
+    if subject_part is not None:
+        x, y, bw, bh = [float(v) for v in subject_part["bbox"]]
+        bbox = (
+            max(0, int(np.floor(x))), max(0, int(np.floor(y))),
+            min(w, int(np.ceil(x + bw))), min(h, int(np.ceil(y + bh))),
+        )
+    else:
+        union = np.logical_or.reduce([m > 0 for m in zones.values()])
+        ys, xs = np.where(union)
+        bbox = (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+    confidences = [float(part.get("confidence", 0.0) or 0.0) for part in best.values()]
+    confidence = float(np.mean(confidences)) if confidences else 0.0
+    return OpaqueSubjectZones(True, confidence=confidence, bbox=bbox, reason="character_structure", zone_masks=zones)
+
 def estimate_opaque_subject_zones(
     hierarchy: OpaqueSubjectHierarchy,
     scene: Scene,

@@ -6,6 +6,7 @@ from minimalize_engine.target_hierarchy import (
     dominant_shape_zone,
     estimate_opaque_subject_hierarchy,
     estimate_opaque_subject_zones,
+    estimate_structure_subject_zones,
     shape_subject_overlap,
 )
 
@@ -109,3 +110,30 @@ def test_phase4_zone_assignment_distinguishes_head_torso_and_arm():
     assert dominant_shape_zone(head, zones) == "head"
     assert dominant_shape_zone(torso, zones) == "torso"
     assert dominant_shape_zone(arm, zones) == "left_arm"
+
+
+def test_phase4_structure_zones_reuse_character_metadata_and_drop_weak_limb():
+    parts = [
+        {"part_type": "subject", "bbox": [20, 5, 80, 130], "confidence": 1.0},
+        {"part_type": "head", "bbox": [42, 20, 38, 42], "confidence": 0.76},
+        {"part_type": "face", "bbox": [50, 31, 20, 20], "confidence": 0.78},
+        {"part_type": "hair", "bbox": [36, 18, 50, 55], "confidence": 0.68},
+        {"part_type": "torso", "bbox": [43, 58, 36, 34], "confidence": 0.72},
+        {"part_type": "outfit", "bbox": [38, 58, 46, 55], "confidence": 0.77},
+        {"part_type": "left_arm", "bbox": [24, 56, 16, 42], "confidence": 0.56},
+        {"part_type": "right_arm", "bbox": [82, 58, 12, 40], "confidence": 0.20},
+        {"part_type": "left_leg", "bbox": [42, 94, 18, 40], "confidence": 0.60},
+        {"part_type": "right_leg", "bbox": [62, 94, 18, 40], "confidence": 0.60},
+    ]
+    scene = Scene(120, 140, (245, 245, 240), [], {
+        "subject_mode": True,
+        "character": {"structure": {"parts": parts}},
+    })
+
+    zones = estimate_structure_subject_zones(scene)
+
+    assert zones.enabled is True
+    assert zones.reason == "character_structure"
+    assert {"hair", "clothing", "head", "torso", "left_arm", "left_leg", "right_leg"}.issubset(zones.zone_masks)
+    assert "right_arm" not in zones.zone_masks
+    assert np.logical_and(zones.zone_masks["hair"] > 0, zones.zone_masks["head"] > 0).sum() == 0

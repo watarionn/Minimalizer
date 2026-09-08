@@ -16,6 +16,7 @@ from .target_hierarchy import (
     dominant_shape_zone,
     estimate_opaque_subject_hierarchy,
     estimate_opaque_subject_zones,
+    estimate_structure_subject_zones,
     shape_subject_overlap,
 )
 
@@ -234,11 +235,11 @@ def _character_fragment_kind(shape: Shape) -> str | None:
 
 def _target_mass_kind(shape: Shape) -> str:
     tags = _shape_tags(shape)
-    if "opaque_zone:hair:" in tags or "target_zone_hair_fragment" in tags:
+    if "opaque_zone:hair:" in tags or "target_zone_hair_" in tags:
         return "hair"
-    if "opaque_zone:arm:" in tags or "target_zone_arm_fragment" in tags:
+    if "opaque_zone:arm:" in tags or "target_zone_arm_" in tags:
         return "hand"
-    if "opaque_zone:clothing:" in tags or "target_zone_clothing_fragment" in tags:
+    if "opaque_zone:clothing:" in tags or "target_zone_clothing_" in tags:
         return "garment"
     if "hair" in tags:
         return "hair"
@@ -300,6 +301,35 @@ def _apply_opaque_hierarchy(
 
 
 
+def _strict_character_base(shape: Shape) -> bool:
+    semantic = (shape.semantic_type or "").lower()
+    role = (shape.source_role or "").lower()
+    layer = (shape.layer_name or "").lower()
+    return semantic.startswith("character_") or role.startswith("character_") or layer.startswith("character_")
+
+
+def _structure_zone_from_shape(shape: Shape) -> str | None:
+    part = (shape.character_part or "").lower()
+    tags = _shape_tags(shape)
+    if part == "hair" or "character_hair" in tags:
+        return "hair"
+    if part == "outfit" or any(token in tags for token in ("character_outfit", "character_shoe", "character_sleeve")):
+        return "clothing"
+    if part in {"left_hand", "left_arm"}:
+        return "left_arm"
+    if part in {"right_hand", "right_arm"}:
+        return "right_arm"
+    if part == "left_leg":
+        return "left_leg"
+    if part == "right_leg":
+        return "right_leg"
+    if part in {"head", "face"}:
+        return "head"
+    if part == "torso":
+        return "torso"
+    return None
+
+
 def _opaque_zone_name(shape: Shape) -> str | None:
     role = shape.source_role or ""
     marker = "opaque_zone:"
@@ -308,8 +338,10 @@ def _opaque_zone_name(shape: Shape) -> str | None:
         return tail.split(":", 1)[0] or None
     semantic = shape.semantic_type or ""
     prefix = "target_zone_"
-    if semantic.startswith(prefix) and semantic.endswith("_fragment"):
-        return semantic[len(prefix):-len("_fragment")]
+    if semantic.startswith(prefix):
+        for suffix in ("_fragment", "_candidate"):
+            if semantic.endswith(suffix):
+                return semantic[len(prefix):-len(suffix)]
     return None
 
 
@@ -510,12 +542,30 @@ def _apply_opaque_zones(
         stats["neutral_shapes"] = len(shapes)
         return shapes, stats
 
+    structure_mode = zones.reason == "character_structure"
+    stats["zone_source"] = zones.reason
     assignments: list[tuple[Shape, str]] = []
     for shape in shapes:
-        zone = dominant_shape_zone(shape, zones)
+        zone = _structure_zone_from_shape(shape) if structure_mode else None
+        if zone is None and structure_mode and _target_mass_kind(shape) == "background" and not _is_character_like(shape):
+            continue
+        if zone is None:
+            zone = dominant_shape_zone(shape, zones, min_overlap=0.42 if structure_mode else 0.28)
         if zone is not None:
             assignments.append((shape, zone))
-    inferred, inference_stats = _infer_zone_refinements(assignments, zones)
+    if structure_mode:
+        inferred, inference_stats = {}, {
+            "face_reference_rgb": None,
+            "face_reference_source": "structure_metadata",
+            "face_carrier_shape_id": None,
+            "inferred_hair_shapes": 0,
+            "inferred_hair_mode": "structure_metadata",
+            "inferred_clothing_shapes": 0,
+            "inferred_clothing_seed_id": None,
+            "propagated_clothing_shapes": 0,
+        }
+    else:
+        inferred, inference_stats = _infer_zone_refinements(assignments, zones)
     stats.update(inference_stats)
 
     out: list[Shape] = []
@@ -530,13 +580,13 @@ def _apply_opaque_zones(
         tags = _shape_tags(shape)
         if shape.id in inferred:
             refined = inferred[shape.id]
-        elif zone == "head" and "hair" in tags:
+        elif zone == "hair" or (zone == "head" and "hair" in tags):
             refined = "hair"
-        elif zone in {"torso", "legs"} and any(token in tags for token in garment_tokens):
+        elif zone == "clothing" or (zone in {"torso", "legs", "left_leg", "right_leg"} and any(token in tags for token in garment_tokens)):
             refined = "clothing"
         elif zone in {"left_arm", "right_arm"}:
             refined = "arm"
-        elif zone == "legs":
+        elif zone in {"legs", "left_leg", "right_leg"}:
             refined = "leg"
         else:
             refined = zone
@@ -549,15 +599,30 @@ def _apply_opaque_zones(
             "leg": 0.86,
         }[refined]
         side_hint = shape.side_hint
-        if refined == "arm":
-            side_hint = "left" if zone == "left_arm" else "right"
-        out.append(replace(
-            shape,
-            importance=max(float(shape.importance), floor),
-            source_role=f"opaque_zone:{refined}:{shape.source_role}",
-            layer_name="foreground",
-            side_hint=side_hint,
-        ))
+        if zone in {"left_arm", "left_leg"}:
+            side_hint = "left"
+        elif zone in {"right_arm", "right_leg"}:
+            side_hint = "right"
+        importance = float(shape.importance)
+        canonical = _strict_character_base(shape)
+        if structure_mode and canonical:
+            # Character Structure already produced a protected semantic base. Do
+            # not rewrite its role/layer/importance; the zones are advisory here.
+            out.append(replace(shape, side_hint=side_hint))
+        elif structure_mode:
+            out.append(replace(
+                shape,
+                semantic_type=f"target_zone_{refined}_candidate",
+                side_hint=side_hint,
+            ))
+        else:
+            out.append(replace(
+                shape,
+                importance=max(importance, floor),
+                source_role=f"opaque_zone:{refined}:{shape.source_role}",
+                layer_name="foreground",
+                side_hint=side_hint,
+            ))
         stats["zone_shapes"] += 1
         stats[f"{refined}_shapes"] += 1
     return out, stats
@@ -940,10 +1005,12 @@ def minimalize_rinka_reference(
     scene = minimalize(image_or_path, config)
     opaque_hierarchy = estimate_opaque_subject_hierarchy(image_or_path, scene)
     opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)
+    structure_zones = estimate_structure_subject_zones(scene)
+    subject_zones = opaque_zones if opaque_zones.enabled else structure_zones
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
         target_max_shapes=config.target_max_shapes,
         opaque_hierarchy=opaque_hierarchy,
-        opaque_zones=opaque_zones,
+        opaque_zones=subject_zones,
     )
