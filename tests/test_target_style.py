@@ -104,7 +104,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase4"
+    assert out.metadata["target_style"]["version"] == "phase5"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -457,3 +457,31 @@ def test_phase4_structure_prunes_only_redundant_low_value_clothing_candidates():
     assert out.metadata["target_style"]["structure_redundant_removed"] == 1
     assert 2 not in ids
     assert 3 in ids
+
+
+
+def test_phase5_consolidates_one_safe_outfit_detail_per_base():
+    base = _rect(1, 30, 30, 40, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail_a = _rect(2, 28, 42, 8, 12, importance=0.72, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    detail_b = _rect(3, 64, 42, 8, 12, importance=0.71, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(95, 104, 122))
+    scene = Scene(100, 100, (245, 245, 240), [base, detail_a, detail_b], {})
+
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+
+    assert out.metadata["target_style"]["version"] == "phase5"
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 1
+    assert len(out.shapes) == 2
+    merged = next(shape for shape in out.shapes if shape.id == 1)
+    assert merged.semantic_type == "character_outfit_torso"
+    assert merged.layer_name == "character_outfit_base"
+
+
+def test_phase5_does_not_merge_outfit_detail_when_hull_would_overfill():
+    base = _rect(1, 30, 30, 24, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail = _rect(2, 56, 12, 8, 10, importance=0.60, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    scene = Scene(100, 100, (245, 245, 240), [base, detail], {})
+
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 0
+    assert {shape.id for shape in out.shapes} == {1, 2}

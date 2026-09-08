@@ -22,7 +22,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase4"
+RINKA_REFERENCE_VERSION = "phase5"
 
 
 _TARGET_MAX_SHAPES = {
@@ -864,6 +864,110 @@ def _consolidate_masses(shapes: list[Shape], min_side: float) -> tuple[list[Shap
     return working, merged_count
 
 
+def _canonical_outfit_layer(shape: Shape) -> str | None:
+    tags = _shape_tags(shape)
+    if "character_outfit_base" in tags:
+        return "base"
+    if "character_outfit_detail" in tags:
+        return "detail"
+    return None
+
+
+def _union_hull_iou(a: Shape, b: Shape) -> float:
+    pa = _shape_polygon_points(a)
+    pb = _shape_polygon_points(b)
+    if pa is None or pb is None or len(pa) < 3 or len(pb) < 3:
+        return 0.0
+    pts = np.vstack([pa, pb])
+    x0 = int(np.floor(pts[:, 0].min()))
+    y0 = int(np.floor(pts[:, 1].min()))
+    x1 = int(np.ceil(pts[:, 0].max())) + 1
+    y1 = int(np.ceil(pts[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    union = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    for poly in (pa, pb):
+        local = np.round(poly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+        cv2.fillPoly(union, [local], 1)
+    hull = cv2.convexHull(pts).reshape(-1, 2)
+    hull_mask = np.zeros_like(union)
+    local_hull = np.round(hull - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+    cv2.fillPoly(hull_mask, [local_hull], 1)
+    denom = int(hull_mask.sum())
+    if denom <= 0:
+        return 0.0
+    return float((union * hull_mask).sum()) / float(denom)
+
+
+def _merge_outfit_layer_pair(base: Shape, detail: Shape) -> Shape:
+    pa = _shape_polygon_points(base)
+    pb = _shape_polygon_points(detail)
+    assert pa is not None and pb is not None
+    hull = cv2.convexHull(np.vstack([pa, pb])).reshape(-1, 2)
+    return replace(
+        base,
+        shape_type="polygon",
+        points=[(float(x), float(y)) for x, y in hull],
+        x=None, y=None, width=None, height=None,
+        cx=None, cy=None, rx=None, ry=None,
+        z_index=max(base.z_index, detail.z_index),
+        importance=max(float(base.importance), float(detail.importance)),
+    )
+
+
+def _consolidate_outfit_layers(shapes: list[Shape], min_side: float) -> tuple[list[Shape], int]:
+    bases = [s for s in shapes if _canonical_outfit_layer(s) == "base"]
+    details = [s for s in shapes if _canonical_outfit_layer(s) == "detail"]
+    candidates: list[tuple[float, float, int, int]] = []
+    for base in bases:
+        if base.fill_color is None:
+            continue
+        base_area = max(_shape_metrics(base)[0], 1e-6)
+        for detail in details:
+            if detail.fill_color is None:
+                continue
+            side_base = (base.side_hint or "unknown").lower()
+            side_detail = (detail.side_hint or "unknown").lower()
+            if side_base in {"left", "right"} and side_detail in {"left", "right"} and side_base != side_detail:
+                continue
+            detail_area = max(_shape_metrics(detail)[0], 0.0)
+            if detail_area / base_area > 0.18:
+                continue
+            color_distance = _color_distance(base.fill_color, detail.fill_color)
+            if color_distance > 24.0:
+                continue
+            if _bbox_distance(_shape_bbox(base), _shape_bbox(detail)) > max(1.0, min_side * 0.018):
+                continue
+            union_iou = _union_hull_iou(base, detail)
+            if union_iou < 0.94:
+                continue
+            candidates.append((union_iou, -color_distance, base.id, detail.id))
+    if not candidates:
+        return shapes, 0
+    by_id = {s.id: s for s in shapes}
+    used: set[int] = set()
+    replacements: dict[int, Shape] = {}
+    removed: set[int] = set()
+    merged_count = 0
+    for _, _, base_id, detail_id in sorted(candidates, reverse=True):
+        if base_id in used or detail_id in used:
+            continue
+        base = by_id[base_id]
+        detail = by_id[detail_id]
+        replacements[base_id] = _merge_outfit_layer_pair(base, detail)
+        removed.add(detail_id)
+        used.update({base_id, detail_id})
+        merged_count += 1
+    if not merged_count:
+        return shapes, 0
+    out: list[Shape] = []
+    for shape in shapes:
+        if shape.id in removed:
+            continue
+        out.append(replacements.get(shape.id, shape))
+    return out, merged_count
+
+
 def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     background = [
@@ -1011,7 +1115,8 @@ def apply_rinka_reference_style(
     )
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
-    compressed, background_removed = _compress_background(scene, consolidated)
+    outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
+    compressed, background_removed = _compress_background(scene, outfit_consolidated)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
     capped, cap_removed = _final_shape_cap(scene, straight, target_max_shapes)
 
@@ -1037,6 +1142,7 @@ def apply_rinka_reference_style(
         "structure_redundant_removed": structure_redundant_removed,
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
+        "outfit_layer_merges": outfit_layer_merges,
         "background_removed": background_removed,
         "cap_removed": cap_removed,
         "cleanup": report.to_dict(),
