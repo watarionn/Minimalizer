@@ -22,7 +22,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase4"
+RINKA_REFERENCE_VERSION = "phase5"
 
 
 _TARGET_MAX_SHAPES = {
@@ -864,6 +864,299 @@ def _consolidate_masses(shapes: list[Shape], min_side: float) -> tuple[list[Shap
     return working, merged_count
 
 
+def _canonical_outfit_layer(shape: Shape) -> str | None:
+    tags = _shape_tags(shape)
+    if "character_outfit_base" in tags:
+        return "base"
+    if "character_outfit_detail" in tags:
+        return "detail"
+    return None
+
+
+def _union_hull_iou(a: Shape, b: Shape) -> float:
+    pa = _shape_polygon_points(a)
+    pb = _shape_polygon_points(b)
+    if pa is None or pb is None or len(pa) < 3 or len(pb) < 3:
+        return 0.0
+    pts = np.vstack([pa, pb])
+    x0 = int(np.floor(pts[:, 0].min()))
+    y0 = int(np.floor(pts[:, 1].min()))
+    x1 = int(np.ceil(pts[:, 0].max())) + 1
+    y1 = int(np.ceil(pts[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    union = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    for poly in (pa, pb):
+        local = np.round(poly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+        cv2.fillPoly(union, [local], 1)
+    hull = cv2.convexHull(pts).reshape(-1, 2)
+    hull_mask = np.zeros_like(union)
+    local_hull = np.round(hull - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+    cv2.fillPoly(hull_mask, [local_hull], 1)
+    denom = int(hull_mask.sum())
+    if denom <= 0:
+        return 0.0
+    return float((union * hull_mask).sum()) / float(denom)
+
+
+def _merge_outfit_layer_pair(base: Shape, detail: Shape) -> Shape:
+    pa = _shape_polygon_points(base)
+    pb = _shape_polygon_points(detail)
+    assert pa is not None and pb is not None
+    hull = cv2.convexHull(np.vstack([pa, pb])).reshape(-1, 2)
+    return replace(
+        base,
+        shape_type="polygon",
+        points=[(float(x), float(y)) for x, y in hull],
+        x=None, y=None, width=None, height=None,
+        cx=None, cy=None, rx=None, ry=None,
+        z_index=max(base.z_index, detail.z_index),
+        importance=max(float(base.importance), float(detail.importance)),
+    )
+
+
+def _consolidate_outfit_layers(shapes: list[Shape], min_side: float) -> tuple[list[Shape], int]:
+    bases = [s for s in shapes if _canonical_outfit_layer(s) == "base"]
+    details = [s for s in shapes if _canonical_outfit_layer(s) == "detail"]
+    candidates: list[tuple[float, float, int, int]] = []
+    for base in bases:
+        if base.fill_color is None:
+            continue
+        base_area = max(_shape_metrics(base)[0], 1e-6)
+        for detail in details:
+            if detail.fill_color is None:
+                continue
+            side_base = (base.side_hint or "unknown").lower()
+            side_detail = (detail.side_hint or "unknown").lower()
+            if side_base in {"left", "right"} and side_detail in {"left", "right"} and side_base != side_detail:
+                continue
+            detail_area = max(_shape_metrics(detail)[0], 0.0)
+            if detail_area / base_area > 0.18:
+                continue
+            color_distance = _color_distance(base.fill_color, detail.fill_color)
+            if color_distance > 24.0:
+                continue
+            if _bbox_distance(_shape_bbox(base), _shape_bbox(detail)) > max(1.0, min_side * 0.018):
+                continue
+            union_iou = _union_hull_iou(base, detail)
+            if union_iou < 0.94:
+                continue
+            candidates.append((union_iou, -color_distance, base.id, detail.id))
+    if not candidates:
+        return shapes, 0
+    by_id = {s.id: s for s in shapes}
+    used: set[int] = set()
+    replacements: dict[int, Shape] = {}
+    removed: set[int] = set()
+    merged_count = 0
+    for _, _, base_id, detail_id in sorted(candidates, reverse=True):
+        if base_id in used or detail_id in used:
+            continue
+        base = by_id[base_id]
+        detail = by_id[detail_id]
+        replacements[base_id] = _merge_outfit_layer_pair(base, detail)
+        removed.add(detail_id)
+        used.update({base_id, detail_id})
+        merged_count += 1
+    if not merged_count:
+        return shapes, 0
+    out: list[Shape] = []
+    for shape in shapes:
+        if shape.id in removed:
+            continue
+        out.append(replacements.get(shape.id, shape))
+    return out, merged_count
+
+
+
+def _gesture_carrier_kind(shape: Shape) -> str | None:
+    part = (shape.character_part or "unknown").lower()
+    role = (shape.source_role or "").lower()
+    semantic = (shape.semantic_type or "").lower()
+    if part in {"left_hand", "right_hand"} or "character_hand" in role:
+        return "hand"
+    if part in {"left_arm", "right_arm"}:
+        return "arm"
+    if "character_limb_base" in role and "arm" in semantic:
+        return "arm"
+    if "opaque_zone:arm:" in role or semantic.startswith("target_zone_arm_"):
+        return "opaque_arm"
+    return None
+
+
+def _polygon_raster_iou(a: np.ndarray, b: np.ndarray) -> float:
+    if len(a) < 3 or len(b) < 3:
+        return 0.0
+    pts = np.vstack([a, b])
+    x0 = int(np.floor(pts[:, 0].min()))
+    y0 = int(np.floor(pts[:, 1].min()))
+    x1 = int(np.ceil(pts[:, 0].max())) + 1
+    y1 = int(np.ceil(pts[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    offset = np.asarray([x0, y0], dtype=np.float32)
+    ma = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    mb = np.zeros_like(ma)
+    cv2.fillPoly(ma, [np.round(a - offset).astype(np.int32)], 1)
+    cv2.fillPoly(mb, [np.round(b - offset).astype(np.int32)], 1)
+    union = int(np.logical_or(ma, mb).sum())
+    if union <= 0:
+        return 0.0
+    return float(np.logical_and(ma, mb).sum()) / float(union)
+
+
+def _polygon_major_axis_angle(points: np.ndarray) -> float:
+    (_cx, _cy), (w, h), angle = cv2.minAreaRect(points.astype(np.float32))
+    if w < h:
+        angle += 90.0
+    return float(angle % 180.0)
+
+
+def _axis_angle_distance(a: float, b: float) -> float:
+    delta = abs(a - b) % 180.0
+    return min(delta, 180.0 - delta)
+
+
+def _polygon_centroid(points: np.ndarray) -> np.ndarray:
+    moments = cv2.moments(points.astype(np.float32))
+    if abs(float(moments["m00"])) <= 1e-6:
+        return points.mean(axis=0)
+    return np.asarray(
+        [moments["m10"] / moments["m00"], moments["m01"] / moments["m00"]],
+        dtype=np.float32,
+    )
+
+
+def _gesture_hand_anchors(shapes: list[Shape]) -> dict[str, Shape]:
+    anchors: dict[str, Shape] = {}
+    for shape in shapes:
+        if _gesture_carrier_kind(shape) != "hand":
+            continue
+        side = (shape.side_hint or "unknown").lower()
+        if side not in {"left", "right"}:
+            continue
+        current = anchors.get(side)
+        if current is None or (_shape_metrics(shape)[0], shape.importance) > (_shape_metrics(current)[0], current.importance):
+            anchors[side] = shape
+    return anchors
+
+
+def _simplify_gesture_arm(
+    shape: Shape,
+    *,
+    min_side: float,
+    hand_anchor: Shape | None,
+) -> tuple[Shape, int, bool]:
+    kind = _gesture_carrier_kind(shape)
+    if kind not in {"arm", "opaque_arm"} or shape.shape_type != "polygon":
+        return shape, 0, False
+    points = _shape_polygon_points(shape)
+    if points is None or len(points) <= 4:
+        return shape, 0, False
+    contour = points.astype(np.float32).reshape(-1, 1, 2)
+    perimeter = float(cv2.arcLength(contour, True))
+    if perimeter <= 1e-6:
+        return shape, 0, False
+    iou_limit = 0.955 if kind == "opaque_arm" else 0.950
+    original_axis = _polygon_major_axis_angle(points)
+    original_centroid = _polygon_centroid(points)
+    original_anchor_gap = None
+    if hand_anchor is not None:
+        original_anchor_gap = _bbox_distance(_shape_bbox(shape), _shape_bbox(hand_anchor))
+    best: tuple[int, float, np.ndarray] | None = None
+    for epsilon_ratio in (0.070, 0.060, 0.050, 0.040, 0.030, 0.025, 0.020, 0.015):
+        candidate = cv2.approxPolyDP(contour, perimeter * epsilon_ratio, True).reshape(-1, 2)
+        if len(candidate) < 4 or len(candidate) >= len(points):
+            continue
+        raster_iou = _polygon_raster_iou(points, candidate)
+        if raster_iou < iou_limit:
+            continue
+        if _axis_angle_distance(original_axis, _polygon_major_axis_angle(candidate)) > 8.0:
+            continue
+        centroid_shift = float(np.linalg.norm(original_centroid - _polygon_centroid(candidate)))
+        if centroid_shift > max(1.0, min_side * 0.010):
+            continue
+        if hand_anchor is not None and original_anchor_gap is not None:
+            candidate_shape = replace(shape, points=[(float(x), float(y)) for x, y in candidate])
+            candidate_gap = _bbox_distance(_shape_bbox(candidate_shape), _shape_bbox(hand_anchor))
+            allowed_gap = original_anchor_gap + max(0.75, min_side * 0.004)
+            if candidate_gap > allowed_gap:
+                continue
+            if original_anchor_gap <= 1.0 and candidate_gap > 1.0:
+                continue
+        ranking = (len(candidate), -raster_iou)
+        if best is None or ranking < (best[0], -best[1]):
+            best = (len(candidate), raster_iou, candidate.copy())
+    if best is None:
+        return shape, 0, False
+    candidate = best[2]
+    removed = len(points) - len(candidate)
+    return replace(shape, points=[(float(x), float(y)) for x, y in candidate]), removed, hand_anchor is not None
+
+
+def _abstract_gesture_shapes(shapes: list[Shape], min_side: float) -> tuple[list[Shape], dict]:
+    anchors = _gesture_hand_anchors(shapes)
+    out: list[Shape] = []
+    simplified_shapes = 0
+    vertices_removed = 0
+    anchored_simplifications = 0
+    for shape in shapes:
+        side = (shape.side_hint or "unknown").lower()
+        anchor = anchors.get(side) if side in {"left", "right"} else None
+        simplified, removed, anchored = _simplify_gesture_arm(
+            shape,
+            min_side=min_side,
+            hand_anchor=anchor,
+        )
+        out.append(simplified)
+        if removed > 0:
+            simplified_shapes += 1
+            vertices_removed += removed
+            anchored_simplifications += int(anchored)
+    return out, {
+        "simplified_shapes": simplified_shapes,
+        "vertices_removed": vertices_removed,
+        "anchored_simplifications": anchored_simplifications,
+        "hand_anchors": len(anchors),
+    }
+
+
+def _refine_outfit_layers_once(scene: Scene, shapes: list[Shape], min_side: float) -> tuple[list[Shape], int]:
+    if not bool(scene.metadata.get("subject_mode")) or not ((scene.metadata.get("character") or {}).get("structure")):
+        return shapes, 0
+    bases = [s for s in shapes if _canonical_outfit_layer(s) == "base" and s.fill_color is not None]
+    details = [s for s in shapes if _canonical_outfit_layer(s) == "detail" and s.fill_color is not None]
+    candidates: list[tuple[float, float, float, int, int]] = []
+    for base in bases:
+        base_area = max(_shape_metrics(base)[0], 1e-6)
+        for detail in details:
+            side_base = (base.side_hint or "unknown").lower()
+            side_detail = (detail.side_hint or "unknown").lower()
+            if side_base in {"left", "right"} and side_detail in {"left", "right"} and side_base != side_detail:
+                continue
+            detail_area = max(_shape_metrics(detail)[0], 0.0)
+            ratio = detail_area / base_area
+            if ratio > 0.14:
+                continue
+            color_distance = _color_distance(base.fill_color, detail.fill_color)
+            if color_distance > 16.0:
+                continue
+            gap = _bbox_distance(_shape_bbox(base), _shape_bbox(detail))
+            if gap > max(0.75, min_side * 0.010):
+                continue
+            union_iou = _union_hull_iou(base, detail)
+            if union_iou < 0.96:
+                continue
+            candidates.append((union_iou, -color_distance, -ratio, base.id, detail.id))
+    if not candidates:
+        return shapes, 0
+    _, _, _, base_id, detail_id = max(candidates)
+    by_id = {s.id: s for s in shapes}
+    merged = _merge_outfit_layer_pair(by_id[base_id], by_id[detail_id])
+    out = [merged if s.id == base_id else s for s in shapes if s.id != detail_id]
+    return out, 1
+
+
 def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     background = [
@@ -922,33 +1215,182 @@ def _curve_to_polygon(shape: Shape, sides: int = 6) -> Shape:
     )
 
 
-def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int | None) -> tuple[list[Shape], int]:
-    if target_max_shapes is None or target_max_shapes <= 0 or len(shapes) <= target_max_shapes:
-        return shapes, 0
+def _macro_zone_kind(shape: Shape) -> str | None:
+    zone = _opaque_zone_name(shape)
+    if zone is not None:
+        return zone
+    semantic = (shape.semantic_type or "").lower()
+    part = (shape.character_part or "").lower()
+    for token in ("hair", "head", "clothing", "torso", "arm", "leg"):
+        if f"target_zone_{token}_" in semantic:
+            return token
+    if part in {"head", "face"}:
+        return "head"
+    if part == "hair":
+        return "hair"
+    if part in {"outfit", "torso"}:
+        return "clothing" if part == "outfit" else "torso"
+    if part in {"left_arm", "right_arm", "left_hand", "right_hand"}:
+        return "arm"
+    if part in {"left_leg", "right_leg"}:
+        return "leg"
+    return None
+
+
+def _macro_shape_priority_score(scene: Scene, shape: Shape) -> float:
     canvas_area = max(float(scene.width * scene.height), 1.0)
-    def score(shape: Shape) -> float:
-        area_ratio = _shape_metrics(shape)[0] / canvas_area
-        value = max(0.0, min(1.0, float(shape.importance))) * 0.58
-        value += min(1.0, area_ratio / 0.025) * 0.32
-        if (shape.layer_name or "").lower() == "foreground":
-            value += 0.08
-        if _target_mass_kind(shape) in {"hair", "hand", "garment", "prop"}:
-            value += 0.08
-        tags = _shape_tags(shape)
-        if "opaque_subject" in tags:
-            value += 0.14
-        elif "opaque_background" in tags:
-            value -= 0.04
-        zone = _opaque_zone_name(shape)
-        if zone in {"head", "hair", "torso", "clothing"}:
-            value += 0.06
-        elif zone in {"arm", "leg"}:
-            value += 0.03
-        return value
-    ranked = sorted(shapes, key=score, reverse=True)
+    area_ratio = _shape_metrics(shape)[0] / canvas_area
+    importance = max(0.0, min(1.0, float(shape.importance)))
+    value = importance * 0.42
+    value += min(1.0, area_ratio / 0.025) * 0.38
+    if (shape.layer_name or "").lower() == "foreground":
+        value += 0.06
+
+    mass_kind = _target_mass_kind(shape)
+    gesture_kind = _gesture_carrier_kind(shape)
+    if _strict_character_base(shape):
+        value += 0.18
+    if gesture_kind in {"arm", "opaque_arm", "hand"}:
+        value += 0.14
+    elif mass_kind == "hair":
+        value += 0.14
+    elif mass_kind == "garment":
+        value += 0.10
+    elif mass_kind == "prop":
+        value += 0.08
+
+    zone = _macro_zone_kind(shape)
+    if zone in {"head", "hair"}:
+        value += 0.12
+    elif zone in {"torso", "clothing"}:
+        value += 0.10
+    elif zone in {"arm", "leg"}:
+        value += 0.08
+
+    tags = _shape_tags(shape)
+    if "opaque_subject" in tags:
+        value += 0.12
+    if mass_kind == "background" and not _is_character_like(shape):
+        value -= 0.10
+    if "opaque_background" in tags:
+        value -= 0.06
+    return value
+
+
+def _bbox_overlap_ratio_with_subject(shape: Shape, subject_zones: OpaqueSubjectZones | None) -> float:
+    if subject_zones is None or not subject_zones.enabled or subject_zones.bbox is None:
+        return 0.0
+    sx0, sy0, sx1, sy1 = _shape_bbox(shape)
+    bx0, by0, bx1, by1 = [float(v) for v in subject_zones.bbox]
+    area = max(0.0, sx1 - sx0) * max(0.0, sy1 - sy0)
+    if area <= 1e-6:
+        return 0.0
+    ix0, iy0 = max(sx0, bx0), max(sy0, by0)
+    ix1, iy1 = min(sx1, bx1), min(sy1, by1)
+    inter = max(0.0, ix1 - ix0) * max(0.0, iy1 - iy0)
+    return inter / area
+
+
+def _macro_subject_continuity(
+    scene: Scene,
+    shape: Shape,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+) -> bool:
+    if _bbox_overlap_ratio_with_subject(shape, subject_zones) < 0.25 or shape.fill_color is None:
+        return False
+    min_side = max(float(min(scene.width, scene.height)), 1.0)
+    for other in shapes:
+        if other.id == shape.id or other.fill_color is None:
+            continue
+        zone = _macro_zone_kind(other)
+        definite_subject = (
+            _strict_character_base(other)
+            or zone is not None
+            or _gesture_carrier_kind(other) is not None
+            or _target_mass_kind(other) in {"hair", "garment", "hand", "prop"}
+        )
+        if not definite_subject:
+            continue
+        if _color_distance(shape.fill_color, other.fill_color) > 12.0:
+            continue
+        if _bbox_distance(_shape_bbox(shape), _shape_bbox(other)) <= max(1.0, min_side * 0.050):
+            return True
+    return False
+
+
+def _macro_priority_shadow(
+    scene: Scene,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+    *,
+    budget: int | None,
+) -> dict:
+    stats = {
+        "budget": budget,
+        "would_remove": 0,
+        "would_remove_background": 0,
+        "would_remove_subject": 0,
+        "would_remove_generic": 0,
+        "would_remove_inside_subject_bbox": 0,
+        "would_remove_subject_continuity": 0,
+        "blocked_by_subject_bbox": False,
+        "blocked_by_subject_continuity": False,
+    }
+    if budget is None or budget <= 0 or len(shapes) <= budget:
+        return stats
+    ranked = sorted(shapes, key=lambda s: _macro_shape_priority_score(scene, s), reverse=True)
+    candidates = ranked[budget:]
+    for shape in candidates:
+        mass_kind = _target_mass_kind(shape)
+        zone = _macro_zone_kind(shape)
+        continuity = _macro_subject_continuity(scene, shape, shapes, subject_zones)
+        if continuity:
+            stats["would_remove_subject_continuity"] += 1
+            stats["would_remove_subject"] += 1
+        elif mass_kind == "background" and not _is_character_like(shape):
+            stats["would_remove_background"] += 1
+        elif _strict_character_base(shape) or zone is not None or _gesture_carrier_kind(shape) is not None or mass_kind in {"hair", "garment", "hand", "prop"}:
+            stats["would_remove_subject"] += 1
+        else:
+            stats["would_remove_generic"] += 1
+        if _bbox_overlap_ratio_with_subject(shape, subject_zones) >= 0.25:
+            stats["would_remove_inside_subject_bbox"] += 1
+    stats["would_remove"] = len(candidates)
+    stats["blocked_by_subject_bbox"] = stats["would_remove_inside_subject_bbox"] > 0
+    stats["blocked_by_subject_continuity"] = stats["would_remove_subject_continuity"] > 0
+    return stats
+
+
+def _final_shape_cap(
+    scene: Scene,
+    shapes: list[Shape],
+    target_max_shapes: int | None,
+) -> tuple[list[Shape], int, dict]:
+    stats = {
+        "budget": target_max_shapes,
+        "removed": 0,
+        "removed_background": 0,
+        "removed_subject": 0,
+        "removed_generic": 0,
+    }
+    if target_max_shapes is None or target_max_shapes <= 0 or len(shapes) <= target_max_shapes:
+        return shapes, 0, stats
+    ranked = sorted(shapes, key=lambda s: _macro_shape_priority_score(scene, s), reverse=True)
     keep_ids = {s.id for s in ranked[:target_max_shapes]}
+    removed = [s for s in shapes if s.id not in keep_ids]
+    for shape in removed:
+        mass_kind = _target_mass_kind(shape)
+        zone = _macro_zone_kind(shape)
+        if mass_kind == "background" and not _is_character_like(shape):
+            stats["removed_background"] += 1
+        elif _strict_character_base(shape) or zone is not None or _gesture_carrier_kind(shape) is not None or mass_kind in {"hair", "garment", "hand", "prop"}:
+            stats["removed_subject"] += 1
+        else:
+            stats["removed_generic"] += 1
+    stats["removed"] = len(removed)
     capped = [s for s in shapes if s.id in keep_ids]
-    return capped, len(shapes) - len(capped)
+    return capped, len(removed), stats
 
 
 def apply_rinka_reference_style(
@@ -1011,9 +1453,16 @@ def apply_rinka_reference_style(
     )
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
-    compressed, background_removed = _compress_background(scene, consolidated)
+    outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
+    outfit_refined, outfit_refinement_merges = _refine_outfit_layers_once(scene, outfit_consolidated, min_side)
+    outfit_layer_merges += outfit_refinement_merges
+    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_refined, min_side)
+    compressed, background_removed = _compress_background(scene, gesture_abstracted)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
-    capped, cap_removed = _final_shape_cap(scene, straight, target_max_shapes)
+    shadow_budget = 24 if target_max_shapes == 28 else None
+    macro_shadow = _macro_priority_shadow(scene, straight, opaque_zones, budget=shadow_budget)
+    capped, cap_removed, macro_priority = _final_shape_cap(scene, straight, target_max_shapes)
+    macro_priority = {**macro_priority, "shadow": macro_shadow}
 
     metadata = dict(scene.metadata)
     metadata["shape_count_pre_target_style"] = len(scene.shapes)
@@ -1037,8 +1486,11 @@ def apply_rinka_reference_style(
         "structure_redundant_removed": structure_redundant_removed,
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
+        "outfit_layer_merges": outfit_layer_merges,
+        "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,
         "cap_removed": cap_removed,
+        "macro_priority": macro_priority,
         "cleanup": report.to_dict(),
     }
     return Scene(

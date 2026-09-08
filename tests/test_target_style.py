@@ -2,8 +2,13 @@ from minimalize_engine.analysis.shape_cleanup import cleanup_minimal_shapes
 from minimalize_engine.models import Scene, Shape
 import numpy as np
 
-from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones, estimate_structure_subject_zones
+from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, OpaqueSubjectZones, estimate_opaque_subject_zones, estimate_structure_subject_zones
 from minimalize_engine.target_style import (
+    _abstract_gesture_shapes,
+    _final_shape_cap,
+    _macro_shape_priority_score,
+    _macro_priority_shadow,
+    _macro_subject_continuity,
     _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -104,7 +109,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase4"
+    assert out.metadata["target_style"]["version"] == "phase5"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -457,3 +462,174 @@ def test_phase4_structure_prunes_only_redundant_low_value_clothing_candidates():
     assert out.metadata["target_style"]["structure_redundant_removed"] == 1
     assert 2 not in ids
     assert 3 in ids
+
+
+
+def test_phase5_consolidates_one_safe_outfit_detail_per_base():
+    base = _rect(1, 30, 30, 40, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail_a = _rect(2, 28, 42, 8, 12, importance=0.72, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    detail_b = _rect(3, 64, 42, 8, 12, importance=0.71, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(95, 104, 122))
+    scene = Scene(100, 100, (245, 245, 240), [base, detail_a, detail_b], {})
+
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+
+    assert out.metadata["target_style"]["version"] == "phase5"
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 1
+    assert len(out.shapes) == 2
+    merged = next(shape for shape in out.shapes if shape.id == 1)
+    assert merged.semantic_type == "character_outfit_torso"
+    assert merged.layer_name == "character_outfit_base"
+
+
+def test_phase5_does_not_merge_outfit_detail_when_hull_would_overfill():
+    base = _rect(1, 30, 30, 24, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail = _rect(2, 56, 12, 8, 10, importance=0.60, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    scene = Scene(100, 100, (245, 245, 240), [base, detail], {})
+
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 0
+    assert {shape.id for shape in out.shapes} == {1, 2}
+
+
+
+def _phase5_gesture_arm(side: str = "left") -> Shape:
+    return Shape(
+        id=901,
+        shape_type="polygon",
+        fill_color=(180, 120, 140),
+        points=[
+            (20, 40), (28, 38), (36, 39), (44, 42),
+            (45, 46), (36, 45), (28, 44), (20, 43),
+        ],
+        importance=0.99,
+        source_role="character_limb_base",
+        layer_name="character_body_base",
+        semantic_type=f"character_{side}_arm",
+        character_part=f"{side}_arm",
+        side_hint=side,
+    )
+
+
+def _phase5_gesture_hand(side: str = "left") -> Shape:
+    return Shape(
+        id=902,
+        shape_type="polygon",
+        fill_color=(245, 235, 225),
+        points=[(16, 38), (21, 39), (22, 43), (18, 46), (14, 43)],
+        importance=0.985,
+        source_role="character_hand_base",
+        layer_name="character_body_detail",
+        semantic_type="character_hand_open",
+        character_part=f"{side}_hand",
+        side_hint=side,
+    )
+
+
+def test_phase5_gesture_abstraction_simplifies_arm_but_keeps_hand_anchor_exact():
+    arm = _phase5_gesture_arm("left")
+    hand = _phase5_gesture_hand("left")
+    original_hand_points = list(hand.points)
+
+    out, stats = _abstract_gesture_shapes([arm, hand], 220.0)
+    by_id = {shape.id: shape for shape in out}
+
+    assert len(by_id[arm.id].points) < len(arm.points)
+    assert by_id[arm.id].side_hint == "left"
+    assert by_id[arm.id].character_part == "left_arm"
+    assert by_id[hand.id].points == original_hand_points
+    assert stats["simplified_shapes"] == 1
+    assert stats["vertices_removed"] == 3
+    assert stats["anchored_simplifications"] == 1
+
+
+def test_phase5_gesture_abstraction_does_not_simplify_hand_polygon_itself():
+    hand = _phase5_gesture_hand("left")
+    original_points = list(hand.points)
+
+    out, stats = _abstract_gesture_shapes([hand], 220.0)
+
+    assert out[0].points == original_points
+    assert stats["simplified_shapes"] == 0
+    assert stats["vertices_removed"] == 0
+
+
+def test_phase5_gesture_abstraction_never_uses_opposite_side_hand_as_anchor():
+    arm = _phase5_gesture_arm("left")
+    hand = _phase5_gesture_hand("right")
+
+    out, stats = _abstract_gesture_shapes([arm, hand], 220.0)
+
+    assert len(out[0].points) < len(arm.points)
+    assert out[0].side_hint == "left"
+    assert out[1].side_hint == "right"
+    assert stats["anchored_simplifications"] == 0
+
+
+def test_phase5_macro_priority_prefers_head_candidate_over_high_importance_background():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    background = _rect(2, 60, 60, 12, 10, importance=0.95, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, background])
+
+    assert _macro_shape_priority_score(scene, head) > _macro_shape_priority_score(scene, background)
+
+
+def test_phase5_macro_budget_removes_background_before_subject_macro_shapes():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    garment = _rect(2, 35, 45, 14, 14, importance=0.45, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    background = _rect(3, 70, 70, 12, 10, importance=0.95, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, background])
+
+    capped, removed, stats = _final_shape_cap(scene, scene.shapes, 2)
+
+    assert {shape.id for shape in capped} == {1, 2}
+    assert removed == 1
+    assert stats["removed_background"] == 1
+    assert stats["removed_subject"] == 0
+
+
+def test_phase5_macro_shadow_blocks_budget_when_candidate_overlaps_subject_bbox():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    garment = _rect(2, 35, 45, 14, 14, importance=0.45, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    inside_background = _rect(3, 25, 25, 12, 10, importance=0.10, semantic="subject_mass", role="misc", layer="midground")
+    outside_background = _rect(4, 160, 160, 12, 10, importance=0.35, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, inside_background, outside_background])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(10, 10, 100, 120), reason="test", zone_masks={})
+
+    shadow = _macro_priority_shadow(scene, scene.shapes, zones, budget=3)
+
+    assert shadow["would_remove"] == 1
+    assert shadow["would_remove_inside_subject_bbox"] == 1
+    assert shadow["blocked_by_subject_bbox"] is True
+
+
+def test_phase5_macro_subject_continuity_recognizes_near_same_color_head_mass():
+    head = _rect(1, 50, 50, 16, 16, importance=0.8, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents", fill_color=(240, 220, 210))
+    candidate = _rect(2, 38, 32, 14, 16, importance=0.2, semantic="subject_mass", role="misc", layer="midground", fill_color=(240, 220, 210))
+    scene = Scene(220, 220, (245, 245, 240), [head, candidate])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(20, 20, 100, 120), reason="test", zone_masks={})
+    assert _macro_subject_continuity(scene, candidate, scene.shapes, zones) is True
+
+
+def test_phase5_macro_shadow_reclassifies_visual_subject_continuity():
+    head = _rect(1, 50, 50, 16, 16, importance=0.9, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents", fill_color=(240, 220, 210))
+    garment = _rect(2, 40, 80, 22, 22, importance=0.8, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    candidate = _rect(3, 38, 32, 14, 16, importance=0.1, semantic="subject_mass", role="misc", layer="midground", fill_color=(240, 220, 210))
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, candidate])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(20, 20, 100, 120), reason="test", zone_masks={})
+    shadow = _macro_priority_shadow(scene, scene.shapes, zones, budget=2)
+    assert shadow["would_remove"] == 1
+    assert shadow["would_remove_subject_continuity"] == 1
+    assert shadow["would_remove_background"] == 0
+    assert shadow["blocked_by_subject_continuity"] is True
+
+
+def test_phase5_allows_one_extra_strict_outfit_refinement_in_subject_mode():
+    base = _rect(1, 30, 30, 40, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail_a = _rect(2, 28, 42, 8, 12, importance=0.72, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    detail_b = _rect(3, 64, 42, 8, 12, importance=0.71, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(95, 104, 122))
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": []}}}
+    scene = Scene(100, 100, (245, 245, 240), [base, detail_a, detail_b], metadata)
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 2
+    assert len(out.shapes) == 1
