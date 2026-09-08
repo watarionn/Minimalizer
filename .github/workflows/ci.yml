@@ -43,6 +43,7 @@ jobs:
             tests/test_adaptive_polygon_simplify.py \
             tests/test_high_resolution_guard.py \
             tests/test_target_style.py \
+            tests/test_target_hierarchy.py \
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
@@ -106,34 +107,36 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Rinka Phase 2.1 corpus
+      - name: Evaluate Rinka Phase 3 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase21
-          echo '--- Rinka Phase 2.1 summary ---'
-          cat /tmp/rinka-target-phase21/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase3
+          echo '--- Rinka Phase 3 summary ---'
+          cat /tmp/rinka-target-phase3/summary_0_end.json
 
-      - name: Enforce Phase 2.1 identity-safety guard
+      - name: Enforce Phase 3 safety guard
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          summary = json.loads(Path('/tmp/rinka-target-phase21/summary_0_end.json').read_text())
-          assert summary['target_style_version'] == 'phase2.1', summary
+          summary = json.loads(Path('/tmp/rinka-target-phase3/summary_0_end.json').read_text())
+          assert summary['target_style_version'] == 'phase3', summary
           assert summary['mean_shape_reduction_ratio'] >= 0.35, summary
           assert summary['worst_target_pre_identity_delta'] >= -0.08, summary
           assert summary['worst_target_pre_silhouette_delta'] >= -0.01, summary
-          print('Phase 2.1 identity-safety guard passed')
+          assert summary['opaque_hierarchy_enabled_count'] >= 1, summary
+          assert summary['total_opaque_subject_shapes'] >= 1, summary
+          print('Phase 3 safety guard passed')
           PY
 
-      - name: Upload Rinka Phase 2.1 evaluation artifact
+      - name: Upload Rinka Phase 3 evaluation artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase21-evaluation
-          path: /tmp/rinka-target-phase21
+          name: rinka-target-phase3-evaluation
+          path: /tmp/rinka-target-phase3
           if-no-files-found: warn
           retention-days: 14
