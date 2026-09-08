@@ -66,17 +66,18 @@ Do not add image-specific hacks to reproduce this one reference. Improvements mu
 
 Phase 3 is merged to `main` and production source, but the Rinka Reference path remains opt-in and is not exposed by the public Web UI.
 
-Phase 4 work is underway on `feature/rinka-target-phase4-zones-20260908`. The first foundation derives conservative coarse zones inside an accepted opaque subject (`head`, `torso`, `legs`, and lateral arms), tags overlapping shapes, and uses those zones for conservative face/arm micro-fragment reduction.
+Phase 4 work is underway on `feature/rinka-target-phase4-zones-20260908`. The foundation derives conservative coarse zones inside an accepted opaque subject (`head`, `torso`, `legs`, and lateral arms), tags overlapping shapes, and uses those zones for conservative face/arm micro-fragment reduction. The current refinement also derives a face-side reference only from bilateral arm/head color agreement or a same-color head consensus; this can identify one sufficiently dark compact head mass as `hair` and one dominant color-separated torso/leg mass as `clothing`. Arm-zone blocks now participate in the hand/limb mass-consolidation path.
 
 Local 16-image Phase 4 evaluation at analysis max side 220 recorded:
 
-- mean shape reduction: about **36.84%**;
-- mean vertex reduction: about **30.13%**;
+- mean shape reduction: about **36.61%**;
+- mean vertex reduction: about **29.94%**;
 - worst pre-target identity delta: about **-0.0573**;
 - worst pre-target silhouette delta: about **-0.0010**;
 - opaque hierarchy enabled: **2 / 16**;
 - opaque zones enabled: **2 / 16**;
-- classified shapes: head **4**, torso **8**, arm **4**, leg **4**.
+- classified shapes: head **3**, torso **7**, arm **4**, leg **4**, hair **1**, clothing **1**.
+- face-side reference established on **1/16** images.
 
 The user explicitly wants the completed Rinka Reference mode added to the Web UI. Keep it internal/opt-in while quality work is still moving; expose it in the Web UI only after the target style is judged complete and stable.
 

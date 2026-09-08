@@ -321,3 +321,32 @@ def test_phase4_opaque_zones_are_recorded_and_can_suppress_head_micro_fragment()
     assert meta["torso_shapes"] >= 1
     assert 2 not in [shape.id for shape in out.shapes]
     assert out.metadata["target_style"]["face_fragments_removed"] >= 1
+
+
+def test_phase4_refines_hair_clothing_and_merges_nearby_arm_blocks():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    base_scene = Scene(120, 140, (245, 245, 240), [], {"subject_mode": False})
+    zones = estimate_opaque_subject_zones(hierarchy, base_scene)
+
+    face = _rect(1, 50, 20, 20, 20, importance=0.93, semantic="generic", fill_color=(224, 190, 170))
+    hair = _rect(2, 44, 14, 30, 18, importance=0.82, semantic="generic", fill_color=(55, 48, 58))
+    clothing = _rect(3, 45, 54, 30, 32, importance=0.82, semantic="generic", fill_color=(50, 72, 96))
+    left_a = _rect(4, 31, 56, 5, 14, importance=0.82, semantic="generic", fill_color=(224, 190, 170))
+    left_b = _rect(5, 38, 56, 5, 14, importance=0.80, semantic="generic", fill_color=(224, 190, 170))
+    right = _rect(6, 79, 56, 10, 18, importance=0.84, semantic="generic", fill_color=(224, 190, 170))
+    scene = Scene(120, 140, (245, 245, 240), [face, hair, clothing, left_a, left_b, right], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["face_reference_source"] == "bilateral_arms"
+    assert meta["inferred_hair_shapes"] >= 1
+    assert meta["inferred_clothing_shapes"] >= 1
+    assert meta["hair_shapes"] >= 1
+    assert meta["clothing_shapes"] >= 1
+    assert out.metadata["target_style"]["mass_merges"] >= 1
+    roles = [shape.source_role for shape in out.shapes]
+    assert any("opaque_zone:hair:" in role for role in roles)
+    assert any("opaque_zone:clothing:" in role for role in roles)
