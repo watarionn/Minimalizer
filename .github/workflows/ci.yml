@@ -132,6 +132,7 @@ jobs:
           assert summary['opaque_zones_enabled_count'] >= 1, summary
           assert summary['subject_zones_enabled_count'] >= 12, summary
           assert summary['structure_zones_enabled_count'] >= 10, summary
+          assert summary['total_target_structure_redundant_removed'] == 2, summary
           assert summary['total_opaque_zone_shapes'] >= 1, summary
           assert summary['total_opaque_head_shapes'] >= 1, summary
           assert summary['total_opaque_torso_shapes'] >= 1, summary
