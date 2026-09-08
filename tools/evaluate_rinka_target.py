@@ -3,8 +3,13 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
 from statistics import mean
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from minimalize_engine import MinimalizeConfig, minimalize, minimalize_rinka_reference
 from minimalize_engine.io.image_exporter import export_png
@@ -54,7 +59,7 @@ def _ratio(before: int, after: int) -> float:
 
 def main() -> None:
     args = _parser().parse_args()
-    root = Path(__file__).parents[1]
+    root = ROOT
     corpus = root / "tests" / "assets" / "corpus"
     out = Path(args.output_dir)
     if not out.is_absolute():
@@ -119,7 +124,7 @@ def main() -> None:
             "target_pre_minimality": target_quality.get("minimality_score"),
         }
         rows.append(row)
-        print(json.dumps(row, ensure_ascii=False))
+        print(json.dumps(row, ensure_ascii=False), flush=True)
 
     suffix = f"{args.start}_{args.end if args.end is not None else 'end'}"
     json_path = out / f"report_{suffix}.json"
@@ -142,7 +147,7 @@ def main() -> None:
             json.dumps(summary, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        print(json.dumps(summary, ensure_ascii=False))
+        print(json.dumps(summary, ensure_ascii=False), flush=True)
 
 
 if __name__ == "__main__":
