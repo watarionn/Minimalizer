@@ -27,6 +27,9 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--end", type=int)
     p.add_argument("--max-side", type=int, default=320)
     p.add_argument("--level", type=int, default=4)
+    p.add_argument("--target-palette", type=int)
+    p.add_argument("--target-epsilon", type=float)
+    p.add_argument("--target-shapes", type=int)
     p.add_argument(
         "--output-dir",
         default="examples/rinka_target_phase2",
@@ -57,6 +60,12 @@ def _ratio(before: int, after: int) -> float:
     return (before - after) / before
 
 
+def _delta(before, after):
+    if before is None or after is None:
+        return None
+    return float(after) - float(before)
+
+
 def main() -> None:
     args = _parser().parse_args()
     root = ROOT
@@ -65,6 +74,14 @@ def main() -> None:
     if not out.is_absolute():
         out = root / out
     out.mkdir(parents=True, exist_ok=True)
+
+    target_overrides = {"analysis_max_side": args.max_side}
+    if args.target_palette is not None:
+        target_overrides["palette_colors"] = args.target_palette
+    if args.target_epsilon is not None:
+        target_overrides["contour_epsilon_ratio"] = args.target_epsilon
+    if args.target_shapes is not None:
+        target_overrides["target_max_shapes"] = args.target_shapes
 
     files = sorted(p for p in corpus.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
     subset = files[args.start : args.end]
@@ -78,11 +95,7 @@ def main() -> None:
             enable_character_auto_retry=False,
         )
         stable = minimalize(path, stable_config)
-        target = minimalize_rinka_reference(
-            path,
-            args.level,
-            analysis_max_side=args.max_side,
-        )
+        target = minimalize_rinka_reference(path, args.level, **target_overrides)
 
         stem = path.stem
         export_png(stable, out / f"{stem}_stable.png")
@@ -97,6 +110,10 @@ def main() -> None:
         target_quality = target.metadata.get("quality", {})
         target_meta = target.metadata.get("target_style", {})
         cleanup = target_meta.get("cleanup", {})
+        stable_identity = stable_quality.get("identity_score")
+        target_identity = target_quality.get("identity_score")
+        stable_silhouette = stable_quality.get("silhouette_similarity")
+        target_silhouette = target_quality.get("silhouette_similarity")
 
         row = {
             "file": path.name,
@@ -117,13 +134,15 @@ def main() -> None:
             "target_background_removed": target_meta.get("background_removed", 0),
             "target_cap_removed": target_meta.get("cap_removed", 0),
             "stable_quality": stable_quality.get("score"),
-            "stable_identity": stable_quality.get("identity_score"),
-            "stable_silhouette": stable_quality.get("silhouette_similarity"),
+            "stable_identity": stable_identity,
+            "stable_silhouette": stable_silhouette,
             "stable_minimality": stable_quality.get("minimality_score"),
             "target_pre_quality": target_quality.get("score"),
-            "target_pre_identity": target_quality.get("identity_score"),
-            "target_pre_silhouette": target_quality.get("silhouette_similarity"),
+            "target_pre_identity": target_identity,
+            "target_pre_silhouette": target_silhouette,
             "target_pre_minimality": target_quality.get("minimality_score"),
+            "target_pre_identity_delta": _delta(stable_identity, target_identity),
+            "target_pre_silhouette_delta": _delta(stable_silhouette, target_silhouette),
         }
         rows.append(row)
         print(json.dumps(row, ensure_ascii=False), flush=True)
@@ -138,11 +157,18 @@ def main() -> None:
             writer.writeheader()
             writer.writerows(rows)
 
+        identity_deltas = [r["target_pre_identity_delta"] for r in rows if r["target_pre_identity_delta"] is not None]
+        silhouette_deltas = [r["target_pre_silhouette_delta"] for r in rows if r["target_pre_silhouette_delta"] is not None]
         summary = {
             "count": len(rows),
             "target_style_version": rows[0].get("target_style_version"),
+            "target_overrides": target_overrides,
             "mean_shape_reduction_ratio": mean(r["shape_reduction_ratio"] for r in rows),
             "mean_vertex_reduction_ratio": mean(r["vertex_reduction_ratio"] for r in rows),
+            "mean_target_pre_identity_delta": mean(identity_deltas) if identity_deltas else None,
+            "worst_target_pre_identity_delta": min(identity_deltas) if identity_deltas else None,
+            "mean_target_pre_silhouette_delta": mean(silhouette_deltas) if silhouette_deltas else None,
+            "worst_target_pre_silhouette_delta": min(silhouette_deltas) if silhouette_deltas else None,
             "total_target_cleanup_removed": sum(r["target_cleanup_removed"] for r in rows),
             "total_target_face_fragments_removed": sum(r["target_face_fragments_removed"] for r in rows),
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
