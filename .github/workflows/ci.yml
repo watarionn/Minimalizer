@@ -90,7 +90,7 @@ jobs:
   rinka-target-eval:
     if: github.event_name == 'pull_request' && github.head_ref == 'feature/rinka-target-phase1-cleanup-20260908'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,61 +106,97 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Phase 2 baseline
+      - name: Evaluate Phase 2 baseline p5 e040
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-ab/phase2
-          echo '--- Rinka Phase 2 baseline ---'
-          cat /tmp/rinka-ab/phase2/summary_0_end.json
+            --output-dir /tmp/rinka-grid/p5-e040
 
-      - name: Evaluate identity-safe candidate
+      - name: Evaluate palette-only p6 e040
+        run: |
+          python tools/evaluate_rinka_target.py \
+            --level 4 \
+            --max-side 220 \
+            --target-palette 6 \
+            --target-epsilon 0.040 \
+            --output-dir /tmp/rinka-grid/p6-e040
+
+      - name: Evaluate epsilon-only p5 e032
+        run: |
+          python tools/evaluate_rinka_target.py \
+            --level 4 \
+            --max-side 220 \
+            --target-palette 5 \
+            --target-epsilon 0.032 \
+            --output-dir /tmp/rinka-grid/p5-e032
+
+      - name: Evaluate identity-safe p6 e032
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
             --target-palette 6 \
             --target-epsilon 0.032 \
-            --output-dir /tmp/rinka-ab/identity-safe
-          echo '--- Rinka identity-safe candidate ---'
-          cat /tmp/rinka-ab/identity-safe/summary_0_end.json
+            --output-dir /tmp/rinka-grid/p6-e032
 
-      - name: Compare A/B summaries
+      - name: Rank identity-safety grid
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          root = Path('/tmp/rinka-ab')
-          baseline = json.loads((root/'phase2'/'summary_0_end.json').read_text())
-          safe = json.loads((root/'identity-safe'/'summary_0_end.json').read_text())
-          keys = [
-              'mean_shape_reduction_ratio',
-              'mean_vertex_reduction_ratio',
-              'mean_target_pre_identity_delta',
-              'worst_target_pre_identity_delta',
-              'mean_target_pre_silhouette_delta',
-              'worst_target_pre_silhouette_delta',
-          ]
-          comparison = {
-              key: {
-                  'phase2': baseline.get(key),
-                  'identity_safe': safe.get(key),
-                  'delta': None if baseline.get(key) is None or safe.get(key) is None else safe[key] - baseline[key],
-              }
-              for key in keys
+          root = Path('/tmp/rinka-grid')
+          names = ['p5-e040', 'p6-e040', 'p5-e032', 'p6-e032']
+          summaries = {
+              name: json.loads((root/name/'summary_0_end.json').read_text())
+              for name in names
           }
-          out = root/'ab_comparison.json'
-          out.write_text(json.dumps(comparison, indent=2), encoding='utf-8')
-          print(json.dumps(comparison, indent=2))
+          metrics = {
+              name: {
+                  'mean_shape_reduction_ratio': data['mean_shape_reduction_ratio'],
+                  'mean_vertex_reduction_ratio': data['mean_vertex_reduction_ratio'],
+                  'mean_identity_delta': data['mean_target_pre_identity_delta'],
+                  'worst_identity_delta': data['worst_target_pre_identity_delta'],
+                  'mean_silhouette_delta': data['mean_target_pre_silhouette_delta'],
+                  'worst_silhouette_delta': data['worst_target_pre_silhouette_delta'],
+              }
+              for name, data in summaries.items()
+          }
+          feasible = [
+              name for name, data in metrics.items()
+              if data['worst_identity_delta'] is not None
+              and data['worst_identity_delta'] >= -0.08
+              and data['worst_silhouette_delta'] is not None
+              and data['worst_silhouette_delta'] >= -0.01
+          ]
+          ranked = sorted(
+              feasible,
+              key=lambda name: (
+                  metrics[name]['mean_shape_reduction_ratio'],
+                  metrics[name]['mean_vertex_reduction_ratio'],
+                  metrics[name]['mean_identity_delta'],
+              ),
+              reverse=True,
+          )
+          result = {
+              'safety_thresholds': {
+                  'worst_identity_delta_min': -0.08,
+                  'worst_silhouette_delta_min': -0.01,
+              },
+              'metrics': metrics,
+              'feasible': feasible,
+              'recommended': ranked[0] if ranked else None,
+          }
+          (root/'grid_ranking.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
+          print(json.dumps(result, indent=2))
           PY
 
-      - name: Upload Rinka A/B evaluation artifact
+      - name: Upload Rinka identity-safety grid
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase2-identity-safe-ab
-          path: /tmp/rinka-ab
+          name: rinka-target-phase2-identity-grid
+          path: /tmp/rinka-grid
           if-no-files-found: warn
           retention-days: 14
