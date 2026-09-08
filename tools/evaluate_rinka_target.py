@@ -21,7 +21,7 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Compare the stable Minimalizer output with Rinka Reference Phase 1."
+        description="Compare stable Minimalizer output with the current Rinka Reference target style."
     )
     p.add_argument("--start", type=int, default=0)
     p.add_argument("--end", type=int)
@@ -29,7 +29,7 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--level", type=int, default=4)
     p.add_argument(
         "--output-dir",
-        default="examples/rinka_target_phase1",
+        default="examples/rinka_target_phase2",
         help="Path relative to the repository root unless absolute.",
     )
     return p
@@ -86,8 +86,8 @@ def main() -> None:
 
         stem = path.stem
         export_png(stable, out / f"{stem}_stable.png")
-        export_png(target, out / f"{stem}_rinka_phase1.png")
-        export_svg(target, out / f"{stem}_rinka_phase1.svg")
+        export_png(target, out / f"{stem}_rinka_phase2.png")
+        export_svg(target, out / f"{stem}_rinka_phase2.svg")
 
         stable_shapes = len(stable.shapes)
         target_shapes = len(target.shapes)
@@ -101,6 +101,7 @@ def main() -> None:
         row = {
             "file": path.name,
             "scene_mode": "subject" if stable.metadata.get("subject_mode") else "general",
+            "target_style_version": target_meta.get("version"),
             "stable_shapes": stable_shapes,
             "target_shapes": target_shapes,
             "shape_reduction_ratio": round(_ratio(stable_shapes, target_shapes), 6),
@@ -111,13 +112,14 @@ def main() -> None:
             "target_cleanup_removed_thin": cleanup.get("removed_thin", 0),
             "target_cleanup_removed_micro": cleanup.get("removed_micro", 0),
             "target_cleanup_removed_isolated": cleanup.get("removed_isolated", 0),
+            "target_face_fragments_removed": target_meta.get("face_fragments_removed", 0),
+            "target_mass_merges": target_meta.get("mass_merges", 0),
+            "target_background_removed": target_meta.get("background_removed", 0),
+            "target_cap_removed": target_meta.get("cap_removed", 0),
             "stable_quality": stable_quality.get("score"),
             "stable_identity": stable_quality.get("identity_score"),
             "stable_silhouette": stable_quality.get("silhouette_similarity"),
             "stable_minimality": stable_quality.get("minimality_score"),
-            # These are intentionally labeled pre-target because the Phase-1
-            # post-process does not yet have the source reference needed to
-            # recompute the full quality evaluator after cleanup.
             "target_pre_quality": target_quality.get("score"),
             "target_pre_identity": target_quality.get("identity_score"),
             "target_pre_silhouette": target_quality.get("silhouette_similarity"),
@@ -138,10 +140,15 @@ def main() -> None:
 
         summary = {
             "count": len(rows),
+            "target_style_version": rows[0].get("target_style_version"),
             "mean_shape_reduction_ratio": mean(r["shape_reduction_ratio"] for r in rows),
             "mean_vertex_reduction_ratio": mean(r["vertex_reduction_ratio"] for r in rows),
             "total_target_cleanup_removed": sum(r["target_cleanup_removed"] for r in rows),
-            "quality_note": "target_pre_* metrics are measured before the Phase-1 target-style post-process",
+            "total_target_face_fragments_removed": sum(r["target_face_fragments_removed"] for r in rows),
+            "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
+            "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
+            "total_target_cap_removed": sum(r["target_cap_removed"] for r in rows),
+            "quality_note": "target_pre_* metrics are measured before the target-style post-process",
         }
         (out / f"summary_{suffix}.json").write_text(
             json.dumps(summary, ensure_ascii=False, indent=2),
