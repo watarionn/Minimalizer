@@ -263,12 +263,15 @@ def apply_rinka_reference_style(
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in cleaned]
 
     metadata = dict(scene.metadata)
+    metadata["shape_count_pre_target_style"] = len(scene.shapes)
+    metadata["shape_count"] = len(straight)
     metadata["target_style"] = {
         "name": RINKA_REFERENCE_NAME,
         "version": RINKA_REFERENCE_VERSION,
         "curve_polygon_sides": max(4, int(curve_polygon_sides)),
         "shape_count_before": len(scene.shapes),
         "shape_count_after": len(straight),
+        "quality_metrics_scope": "pre_target_style",
         "cleanup": report.to_dict(),
     }
     return Scene(
