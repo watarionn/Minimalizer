@@ -124,7 +124,7 @@ jobs:
 
           summary = json.loads(Path('/tmp/rinka-target-phase5/summary_0_end.json').read_text())
           assert summary['target_style_version'] == 'phase5', summary
-          assert summary['mean_shape_reduction_ratio'] >= 0.37, summary
+          assert summary['mean_shape_reduction_ratio'] >= 0.375, summary
           assert summary['worst_target_pre_identity_delta'] >= -0.08, summary
           assert summary['worst_target_pre_silhouette_delta'] >= -0.01, summary
           assert summary['opaque_hierarchy_enabled_count'] >= 1, summary
@@ -133,18 +133,20 @@ jobs:
           assert summary['subject_zones_enabled_count'] >= 12, summary
           assert summary['structure_zones_enabled_count'] >= 10, summary
           assert summary['total_target_structure_redundant_removed'] == 2, summary
-          assert summary['total_target_outfit_layer_merges'] == 2, summary
+          assert summary['total_target_outfit_layer_merges'] == 3, summary
           assert summary['total_target_gesture_simplified_shapes'] == 4, summary
           assert summary['total_target_gesture_vertices_removed'] == 8, summary
           assert summary['total_target_gesture_anchored_simplifications'] == 1, summary
           assert summary['total_target_gesture_hand_anchors'] >= 10, summary
-          assert summary['mean_vertex_reduction_ratio'] >= 0.304, summary
+          assert summary['mean_vertex_reduction_ratio'] >= 0.306, summary
           assert summary['total_target_cap_removed'] == 0, summary
           assert summary['total_target_macro_shadow_would_remove'] == 1, summary
-          assert summary['total_target_macro_shadow_would_remove_background'] == 1, summary
-          assert summary['total_target_macro_shadow_would_remove_subject'] == 0, summary
+          assert summary['total_target_macro_shadow_would_remove_background'] == 0, summary
+          assert summary['total_target_macro_shadow_would_remove_subject'] == 1, summary
+          assert summary['total_target_macro_shadow_subject_continuity'] == 1, summary
           assert summary['total_target_macro_shadow_inside_subject_bbox'] == 1, summary
           assert summary['macro_shadow_blocked_count'] == 1, summary
+          assert summary['macro_shadow_continuity_blocked_count'] == 1, summary
           assert summary['total_opaque_zone_shapes'] >= 1, summary
           assert summary['total_opaque_head_shapes'] >= 1, summary
           assert summary['total_opaque_torso_shapes'] >= 1, summary
