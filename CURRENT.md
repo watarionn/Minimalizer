@@ -16,6 +16,7 @@ The repository contains the restored **v0.3.0 stable implementation snapshot** i
 - Corpus metadata: `tests/assets/corpus_manifest.json`
 - Evaluation tools: `tools/`
 - Stable sample input: `examples/input.webp`
+- Formal quality target: `docs/TARGET_STYLE.md`
 
 The restoration workflow verified that all 16 corpus entries exist, that 39 test files exist, that the restored Night River asset matches its original SHA-256, and that the Python source tree passes `compileall`.
 
@@ -45,6 +46,22 @@ User verification on the public production URL confirmed:
 
 Treat this as the current hosted usability baseline. Further low-level performance optimization is still useful, but the previously reported production-blocking 502/loading-state issues are no longer reproducing in the user's verification flow.
 
+## Formal quality target
+
+The current visual quality target is **Rinka Reference / 凛夏手本版**.
+
+Read `docs/TARGET_STYLE.md` before starting the next engine-quality phase.
+
+The canonical reference image is stored in Google Drive under the user's `chatGPT及びCodex用` folder:
+
+- file: `Minimalizer_目標スタイル_超ミニマル幾何学版_20260908.png`
+- Drive file ID: `1muN6Lf5IHL8N64i57GAti255xu0sp0xY`
+- URL: `https://drive.google.com/file/d/1muN6Lf5IHL8N64i57GAti255xu0sp0xY/view?usp=drivesdk`
+
+The target direction is **intentional geometric poster**, not merely fewer contours. Preserve source identity through composition, silhouette, dominant color blocks, pose, and a small number of distinctive structures while aggressively simplifying face detail, hands, clothing micro-detail, background clutter, and low-value thin fragments. Straight-edged polygonal construction is preferred.
+
+Do not add image-specific hacks to reproduce this one reference. Improvements must generalize across the stable corpus and future inputs.
+
 ## Version rule
 
 - `v0.3.0-alpha8 Character-specific Quality / Retry` is a historical checkpoint, not the current state.
@@ -53,4 +70,4 @@ Treat this as the current hosted usability baseline. Further low-level performan
 - Keep Web runtime versions separate from the engine release line.
 - The next engine development line should be `v0.3.x` for conservative fixes or `v0.4.0` for larger quality changes.
 
-Read next: `HANDOFF.md`.
+Read next: `HANDOFF.md`, then `docs/TARGET_STYLE.md` before quality work.

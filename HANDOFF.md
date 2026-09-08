@@ -6,13 +6,14 @@
 2. Read this file.
 3. Read `README.md` and `REPOSITORY_LAYOUT.md`.
 4. Treat `v0.3.0 stable` as the engine regression baseline.
-5. Inspect the restored code and tests before changing behavior.
+5. Read `docs/TARGET_STYLE.md` before changing minimalization quality behavior.
+6. Inspect the restored code and tests before changing behavior.
 
 ## Current state
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
-GitHub contains the stable engine implementation, 39-file stable regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, and permanent CI.
+GitHub contains the stable engine implementation, 39-file stable regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
 
 Release validation recorded at v0.3.0:
 - 156 tests passed / 0 failed when completed in batches.
@@ -160,6 +161,35 @@ This is the current Web usability baseline. The earlier reported 502/loading-sta
 
 Do not add a new `railway.toml` or `railway.json` for this project. Use the root Dockerfile plus Railway service settings instead.
 
+## Formal quality target: Rinka Reference / 凛夏手本版
+
+The user formally approved a hand-crafted ultra-minimal geometric poster variation as the target direction for future Minimalizer quality improvements.
+
+The canonical visual reference is stored in Google Drive:
+
+- folder: `chatGPT及びCodex用`
+- file: `Minimalizer_目標スタイル_超ミニマル幾何学版_20260908.png`
+- Drive file ID: `1muN6Lf5IHL8N64i57GAti255xu0sp0xY`
+- URL: `https://drive.google.com/file/d/1muN6Lf5IHL8N64i57GAti255xu0sp0xY/view?usp=drivesdk`
+
+Read `docs/TARGET_STYLE.md` for the full specification.
+
+The essential direction is:
+
+- preserve source identity through macro composition, silhouette, pose, dominant color blocks, and a few distinctive structural cues;
+- prefer straight-edged polygons and angular planes;
+- face details are optional and OFF by default for this target style;
+- simplify hands into a few gesture-preserving blocks rather than detailed fingers;
+- consolidate clothing into large masses and remove most ruffles, folds, trim, and micro-accessories;
+- simplify the background more aggressively than the main subject, retaining only semantic scene cues;
+- aggressively remove thin slivers, narrow rectangles, isolated micro-shapes, and repeated low-value fragments;
+- prefer a compact role-based palette;
+- prioritize intentional shape hierarchy and negative space over local contour fidelity.
+
+The implementation goal is **input image -> intentional geometric poster**, not merely input image -> fewer contours.
+
+This reference is a general design target, not an image-specific reproduction target. Do not add special cases for the reference image. Any engine change inspired by it must generalize across the stable corpus and future inputs.
+
 ## Important stable behavior
 
 - Conservative thin/noisy rectangle cleanup.
@@ -177,14 +207,18 @@ Do not add a new `railway.toml` or `railway.json` for this project. Use the root
 
 Web v0.4.1 is merged and production-verified. The browser workflow is usable at levels 1-3 with the temporary hosted analysis cap of 400. Keep the current Railway safety settings while gathering more real usage evidence.
 
-Primary product work should now shift back toward the original goal: input image -> higher-quality minimalized graphic.
+Primary product work should now shift back toward the original goal: input image -> higher-quality minimalized graphic, using `docs/TARGET_STYLE.md` as the formal visual direction.
 
-Engine maintenance / quality work remains queued:
+Recommended quality sequence:
 1. audit the direct default of `cleanup_minimal_shapes(... promote_rectangle_iou)` against the stable config default of `0.985` and add a regression test if needed;
 2. add a fully opaque RGBA high-resolution smoke test;
-3. improve weaker corpus cases without regressing the stable baseline, especially identity/silhouette outliers;
-4. continue generalized cleanup improvements such as removing visually low-value thin rectangles/fragments without image-specific hacks;
-5. keep safe maintenance fixes in `v0.3.1`, while larger quality changes belong in `v0.4.0` or later.
+3. strengthen generalized removal of visually low-value thin rectangles, slivers, and micro-fragments;
+4. improve macro-shape selection so composition/silhouette outrank local contour detail;
+5. explore gesture-preserving hand abstraction and garment-mass consolidation;
+6. simplify background structure more aggressively than subject structure;
+7. prefer straight-line polygonal geometry where source identity is preserved;
+8. improve weaker corpus cases without regressing the stable baseline, especially identity/silhouette outliers;
+9. keep safe maintenance fixes in `v0.3.1`, while larger target-style quality changes belong in `v0.4.0` or later.
 
 Optional Web follow-up, after or alongside quality work:
 - profile low-level retry/quality-evaluation cost on the 1 GB host;
