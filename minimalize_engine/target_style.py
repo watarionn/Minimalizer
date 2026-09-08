@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import replace
 from math import cos, pi, sin
 
+import cv2
+import numpy as np
+
 from .analysis.shape_cleanup import cleanup_minimal_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
@@ -10,37 +13,65 @@ from .pipeline import minimalize
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase1"
+RINKA_REFERENCE_VERSION = "phase2"
 
 
 _TARGET_MAX_SHAPES = {
-    1: 90,
-    2: 70,
-    3: 55,
-    4: 38,
-    5: 24,
+    1: 72,
+    2: 56,
+    3: 42,
+    4: 28,
+    5: 18,
+}
+
+_TARGET_PALETTE_COLORS = {
+    1: 8,
+    2: 7,
+    3: 6,
+    4: 5,
+    5: 4,
 }
 
 _TARGET_EPSILON = {
-    1: 0.010,
-    2: 0.014,
-    3: 0.020,
-    4: 0.032,
-    5: 0.050,
+    1: 0.012,
+    2: 0.018,
+    3: 0.026,
+    4: 0.040,
+    5: 0.060,
 }
+
+_CHARACTER_TOKENS = (
+    "character",
+    "hair",
+    "head",
+    "face",
+    "hand",
+    "finger",
+    "arm",
+    "leg",
+    "limb",
+    "shoe",
+    "torso",
+    "outfit",
+    "dress",
+    "skirt",
+    "sleeve",
+    "clothing",
+    "prop",
+)
 
 
 def rinka_reference_config(level: int = 4, **overrides) -> MinimalizeConfig:
     """Return an opt-in config aimed at the formal Rinka Reference target.
 
-    The stable ``from_level`` presets remain unchanged. This profile deliberately
-    spends fewer shapes on local detail, disables structural line extraction,
-    keeps dedicated face primitives off, and prevents quality retry from adding
-    detail back after the target-style simplification decisions.
+    Stable ``from_level`` presets stay unchanged. The target profile deliberately
+    spends fewer shapes and colors on local detail, disables structural lines,
+    keeps dedicated face primitives off, and disables quality retry so a retry
+    cannot re-introduce detail after the target-style simplification decisions.
     """
     base = MinimalizeConfig.from_level(level)
     profile = {
-        "palette_colors": min(base.palette_colors, 6),
+        "palette_colors": min(base.palette_colors, _TARGET_PALETTE_COLORS[level]),
         "target_max_shapes": min(base.target_max_shapes, _TARGET_MAX_SHAPES[level]),
         "contour_epsilon_ratio": max(base.contour_epsilon_ratio, _TARGET_EPSILON[level]),
         "line_mode": "none",
@@ -58,12 +89,12 @@ def rinka_reference_config(level: int = 4, **overrides) -> MinimalizeConfig:
             base.cleanup_thin_rectangle_max_area_ratio, 0.010
         ),
         "cleanup_simplify_epsilon_ratio": max(
-            base.cleanup_simplify_epsilon_ratio, 0.018
+            base.cleanup_simplify_epsilon_ratio, 0.020
         ),
         "cleanup_simplify_max_area_error": max(
-            base.cleanup_simplify_max_area_error, 0.060
+            base.cleanup_simplify_max_area_error, 0.070
         ),
-        "cleanup_simplify_min_iou": min(base.cleanup_simplify_min_iou, 0.975),
+        "cleanup_simplify_min_iou": min(base.cleanup_simplify_min_iou, 0.970),
         "enable_auto_retry": False,
         "enable_character_auto_retry": False,
     }
@@ -82,19 +113,16 @@ def _polygon_area(points: list[tuple[float, float]]) -> float:
 
 
 def _shape_metrics(shape: Shape) -> tuple[float, float, float, float]:
-    """Return area, short side, long side and aspect ratio without raster work."""
     if shape.shape_type == "rectangle":
         w = max(float(shape.width or 0.0), 0.0)
         h = max(float(shape.height or 0.0), 0.0)
         short, long = sorted((w, h))
         return w * h, short, long, long / max(short, 1e-6)
-
     if shape.shape_type in {"circle", "ellipse"}:
         rx = max(float(shape.rx or 0.0), 0.0)
         ry = max(float(shape.ry if shape.ry is not None else rx), 0.0)
         short, long = sorted((2.0 * rx, 2.0 * ry))
         return pi * rx * ry, short, long, long / max(short, 1e-6)
-
     if shape.points:
         xs = [float(p[0]) for p in shape.points]
         ys = [float(p[1]) for p in shape.points]
@@ -103,18 +131,88 @@ def _shape_metrics(shape: Shape) -> tuple[float, float, float, float]:
         short, long = sorted((max(w, 0.0), max(h, 0.0)))
         area = _polygon_area(shape.points) if len(shape.points) >= 3 else 0.0
         return area, short, long, long / max(short, 1e-6)
-
     return 0.0, 0.0, 0.0, 1.0
 
 
-def _character_fragment_kind(shape: Shape) -> str | None:
-    tags = " ".join(
+def _shape_bbox(shape: Shape) -> tuple[float, float, float, float]:
+    if shape.shape_type == "rectangle":
+        x = float(shape.x or 0.0)
+        y = float(shape.y or 0.0)
+        w = max(float(shape.width or 0.0), 0.0)
+        h = max(float(shape.height or 0.0), 0.0)
+        return x, y, x + w, y + h
+    if shape.shape_type in {"circle", "ellipse"}:
+        cx = float(shape.cx or 0.0)
+        cy = float(shape.cy or 0.0)
+        rx = max(float(shape.rx or 0.0), 0.0)
+        ry = max(float(shape.ry if shape.ry is not None else rx), 0.0)
+        return cx - rx, cy - ry, cx + rx, cy + ry
+    if shape.points:
+        xs = [float(p[0]) for p in shape.points]
+        ys = [float(p[1]) for p in shape.points]
+        return min(xs), min(ys), max(xs), max(ys)
+    return 0.0, 0.0, 0.0, 0.0
+
+
+def _bbox_distance(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> float:
+    ax0, ay0, ax1, ay1 = a
+    bx0, by0, bx1, by1 = b
+    dx = max(0.0, max(ax0, bx0) - min(ax1, bx1))
+    dy = max(0.0, max(ay0, by0) - min(ay1, by1))
+    return float(np.hypot(dx, dy))
+
+
+def _shape_center(shape: Shape) -> tuple[float, float]:
+    x0, y0, x1, y1 = _shape_bbox(shape)
+    return (x0 + x1) / 2.0, (y0 + y1) / 2.0
+
+
+def _color_distance(a: tuple[int, int, int] | None, b: tuple[int, int, int] | None) -> float:
+    if a is None or b is None:
+        return 999.0
+    return float(np.linalg.norm(np.asarray(a, dtype=float) - np.asarray(b, dtype=float)))
+
+
+def _shape_polygon_points(shape: Shape, curve_sides: int = 8) -> np.ndarray | None:
+    if shape.shape_type == "polygon" and len(shape.points) >= 3:
+        return np.asarray(shape.points, dtype=np.float32)
+    if shape.shape_type == "rectangle":
+        x0, y0, x1, y1 = _shape_bbox(shape)
+        return np.asarray([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], dtype=np.float32)
+    if shape.shape_type in {"circle", "ellipse"}:
+        cx = float(shape.cx or 0.0)
+        cy = float(shape.cy or 0.0)
+        rx = max(float(shape.rx or 0.0), 0.0)
+        ry = max(float(shape.ry if shape.ry is not None else rx), 0.0)
+        if rx <= 0.0 or ry <= 0.0:
+            return None
+        n = max(4, int(curve_sides))
+        return np.asarray(
+            [
+                (
+                    cx + rx * cos(-pi / 2.0 + 2.0 * pi * i / n),
+                    cy + ry * sin(-pi / 2.0 + 2.0 * pi * i / n),
+                )
+                for i in range(n)
+            ],
+            dtype=np.float32,
+        )
+    return None
+
+
+def _shape_tags(shape: Shape) -> str:
+    return " ".join(
         (
             shape.semantic_type or "",
             shape.character_part or "",
             shape.source_role or "",
+            shape.layer_name or "",
         )
     ).lower()
+
+
+def _character_fragment_kind(shape: Shape) -> str | None:
+    tags = _shape_tags(shape)
     if "face" in tags or "eye" in tags or "mouth" in tags:
         return None
     if "hand" in tags or "finger" in tags:
@@ -126,44 +224,52 @@ def _character_fragment_kind(shape: Shape) -> str | None:
     return None
 
 
+def _target_mass_kind(shape: Shape) -> str:
+    tags = _shape_tags(shape)
+    if "hair" in tags:
+        return "hair"
+    if "hand" in tags or "finger" in tags:
+        return "hand"
+    if any(
+        token in tags
+        for token in (
+            "outfit", "torso", "body", "dress", "skirt", "sleeve",
+            "clothing", "ruffle", "lace", "trim", "accessory",
+        )
+    ):
+        return "garment"
+    if any(token in tags for token in ("prop", "weapon")):
+        return "prop"
+    if any(token in tags for token in ("background", "skyline", "water", "structure")):
+        return "background"
+    if (shape.layer_name or "").lower() in {"background", "midground"}:
+        return "background"
+    return "generic"
+
+
+def _is_character_like(shape: Shape) -> bool:
+    tags = _shape_tags(shape)
+    return any(token in tags for token in _CHARACTER_TOKENS)
+
+
 def _relax_low_value_character_fragment(
     shape: Shape,
     canvas_area: float,
     min_side: float,
 ) -> Shape:
-    """Let only small target-style character fragments enter generic cleanup.
-
-    Stable cleanup intentionally blanket-protects hair and hands. The Rinka
-    target wants major hair flow / gesture preserved while fine strands,
-    fingers, lace and similar fragments can disappear. We therefore remove the
-    protection metadata only from small/low-value fragments. Large or important
-    character geometry stays protected exactly as before.
-    """
     kind = _character_fragment_kind(shape)
     if kind is None:
         return shape
-
     area, short, _long, aspect = _shape_metrics(shape)
     area_ratio = area / max(canvas_area, 1.0)
     short_limit = max(1.5, min_side * 0.030)
     thin = short <= short_limit and aspect >= 3.2
-
-    micro_limit = {
-        "hand": 0.0040,
-        "hair": 0.0030,
-        "outfit_detail": 0.0060,
-    }[kind]
-    importance_limit = {
-        "hand": 0.88,
-        "hair": 0.86,
-        "outfit_detail": 0.92,
-    }[kind]
-
+    micro_limit = {"hand": 0.0040, "hair": 0.0030, "outfit_detail": 0.0060}[kind]
+    importance_limit = {"hand": 0.88, "hair": 0.86, "outfit_detail": 0.92}[kind]
     if float(shape.importance) >= importance_limit:
         return shape
     if not thin and area_ratio > micro_limit:
         return shape
-
     return replace(
         shape,
         semantic_type=f"target_{kind}_fragment",
@@ -172,57 +278,208 @@ def _relax_low_value_character_fragment(
     )
 
 
-def _curve_to_polygon(shape: Shape, sides: int = 8) -> Shape:
-    """Replace circles/ellipses with straight-edged polygons for target style."""
+def _face_box_from_metadata(scene: Scene) -> tuple[float, float, float, float] | None:
+    structure = scene.metadata.get("character", {}).get("structure", {})
+    parts = structure.get("parts", []) if isinstance(structure, dict) else []
+    face = next((p for p in parts if str(p.get("part_type", "")) == "face"), None)
+    if face is not None and len(face.get("bbox", [])) == 4:
+        x, y, w, h = [float(v) for v in face["bbox"]]
+        return x, y, x + w, y + h
+    head = next((p for p in parts if str(p.get("part_type", "")) == "head"), None)
+    if head is not None and len(head.get("bbox", [])) == 4:
+        x, y, w, h = [float(v) for v in head["bbox"]]
+        return x + 0.18 * w, y + 0.18 * h, x + 0.82 * w, y + 0.86 * h
+    return None
+
+
+def _suppress_face_fragments(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
+    box = _face_box_from_metadata(scene)
+    if box is None:
+        return shapes, 0
+    x0, y0, x1, y1 = box
+    face_area = max((x1 - x0) * (y1 - y0), 1.0)
+    inside: list[Shape] = []
+    for shape in shapes:
+        if shape.fill_color is None or shape.shape_type == "line":
+            continue
+        tags = _shape_tags(shape)
+        if any(token in tags for token in ("hair", "prop", "hand", "finger")):
+            continue
+        cx, cy = _shape_center(shape)
+        if x0 <= cx <= x1 and y0 <= cy <= y1:
+            inside.append(shape)
+    if len(inside) < 2:
+        return shapes, 0
+    carrier = max(inside, key=lambda s: _shape_metrics(s)[0])
+    carrier_area = _shape_metrics(carrier)[0]
+    if carrier_area < face_area * 0.08:
+        return shapes, 0
+    remove_ids: set[int] = set()
+    for shape in inside:
+        if shape.id == carrier.id or float(shape.importance) >= 0.90:
+            continue
+        area = _shape_metrics(shape)[0]
+        if area <= max(face_area * 0.16, carrier_area * 0.65):
+            remove_ids.add(shape.id)
+    if not remove_ids:
+        return shapes, 0
+    return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
+
+
+def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
+    if a.fill_color is None or b.fill_color is None:
+        return None
+    if a.shape_type == "line" or b.shape_type == "line":
+        return None
+    if a.stroke_width > 0 or b.stroke_width > 0 or a.layer_name != b.layer_name:
+        return None
+    kind_a = _target_mass_kind(a)
+    kind_b = _target_mass_kind(b)
+    if kind_a != kind_b or kind_a == "prop":
+        return None
+    color_limit, gap_ratio, max_inflation = {
+        "hair": (24.0, 0.020, 1.20),
+        "hand": (30.0, 0.025, 1.28),
+        "garment": (32.0, 0.032, 1.30),
+        "background": (38.0, 0.050, 1.38),
+        "generic": (20.0, 0.015, 1.16),
+    }[kind_a]
+    if _color_distance(a.fill_color, b.fill_color) > color_limit:
+        return None
+    if _bbox_distance(_shape_bbox(a), _shape_bbox(b)) > max(1.0, min_side * gap_ratio):
+        return None
+    pa = _shape_polygon_points(a)
+    pb = _shape_polygon_points(b)
+    if pa is None or pb is None:
+        return None
+    aa = max(_shape_metrics(a)[0], 0.0)
+    ab = max(_shape_metrics(b)[0], 0.0)
+    area_sum = aa + ab
+    if area_sum <= 1e-6:
+        return None
+    hull = cv2.convexHull(np.vstack([pa, pb])).reshape(-1, 2)
+    hull_area = abs(float(cv2.contourArea(hull)))
+    if hull_area / area_sum > max_inflation:
+        return None
+    keep = a if (a.importance, aa) >= (b.importance, ab) else b
+    weight = max(area_sum, 1e-6)
+    fill = tuple(
+        int(round((a.fill_color[i] * aa + b.fill_color[i] * ab) / weight))
+        for i in range(3)
+    )
+    return replace(
+        keep,
+        shape_type="polygon",
+        fill_color=fill,
+        points=[(float(x), float(y)) for x, y in hull],
+        x=None, y=None, width=None, height=None,
+        cx=None, cy=None, rx=None, ry=None,
+        z_index=max(a.z_index, b.z_index),
+        importance=max(float(a.importance), float(b.importance)),
+    )
+
+
+def _consolidate_masses(shapes: list[Shape], min_side: float) -> tuple[list[Shape], int]:
+    working = list(shapes)
+    merged_count = 0
+    changed = True
+    while changed:
+        changed = False
+        for i, a in enumerate(working):
+            for j in range(i + 1, len(working)):
+                merged = _merge_mass_pair(a, working[j], min_side)
+                if merged is None:
+                    continue
+                working = working[:i] + [merged] + working[i + 1:j] + working[j + 1:]
+                merged_count += 1
+                changed = True
+                break
+            if changed:
+                break
+    return working, merged_count
+
+
+def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    background = [
+        s for s in shapes
+        if _target_mass_kind(s) == "background" and not _is_character_like(s)
+    ]
+    if not background:
+        return shapes, 0
+    subject_mode = bool(scene.metadata.get("subject_mode"))
+    cap = 8 if subject_mode else max(10, int(round(len(shapes) * 0.45)))
+    remove_ids: set[int] = set()
+    for shape in background:
+        area_ratio = _shape_metrics(shape)[0] / canvas_area
+        if area_ratio <= 0.0018 and float(shape.importance) < 0.58:
+            remove_ids.add(shape.id)
+    survivors = [s for s in background if s.id not in remove_ids]
+    if len(survivors) > cap:
+        ranked = sorted(
+            survivors,
+            key=lambda s: (
+                min(1.0, (_shape_metrics(s)[0] / canvas_area) / 0.03) * 0.62
+                + max(0.0, min(1.0, float(s.importance))) * 0.38
+            ),
+            reverse=True,
+        )
+        keep_ids = {s.id for s in ranked[:cap]}
+        for shape in survivors:
+            area_ratio = _shape_metrics(shape)[0] / canvas_area
+            if shape.id not in keep_ids and area_ratio < 0.05 and float(shape.importance) < 0.93:
+                remove_ids.add(shape.id)
+    if not remove_ids:
+        return shapes, 0
+    return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
+
+
+def _curve_to_polygon(shape: Shape, sides: int = 6) -> Shape:
     if shape.shape_type not in {"circle", "ellipse"}:
         return shape
-    cx = float(shape.cx or 0.0)
-    cy = float(shape.cy or 0.0)
-    rx = max(float(shape.rx or 0.0), 0.0)
-    ry = max(float(shape.ry if shape.ry is not None else rx), 0.0)
-    if rx <= 0.0 or ry <= 0.0:
+    pts = _shape_polygon_points(shape, curve_sides=sides)
+    if pts is None:
         return shape
-    n = max(4, int(sides))
-    points = [
-        (
-            cx + rx * cos(-pi / 2.0 + 2.0 * pi * i / n),
-            cy + ry * sin(-pi / 2.0 + 2.0 * pi * i / n),
-        )
-        for i in range(n)
-    ]
     return replace(
         shape,
         shape_type="polygon",
-        points=points,
-        x=None,
-        y=None,
-        width=None,
-        height=None,
-        cx=None,
-        cy=None,
-        rx=None,
-        ry=None,
+        points=[(float(x), float(y)) for x, y in pts],
+        x=None, y=None, width=None, height=None,
+        cx=None, cy=None, rx=None, ry=None,
     )
+
+
+def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int | None) -> tuple[list[Shape], int]:
+    if target_max_shapes is None or target_max_shapes <= 0 or len(shapes) <= target_max_shapes:
+        return shapes, 0
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    def score(shape: Shape) -> float:
+        area_ratio = _shape_metrics(shape)[0] / canvas_area
+        value = max(0.0, min(1.0, float(shape.importance))) * 0.58
+        value += min(1.0, area_ratio / 0.025) * 0.32
+        if (shape.layer_name or "").lower() == "foreground":
+            value += 0.08
+        if _target_mass_kind(shape) in {"hair", "hand", "garment", "prop"}:
+            value += 0.08
+        return value
+    ranked = sorted(shapes, key=score, reverse=True)
+    keep_ids = {s.id for s in ranked[:target_max_shapes]}
+    capped = [s for s in shapes if s.id in keep_ids]
+    return capped, len(shapes) - len(capped)
 
 
 def apply_rinka_reference_style(
     scene: Scene,
     *,
-    curve_polygon_sides: int = 8,
+    curve_polygon_sides: int = 6,
+    target_max_shapes: int | None = None,
 ) -> Scene:
-    """Apply Phase-1 Rinka Reference simplification to an existing scene.
-
-    This is intentionally an opt-in post-process. It preserves the stable engine
-    baseline while allowing target-style work to be tested and tightened
-    independently.
-    """
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
     relaxed = [
         _relax_low_value_character_fragment(shape, canvas_area, min_side)
         for shape in scene.shapes
     ]
-
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
         scene.width,
@@ -251,34 +508,43 @@ def apply_rinka_reference_style(
         role_fragment_max_combined_area_ratio=0.10,
         role_fragment_max_hull_inflation=1.06,
         simplify_polygons=True,
-        simplify_epsilon_ratio=0.020,
-        simplify_max_area_error=0.060,
-        simplify_min_iou=0.970,
+        simplify_epsilon_ratio=0.022,
+        simplify_max_area_error=0.070,
+        simplify_min_iou=0.965,
         promote_primitives=False,
         remove_isolated=True,
         isolated_max_area_ratio=0.0015,
         isolated_min_distance_ratio=0.060,
         isolated_max_importance=0.55,
     )
-    straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in cleaned]
+    faceless, face_removed = _suppress_face_fragments(scene, cleaned)
+    consolidated, mass_merges = _consolidate_masses(faceless, min_side)
+    compressed, background_removed = _compress_background(scene, consolidated)
+    straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
+    capped, cap_removed = _final_shape_cap(scene, straight, target_max_shapes)
 
     metadata = dict(scene.metadata)
     metadata["shape_count_pre_target_style"] = len(scene.shapes)
-    metadata["shape_count"] = len(straight)
+    metadata["shape_count"] = len(capped)
     metadata["target_style"] = {
         "name": RINKA_REFERENCE_NAME,
         "version": RINKA_REFERENCE_VERSION,
         "curve_polygon_sides": max(4, int(curve_polygon_sides)),
+        "target_max_shapes": target_max_shapes,
         "shape_count_before": len(scene.shapes),
-        "shape_count_after": len(straight),
+        "shape_count_after": len(capped),
         "quality_metrics_scope": "pre_target_style",
+        "face_fragments_removed": face_removed,
+        "mass_merges": mass_merges,
+        "background_removed": background_removed,
+        "cap_removed": cap_removed,
         "cleanup": report.to_dict(),
     }
     return Scene(
         width=scene.width,
         height=scene.height,
         background=scene.background,
-        shapes=straight,
+        shapes=capped,
         metadata=metadata,
     )
 
@@ -287,13 +553,13 @@ def minimalize_rinka_reference(
     image_or_path,
     level: int = 4,
     *,
-    curve_polygon_sides: int = 8,
+    curve_polygon_sides: int = 6,
     **config_overrides,
 ) -> Scene:
-    """Minimalize an image with the opt-in Rinka Reference Phase-1 profile."""
     config = rinka_reference_config(level, **config_overrides)
     scene = minimalize(image_or_path, config)
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
+        target_max_shapes=config.target_max_shapes,
     )
