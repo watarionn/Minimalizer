@@ -43,7 +43,7 @@ def test_rinka_reference_config_is_opt_in_and_more_geometric():
 
     cfg = rinka_reference_config(4)
     assert cfg.target_max_shapes == 28
-    assert cfg.palette_colors == 5
+    assert cfg.palette_colors == 6
     assert cfg.line_mode == "none"
     assert cfg.enable_face_primitives is False
     assert cfg.character_hand_max_shapes == 1
@@ -100,7 +100,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase2"
+    assert out.metadata["target_style"]["version"] == "phase2.1"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 

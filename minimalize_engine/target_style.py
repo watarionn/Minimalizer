@@ -13,7 +13,7 @@ from .pipeline import minimalize
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase2"
+RINKA_REFERENCE_VERSION = "phase2.1"
 
 
 _TARGET_MAX_SHAPES = {
@@ -28,7 +28,7 @@ _TARGET_PALETTE_COLORS = {
     1: 8,
     2: 7,
     3: 6,
-    4: 5,
+    4: 6,
     5: 4,
 }
 
