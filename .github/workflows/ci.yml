@@ -64,7 +64,7 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.4.0"; assert d["engine_version"] == "0.3.0"; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.4.1"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
 
           python - <<'PY'
           import cv2
