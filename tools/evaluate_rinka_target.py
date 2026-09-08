@@ -111,10 +111,15 @@ def main() -> None:
         target_meta = target.metadata.get("target_style", {})
         cleanup = target_meta.get("cleanup", {})
         hierarchy = target_meta.get("opaque_hierarchy", {})
+        zones = target_meta.get("opaque_zones", {})
         stable_identity = stable_quality.get("identity_score")
         target_identity = target_quality.get("identity_score")
         stable_silhouette = stable_quality.get("silhouette_similarity")
         target_silhouette = target_quality.get("silhouette_similarity")
+        zone_source = zones.get("zone_source", zones.get("reason", "none"))
+        subject_zones_enabled = bool(zones.get("enabled", False))
+        structure_zones_enabled = subject_zones_enabled and zone_source == "character_structure"
+        opaque_zones_enabled = subject_zones_enabled and zone_source == "accepted"
 
         row = {
             "file": path.name,
@@ -130,6 +135,7 @@ def main() -> None:
             "target_cleanup_removed_thin": cleanup.get("removed_thin", 0),
             "target_cleanup_removed_micro": cleanup.get("removed_micro", 0),
             "target_cleanup_removed_isolated": cleanup.get("removed_isolated", 0),
+            "target_structure_redundant_removed": target_meta.get("structure_redundant_removed", 0),
             "target_face_fragments_removed": target_meta.get("face_fragments_removed", 0),
             "target_mass_merges": target_meta.get("mass_merges", 0),
             "target_background_removed": target_meta.get("background_removed", 0),
@@ -139,6 +145,25 @@ def main() -> None:
             "opaque_subject_area_ratio": hierarchy.get("subject_area_ratio", 0.0),
             "opaque_subject_shapes": hierarchy.get("subject_shapes", 0),
             "opaque_background_shapes": hierarchy.get("background_shapes", 0),
+            "subject_zones_enabled": subject_zones_enabled,
+            "subject_zone_source": zone_source,
+            "subject_zone_shapes": zones.get("zone_shapes", 0),
+            "structure_zones_enabled": structure_zones_enabled,
+            "structure_zone_shapes": zones.get("zone_shapes", 0) if structure_zones_enabled else 0,
+            "opaque_zones_enabled": opaque_zones_enabled,
+            "opaque_zones_confidence": zones.get("confidence", 0.0) if opaque_zones_enabled else 0.0,
+            "opaque_zone_shapes": zones.get("zone_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_head_shapes": zones.get("head_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_torso_shapes": zones.get("torso_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_arm_shapes": zones.get("arm_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_leg_shapes": zones.get("leg_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_hair_shapes": zones.get("hair_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_clothing_shapes": zones.get("clothing_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_inferred_hair_shapes": zones.get("inferred_hair_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_inferred_hair_mode": zones.get("inferred_hair_mode", "none") if opaque_zones_enabled else "none",
+            "opaque_inferred_clothing_shapes": zones.get("inferred_clothing_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_propagated_clothing_shapes": zones.get("propagated_clothing_shapes", 0) if opaque_zones_enabled else 0,
+            "opaque_face_reference_source": zones.get("face_reference_source", "none") if opaque_zones_enabled else "none",
             "stable_quality": stable_quality.get("score"),
             "stable_identity": stable_identity,
             "stable_silhouette": stable_silhouette,
@@ -176,6 +201,7 @@ def main() -> None:
             "mean_target_pre_silhouette_delta": mean(silhouette_deltas) if silhouette_deltas else None,
             "worst_target_pre_silhouette_delta": min(silhouette_deltas) if silhouette_deltas else None,
             "total_target_cleanup_removed": sum(r["target_cleanup_removed"] for r in rows),
+            "total_target_structure_redundant_removed": sum(r["target_structure_redundant_removed"] for r in rows),
             "total_target_face_fragments_removed": sum(r["target_face_fragments_removed"] for r in rows),
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
             "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
@@ -184,6 +210,24 @@ def main() -> None:
             "mean_opaque_hierarchy_confidence": mean(r["opaque_hierarchy_confidence"] for r in rows if r["opaque_hierarchy_enabled"]) if any(r["opaque_hierarchy_enabled"] for r in rows) else 0.0,
             "total_opaque_subject_shapes": sum(r["opaque_subject_shapes"] for r in rows),
             "total_opaque_background_shapes": sum(r["opaque_background_shapes"] for r in rows),
+            "subject_zones_enabled_count": sum(1 for r in rows if r["subject_zones_enabled"]),
+            "structure_zones_enabled_count": sum(1 for r in rows if r["structure_zones_enabled"]),
+            "total_subject_zone_shapes": sum(r["subject_zone_shapes"] for r in rows),
+            "total_structure_zone_shapes": sum(r["structure_zone_shapes"] for r in rows),
+            "opaque_zones_enabled_count": sum(1 for r in rows if r["opaque_zones_enabled"]),
+            "mean_opaque_zones_confidence": mean(r["opaque_zones_confidence"] for r in rows if r["opaque_zones_enabled"]) if any(r["opaque_zones_enabled"] for r in rows) else 0.0,
+            "total_opaque_zone_shapes": sum(r["opaque_zone_shapes"] for r in rows),
+            "total_opaque_head_shapes": sum(r["opaque_head_shapes"] for r in rows),
+            "total_opaque_torso_shapes": sum(r["opaque_torso_shapes"] for r in rows),
+            "total_opaque_arm_shapes": sum(r["opaque_arm_shapes"] for r in rows),
+            "total_opaque_leg_shapes": sum(r["opaque_leg_shapes"] for r in rows),
+            "total_opaque_hair_shapes": sum(r["opaque_hair_shapes"] for r in rows),
+            "total_opaque_clothing_shapes": sum(r["opaque_clothing_shapes"] for r in rows),
+            "total_opaque_inferred_hair_shapes": sum(r["opaque_inferred_hair_shapes"] for r in rows),
+            "opaque_geometry_hair_count": sum(1 for r in rows if r["opaque_inferred_hair_mode"] == "geometry_contrast"),
+            "total_opaque_inferred_clothing_shapes": sum(r["opaque_inferred_clothing_shapes"] for r in rows),
+            "total_opaque_propagated_clothing_shapes": sum(r["opaque_propagated_clothing_shapes"] for r in rows),
+            "opaque_face_reference_count": sum(1 for r in rows if r["opaque_face_reference_source"] != "none"),
             "quality_note": "target_pre_* metrics are measured before the target-style post-process",
         }
         (out / f"summary_{suffix}.json").write_text(

@@ -13,7 +13,7 @@
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
-GitHub contains the stable engine implementation, 39-file stable regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
+GitHub contains the stable engine implementation, 42-file regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
 
 Release validation recorded at v0.3.0:
 - 156 tests passed / 0 failed when completed in batches.
@@ -189,6 +189,33 @@ The essential direction is:
 The implementation goal is **input image -> intentional geometric poster**, not merely input image -> fewer contours.
 
 This reference is a general design target, not an image-specific reproduction target. Do not add special cases for the reference image. Any engine change inspired by it must generalize across the stable corpus and future inputs.
+
+## Rinka Reference implementation status
+
+Phase 3 was merged in PR #9 as `5c0e17ac99d980d7f5d78ea7354a03058b7ee30a`. It added the opt-in target-style profile, large-shape hierarchy, identity-safe palette/epsilon choices, and conservative opaque subject/background inference. The public Web service is running that source, but normal Web requests still use the stable path.
+
+Phase 4 is being developed on `feature/rinka-target-phase4-zones-20260908`. Its first foundation:
+- derives coarse `head`, `torso`, `legs`, `left_arm`, and `right_arm` zones only after Phase 3 accepts an opaque subject;
+- refuses zone inference for weak/non-vertical masks and falls back to Phase 3 behavior;
+- tags overlapping shapes with zone-aware foreground roles and importance floors;
+- uses a head-zone fallback for faceless micro-fragment suppression when explicit face metadata is unavailable;
+- relaxes low-value head/arm/clothing/leg fragments conservatively before normal cleanup;
+- records zone activation, confidence, bboxes, and per-zone shape counts in `target_style.opaque_zones`;
+- extends corpus evaluation and CI safety guards for Phase 4;
+- derives a conservative face-side color reference only from bilateral arm/head agreement or same-color head consensus;
+- prefers dark-vs-face contrast for `hair`, but if that cue is absent it can use one geometry-gated color-contrast candidate that extends above and overlaps the face carrier, covering light-hair cases without fixed color tables;
+- seeds `clothing` from the dominant color-separated torso/leg mass and propagates that identity only to nearby, similarly colored non-skin pieces;
+- routes opaque arm-zone blocks through the hand/limb consolidation path with left/right `side_hint` preservation, preventing opposite sides from merging.
+
+The next Phase 4 refinement adds light-hair geometry fallback, conservative clothing-mass propagation, and side-aware arm/hand consolidation. The new capability tests pass 21/21. A refreshed 16-image corpus run keeps the same 36.61% mean shape reduction, 29.94% mean vertex reduction, worst identity delta about -0.0573, and worst silhouette delta about -0.0010. The two currently activated corpus outputs are byte-identical PNGs to the prior Phase 4 HEAD, confirming that the generalized fallback paths do not alter existing accepted cases when their extra gates are not needed.
+
+The Character Structure bridge now extends Phase 4 subject-zone coverage beyond opaque scenes. On the fixed 16-image corpus, opaque zones remain 2/16 while Character Structure safely activates zones on all 11 subject-mode images, for 13/16 total subject-zone coverage and 193 classified shapes. Structure zones are advisory: existing canonical `character_*` shapes are left untouched, low-confidence body parts are dropped, background-like generic shapes are not spatially reclassified, and only generic subject fragments receive temporary zone-candidate semantics. The final corpus metrics remain exactly 36.61% mean shape reduction, 29.94% mean vertex reduction, worst identity delta about -0.0573, and worst silhouette delta about -0.0010. All 11 subject-mode target PNGs are byte-identical to Phase 4 HEAD `5faeb450a6434f982295ad0424678972dd8d87ce`, confirming the bridge adds future part-aware capability without perturbing accepted outputs.
+
+The Phase 4 visual-review checkpoint then audited the surviving Structure candidates individually. Face/head candidates are retained because they touch identity-bearing regions. Two Mizumiya clothing accents are the only approved extra removals: each is a small, low-importance `target_zone_clothing_candidate` covered by at least 82% of a canonical garment mass. The rule is Structure-only and clothing-only. It removes exactly 2 shapes on the fixed corpus, changing Mizumiya from 23 to 21 shapes and 233 to 225 vertices while preserving the rendered silhouette pixel-for-pixel. The other 15 target PNGs remain byte-identical. Corpus means improve to about 36.96% shape reduction and 30.09% vertex reduction.
+
+Phase 4 closure review is complete. The branch is clean against the unchanged Phase 3 `main` head, `git diff --check` passes, the latest fixed-corpus metrics reproduce the approved 36.96% shape / 30.09% vertex reductions with identity/silhouette safety intact, and no further generally safe reduction class was found in the 13 zone-enabled outputs. A repository-wide pytest run passes **193 tests** after deselecting exactly two legacy tests that reference the absent `tests/assets/false_face_phase85.png`; the fixture is missing on `main` as well and those tests are untouched by PR #10. Phase 4 is therefore ready for review/merge approval. Keep PR #10 unmerged until the user explicitly asks to merge.
+
+The user wants Rinka Reference added to the Web UI after the style is complete. Do not wire this moving target into the public UI prematurely; complete and stabilize quality work first, then add an explicit Web UI mode while preserving the normal stable mode.
 
 ## Important stable behavior
 

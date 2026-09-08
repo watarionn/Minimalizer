@@ -1,6 +1,10 @@
 from minimalize_engine.analysis.shape_cleanup import cleanup_minimal_shapes
 from minimalize_engine.models import Scene, Shape
+import numpy as np
+
+from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones, estimate_structure_subject_zones
 from minimalize_engine.target_style import (
+    _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
 )
@@ -100,7 +104,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase3"
+    assert out.metadata["target_style"]["version"] == "phase4"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -296,3 +300,160 @@ def test_phase2_final_cap_enforces_target_shape_budget():
 
     assert len(out.shapes) == 3
     assert out.metadata["target_style"]["cap_removed"] == 3
+
+
+
+def test_phase4_opaque_zones_are_recorded_and_can_suppress_head_micro_fragment():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.84, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    base_scene = Scene(120, 140, (245, 245, 240), [], {"subject_mode": False})
+    zones = estimate_opaque_subject_zones(hierarchy, base_scene)
+    carrier = _rect(1, 46, 20, 28, 24, importance=0.94, semantic="skin_mass", fill_color=(224, 190, 170))
+    micro = _rect(2, 55, 27, 5, 4, importance=0.45, semantic="generic_accent", fill_color=(70, 60, 60))
+    torso = _rect(3, 44, 60, 32, 42, importance=0.80, semantic="generic_body", fill_color=(55, 70, 90))
+    scene = Scene(120, 140, (245, 245, 240), [carrier, micro, torso], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+
+    meta = out.metadata["target_style"]["opaque_zones"]
+    assert meta["enabled"] is True
+    assert meta["head_shapes"] >= 1
+    assert meta["torso_shapes"] >= 1
+    fragment = next((shape for shape in out.shapes if shape.id == 2), None)
+    assert fragment is None or fragment.semantic_type == "target_zone_head_fragment"
+    assert out.metadata["target_style"]["face_fragments_removed"] >= 1
+
+
+def test_phase4_refines_hair_clothing_and_merges_nearby_arm_blocks():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    base_scene = Scene(120, 140, (245, 245, 240), [], {"subject_mode": False})
+    zones = estimate_opaque_subject_zones(hierarchy, base_scene)
+
+    face = _rect(1, 50, 20, 20, 20, importance=0.93, semantic="generic", fill_color=(224, 190, 170))
+    hair = _rect(2, 44, 14, 30, 18, importance=0.82, semantic="generic", fill_color=(55, 48, 58))
+    clothing = _rect(3, 45, 54, 30, 32, importance=0.82, semantic="generic", fill_color=(50, 72, 96))
+    left_a = _rect(4, 31, 56, 5, 14, importance=0.82, semantic="generic", fill_color=(224, 190, 170))
+    left_b = _rect(5, 38, 56, 5, 14, importance=0.80, semantic="generic", fill_color=(224, 190, 170))
+    right = _rect(6, 79, 56, 10, 18, importance=0.84, semantic="generic", fill_color=(224, 190, 170))
+    scene = Scene(120, 140, (245, 245, 240), [face, hair, clothing, left_a, left_b, right], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["face_reference_source"] == "bilateral_arms"
+    assert meta["inferred_hair_shapes"] >= 1
+    assert meta["inferred_clothing_shapes"] >= 1
+    assert meta["hair_shapes"] >= 1
+    assert meta["clothing_shapes"] >= 1
+    assert out.metadata["target_style"]["mass_merges"] >= 1
+    roles = [shape.source_role for shape in out.shapes]
+    assert any("opaque_zone:hair:" in role for role in roles)
+    assert any("opaque_zone:clothing:" in role for role in roles)
+
+
+def test_phase4_can_infer_light_hair_from_geometry_when_dark_contrast_is_absent():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    zones = estimate_opaque_subject_zones(hierarchy, Scene(120, 140, (245, 245, 240), [], {"subject_mode": False}))
+    face = _rect(1, 50, 24, 20, 20, importance=0.93, fill_color=(224, 190, 170))
+    light_hair = _rect(2, 45, 14, 30, 18, importance=0.84, fill_color=(244, 222, 112))
+    left = _rect(3, 31, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    right = _rect(4, 79, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    torso = _rect(5, 46, 55, 28, 28, importance=0.84, fill_color=(62, 80, 104))
+    scene = Scene(120, 140, (245, 245, 240), [face, light_hair, left, right, torso], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["inferred_hair_mode"] == "geometry_contrast"
+    assert meta["inferred_hair_shapes"] == 1
+    assert any(shape.id == 2 and "opaque_zone:hair:" in shape.source_role for shape in out.shapes)
+
+
+def test_phase4_propagates_clothing_to_nearby_same_mass_piece():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    zones = estimate_opaque_subject_zones(hierarchy, Scene(120, 140, (245, 245, 240), [], {"subject_mode": False}))
+    face = _rect(1, 50, 24, 20, 20, importance=0.93, fill_color=(224, 190, 170))
+    left = _rect(2, 31, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    right = _rect(3, 79, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    garment_a = _rect(4, 46, 55, 28, 24, importance=0.84, fill_color=(54, 78, 108))
+    garment_b = _rect(5, 48, 78, 24, 10, importance=0.81, fill_color=(58, 82, 112))
+    scene = Scene(120, 140, (245, 245, 240), [face, left, right, garment_a, garment_b], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["inferred_clothing_shapes"] >= 2
+    assert meta["propagated_clothing_shapes"] >= 1
+
+
+def test_phase4_arm_mass_merge_preserves_left_right_sides():
+    left = _rect(1, 20, 20, 10, 14, importance=0.84, role="opaque_zone:arm:test", fill_color=(220, 190, 170))
+    right = _rect(2, 31, 20, 10, 14, importance=0.84, role="opaque_zone:arm:test", fill_color=(220, 190, 170))
+    left.side_hint = "left"
+    right.side_hint = "right"
+
+    assert _merge_mass_pair(left, right, 120.0) is None
+    right.side_hint = "left"
+    assert _merge_mass_pair(left, right, 120.0) is not None
+
+
+def test_phase4_structure_bridge_keeps_character_base_and_relaxes_generic_head_fragment():
+    parts = [
+        {"part_type": "subject", "bbox": [20, 5, 80, 130], "confidence": 1.0},
+        {"part_type": "head", "bbox": [42, 20, 38, 42], "confidence": 0.76},
+        {"part_type": "face", "bbox": [50, 31, 20, 20], "confidence": 0.78},
+        {"part_type": "hair", "bbox": [36, 18, 50, 55], "confidence": 0.68},
+        {"part_type": "torso", "bbox": [43, 58, 36, 34], "confidence": 0.72},
+        {"part_type": "outfit", "bbox": [38, 58, 46, 55], "confidence": 0.77},
+        {"part_type": "left_arm", "bbox": [24, 56, 16, 42], "confidence": 0.56},
+        {"part_type": "right_arm", "bbox": [82, 56, 16, 42], "confidence": 0.56},
+        {"part_type": "left_leg", "bbox": [42, 94, 18, 40], "confidence": 0.60},
+        {"part_type": "right_leg", "bbox": [62, 94, 18, 40], "confidence": 0.60},
+    ]
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": parts}}}
+    hair_base = _rect(1, 38, 20, 45, 34, importance=0.95, semantic="character_hair", part="hair", role="character_hair_base", layer="character_hair_base", fill_color=(55, 48, 58))
+    face_fragment = _rect(2, 55, 37, 3, 3, importance=0.45, semantic="subject_detail", part="head", role="misc", layer="midground", fill_color=(80, 70, 70))
+    torso = _rect(3, 46, 62, 30, 28, importance=0.98, semantic="character_torso", part="torso", role="character_torso_base", layer="character_body_base", fill_color=(80, 90, 110))
+    scene = Scene(120, 140, (245, 245, 240), [hair_base, face_fragment, torso], metadata)
+    zones = estimate_structure_subject_zones(scene)
+
+    out = apply_rinka_reference_style(scene, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["enabled"] is True
+    assert meta["zone_source"] == "character_structure"
+    assert 1 in [shape.id for shape in out.shapes]
+    fragment = next((shape for shape in out.shapes if shape.id == 2), None)
+    assert fragment is None or fragment.semantic_type == "target_zone_head_fragment"
+
+
+def test_phase4_structure_prunes_only_redundant_low_value_clothing_candidates():
+    parts = [
+        {"part_type": "subject", "bbox": [20, 5, 80, 130], "confidence": 1.0},
+        {"part_type": "head", "bbox": [42, 20, 38, 42], "confidence": 0.76},
+        {"part_type": "face", "bbox": [50, 31, 20, 20], "confidence": 0.78},
+        {"part_type": "hair", "bbox": [36, 18, 50, 55], "confidence": 0.68},
+        {"part_type": "torso", "bbox": [43, 58, 36, 34], "confidence": 0.72},
+        {"part_type": "outfit", "bbox": [38, 58, 46, 55], "confidence": 0.77},
+    ]
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": parts}}}
+    outfit = _rect(1, 40, 60, 42, 50, importance=0.98, semantic="character_outfit_torso", part="outfit", role="character_outfit_torso", layer="character_outfit_base", fill_color=(70, 90, 120))
+    redundant = _rect(2, 48, 70, 6, 10, importance=0.40, semantic="generic", role="vertical", layer="accents", fill_color=(110, 120, 135))
+    strong = _rect(3, 60, 70, 6, 10, importance=0.80, semantic="generic", role="vertical", layer="accents", fill_color=(120, 130, 145))
+    face_detail = _rect(4, 55, 35, 5, 5, importance=0.30, semantic="subject_detail", part="head", role="vertical", layer="accents", fill_color=(100, 80, 80))
+    scene = Scene(120, 140, (245, 245, 240), [outfit, redundant, strong, face_detail], metadata)
+    zones = estimate_structure_subject_zones(scene)
+
+    out = apply_rinka_reference_style(scene, opaque_zones=zones)
+    ids = {shape.id for shape in out.shapes}
+
+    assert out.metadata["target_style"]["structure_redundant_removed"] == 1
+    assert 2 not in ids
+    assert 3 in ids

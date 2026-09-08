@@ -11,7 +11,7 @@ The repository contains the restored **v0.3.0 stable implementation snapshot** i
 
 - Core source: `minimalize_engine/`, `app/`, `gui/`
 - Web service: `web/`
-- Regression tests: `tests/` with 39 `test_*.py` files
+- Regression tests: `tests/` with 42 `test_*.py` files
 - Stable corpus: `tests/assets/corpus/` with 16 original images
 - Corpus metadata: `tests/assets/corpus_manifest.json`
 - Evaluation tools: `tools/`
@@ -28,7 +28,7 @@ Minimalizer Web is publicly hosted on Railway at:
 
 Production currently tracks `main`.
 
-Web v0.4.1 was merged to `main` at commit `e7b20f51325cd4f3a2537e1e249b39312360b754`. GitHub Actions run #22 passed on that merged commit, and Railway deployment `3a0da39d-20d9-4d04-bec8-a9b68c5f7fa9` completed successfully.
+Web v0.4.1 remains the public runtime. The current production source is `main` at merge commit `5c0e17ac99d980d7f5d78ea7354a03058b7ee30a`, which includes Rinka Reference Phase 3 as an opt-in engine path. Railway deployment `514a0040-9624-463b-a568-fa24c036b947` completed successfully for that commit.
 
 Production uses the temporary hosted safety setting:
 
@@ -61,6 +61,33 @@ The canonical reference image is stored in Google Drive under the user's `chatGP
 The target direction is **intentional geometric poster**, not merely fewer contours. Preserve source identity through composition, silhouette, dominant color blocks, pose, and a small number of distinctive structures while aggressively simplifying face detail, hands, clothing micro-detail, background clutter, and low-value thin fragments. Straight-edged polygonal construction is preferred.
 
 Do not add image-specific hacks to reproduce this one reference. Improvements must generalize across the stable corpus and future inputs.
+
+## Rinka target development state
+
+Phase 3 is merged to `main` and production source, but the Rinka Reference path remains opt-in and is not exposed by the public Web UI.
+
+Phase 4 implementation is complete on `feature/rinka-target-phase4-zones-20260908`, and the closure review has passed. The foundation derives conservative coarse zones inside accepted opaque subjects and now also reuses existing Character Structure metadata for alpha/subject-mode scenes. Character Structure is treated as an advisory map: existing `character_*` base shapes keep their original role/layer/importance, low-confidence parts are ignored, and background-like generic shapes are not pulled into a person zone merely by spatial overlap. Generic subject fragments can receive temporary `target_zone_*_candidate` semantics so later cleanup knows whether they belong to head/hair/clothing/arms/legs without accidentally protecting them. The relative-color opaque path still supports dark-hair inference, geometry-gated light-hair fallback, conservative clothing propagation, and left/right arm side preservation.
+
+Local 16-image Phase 4 evaluation at analysis max side 220 recorded:
+
+- mean shape reduction: about **36.96%**;
+- mean vertex reduction: about **30.09%**;
+- worst pre-target identity delta: about **-0.0573**;
+- worst pre-target silhouette delta: about **-0.0010**;
+- opaque hierarchy enabled: **2 / 16**;
+- opaque hierarchy / opaque zones enabled: **2 / 16**;
+- Character Structure zones enabled: **11 / 16**;
+- total subject-zone coverage: **13 / 16**;
+- total subject-zone classified shapes: **193** (**173** from Character Structure + **20** from opaque zones);
+- opaque refined shapes: head **3**, torso **7**, arm **4**, leg **4**, hair **1**, clothing **1**;
+- face-side reference established on **1/16** images.
+- the Structure bridge itself remains rendering-neutral across the 11 subject-mode cases;
+- visual-review pruning now removes exactly **2** low-value clothing candidates on Mizumiya only when each is at least 82% covered by a canonical garment mass;
+- Mizumiya changes from **23 -> 21 shapes** and **233 -> 225 vertices** with **0 silhouette pixels changed**; the other **15/16** target PNGs remain byte-identical to the pre-prune checkpoint.
+
+Phase 4 closure review passed on 2026-09-08. `git diff --check` is clean, `main` is still `5c0e17ac99d980d7f5d78ea7354a03058b7ee30a`, and the Phase 4 branch is a direct descendant of that head. The full repository test suite passes **193 tests** when excluding exactly two pre-existing tests that both require the missing `tests/assets/false_face_phase85.png`; that fixture is also absent on `main`, and PR #10 does not modify either test. The latest 16-image closure evaluation reproduces **36.96%** mean shape reduction, **30.09%** mean vertex reduction, worst identity delta about **-0.0573**, worst silhouette delta about **-0.0010**, **13/16** total subject-zone coverage, **11/16** Character Structure coverage, and exactly **2** reviewed redundant-clothing removals. No additional safe Phase 4 reduction class emerged from the 13-image visual audit. Treat Phase 4 as complete and ready for review; do not merge without explicit user approval.
+
+The user explicitly wants the completed Rinka Reference mode added to the Web UI. Keep it internal/opt-in while quality work is still moving; expose it in the Web UI only after the target style is judged complete and stable.
 
 ## Version rule
 

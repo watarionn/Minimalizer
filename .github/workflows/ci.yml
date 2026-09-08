@@ -89,7 +89,7 @@ jobs:
           grep -q '^<svg' /tmp/minimalized.svg
 
   rinka-target-eval:
-    if: github.event_name == 'pull_request' && github.head_ref == 'feature/rinka-target-phase1-cleanup-20260908'
+    if: github.event_name == 'pull_request' && github.head_ref == 'feature/rinka-target-phase4-zones-20260908'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -107,36 +107,46 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Rinka Phase 3 corpus
+      - name: Evaluate Rinka Phase 4 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase3
-          echo '--- Rinka Phase 3 summary ---'
-          cat /tmp/rinka-target-phase3/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase4
+          echo '--- Rinka Phase 4 summary ---'
+          cat /tmp/rinka-target-phase4/summary_0_end.json
 
-      - name: Enforce Phase 3 safety guard
+      - name: Enforce Phase 4 safety guard
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          summary = json.loads(Path('/tmp/rinka-target-phase3/summary_0_end.json').read_text())
-          assert summary['target_style_version'] == 'phase3', summary
+          summary = json.loads(Path('/tmp/rinka-target-phase4/summary_0_end.json').read_text())
+          assert summary['target_style_version'] == 'phase4', summary
           assert summary['mean_shape_reduction_ratio'] >= 0.35, summary
           assert summary['worst_target_pre_identity_delta'] >= -0.08, summary
           assert summary['worst_target_pre_silhouette_delta'] >= -0.01, summary
           assert summary['opaque_hierarchy_enabled_count'] >= 1, summary
           assert summary['total_opaque_subject_shapes'] >= 1, summary
-          print('Phase 3 safety guard passed')
+          assert summary['opaque_zones_enabled_count'] >= 1, summary
+          assert summary['subject_zones_enabled_count'] >= 12, summary
+          assert summary['structure_zones_enabled_count'] >= 10, summary
+          assert summary['total_target_structure_redundant_removed'] == 2, summary
+          assert summary['total_opaque_zone_shapes'] >= 1, summary
+          assert summary['total_opaque_head_shapes'] >= 1, summary
+          assert summary['total_opaque_torso_shapes'] >= 1, summary
+          assert summary['opaque_face_reference_count'] >= 1, summary
+          assert summary['total_opaque_inferred_hair_shapes'] >= 1, summary
+          assert summary['total_opaque_inferred_clothing_shapes'] >= 1, summary
+          print('Phase 4 safety guard passed')
           PY
 
-      - name: Upload Rinka Phase 3 evaluation artifact
+      - name: Upload Rinka Phase 4 evaluation artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase3-evaluation
-          path: /tmp/rinka-target-phase3
+          name: rinka-target-phase4-evaluation
+          path: /tmp/rinka-target-phase4
           if-no-files-found: warn
           retention-days: 14

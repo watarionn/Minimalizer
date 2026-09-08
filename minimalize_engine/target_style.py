@@ -12,13 +12,17 @@ from .models import Scene, Shape
 from .pipeline import minimalize
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
+    OpaqueSubjectZones,
+    dominant_shape_zone,
     estimate_opaque_subject_hierarchy,
+    estimate_opaque_subject_zones,
+    estimate_structure_subject_zones,
     shape_subject_overlap,
 )
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase3"
+RINKA_REFERENCE_VERSION = "phase4"
 
 
 _TARGET_MAX_SHAPES = {
@@ -231,6 +235,12 @@ def _character_fragment_kind(shape: Shape) -> str | None:
 
 def _target_mass_kind(shape: Shape) -> str:
     tags = _shape_tags(shape)
+    if "opaque_zone:hair:" in tags or "target_zone_hair_" in tags:
+        return "hair"
+    if "opaque_zone:arm:" in tags or "target_zone_arm_" in tags:
+        return "hand"
+    if "opaque_zone:clothing:" in tags or "target_zone_clothing_" in tags:
+        return "garment"
     if "hair" in tags:
         return "hair"
     if "hand" in tags or "finger" in tags:
@@ -290,6 +300,408 @@ def _apply_opaque_hierarchy(
     return out, stats
 
 
+
+def _strict_character_base(shape: Shape) -> bool:
+    semantic = (shape.semantic_type or "").lower()
+    role = (shape.source_role or "").lower()
+    layer = (shape.layer_name or "").lower()
+    return semantic.startswith("character_") or role.startswith("character_") or layer.startswith("character_")
+
+
+def _structure_zone_from_shape(shape: Shape) -> str | None:
+    part = (shape.character_part or "").lower()
+    tags = _shape_tags(shape)
+    if part == "hair" or "character_hair" in tags:
+        return "hair"
+    if part == "outfit" or any(token in tags for token in ("character_outfit", "character_shoe", "character_sleeve")):
+        return "clothing"
+    if part in {"left_hand", "left_arm"}:
+        return "left_arm"
+    if part in {"right_hand", "right_arm"}:
+        return "right_arm"
+    if part == "left_leg":
+        return "left_leg"
+    if part == "right_leg":
+        return "right_leg"
+    if part in {"head", "face"}:
+        return "head"
+    if part == "torso":
+        return "torso"
+    return None
+
+
+def _opaque_zone_name(shape: Shape) -> str | None:
+    role = shape.source_role or ""
+    marker = "opaque_zone:"
+    if marker in role:
+        tail = role.split(marker, 1)[1]
+        return tail.split(":", 1)[0] or None
+    semantic = shape.semantic_type or ""
+    prefix = "target_zone_"
+    if semantic.startswith(prefix):
+        for suffix in ("_fragment", "_candidate"):
+            if semantic.endswith(suffix):
+                return semantic[len(prefix):-len(suffix)]
+    return None
+
+
+def _weighted_shape_color(shapes: list[Shape]) -> tuple[int, int, int] | None:
+    usable = [s for s in shapes if s.fill_color is not None]
+    if not usable:
+        return None
+    weights = [max(_shape_metrics(s)[0], 1.0) for s in usable]
+    total = max(sum(weights), 1.0)
+    return tuple(
+        int(round(sum(float(s.fill_color[i]) * w for s, w in zip(usable, weights)) / total))
+        for i in range(3)
+    )
+
+
+def _color_luma(color: tuple[int, int, int] | None) -> float:
+    if color is None:
+        return 0.0
+    r, g, b = [float(v) for v in color]
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _infer_face_reference(
+    assignments: list[tuple[Shape, str]],
+    zones: OpaqueSubjectZones,
+) -> tuple[tuple[int, int, int] | None, str, int | None]:
+    by_zone: dict[str, list[Shape]] = {}
+    for shape, zone in assignments:
+        by_zone.setdefault(zone, []).append(shape)
+    head = [s for s in by_zone.get("head", []) if s.fill_color is not None]
+    head_box = zones.zone_bbox("head")
+    if not head or head_box is None:
+        return None, "none", None
+    hx0, hy0, hx1, hy1 = head_box
+    head_area = max(float((hx1 - hx0) * (hy1 - hy0)), 1.0)
+
+    left = max(by_zone.get("left_arm", []), key=lambda s: _shape_metrics(s)[0], default=None)
+    right = max(by_zone.get("right_arm", []), key=lambda s: _shape_metrics(s)[0], default=None)
+    if left is not None and right is not None and left.fill_color is not None and right.fill_color is not None:
+        if _color_distance(left.fill_color, right.fill_color) <= 24.0:
+            arm_ref = _weighted_shape_color([left, right])
+            carrier = min(head, key=lambda s: _color_distance(s.fill_color, arm_ref))
+            if (
+                arm_ref is not None
+                and _color_distance(carrier.fill_color, arm_ref) <= 30.0
+                and _shape_metrics(carrier)[0] >= head_area * 0.006
+            ):
+                return arm_ref, "bilateral_arms", carrier.id
+
+    best_pair: tuple[Shape, Shape] | None = None
+    best_area = 0.0
+    for i, a in enumerate(head):
+        for b in head[i + 1:]:
+            if _color_distance(a.fill_color, b.fill_color) > 12.0:
+                continue
+            combined = _shape_metrics(a)[0] + _shape_metrics(b)[0]
+            if combined >= head_area * 0.025 and combined > best_area:
+                best_pair, best_area = (a, b), combined
+    if best_pair is not None:
+        ref = _weighted_shape_color(list(best_pair))
+        carrier = max(best_pair, key=lambda s: _shape_metrics(s)[0])
+        return ref, "head_consensus", carrier.id
+    return None, "none", None
+
+
+def _infer_zone_refinements(
+    assignments: list[tuple[Shape, str]],
+    zones: OpaqueSubjectZones,
+) -> tuple[dict[int, str], dict]:
+    refinements: dict[int, str] = {}
+    reference, reference_source, face_carrier_id = _infer_face_reference(assignments, zones)
+    stats = {
+        "face_reference_rgb": list(reference) if reference is not None else None,
+        "face_reference_source": reference_source,
+        "face_carrier_shape_id": face_carrier_id,
+        "inferred_hair_shapes": 0,
+        "inferred_hair_mode": "none",
+        "inferred_clothing_shapes": 0,
+        "inferred_clothing_seed_id": None,
+        "propagated_clothing_shapes": 0,
+    }
+    if reference is None:
+        return refinements, stats
+
+    head_box = zones.zone_bbox("head")
+    if head_box is not None:
+        hx0, _hy0, hx1, _hy1 = head_box
+        head_w = max(float(hx1 - hx0), 1.0)
+        head_area = max(float((hx1 - hx0) * (_hy1 - _hy0)), 1.0)
+        ref_luma = _color_luma(reference)
+        head_candidates: list[Shape] = []
+        carrier = next((shape for shape, zone in assignments if zone == "head" and shape.id == face_carrier_id), None)
+        carrier_box = _shape_bbox(carrier) if carrier is not None else None
+        for shape, zone in assignments:
+            if zone != "head" or shape.id == face_carrier_id or shape.fill_color is None:
+                continue
+            area = _shape_metrics(shape)[0]
+            bx0, by0, bx1, by1 = _shape_bbox(shape)
+            width_ratio = max(0.0, bx1 - bx0) / head_w
+            if area < head_area * 0.020 or width_ratio > 0.72:
+                continue
+            if _color_distance(shape.fill_color, reference) < 42.0:
+                continue
+            head_candidates.append(shape)
+            if ref_luma - _color_luma(shape.fill_color) >= 32.0:
+                refinements[shape.id] = "hair"
+                stats["inferred_hair_shapes"] += 1
+        if stats["inferred_hair_shapes"]:
+            stats["inferred_hair_mode"] = "dark_contrast"
+        elif carrier_box is not None and head_candidates:
+            cx0, cy0, cx1, cy1 = carrier_box
+            carrier_h = max(cy1 - cy0, 1.0)
+            carrier_cx = (cx0 + cx1) / 2.0
+            geometric: list[tuple[float, Shape]] = []
+            for shape in head_candidates:
+                bx0, by0, bx1, by1 = _shape_bbox(shape)
+                area = _shape_metrics(shape)[0]
+                center_x = (bx0 + bx1) / 2.0
+                extends_above = max(0.0, cy0 - by0) / carrier_h
+                horizontal_offset = abs(center_x - carrier_cx) / head_w
+                overlap_x = max(0.0, min(bx1, cx1) - max(bx0, cx0))
+                overlap_ratio = overlap_x / max(min(bx1 - bx0, cx1 - cx0), 1.0)
+                if extends_above < 0.18 or horizontal_offset > 0.36 or overlap_ratio < 0.22:
+                    continue
+                score = area / head_area + 0.10 * extends_above + 0.04 * overlap_ratio
+                geometric.append((score, shape))
+            if geometric:
+                primary_hair = max(geometric, key=lambda item: item[0])[1]
+                refinements[primary_hair.id] = "hair"
+                stats["inferred_hair_shapes"] = 1
+                stats["inferred_hair_mode"] = "geometry_contrast"
+
+    clothing_candidates: list[tuple[float, Shape]] = []
+    for shape, zone in assignments:
+        if zone not in {"torso", "legs"} or shape.fill_color is None:
+            continue
+        box = zones.zone_bbox(zone)
+        if box is None:
+            continue
+        zx0, zy0, zx1, zy1 = box
+        zone_area = max(float((zx1 - zx0) * (zy1 - zy0)), 1.0)
+        area = _shape_metrics(shape)[0]
+        if area >= zone_area * 0.040 and _color_distance(shape.fill_color, reference) >= 34.0:
+            clothing_candidates.append((area, shape))
+    if clothing_candidates:
+        primary = max(clothing_candidates, key=lambda item: item[0])[1]
+        refinements[primary.id] = "clothing"
+        stats["inferred_clothing_shapes"] = 1
+        stats["inferred_clothing_seed_id"] = primary.id
+        subject_box = zones.bbox or zones.zone_bbox("torso")
+        subject_scale = 1.0
+        if subject_box is not None:
+            sx0, sy0, sx1, sy1 = subject_box
+            subject_scale = max(1.0, min(float(sx1 - sx0), float(sy1 - sy0)))
+        primary_area = max(_shape_metrics(primary)[0], 1.0)
+        for area, shape in sorted(clothing_candidates, key=lambda item: item[0], reverse=True):
+            if shape.id == primary.id:
+                continue
+            if area < primary_area * 0.08:
+                continue
+            if _color_distance(shape.fill_color, primary.fill_color) > 28.0:
+                continue
+            if _color_distance(shape.fill_color, reference) < 30.0:
+                continue
+            if _bbox_distance(_shape_bbox(shape), _shape_bbox(primary)) > max(2.0, subject_scale * 0.10):
+                continue
+            refinements[shape.id] = "clothing"
+            stats["inferred_clothing_shapes"] += 1
+            stats["propagated_clothing_shapes"] += 1
+            if stats["propagated_clothing_shapes"] >= 3:
+                break
+    return refinements, stats
+
+
+def _apply_opaque_zones(
+    shapes: list[Shape],
+    zones: OpaqueSubjectZones | None,
+) -> tuple[list[Shape], dict]:
+    stats = {
+        "zone_shapes": 0,
+        "head_shapes": 0,
+        "torso_shapes": 0,
+        "arm_shapes": 0,
+        "leg_shapes": 0,
+        "hair_shapes": 0,
+        "clothing_shapes": 0,
+        "neutral_shapes": 0,
+        "face_reference_rgb": None,
+        "face_reference_source": "none",
+        "face_carrier_shape_id": None,
+        "inferred_hair_shapes": 0,
+        "inferred_hair_mode": "none",
+        "inferred_clothing_shapes": 0,
+        "inferred_clothing_seed_id": None,
+        "propagated_clothing_shapes": 0,
+    }
+    if zones is None or not zones.enabled:
+        stats["neutral_shapes"] = len(shapes)
+        return shapes, stats
+
+    structure_mode = zones.reason == "character_structure"
+    stats["zone_source"] = zones.reason
+    assignments: list[tuple[Shape, str]] = []
+    for shape in shapes:
+        zone = _structure_zone_from_shape(shape) if structure_mode else None
+        if zone is None and structure_mode and _target_mass_kind(shape) == "background" and not _is_character_like(shape):
+            continue
+        if zone is None:
+            zone = dominant_shape_zone(shape, zones, min_overlap=0.42 if structure_mode else 0.28)
+        if zone is not None:
+            assignments.append((shape, zone))
+    if structure_mode:
+        inferred, inference_stats = {}, {
+            "face_reference_rgb": None,
+            "face_reference_source": "structure_metadata",
+            "face_carrier_shape_id": None,
+            "inferred_hair_shapes": 0,
+            "inferred_hair_mode": "structure_metadata",
+            "inferred_clothing_shapes": 0,
+            "inferred_clothing_seed_id": None,
+            "propagated_clothing_shapes": 0,
+        }
+    else:
+        inferred, inference_stats = _infer_zone_refinements(assignments, zones)
+    stats.update(inference_stats)
+
+    out: list[Shape] = []
+    garment_tokens = ("outfit", "dress", "skirt", "sleeve", "clothing", "ruffle", "lace", "trim")
+    assignment_map = {shape.id: zone for shape, zone in assignments}
+    for shape in shapes:
+        zone = assignment_map.get(shape.id)
+        if zone is None:
+            out.append(shape)
+            stats["neutral_shapes"] += 1
+            continue
+        tags = _shape_tags(shape)
+        if shape.id in inferred:
+            refined = inferred[shape.id]
+        elif zone == "hair" or (zone == "head" and "hair" in tags):
+            refined = "hair"
+        elif zone == "clothing" or (zone in {"torso", "legs", "left_leg", "right_leg"} and any(token in tags for token in garment_tokens)):
+            refined = "clothing"
+        elif zone in {"left_arm", "right_arm"}:
+            refined = "arm"
+        elif zone in {"legs", "left_leg", "right_leg"}:
+            refined = "leg"
+        else:
+            refined = zone
+        floor = {
+            "head": 0.88,
+            "hair": 0.92,
+            "torso": 0.90,
+            "clothing": 0.88,
+            "arm": 0.84,
+            "leg": 0.86,
+        }[refined]
+        side_hint = shape.side_hint
+        if zone in {"left_arm", "left_leg"}:
+            side_hint = "left"
+        elif zone in {"right_arm", "right_leg"}:
+            side_hint = "right"
+        importance = float(shape.importance)
+        canonical = _strict_character_base(shape)
+        if structure_mode and canonical:
+            # Character Structure already produced a protected semantic base. Do
+            # not rewrite its role/layer/importance; the zones are advisory here.
+            out.append(replace(shape, side_hint=side_hint))
+        elif structure_mode:
+            out.append(replace(
+                shape,
+                semantic_type=f"target_zone_{refined}_candidate",
+                side_hint=side_hint,
+            ))
+        else:
+            out.append(replace(
+                shape,
+                importance=max(importance, floor),
+                source_role=f"opaque_zone:{refined}:{shape.source_role}",
+                layer_name="foreground",
+                side_hint=side_hint,
+            ))
+        stats["zone_shapes"] += 1
+        stats[f"{refined}_shapes"] += 1
+    return out, stats
+
+def _local_shape_cover_ratio(shape: Shape, carriers: list[Shape]) -> float:
+    poly = _shape_polygon_points(shape)
+    if poly is None or len(poly) < 3 or not carriers:
+        return 0.0
+    x0 = int(np.floor(poly[:, 0].min()))
+    y0 = int(np.floor(poly[:, 1].min()))
+    x1 = int(np.ceil(poly[:, 0].max())) + 1
+    y1 = int(np.ceil(poly[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    local = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    pts = np.round(poly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+    cv2.fillPoly(local, [pts], 1)
+    denom = int(local.sum())
+    if denom <= 0:
+        return 0.0
+    covered = np.zeros_like(local)
+    for carrier in carriers:
+        cpoly = _shape_polygon_points(carrier)
+        if cpoly is None or len(cpoly) < 3:
+            continue
+        cpts = np.round(cpoly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+        cv2.fillPoly(covered, [cpts], 1)
+    return float((local * covered).sum()) / float(denom)
+
+
+def _prune_structure_redundant_fragments(
+    shapes: list[Shape],
+    scene: Scene,
+    zones: OpaqueSubjectZones | None,
+) -> tuple[list[Shape], int]:
+    if zones is None or not zones.enabled or zones.reason != "character_structure":
+        return shapes, 0
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    garment_carriers = [
+        s for s in shapes
+        if _strict_character_base(s) and _target_mass_kind(s) == "garment"
+    ]
+    if not garment_carriers:
+        return shapes, 0
+    remove_ids: set[int] = set()
+    for shape in shapes:
+        if shape.semantic_type != "target_zone_clothing_candidate":
+            continue
+        area = _shape_metrics(shape)[0]
+        if area / canvas_area > 0.0045 or float(shape.importance) >= 0.66:
+            continue
+        if _local_shape_cover_ratio(shape, garment_carriers) >= 0.82:
+            remove_ids.add(shape.id)
+    if not remove_ids:
+        return shapes, 0
+    return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
+
+
+def _relax_low_value_zone_fragment(shape: Shape, canvas_area: float, min_side: float) -> Shape:
+    zone = _opaque_zone_name(shape)
+    if zone not in {"head", "arm", "clothing", "leg"}:
+        return shape
+    area, short, _long, aspect = _shape_metrics(shape)
+    area_ratio = area / max(canvas_area, 1.0)
+    thin = short <= max(1.5, min_side * 0.028) and aspect >= 3.0
+    micro_limit = {"head": 0.0018, "arm": 0.0026, "clothing": 0.0030, "leg": 0.0018}[zone]
+    importance_limit = {"head": 0.90, "arm": 0.87, "clothing": 0.90, "leg": 0.87}[zone]
+    if float(shape.importance) >= importance_limit:
+        return shape
+    if not thin and area_ratio > micro_limit:
+        return shape
+    return replace(
+        shape,
+        semantic_type=f"target_zone_{zone}_fragment",
+        character_part="unknown",
+        source_role="target_fragment",
+    )
+
+
 def _relax_low_value_character_fragment(
     shape: Shape,
     canvas_area: float,
@@ -330,8 +742,18 @@ def _face_box_from_metadata(scene: Scene) -> tuple[float, float, float, float] |
     return None
 
 
-def _suppress_face_fragments(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
+def _suppress_face_fragments(
+    scene: Scene,
+    shapes: list[Shape],
+    opaque_zones: OpaqueSubjectZones | None = None,
+) -> tuple[list[Shape], int]:
     box = _face_box_from_metadata(scene)
+    if box is None and opaque_zones is not None and opaque_zones.enabled:
+        head = opaque_zones.zone_bbox("head")
+        if head is not None:
+            hx0, hy0, hx1, hy1 = head
+            hw, hh = hx1 - hx0, hy1 - hy0
+            box = (hx0 + 0.18 * hw, hy0 + 0.16 * hh, hx0 + 0.82 * hw, hy0 + 0.90 * hh)
     if box is None:
         return shapes, 0
     x0, y0, x1, y1 = box
@@ -341,7 +763,7 @@ def _suppress_face_fragments(scene: Scene, shapes: list[Shape]) -> tuple[list[Sh
         if shape.fill_color is None or shape.shape_type == "line":
             continue
         tags = _shape_tags(shape)
-        if any(token in tags for token in ("hair", "prop", "hand", "finger")):
+        if any(token in tags for token in ("hair", "prop", "hand", "finger")) or _opaque_zone_name(shape) == "hair":
             continue
         cx, cy = _shape_center(shape)
         if x0 <= cx <= x1 and y0 <= cy <= y1:
@@ -375,6 +797,11 @@ def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
     kind_b = _target_mass_kind(b)
     if kind_a != kind_b or kind_a == "prop":
         return None
+    if kind_a == "hand":
+        side_a = (a.side_hint or "unknown").lower()
+        side_b = (b.side_hint or "unknown").lower()
+        if side_a in {"left", "right"} and side_b in {"left", "right"} and side_a != side_b:
+            return None
     color_limit, gap_ratio, max_inflation = {
         "hair": (24.0, 0.020, 1.20),
         "hand": (30.0, 0.025, 1.28),
@@ -512,6 +939,11 @@ def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int |
             value += 0.14
         elif "opaque_background" in tags:
             value -= 0.04
+        zone = _opaque_zone_name(shape)
+        if zone in {"head", "hair", "torso", "clothing"}:
+            value += 0.06
+        elif zone in {"arm", "leg"}:
+            value += 0.03
         return value
     ranked = sorted(shapes, key=score, reverse=True)
     keep_ids = {s.id for s in ranked[:target_max_shapes]}
@@ -525,13 +957,20 @@ def apply_rinka_reference_style(
     curve_polygon_sides: int = 6,
     target_max_shapes: int | None = None,
     opaque_hierarchy: OpaqueSubjectHierarchy | None = None,
+    opaque_zones: OpaqueSubjectZones | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
     hierarchical, hierarchy_stats = _apply_opaque_hierarchy(scene.shapes, opaque_hierarchy)
+    zoned, zone_stats = _apply_opaque_zones(hierarchical, opaque_zones)
+    pruned, structure_redundant_removed = _prune_structure_redundant_fragments(zoned, scene, opaque_zones)
     relaxed = [
-        _relax_low_value_character_fragment(shape, canvas_area, min_side)
-        for shape in hierarchical
+        _relax_low_value_zone_fragment(
+            _relax_low_value_character_fragment(shape, canvas_area, min_side),
+            canvas_area,
+            min_side,
+        )
+        for shape in pruned
     ]
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
@@ -570,7 +1009,7 @@ def apply_rinka_reference_style(
         isolated_min_distance_ratio=0.060,
         isolated_max_importance=0.55,
     )
-    faceless, face_removed = _suppress_face_fragments(scene, cleaned)
+    faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
     compressed, background_removed = _compress_background(scene, consolidated)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
@@ -591,6 +1030,11 @@ def apply_rinka_reference_style(
             **(opaque_hierarchy.to_dict() if opaque_hierarchy is not None else {"enabled": False, "reason": "not_requested"}),
             **hierarchy_stats,
         },
+        "opaque_zones": {
+            **(opaque_zones.to_dict() if opaque_zones is not None else {"enabled": False, "reason": "not_requested"}),
+            **zone_stats,
+        },
+        "structure_redundant_removed": structure_redundant_removed,
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "background_removed": background_removed,
@@ -616,9 +1060,13 @@ def minimalize_rinka_reference(
     config = rinka_reference_config(level, **config_overrides)
     scene = minimalize(image_or_path, config)
     opaque_hierarchy = estimate_opaque_subject_hierarchy(image_or_path, scene)
+    opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)
+    structure_zones = estimate_structure_subject_zones(scene)
+    subject_zones = opaque_zones if opaque_zones.enabled else structure_zones
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
         target_max_shapes=config.target_max_shapes,
         opaque_hierarchy=opaque_hierarchy,
+        opaque_zones=subject_zones,
     )
