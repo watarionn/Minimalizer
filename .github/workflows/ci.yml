@@ -134,6 +134,11 @@ jobs:
           assert summary['structure_zones_enabled_count'] >= 10, summary
           assert summary['total_target_structure_redundant_removed'] == 2, summary
           assert summary['total_target_outfit_layer_merges'] == 2, summary
+          assert summary['total_target_gesture_simplified_shapes'] == 4, summary
+          assert summary['total_target_gesture_vertices_removed'] == 8, summary
+          assert summary['total_target_gesture_anchored_simplifications'] == 1, summary
+          assert summary['total_target_gesture_hand_anchors'] >= 10, summary
+          assert summary['mean_vertex_reduction_ratio'] >= 0.304, summary
           assert summary['total_opaque_zone_shapes'] >= 1, summary
           assert summary['total_opaque_head_shapes'] >= 1, summary
           assert summary['total_opaque_torso_shapes'] >= 1, summary
