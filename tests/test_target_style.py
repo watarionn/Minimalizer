@@ -8,6 +8,7 @@ from minimalize_engine.target_style import (
     _final_shape_cap,
     _macro_shape_priority_score,
     _macro_priority_shadow,
+    _macro_subject_continuity,
     _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -600,3 +601,35 @@ def test_phase5_macro_shadow_blocks_budget_when_candidate_overlaps_subject_bbox(
     assert shadow["would_remove"] == 1
     assert shadow["would_remove_inside_subject_bbox"] == 1
     assert shadow["blocked_by_subject_bbox"] is True
+
+
+def test_phase5_macro_subject_continuity_recognizes_near_same_color_head_mass():
+    head = _rect(1, 50, 50, 16, 16, importance=0.8, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents", fill_color=(240, 220, 210))
+    candidate = _rect(2, 38, 32, 14, 16, importance=0.2, semantic="subject_mass", role="misc", layer="midground", fill_color=(240, 220, 210))
+    scene = Scene(220, 220, (245, 245, 240), [head, candidate])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(20, 20, 100, 120), reason="test", zone_masks={})
+    assert _macro_subject_continuity(scene, candidate, scene.shapes, zones) is True
+
+
+def test_phase5_macro_shadow_reclassifies_visual_subject_continuity():
+    head = _rect(1, 50, 50, 16, 16, importance=0.9, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents", fill_color=(240, 220, 210))
+    garment = _rect(2, 40, 80, 22, 22, importance=0.8, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    candidate = _rect(3, 38, 32, 14, 16, importance=0.1, semantic="subject_mass", role="misc", layer="midground", fill_color=(240, 220, 210))
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, candidate])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(20, 20, 100, 120), reason="test", zone_masks={})
+    shadow = _macro_priority_shadow(scene, scene.shapes, zones, budget=2)
+    assert shadow["would_remove"] == 1
+    assert shadow["would_remove_subject_continuity"] == 1
+    assert shadow["would_remove_background"] == 0
+    assert shadow["blocked_by_subject_continuity"] is True
+
+
+def test_phase5_allows_one_extra_strict_outfit_refinement_in_subject_mode():
+    base = _rect(1, 30, 30, 40, 40, importance=0.94, semantic="character_outfit_torso", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(90, 100, 120))
+    detail_a = _rect(2, 28, 42, 8, 12, importance=0.72, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(94, 103, 121))
+    detail_b = _rect(3, 64, 42, 8, 12, importance=0.71, semantic="character_outfit_detail", part="outfit", role="character_outfit_detail", layer="character_outfit_detail", fill_color=(95, 104, 122))
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": []}}}
+    scene = Scene(100, 100, (245, 245, 240), [base, detail_a, detail_b], metadata)
+    out = apply_rinka_reference_style(scene, target_max_shapes=10)
+    assert out.metadata["target_style"]["outfit_layer_merges"] == 2
+    assert len(out.shapes) == 1

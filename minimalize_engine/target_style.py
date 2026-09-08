@@ -1121,6 +1121,42 @@ def _abstract_gesture_shapes(shapes: list[Shape], min_side: float) -> tuple[list
     }
 
 
+def _refine_outfit_layers_once(scene: Scene, shapes: list[Shape], min_side: float) -> tuple[list[Shape], int]:
+    if not bool(scene.metadata.get("subject_mode")) or not ((scene.metadata.get("character") or {}).get("structure")):
+        return shapes, 0
+    bases = [s for s in shapes if _canonical_outfit_layer(s) == "base" and s.fill_color is not None]
+    details = [s for s in shapes if _canonical_outfit_layer(s) == "detail" and s.fill_color is not None]
+    candidates: list[tuple[float, float, float, int, int]] = []
+    for base in bases:
+        base_area = max(_shape_metrics(base)[0], 1e-6)
+        for detail in details:
+            side_base = (base.side_hint or "unknown").lower()
+            side_detail = (detail.side_hint or "unknown").lower()
+            if side_base in {"left", "right"} and side_detail in {"left", "right"} and side_base != side_detail:
+                continue
+            detail_area = max(_shape_metrics(detail)[0], 0.0)
+            ratio = detail_area / base_area
+            if ratio > 0.14:
+                continue
+            color_distance = _color_distance(base.fill_color, detail.fill_color)
+            if color_distance > 16.0:
+                continue
+            gap = _bbox_distance(_shape_bbox(base), _shape_bbox(detail))
+            if gap > max(0.75, min_side * 0.010):
+                continue
+            union_iou = _union_hull_iou(base, detail)
+            if union_iou < 0.96:
+                continue
+            candidates.append((union_iou, -color_distance, -ratio, base.id, detail.id))
+    if not candidates:
+        return shapes, 0
+    _, _, _, base_id, detail_id = max(candidates)
+    by_id = {s.id: s for s in shapes}
+    merged = _merge_outfit_layer_pair(by_id[base_id], by_id[detail_id])
+    out = [merged if s.id == base_id else s for s in shapes if s.id != detail_id]
+    return out, 1
+
+
 def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     background = [
@@ -1255,6 +1291,34 @@ def _bbox_overlap_ratio_with_subject(shape: Shape, subject_zones: OpaqueSubjectZ
     return inter / area
 
 
+def _macro_subject_continuity(
+    scene: Scene,
+    shape: Shape,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+) -> bool:
+    if _bbox_overlap_ratio_with_subject(shape, subject_zones) < 0.25 or shape.fill_color is None:
+        return False
+    min_side = max(float(min(scene.width, scene.height)), 1.0)
+    for other in shapes:
+        if other.id == shape.id or other.fill_color is None:
+            continue
+        zone = _macro_zone_kind(other)
+        definite_subject = (
+            _strict_character_base(other)
+            or zone is not None
+            or _gesture_carrier_kind(other) is not None
+            or _target_mass_kind(other) in {"hair", "garment", "hand", "prop"}
+        )
+        if not definite_subject:
+            continue
+        if _color_distance(shape.fill_color, other.fill_color) > 12.0:
+            continue
+        if _bbox_distance(_shape_bbox(shape), _shape_bbox(other)) <= max(1.0, min_side * 0.050):
+            return True
+    return False
+
+
 def _macro_priority_shadow(
     scene: Scene,
     shapes: list[Shape],
@@ -1269,7 +1333,9 @@ def _macro_priority_shadow(
         "would_remove_subject": 0,
         "would_remove_generic": 0,
         "would_remove_inside_subject_bbox": 0,
+        "would_remove_subject_continuity": 0,
         "blocked_by_subject_bbox": False,
+        "blocked_by_subject_continuity": False,
     }
     if budget is None or budget <= 0 or len(shapes) <= budget:
         return stats
@@ -1278,7 +1344,11 @@ def _macro_priority_shadow(
     for shape in candidates:
         mass_kind = _target_mass_kind(shape)
         zone = _macro_zone_kind(shape)
-        if mass_kind == "background" and not _is_character_like(shape):
+        continuity = _macro_subject_continuity(scene, shape, shapes, subject_zones)
+        if continuity:
+            stats["would_remove_subject_continuity"] += 1
+            stats["would_remove_subject"] += 1
+        elif mass_kind == "background" and not _is_character_like(shape):
             stats["would_remove_background"] += 1
         elif _strict_character_base(shape) or zone is not None or _gesture_carrier_kind(shape) is not None or mass_kind in {"hair", "garment", "hand", "prop"}:
             stats["would_remove_subject"] += 1
@@ -1288,6 +1358,7 @@ def _macro_priority_shadow(
             stats["would_remove_inside_subject_bbox"] += 1
     stats["would_remove"] = len(candidates)
     stats["blocked_by_subject_bbox"] = stats["would_remove_inside_subject_bbox"] > 0
+    stats["blocked_by_subject_continuity"] = stats["would_remove_subject_continuity"] > 0
     return stats
 
 
@@ -1383,7 +1454,9 @@ def apply_rinka_reference_style(
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
     outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
-    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_consolidated, min_side)
+    outfit_refined, outfit_refinement_merges = _refine_outfit_layers_once(scene, outfit_consolidated, min_side)
+    outfit_layer_merges += outfit_refinement_merges
+    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_refined, min_side)
     compressed, background_removed = _compress_background(scene, gesture_abstracted)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
     shadow_budget = 24 if target_max_shapes == 28 else None
