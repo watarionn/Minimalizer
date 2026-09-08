@@ -85,3 +85,39 @@ jobs:
           grep -qi '^x-minimalizer-processing-ms:' /tmp/minimalizer-headers.txt
           grep -qi '^x-minimalizer-source-format: WEBP' /tmp/minimalizer-headers.txt
           grep -q '^<svg' /tmp/minimalized.svg
+
+  rinka-target-eval:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feature/rinka-target-phase1-cleanup-20260908'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install evaluation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-web-test.txt
+
+      - name: Evaluate stable vs Rinka Phase 1 corpus
+        run: |
+          python tools/evaluate_rinka_target.py \
+            --level 4 \
+            --max-side 220 \
+            --output-dir /tmp/rinka-target-phase1
+          echo '--- Rinka Phase 1 summary ---'
+          cat /tmp/rinka-target-phase1/summary_0_end.json
+
+      - name: Upload Rinka evaluation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rinka-target-phase1-evaluation
+          path: /tmp/rinka-target-phase1
+          if-no-files-found: error
+          retention-days: 14
