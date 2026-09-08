@@ -99,8 +99,8 @@ def main() -> None:
 
         stem = path.stem
         export_png(stable, out / f"{stem}_stable.png")
-        export_png(target, out / f"{stem}_rinka_phase2.png")
-        export_svg(target, out / f"{stem}_rinka_phase2.svg")
+        export_png(target, out / f"{stem}_rinka_target.png")
+        export_svg(target, out / f"{stem}_rinka_target.svg")
 
         stable_shapes = len(stable.shapes)
         target_shapes = len(target.shapes)
@@ -110,6 +110,7 @@ def main() -> None:
         target_quality = target.metadata.get("quality", {})
         target_meta = target.metadata.get("target_style", {})
         cleanup = target_meta.get("cleanup", {})
+        hierarchy = target_meta.get("opaque_hierarchy", {})
         stable_identity = stable_quality.get("identity_score")
         target_identity = target_quality.get("identity_score")
         stable_silhouette = stable_quality.get("silhouette_similarity")
@@ -133,6 +134,11 @@ def main() -> None:
             "target_mass_merges": target_meta.get("mass_merges", 0),
             "target_background_removed": target_meta.get("background_removed", 0),
             "target_cap_removed": target_meta.get("cap_removed", 0),
+            "opaque_hierarchy_enabled": bool(hierarchy.get("enabled", False)),
+            "opaque_hierarchy_confidence": hierarchy.get("confidence", 0.0),
+            "opaque_subject_area_ratio": hierarchy.get("subject_area_ratio", 0.0),
+            "opaque_subject_shapes": hierarchy.get("subject_shapes", 0),
+            "opaque_background_shapes": hierarchy.get("background_shapes", 0),
             "stable_quality": stable_quality.get("score"),
             "stable_identity": stable_identity,
             "stable_silhouette": stable_silhouette,
@@ -174,6 +180,10 @@ def main() -> None:
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
             "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
             "total_target_cap_removed": sum(r["target_cap_removed"] for r in rows),
+            "opaque_hierarchy_enabled_count": sum(1 for r in rows if r["opaque_hierarchy_enabled"]),
+            "mean_opaque_hierarchy_confidence": mean(r["opaque_hierarchy_confidence"] for r in rows if r["opaque_hierarchy_enabled"]) if any(r["opaque_hierarchy_enabled"] for r in rows) else 0.0,
+            "total_opaque_subject_shapes": sum(r["opaque_subject_shapes"] for r in rows),
+            "total_opaque_background_shapes": sum(r["opaque_background_shapes"] for r in rows),
             "quality_note": "target_pre_* metrics are measured before the target-style post-process",
         }
         (out / f"summary_{suffix}.json").write_text(

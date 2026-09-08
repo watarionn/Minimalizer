@@ -100,7 +100,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase2.1"
+    assert out.metadata["target_style"]["version"] == "phase3"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 

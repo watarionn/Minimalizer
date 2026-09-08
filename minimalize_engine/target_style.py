@@ -10,10 +10,15 @@ from .analysis.shape_cleanup import cleanup_minimal_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
 from .pipeline import minimalize
+from .target_hierarchy import (
+    OpaqueSubjectHierarchy,
+    estimate_opaque_subject_hierarchy,
+    shape_subject_overlap,
+)
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase2.1"
+RINKA_REFERENCE_VERSION = "phase3"
 
 
 _TARGET_MAX_SHAPES = {
@@ -252,6 +257,39 @@ def _is_character_like(shape: Shape) -> bool:
     return any(token in tags for token in _CHARACTER_TOKENS)
 
 
+def _apply_opaque_hierarchy(
+    shapes: list[Shape],
+    hierarchy: OpaqueSubjectHierarchy | None,
+) -> tuple[list[Shape], dict]:
+    stats = {"subject_shapes": 0, "background_shapes": 0, "neutral_shapes": 0}
+    if hierarchy is None or not hierarchy.enabled:
+        stats["neutral_shapes"] = len(shapes)
+        return shapes, stats
+    out: list[Shape] = []
+    for shape in shapes:
+        overlap = shape_subject_overlap(shape, hierarchy)
+        if shape.fill_color is not None and shape.shape_type != "line" and overlap >= 0.42:
+            out.append(replace(
+                shape,
+                importance=max(float(shape.importance), 0.86),
+                source_role=f"opaque_subject:{shape.source_role}",
+                layer_name="foreground",
+            ))
+            stats["subject_shapes"] += 1
+        elif shape.fill_color is not None and shape.shape_type != "line" and overlap <= 0.10:
+            out.append(replace(
+                shape,
+                importance=min(float(shape.importance), 0.78),
+                source_role=f"opaque_background:{shape.source_role}",
+                layer_name="background",
+            ))
+            stats["background_shapes"] += 1
+        else:
+            out.append(shape)
+            stats["neutral_shapes"] += 1
+    return out, stats
+
+
 def _relax_low_value_character_fragment(
     shape: Shape,
     canvas_area: float,
@@ -403,12 +441,20 @@ def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape]
     canvas_area = max(float(scene.width * scene.height), 1.0)
     background = [
         s for s in shapes
-        if _target_mass_kind(s) == "background" and not _is_character_like(s)
+        if _target_mass_kind(s) == "background"
+        and not _is_character_like(s)
+        and "opaque_subject" not in _shape_tags(s)
     ]
     if not background:
         return shapes, 0
     subject_mode = bool(scene.metadata.get("subject_mode"))
-    cap = 8 if subject_mode else max(10, int(round(len(shapes) * 0.45)))
+    opaque_mode = any("opaque_subject" in _shape_tags(s) for s in shapes)
+    if subject_mode:
+        cap = 8
+    elif opaque_mode:
+        cap = max(8, int(round(len(shapes) * 0.32)))
+    else:
+        cap = max(10, int(round(len(shapes) * 0.45)))
     remove_ids: set[int] = set()
     for shape in background:
         area_ratio = _shape_metrics(shape)[0] / canvas_area
@@ -461,6 +507,11 @@ def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int |
             value += 0.08
         if _target_mass_kind(shape) in {"hair", "hand", "garment", "prop"}:
             value += 0.08
+        tags = _shape_tags(shape)
+        if "opaque_subject" in tags:
+            value += 0.14
+        elif "opaque_background" in tags:
+            value -= 0.04
         return value
     ranked = sorted(shapes, key=score, reverse=True)
     keep_ids = {s.id for s in ranked[:target_max_shapes]}
@@ -473,12 +524,14 @@ def apply_rinka_reference_style(
     *,
     curve_polygon_sides: int = 6,
     target_max_shapes: int | None = None,
+    opaque_hierarchy: OpaqueSubjectHierarchy | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
+    hierarchical, hierarchy_stats = _apply_opaque_hierarchy(scene.shapes, opaque_hierarchy)
     relaxed = [
         _relax_low_value_character_fragment(shape, canvas_area, min_side)
-        for shape in scene.shapes
+        for shape in hierarchical
     ]
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
@@ -534,6 +587,10 @@ def apply_rinka_reference_style(
         "shape_count_before": len(scene.shapes),
         "shape_count_after": len(capped),
         "quality_metrics_scope": "pre_target_style",
+        "opaque_hierarchy": {
+            **(opaque_hierarchy.to_dict() if opaque_hierarchy is not None else {"enabled": False, "reason": "not_requested"}),
+            **hierarchy_stats,
+        },
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "background_removed": background_removed,
@@ -558,8 +615,10 @@ def minimalize_rinka_reference(
 ) -> Scene:
     config = rinka_reference_config(level, **config_overrides)
     scene = minimalize(image_or_path, config)
+    opaque_hierarchy = estimate_opaque_subject_hierarchy(image_or_path, scene)
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
         target_max_shapes=config.target_max_shapes,
+        opaque_hierarchy=opaque_hierarchy,
     )
