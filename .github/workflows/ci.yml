@@ -42,6 +42,7 @@ jobs:
             tests/test_global_shape_cleanup.py \
             tests/test_adaptive_polygon_simplify.py \
             tests/test_high_resolution_guard.py \
+            tests/test_target_style.py \
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
@@ -105,19 +106,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate stable vs Rinka Phase 1 corpus
+      - name: Evaluate stable vs Rinka Phase 2 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase1
-          echo '--- Rinka Phase 1 summary ---'
-          cat /tmp/rinka-target-phase1/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase2
+          echo '--- Rinka Phase 2 summary ---'
+          cat /tmp/rinka-target-phase2/summary_0_end.json
 
       - name: Upload Rinka evaluation artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase1-evaluation
-          path: /tmp/rinka-target-phase1
-          if-no-files-found: error
+          name: rinka-target-phase2-evaluation
+          path: /tmp/rinka-target-phase2
+          if-no-files-found: warn
           retention-days: 14
