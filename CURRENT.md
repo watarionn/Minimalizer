@@ -70,8 +70,8 @@ Phase 4 work is underway on `feature/rinka-target-phase4-zones-20260908`. The fo
 
 Local 16-image Phase 4 evaluation at analysis max side 220 recorded:
 
-- mean shape reduction: about **36.61%**;
-- mean vertex reduction: about **29.94%**;
+- mean shape reduction: about **36.96%**;
+- mean vertex reduction: about **30.09%**;
 - worst pre-target identity delta: about **-0.0573**;
 - worst pre-target silhouette delta: about **-0.0010**;
 - opaque hierarchy enabled: **2 / 16**;
@@ -81,7 +81,9 @@ Local 16-image Phase 4 evaluation at analysis max side 220 recorded:
 - total subject-zone classified shapes: **193** (**173** from Character Structure + **20** from opaque zones);
 - opaque refined shapes: head **3**, torso **7**, arm **4**, leg **4**, hair **1**, clothing **1**;
 - face-side reference established on **1/16** images.
-- all **11/11** subject-mode corpus PNGs are byte-identical to the pre-bridge Phase 4 HEAD, so the coverage expansion changes metadata/cleanup capability without changing currently accepted rendering.
+- the Structure bridge itself remains rendering-neutral across the 11 subject-mode cases;
+- visual-review pruning now removes exactly **2** low-value clothing candidates on Mizumiya only when each is at least 82% covered by a canonical garment mass;
+- Mizumiya changes from **23 -> 21 shapes** and **233 -> 225 vertices** with **0 silhouette pixels changed**; the other **15/16** target PNGs remain byte-identical to the pre-prune checkpoint.
 
 The user explicitly wants the completed Rinka Reference mode added to the Web UI. Keep it internal/opt-in while quality work is still moving; expose it in the Web UI only after the target style is judged complete and stable.
 

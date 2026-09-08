@@ -432,3 +432,28 @@ def test_phase4_structure_bridge_keeps_character_base_and_relaxes_generic_head_f
     assert 1 in [shape.id for shape in out.shapes]
     fragment = next((shape for shape in out.shapes if shape.id == 2), None)
     assert fragment is None or fragment.semantic_type == "target_zone_head_fragment"
+
+
+def test_phase4_structure_prunes_only_redundant_low_value_clothing_candidates():
+    parts = [
+        {"part_type": "subject", "bbox": [20, 5, 80, 130], "confidence": 1.0},
+        {"part_type": "head", "bbox": [42, 20, 38, 42], "confidence": 0.76},
+        {"part_type": "face", "bbox": [50, 31, 20, 20], "confidence": 0.78},
+        {"part_type": "hair", "bbox": [36, 18, 50, 55], "confidence": 0.68},
+        {"part_type": "torso", "bbox": [43, 58, 36, 34], "confidence": 0.72},
+        {"part_type": "outfit", "bbox": [38, 58, 46, 55], "confidence": 0.77},
+    ]
+    metadata = {"subject_mode": True, "character": {"structure": {"parts": parts}}}
+    outfit = _rect(1, 40, 60, 42, 50, importance=0.98, semantic="character_outfit_torso", part="outfit", role="character_outfit_torso", layer="character_outfit_base", fill_color=(70, 90, 120))
+    redundant = _rect(2, 48, 70, 6, 10, importance=0.40, semantic="generic", role="vertical", layer="accents", fill_color=(110, 120, 135))
+    strong = _rect(3, 60, 70, 6, 10, importance=0.80, semantic="generic", role="vertical", layer="accents", fill_color=(120, 130, 145))
+    face_detail = _rect(4, 55, 35, 5, 5, importance=0.30, semantic="subject_detail", part="head", role="vertical", layer="accents", fill_color=(100, 80, 80))
+    scene = Scene(120, 140, (245, 245, 240), [outfit, redundant, strong, face_detail], metadata)
+    zones = estimate_structure_subject_zones(scene)
+
+    out = apply_rinka_reference_style(scene, opaque_zones=zones)
+    ids = {shape.id for shape in out.shapes}
+
+    assert out.metadata["target_style"]["structure_redundant_removed"] == 1
+    assert 2 not in ids
+    assert 3 in ids

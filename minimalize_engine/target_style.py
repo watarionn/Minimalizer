@@ -627,6 +627,60 @@ def _apply_opaque_zones(
         stats[f"{refined}_shapes"] += 1
     return out, stats
 
+def _local_shape_cover_ratio(shape: Shape, carriers: list[Shape]) -> float:
+    poly = _shape_polygon_points(shape)
+    if poly is None or len(poly) < 3 or not carriers:
+        return 0.0
+    x0 = int(np.floor(poly[:, 0].min()))
+    y0 = int(np.floor(poly[:, 1].min()))
+    x1 = int(np.ceil(poly[:, 0].max())) + 1
+    y1 = int(np.ceil(poly[:, 1].max())) + 1
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    local = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    pts = np.round(poly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+    cv2.fillPoly(local, [pts], 1)
+    denom = int(local.sum())
+    if denom <= 0:
+        return 0.0
+    covered = np.zeros_like(local)
+    for carrier in carriers:
+        cpoly = _shape_polygon_points(carrier)
+        if cpoly is None or len(cpoly) < 3:
+            continue
+        cpts = np.round(cpoly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+        cv2.fillPoly(covered, [cpts], 1)
+    return float((local * covered).sum()) / float(denom)
+
+
+def _prune_structure_redundant_fragments(
+    shapes: list[Shape],
+    scene: Scene,
+    zones: OpaqueSubjectZones | None,
+) -> tuple[list[Shape], int]:
+    if zones is None or not zones.enabled or zones.reason != "character_structure":
+        return shapes, 0
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    garment_carriers = [
+        s for s in shapes
+        if _strict_character_base(s) and _target_mass_kind(s) == "garment"
+    ]
+    if not garment_carriers:
+        return shapes, 0
+    remove_ids: set[int] = set()
+    for shape in shapes:
+        if shape.semantic_type != "target_zone_clothing_candidate":
+            continue
+        area = _shape_metrics(shape)[0]
+        if area / canvas_area > 0.0045 or float(shape.importance) >= 0.66:
+            continue
+        if _local_shape_cover_ratio(shape, garment_carriers) >= 0.82:
+            remove_ids.add(shape.id)
+    if not remove_ids:
+        return shapes, 0
+    return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
+
+
 def _relax_low_value_zone_fragment(shape: Shape, canvas_area: float, min_side: float) -> Shape:
     zone = _opaque_zone_name(shape)
     if zone not in {"head", "arm", "clothing", "leg"}:
@@ -909,13 +963,14 @@ def apply_rinka_reference_style(
     min_side = max(float(min(scene.width, scene.height)), 1.0)
     hierarchical, hierarchy_stats = _apply_opaque_hierarchy(scene.shapes, opaque_hierarchy)
     zoned, zone_stats = _apply_opaque_zones(hierarchical, opaque_zones)
+    pruned, structure_redundant_removed = _prune_structure_redundant_fragments(zoned, scene, opaque_zones)
     relaxed = [
         _relax_low_value_zone_fragment(
             _relax_low_value_character_fragment(shape, canvas_area, min_side),
             canvas_area,
             min_side,
         )
-        for shape in zoned
+        for shape in pruned
     ]
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
@@ -979,6 +1034,7 @@ def apply_rinka_reference_style(
             **(opaque_zones.to_dict() if opaque_zones is not None else {"enabled": False, "reason": "not_requested"}),
             **zone_stats,
         },
+        "structure_redundant_removed": structure_redundant_removed,
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "background_removed": background_removed,
