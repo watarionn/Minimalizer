@@ -1,14 +1,16 @@
 # Minimalizer CURRENT
 
-Current release: **v0.3.0 stable**
+Current engine release: **v0.3.0 stable**
+Current Web runtime: **v0.4.1 production-verified**
 
 This file is the canonical restoration pointer.
 
 ## GitHub source of truth
 
-The repository now contains the restored **v0.3.0 stable implementation snapshot** itself, not only handoff metadata.
+The repository contains the restored **v0.3.0 stable implementation snapshot** itself, not only handoff metadata.
 
 - Core source: `minimalize_engine/`, `app/`, `gui/`
+- Web service: `web/`
 - Regression tests: `tests/` with 39 `test_*.py` files
 - Stable corpus: `tests/assets/corpus/` with 16 original images
 - Corpus metadata: `tests/assets/corpus_manifest.json`
@@ -17,11 +19,38 @@ The repository now contains the restored **v0.3.0 stable implementation snapshot
 
 The restoration workflow verified that all 16 corpus entries exist, that 39 test files exist, that the restored Night River asset matches its original SHA-256, and that the Python source tree passes `compileall`.
 
+## Current Web production state
+
+Minimalizer Web is publicly hosted on Railway at:
+
+`https://minimalizer-web-production-a2bc.up.railway.app`
+
+Production currently tracks `main`.
+
+Web v0.4.1 was merged to `main` at commit `e7b20f51325cd4f3a2537e1e249b39312360b754`. GitHub Actions run #22 passed on that merged commit, and Railway deployment `3a0da39d-20d9-4d04-bec8-a9b68c5f7fa9` completed successfully.
+
+Production uses the temporary hosted safety setting:
+
+```text
+WEB_MAX_ANALYSIS_SIDE=400
+```
+
+This setting is intentionally lower than the Web v0.4.1 code default because hosted testing showed that the 1 GB Railway runtime could still be killed on a representative level-1 request at an analysis cap of 640. A 400 cap is the current production safety setting while low-level performance tuning continues.
+
+User verification on the public production URL confirmed:
+
+- the processing overlay now disappears after minimalization finishes;
+- the minimalized result image is displayed normally after completion;
+- abstraction/minimalization levels 1, 2, and 3 all completed successfully on the public production service.
+
+Treat this as the current hosted usability baseline. Further low-level performance optimization is still useful, but the previously reported production-blocking 502/loading-state issues are no longer reproducing in the user's verification flow.
+
 ## Version rule
 
 - `v0.3.0-alpha8 Character-specific Quality / Retry` is a historical checkpoint, not the current state.
 - All alpha and rc builds are historical development checkpoints.
-- Resume future work from **v0.3.0 stable** as the regression baseline.
-- The next development line should be `v0.3.x` for conservative fixes or `v0.4.0` for larger quality changes.
+- Resume engine behavior work from **v0.3.0 stable** as the regression baseline.
+- Keep Web runtime versions separate from the engine release line.
+- The next engine development line should be `v0.3.x` for conservative fixes or `v0.4.0` for larger quality changes.
 
 Read next: `HANDOFF.md`.
