@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import cos, pi, sin
 from pathlib import Path
 
@@ -183,3 +183,137 @@ def shape_subject_overlap(shape: Shape, hierarchy: OpaqueSubjectHierarchy) -> fl
         return 0.0
     subject = hierarchy.mask[y0:y1, x0:x1]
     return float((local * subject).sum()) / float(denom)
+
+
+@dataclass
+class OpaqueSubjectZones:
+    enabled: bool
+    confidence: float = 0.0
+    bbox: tuple[int, int, int, int] | None = None
+    reason: str = "disabled"
+    zone_masks: dict[str, np.ndarray] = field(default_factory=dict)
+
+    def zone_bbox(self, name: str) -> tuple[int, int, int, int] | None:
+        mask = self.zone_masks.get(name)
+        if mask is None or not np.any(mask):
+            return None
+        ys, xs = np.where(mask > 0)
+        return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+
+    def to_dict(self) -> dict:
+        return {
+            "enabled": self.enabled,
+            "confidence": round(float(self.confidence), 6),
+            "bbox": list(self.bbox) if self.bbox is not None else None,
+            "reason": self.reason,
+            "zones": {
+                name: list(box)
+                for name in self.zone_masks
+                if (box := self.zone_bbox(name)) is not None
+            },
+        }
+
+
+def estimate_opaque_subject_zones(
+    hierarchy: OpaqueSubjectHierarchy,
+    scene: Scene,
+) -> OpaqueSubjectZones:
+    """Derive conservative coarse body zones from an accepted opaque subject mask.
+
+    This is intentionally a geometry-only foundation. It only activates for a
+    reasonably person-like vertical subject and leaves ambiguous subjects on the
+    Phase 3 subject/background path.
+    """
+    if not hierarchy.enabled or hierarchy.mask is None or hierarchy.bbox is None:
+        return OpaqueSubjectZones(False, reason="hierarchy_disabled")
+
+    x0, y0, x1, y1 = hierarchy.bbox
+    bw, bh = x1 - x0, y1 - y0
+    if bw < 12 or bh < 18 or bh < bw * 0.82:
+        return OpaqueSubjectZones(False, confidence=hierarchy.confidence, bbox=hierarchy.bbox, reason="shape_gate")
+
+    subject = hierarchy.mask.astype(np.uint8)
+    total = int(subject.sum())
+    if total <= 0:
+        return OpaqueSubjectZones(False, confidence=hierarchy.confidence, bbox=hierarchy.bbox, reason="empty_subject")
+
+    h, w = subject.shape
+    head_y1 = min(y1, y0 + max(1, int(round(bh * 0.30))))
+    torso_y1 = min(y1, y0 + max(2, int(round(bh * 0.64))))
+    arm_y1 = min(y1, y0 + max(2, int(round(bh * 0.72))))
+    core_x0 = min(x1, x0 + max(1, int(round(bw * 0.22))))
+    core_x1 = max(x0, x1 - max(1, int(round(bw * 0.22))))
+
+    def band(xa: int, ya: int, xb: int, yb: int) -> np.ndarray:
+        out = np.zeros((h, w), dtype=np.uint8)
+        xa, ya = max(0, xa), max(0, ya)
+        xb, yb = min(w, xb), min(h, yb)
+        if xb > xa and yb > ya:
+            out[ya:yb, xa:xb] = subject[ya:yb, xa:xb]
+        return out
+
+    candidates = {
+        "head": band(x0, y0, x1, head_y1),
+        "torso": band(core_x0, head_y1, core_x1, torso_y1),
+        "legs": band(x0, torso_y1, x1, y1),
+        "left_arm": band(x0, head_y1, core_x0, arm_y1),
+        "right_arm": band(core_x1, head_y1, x1, arm_y1),
+    }
+    minimums = {"head": 0.045, "torso": 0.060, "legs": 0.035, "left_arm": 0.014, "right_arm": 0.014}
+    zones = {
+        name: mask
+        for name, mask in candidates.items()
+        if float(mask.sum()) / total >= minimums[name]
+    }
+    if "head" not in zones or "torso" not in zones:
+        return OpaqueSubjectZones(False, confidence=hierarchy.confidence, bbox=hierarchy.bbox, reason="zone_gate")
+
+    covered = float(np.logical_or.reduce([m > 0 for m in zones.values()]).sum()) / total
+    confidence = min(1.0, hierarchy.confidence * (0.82 + 0.18 * min(1.0, covered / 0.72)))
+    return OpaqueSubjectZones(True, confidence=confidence, bbox=hierarchy.bbox, reason="accepted", zone_masks=zones)
+
+
+def _shape_mask_overlap(shape: Shape, mask: np.ndarray) -> float:
+    if shape.fill_color is None or shape.shape_type == "line":
+        return 0.0
+    poly = _shape_polygon(shape)
+    if poly is None or len(poly) < 3:
+        return 0.0
+    h, w = mask.shape
+    x0 = max(0, int(np.floor(poly[:, 0].min())))
+    y0 = max(0, int(np.floor(poly[:, 1].min())))
+    x1 = min(w, int(np.ceil(poly[:, 0].max())) + 1)
+    y1 = min(h, int(np.ceil(poly[:, 1].max())) + 1)
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    local = np.zeros((y1 - y0, x1 - x0), dtype=np.uint8)
+    pts = np.round(poly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
+    cv2.fillPoly(local, [pts], 1)
+    denom = int(local.sum())
+    if denom <= 0:
+        return 0.0
+    return float((local * mask[y0:y1, x0:x1]).sum()) / float(denom)
+
+
+def shape_zone_overlap(shape: Shape, zones: OpaqueSubjectZones, zone: str) -> float:
+    if not zones.enabled:
+        return 0.0
+    mask = zones.zone_masks.get(zone)
+    if mask is None:
+        return 0.0
+    return _shape_mask_overlap(shape, mask)
+
+
+def dominant_shape_zone(
+    shape: Shape,
+    zones: OpaqueSubjectZones,
+    *,
+    min_overlap: float = 0.28,
+) -> str | None:
+    if not zones.enabled:
+        return None
+    scores = [(name, shape_zone_overlap(shape, zones, name)) for name in zones.zone_masks]
+    if not scores:
+        return None
+    name, score = max(scores, key=lambda item: item[1])
+    return name if score >= min_overlap else None

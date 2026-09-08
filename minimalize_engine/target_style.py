@@ -12,13 +12,16 @@ from .models import Scene, Shape
 from .pipeline import minimalize
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
+    OpaqueSubjectZones,
+    dominant_shape_zone,
     estimate_opaque_subject_hierarchy,
+    estimate_opaque_subject_zones,
     shape_subject_overlap,
 )
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase3"
+RINKA_REFERENCE_VERSION = "phase4"
 
 
 _TARGET_MAX_SHAPES = {
@@ -290,6 +293,96 @@ def _apply_opaque_hierarchy(
     return out, stats
 
 
+
+def _opaque_zone_name(shape: Shape) -> str | None:
+    role = shape.source_role or ""
+    marker = "opaque_zone:"
+    if marker in role:
+        tail = role.split(marker, 1)[1]
+        return tail.split(":", 1)[0] or None
+    semantic = shape.semantic_type or ""
+    prefix = "target_zone_"
+    if semantic.startswith(prefix) and semantic.endswith("_fragment"):
+        return semantic[len(prefix):-len("_fragment")]
+    return None
+
+
+def _apply_opaque_zones(
+    shapes: list[Shape],
+    zones: OpaqueSubjectZones | None,
+) -> tuple[list[Shape], dict]:
+    stats = {
+        "zone_shapes": 0,
+        "head_shapes": 0,
+        "torso_shapes": 0,
+        "arm_shapes": 0,
+        "leg_shapes": 0,
+        "hair_shapes": 0,
+        "clothing_shapes": 0,
+        "neutral_shapes": 0,
+    }
+    if zones is None or not zones.enabled:
+        stats["neutral_shapes"] = len(shapes)
+        return shapes, stats
+    out: list[Shape] = []
+    garment_tokens = ("outfit", "dress", "skirt", "sleeve", "clothing", "ruffle", "lace", "trim")
+    for shape in shapes:
+        zone = dominant_shape_zone(shape, zones)
+        if zone is None:
+            out.append(shape)
+            stats["neutral_shapes"] += 1
+            continue
+        tags = _shape_tags(shape)
+        if zone == "head" and "hair" in tags:
+            refined = "hair"
+        elif zone in {"torso", "legs"} and any(token in tags for token in garment_tokens):
+            refined = "clothing"
+        elif zone in {"left_arm", "right_arm"}:
+            refined = "arm"
+        elif zone == "legs":
+            refined = "leg"
+        else:
+            refined = zone
+        floor = {
+            "head": 0.88,
+            "hair": 0.92,
+            "torso": 0.90,
+            "clothing": 0.88,
+            "arm": 0.84,
+            "leg": 0.86,
+        }[refined]
+        out.append(replace(
+            shape,
+            importance=max(float(shape.importance), floor),
+            source_role=f"opaque_zone:{refined}:{shape.source_role}",
+            layer_name="foreground",
+        ))
+        stats["zone_shapes"] += 1
+        stats[f"{refined}_shapes"] += 1
+    return out, stats
+
+
+def _relax_low_value_zone_fragment(shape: Shape, canvas_area: float, min_side: float) -> Shape:
+    zone = _opaque_zone_name(shape)
+    if zone not in {"head", "arm", "clothing", "leg"}:
+        return shape
+    area, short, _long, aspect = _shape_metrics(shape)
+    area_ratio = area / max(canvas_area, 1.0)
+    thin = short <= max(1.5, min_side * 0.028) and aspect >= 3.0
+    micro_limit = {"head": 0.0018, "arm": 0.0026, "clothing": 0.0030, "leg": 0.0018}[zone]
+    importance_limit = {"head": 0.90, "arm": 0.87, "clothing": 0.90, "leg": 0.87}[zone]
+    if float(shape.importance) >= importance_limit:
+        return shape
+    if not thin and area_ratio > micro_limit:
+        return shape
+    return replace(
+        shape,
+        semantic_type=f"target_zone_{zone}_fragment",
+        character_part="unknown",
+        source_role="target_fragment",
+    )
+
+
 def _relax_low_value_character_fragment(
     shape: Shape,
     canvas_area: float,
@@ -330,8 +423,18 @@ def _face_box_from_metadata(scene: Scene) -> tuple[float, float, float, float] |
     return None
 
 
-def _suppress_face_fragments(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
+def _suppress_face_fragments(
+    scene: Scene,
+    shapes: list[Shape],
+    opaque_zones: OpaqueSubjectZones | None = None,
+) -> tuple[list[Shape], int]:
     box = _face_box_from_metadata(scene)
+    if box is None and opaque_zones is not None and opaque_zones.enabled:
+        head = opaque_zones.zone_bbox("head")
+        if head is not None:
+            hx0, hy0, hx1, hy1 = head
+            hw, hh = hx1 - hx0, hy1 - hy0
+            box = (hx0 + 0.18 * hw, hy0 + 0.16 * hh, hx0 + 0.82 * hw, hy0 + 0.90 * hh)
     if box is None:
         return shapes, 0
     x0, y0, x1, y1 = box
@@ -341,7 +444,7 @@ def _suppress_face_fragments(scene: Scene, shapes: list[Shape]) -> tuple[list[Sh
         if shape.fill_color is None or shape.shape_type == "line":
             continue
         tags = _shape_tags(shape)
-        if any(token in tags for token in ("hair", "prop", "hand", "finger")):
+        if any(token in tags for token in ("hair", "prop", "hand", "finger")) or _opaque_zone_name(shape) == "hair":
             continue
         cx, cy = _shape_center(shape)
         if x0 <= cx <= x1 and y0 <= cy <= y1:
@@ -512,6 +615,11 @@ def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int |
             value += 0.14
         elif "opaque_background" in tags:
             value -= 0.04
+        zone = _opaque_zone_name(shape)
+        if zone in {"head", "hair", "torso", "clothing"}:
+            value += 0.06
+        elif zone in {"arm", "leg"}:
+            value += 0.03
         return value
     ranked = sorted(shapes, key=score, reverse=True)
     keep_ids = {s.id for s in ranked[:target_max_shapes]}
@@ -525,13 +633,19 @@ def apply_rinka_reference_style(
     curve_polygon_sides: int = 6,
     target_max_shapes: int | None = None,
     opaque_hierarchy: OpaqueSubjectHierarchy | None = None,
+    opaque_zones: OpaqueSubjectZones | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
     hierarchical, hierarchy_stats = _apply_opaque_hierarchy(scene.shapes, opaque_hierarchy)
+    zoned, zone_stats = _apply_opaque_zones(hierarchical, opaque_zones)
     relaxed = [
-        _relax_low_value_character_fragment(shape, canvas_area, min_side)
-        for shape in hierarchical
+        _relax_low_value_zone_fragment(
+            _relax_low_value_character_fragment(shape, canvas_area, min_side),
+            canvas_area,
+            min_side,
+        )
+        for shape in zoned
     ]
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
@@ -570,7 +684,7 @@ def apply_rinka_reference_style(
         isolated_min_distance_ratio=0.060,
         isolated_max_importance=0.55,
     )
-    faceless, face_removed = _suppress_face_fragments(scene, cleaned)
+    faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
     compressed, background_removed = _compress_background(scene, consolidated)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
@@ -590,6 +704,10 @@ def apply_rinka_reference_style(
         "opaque_hierarchy": {
             **(opaque_hierarchy.to_dict() if opaque_hierarchy is not None else {"enabled": False, "reason": "not_requested"}),
             **hierarchy_stats,
+        },
+        "opaque_zones": {
+            **(opaque_zones.to_dict() if opaque_zones is not None else {"enabled": False, "reason": "not_requested"}),
+            **zone_stats,
         },
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
@@ -616,9 +734,11 @@ def minimalize_rinka_reference(
     config = rinka_reference_config(level, **config_overrides)
     scene = minimalize(image_or_path, config)
     opaque_hierarchy = estimate_opaque_subject_hierarchy(image_or_path, scene)
+    opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
         target_max_shapes=config.target_max_shapes,
         opaque_hierarchy=opaque_hierarchy,
+        opaque_zones=opaque_zones,
     )

@@ -3,7 +3,9 @@ import numpy as np
 from minimalize_engine.models import Scene, Shape
 from minimalize_engine.target_hierarchy import (
     OpaqueSubjectHierarchy,
+    dominant_shape_zone,
     estimate_opaque_subject_hierarchy,
+    estimate_opaque_subject_zones,
     shape_subject_overlap,
 )
 
@@ -67,3 +69,43 @@ def test_shape_overlap_distinguishes_subject_and_background():
 
     assert shape_subject_overlap(subject, hierarchy) > 0.95
     assert shape_subject_overlap(background, hierarchy) == 0.0
+
+
+
+def test_phase4_derives_coarse_body_zones_from_vertical_subject():
+    mask = np.zeros((160, 200), dtype=np.uint8)
+    mask[18:150, 70:130] = 1
+    mask[58:112, 50:70] = 1
+    mask[58:112, 130:150] = 1
+    hierarchy = OpaqueSubjectHierarchy(
+        True,
+        confidence=0.82,
+        subject_area_ratio=float(mask.mean()),
+        bbox=(50, 18, 150, 150),
+        reason="accepted",
+        mask=mask,
+    )
+
+    zones = estimate_opaque_subject_zones(hierarchy, _scene())
+
+    assert zones.enabled is True
+    assert {"head", "torso", "legs"}.issubset(zones.zone_masks)
+    assert "left_arm" in zones.zone_masks
+    assert "right_arm" in zones.zone_masks
+    assert zones.zone_bbox("head") is not None
+
+
+def test_phase4_zone_assignment_distinguishes_head_torso_and_arm():
+    mask = np.zeros((160, 200), dtype=np.uint8)
+    mask[18:150, 70:130] = 1
+    mask[58:112, 50:70] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.82, float(mask.mean()), (50, 18, 130, 150), "accepted", mask)
+    zones = estimate_opaque_subject_zones(hierarchy, _scene())
+
+    head = Shape(1, "rectangle", (40, 50, 60), x=82, y=24, width=25, height=22)
+    torso = Shape(2, "rectangle", (40, 50, 60), x=82, y=68, width=25, height=26)
+    arm = Shape(3, "rectangle", (40, 50, 60), x=53, y=66, width=14, height=28)
+
+    assert dominant_shape_zone(head, zones) == "head"
+    assert dominant_shape_zone(torso, zones) == "torso"
+    assert dominant_shape_zone(arm, zones) == "left_arm"

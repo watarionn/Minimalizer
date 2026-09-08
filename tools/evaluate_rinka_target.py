@@ -111,6 +111,7 @@ def main() -> None:
         target_meta = target.metadata.get("target_style", {})
         cleanup = target_meta.get("cleanup", {})
         hierarchy = target_meta.get("opaque_hierarchy", {})
+        zones = target_meta.get("opaque_zones", {})
         stable_identity = stable_quality.get("identity_score")
         target_identity = target_quality.get("identity_score")
         stable_silhouette = stable_quality.get("silhouette_similarity")
@@ -139,6 +140,15 @@ def main() -> None:
             "opaque_subject_area_ratio": hierarchy.get("subject_area_ratio", 0.0),
             "opaque_subject_shapes": hierarchy.get("subject_shapes", 0),
             "opaque_background_shapes": hierarchy.get("background_shapes", 0),
+            "opaque_zones_enabled": bool(zones.get("enabled", False)),
+            "opaque_zones_confidence": zones.get("confidence", 0.0),
+            "opaque_zone_shapes": zones.get("zone_shapes", 0),
+            "opaque_head_shapes": zones.get("head_shapes", 0),
+            "opaque_torso_shapes": zones.get("torso_shapes", 0),
+            "opaque_arm_shapes": zones.get("arm_shapes", 0),
+            "opaque_leg_shapes": zones.get("leg_shapes", 0),
+            "opaque_hair_shapes": zones.get("hair_shapes", 0),
+            "opaque_clothing_shapes": zones.get("clothing_shapes", 0),
             "stable_quality": stable_quality.get("score"),
             "stable_identity": stable_identity,
             "stable_silhouette": stable_silhouette,
@@ -184,6 +194,15 @@ def main() -> None:
             "mean_opaque_hierarchy_confidence": mean(r["opaque_hierarchy_confidence"] for r in rows if r["opaque_hierarchy_enabled"]) if any(r["opaque_hierarchy_enabled"] for r in rows) else 0.0,
             "total_opaque_subject_shapes": sum(r["opaque_subject_shapes"] for r in rows),
             "total_opaque_background_shapes": sum(r["opaque_background_shapes"] for r in rows),
+            "opaque_zones_enabled_count": sum(1 for r in rows if r["opaque_zones_enabled"]),
+            "mean_opaque_zones_confidence": mean(r["opaque_zones_confidence"] for r in rows if r["opaque_zones_enabled"]) if any(r["opaque_zones_enabled"] for r in rows) else 0.0,
+            "total_opaque_zone_shapes": sum(r["opaque_zone_shapes"] for r in rows),
+            "total_opaque_head_shapes": sum(r["opaque_head_shapes"] for r in rows),
+            "total_opaque_torso_shapes": sum(r["opaque_torso_shapes"] for r in rows),
+            "total_opaque_arm_shapes": sum(r["opaque_arm_shapes"] for r in rows),
+            "total_opaque_leg_shapes": sum(r["opaque_leg_shapes"] for r in rows),
+            "total_opaque_hair_shapes": sum(r["opaque_hair_shapes"] for r in rows),
+            "total_opaque_clothing_shapes": sum(r["opaque_clothing_shapes"] for r in rows),
             "quality_note": "target_pre_* metrics are measured before the target-style post-process",
         }
         (out / f"summary_{suffix}.json").write_text(

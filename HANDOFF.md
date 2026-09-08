@@ -13,7 +13,7 @@
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
-GitHub contains the stable engine implementation, 39-file stable regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
+GitHub contains the stable engine implementation, 42-file regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
 
 Release validation recorded at v0.3.0:
 - 156 tests passed / 0 failed when completed in batches.
@@ -189,6 +189,23 @@ The essential direction is:
 The implementation goal is **input image -> intentional geometric poster**, not merely input image -> fewer contours.
 
 This reference is a general design target, not an image-specific reproduction target. Do not add special cases for the reference image. Any engine change inspired by it must generalize across the stable corpus and future inputs.
+
+## Rinka Reference implementation status
+
+Phase 3 was merged in PR #9 as `5c0e17ac99d980d7f5d78ea7354a03058b7ee30a`. It added the opt-in target-style profile, large-shape hierarchy, identity-safe palette/epsilon choices, and conservative opaque subject/background inference. The public Web service is running that source, but normal Web requests still use the stable path.
+
+Phase 4 is being developed on `feature/rinka-target-phase4-zones-20260908`. Its first foundation:
+- derives coarse `head`, `torso`, `legs`, `left_arm`, and `right_arm` zones only after Phase 3 accepts an opaque subject;
+- refuses zone inference for weak/non-vertical masks and falls back to Phase 3 behavior;
+- tags overlapping shapes with zone-aware foreground roles and importance floors;
+- uses a head-zone fallback for faceless micro-fragment suppression when explicit face metadata is unavailable;
+- relaxes low-value head/arm/clothing/leg fragments conservatively before normal cleanup;
+- records zone activation, confidence, bboxes, and per-zone shape counts in `target_style.opaque_zones`;
+- extends corpus evaluation and CI safety guards for Phase 4.
+
+Local pre-PR checks passed: target tests 17/17, stable smoke subset 39/39, Web API 15/15, and the 16-image Phase 4 safety guard. The local corpus result was about 36.84% mean shape reduction and 30.13% mean vertex reduction, with worst identity delta about -0.0573 and worst silhouette delta about -0.0010. Zones activated on 2/16 images and classified 20 subject shapes total.
+
+The user wants Rinka Reference added to the Web UI after the style is complete. Do not wire this moving target into the public UI prematurely; complete and stabilize quality work first, then add an explicit Web UI mode while preserving the normal stable mode.
 
 ## Important stable behavior
 

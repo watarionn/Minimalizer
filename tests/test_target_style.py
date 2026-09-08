@@ -1,5 +1,8 @@
 from minimalize_engine.analysis.shape_cleanup import cleanup_minimal_shapes
 from minimalize_engine.models import Scene, Shape
+import numpy as np
+
+from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones
 from minimalize_engine.target_style import (
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -100,7 +103,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase3"
+    assert out.metadata["target_style"]["version"] == "phase4"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -296,3 +299,25 @@ def test_phase2_final_cap_enforces_target_shape_budget():
 
     assert len(out.shapes) == 3
     assert out.metadata["target_style"]["cap_removed"] == 3
+
+
+
+def test_phase4_opaque_zones_are_recorded_and_can_suppress_head_micro_fragment():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.84, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    base_scene = Scene(120, 140, (245, 245, 240), [], {"subject_mode": False})
+    zones = estimate_opaque_subject_zones(hierarchy, base_scene)
+    carrier = _rect(1, 46, 20, 28, 24, importance=0.94, semantic="skin_mass", fill_color=(224, 190, 170))
+    micro = _rect(2, 55, 27, 5, 4, importance=0.45, semantic="generic_accent", fill_color=(70, 60, 60))
+    torso = _rect(3, 44, 60, 32, 42, importance=0.80, semantic="generic_body", fill_color=(55, 70, 90))
+    scene = Scene(120, 140, (245, 245, 240), [carrier, micro, torso], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+
+    meta = out.metadata["target_style"]["opaque_zones"]
+    assert meta["enabled"] is True
+    assert meta["head_shapes"] >= 1
+    assert meta["torso_shapes"] >= 1
+    assert 2 not in [shape.id for shape in out.shapes]
+    assert out.metadata["target_style"]["face_fragments_removed"] >= 1
