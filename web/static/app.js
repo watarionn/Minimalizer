@@ -18,6 +18,10 @@ const elements = {
   downloadSvg: document.querySelector("#download-svg"),
   downloadPng: document.querySelector("#download-png"),
   minimalizeButton: document.querySelector("#minimalize-button"),
+  modeInputs: Array.from(document.querySelectorAll('input[name="mode"]')),
+  modeDescription: document.querySelector("#mode-description"),
+  advancedControls: document.querySelector("#advanced-controls"),
+  controlCard: document.querySelector(".control-card"),
   level: document.querySelector("#level-select"),
   colors: document.querySelector("#colors-input"),
   maxShapes: document.querySelector("#max-shapes-input"),
@@ -46,6 +50,35 @@ function setStatus(message = "", isError = false) {
   elements.status.classList.toggle("is-error", isError);
 }
 
+function currentMode() {
+  return elements.modeInputs.find((input) => input.checked)?.value || "standard";
+}
+
+function updateModeUi() {
+  const rinka = currentMode() === "rinka_reference";
+  elements.controlCard.classList.toggle("is-rinka", rinka);
+  elements.modeDescription.textContent = rinka
+    ? "完成済みの凛夏手本版 Phase 6。検証済みのミニマル度4・専用プロファイルを固定で使用します。"
+    : "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
+  elements.minimalizeButton.textContent = rinka ? "凛夏手本版でミニマル化" : "ミニマル化";
+
+  if (rinka) {
+    elements.level.value = "4";
+    elements.colors.value = "";
+    elements.maxShapes.value = "";
+    elements.background.value = "";
+    elements.advancedControls.open = false;
+  }
+
+  elements.level.disabled = state.busy || rinka;
+  elements.colors.disabled = state.busy || rinka;
+  elements.maxShapes.disabled = state.busy || rinka;
+  elements.background.disabled = state.busy || rinka;
+  elements.advancedControls.setAttribute("aria-disabled", rinka ? "true" : "false");
+  const advancedSummary = elements.advancedControls.querySelector("summary");
+  if (advancedSummary) advancedSummary.setAttribute("aria-disabled", rinka ? "true" : "false");
+}
+
 function setBusy(busy, message = "") {
   state.busy = busy;
   elements.processing.hidden = !busy;
@@ -54,6 +87,8 @@ function setBusy(busy, message = "") {
   elements.downloadPng.disabled = busy;
   elements.fileInput.disabled = busy;
   elements.replaceButton.disabled = busy;
+  for (const input of elements.modeInputs) input.disabled = busy;
+  updateModeUi();
   if (message) setStatus(message);
 }
 
@@ -105,12 +140,16 @@ function setFile(file) {
 function buildFormData(outputFormat) {
   const form = new FormData();
   form.append("file", state.file, state.file.name || "image");
-  form.append("level", elements.level.value);
+  const mode = currentMode();
+  form.append("mode", mode);
+  form.append("level", mode === "rinka_reference" ? "4" : elements.level.value);
   form.append("output_format", outputFormat);
 
-  if (elements.colors.value) form.append("colors", elements.colors.value);
-  if (elements.maxShapes.value) form.append("max_shapes", elements.maxShapes.value);
-  if (elements.background.value) form.append("background", elements.background.value);
+  if (mode === "standard") {
+    if (elements.colors.value) form.append("colors", elements.colors.value);
+    if (elements.maxShapes.value) form.append("max_shapes", elements.maxShapes.value);
+    if (elements.background.value) form.append("background", elements.background.value);
+  }
   return form;
 }
 
@@ -165,11 +204,14 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.resultEmpty.hidden = true;
       elements.downloadRow.hidden = false;
 
+      const responseMode = response.headers.get("x-minimalizer-mode");
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
-      elements.resultMeta.textContent = [shapes ? `${shapes} shapes` : "", size || ""]
-        .filter(Boolean)
-        .join(" · ");
+      elements.resultMeta.textContent = [
+        responseMode === "rinka_reference" ? "凛夏手本版" : "",
+        shapes ? `${shapes} shapes` : "",
+        size || "",
+      ].filter(Boolean).join(" ? ");
     }
 
     if (download) downloadBlob(blob, filename);
@@ -236,6 +278,24 @@ elements.downloadPng.addEventListener("click", () => {
 for (const control of [elements.level, elements.colors, elements.maxShapes, elements.background]) {
   control.addEventListener("change", invalidateAfterSettingChange);
 }
+
+for (const input of elements.modeInputs) {
+  input.addEventListener("change", () => {
+    invalidateAfterSettingChange();
+    updateModeUi();
+    if (!state.resultBlob) {
+      setStatus(currentMode() === "rinka_reference"
+        ? "凛夏手本版を選択しました。完成プロファイルでミニマル化します。"
+        : "通常モードを選択しました。");
+    }
+  });
+}
+
+elements.advancedControls.querySelector("summary")?.addEventListener("click", (event) => {
+  if (currentMode() === "rinka_reference") event.preventDefault();
+});
+
+updateModeUi();
 
 window.addEventListener("beforeunload", () => {
   if (state.sourceUrl) URL.revokeObjectURL(state.sourceUrl);

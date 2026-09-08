@@ -261,3 +261,6 @@ Optional Web follow-up, after or alongside quality work:
 - profile low-level retry/quality-evaluation cost on the 1 GB host;
 - reduce level-1/2/3 processing time without degrading the intended detail presets;
 - revisit `WEB_MAX_ANALYSIS_SIDE=400` only after new hosted measurements support a change.
+
+
+Phase 6 is merged and frozen at `a5e76fc365ad608bde7506b9b0a7b21a5e8527cc`. Web v0.5.0 integration starts from that exact baseline on `feature/rinka-web-ui-mode-20260909`. Add an explicit accessible segmented `?? / ?????` selector while keeping Standard selected by default. The API accepts `mode=standard|rinka_reference`; Standard preserves all existing controls, while Rinka Reference must stay locked to its validated Phase 6 level-4 profile and reject custom color/shape/background overrides. Both modes must obey the hosted analysis-size cap and processing semaphore. The response exposes `X-Minimalizer-Mode`; `/api/info` reports supported modes and `phase6`. Merge first, then verify both modes on the Railway production URL before calling v0.5.0 production-complete.

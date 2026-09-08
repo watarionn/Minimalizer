@@ -15,9 +15,11 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .service import build_config, minimalize_path
+from minimalize_engine.target_style import RINKA_REFERENCE_VERSION
 
-APP_VERSION = "0.4.1"
+from .service import build_config, build_rinka_config, minimalize_path, minimalize_rinka_path
+
+APP_VERSION = "0.5.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -54,7 +56,7 @@ _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 app = FastAPI(
     title="Minimalizer Web API",
     version=APP_VERSION,
-    description="Minimalizer v0.3.0 stable engine with a lightweight browser UI and web API.",
+    description="Minimalizer v0.3.0 stable engine with Standard and Rinka Reference browser modes.",
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -95,7 +97,7 @@ def root() -> FileResponse:
 
 
 @app.get("/api/info")
-def service_info() -> dict[str, str | int]:
+def service_info() -> dict[str, object]:
     return {
         "service": "Minimalizer Web",
         "web_version": APP_VERSION,
@@ -106,6 +108,8 @@ def service_info() -> dict[str, str | int]:
         "max_image_side": MAX_IMAGE_SIDE,
         "max_analysis_side": MAX_ANALYSIS_SIDE,
         "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
+        "supported_modes": ["standard", "rinka_reference"],
+        "rinka_reference_version": RINKA_REFERENCE_VERSION,
     }
 
 
@@ -166,6 +170,7 @@ async def minimalize_image(
     file: Annotated[UploadFile, File(description="Source image")],
     level: Annotated[int, Form(ge=1, le=5)] = 4,
     output_format: Annotated[Literal["svg", "png"], Form()] = "svg",
+    mode: Annotated[Literal["standard", "rinka_reference"], Form()] = "standard",
     colors: Annotated[int | None, Form(ge=2, le=32)] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
@@ -174,13 +179,21 @@ async def minimalize_image(
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
 
-    config = build_config(
-        level,
-        colors=colors,
-        max_shapes=max_shapes,
-        background=background,
-        analysis_max_side_cap=MAX_ANALYSIS_SIDE,
-    )
+    if mode == "rinka_reference":
+        if level != 4 or colors is not None or max_shapes is not None or background is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Rinka Reference uses its frozen level-4 profile; custom detail settings are not supported.",
+            )
+        config = build_rinka_config(analysis_max_side_cap=MAX_ANALYSIS_SIDE)
+    else:
+        config = build_config(
+            level,
+            colors=colors,
+            max_shapes=max_shapes,
+            background=background,
+            analysis_max_side_cap=MAX_ANALYSIS_SIDE,
+        )
 
     try:
         with TemporaryDirectory(prefix="minimalizer-web-") as temp_dir:
@@ -193,8 +206,9 @@ async def minimalize_image(
 
             if not _PROCESS_SLOTS.acquire(blocking=False):
                 logger.info(
-                    "minimalize_busy request_id=%s format=%s width=%s height=%s level=%s analysis_max_side=%s",
+                    "minimalize_busy request_id=%s mode=%s format=%s width=%s height=%s level=%s analysis_max_side=%s",
                     request_id,
+                    mode,
                     source_format,
                     source_width,
                     source_height,
@@ -210,12 +224,20 @@ async def minimalize_image(
             processing_started = perf_counter()
             try:
                 try:
-                    result = await run_in_threadpool(
-                        minimalize_path,
-                        input_path,
-                        config,
-                        output_format,
-                    )
+                    if mode == "rinka_reference":
+                        result = await run_in_threadpool(
+                            minimalize_rinka_path,
+                            input_path,
+                            output_format,
+                            analysis_max_side_cap=MAX_ANALYSIS_SIDE,
+                        )
+                    else:
+                        result = await run_in_threadpool(
+                            minimalize_path,
+                            input_path,
+                            config,
+                            output_format,
+                        )
                 except (ValueError, OSError) as exc:
                     raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
             finally:
@@ -225,8 +247,9 @@ async def minimalize_image(
         await file.close()
 
     logger.info(
-        "minimalize_success request_id=%s format=%s width=%s height=%s level=%s analysis_max_side=%s output=%s processing_ms=%.1f shapes=%s",
+        "minimalize_success request_id=%s mode=%s format=%s width=%s height=%s level=%s analysis_max_side=%s output=%s processing_ms=%.1f shapes=%s",
         request_id,
+        mode,
         source_format,
         source_width,
         source_height,
@@ -239,6 +262,7 @@ async def minimalize_image(
 
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
+        "X-Minimalizer-Mode": mode,
         "X-Minimalizer-Level": str(level),
         "X-Minimalizer-Configured-Analysis-Max-Side": str(config.analysis_max_side),
         "X-Minimalizer-Shape-Count": str(result.shape_count),

@@ -4,14 +4,16 @@ Minimalizer Web exposes the existing Minimalizer v0.3.0 stable engine through Fa
 
 ## Current web phase
 
-**Web Phase 3** hardens the Phase 2 browser experience for an initial hosted pilot without changing the stable engine algorithms.
+**Web v0.5.0** adds the completed Rinka Reference / ????? as an explicit opt-in browser/API mode while preserving the existing Standard mode and stable engine behavior.
 
 Included:
 
 - drag-and-drop or file-picker image input
 - side-by-side source/result preview
 - processing, empty, selected, and error states
-- abstraction level control with advanced settings collapsed by default
+- segmented `?? / ?????` mode selector
+- Standard mode abstraction level control with advanced settings collapsed by default
+- Rinka Reference mode locked to its validated Phase 6 level-4 profile
 - SVG preview and download
 - PNG download
 - responsive mobile layout
@@ -67,23 +69,38 @@ See `docs/WEB_DEPLOYMENT.md` for production sizing and hosting notes.
 Fields:
 
 - `file`: PNG, JPEG, or WebP source image, required
-- `level`: abstraction level 1-5, default 4
+- `mode`: `standard` or `rinka_reference`, default `standard`
+- `level`: abstraction level 1-5, default 4; Rinka Reference requires level 4
 - `output_format`: `svg` or `png`, default `svg`
 - `colors`: optional palette color override, 2-32
 - `max_shapes`: optional target shape limit, 5-500
 - `background`: optional `source`, `white`, or `transparent`
+
+`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 6 profile cannot be silently altered from the Web API.
 
 Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/minimalize \
   -F "file=@examples/input.webp;type=image/webp" \
+  -F "mode=standard" \
   -F "level=4" \
   -F "output_format=svg" \
   --output minimalized.svg
 ```
 
-The response includes shape count, analysis size, source size, validated source dimensions, and detected source format in `X-Minimalizer-*` headers.
+The response includes the selected mode, shape count, analysis size, source size, validated source dimensions, and detected source format in `X-Minimalizer-*` headers.
+
+Rinka Reference example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/minimalize \
+  -F "file=@examples/input.webp;type=image/webp" \
+  -F "mode=rinka_reference" \
+  -F "level=4" \
+  -F "output_format=svg" \
+  --output minimalized-rinka.svg
+```
 
 If both processing slots are occupied, the service returns HTTP `429` with `Retry-After: 2` instead of starting unlimited CPU-heavy jobs.
 
@@ -95,11 +112,4 @@ The current upload/pixel limits are Web-service safety limits. They do not redef
 
 ## Next web phase
 
-Web Phase 4 should be the first hosted pilot:
-
-1. deploy the Docker image to the selected provider;
-2. verify the real public URL end to end;
-3. measure peak memory and request duration with representative images;
-4. test the 429 busy path under real concurrent requests;
-5. tune instance size and Web limits from measurements rather than guesses;
-6. only then decide whether accounts, job history, async queues, or billing are actually needed.
+After v0.5.0 is merged, deploy the same build to Railway and verify the public URL end to end in both Standard and Rinka Reference modes. Keep Standard as the default and confirm the hosted analysis-size cap remains respected by both modes before declaring production rollout complete.
