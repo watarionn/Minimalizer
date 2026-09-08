@@ -2,9 +2,12 @@ from minimalize_engine.analysis.shape_cleanup import cleanup_minimal_shapes
 from minimalize_engine.models import Scene, Shape
 import numpy as np
 
-from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones, estimate_structure_subject_zones
+from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, OpaqueSubjectZones, estimate_opaque_subject_zones, estimate_structure_subject_zones
 from minimalize_engine.target_style import (
     _abstract_gesture_shapes,
+    _final_shape_cap,
+    _macro_shape_priority_score,
+    _macro_priority_shadow,
     _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -560,3 +563,40 @@ def test_phase5_gesture_abstraction_never_uses_opposite_side_hand_as_anchor():
     assert out[0].side_hint == "left"
     assert out[1].side_hint == "right"
     assert stats["anchored_simplifications"] == 0
+
+
+def test_phase5_macro_priority_prefers_head_candidate_over_high_importance_background():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    background = _rect(2, 60, 60, 12, 10, importance=0.95, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, background])
+
+    assert _macro_shape_priority_score(scene, head) > _macro_shape_priority_score(scene, background)
+
+
+def test_phase5_macro_budget_removes_background_before_subject_macro_shapes():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    garment = _rect(2, 35, 45, 14, 14, importance=0.45, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    background = _rect(3, 70, 70, 12, 10, importance=0.95, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, background])
+
+    capped, removed, stats = _final_shape_cap(scene, scene.shapes, 2)
+
+    assert {shape.id for shape in capped} == {1, 2}
+    assert removed == 1
+    assert stats["removed_background"] == 1
+    assert stats["removed_subject"] == 0
+
+
+def test_phase5_macro_shadow_blocks_budget_when_candidate_overlaps_subject_bbox():
+    head = _rect(1, 20, 20, 10, 10, importance=0.50, semantic="target_zone_head_candidate", part="head", role="target_fragment", layer="accents")
+    garment = _rect(2, 35, 45, 14, 14, importance=0.45, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base")
+    inside_background = _rect(3, 25, 25, 12, 10, importance=0.10, semantic="subject_mass", role="misc", layer="midground")
+    outside_background = _rect(4, 160, 160, 12, 10, importance=0.35, semantic="subject_mass", role="misc", layer="midground")
+    scene = Scene(220, 220, (245, 245, 240), [head, garment, inside_background, outside_background])
+    zones = OpaqueSubjectZones(True, confidence=1.0, bbox=(10, 10, 100, 120), reason="test", zone_masks={})
+
+    shadow = _macro_priority_shadow(scene, scene.shapes, zones, budget=3)
+
+    assert shadow["would_remove"] == 1
+    assert shadow["would_remove_inside_subject_bbox"] == 1
+    assert shadow["blocked_by_subject_bbox"] is True

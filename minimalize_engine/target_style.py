@@ -1179,33 +1179,147 @@ def _curve_to_polygon(shape: Shape, sides: int = 6) -> Shape:
     )
 
 
-def _final_shape_cap(scene: Scene, shapes: list[Shape], target_max_shapes: int | None) -> tuple[list[Shape], int]:
-    if target_max_shapes is None or target_max_shapes <= 0 or len(shapes) <= target_max_shapes:
-        return shapes, 0
+def _macro_zone_kind(shape: Shape) -> str | None:
+    zone = _opaque_zone_name(shape)
+    if zone is not None:
+        return zone
+    semantic = (shape.semantic_type or "").lower()
+    part = (shape.character_part or "").lower()
+    for token in ("hair", "head", "clothing", "torso", "arm", "leg"):
+        if f"target_zone_{token}_" in semantic:
+            return token
+    if part in {"head", "face"}:
+        return "head"
+    if part == "hair":
+        return "hair"
+    if part in {"outfit", "torso"}:
+        return "clothing" if part == "outfit" else "torso"
+    if part in {"left_arm", "right_arm", "left_hand", "right_hand"}:
+        return "arm"
+    if part in {"left_leg", "right_leg"}:
+        return "leg"
+    return None
+
+
+def _macro_shape_priority_score(scene: Scene, shape: Shape) -> float:
     canvas_area = max(float(scene.width * scene.height), 1.0)
-    def score(shape: Shape) -> float:
-        area_ratio = _shape_metrics(shape)[0] / canvas_area
-        value = max(0.0, min(1.0, float(shape.importance))) * 0.58
-        value += min(1.0, area_ratio / 0.025) * 0.32
-        if (shape.layer_name or "").lower() == "foreground":
-            value += 0.08
-        if _target_mass_kind(shape) in {"hair", "hand", "garment", "prop"}:
-            value += 0.08
-        tags = _shape_tags(shape)
-        if "opaque_subject" in tags:
-            value += 0.14
-        elif "opaque_background" in tags:
-            value -= 0.04
-        zone = _opaque_zone_name(shape)
-        if zone in {"head", "hair", "torso", "clothing"}:
-            value += 0.06
-        elif zone in {"arm", "leg"}:
-            value += 0.03
-        return value
-    ranked = sorted(shapes, key=score, reverse=True)
+    area_ratio = _shape_metrics(shape)[0] / canvas_area
+    importance = max(0.0, min(1.0, float(shape.importance)))
+    value = importance * 0.42
+    value += min(1.0, area_ratio / 0.025) * 0.38
+    if (shape.layer_name or "").lower() == "foreground":
+        value += 0.06
+
+    mass_kind = _target_mass_kind(shape)
+    gesture_kind = _gesture_carrier_kind(shape)
+    if _strict_character_base(shape):
+        value += 0.18
+    if gesture_kind in {"arm", "opaque_arm", "hand"}:
+        value += 0.14
+    elif mass_kind == "hair":
+        value += 0.14
+    elif mass_kind == "garment":
+        value += 0.10
+    elif mass_kind == "prop":
+        value += 0.08
+
+    zone = _macro_zone_kind(shape)
+    if zone in {"head", "hair"}:
+        value += 0.12
+    elif zone in {"torso", "clothing"}:
+        value += 0.10
+    elif zone in {"arm", "leg"}:
+        value += 0.08
+
+    tags = _shape_tags(shape)
+    if "opaque_subject" in tags:
+        value += 0.12
+    if mass_kind == "background" and not _is_character_like(shape):
+        value -= 0.10
+    if "opaque_background" in tags:
+        value -= 0.06
+    return value
+
+
+def _bbox_overlap_ratio_with_subject(shape: Shape, subject_zones: OpaqueSubjectZones | None) -> float:
+    if subject_zones is None or not subject_zones.enabled or subject_zones.bbox is None:
+        return 0.0
+    sx0, sy0, sx1, sy1 = _shape_bbox(shape)
+    bx0, by0, bx1, by1 = [float(v) for v in subject_zones.bbox]
+    area = max(0.0, sx1 - sx0) * max(0.0, sy1 - sy0)
+    if area <= 1e-6:
+        return 0.0
+    ix0, iy0 = max(sx0, bx0), max(sy0, by0)
+    ix1, iy1 = min(sx1, bx1), min(sy1, by1)
+    inter = max(0.0, ix1 - ix0) * max(0.0, iy1 - iy0)
+    return inter / area
+
+
+def _macro_priority_shadow(
+    scene: Scene,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+    *,
+    budget: int | None,
+) -> dict:
+    stats = {
+        "budget": budget,
+        "would_remove": 0,
+        "would_remove_background": 0,
+        "would_remove_subject": 0,
+        "would_remove_generic": 0,
+        "would_remove_inside_subject_bbox": 0,
+        "blocked_by_subject_bbox": False,
+    }
+    if budget is None or budget <= 0 or len(shapes) <= budget:
+        return stats
+    ranked = sorted(shapes, key=lambda s: _macro_shape_priority_score(scene, s), reverse=True)
+    candidates = ranked[budget:]
+    for shape in candidates:
+        mass_kind = _target_mass_kind(shape)
+        zone = _macro_zone_kind(shape)
+        if mass_kind == "background" and not _is_character_like(shape):
+            stats["would_remove_background"] += 1
+        elif _strict_character_base(shape) or zone is not None or _gesture_carrier_kind(shape) is not None or mass_kind in {"hair", "garment", "hand", "prop"}:
+            stats["would_remove_subject"] += 1
+        else:
+            stats["would_remove_generic"] += 1
+        if _bbox_overlap_ratio_with_subject(shape, subject_zones) >= 0.25:
+            stats["would_remove_inside_subject_bbox"] += 1
+    stats["would_remove"] = len(candidates)
+    stats["blocked_by_subject_bbox"] = stats["would_remove_inside_subject_bbox"] > 0
+    return stats
+
+
+def _final_shape_cap(
+    scene: Scene,
+    shapes: list[Shape],
+    target_max_shapes: int | None,
+) -> tuple[list[Shape], int, dict]:
+    stats = {
+        "budget": target_max_shapes,
+        "removed": 0,
+        "removed_background": 0,
+        "removed_subject": 0,
+        "removed_generic": 0,
+    }
+    if target_max_shapes is None or target_max_shapes <= 0 or len(shapes) <= target_max_shapes:
+        return shapes, 0, stats
+    ranked = sorted(shapes, key=lambda s: _macro_shape_priority_score(scene, s), reverse=True)
     keep_ids = {s.id for s in ranked[:target_max_shapes]}
+    removed = [s for s in shapes if s.id not in keep_ids]
+    for shape in removed:
+        mass_kind = _target_mass_kind(shape)
+        zone = _macro_zone_kind(shape)
+        if mass_kind == "background" and not _is_character_like(shape):
+            stats["removed_background"] += 1
+        elif _strict_character_base(shape) or zone is not None or _gesture_carrier_kind(shape) is not None or mass_kind in {"hair", "garment", "hand", "prop"}:
+            stats["removed_subject"] += 1
+        else:
+            stats["removed_generic"] += 1
+    stats["removed"] = len(removed)
     capped = [s for s in shapes if s.id in keep_ids]
-    return capped, len(shapes) - len(capped)
+    return capped, len(removed), stats
 
 
 def apply_rinka_reference_style(
@@ -1272,7 +1386,10 @@ def apply_rinka_reference_style(
     gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_consolidated, min_side)
     compressed, background_removed = _compress_background(scene, gesture_abstracted)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
-    capped, cap_removed = _final_shape_cap(scene, straight, target_max_shapes)
+    shadow_budget = 24 if target_max_shapes == 28 else None
+    macro_shadow = _macro_priority_shadow(scene, straight, opaque_zones, budget=shadow_budget)
+    capped, cap_removed, macro_priority = _final_shape_cap(scene, straight, target_max_shapes)
+    macro_priority = {**macro_priority, "shadow": macro_shadow}
 
     metadata = dict(scene.metadata)
     metadata["shape_count_pre_target_style"] = len(scene.shapes)
@@ -1300,6 +1417,7 @@ def apply_rinka_reference_style(
         "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,
         "cap_removed": cap_removed,
+        "macro_priority": macro_priority,
         "cleanup": report.to_dict(),
     }
     return Scene(

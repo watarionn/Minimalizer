@@ -113,6 +113,8 @@ def main() -> None:
         hierarchy = target_meta.get("opaque_hierarchy", {})
         zones = target_meta.get("opaque_zones", {})
         gesture = target_meta.get("gesture_abstraction", {})
+        macro = target_meta.get("macro_priority", {})
+        macro_shadow = macro.get("shadow", {})
         stable_identity = stable_quality.get("identity_score")
         target_identity = target_quality.get("identity_score")
         stable_silhouette = stable_quality.get("silhouette_similarity")
@@ -146,6 +148,14 @@ def main() -> None:
             "target_mass_merges": target_meta.get("mass_merges", 0),
             "target_background_removed": target_meta.get("background_removed", 0),
             "target_cap_removed": target_meta.get("cap_removed", 0),
+            "target_macro_removed_background": macro.get("removed_background", 0),
+            "target_macro_removed_subject": macro.get("removed_subject", 0),
+            "target_macro_removed_generic": macro.get("removed_generic", 0),
+            "target_macro_shadow_would_remove": macro_shadow.get("would_remove", 0),
+            "target_macro_shadow_would_remove_background": macro_shadow.get("would_remove_background", 0),
+            "target_macro_shadow_would_remove_subject": macro_shadow.get("would_remove_subject", 0),
+            "target_macro_shadow_inside_subject_bbox": macro_shadow.get("would_remove_inside_subject_bbox", 0),
+            "target_macro_shadow_blocked": bool(macro_shadow.get("blocked_by_subject_bbox", False)),
             "opaque_hierarchy_enabled": bool(hierarchy.get("enabled", False)),
             "opaque_hierarchy_confidence": hierarchy.get("confidence", 0.0),
             "opaque_subject_area_ratio": hierarchy.get("subject_area_ratio", 0.0),
@@ -217,6 +227,14 @@ def main() -> None:
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
             "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
             "total_target_cap_removed": sum(r["target_cap_removed"] for r in rows),
+            "total_target_macro_removed_background": sum(r["target_macro_removed_background"] for r in rows),
+            "total_target_macro_removed_subject": sum(r["target_macro_removed_subject"] for r in rows),
+            "total_target_macro_removed_generic": sum(r["target_macro_removed_generic"] for r in rows),
+            "total_target_macro_shadow_would_remove": sum(r["target_macro_shadow_would_remove"] for r in rows),
+            "total_target_macro_shadow_would_remove_background": sum(r["target_macro_shadow_would_remove_background"] for r in rows),
+            "total_target_macro_shadow_would_remove_subject": sum(r["target_macro_shadow_would_remove_subject"] for r in rows),
+            "total_target_macro_shadow_inside_subject_bbox": sum(r["target_macro_shadow_inside_subject_bbox"] for r in rows),
+            "macro_shadow_blocked_count": sum(1 for r in rows if r["target_macro_shadow_blocked"]),
             "opaque_hierarchy_enabled_count": sum(1 for r in rows if r["opaque_hierarchy_enabled"]),
             "mean_opaque_hierarchy_confidence": mean(r["opaque_hierarchy_confidence"] for r in rows if r["opaque_hierarchy_enabled"]) if any(r["opaque_hierarchy_enabled"] for r in rows) else 0.0,
             "total_opaque_subject_shapes": sum(r["opaque_subject_shapes"] for r in rows),
