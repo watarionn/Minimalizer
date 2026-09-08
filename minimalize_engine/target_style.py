@@ -22,7 +22,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase5"
+RINKA_REFERENCE_VERSION = "phase6"
 
 
 _TARGET_MAX_SHAPES = {
@@ -651,6 +651,55 @@ def _local_shape_cover_ratio(shape: Shape, carriers: list[Shape]) -> float:
         cpts = np.round(cpoly - np.asarray([x0, y0], dtype=np.float32)).astype(np.int32)
         cv2.fillPoly(covered, [cpts], 1)
     return float((local * covered).sum()) / float(denom)
+
+
+def _prune_render_inert_occluded_fragments(
+    scene: Scene,
+    shapes: list[Shape],
+) -> tuple[list[Shape], int]:
+    """Remove low-value generic fills that are fully hidden by later opaque fills.
+
+    Process candidates from the top of the render stack downward so a removed
+    candidate is never used as an occluding carrier for another removal.
+    """
+    if len(shapes) < 2:
+        return shapes, 0
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    render_order = sorted(range(len(shapes)), key=lambda i: shapes[i].z_index)
+    removed_indices: set[int] = set()
+
+    for pos in range(len(render_order) - 1, -1, -1):
+        idx = render_order[pos]
+        shape = shapes[idx]
+        if shape.shape_type not in {"polygon", "rectangle"}:
+            continue
+        if shape.fill_color is None or shape.stroke_color is not None or float(shape.stroke_width) > 0.0:
+            continue
+        if (shape.semantic_type or "").lower() not in {"subject_mass", "subject_organic"}:
+            continue
+        if (shape.source_role or "").lower() != "structure" or (shape.layer_name or "").lower() != "midground":
+            continue
+        if (shape.character_part or "unknown").lower() not in {"", "unknown", "none"}:
+            continue
+        if _strict_character_base(shape) or _macro_zone_kind(shape) is not None or _gesture_carrier_kind(shape) is not None:
+            continue
+        if _target_mass_kind(shape) != "background":
+            continue
+        area = _shape_metrics(shape)[0]
+        if area <= 0.0 or area / canvas_area > 0.030 or float(shape.importance) >= 0.60:
+            continue
+
+        later = [
+            shapes[j]
+            for j in render_order[pos + 1 :]
+            if j not in removed_indices and shapes[j].fill_color is not None
+        ]
+        if _local_shape_cover_ratio(shape, later) >= 0.999:
+            removed_indices.add(idx)
+
+    if not removed_indices:
+        return shapes, 0
+    return [shape for i, shape in enumerate(shapes) if i not in removed_indices], len(removed_indices)
 
 
 def _prune_structure_redundant_fragments(
@@ -1459,9 +1508,10 @@ def apply_rinka_reference_style(
     gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_refined, min_side)
     compressed, background_removed = _compress_background(scene, gesture_abstracted)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
+    polished, render_inert_occluded_removed = _prune_render_inert_occluded_fragments(scene, straight)
     shadow_budget = 24 if target_max_shapes == 28 else None
-    macro_shadow = _macro_priority_shadow(scene, straight, opaque_zones, budget=shadow_budget)
-    capped, cap_removed, macro_priority = _final_shape_cap(scene, straight, target_max_shapes)
+    macro_shadow = _macro_priority_shadow(scene, polished, opaque_zones, budget=shadow_budget)
+    capped, cap_removed, macro_priority = _final_shape_cap(scene, polished, target_max_shapes)
     macro_priority = {**macro_priority, "shadow": macro_shadow}
 
     metadata = dict(scene.metadata)
@@ -1487,6 +1537,7 @@ def apply_rinka_reference_style(
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
+        "render_inert_occluded_removed": render_inert_occluded_removed,
         "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,
         "cap_removed": cap_removed,

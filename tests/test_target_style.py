@@ -9,6 +9,7 @@ from minimalize_engine.target_style import (
     _macro_shape_priority_score,
     _macro_priority_shadow,
     _macro_subject_continuity,
+    _prune_render_inert_occluded_fragments,
     _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
@@ -109,7 +110,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase5"
+    assert out.metadata["target_style"]["version"] == "phase6"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -473,7 +474,7 @@ def test_phase5_consolidates_one_safe_outfit_detail_per_base():
 
     out = apply_rinka_reference_style(scene, target_max_shapes=10)
 
-    assert out.metadata["target_style"]["version"] == "phase5"
+    assert out.metadata["target_style"]["version"] == "phase6"
     assert out.metadata["target_style"]["outfit_layer_merges"] == 1
     assert len(out.shapes) == 2
     merged = next(shape for shape in out.shapes if shape.id == 1)
@@ -633,3 +634,42 @@ def test_phase5_allows_one_extra_strict_outfit_refinement_in_subject_mode():
     out = apply_rinka_reference_style(scene, target_max_shapes=10)
     assert out.metadata["target_style"]["outfit_layer_merges"] == 2
     assert len(out.shapes) == 1
+
+
+def test_phase6_prunes_fully_occluded_generic_midground_fill():
+    hidden = _rect(1001, 20, 20, 12, 12, importance=0.40, semantic="subject_mass", role="structure", layer="midground", fill_color=(90, 90, 90))
+    cover = _rect(1002, 18, 18, 18, 18, importance=0.95, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(40, 40, 40))
+    hidden.z_index = 10
+    cover.z_index = 20
+    scene = Scene(100, 100, (245, 245, 240), [hidden, cover], {})
+
+    out, removed = _prune_render_inert_occluded_fragments(scene, scene.shapes)
+
+    assert removed == 1
+    assert [shape.id for shape in out] == [1002]
+
+
+def test_phase6_keeps_generic_midground_fill_when_any_visible_area_remains():
+    visible = _rect(1011, 20, 20, 12, 12, importance=0.40, semantic="subject_organic", role="structure", layer="midground", fill_color=(90, 90, 90))
+    partial = _rect(1012, 20, 20, 10, 12, importance=0.95, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(40, 40, 40))
+    visible.z_index = 10
+    partial.z_index = 20
+    scene = Scene(100, 100, (245, 245, 240), [visible, partial], {})
+
+    out, removed = _prune_render_inert_occluded_fragments(scene, scene.shapes)
+
+    assert removed == 0
+    assert {shape.id for shape in out} == {1011, 1012}
+
+
+def test_phase6_does_not_use_lower_z_shape_as_occlusion_carrier():
+    candidate = _rect(1021, 20, 20, 12, 12, importance=0.40, semantic="subject_mass", role="structure", layer="midground", fill_color=(90, 90, 90))
+    below = _rect(1022, 18, 18, 18, 18, importance=0.95, semantic="character_outfit_base", part="outfit", role="character_outfit_base", layer="character_outfit_base", fill_color=(40, 40, 40))
+    candidate.z_index = 20
+    below.z_index = 10
+    scene = Scene(100, 100, (245, 245, 240), [candidate, below], {})
+
+    out, removed = _prune_render_inert_occluded_fragments(scene, scene.shapes)
+
+    assert removed == 0
+    assert {shape.id for shape in out} == {1021, 1022}
