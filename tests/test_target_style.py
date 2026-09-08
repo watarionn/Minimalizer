@@ -4,6 +4,7 @@ import numpy as np
 
 from minimalize_engine.target_hierarchy import OpaqueSubjectHierarchy, estimate_opaque_subject_zones
 from minimalize_engine.target_style import (
+    _merge_mass_pair,
     apply_rinka_reference_style,
     rinka_reference_config,
 )
@@ -350,3 +351,53 @@ def test_phase4_refines_hair_clothing_and_merges_nearby_arm_blocks():
     roles = [shape.source_role for shape in out.shapes]
     assert any("opaque_zone:hair:" in role for role in roles)
     assert any("opaque_zone:clothing:" in role for role in roles)
+
+
+def test_phase4_can_infer_light_hair_from_geometry_when_dark_contrast_is_absent():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    zones = estimate_opaque_subject_zones(hierarchy, Scene(120, 140, (245, 245, 240), [], {"subject_mode": False}))
+    face = _rect(1, 50, 24, 20, 20, importance=0.93, fill_color=(224, 190, 170))
+    light_hair = _rect(2, 45, 14, 30, 18, importance=0.84, fill_color=(244, 222, 112))
+    left = _rect(3, 31, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    right = _rect(4, 79, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    torso = _rect(5, 46, 55, 28, 28, importance=0.84, fill_color=(62, 80, 104))
+    scene = Scene(120, 140, (245, 245, 240), [face, light_hair, left, right, torso], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["inferred_hair_mode"] == "geometry_contrast"
+    assert meta["inferred_hair_shapes"] == 1
+    assert any(shape.id == 2 and "opaque_zone:hair:" in shape.source_role for shape in out.shapes)
+
+
+def test_phase4_propagates_clothing_to_nearby_same_mass_piece():
+    mask = np.zeros((140, 120), dtype=np.uint8)
+    mask[12:132, 30:90] = 1
+    hierarchy = OpaqueSubjectHierarchy(True, 0.90, float(mask.mean()), (30, 12, 90, 132), "accepted", mask)
+    zones = estimate_opaque_subject_zones(hierarchy, Scene(120, 140, (245, 245, 240), [], {"subject_mode": False}))
+    face = _rect(1, 50, 24, 20, 20, importance=0.93, fill_color=(224, 190, 170))
+    left = _rect(2, 31, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    right = _rect(3, 79, 56, 10, 18, importance=0.84, fill_color=(224, 190, 170))
+    garment_a = _rect(4, 46, 55, 28, 24, importance=0.84, fill_color=(54, 78, 108))
+    garment_b = _rect(5, 48, 78, 24, 10, importance=0.81, fill_color=(58, 82, 112))
+    scene = Scene(120, 140, (245, 245, 240), [face, left, right, garment_a, garment_b], {"subject_mode": False})
+
+    out = apply_rinka_reference_style(scene, opaque_hierarchy=hierarchy, opaque_zones=zones)
+    meta = out.metadata["target_style"]["opaque_zones"]
+
+    assert meta["inferred_clothing_shapes"] >= 2
+    assert meta["propagated_clothing_shapes"] >= 1
+
+
+def test_phase4_arm_mass_merge_preserves_left_right_sides():
+    left = _rect(1, 20, 20, 10, 14, importance=0.84, role="opaque_zone:arm:test", fill_color=(220, 190, 170))
+    right = _rect(2, 31, 20, 10, 14, importance=0.84, role="opaque_zone:arm:test", fill_color=(220, 190, 170))
+    left.side_hint = "left"
+    right.side_hint = "right"
+
+    assert _merge_mass_pair(left, right, 120.0) is None
+    right.side_hint = "left"
+    assert _merge_mass_pair(left, right, 120.0) is not None

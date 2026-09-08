@@ -203,10 +203,11 @@ Phase 4 is being developed on `feature/rinka-target-phase4-zones-20260908`. Its 
 - records zone activation, confidence, bboxes, and per-zone shape counts in `target_style.opaque_zones`;
 - extends corpus evaluation and CI safety guards for Phase 4;
 - derives a conservative face-side color reference only from bilateral arm/head agreement or same-color head consensus;
-- permits one sufficiently dark compact head mass to refine to `hair` and one dominant color-separated torso/leg mass to refine to `clothing`;
-- routes opaque arm-zone blocks through the hand/limb consolidation path so nearby same-color arm/hand pieces can merge.
+- prefers dark-vs-face contrast for `hair`, but if that cue is absent it can use one geometry-gated color-contrast candidate that extends above and overlaps the face carrier, covering light-hair cases without fixed color tables;
+- seeds `clothing` from the dominant color-separated torso/leg mass and propagates that identity only to nearby, similarly colored non-skin pieces;
+- routes opaque arm-zone blocks through the hand/limb consolidation path with left/right `side_hint` preservation, preventing opposite sides from merging.
 
-Local follow-up checks passed: target tests 18/18 and the combined stable/Web regression subset 55/55. The refreshed 16-image corpus result is about 36.61% mean shape reduction and 29.94% mean vertex reduction, with worst identity delta about -0.0573 and worst silhouette delta about -0.0010. Zones still activate on 2/16 images and classify 20 subject shapes total; the relative-color refinement now infers one hair mass and one clothing mass, with one accepted image establishing a bilateral-arm face reference.
+The next Phase 4 refinement adds light-hair geometry fallback, conservative clothing-mass propagation, and side-aware arm/hand consolidation. The new capability tests pass 21/21. A refreshed 16-image corpus run keeps the same 36.61% mean shape reduction, 29.94% mean vertex reduction, worst identity delta about -0.0573, and worst silhouette delta about -0.0010. The two currently activated corpus outputs are byte-identical PNGs to the prior Phase 4 HEAD, confirming that the generalized fallback paths do not alter existing accepted cases when their extra gates are not needed.
 
 The user wants Rinka Reference added to the Web UI after the style is complete. Do not wire this moving target into the public UI prematurely; complete and stabilize quality work first, then add an explicit Web UI mode while preserving the normal stable mode.
 

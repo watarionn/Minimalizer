@@ -386,7 +386,10 @@ def _infer_zone_refinements(
         "face_reference_source": reference_source,
         "face_carrier_shape_id": face_carrier_id,
         "inferred_hair_shapes": 0,
+        "inferred_hair_mode": "none",
         "inferred_clothing_shapes": 0,
+        "inferred_clothing_seed_id": None,
+        "propagated_clothing_shapes": 0,
     }
     if reference is None:
         return refinements, stats
@@ -397,20 +400,47 @@ def _infer_zone_refinements(
         head_w = max(float(hx1 - hx0), 1.0)
         head_area = max(float((hx1 - hx0) * (_hy1 - _hy0)), 1.0)
         ref_luma = _color_luma(reference)
+        head_candidates: list[Shape] = []
+        carrier = next((shape for shape, zone in assignments if zone == "head" and shape.id == face_carrier_id), None)
+        carrier_box = _shape_bbox(carrier) if carrier is not None else None
         for shape, zone in assignments:
             if zone != "head" or shape.id == face_carrier_id or shape.fill_color is None:
                 continue
             area = _shape_metrics(shape)[0]
-            bx0, _by0, bx1, _by1 = _shape_bbox(shape)
+            bx0, by0, bx1, by1 = _shape_bbox(shape)
             width_ratio = max(0.0, bx1 - bx0) / head_w
-            if (
-                area >= head_area * 0.020
-                and width_ratio <= 0.72
-                and _color_distance(shape.fill_color, reference) >= 42.0
-                and ref_luma - _color_luma(shape.fill_color) >= 32.0
-            ):
+            if area < head_area * 0.020 or width_ratio > 0.72:
+                continue
+            if _color_distance(shape.fill_color, reference) < 42.0:
+                continue
+            head_candidates.append(shape)
+            if ref_luma - _color_luma(shape.fill_color) >= 32.0:
                 refinements[shape.id] = "hair"
                 stats["inferred_hair_shapes"] += 1
+        if stats["inferred_hair_shapes"]:
+            stats["inferred_hair_mode"] = "dark_contrast"
+        elif carrier_box is not None and head_candidates:
+            cx0, cy0, cx1, cy1 = carrier_box
+            carrier_h = max(cy1 - cy0, 1.0)
+            carrier_cx = (cx0 + cx1) / 2.0
+            geometric: list[tuple[float, Shape]] = []
+            for shape in head_candidates:
+                bx0, by0, bx1, by1 = _shape_bbox(shape)
+                area = _shape_metrics(shape)[0]
+                center_x = (bx0 + bx1) / 2.0
+                extends_above = max(0.0, cy0 - by0) / carrier_h
+                horizontal_offset = abs(center_x - carrier_cx) / head_w
+                overlap_x = max(0.0, min(bx1, cx1) - max(bx0, cx0))
+                overlap_ratio = overlap_x / max(min(bx1 - bx0, cx1 - cx0), 1.0)
+                if extends_above < 0.18 or horizontal_offset > 0.36 or overlap_ratio < 0.22:
+                    continue
+                score = area / head_area + 0.10 * extends_above + 0.04 * overlap_ratio
+                geometric.append((score, shape))
+            if geometric:
+                primary_hair = max(geometric, key=lambda item: item[0])[1]
+                refinements[primary_hair.id] = "hair"
+                stats["inferred_hair_shapes"] = 1
+                stats["inferred_hair_mode"] = "geometry_contrast"
 
     clothing_candidates: list[tuple[float, Shape]] = []
     for shape, zone in assignments:
@@ -428,6 +458,29 @@ def _infer_zone_refinements(
         primary = max(clothing_candidates, key=lambda item: item[0])[1]
         refinements[primary.id] = "clothing"
         stats["inferred_clothing_shapes"] = 1
+        stats["inferred_clothing_seed_id"] = primary.id
+        subject_box = zones.bbox or zones.zone_bbox("torso")
+        subject_scale = 1.0
+        if subject_box is not None:
+            sx0, sy0, sx1, sy1 = subject_box
+            subject_scale = max(1.0, min(float(sx1 - sx0), float(sy1 - sy0)))
+        primary_area = max(_shape_metrics(primary)[0], 1.0)
+        for area, shape in sorted(clothing_candidates, key=lambda item: item[0], reverse=True):
+            if shape.id == primary.id:
+                continue
+            if area < primary_area * 0.08:
+                continue
+            if _color_distance(shape.fill_color, primary.fill_color) > 28.0:
+                continue
+            if _color_distance(shape.fill_color, reference) < 30.0:
+                continue
+            if _bbox_distance(_shape_bbox(shape), _shape_bbox(primary)) > max(2.0, subject_scale * 0.10):
+                continue
+            refinements[shape.id] = "clothing"
+            stats["inferred_clothing_shapes"] += 1
+            stats["propagated_clothing_shapes"] += 1
+            if stats["propagated_clothing_shapes"] >= 3:
+                break
     return refinements, stats
 
 
@@ -448,7 +501,10 @@ def _apply_opaque_zones(
         "face_reference_source": "none",
         "face_carrier_shape_id": None,
         "inferred_hair_shapes": 0,
+        "inferred_hair_mode": "none",
         "inferred_clothing_shapes": 0,
+        "inferred_clothing_seed_id": None,
+        "propagated_clothing_shapes": 0,
     }
     if zones is None or not zones.enabled:
         stats["neutral_shapes"] = len(shapes)
@@ -492,11 +548,15 @@ def _apply_opaque_zones(
             "arm": 0.84,
             "leg": 0.86,
         }[refined]
+        side_hint = shape.side_hint
+        if refined == "arm":
+            side_hint = "left" if zone == "left_arm" else "right"
         out.append(replace(
             shape,
             importance=max(float(shape.importance), floor),
             source_role=f"opaque_zone:{refined}:{shape.source_role}",
             layer_name="foreground",
+            side_hint=side_hint,
         ))
         stats["zone_shapes"] += 1
         stats[f"{refined}_shapes"] += 1
@@ -618,6 +678,11 @@ def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
     kind_b = _target_mass_kind(b)
     if kind_a != kind_b or kind_a == "prop":
         return None
+    if kind_a == "hand":
+        side_a = (a.side_hint or "unknown").lower()
+        side_b = (b.side_hint or "unknown").lower()
+        if side_a in {"left", "right"} and side_b in {"left", "right"} and side_a != side_b:
+            return None
     color_limit, gap_ratio, max_inflation = {
         "hair": (24.0, 0.020, 1.20),
         "hand": (30.0, 0.025, 1.28),
