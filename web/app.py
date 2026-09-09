@@ -21,6 +21,7 @@ from minimalize_engine.color_strip import (
     DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
     DEFAULT_ORIENTATION as COLOR_STRIP_DEFAULT_ORIENTATION,
     DEFAULT_ORDER as COLOR_STRIP_DEFAULT_ORDER,
+    DEFAULT_SELECTION_MODE as COLOR_STRIP_DEFAULT_SELECTION_MODE,
     DEFAULT_SIMILARITY as COLOR_STRIP_DEFAULT_SIMILARITY,
     DEFAULT_SIZE_MODE as COLOR_STRIP_DEFAULT_SIZE_MODE,
     MAX_COLOR_COUNT as COLOR_STRIP_MAX_COLOR_COUNT,
@@ -38,7 +39,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.7.0"
+APP_VERSION = "0.8.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -135,9 +136,11 @@ def service_info() -> dict[str, object]:
         "color_strip_default_size_mode": COLOR_STRIP_DEFAULT_SIZE_MODE,
         "color_strip_default_order": COLOR_STRIP_DEFAULT_ORDER,
         "color_strip_default_orientation": COLOR_STRIP_DEFAULT_ORIENTATION,
+        "color_strip_default_selection_mode": COLOR_STRIP_DEFAULT_SELECTION_MODE,
         "color_strip_size_modes": ["equal", "proportional"],
         "color_strip_orders": ["least_first", "most_first"],
         "color_strip_orientations": ["vertical", "horizontal"],
+        "color_strip_selection_modes": ["dominant", "featured"],
     }
 
 
@@ -207,6 +210,7 @@ async def minimalize_image(
     color_size_mode: Annotated[Literal["equal", "proportional"] | None, Form()] = None,
     color_order: Annotated[Literal["least_first", "most_first"] | None, Form()] = None,
     color_orientation: Annotated[Literal["vertical", "horizontal"] | None, Form()] = None,
+    color_selection_mode: Annotated[Literal["dominant", "featured"] | None, Form()] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
 ) -> Response:
@@ -219,6 +223,7 @@ async def minimalize_image(
     strip_size_mode = COLOR_STRIP_DEFAULT_SIZE_MODE
     strip_order = COLOR_STRIP_DEFAULT_ORDER
     strip_orientation = COLOR_STRIP_DEFAULT_ORIENTATION
+    strip_selection_mode = COLOR_STRIP_DEFAULT_SELECTION_MODE
 
     if mode == "rinka_reference":
         if (
@@ -228,6 +233,7 @@ async def minimalize_image(
             or color_size_mode is not None
             or color_order is not None
             or color_orientation is not None
+            or color_selection_mode is not None
             or max_shapes is not None
             or background is not None
         ):
@@ -256,6 +262,7 @@ async def minimalize_image(
         strip_size_mode = color_size_mode or COLOR_STRIP_DEFAULT_SIZE_MODE
         strip_order = color_order or COLOR_STRIP_DEFAULT_ORDER
         strip_orientation = color_orientation or COLOR_STRIP_DEFAULT_ORIENTATION
+        strip_selection_mode = color_selection_mode or COLOR_STRIP_DEFAULT_SELECTION_MODE
         configured_analysis_max_side = min(COLOR_STRIP_ANALYSIS_MAX_SIDE, MAX_ANALYSIS_SIDE)
         response_level = "n/a"
         config = None
@@ -265,6 +272,7 @@ async def minimalize_image(
             or color_size_mode is not None
             or color_order is not None
             or color_orientation is not None
+            or color_selection_mode is not None
         ):
             raise HTTPException(
                 status_code=400,
@@ -326,6 +334,7 @@ async def minimalize_image(
                             size_mode=strip_size_mode,
                             order=strip_order,
                             orientation=strip_orientation,
+                            selection_mode=strip_selection_mode,
                             analysis_max_side_cap=MAX_ANALYSIS_SIDE,
                         )
                     else:
@@ -379,5 +388,7 @@ async def minimalize_image(
         headers["X-Minimalizer-Color-Order"] = result.color_order
     if result.color_orientation is not None:
         headers["X-Minimalizer-Color-Orientation"] = result.color_orientation
+    if result.color_selection_mode is not None:
+        headers["X-Minimalizer-Color-Selection-Mode"] = result.color_selection_mode
 
     return Response(content=result.content, media_type=result.media_type, headers=headers)
