@@ -15,11 +15,27 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
+from minimalize_engine.color_strip import (
+    ANALYSIS_MAX_SIDE as COLOR_STRIP_ANALYSIS_MAX_SIDE,
+    COLOR_STRIP_VERSION,
+    DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
+    DEFAULT_SIMILARITY as COLOR_STRIP_DEFAULT_SIMILARITY,
+    MAX_COLOR_COUNT as COLOR_STRIP_MAX_COLOR_COUNT,
+    MAX_SIMILARITY as COLOR_STRIP_MAX_SIMILARITY,
+    MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
+    MIN_SIMILARITY as COLOR_STRIP_MIN_SIMILARITY,
+)
 from minimalize_engine.target_style import RINKA_REFERENCE_VERSION
 
-from .service import build_config, build_rinka_config, minimalize_path, minimalize_rinka_path
+from .service import (
+    build_config,
+    build_rinka_config,
+    color_strip_path,
+    minimalize_path,
+    minimalize_rinka_path,
+)
 
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.6.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -56,7 +72,7 @@ _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 app = FastAPI(
     title="Minimalizer Web API",
     version=APP_VERSION,
-    description="Minimalizer v0.3.0 stable engine with Standard and Rinka Reference browser modes.",
+    description="Minimalizer v0.3.0 stable engine with Standard, Rinka Reference, and Color Strip browser modes.",
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -108,8 +124,11 @@ def service_info() -> dict[str, object]:
         "max_image_side": MAX_IMAGE_SIDE,
         "max_analysis_side": MAX_ANALYSIS_SIDE,
         "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
-        "supported_modes": ["standard", "rinka_reference"],
+        "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": RINKA_REFERENCE_VERSION,
+        "color_strip_version": COLOR_STRIP_VERSION,
+        "color_strip_default_colors": COLOR_STRIP_DEFAULT_COLOR_COUNT,
+        "color_strip_default_similarity": COLOR_STRIP_DEFAULT_SIMILARITY,
     }
 
 
@@ -170,8 +189,12 @@ async def minimalize_image(
     file: Annotated[UploadFile, File(description="Source image")],
     level: Annotated[int, Form(ge=1, le=5)] = 4,
     output_format: Annotated[Literal["svg", "png"], Form()] = "svg",
-    mode: Annotated[Literal["standard", "rinka_reference"], Form()] = "standard",
+    mode: Annotated[Literal["standard", "rinka_reference", "color_strip"], Form()] = "standard",
     colors: Annotated[int | None, Form(ge=2, le=32)] = None,
+    color_similarity: Annotated[
+        float | None,
+        Form(ge=COLOR_STRIP_MIN_SIMILARITY, le=COLOR_STRIP_MAX_SIMILARITY),
+    ] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
 ) -> Response:
@@ -179,14 +202,48 @@ async def minimalize_image(
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
 
+    strip_color_count = COLOR_STRIP_DEFAULT_COLOR_COUNT
+    strip_similarity = COLOR_STRIP_DEFAULT_SIMILARITY
+
     if mode == "rinka_reference":
-        if level != 4 or colors is not None or max_shapes is not None or background is not None:
+        if (
+            level != 4
+            or colors is not None
+            or color_similarity is not None
+            or max_shapes is not None
+            or background is not None
+        ):
             raise HTTPException(
                 status_code=400,
                 detail="Rinka Reference uses its frozen level-4 profile; custom detail settings are not supported.",
             )
         config = build_rinka_config(analysis_max_side_cap=MAX_ANALYSIS_SIDE)
+        configured_analysis_max_side = config.analysis_max_side
+        response_level = "4"
+    elif mode == "color_strip":
+        if max_shapes is not None or background is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Color Strip only supports color count and color similarity settings.",
+            )
+        strip_color_count = colors if colors is not None else COLOR_STRIP_DEFAULT_COLOR_COUNT
+        if not COLOR_STRIP_MIN_COLOR_COUNT <= strip_color_count <= COLOR_STRIP_MAX_COLOR_COUNT:
+            raise HTTPException(
+                status_code=400,
+                detail="Color Strip color count must be between 3 and 5.",
+            )
+        strip_similarity = (
+            color_similarity if color_similarity is not None else COLOR_STRIP_DEFAULT_SIMILARITY
+        )
+        configured_analysis_max_side = min(COLOR_STRIP_ANALYSIS_MAX_SIDE, MAX_ANALYSIS_SIDE)
+        response_level = "n/a"
+        config = None
     else:
+        if color_similarity is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Color similarity is only available in Color Strip mode.",
+            )
         config = build_config(
             level,
             colors=colors,
@@ -194,6 +251,8 @@ async def minimalize_image(
             background=background,
             analysis_max_side_cap=MAX_ANALYSIS_SIDE,
         )
+        configured_analysis_max_side = config.analysis_max_side
+        response_level = str(level)
 
     try:
         with TemporaryDirectory(prefix="minimalizer-web-") as temp_dir:
@@ -212,8 +271,8 @@ async def minimalize_image(
                     source_format,
                     source_width,
                     source_height,
-                    level,
-                    config.analysis_max_side,
+                    response_level,
+                    configured_analysis_max_side,
                 )
                 raise HTTPException(
                     status_code=429,
@@ -229,6 +288,15 @@ async def minimalize_image(
                             minimalize_rinka_path,
                             input_path,
                             output_format,
+                            analysis_max_side_cap=MAX_ANALYSIS_SIDE,
+                        )
+                    elif mode == "color_strip":
+                        result = await run_in_threadpool(
+                            color_strip_path,
+                            input_path,
+                            output_format,
+                            color_count=strip_color_count,
+                            similarity=strip_similarity,
                             analysis_max_side_cap=MAX_ANALYSIS_SIDE,
                         )
                     else:
@@ -253,8 +321,8 @@ async def minimalize_image(
         source_format,
         source_width,
         source_height,
-        level,
-        config.analysis_max_side,
+        response_level,
+        configured_analysis_max_side,
         output_format,
         processing_ms,
         result.shape_count,
@@ -263,8 +331,8 @@ async def minimalize_image(
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
         "X-Minimalizer-Mode": mode,
-        "X-Minimalizer-Level": str(level),
-        "X-Minimalizer-Configured-Analysis-Max-Side": str(config.analysis_max_side),
+        "X-Minimalizer-Level": response_level,
+        "X-Minimalizer-Configured-Analysis-Max-Side": str(configured_analysis_max_side),
         "X-Minimalizer-Shape-Count": str(result.shape_count),
         "X-Minimalizer-Analysis-Size": result.analysis_size,
         "X-Minimalizer-Source-Size": result.source_size,
@@ -272,4 +340,9 @@ async def minimalize_image(
         "X-Minimalizer-Source-Format": source_format,
         "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
     }
+    if result.color_count is not None:
+        headers["X-Minimalizer-Color-Count"] = str(result.color_count)
+    if result.color_similarity is not None:
+        headers["X-Minimalizer-Color-Similarity"] = f"{result.color_similarity:g}"
+
     return Response(content=result.content, media_type=result.media_type, headers=headers)

@@ -13,6 +13,8 @@ const elements = {
   resultEmpty: document.querySelector("#result-empty"),
   resultPreview: document.querySelector("#result-preview"),
   processing: document.querySelector("#processing"),
+  processingTitle: document.querySelector("#processing-title"),
+  processingCopy: document.querySelector("#processing-copy"),
   resultMeta: document.querySelector("#result-meta"),
   downloadRow: document.querySelector("#download-row"),
   downloadSvg: document.querySelector("#download-svg"),
@@ -22,10 +24,15 @@ const elements = {
   modeDescription: document.querySelector("#mode-description"),
   advancedControls: document.querySelector("#advanced-controls"),
   controlCard: document.querySelector(".control-card"),
+  levelControl: document.querySelector("#level-control"),
   level: document.querySelector("#level-select"),
   colors: document.querySelector("#colors-input"),
   maxShapes: document.querySelector("#max-shapes-input"),
   background: document.querySelector("#background-select"),
+  colorStripControls: document.querySelector("#color-strip-controls"),
+  stripColors: document.querySelector("#strip-colors-select"),
+  colorSimilarity: document.querySelector("#color-similarity-range"),
+  colorSimilarityOutput: document.querySelector("#color-similarity-output"),
   status: document.querySelector("#status-message"),
   engineBadge: document.querySelector("#engine-badge"),
 };
@@ -54,13 +61,36 @@ function currentMode() {
   return elements.modeInputs.find((input) => input.checked)?.value || "standard";
 }
 
+function similarityLabel(value) {
+  const numeric = Number(value);
+  if (numeric <= 10) return "細かい";
+  if (numeric <= 15) return "やや細かい";
+  if (numeric <= 21) return "標準";
+  if (numeric <= 26) return "やや大まか";
+  return "大まか";
+}
+
+function updateSimilarityLabel() {
+  elements.colorSimilarityOutput.textContent = similarityLabel(elements.colorSimilarity.value);
+}
+
 function updateModeUi() {
-  const rinka = currentMode() === "rinka_reference";
+  const mode = currentMode();
+  const rinka = mode === "rinka_reference";
+  const colorStrip = mode === "color_strip";
   elements.controlCard.classList.toggle("is-rinka", rinka);
-  elements.modeDescription.textContent = rinka
-    ? "完成済みの凛夏手本版 Phase 6。検証済みのミニマル度4・専用プロファイルを固定で使用します。"
-    : "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
-  elements.minimalizeButton.textContent = rinka ? "凛夏手本版でミニマル化" : "ミニマル化";
+  elements.controlCard.classList.toggle("is-color-strip", colorStrip);
+
+  if (rinka) {
+    elements.modeDescription.textContent = "完成済みの凛夏手本版 Phase 6。検証済みのミニマル度4・専用プロファイルを固定で使用します。";
+    elements.minimalizeButton.textContent = "凛夏手本版でミニマル化";
+  } else if (colorStrip) {
+    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出し、使用量の少ない色から等しい太さのバーとして縦に並べます。";
+    elements.minimalizeButton.textContent = "Color Stripを生成";
+  } else {
+    elements.modeDescription.textContent = "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
+    elements.minimalizeButton.textContent = "ミニマル化";
+  }
 
   if (rinka) {
     elements.level.value = "4";
@@ -69,14 +99,30 @@ function updateModeUi() {
     elements.background.value = "";
     elements.advancedControls.open = false;
   }
+  if (colorStrip) elements.advancedControls.open = false;
 
-  elements.level.disabled = state.busy || rinka;
-  elements.colors.disabled = state.busy || rinka;
-  elements.maxShapes.disabled = state.busy || rinka;
-  elements.background.disabled = state.busy || rinka;
+  elements.levelControl.hidden = colorStrip;
+  elements.colorStripControls.hidden = !colorStrip;
+  elements.advancedControls.hidden = colorStrip;
+
+  elements.level.disabled = state.busy || rinka || colorStrip;
+  elements.colors.disabled = state.busy || rinka || colorStrip;
+  elements.maxShapes.disabled = state.busy || rinka || colorStrip;
+  elements.background.disabled = state.busy || rinka || colorStrip;
+  elements.stripColors.disabled = state.busy || !colorStrip;
+  elements.colorSimilarity.disabled = state.busy || !colorStrip;
   elements.advancedControls.setAttribute("aria-disabled", rinka ? "true" : "false");
   const advancedSummary = elements.advancedControls.querySelector("summary");
   if (advancedSummary) advancedSummary.setAttribute("aria-disabled", rinka ? "true" : "false");
+
+  if (colorStrip) {
+    elements.processingTitle.textContent = "色を抽出しています";
+    elements.processingCopy.textContent = "代表色をまとめてColor Stripを生成中…";
+  } else {
+    elements.processingTitle.textContent = "ミニマル化しています";
+    elements.processingCopy.textContent = rinka ? "凛夏手本版プロファイルで整理中…" : "画像の構造を整理中…";
+  }
+  updateSimilarityLabel();
 }
 
 function setBusy(busy, message = "") {
@@ -134,7 +180,7 @@ function setFile(file) {
   elements.fileSize.textContent = formatBytes(file.size);
   elements.minimalizeButton.disabled = false;
   clearResult();
-  setStatus("画像を読み込みました。ミニマル化できます。");
+  setStatus(currentMode() === "color_strip" ? "画像を読み込みました。Color Stripを生成できます。" : "画像を読み込みました。ミニマル化できます。");
 }
 
 function buildFormData(outputFormat) {
@@ -142,13 +188,16 @@ function buildFormData(outputFormat) {
   form.append("file", state.file, state.file.name || "image");
   const mode = currentMode();
   form.append("mode", mode);
-  form.append("level", mode === "rinka_reference" ? "4" : elements.level.value);
+  form.append("level", mode === "standard" ? elements.level.value : "4");
   form.append("output_format", outputFormat);
 
   if (mode === "standard") {
     if (elements.colors.value) form.append("colors", elements.colors.value);
     if (elements.maxShapes.value) form.append("max_shapes", elements.maxShapes.value);
     if (elements.background.value) form.append("background", elements.background.value);
+  } else if (mode === "color_strip") {
+    form.append("colors", elements.stripColors.value);
+    form.append("color_similarity", elements.colorSimilarity.value);
   }
   return form;
 }
@@ -174,11 +223,18 @@ function downloadBlob(blob, filename) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function resultFilename(outputFormat) {
+  const stem = currentMode() === "color_strip" ? "color-strip" : "minimalized";
+  return `${stem}.${outputFormat}`;
+}
+
 async function requestMinimalize(outputFormat, { preview = false, download = false } = {}) {
   if (!state.file || state.busy) return;
 
   const label = outputFormat.toUpperCase();
-  setBusy(true, download ? `${label}を生成しています…` : "画像をミニマル化しています…");
+  const colorStrip = currentMode() === "color_strip";
+  const action = colorStrip ? "Color Stripを生成しています…" : "画像をミニマル化しています…";
+  setBusy(true, download ? `${label}を生成しています…` : action);
   if (preview) {
     elements.resultEmpty.hidden = true;
     elements.resultPreview.hidden = true;
@@ -192,7 +248,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
     if (!response.ok) throw new Error(await responseError(response));
 
     const blob = await response.blob();
-    const filename = outputFormat === "png" ? "minimalized.png" : "minimalized.svg";
+    const filename = resultFilename(outputFormat);
 
     if (preview) {
       if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
@@ -206,16 +262,24 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 
       const responseMode = response.headers.get("x-minimalizer-mode");
       const shapes = response.headers.get("x-minimalizer-shape-count");
+      const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
+      const modeLabel = responseMode === "rinka_reference"
+        ? "凛夏手本版"
+        : responseMode === "color_strip" ? "Color Strip" : "";
       elements.resultMeta.textContent = [
-        responseMode === "rinka_reference" ? "凛夏手本版" : "",
-        shapes ? `${shapes} shapes` : "",
+        modeLabel,
+        responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
         size || "",
-      ].filter(Boolean).join(" ? ");
+      ].filter(Boolean).join(" · ");
     }
 
     if (download) downloadBlob(blob, filename);
-    setStatus(download ? `${label}を保存しました。` : "ミニマル化が完了しました。");
+    if (download) {
+      setStatus(`${label}を保存しました。`);
+    } else {
+      setStatus(colorStrip ? "Color Stripが完成しました。" : "ミニマル化が完了しました。");
+    }
   } catch (error) {
     if (preview && !state.resultBlob) {
       elements.resultEmpty.hidden = false;
@@ -228,7 +292,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 }
 
 function invalidateAfterSettingChange() {
-  if (state.resultBlob) clearResult("設定が変更されました。もう一度ミニマル化してください。");
+  if (state.resultBlob) clearResult("設定が変更されました。もう一度生成してください。");
 }
 
 elements.dropZone.addEventListener("click", () => {
@@ -275,18 +339,27 @@ elements.downloadPng.addEventListener("click", () => {
   requestMinimalize("png", { download: true });
 });
 
-for (const control of [elements.level, elements.colors, elements.maxShapes, elements.background]) {
+for (const control of [elements.level, elements.colors, elements.maxShapes, elements.background, elements.stripColors]) {
   control.addEventListener("change", invalidateAfterSettingChange);
 }
+
+elements.colorSimilarity.addEventListener("input", () => {
+  updateSimilarityLabel();
+  invalidateAfterSettingChange();
+});
 
 for (const input of elements.modeInputs) {
   input.addEventListener("change", () => {
     invalidateAfterSettingChange();
     updateModeUi();
     if (!state.resultBlob) {
-      setStatus(currentMode() === "rinka_reference"
-        ? "凛夏手本版を選択しました。完成プロファイルでミニマル化します。"
-        : "通常モードを選択しました。");
+      if (currentMode() === "rinka_reference") {
+        setStatus("凛夏手本版を選択しました。完成プロファイルでミニマル化します。");
+      } else if (currentMode() === "color_strip") {
+        setStatus("Color Stripを選択しました。代表色だけを抽出して並べます。");
+      } else {
+        setStatus("通常モードを選択しました。");
+      }
     }
   });
 }

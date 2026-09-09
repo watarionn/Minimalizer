@@ -6,11 +6,19 @@ from pathlib import Path
 from typing import Literal
 
 from minimalize_engine import MinimalizeConfig, minimalize, minimalize_rinka_reference, rinka_reference_config
+from minimalize_engine.color_strip import (
+    ANALYSIS_MAX_SIDE as COLOR_STRIP_ANALYSIS_MAX_SIDE,
+    DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
+    DEFAULT_SIMILARITY as COLOR_STRIP_DEFAULT_SIMILARITY,
+    color_strip_to_svg,
+    extract_color_strip,
+    render_color_strip,
+)
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
 
 OutputFormat = Literal["svg", "png"]
-ProcessingMode = Literal["standard", "rinka_reference"]
+ProcessingMode = Literal["standard", "rinka_reference", "color_strip"]
 
 
 @dataclass(frozen=True)
@@ -21,6 +29,8 @@ class RenderedResult:
     shape_count: int
     analysis_size: str
     source_size: str
+    color_count: int | None = None
+    color_similarity: float | None = None
 
 
 def build_config(
@@ -97,3 +107,47 @@ def minimalize_rinka_path(
         analysis_max_side=config.analysis_max_side,
     )
     return _render_result(scene, output_format)
+
+
+def color_strip_path(
+    input_path: str | Path,
+    output_format: OutputFormat = "svg",
+    *,
+    color_count: int = COLOR_STRIP_DEFAULT_COLOR_COUNT,
+    similarity: float = COLOR_STRIP_DEFAULT_SIMILARITY,
+    analysis_max_side_cap: int | None = None,
+) -> RenderedResult:
+    analysis_max_side = COLOR_STRIP_ANALYSIS_MAX_SIDE
+    if analysis_max_side_cap is not None:
+        analysis_max_side = min(analysis_max_side, analysis_max_side_cap)
+
+    document = extract_color_strip(
+        input_path,
+        color_count=color_count,
+        similarity=similarity,
+        analysis_max_side=analysis_max_side,
+    )
+
+    if output_format == "svg":
+        content = color_strip_to_svg(document).encode("utf-8")
+        media_type = "image/svg+xml"
+        filename = "color-strip.svg"
+    elif output_format == "png":
+        buffer = BytesIO()
+        render_color_strip(document).save(buffer, format="PNG")
+        content = buffer.getvalue()
+        media_type = "image/png"
+        filename = "color-strip.png"
+    else:
+        raise ValueError(f"Unsupported output format: {output_format}")
+
+    return RenderedResult(
+        content=content,
+        media_type=media_type,
+        filename=filename,
+        shape_count=document.color_count,
+        analysis_size=f"{document.analysis_width}x{document.analysis_height}",
+        source_size=f"{document.source_width}x{document.source_height}",
+        color_count=document.color_count,
+        color_similarity=document.similarity,
+    )
