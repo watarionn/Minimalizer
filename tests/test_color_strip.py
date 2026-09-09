@@ -21,6 +21,28 @@ def _dominant_color_image(path) -> None:
     image.save(path, format="PNG")
 
 
+def _feature_accent_image(path) -> None:
+    image = Image.new("RGB", (100, 100), (40, 40, 44))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 0, 99, 24), fill=(40, 40, 44))
+    draw.rectangle((0, 25, 99, 48), fill=(80, 80, 84))
+    draw.rectangle((0, 49, 99, 71), fill=(130, 130, 134))
+    draw.rectangle((0, 72, 99, 98), fill=(210, 210, 214))
+    draw.rectangle((0, 99, 99, 99), fill=(220, 90, 35))
+    image.save(path, format="PNG")
+
+
+def _feature_noise_image(path) -> None:
+    image = Image.new("RGB", (100, 100), (40, 40, 44))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 0, 99, 24), fill=(40, 40, 44))
+    draw.rectangle((0, 25, 99, 49), fill=(80, 80, 84))
+    draw.rectangle((0, 50, 99, 74), fill=(130, 130, 134))
+    draw.rectangle((0, 75, 99, 99), fill=(210, 210, 214))
+    draw.rectangle((0, 0, 9, 0), fill=(220, 90, 35))
+    image.save(path, format="PNG")
+
+
 def test_color_strip_selects_most_used_colors_then_renders_least_used_first(tmp_path):
     path = tmp_path / "dominant.png"
     _dominant_color_image(path)
@@ -31,6 +53,7 @@ def test_color_strip_selects_most_used_colors_then_renders_least_used_first(tmp_
     assert document.size_mode == "equal"
     assert document.order == "least_first"
     assert document.orientation == "vertical"
+    assert document.selection_mode == "dominant"
     assert [color.rgb for color in document.colors] == [
         (0, 0, 255),
         (0, 255, 0),
@@ -44,6 +67,43 @@ def test_color_strip_selects_most_used_colors_then_renders_least_used_first(tmp_
     assert svg.index('fill="#0000ff"') < svg.index('fill="#00ff00"') < svg.index('fill="#ff0000"')
     assert 'height="33" fill="#0000ff"' in svg
     assert 'height="34" fill="#00ff00"' in svg
+
+
+def test_color_strip_featured_mode_reserves_one_slot_for_salient_accent(tmp_path):
+    path = tmp_path / "featured.png"
+    _feature_accent_image(path)
+
+    dominant = extract_color_strip(path, color_count=4, similarity=6)
+    featured = extract_color_strip(
+        path,
+        color_count=4,
+        similarity=6,
+        selection_mode="featured",
+    )
+
+    accent = (220, 90, 35)
+    assert accent not in [color.rgb for color in dominant.colors]
+    assert accent in [color.rgb for color in featured.colors]
+    assert featured.selection_mode == "featured"
+    assert featured.color_count == 4
+    assert sum(color.pixel_count for color in featured.colors) == 10_000
+    accent_color = next(color for color in featured.colors if color.rgb == accent)
+    assert round(accent_color.share, 2) == 0.01
+
+
+def test_color_strip_featured_mode_ignores_tiny_accent_noise(tmp_path):
+    path = tmp_path / "feature-noise.png"
+    _feature_noise_image(path)
+
+    featured = extract_color_strip(
+        path,
+        color_count=4,
+        similarity=6,
+        selection_mode="featured",
+    )
+
+    assert (220, 90, 35) not in [color.rgb for color in featured.colors]
+    assert featured.color_count == 4
 
 
 def test_color_strip_can_reverse_to_most_used_first(tmp_path):
@@ -143,6 +203,8 @@ def test_color_strip_rejects_unknown_layout_options(tmp_path):
         extract_color_strip(path, order="random")  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="orientation"):
         extract_color_strip(path, orientation="random")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="selection_mode"):
+        extract_color_strip(path, selection_mode="random")  # type: ignore[arg-type]
 
 
 def test_color_strip_caps_analysis_and_output_sizes(tmp_path):
