@@ -19,7 +19,10 @@ from minimalize_engine.color_strip import (
     ANALYSIS_MAX_SIDE as COLOR_STRIP_ANALYSIS_MAX_SIDE,
     COLOR_STRIP_VERSION,
     DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
+    DEFAULT_ORIENTATION as COLOR_STRIP_DEFAULT_ORIENTATION,
+    DEFAULT_ORDER as COLOR_STRIP_DEFAULT_ORDER,
     DEFAULT_SIMILARITY as COLOR_STRIP_DEFAULT_SIMILARITY,
+    DEFAULT_SIZE_MODE as COLOR_STRIP_DEFAULT_SIZE_MODE,
     MAX_COLOR_COUNT as COLOR_STRIP_MAX_COLOR_COUNT,
     MAX_SIMILARITY as COLOR_STRIP_MAX_SIMILARITY,
     MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
@@ -35,7 +38,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.6.0"
+APP_VERSION = "0.7.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -129,6 +132,12 @@ def service_info() -> dict[str, object]:
         "color_strip_version": COLOR_STRIP_VERSION,
         "color_strip_default_colors": COLOR_STRIP_DEFAULT_COLOR_COUNT,
         "color_strip_default_similarity": COLOR_STRIP_DEFAULT_SIMILARITY,
+        "color_strip_default_size_mode": COLOR_STRIP_DEFAULT_SIZE_MODE,
+        "color_strip_default_order": COLOR_STRIP_DEFAULT_ORDER,
+        "color_strip_default_orientation": COLOR_STRIP_DEFAULT_ORIENTATION,
+        "color_strip_size_modes": ["equal", "proportional"],
+        "color_strip_orders": ["least_first", "most_first"],
+        "color_strip_orientations": ["vertical", "horizontal"],
     }
 
 
@@ -195,6 +204,9 @@ async def minimalize_image(
         float | None,
         Form(ge=COLOR_STRIP_MIN_SIMILARITY, le=COLOR_STRIP_MAX_SIMILARITY),
     ] = None,
+    color_size_mode: Annotated[Literal["equal", "proportional"] | None, Form()] = None,
+    color_order: Annotated[Literal["least_first", "most_first"] | None, Form()] = None,
+    color_orientation: Annotated[Literal["vertical", "horizontal"] | None, Form()] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
 ) -> Response:
@@ -204,12 +216,18 @@ async def minimalize_image(
 
     strip_color_count = COLOR_STRIP_DEFAULT_COLOR_COUNT
     strip_similarity = COLOR_STRIP_DEFAULT_SIMILARITY
+    strip_size_mode = COLOR_STRIP_DEFAULT_SIZE_MODE
+    strip_order = COLOR_STRIP_DEFAULT_ORDER
+    strip_orientation = COLOR_STRIP_DEFAULT_ORIENTATION
 
     if mode == "rinka_reference":
         if (
             level != 4
             or colors is not None
             or color_similarity is not None
+            or color_size_mode is not None
+            or color_order is not None
+            or color_orientation is not None
             or max_shapes is not None
             or background is not None
         ):
@@ -224,7 +242,7 @@ async def minimalize_image(
         if max_shapes is not None or background is not None:
             raise HTTPException(
                 status_code=400,
-                detail="Color Strip only supports color count and color similarity settings.",
+                detail="Color Strip does not support shape-count or background settings.",
             )
         strip_color_count = colors if colors is not None else COLOR_STRIP_DEFAULT_COLOR_COUNT
         if not COLOR_STRIP_MIN_COLOR_COUNT <= strip_color_count <= COLOR_STRIP_MAX_COLOR_COUNT:
@@ -235,14 +253,22 @@ async def minimalize_image(
         strip_similarity = (
             color_similarity if color_similarity is not None else COLOR_STRIP_DEFAULT_SIMILARITY
         )
+        strip_size_mode = color_size_mode or COLOR_STRIP_DEFAULT_SIZE_MODE
+        strip_order = color_order or COLOR_STRIP_DEFAULT_ORDER
+        strip_orientation = color_orientation or COLOR_STRIP_DEFAULT_ORIENTATION
         configured_analysis_max_side = min(COLOR_STRIP_ANALYSIS_MAX_SIDE, MAX_ANALYSIS_SIDE)
         response_level = "n/a"
         config = None
     else:
-        if color_similarity is not None:
+        if (
+            color_similarity is not None
+            or color_size_mode is not None
+            or color_order is not None
+            or color_orientation is not None
+        ):
             raise HTTPException(
                 status_code=400,
-                detail="Color similarity is only available in Color Strip mode.",
+                detail="Color Strip settings are only available in Color Strip mode.",
             )
         config = build_config(
             level,
@@ -297,6 +323,9 @@ async def minimalize_image(
                             output_format,
                             color_count=strip_color_count,
                             similarity=strip_similarity,
+                            size_mode=strip_size_mode,
+                            order=strip_order,
+                            orientation=strip_orientation,
                             analysis_max_side_cap=MAX_ANALYSIS_SIDE,
                         )
                     else:
@@ -344,5 +373,11 @@ async def minimalize_image(
         headers["X-Minimalizer-Color-Count"] = str(result.color_count)
     if result.color_similarity is not None:
         headers["X-Minimalizer-Color-Similarity"] = f"{result.color_similarity:g}"
+    if result.color_size_mode is not None:
+        headers["X-Minimalizer-Color-Size-Mode"] = result.color_size_mode
+    if result.color_order is not None:
+        headers["X-Minimalizer-Color-Order"] = result.color_order
+    if result.color_orientation is not None:
+        headers["X-Minimalizer-Color-Orientation"] = result.color_orientation
 
     return Response(content=result.content, media_type=result.media_type, headers=headers)

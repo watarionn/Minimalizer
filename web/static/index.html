@@ -160,6 +160,33 @@
         </div>
       </details>
 
+      <details class="advanced-controls color-strip-options" id="color-strip-options" hidden>
+        <summary>Color Strip オプション</summary>
+        <div class="advanced-grid">
+          <label class="field">
+            <span>バーの太さ</span>
+            <select id="strip-size-mode-select">
+              <option value="equal" selected>均等</option>
+              <option value="proportional">使用量に比例</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>並び順</span>
+            <select id="strip-order-select">
+              <option value="least_first" selected>少ない色 → 多い色</option>
+              <option value="most_first">多い色 → 少ない色</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>向き</span>
+            <select id="strip-orientation-select">
+              <option value="vertical" selected>縦に並べる</option>
+              <option value="horizontal">横に並べる</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
       <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
     </section>
   </main>

@@ -23,6 +23,7 @@ const elements = {
   modeInputs: Array.from(document.querySelectorAll('input[name="mode"]')),
   modeDescription: document.querySelector("#mode-description"),
   advancedControls: document.querySelector("#advanced-controls"),
+  colorStripOptions: document.querySelector("#color-strip-options"),
   controlCard: document.querySelector(".control-card"),
   levelControl: document.querySelector("#level-control"),
   level: document.querySelector("#level-select"),
@@ -33,6 +34,9 @@ const elements = {
   stripColors: document.querySelector("#strip-colors-select"),
   colorSimilarity: document.querySelector("#color-similarity-range"),
   colorSimilarityOutput: document.querySelector("#color-similarity-output"),
+  stripSizeMode: document.querySelector("#strip-size-mode-select"),
+  stripOrder: document.querySelector("#strip-order-select"),
+  stripOrientation: document.querySelector("#strip-orientation-select"),
   status: document.querySelector("#status-message"),
   engineBadge: document.querySelector("#engine-badge"),
 };
@@ -85,7 +89,7 @@ function updateModeUi() {
     elements.modeDescription.textContent = "完成済みの凛夏手本版 Phase 6。検証済みのミニマル度4・専用プロファイルを固定で使用します。";
     elements.minimalizeButton.textContent = "凛夏手本版でミニマル化";
   } else if (colorStrip) {
-    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出し、使用量の少ない色から等しい太さのバーとして縦に並べます。";
+    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。オプションで太さ・並び順・向きを変更できます。";
     elements.minimalizeButton.textContent = "Color Stripを生成";
   } else {
     elements.modeDescription.textContent = "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
@@ -99,11 +103,16 @@ function updateModeUi() {
     elements.background.value = "";
     elements.advancedControls.open = false;
   }
-  if (colorStrip) elements.advancedControls.open = false;
+  if (colorStrip) {
+    elements.advancedControls.open = false;
+  } else {
+    elements.colorStripOptions.open = false;
+  }
 
   elements.levelControl.hidden = colorStrip;
   elements.colorStripControls.hidden = !colorStrip;
   elements.advancedControls.hidden = colorStrip;
+  elements.colorStripOptions.hidden = !colorStrip;
 
   elements.level.disabled = state.busy || rinka || colorStrip;
   elements.colors.disabled = state.busy || rinka || colorStrip;
@@ -111,6 +120,9 @@ function updateModeUi() {
   elements.background.disabled = state.busy || rinka || colorStrip;
   elements.stripColors.disabled = state.busy || !colorStrip;
   elements.colorSimilarity.disabled = state.busy || !colorStrip;
+  elements.stripSizeMode.disabled = state.busy || !colorStrip;
+  elements.stripOrder.disabled = state.busy || !colorStrip;
+  elements.stripOrientation.disabled = state.busy || !colorStrip;
   elements.advancedControls.setAttribute("aria-disabled", rinka ? "true" : "false");
   const advancedSummary = elements.advancedControls.querySelector("summary");
   if (advancedSummary) advancedSummary.setAttribute("aria-disabled", rinka ? "true" : "false");
@@ -198,6 +210,9 @@ function buildFormData(outputFormat) {
   } else if (mode === "color_strip") {
     form.append("colors", elements.stripColors.value);
     form.append("color_similarity", elements.colorSimilarity.value);
+    form.append("color_size_mode", elements.stripSizeMode.value);
+    form.append("color_order", elements.stripOrder.value);
+    form.append("color_orientation", elements.stripOrientation.value);
   }
   return form;
 }
@@ -226,6 +241,13 @@ function downloadBlob(blob, filename) {
 function resultFilename(outputFormat) {
   const stem = currentMode() === "color_strip" ? "color-strip" : "minimalized";
   return `${stem}.${outputFormat}`;
+}
+
+function colorStripOptionLabel(sizeMode, order, orientation) {
+  const sizeLabel = sizeMode === "proportional" ? "使用量比例" : "均等";
+  const orderLabel = order === "most_first" ? "多→少" : "少→多";
+  const orientationLabel = orientation === "horizontal" ? "横" : "縦";
+  return `${sizeLabel} · ${orderLabel} · ${orientationLabel}`;
 }
 
 async function requestMinimalize(outputFormat, { preview = false, download = false } = {}) {
@@ -264,12 +286,19 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
+      const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
+      const colorOrder = response.headers.get("x-minimalizer-color-order");
+      const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = responseMode === "rinka_reference"
         ? "凛夏手本版"
         : responseMode === "color_strip" ? "Color Strip" : "";
+      const colorOptionLabel = responseMode === "color_strip"
+        ? colorStripOptionLabel(colorSizeMode, colorOrder, colorOrientation)
+        : "";
       elements.resultMeta.textContent = [
         modeLabel,
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
+        colorOptionLabel,
         size || "",
       ].filter(Boolean).join(" · ");
     }
@@ -339,7 +368,16 @@ elements.downloadPng.addEventListener("click", () => {
   requestMinimalize("png", { download: true });
 });
 
-for (const control of [elements.level, elements.colors, elements.maxShapes, elements.background, elements.stripColors]) {
+for (const control of [
+  elements.level,
+  elements.colors,
+  elements.maxShapes,
+  elements.background,
+  elements.stripColors,
+  elements.stripSizeMode,
+  elements.stripOrder,
+  elements.stripOrientation,
+]) {
   control.addEventListener("change", invalidateAfterSettingChange);
 }
 
