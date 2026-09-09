@@ -1,0 +1,78 @@
+.mode-switch {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 360px;
+}
+
+.control-card.is-color-strip .primary-controls {
+  grid-template-columns: minmax(360px, 560px) 1fr;
+}
+
+.color-strip-controls {
+  display: grid;
+  grid-template-columns: minmax(110px, 150px) minmax(220px, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.similarity-field > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.similarity-field output {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.field input[type="range"] {
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  accent-color: var(--accent);
+}
+
+.field input[type="range"]:focus {
+  border: 0;
+  box-shadow: none;
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.range-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 850px) {
+  .mode-switch {
+    min-width: 0;
+  }
+
+  .control-card.is-color-strip .primary-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .color-strip-controls {
+    grid-template-columns: minmax(110px, 150px) 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .mode-option span {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+
+  .color-strip-controls {
+    grid-template-columns: 1fr;
+  }
+}
