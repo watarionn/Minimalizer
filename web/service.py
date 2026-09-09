@@ -11,10 +11,12 @@ from minimalize_engine.color_strip import (
     DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
     DEFAULT_ORIENTATION as COLOR_STRIP_DEFAULT_ORIENTATION,
     DEFAULT_ORDER as COLOR_STRIP_DEFAULT_ORDER,
+    DEFAULT_SELECTION_MODE as COLOR_STRIP_DEFAULT_SELECTION_MODE,
     DEFAULT_SIMILARITY as COLOR_STRIP_DEFAULT_SIMILARITY,
     DEFAULT_SIZE_MODE as COLOR_STRIP_DEFAULT_SIZE_MODE,
     ColorStripOrientation,
     ColorStripOrder,
+    ColorStripSelectionMode,
     ColorStripSizeMode,
     color_strip_to_svg,
     extract_color_strip,
@@ -40,6 +42,7 @@ class RenderedResult:
     color_size_mode: ColorStripSizeMode | None = None
     color_order: ColorStripOrder | None = None
     color_orientation: ColorStripOrientation | None = None
+    color_selection_mode: ColorStripSelectionMode | None = None
 
 
 def build_config(
@@ -127,6 +130,7 @@ def color_strip_path(
     size_mode: ColorStripSizeMode = COLOR_STRIP_DEFAULT_SIZE_MODE,
     order: ColorStripOrder = COLOR_STRIP_DEFAULT_ORDER,
     orientation: ColorStripOrientation = COLOR_STRIP_DEFAULT_ORIENTATION,
+    selection_mode: ColorStripSelectionMode = COLOR_STRIP_DEFAULT_SELECTION_MODE,
     analysis_max_side_cap: int | None = None,
 ) -> RenderedResult:
     analysis_max_side = COLOR_STRIP_ANALYSIS_MAX_SIDE
@@ -140,6 +144,7 @@ def color_strip_path(
         size_mode=size_mode,
         order=order,
         orientation=orientation,
+        selection_mode=selection_mode,
         analysis_max_side=analysis_max_side,
     )
 
@@ -168,4 +173,5 @@ def color_strip_path(
         color_size_mode=document.size_mode,
         color_order=document.order,
         color_orientation=document.orientation,
+        color_selection_mode=document.selection_mode,
     )
