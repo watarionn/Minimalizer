@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="画像をシンプルな図形へ変換する Minimalizer Web">
+  <meta name="description" content="画像をシンプルな図形や色のストリップへ変換する Minimalizer Web">
   <title>Minimalizer</title>
   <link rel="stylesheet" href="/static/styles.css">
   <script src="/static/app.js" defer></script>
@@ -69,8 +69,8 @@
           <img id="result-preview" alt="ミニマル化された画像のプレビュー" hidden>
           <div class="processing" id="processing" hidden aria-live="polite">
             <span class="spinner" aria-hidden="true"></span>
-            <strong>ミニマル化しています</strong>
-            <span>画像の構造を整理中…</span>
+            <strong id="processing-title">ミニマル化しています</strong>
+            <span id="processing-copy">画像の構造を整理中…</span>
           </div>
         </div>
 
@@ -96,11 +96,15 @@
             <input type="radio" name="mode" value="rinka_reference">
             <span>凛夏手本版</span>
           </label>
+          <label class="mode-option">
+            <input type="radio" name="mode" value="color_strip">
+            <span>Color Strip</span>
+          </label>
         </div>
       </div>
 
       <div class="primary-controls">
-        <label class="field compact-field">
+        <label class="field compact-field" id="level-control">
           <span>ミニマル度</span>
           <select id="level-select">
             <option value="1">1 · 原画寄り</option>
@@ -110,6 +114,22 @@
             <option value="5">5 · 最小</option>
           </select>
         </label>
+
+        <div class="color-strip-controls" id="color-strip-controls" hidden>
+          <label class="field">
+            <span>色数</span>
+            <select id="strip-colors-select">
+              <option value="3">3色</option>
+              <option value="4">4色</option>
+              <option value="5" selected>5色</option>
+            </select>
+          </label>
+          <label class="field similarity-field">
+            <span>近い色をまとめる <output id="color-similarity-output">標準</output></span>
+            <input id="color-similarity-range" type="range" min="6" max="30" step="1" value="18">
+            <small class="range-scale"><span>細かい</span><span>大まか</span></small>
+          </label>
+        </div>
 
         <button class="primary-button" id="minimalize-button" type="button" disabled>
           ミニマル化
