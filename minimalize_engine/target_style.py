@@ -10,6 +10,7 @@ from .analysis.shape_cleanup import cleanup_minimal_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
 from .pipeline import minimalize
+from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
     OpaqueSubjectZones,
@@ -22,7 +23,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase7"
+RINKA_REFERENCE_VERSION = "phase8"
 
 
 _TARGET_MAX_SHAPES = {
@@ -85,6 +86,7 @@ def rinka_reference_config(level: int = 4, **overrides) -> MinimalizeConfig:
         "contour_epsilon_ratio": max(base.contour_epsilon_ratio, _TARGET_EPSILON[level]),
         "line_mode": "none",
         "enable_face_primitives": False,
+        "enable_rinka_macro_partition": True,
         "character_hand_max_shapes": 1,
         "cleanup_remove_duplicates": True,
         "cleanup_role_fragment_merge": True,
@@ -1674,6 +1676,34 @@ def apply_rinka_reference_style(
     )
 
 
+
+def _opaque_rescue_failure_gate(scene: Scene, rescue: OpaqueSubjectRescue) -> dict:
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    ratios = sorted(
+        [
+            _shape_metrics(shape)[0] / canvas_area
+            for shape in scene.shapes
+            if shape.fill_color is not None
+        ],
+        reverse=True,
+    )
+    largest = ratios[0] if ratios else 0.0
+    second = ratios[1] if len(ratios) > 1 else 0.0
+    accepted = (
+        not bool(scene.metadata.get("subject_mode"))
+        and float(rescue.border_dominant_fraction) >= 0.45
+        and float(rescue.center_fill_ratio) >= 0.75
+        and largest >= 0.25
+        and second >= 0.22
+    )
+    return {
+        "accepted": accepted,
+        "largest_shape_ratio": round(float(largest), 6),
+        "second_shape_ratio": round(float(second), 6),
+        "center_fill_ratio": round(float(rescue.center_fill_ratio), 6),
+        "border_dominant_fraction": round(float(rescue.border_dominant_fraction), 6),
+    }
+
 def minimalize_rinka_reference(
     image_or_path,
     level: int = 4,
@@ -1682,8 +1712,37 @@ def minimalize_rinka_reference(
     **config_overrides,
 ) -> Scene:
     config = rinka_reference_config(level, **config_overrides)
-    scene = minimalize(image_or_path, config)
-    opaque_hierarchy = estimate_opaque_subject_hierarchy(image_or_path, scene)
+    rescue = prepare_rinka_opaque_subject_input(image_or_path)
+    rescue_gate = {"accepted": False, "reason": "candidate_disabled"}
+    engine_input = image_or_path
+    engine_config = config
+
+    if rescue.enabled and rescue.rgba is not None:
+        baseline_config = config.with_overrides(
+            enable_rinka_macro_partition=False,
+            rinka_macro_rescue_active=False,
+        )
+        baseline_scene = minimalize(image_or_path, baseline_config)
+        rescue_gate = _opaque_rescue_failure_gate(baseline_scene, rescue)
+        if rescue_gate["accepted"]:
+            engine_input = rescue.rgba
+            engine_config = config.with_overrides(
+                background_mode=("custom" if config.background_mode == "source" else config.background_mode),
+                background_color=(rescue.background_rgb if config.background_mode == "source" else config.background_color),
+                rinka_macro_rescue_active=True,
+            )
+            scene = minimalize(engine_input, engine_config)
+        else:
+            scene = baseline_scene
+    else:
+        scene = minimalize(engine_input, engine_config)
+
+    scene.metadata["rinka_opaque_subject_rescue"] = {
+        **rescue.to_dict(),
+        "activated": bool(rescue.enabled and rescue_gate.get("accepted")),
+        "baseline_gate": rescue_gate,
+    }
+    opaque_hierarchy = estimate_opaque_subject_hierarchy(engine_input, scene)
     opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)
     structure_zones = estimate_structure_subject_zones(scene)
     subject_zones = opaque_zones if opaque_zones.enabled else structure_zones

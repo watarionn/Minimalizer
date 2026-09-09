@@ -271,3 +271,15 @@ Phase 6 is merged and frozen at `a5e76fc365ad608bde7506b9b0a7b21a5e8527cc`. Web 
 Phase 7 adds pre-cleanup Global Shape Scoring on `feature/rinka-global-shape-scoring-20260909`. The scorer combines existing macro priority, area, local importance, subject-zone overlap, semantic subject/background role, subject continuity, foreground placement, and a conservative sliver penalty. `cleanup_minimal_shapes()` now accepts optional global scores and a separate global-thin gate; its defaults leave Standard behavior unchanged.
 
 Fixed-corpus evidence versus Phase 6: 3 additional global low-value slivers removed, mean shape reduction 37.94% -> 38.32%, mean vertex reduction 31.37% -> 31.58%, with identical pre-target identity/silhouette deltas. Global low-value audit: 101 total, 87 background, 0 subject, 11 thin candidates, exactly 3 removed. CI now records and guards these Phase 7 metrics.
+
+
+## Rinka Reference Phase 8 handoff
+
+Phase 8 is developed on `feature/rinka-phase8-subject-partition-20260909`. It is a narrow recovery path for the specific *failure class* where an opaque or nearly opaque character thumbnail remains in general-scene mode and collapses into two giant subject-colored polygons. The gate is geometric and corpus-backed, not filename-specific.
+
+Activation requires strong border/background evidence, strong center foreground occupancy, a non-subject baseline result, largest filled shape >=25% canvas, and second-largest >=22%. The fixed corpus activates rescue exactly once. Other square character thumbnails such as Subaru, Raden and Noel remain on the normal Rinka path because they do not pass the two-giant-shape gate.
+
+Accepted rescue inputs are converted to an inferred alpha subject, rerun through Character Structure, then rebuilt from real part masks using `minimalize_engine/character/rinka_macro.py`. The macro renderer retains a small number of face/hair/arm/lower-body/outfit masses and protected hand/prop detail. Do not broaden rescue activation without new corpus evidence.
+Phase 8 fixed-corpus checkpoint at level 4 / analysis max side 220: mean shape reduction ~38.32%, mean vertex reduction ~32.22%, non-rescue worst identity delta ~-0.0449, non-rescue worst silhouette delta ~-0.0010. The rescue case reduces its largest final filled shape below 8% after the baseline gate records roughly 25.4% / 24.7% giant shapes. Local CI-equivalent suites pass 66 stable + 32 Web/Color Strip tests. Full pytest is 230 passed / 2 known missing-fixture failures (`tests/assets/false_face_phase85.png`).
+
+Read `docs/RINKA_PHASE8_SUBJECT_PARTITION.md` before changing rescue thresholds, macro part budgets, or outfit color priority.

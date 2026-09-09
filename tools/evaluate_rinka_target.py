@@ -54,6 +54,26 @@ def _scene_vertices(scene) -> int:
     return sum(_vertex_count(shape) for shape in scene.shapes)
 
 
+def _shape_area(shape) -> float:
+    if shape.shape_type == "rectangle":
+        return max(float(shape.width or 0.0), 0.0) * max(float(shape.height or 0.0), 0.0)
+    if shape.shape_type in {"circle", "ellipse"}:
+        import math
+        rx = max(float(shape.rx or 0.0), 0.0)
+        ry = rx if shape.shape_type == "circle" else max(float(shape.ry or 0.0), 0.0)
+        return math.pi * rx * ry
+    if shape.shape_type == "polygon" and len(shape.points) >= 3:
+        pts = shape.points
+        return abs(sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts)))) * 0.5
+    return 0.0
+
+
+def _largest_shape_ratios(scene) -> tuple[float, float]:
+    canvas = max(float(scene.width * scene.height), 1.0)
+    ratios = sorted((_shape_area(shape) / canvas for shape in scene.shapes if shape.fill_color is not None), reverse=True)
+    return (ratios[0] if ratios else 0.0, ratios[1] if len(ratios) > 1 else 0.0)
+
+
 def _ratio(before: int, after: int) -> float:
     if before <= 0:
         return 0.0
@@ -109,6 +129,9 @@ def main() -> None:
         stable_quality = stable.metadata.get("quality", {})
         target_quality = target.metadata.get("quality", {})
         target_meta = target.metadata.get("target_style", {})
+        rescue_meta = target.metadata.get("rinka_opaque_subject_rescue", {})
+        macro_partition = target.metadata.get("rinka_macro_partition", {})
+        target_largest_shape_ratio, target_second_shape_ratio = _largest_shape_ratios(target)
         cleanup = target_meta.get("cleanup", {})
         global_scoring = target_meta.get("global_scoring", {})
         cleanup_decisions = cleanup.get("decisions", [])
@@ -135,6 +158,15 @@ def main() -> None:
             "file": path.name,
             "scene_mode": "subject" if stable.metadata.get("subject_mode") else "general",
             "target_style_version": target_meta.get("version"),
+            "phase8_rescue_candidate": bool(rescue_meta.get("enabled", False)),
+            "phase8_rescue_activated": bool(rescue_meta.get("activated", False)),
+            "phase8_rescue_gate_largest_shape_ratio": (rescue_meta.get("baseline_gate") or {}).get("largest_shape_ratio", 0.0),
+            "phase8_rescue_gate_second_shape_ratio": (rescue_meta.get("baseline_gate") or {}).get("second_shape_ratio", 0.0),
+            "phase8_rescue_center_fill_ratio": rescue_meta.get("center_fill_ratio", 0.0),
+            "phase8_macro_enabled": bool(macro_partition.get("enabled", False)),
+            "phase8_macro_generated_shapes": macro_partition.get("generated_shapes", 0),
+            "phase8_target_largest_shape_ratio": round(target_largest_shape_ratio, 6),
+            "phase8_target_second_shape_ratio": round(target_second_shape_ratio, 6),
             "stable_shapes": stable_shapes,
             "target_shapes": target_shapes,
             "shape_reduction_ratio": round(_ratio(stable_shapes, target_shapes), 6),
@@ -223,12 +255,24 @@ def main() -> None:
 
         identity_deltas = [r["target_pre_identity_delta"] for r in rows if r["target_pre_identity_delta"] is not None]
         silhouette_deltas = [r["target_pre_silhouette_delta"] for r in rows if r["target_pre_silhouette_delta"] is not None]
+        rescue_rows = [r for r in rows if r["phase8_rescue_activated"]]
+        non_rescue_rows = [r for r in rows if not r["phase8_rescue_activated"]]
+        non_rescue_identity = [r["target_pre_identity_delta"] for r in non_rescue_rows if r["target_pre_identity_delta"] is not None]
+        non_rescue_silhouette = [r["target_pre_silhouette_delta"] for r in non_rescue_rows if r["target_pre_silhouette_delta"] is not None]
         summary = {
             "count": len(rows),
             "target_style_version": rows[0].get("target_style_version"),
             "target_overrides": target_overrides,
             "mean_shape_reduction_ratio": mean(r["shape_reduction_ratio"] for r in rows),
             "mean_vertex_reduction_ratio": mean(r["vertex_reduction_ratio"] for r in rows),
+            "phase8_rescue_activated_count": len(rescue_rows),
+            "phase8_macro_enabled_count": sum(1 for r in rows if r["phase8_macro_enabled"]),
+            "phase8_rescue_max_target_largest_shape_ratio": max((r["phase8_target_largest_shape_ratio"] for r in rescue_rows), default=0.0),
+            "phase8_rescue_max_target_second_shape_ratio": max((r["phase8_target_second_shape_ratio"] for r in rescue_rows), default=0.0),
+            "phase8_rescue_min_gate_largest_shape_ratio": min((r["phase8_rescue_gate_largest_shape_ratio"] for r in rescue_rows), default=0.0),
+            "phase8_rescue_min_gate_second_shape_ratio": min((r["phase8_rescue_gate_second_shape_ratio"] for r in rescue_rows), default=0.0),
+            "phase8_non_rescue_worst_identity_delta": min(non_rescue_identity) if non_rescue_identity else None,
+            "phase8_non_rescue_worst_silhouette_delta": min(non_rescue_silhouette) if non_rescue_silhouette else None,
             "mean_target_pre_identity_delta": mean(identity_deltas) if identity_deltas else None,
             "worst_target_pre_identity_delta": min(identity_deltas) if identity_deltas else None,
             "mean_target_pre_silhouette_delta": mean(silhouette_deltas) if silhouette_deltas else None,
