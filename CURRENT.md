@@ -109,3 +109,12 @@ The user explicitly wants the completed Rinka Reference mode added to the Web UI
 - The next engine development line should be `v0.3.x` for conservative fixes or `v0.4.0` for larger quality changes.
 
 Read next: `HANDOFF.md`, then `docs/TARGET_STYLE.md` before quality work.
+
+
+## Rinka Reference Phase 7: Global Shape Scoring
+
+Phase 7 reopens the former Phase 6 freeze only for a corpus-backed improvement: global visual value now participates before cleanup so macro composition, subject continuity, semantic mass, foreground placement, and area can outweigh local contour importance.
+
+The new global scoring path is opt-in from Rinka Reference only. Stable/Standard cleanup defaults remain unchanged. Low-value global sliver removal is gated by score, geometry, area, and existing semantic protection.
+
+On the fixed 16-image corpus at level 4 / analysis max side 220, Phase 7 removes 3 additional low-value slivers versus Phase 6, improves mean shape reduction from about 37.94% to 38.32%, and mean vertex reduction from about 31.37% to 31.58%. Pre-target identity/silhouette metrics are unchanged versus the Phase 6 baseline. Global scoring classified 101 shapes as low-value, including 87 background shapes and 0 subject shapes; 11 were thin candidates and exactly 3 passed the deletion gate.

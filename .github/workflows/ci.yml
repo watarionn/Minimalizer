@@ -66,7 +66,7 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.8.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase6"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.8.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase7"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
 
           python - <<'PY'
           import cv2
@@ -144,26 +144,30 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Rinka Phase 6 corpus
+      - name: Evaluate Rinka Phase 7 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase6
-          echo '--- Rinka Phase 6 summary ---'
-          cat /tmp/rinka-target-phase6/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase7
+          echo '--- Rinka Phase 7 summary ---'
+          cat /tmp/rinka-target-phase7/summary_0_end.json
 
-      - name: Enforce Phase 6 safety guard
+      - name: Enforce Phase 7 safety guard
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          summary = json.loads(Path('/tmp/rinka-target-phase6/summary_0_end.json').read_text())
-          assert summary['target_style_version'] == 'phase6', summary
-          assert summary['mean_shape_reduction_ratio'] >= 0.379, summary
+          summary = json.loads(Path('/tmp/rinka-target-phase7/summary_0_end.json').read_text())
+          assert summary['target_style_version'] == 'phase7', summary
+          assert summary['mean_shape_reduction_ratio'] >= 0.382, summary
           assert summary['worst_target_pre_identity_delta'] >= -0.08, summary
           assert summary['worst_target_pre_silhouette_delta'] >= -0.01, summary
+          assert summary['global_scoring_enabled_count'] == summary['count'], summary
+          assert summary['total_target_cleanup_removed_global_thin'] == 3, summary
+          assert summary['total_target_global_low_value_thin_candidates'] >= 11, summary
+          assert summary['total_target_global_low_value_subject_count'] == 0, summary
           assert summary['opaque_hierarchy_enabled_count'] >= 1, summary
           assert summary['total_opaque_subject_shapes'] >= 1, summary
           assert summary['opaque_zones_enabled_count'] >= 1, summary
@@ -176,7 +180,7 @@ jobs:
           assert summary['total_target_gesture_vertices_removed'] == 8, summary
           assert summary['total_target_gesture_anchored_simplifications'] == 1, summary
           assert summary['total_target_gesture_hand_anchors'] >= 10, summary
-          assert summary['mean_vertex_reduction_ratio'] >= 0.313, summary
+          assert summary['mean_vertex_reduction_ratio'] >= 0.315, summary
           assert summary['total_target_cap_removed'] == 0, summary
           assert summary['total_target_macro_shadow_would_remove'] == 1, summary
           assert summary['total_target_macro_shadow_would_remove_background'] == 0, summary
@@ -191,14 +195,14 @@ jobs:
           assert summary['opaque_face_reference_count'] >= 1, summary
           assert summary['total_opaque_inferred_hair_shapes'] >= 1, summary
           assert summary['total_opaque_inferred_clothing_shapes'] >= 1, summary
-          print('Phase 6 safety guard passed')
+          print('Phase 7 safety guard passed')
           PY
 
-      - name: Upload Rinka Phase 6 evaluation artifact
+      - name: Upload Rinka Phase 7 evaluation artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase6-evaluation
-          path: /tmp/rinka-target-phase6
+          name: rinka-target-phase7-evaluation
+          path: /tmp/rinka-target-phase7
           if-no-files-found: warn
           retention-days: 14

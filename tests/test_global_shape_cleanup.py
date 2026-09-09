@@ -250,3 +250,64 @@ def test_primitive_promotion_respects_character_protection():
     )
     assert out[0].shape_type == "polygon"
     assert not any(d.action == "promote" for d in report.decisions)
+
+
+def test_global_score_removes_moderate_low_value_sliver_that_legacy_rules_keep():
+    sliver = Shape(
+        id=80,
+        shape_type="polygon",
+        fill_color=(96, 100, 104),
+        points=[(10, 10), (28, 10), (28, 15), (10, 15)],
+        importance=0.85,
+        semantic_type="generic",
+        source_role="misc",
+        layer_name="background",
+    )
+
+    legacy, _ = cleanup_minimal_shapes(
+        [sliver], 220, 220,
+        remove_isolated=False,
+        merge_adjacent=False,
+        simplify_polygons=False,
+        promote_primitives=False,
+    )
+    assert [s.id for s in legacy] == [80]
+
+    out, report = cleanup_minimal_shapes(
+        [sliver], 220, 220,
+        remove_isolated=False,
+        merge_adjacent=False,
+        simplify_polygons=False,
+        promote_primitives=False,
+        global_scores={80: 0.20},
+        global_thin_enable=True,
+    )
+    assert out == []
+    assert report.removed_thin == 1
+    assert any(d.reason == "global_low_value_sliver" for d in report.decisions)
+
+
+def test_global_score_preserves_same_geometry_when_global_value_is_high():
+    sliver = Shape(
+        id=81,
+        shape_type="polygon",
+        fill_color=(96, 100, 104),
+        points=[(10, 10), (28, 10), (28, 15), (10, 15)],
+        importance=0.85,
+        semantic_type="generic",
+        source_role="misc",
+        layer_name="foreground",
+    )
+
+    out, report = cleanup_minimal_shapes(
+        [sliver], 220, 220,
+        remove_isolated=False,
+        merge_adjacent=False,
+        simplify_polygons=False,
+        promote_primitives=False,
+        global_scores={81: 0.80},
+        global_thin_enable=True,
+    )
+
+    assert [s.id for s in out] == [81]
+    assert report.removed_count == 0

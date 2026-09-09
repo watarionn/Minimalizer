@@ -13,7 +13,7 @@ Included:
 - processing, empty, selected, and error states
 - segmented `?? / ?????` mode selector
 - Standard mode abstraction level control with advanced settings collapsed by default
-- Rinka Reference mode locked to its validated Phase 6 level-4 profile
+- Rinka Reference mode locked to its validated Phase 7 level-4 profile
 - SVG preview and download
 - PNG download
 - responsive mobile layout
@@ -76,7 +76,7 @@ Fields:
 - `max_shapes`: optional target shape limit, 5-500
 - `background`: optional `source`, `white`, or `transparent`
 
-`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 6 profile cannot be silently altered from the Web API.
+`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 7 profile cannot be silently altered from the Web API.
 
 Example:
 

@@ -485,6 +485,12 @@ def cleanup_minimal_shapes(
     isolated_max_area_ratio: float = 0.0008,
     isolated_min_distance_ratio: float = 0.075,
     isolated_max_importance: float = 0.38,
+    global_scores: dict[int, float] | None = None,
+    global_thin_enable: bool = False,
+    global_thin_max_score: float = 0.34,
+    global_thin_short_side_ratio: float = 0.035,
+    global_thin_aspect_ratio: float = 2.8,
+    global_thin_max_area_ratio: float = 0.014,
 ) -> tuple[list[Shape], ShapeCleanupReport]:
     source = list(shapes)
     vertices_before = sum(_vertex_count(s) for s in source)
@@ -498,6 +504,7 @@ def cleanup_minimal_shapes(
     min_side = max(float(min(canvas_width, canvas_height)), 1.0)
     thin_short_side = max(1.6, min_side * thin_short_side_ratio)
     thin_rectangle_short_side = max(1.35, min_side * thin_rectangle_short_side_ratio)
+    global_thin_short_side = max(1.6, min_side * global_thin_short_side_ratio)
     merge_gap = max(0.75, min_side * merge_gap_ratio)
     role_fragment_gap = max(0.50, min_side * role_fragment_gap_ratio)
     isolated_min_distance = min_side * isolated_min_distance_ratio
@@ -541,15 +548,32 @@ def cleanup_minimal_shapes(
             and area_ratio <= thin_rectangle_max_area_ratio
             and s.importance < thin_rectangle_max_importance
         )
+        global_score = global_scores.get(s.id) if global_scores is not None else None
+        is_global_low_value_thin = (
+            global_thin_enable
+            and global_score is not None
+            and global_score <= global_thin_max_score
+            and s.shape_type != "line"
+            and short <= global_thin_short_side
+            and aspect >= global_thin_aspect_ratio
+            and area_ratio <= global_thin_max_area_ratio
+        )
         is_micro = (
             area_ratio <= micro_area_ratio
             and s.importance <= micro_max_importance
             and s.shape_type != "line"
         )
-        if is_thin or is_thin_rectangle or is_micro:
-            reason = "thin_rectangle" if is_thin_rectangle and not is_thin else "thin_sliver" if is_thin else "micro_fragment"
+        if is_thin or is_thin_rectangle or is_global_low_value_thin or is_micro:
+            if is_thin:
+                reason = "thin_sliver"
+            elif is_thin_rectangle:
+                reason = "thin_rectangle"
+            elif is_global_low_value_thin:
+                reason = "global_low_value_sliver"
+            else:
+                reason = "micro_fragment"
             removed.add(s.id)
-            if is_thin or is_thin_rectangle:
+            if is_thin or is_thin_rectangle or is_global_low_value_thin:
                 removed_thin += 1
             else:
                 removed_micro += 1

@@ -110,6 +110,13 @@ def main() -> None:
         target_quality = target.metadata.get("quality", {})
         target_meta = target.metadata.get("target_style", {})
         cleanup = target_meta.get("cleanup", {})
+        global_scoring = target_meta.get("global_scoring", {})
+        cleanup_decisions = cleanup.get("decisions", [])
+        global_thin_removed = sum(
+            1 for decision in cleanup_decisions
+            if decision.get("action") == "remove"
+            and decision.get("reason") == "global_low_value_sliver"
+        )
         hierarchy = target_meta.get("opaque_hierarchy", {})
         zones = target_meta.get("opaque_zones", {})
         gesture = target_meta.get("gesture_abstraction", {})
@@ -138,6 +145,13 @@ def main() -> None:
             "target_cleanup_removed_thin": cleanup.get("removed_thin", 0),
             "target_cleanup_removed_micro": cleanup.get("removed_micro", 0),
             "target_cleanup_removed_isolated": cleanup.get("removed_isolated", 0),
+            "target_cleanup_removed_global_thin": global_thin_removed,
+            "target_global_scoring_enabled": bool(global_scoring.get("enabled", False)),
+            "target_global_score_mean": global_scoring.get("mean", 0.0),
+            "target_global_low_value_count": global_scoring.get("low_value_count", 0),
+            "target_global_low_value_background_count": global_scoring.get("low_value_background_count", 0),
+            "target_global_low_value_subject_count": global_scoring.get("low_value_subject_count", 0),
+            "target_global_low_value_thin_candidates": global_scoring.get("low_value_thin_candidates", 0),
             "target_structure_redundant_removed": target_meta.get("structure_redundant_removed", 0),
             "target_outfit_layer_merges": target_meta.get("outfit_layer_merges", 0),
             "target_render_inert_occluded_removed": target_meta.get("render_inert_occluded_removed", 0),
@@ -220,6 +234,13 @@ def main() -> None:
             "mean_target_pre_silhouette_delta": mean(silhouette_deltas) if silhouette_deltas else None,
             "worst_target_pre_silhouette_delta": min(silhouette_deltas) if silhouette_deltas else None,
             "total_target_cleanup_removed": sum(r["target_cleanup_removed"] for r in rows),
+            "total_target_cleanup_removed_global_thin": sum(r["target_cleanup_removed_global_thin"] for r in rows),
+            "global_scoring_enabled_count": sum(1 for r in rows if r["target_global_scoring_enabled"]),
+            "mean_target_global_score": mean(r["target_global_score_mean"] for r in rows),
+            "total_target_global_low_value_count": sum(r["target_global_low_value_count"] for r in rows),
+            "total_target_global_low_value_background_count": sum(r["target_global_low_value_background_count"] for r in rows),
+            "total_target_global_low_value_subject_count": sum(r["target_global_low_value_subject_count"] for r in rows),
+            "total_target_global_low_value_thin_candidates": sum(r["target_global_low_value_thin_candidates"] for r in rows),
             "total_target_structure_redundant_removed": sum(r["target_structure_redundant_removed"] for r in rows),
             "total_target_outfit_layer_merges": sum(r["target_outfit_layer_merges"] for r in rows),
             "total_target_render_inert_occluded_removed": sum(r["target_render_inert_occluded_removed"] for r in rows),
