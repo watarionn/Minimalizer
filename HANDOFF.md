@@ -283,3 +283,14 @@ Accepted rescue inputs are converted to an inferred alpha subject, rerun through
 Phase 8 fixed-corpus checkpoint at level 4 / analysis max side 220: mean shape reduction ~38.32%, mean vertex reduction ~32.22%, non-rescue worst identity delta ~-0.0449, non-rescue worst silhouette delta ~-0.0010. The rescue case reduces its largest final filled shape below 8% after the baseline gate records roughly 25.4% / 24.7% giant shapes. Local CI-equivalent suites pass 66 stable + 32 Web/Color Strip tests. Full pytest is 230 passed / 2 known missing-fixture failures (`tests/assets/false_face_phase85.png`).
 
 Read `docs/RINKA_PHASE8_SUBJECT_PARTITION.md` before changing rescue thresholds, macro part budgets, or outfit color priority.
+
+
+## Rinka Reference Phase 9 handoff
+
+Phase 9 adds Semantic Shape Tree and localized primitive optimization on `feature/rinka-phase9-semantic-primitives-20260909`. The Phase 8 opaque rescue gate is intentionally unchanged. New behavior occurs only after that existing gate accepts the failure case.
+
+`semantic_shape_tree.py` records part hierarchy, budgets, merge groups, and protected semantic nodes. `primitive_fit.py` compares simple local geometry by raster fidelity plus complexity, with part-aware priors. Outfit trapezoids are area-capped by center scaling and re-scored, preventing a simple primitive from recreating the giant-slab failure.
+
+A small head-feature pass may add a protected synthetic `accessory` node for distinctive high-saturation color cues. Current Omaru evidence keeps one blue feature and rejects background-red, dark-noise, and duplicate-color candidates.
+
+Fixed-corpus Phase 9 checkpoint: mean shape reduction ~**38.72%**, mean vertex reduction ~**32.76%**, new semantic path **1/16**, nine primitive fits, largest rescue shape ~**6.39%**, second ~**5.37%**, non-rescue worst identity/silhouette ~**-0.0449 / -0.0010**. Keep VTracer-style region experiments out of this phase and do not broaden the rescue gate without new evidence.

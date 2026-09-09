@@ -23,7 +23,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase8"
+RINKA_REFERENCE_VERSION = "phase9"
 
 
 _TARGET_MAX_SHAPES = {

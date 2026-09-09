@@ -131,6 +131,10 @@ def main() -> None:
         target_meta = target.metadata.get("target_style", {})
         rescue_meta = target.metadata.get("rinka_opaque_subject_rescue", {})
         macro_partition = target.metadata.get("rinka_macro_partition", {})
+        primitive_fits = macro_partition.get("primitive_fits", {}) or {}
+        face_primitive = ((primitive_fits.get("face:0") or {}).get("selected") or {}).get("kind", "none")
+        outfit_primitive = ((primitive_fits.get("outfit:0") or {}).get("selected") or {}).get("kind", "none")
+        head_features = macro_partition.get("head_features", {}) or {}
         target_largest_shape_ratio, target_second_shape_ratio = _largest_shape_ratios(target)
         cleanup = target_meta.get("cleanup", {})
         global_scoring = target_meta.get("global_scoring", {})
@@ -165,6 +169,11 @@ def main() -> None:
             "phase8_rescue_center_fill_ratio": rescue_meta.get("center_fill_ratio", 0.0),
             "phase8_macro_enabled": bool(macro_partition.get("enabled", False)),
             "phase8_macro_generated_shapes": macro_partition.get("generated_shapes", 0),
+            "phase9_semantic_tree_nodes": macro_partition.get("semantic_tree_nodes", 0),
+            "phase9_primitive_fit_count": len(primitive_fits),
+            "phase9_head_feature_shapes": head_features.get("selected_shapes", 0),
+            "phase9_face_primitive_kind": face_primitive,
+            "phase9_outfit_primitive_kind": outfit_primitive,
             "phase8_target_largest_shape_ratio": round(target_largest_shape_ratio, 6),
             "phase8_target_second_shape_ratio": round(target_second_shape_ratio, 6),
             "stable_shapes": stable_shapes,
@@ -267,6 +276,11 @@ def main() -> None:
             "mean_vertex_reduction_ratio": mean(r["vertex_reduction_ratio"] for r in rows),
             "phase8_rescue_activated_count": len(rescue_rows),
             "phase8_macro_enabled_count": sum(1 for r in rows if r["phase8_macro_enabled"]),
+            "phase9_semantic_tree_enabled_count": sum(1 for r in rows if r["phase9_semantic_tree_nodes"] > 0),
+            "phase9_total_primitive_fit_count": sum(r["phase9_primitive_fit_count"] for r in rows),
+            "phase9_head_feature_enabled_count": sum(1 for r in rows if r["phase9_head_feature_shapes"] > 0),
+            "phase9_face_ellipse_count": sum(1 for r in rows if r["phase9_face_primitive_kind"] == "ellipse"),
+            "phase9_outfit_trapezoid_count": sum(1 for r in rows if str(r["phase9_outfit_primitive_kind"]).startswith("trapezoid_")),
             "phase8_rescue_max_target_largest_shape_ratio": max((r["phase8_target_largest_shape_ratio"] for r in rescue_rows), default=0.0),
             "phase8_rescue_max_target_second_shape_ratio": max((r["phase8_target_second_shape_ratio"] for r in rescue_rows), default=0.0),
             "phase8_rescue_min_gate_largest_shape_ratio": min((r["phase8_rescue_gate_largest_shape_ratio"] for r in rescue_rows), default=0.0),

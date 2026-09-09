@@ -85,7 +85,7 @@ def test_service_info_reports_web_engine_and_limits():
         "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
-        "rinka_reference_version": "phase8",
+        "rinka_reference_version": "phase9",
         "color_strip_version": "v0.3",
         "color_strip_default_colors": 5,
         "color_strip_default_similarity": 18.0,

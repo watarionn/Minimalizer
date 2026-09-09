@@ -138,3 +138,14 @@ Current fixed-corpus evidence at level 4 / analysis max side 220:
 - rescue-case largest final filled shape: below **8%** of canvas.
 
 For Omaru, the normal-path failure gate sees giant filled-shape ratios of about **25.4% / 24.7%**, while the Phase 8 macro result suppresses the one-slab failure. Dedicated Omaru-rescue and Subaru-non-rescue tests are included. CI-like local suites pass 66 stable tests + 32 Web/Color Strip tests, and repository-wide pytest reports **230 passed / 2 failed**, where both failures are the pre-existing missing `tests/assets/false_face_phase85.png` fixture cases.
+
+
+## Rinka Reference Phase 9: Semantic Primitive Optimization
+
+Phase 9 is developed on `feature/rinka-phase9-semantic-primitives-20260909` from the merged Phase 8 baseline. It keeps the Phase 8 rescue activation gate unchanged and improves only the rescued semantic macro composition.
+
+The rescue renderer now builds a Semantic Shape Tree, enforces per-part primitive budgets, and compares localized primitive candidates instead of always accepting a simplified contour polygon. Face may become an ellipse, outfit may become a compact trapezoid, and semantic boundaries remain explicit. A conservative head-feature pass can preserve a small distinctive high-contrast accessory cue.
+
+On the fixed 16-image corpus at level 4 / analysis max side 220, Phase 9 records about **38.72%** mean shape reduction and **32.76%** mean vertex reduction. The semantic tree / primitive path activates on exactly **1/16** images. Non-rescue worst identity and silhouette deltas remain about **-0.0449 / -0.0010**. The rescue case ends with largest/second filled-shape ratios about **6.39% / 5.37%**, below the Phase 8 safety limits.
+
+Current dedicated telemetry: Semantic Tree enabled **1**, primitive fits **9**, head feature enabled **1**, face ellipse **1**, outfit trapezoid **1**. Read `docs/RINKA_PHASE9_SEMANTIC_PRIMITIVES.md` before changing the primitive priors, semantic budgets, or head-feature gates.
