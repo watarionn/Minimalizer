@@ -45,6 +45,9 @@ jobs:
             tests/test_target_style.py \
             tests/test_target_hierarchy.py \
             tests/test_rinka_phase8_rescue.py \
+            tests/test_semantic_shape_tree.py \
+            tests/test_primitive_fit.py \
+            tests/test_rinka_phase9_semantic_primitives.py \
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
@@ -67,7 +70,7 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.8.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase8"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.8.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase9"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
 
           python - <<'PY'
           import cv2
@@ -145,23 +148,23 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Rinka Phase 8 corpus
+      - name: Evaluate Rinka Phase 9 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase8
-          echo '--- Rinka Phase 8 summary ---'
-          cat /tmp/rinka-target-phase8/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase9
+          echo '--- Rinka Phase 9 summary ---'
+          cat /tmp/rinka-target-phase9/summary_0_end.json
 
-      - name: Enforce Phase 8 safety guard
+      - name: Enforce Phase 9 safety guard
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          summary = json.loads(Path('/tmp/rinka-target-phase8/summary_0_end.json').read_text())
-          assert summary['target_style_version'] == 'phase8', summary
+          summary = json.loads(Path('/tmp/rinka-target-phase9/summary_0_end.json').read_text())
+          assert summary['target_style_version'] == 'phase9', summary
           assert summary['mean_shape_reduction_ratio'] >= 0.382, summary
           assert summary['phase8_non_rescue_worst_identity_delta'] >= -0.08, summary
           assert summary['phase8_non_rescue_worst_silhouette_delta'] >= -0.01, summary
@@ -184,6 +187,11 @@ jobs:
           assert summary['mean_vertex_reduction_ratio'] >= 0.318, summary
           assert summary['phase8_rescue_activated_count'] == 1, summary
           assert summary['phase8_macro_enabled_count'] == 1, summary
+          assert summary['phase9_semantic_tree_enabled_count'] == 1, summary
+          assert summary['phase9_total_primitive_fit_count'] >= 8, summary
+          assert summary['phase9_head_feature_enabled_count'] == 1, summary
+          assert summary['phase9_face_ellipse_count'] == 1, summary
+          assert summary['phase9_outfit_trapezoid_count'] == 1, summary
           assert summary['phase8_rescue_max_target_largest_shape_ratio'] <= 0.08, summary
           assert summary['phase8_rescue_max_target_second_shape_ratio'] <= 0.07, summary
           assert summary['phase8_rescue_min_gate_largest_shape_ratio'] >= 0.25, summary
@@ -202,14 +210,14 @@ jobs:
           assert summary['opaque_face_reference_count'] >= 1, summary
           assert summary['total_opaque_inferred_hair_shapes'] >= 1, summary
           assert summary['total_opaque_inferred_clothing_shapes'] >= 1, summary
-          print('Phase 8 safety guard passed')
+          print('Phase 9 safety guard passed')
           PY
 
-      - name: Upload Rinka Phase 8 evaluation artifact
+      - name: Upload Rinka Phase 9 evaluation artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase8-evaluation
-          path: /tmp/rinka-target-phase8
+          name: rinka-target-phase9-evaluation
+          path: /tmp/rinka-target-phase9
           if-no-files-found: warn
           retention-days: 14
