@@ -110,7 +110,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase6"
+    assert out.metadata["target_style"]["version"] == "phase7"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -474,7 +474,7 @@ def test_phase5_consolidates_one_safe_outfit_detail_per_base():
 
     out = apply_rinka_reference_style(scene, target_max_shapes=10)
 
-    assert out.metadata["target_style"]["version"] == "phase6"
+    assert out.metadata["target_style"]["version"] == "phase7"
     assert out.metadata["target_style"]["outfit_layer_merges"] == 1
     assert len(out.shapes) == 2
     merged = next(shape for shape in out.shapes if shape.id == 1)
@@ -673,3 +673,71 @@ def test_phase6_does_not_use_lower_z_shape_as_occlusion_carrier():
 
     assert removed == 0
     assert {shape.id for shape in out} == {1021, 1022}
+
+
+def test_phase7_global_scoring_removes_moderate_background_sliver():
+    subject = _rect(
+        1101, 70, 45, 50, 90,
+        importance=0.90,
+        semantic="target_zone_torso_candidate",
+        part="torso",
+        role="target_fragment",
+        layer="foreground",
+        fill_color=(70, 80, 95),
+    )
+    sliver = Shape(
+        id=1102,
+        shape_type="polygon",
+        fill_color=(125, 125, 130),
+        points=[(10, 10), (28, 10), (28, 15), (10, 15)],
+        importance=0.85,
+        semantic_type="background_panel",
+        source_role="background_detail",
+        layer_name="background",
+    )
+    scene = Scene(220, 220, (245, 245, 240), [subject, sliver])
+
+    out = apply_rinka_reference_style(scene)
+    ids = {shape.id for shape in out.shapes}
+    cleanup = out.metadata["target_style"]["cleanup"]
+    scoring = out.metadata["target_style"]["global_scoring"]
+    assert 1101 in ids
+    assert 1102 not in ids
+    assert out.metadata["target_style"]["version"] == "phase7"
+    assert scoring["enabled"] is True
+    assert scoring["score_version"] == "v1"
+    assert scoring["low_value_thin_candidates"] >= 1
+    assert any(d["reason"] == "global_low_value_sliver" for d in cleanup["decisions"])
+
+
+def test_phase7_global_scoring_preserves_salient_foreground_sliver():
+    subject = _rect(
+        1111, 70, 45, 50, 90,
+        importance=0.90,
+        semantic="target_zone_torso_candidate",
+        part="torso",
+        role="target_fragment",
+        layer="foreground",
+        fill_color=(70, 80, 95),
+    )
+    accent = Shape(
+        id=1112,
+        shape_type="polygon",
+        fill_color=(230, 110, 45),
+        points=[(10, 10), (28, 10), (28, 15), (10, 15)],
+        importance=0.95,
+        semantic_type="accent_mark",
+        source_role="accent",
+        layer_name="foreground",
+    )
+    scene = Scene(220, 220, (245, 245, 240), [subject, accent])
+
+    out = apply_rinka_reference_style(scene)
+    ids = {shape.id for shape in out.shapes}
+
+    assert 1111 in ids
+    assert 1112 in ids
+    assert not any(
+        d["shape_id"] == 1112 and d["reason"] == "global_low_value_sliver"
+        for d in out.metadata["target_style"]["cleanup"]["decisions"]
+    )

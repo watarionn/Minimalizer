@@ -22,7 +22,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase6"
+RINKA_REFERENCE_VERSION = "phase7"
 
 
 _TARGET_MAX_SHAPES = {
@@ -1368,6 +1368,119 @@ def _macro_subject_continuity(
     return False
 
 
+def _global_shape_value(
+    scene: Scene,
+    shape: Shape,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+) -> float:
+    """Score global visual value before cleanup instead of trusting local detail alone."""
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    area, _short, _long, aspect = _shape_metrics(shape)
+    area_ratio = max(0.0, area / canvas_area)
+    importance = max(0.0, min(1.0, float(shape.importance)))
+    macro_score = max(0.0, min(1.0, _macro_shape_priority_score(scene, shape) / 1.20))
+    area_score = min(1.0, float(np.sqrt(area_ratio / 0.025))) if area_ratio > 0 else 0.0
+    overlap_score = min(1.0, _bbox_overlap_ratio_with_subject(shape, subject_zones) / 0.45)
+
+    mass_kind = _target_mass_kind(shape)
+    zone = _macro_zone_kind(shape)
+    gesture = _gesture_carrier_kind(shape)
+    definite_subject = (
+        _strict_character_base(shape)
+        or zone is not None
+        or gesture is not None
+        or mass_kind in {"hair", "garment", "hand", "prop"}
+    )
+    if definite_subject:
+        semantic_score = 1.0
+    elif mass_kind == "background" and not _is_character_like(shape):
+        semantic_score = 0.0
+    else:
+        semantic_score = 0.35
+
+    score = (
+        macro_score * 0.34
+        + area_score * 0.24
+        + importance * 0.18
+        + overlap_score * 0.12
+        + semantic_score * 0.12
+    )
+    if _macro_subject_continuity(scene, shape, shapes, subject_zones):
+        score += 0.12
+    if (shape.layer_name or "").lower() == "foreground":
+        score += 0.04
+
+    tags = _shape_tags(shape)
+    if mass_kind == "background" and not _is_character_like(shape):
+        score -= 0.12
+    if "opaque_background" in tags:
+        score -= 0.06
+
+    if area_ratio <= 0.014 and aspect >= 2.8:
+        sliver_severity = min(1.0, max(0.0, (aspect - 2.8) / 5.0))
+        smallness = min(1.0, max(0.0, (0.014 - area_ratio) / 0.014))
+        score -= 0.10 * (0.45 + 0.55 * sliver_severity) * smallness
+    return max(0.0, min(1.0, score))
+
+
+def _score_global_shapes(
+    scene: Scene,
+    shapes: list[Shape],
+    subject_zones: OpaqueSubjectZones | None,
+    *,
+    low_value_threshold: float = 0.34,
+) -> tuple[dict[int, float], dict]:
+    scores = {
+        shape.id: _global_shape_value(scene, shape, shapes, subject_zones)
+        for shape in shapes
+    }
+    values = list(scores.values())
+    low_ids = {shape_id for shape_id, score in scores.items() if score <= low_value_threshold}
+    low_background = sum(
+        1 for shape in shapes
+        if shape.id in low_ids
+        and _target_mass_kind(shape) == "background"
+        and not _is_character_like(shape)
+    )
+    low_subject = sum(
+        1 for shape in shapes
+        if shape.id in low_ids
+        and (
+            _strict_character_base(shape)
+            or _macro_zone_kind(shape) is not None
+            or _gesture_carrier_kind(shape) is not None
+            or _target_mass_kind(shape) in {"hair", "garment", "hand", "prop"}
+        )
+    )
+    thin_candidates = 0
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    min_side = max(float(min(scene.width, scene.height)), 1.0)
+    for shape in shapes:
+        area, short, _long, aspect = _shape_metrics(shape)
+        if (
+            shape.id in low_ids
+            and shape.shape_type != "line"
+            and short <= max(1.6, min_side * 0.035)
+            and aspect >= 2.8
+            and area / canvas_area <= 0.014
+        ):
+            thin_candidates += 1
+    return scores, {
+        "enabled": True,
+        "score_version": "v1",
+        "count": len(scores),
+        "min": min(values) if values else 0.0,
+        "max": max(values) if values else 0.0,
+        "mean": float(np.mean(values)) if values else 0.0,
+        "low_value_threshold": low_value_threshold,
+        "low_value_count": len(low_ids),
+        "low_value_background_count": low_background,
+        "low_value_subject_count": low_subject,
+        "low_value_thin_candidates": thin_candidates,
+    }
+
+
 def _macro_priority_shadow(
     scene: Scene,
     shapes: list[Shape],
@@ -1463,6 +1576,7 @@ def apply_rinka_reference_style(
         )
         for shape in pruned
     ]
+    global_scores, global_scoring = _score_global_shapes(scene, relaxed, opaque_zones)
     cleaned, report = cleanup_minimal_shapes(
         relaxed,
         scene.width,
@@ -1499,6 +1613,12 @@ def apply_rinka_reference_style(
         isolated_max_area_ratio=0.0015,
         isolated_min_distance_ratio=0.060,
         isolated_max_importance=0.55,
+        global_scores=global_scores,
+        global_thin_enable=True,
+        global_thin_max_score=global_scoring["low_value_threshold"],
+        global_thin_short_side_ratio=0.035,
+        global_thin_aspect_ratio=2.8,
+        global_thin_max_area_ratio=0.014,
     )
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     consolidated, mass_merges = _consolidate_masses(faceless, min_side)
@@ -1534,6 +1654,7 @@ def apply_rinka_reference_style(
             **zone_stats,
         },
         "structure_redundant_removed": structure_redundant_removed,
+        "global_scoring": global_scoring,
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,

@@ -264,3 +264,10 @@ Optional Web follow-up, after or alongside quality work:
 
 
 Phase 6 is merged and frozen at `a5e76fc365ad608bde7506b9b0a7b21a5e8527cc`. Web v0.5.0 integration starts from that exact baseline on `feature/rinka-web-ui-mode-20260909`. Add an explicit accessible segmented `?? / ?????` selector while keeping Standard selected by default. The API accepts `mode=standard|rinka_reference`; Standard preserves all existing controls, while Rinka Reference must stay locked to its validated Phase 6 level-4 profile and reject custom color/shape/background overrides. Both modes must obey the hosted analysis-size cap and processing semaphore. The response exposes `X-Minimalizer-Mode`; `/api/info` reports supported modes and `phase6`. Merge first, then verify both modes on the Railway production URL before calling v0.5.0 production-complete.
+
+
+## Rinka Reference Phase 7 handoff
+
+Phase 7 adds pre-cleanup Global Shape Scoring on `feature/rinka-global-shape-scoring-20260909`. The scorer combines existing macro priority, area, local importance, subject-zone overlap, semantic subject/background role, subject continuity, foreground placement, and a conservative sliver penalty. `cleanup_minimal_shapes()` now accepts optional global scores and a separate global-thin gate; its defaults leave Standard behavior unchanged.
+
+Fixed-corpus evidence versus Phase 6: 3 additional global low-value slivers removed, mean shape reduction 37.94% -> 38.32%, mean vertex reduction 31.37% -> 31.58%, with identical pre-target identity/silhouette deltas. Global low-value audit: 101 total, 87 background, 0 subject, 11 thin candidates, exactly 3 removed. CI now records and guards these Phase 7 metrics.
