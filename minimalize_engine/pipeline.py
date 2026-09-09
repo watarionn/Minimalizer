@@ -58,6 +58,7 @@ from .character.face_diagnostics import build_face_diagnostics_report
 from .character.outfit_quality import evaluate_outfit_quality
 from .character.prop_symbol_quality import evaluate_prop_symbol_quality
 from .character.whole_identity import evaluate_character_wide_identity
+from .character.rinka_macro import RinkaMacroReport, build_rinka_macro_partition
 
 def _prepare_source(image_or_path,config):
     if isinstance(image_or_path,(str,Path)):
@@ -367,8 +368,21 @@ def _minimalize_once(image_or_path,config):
                     character_detail_metadata,
                 )
 
+    rinka_macro_report = RinkaMacroReport()
+    rinka_macro_active = (
+        character_structure is not None
+        and config.enable_rinka_macro_partition
+        and (not config.rinka_macro_rescue_only or config.rinka_macro_rescue_active)
+    )
+    if rinka_macro_active and character_structure is not None:
+        shapes, rinka_macro_report = build_rinka_macro_partition(
+            working,
+            character_structure,
+            shapes,
+        )
+
     macro_shapes=[];subject_base=[]
-    if subject and valid is not None:
+    if subject and valid is not None and not rinka_macro_report.enabled:
         subject_base=build_subject_base_shape(valid,[e.output_rgb for e in pal_entries] if pal_entries else [p.rgb for p in palette]);shapes.extend(subject_base)
     if macro_allowed:
         macro_shapes=build_macro_layer_shapes(macro_source,working.shape,background,water_strength=config.water_underlay_strength,skyline_strength=config.skyline_underlay_strength,skeleton=skeleton,clip_skyline=config.skeleton_clip_skyline,water_corridor=config.skeleton_water_corridor);shapes.extend(macro_shapes)
@@ -511,6 +525,7 @@ def _minimalize_once(image_or_path,config):
         "multiscale_enabled":multi is not None,"macro_shape_count":len(macro_shapes),"subject_base_shape_count":len(subject_base),
         "global_shape_value":shape_value_report.to_dict(),
         "global_shape_cleanup":shape_cleanup_report.to_dict(),
+        "rinka_macro_partition":rinka_macro_report.to_dict(),
         "character":(
             {
                 "enabled":True,

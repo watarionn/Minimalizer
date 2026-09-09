@@ -139,6 +139,9 @@ class MinimalizeConfig:
 
     # v0.3.0 Character Structure Engine
     enable_character_structure: bool = True
+    enable_rinka_macro_partition: bool = False
+    rinka_macro_rescue_only: bool = True
+    rinka_macro_rescue_active: bool = False
     enable_body_primitives: bool = True
     enable_hand_analysis: bool = True
     enable_hand_primitives: bool = True

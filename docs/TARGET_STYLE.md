@@ -189,3 +189,10 @@ When comparing future output to the Rinka Reference, ask:
 - Does the image feel designed rather than merely traced?
 
 The long-term target is: **input image -> intentional geometric poster**, not simply input image -> fewer contours.
+
+
+## Phase 8 implementation note: semantic macro rescue
+
+If the normal target-style path demonstrably collapses an opaque character image into multiple giant color slabs, the renderer may switch to semantic macro reconstruction. This is a fallback, not the default path.
+
+The fallback must be evidence-gated and general: detect the failure from composition/shape ratios, recover the subject through Character Structure, and rebuild only a few large semantic masses. Preserve hand/prop gesture cues and distinctive outfit color blocks while preventing head, hair, torso and limbs from being flattened into one polygon. See `RINKA_PHASE8_SUBJECT_PARTITION.md` for the current gates and evaluation rules.

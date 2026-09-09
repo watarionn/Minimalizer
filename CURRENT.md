@@ -118,3 +118,23 @@ Phase 7 reopens the former Phase 6 freeze only for a corpus-backed improvement: 
 The new global scoring path is opt-in from Rinka Reference only. Stable/Standard cleanup defaults remain unchanged. Low-value global sliver removal is gated by score, geometry, area, and existing semantic protection.
 
 On the fixed 16-image corpus at level 4 / analysis max side 220, Phase 7 removes 3 additional low-value slivers versus Phase 6, improves mean shape reduction from about 37.94% to 38.32%, and mean vertex reduction from about 31.37% to 31.58%. Pre-target identity/silhouette metrics are unchanged versus the Phase 6 baseline. Global scoring classified 101 shapes as low-value, including 87 background shapes and 0 subject shapes; 11 were thin candidates and exactly 3 passed the deletion gate.
+
+
+## Rinka Reference Phase 8: Subject Macro Partition
+
+Phase 8 is in development on `feature/rinka-phase8-subject-partition-20260909`. It addresses a corpus-backed failure where an opaque character thumbnail can stay in general-scene mode and collapse into one or two giant color polygons.
+
+The new path is failure-gated rather than generally enabled. A candidate image is first run through the normal Phase 7-compatible path; rescue activates only when the output is still non-subject, the background/center evidence is strong, and two giant filled shapes remain (largest >=25% canvas and second >=22%). On the fixed corpus this gate activates only for Omaru Polka; Raden, Subaru, Noel, Night River City and the other samples stay on the established path.
+
+When activated, an inferred alpha mask is sent through Character Structure and real part masks are rebuilt as a compact semantic macro composition: face, hair, left/right arms, left/right lower body, outfit, plus protected hand/prop details. Outfit base-color ranking also considers perceptual distance from the face so accidental skin-colored overlap does not dominate a garment mass.
+Current fixed-corpus evidence at level 4 / analysis max side 220:
+
+- mean shape reduction: about **38.32%**;
+- mean vertex reduction: about **32.22%**;
+- rescue activated: **1 / 16**;
+- macro partition activated: **1 / 16**;
+- worst non-rescue identity delta: about **-0.0449**;
+- worst non-rescue silhouette delta: about **-0.0010**;
+- rescue-case largest final filled shape: below **8%** of canvas.
+
+For Omaru, the normal-path failure gate sees giant filled-shape ratios of about **25.4% / 24.7%**, while the Phase 8 macro result suppresses the one-slab failure. Dedicated Omaru-rescue and Subaru-non-rescue tests are included. CI-like local suites pass 66 stable tests + 32 Web/Color Strip tests, and repository-wide pytest reports **230 passed / 2 failed**, where both failures are the pre-existing missing `tests/assets/false_face_phase85.png` fixture cases.
