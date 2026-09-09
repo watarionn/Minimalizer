@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 from PIL import Image, ImageDraw
 
-COLOR_STRIP_VERSION = "v0.1"
+COLOR_STRIP_VERSION = "v0.2"
 DEFAULT_COLOR_COUNT = 5
 DEFAULT_SIMILARITY = 18.0
+DEFAULT_SIZE_MODE = "equal"
+DEFAULT_ORDER = "least_first"
+DEFAULT_ORIENTATION = "vertical"
 MIN_COLOR_COUNT = 3
 MAX_COLOR_COUNT = 5
 MIN_SIMILARITY = 6.0
@@ -16,6 +20,10 @@ MAX_SIMILARITY = 30.0
 QUANTIZE_COLORS = 64
 ANALYSIS_MAX_SIDE = 512
 OUTPUT_MAX_SIDE = 2048
+
+ColorStripSizeMode = Literal["equal", "proportional"]
+ColorStripOrder = Literal["least_first", "most_first"]
+ColorStripOrientation = Literal["vertical", "horizontal"]
 
 
 @dataclass(frozen=True)
@@ -39,17 +47,32 @@ class ColorStripDocument:
     output_height: int
     colors: tuple[ColorStripColor, ...]
     similarity: float
+    size_mode: ColorStripSizeMode
+    order: ColorStripOrder
+    orientation: ColorStripOrientation
 
     @property
     def color_count(self) -> int:
         return len(self.colors)
 
 
-def _validate_options(color_count: int, similarity: float) -> None:
+def _validate_options(
+    color_count: int,
+    similarity: float,
+    size_mode: ColorStripSizeMode,
+    order: ColorStripOrder,
+    orientation: ColorStripOrientation,
+) -> None:
     if not MIN_COLOR_COUNT <= color_count <= MAX_COLOR_COUNT:
         raise ValueError("Color Strip color_count must be between 3 and 5.")
     if not MIN_SIMILARITY <= similarity <= MAX_SIMILARITY:
         raise ValueError("Color Strip similarity must be between 6 and 30.")
+    if size_mode not in {"equal", "proportional"}:
+        raise ValueError("Color Strip size_mode must be equal or proportional.")
+    if order not in {"least_first", "most_first"}:
+        raise ValueError("Color Strip order must be least_first or most_first.")
+    if orientation not in {"vertical", "horizontal"}:
+        raise ValueError("Color Strip orientation must be vertical or horizontal.")
 
 
 def _fit_size(width: int, height: int, max_side: int) -> tuple[int, int]:
@@ -157,11 +180,14 @@ def extract_color_strip(
     *,
     color_count: int = DEFAULT_COLOR_COUNT,
     similarity: float = DEFAULT_SIMILARITY,
+    size_mode: ColorStripSizeMode = DEFAULT_SIZE_MODE,
+    order: ColorStripOrder = DEFAULT_ORDER,
+    orientation: ColorStripOrientation = DEFAULT_ORIENTATION,
     analysis_max_side: int = ANALYSIS_MAX_SIDE,
     output_max_side: int = OUTPUT_MAX_SIDE,
 ) -> ColorStripDocument:
-    """Extract dominant colors and return an equal-height Color Strip document."""
-    _validate_options(color_count, similarity)
+    """Extract dominant colors and return a configurable Color Strip document."""
+    _validate_options(color_count, similarity, size_mode, order, orientation)
 
     with Image.open(input_path) as source:
         source_width, source_height = source.size
@@ -184,15 +210,14 @@ def extract_color_strip(
     selected = merged[:color_count]
     total_visible = sum(count for count, _ in merged)
 
-    # Selection is based on most-used colors. Rendering intentionally reverses
-    # that order so the least-used selected color is placed first/top.
+    reverse = order == "most_first"
     colors = tuple(
         ColorStripColor(
             rgb=rgb,
             pixel_count=count,
             share=count / total_visible,
         )
-        for count, rgb in sorted(selected, key=lambda item: item[0])
+        for count, rgb in sorted(selected, key=lambda item: item[0], reverse=reverse)
     )
 
     output_width, output_height = _fit_size(source_width, source_height, output_max_side)
@@ -205,14 +230,59 @@ def extract_color_strip(
         output_height=output_height,
         colors=colors,
         similarity=float(similarity),
+        size_mode=size_mode,
+        order=order,
+        orientation=orientation,
     )
 
 
-def _bar_bounds(index: int, count: int, height: int) -> tuple[int, int]:
-    """Return equal-height bar bounds; shares are retained for a future size option."""
-    top = round(index * height / count)
-    bottom = round((index + 1) * height / count)
-    return top, max(top + 1, bottom)
+def _bar_bounds(index: int, count: int, length: int) -> tuple[int, int]:
+    """Return legacy equal-size bounds so v0.1 defaults remain byte-compatible."""
+    start = round(index * length / count)
+    end = round((index + 1) * length / count)
+    return start, max(start + 1, end)
+
+
+def _proportional_bounds(colors: tuple[ColorStripColor, ...], length: int) -> list[tuple[int, int]]:
+    count = len(colors)
+    if count == 0:
+        return []
+    if length < count:
+        return [_bar_bounds(index, count, length) for index in range(count)]
+
+    total_share = sum(color.share for color in colors)
+    if total_share <= 0:
+        return [_bar_bounds(index, count, length) for index in range(count)]
+
+    # Reserve one pixel per selected color, then distribute the remaining pixels
+    # by source share. This keeps tiny selected colors visible in raster output.
+    remaining = length - count
+    weighted = [(color.share / total_share) * remaining for color in colors]
+    extras = [int(value) for value in weighted]
+    remainder = remaining - sum(extras)
+    ranked = sorted(
+        range(count),
+        key=lambda index: (weighted[index] - extras[index], -index),
+        reverse=True,
+    )
+    for index in ranked[:remainder]:
+        extras[index] += 1
+
+    sizes = [1 + extra for extra in extras]
+    bounds: list[tuple[int, int]] = []
+    cursor = 0
+    for size in sizes:
+        end = cursor + size
+        bounds.append((cursor, end))
+        cursor = end
+    return bounds
+
+
+def _segment_bounds(document: ColorStripDocument) -> list[tuple[int, int]]:
+    length = document.output_height if document.orientation == "vertical" else document.output_width
+    if document.size_mode == "proportional":
+        return _proportional_bounds(document.colors, length)
+    return [_bar_bounds(index, document.color_count, length) for index in range(document.color_count)]
 
 
 def color_strip_to_svg(document: ColorStripDocument) -> str:
@@ -222,12 +292,17 @@ def color_strip_to_svg(document: ColorStripDocument) -> str:
             f'height="{document.output_height}" viewBox="0 0 {document.output_width} {document.output_height}">'
         )
     ]
-    for index, color in enumerate(document.colors):
-        top, bottom = _bar_bounds(index, document.color_count, document.output_height)
-        lines.append(
-            f'  <rect x="0" y="{top}" width="{document.output_width}" '
-            f'height="{bottom - top}" fill="{color.hex}"/>'
-        )
+    for color, (start, end) in zip(document.colors, _segment_bounds(document), strict=True):
+        if document.orientation == "vertical":
+            lines.append(
+                f'  <rect x="0" y="{start}" width="{document.output_width}" '
+                f'height="{end - start}" fill="{color.hex}"/>'
+            )
+        else:
+            lines.append(
+                f'  <rect x="{start}" y="0" width="{end - start}" '
+                f'height="{document.output_height}" fill="{color.hex}"/>'
+            )
     lines.append("</svg>")
     return "\n".join(lines)
 
@@ -235,10 +310,15 @@ def color_strip_to_svg(document: ColorStripDocument) -> str:
 def render_color_strip(document: ColorStripDocument) -> Image.Image:
     image = Image.new("RGB", (document.output_width, document.output_height))
     draw = ImageDraw.Draw(image)
-    for index, color in enumerate(document.colors):
-        top, bottom = _bar_bounds(index, document.color_count, document.output_height)
-        draw.rectangle(
-            (0, top, document.output_width - 1, min(document.output_height, bottom) - 1),
-            fill=color.rgb,
-        )
+    for color, (start, end) in zip(document.colors, _segment_bounds(document), strict=True):
+        if document.orientation == "vertical":
+            draw.rectangle(
+                (0, start, document.output_width - 1, min(document.output_height, end) - 1),
+                fill=color.rgb,
+            )
+        else:
+            draw.rectangle(
+                (start, 0, min(document.output_width, end) - 1, document.output_height - 1),
+                fill=color.rgb,
+            )
     return image
