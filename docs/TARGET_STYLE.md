@@ -196,3 +196,12 @@ The long-term target is: **input image -> intentional geometric poster**, not si
 If the normal target-style path demonstrably collapses an opaque character image into multiple giant color slabs, the renderer may switch to semantic macro reconstruction. This is a fallback, not the default path.
 
 The fallback must be evidence-gated and general: detect the failure from composition/shape ratios, recover the subject through Character Structure, and rebuild only a few large semantic masses. Preserve hand/prop gesture cues and distinctive outfit color blocks while preventing head, hair, torso and limbs from being flattened into one polygon. See `RINKA_PHASE8_SUBJECT_PARTITION.md` for the current gates and evaluation rules.
+
+
+## Phase 9 implementation note: semantic primitive optimization
+
+After the Phase 8 failure gate accepts semantic macro rescue, Phase 9 may construct an explicit Semantic Shape Tree and fit a very small number of part-local simple primitives. The tree keeps face, hair, outfit, limbs, props, and distinctive accessories structurally separate and supplies per-part primitive budgets.
+
+Primitive choice balances raster fidelity with geometric simplicity. Part-aware priors may favor an ellipse-like face or trapezoid-like garment mass, but fidelity guards prevent the preferred family from overriding a clearly better representation. Large outfit primitives are area-limited through scaling and re-evaluation so intentional simplification cannot recreate the giant-slab failure.
+
+Distinctive head-region color cues may be retained conservatively when they are small, saturated, separated from skin/hair/background, and not redundant with another selected cue. See `RINKA_PHASE9_SEMANTIC_PRIMITIVES.md` for the current architecture, rejected experiments, and corpus evidence.

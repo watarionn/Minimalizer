@@ -114,19 +114,31 @@ def _trapezoid_candidates(mask: np.ndarray) -> list[tuple[str, np.ndarray]]:
     ys, xs = np.where(mask > 0)
     if len(xs) < 4:
         return []
-    x0, x1 = float(xs.min()), float(xs.max())
     y0, y1 = float(ys.min()), float(ys.max())
     height = max(y1 - y0, 1.0)
-    width = max(x1 - x0, 1.0)
+    top_sel = ys <= y0 + height * 0.35
+    bottom_sel = ys >= y0 + height * 0.65
 
-    top = (ys <= y0 + height * 0.30)
-    bottom = (ys >= y0 + height * 0.70)
-    top_cx = float(xs[top].mean()) if np.any(top) else float(xs.mean())
-    bottom_cx = float(xs[bottom].mean()) if np.any(bottom) else float(xs.mean())
+    def robust_band(values: np.ndarray) -> tuple[float, float]:
+        if len(values) >= 8:
+            return float(np.percentile(values, 8)), float(np.percentile(values, 92))
+        return float(values.min()), float(values.max())
+
+    all_left, all_right = robust_band(xs)
+    top_x = xs[top_sel] if np.any(top_sel) else xs
+    bottom_x = xs[bottom_sel] if np.any(bottom_sel) else xs
+    top_left, top_right = robust_band(top_x)
+    bottom_left, bottom_right = robust_band(bottom_x)
+
+    top_cx = 0.5 * (top_left + top_right)
+    bottom_cx = 0.5 * (bottom_left + bottom_right)
+    top_width = max(top_right - top_left, (all_right - all_left) * 0.22, 1.0)
+    bottom_width = max(bottom_right - bottom_left, (all_right - all_left) * 0.22, 1.0)
+
     candidates = []
-    for top_scale, bottom_scale in ((0.55, 0.95), (0.70, 1.00), (0.82, 1.00), (0.95, 0.75), (1.00, 0.88)):
-        tw = width * top_scale
-        bw = width * bottom_scale
+    for top_scale, bottom_scale in ((0.72, 0.82), (0.78, 0.88), (0.84, 0.92), (0.88, 0.96), (0.92, 1.00), (0.95, 0.95), (1.00, 1.00)):
+        tw = top_width * top_scale
+        bw = bottom_width * bottom_scale
         pts = np.asarray([
             [top_cx - tw * 0.5, y0],
             [top_cx + tw * 0.5, y0],
@@ -135,7 +147,6 @@ def _trapezoid_candidates(mask: np.ndarray) -> list[tuple[str, np.ndarray]]:
         ], dtype=np.float32)
         candidates.append((f"trapezoid_{top_scale:.2f}_{bottom_scale:.2f}", pts))
     return candidates
-
 
 def _rotated_rect_candidate(contour: np.ndarray) -> tuple[str, np.ndarray] | None:
     if len(contour) < 3:
@@ -152,6 +163,44 @@ def _triangle_candidate(contour: np.ndarray) -> tuple[str, np.ndarray] | None:
         return None
     return "triangle", triangle.reshape(-1, 2).astype(np.float32)
 
+
+
+
+def cap_primitive_area(
+    fit: PrimitiveFit,
+    target_mask: np.ndarray,
+    max_area_ratio: float,
+) -> PrimitiveFit:
+    target = (target_mask > 0).astype(np.uint8)
+    if max_area_ratio <= 0.0:
+        return fit
+    if fit.shape_type == "ellipse":
+        candidate = _ellipse_mask(target.shape, fit.cx or 0.0, fit.cy or 0.0, fit.rx or 1.0, fit.ry or 1.0)
+        ratio = float(candidate.sum()) / float(candidate.size)
+        if ratio <= max_area_ratio:
+            return fit
+        scale = math.sqrt(max_area_ratio / max(ratio, 1e-9))
+        rx = max(1.0, float(fit.rx or 1.0) * scale)
+        ry = max(1.0, float(fit.ry or 1.0) * scale)
+        candidate = _ellipse_mask(target.shape, fit.cx or 0.0, fit.cy or 0.0, rx, ry)
+        score, iou, recall, precision = _metrics(target, candidate, fit.complexity)
+        return PrimitiveFit(fit.kind + "_capped", "ellipse", score, iou, recall, precision, fit.complexity, cx=fit.cx, cy=fit.cy, rx=rx, ry=ry)
+    points = np.asarray(fit.points or [], dtype=np.float32)
+    if len(points) < 3:
+        return fit
+    candidate = _polygon_mask(target.shape, points)
+    ratio = float(candidate.sum()) / float(candidate.size)
+    if ratio <= max_area_ratio:
+        return fit
+    scale = math.sqrt(max_area_ratio / max(ratio, 1e-9))
+    center = points.mean(axis=0)
+    points = center + (points - center) * scale
+    candidate = _polygon_mask(target.shape, points)
+    score, iou, recall, precision = _metrics(target, candidate, fit.complexity)
+    return PrimitiveFit(
+        fit.kind + "_capped", "polygon", score, iou, recall, precision, fit.complexity,
+        points=[(float(x), float(y)) for x, y in points],
+    )
 
 def fit_best_primitive(
     mask: np.ndarray,
@@ -179,9 +228,11 @@ def fit_best_primitive(
         item = _triangle_candidate(contour)
         if item is not None:
             candidates.append((item[0], "polygon", item[1], 3))
-    if "ellipse" in allowed and len(contour) >= 5:
-        (cx, cy), (diameter_a, diameter_b), angle = cv2.fitEllipse(contour)
-        candidates.append(("ellipse", "ellipse", (cx, cy, diameter_a * 0.5, diameter_b * 0.5, angle), 4))
+    if "ellipse" in allowed:
+        x, y, w, h = cv2.boundingRect(contour)
+        cx = float(x) + float(w) * 0.5
+        cy = float(y) + float(h) * 0.5
+        candidates.append(("ellipse", "ellipse", (cx, cy, max(float(w) * 0.5, 1.0), max(float(h) * 0.5, 1.0), 0.0), 4))
 
     best: PrimitiveFit | None = None
     for kind, shape_type, geometry, complexity in candidates:

@@ -59,6 +59,26 @@ class SemanticShapeTree:
             return False
         return a.parent == b.parent
 
+    def add_synthetic(self, name: str, *, parent: str, primitive_budget: int = 1,
+                      merge_group: str | None = None, protected: bool = True,
+                      metadata: dict | None = None) -> SemanticShapeNode:
+        existing = self.nodes.get(name)
+        if existing is not None:
+            return existing
+        node = SemanticShapeNode(
+            name=name,
+            parent=parent,
+            primitive_budget=primitive_budget,
+            merge_group=merge_group or name,
+            protected=protected,
+            metadata=dict(metadata or {}),
+        )
+        self.nodes[name] = node
+        if parent in self.nodes and name not in self.nodes[parent].children:
+            self.nodes[parent].children.append(name)
+            self.nodes[parent].children.sort()
+        return node
+
     def to_dict(self) -> dict:
         return {
             "root": self.root,

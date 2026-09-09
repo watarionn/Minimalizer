@@ -7,6 +7,9 @@ import numpy as np
 
 from ..models import Shape
 from .models import CharacterPartCandidate, CharacterStructure
+from .head_feature import build_head_feature_shapes
+from .primitive_fit import PrimitiveFit, cap_primitive_area, fit_best_primitive
+from .semantic_shape_tree import build_semantic_shape_tree
 
 
 @dataclass
@@ -16,6 +19,10 @@ class RinkaMacroReport:
     generated_shapes: int = 0
     retained_detail_shapes: int = 0
     part_shape_counts: dict[str, int] | None = None
+    semantic_tree_nodes: int = 0
+    primitive_fits: dict[str, dict] | None = None
+    semantic_tree: dict | None = None
+    head_features: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -24,6 +31,10 @@ class RinkaMacroReport:
             "generated_shapes": self.generated_shapes,
             "retained_detail_shapes": self.retained_detail_shapes,
             "part_shape_counts": dict(self.part_shape_counts or {}),
+            "semantic_tree_nodes": self.semantic_tree_nodes,
+            "primitive_fits": dict(self.primitive_fits or {}),
+            "semantic_tree": dict(self.semantic_tree or {}),
+            "head_features": dict(self.head_features or {}),
         }
 
 
@@ -36,6 +47,7 @@ def _coarse_color_groups(
     mask: np.ndarray,
     *,
     max_colors: int,
+    min_fraction: float = 0.035,
 ) -> list[tuple[tuple[int, int, int], np.ndarray, int]]:
     active = mask > 0
     pixels = image_rgb[active]
@@ -50,7 +62,7 @@ def _coarse_color_groups(
     for idx in order[: max_colors * 3]:
         selected = keys == values[idx]
         count = int(selected.sum())
-        if count < max(6, int(active.sum() * 0.035)):
+        if count < max(6, int(active.sum() * min_fraction)):
             continue
         color = tuple(int(v) for v in np.median(pixels[selected], axis=0))
         group_mask = np.zeros(mask.shape, dtype=np.uint8)
@@ -120,6 +132,63 @@ def _shape_from_contour(
     )
 
 
+def _allowed_primitives(part_name: str) -> tuple[str, ...]:
+    if part_name == "face":
+        return ("ellipse", "polygon")
+    if part_name == "outfit":
+        return ("trapezoid", "rotated_rect", "polygon")
+    if part_name == "hair":
+        return ("polygon", "rotated_rect")
+    if part_name in {"left_arm", "right_arm", "left_leg", "right_leg"}:
+        return ("rotated_rect", "trapezoid", "polygon")
+    return ("polygon",)
+
+
+def _shape_from_fit(fit: PrimitiveFit, **kwargs) -> Shape:
+    if fit.shape_type == "ellipse":
+        return Shape(shape_type="ellipse", points=[], cx=fit.cx, cy=fit.cy, rx=fit.rx, ry=fit.ry, **kwargs)
+    return Shape(shape_type="polygon", points=list(fit.points or []), **kwargs)
+
+
+def _fit_family(fit: PrimitiveFit) -> str:
+    if fit.kind.startswith("polygon_"):
+        return "polygon"
+    if fit.kind.startswith("trapezoid_"):
+        return "trapezoid"
+    return fit.kind
+
+
+def _fit_part_primitive(part_name: str, mask: np.ndarray) -> tuple[PrimitiveFit | None, list[dict]]:
+    trials: list[dict] = []
+    fits: list[PrimitiveFit] = []
+    for family in _allowed_primitives(part_name):
+        fit = fit_best_primitive(
+            mask,
+            allowed=(family,),
+            polygon_vertices=(4, 5, 6, 8),
+        )
+        if fit is not None and part_name == "outfit" and family == "trapezoid":
+            fit = cap_primitive_area(fit, mask, 0.079)
+        if fit is not None:
+            fits.append(fit)
+            trials.append(fit.to_dict())
+    if not fits:
+        return None, trials
+    priors = {
+        "outfit": {"trapezoid": 0.15, "rotated_rect": 0.06},
+        "face": {"ellipse": 0.05},
+        "left_arm": {"rotated_rect": 0.05, "trapezoid": 0.03},
+        "right_arm": {"rotated_rect": 0.05, "trapezoid": 0.03},
+        "left_leg": {"rotated_rect": 0.04, "trapezoid": 0.02},
+        "right_leg": {"rotated_rect": 0.04, "trapezoid": 0.02},
+    }.get(part_name, {})
+    raw_best = max(fits, key=lambda f: f.score)
+    adjusted = max(fits, key=lambda f: f.score + priors.get(_fit_family(f), 0.0))
+    if adjusted.score < raw_best.score - 0.13:
+        adjusted = raw_best
+    return adjusted, trials
+
+
 _PART_SPECS = {
     "hair": dict(max_colors=6, max_components=2, z=24200, accents=2),
     "left_leg": dict(max_colors=5, max_components=2, z=25000, accents=2),
@@ -145,7 +214,7 @@ def _prioritize_outfit_groups(groups, face_ref):
     if len(groups) <= 1 or face_ref is None:
         return groups
     max_count = max((count for _, _, count in groups), default=1)
-    ranked = []
+    enriched = []
     for group in groups:
         color, _, count = group
         rgb = np.asarray(color, dtype=np.uint8).reshape(1, 1, 3)
@@ -153,10 +222,20 @@ def _prioritize_outfit_groups(groups, face_ref):
         contrast = min(1.0, float(np.linalg.norm(lab - face_ref)) / 42.0)
         chroma = min(1.0, float(np.std(np.asarray(color, dtype=np.float32))) / 60.0)
         usage = float(count) / max(float(max_count), 1.0)
-        score = 0.35 * usage + 0.50 * contrast + 0.15 * chroma
-        ranked.append((score, group))
-    ranked.sort(key=lambda item: item[0], reverse=True)
-    return [group for _, group in ranked]
+        base_score = 0.35 * usage + 0.50 * contrast + 0.15 * chroma
+        enriched.append((group, lab, chroma, usage, base_score))
+    base_item = max(enriched, key=lambda item: item[4])
+    base_group, base_lab, _, _, _ = base_item
+    accents = []
+    for item in enriched:
+        if item is base_item:
+            continue
+        group, lab, chroma, usage, _ = item
+        separation = min(1.0, float(np.linalg.norm(lab - base_lab)) / 48.0)
+        feature_score = 0.45 * separation + 0.40 * chroma + 0.15 * usage
+        accents.append((feature_score, group))
+    accents.sort(key=lambda item: item[0], reverse=True)
+    return [base_group] + [group for _, group in accents]
 
 
 def _keep_existing_detail(shape: Shape) -> bool:
@@ -191,6 +270,8 @@ def build_rinka_macro_partition(
         return existing_shapes, RinkaMacroReport(False, "part_gate")
     generated: list[Shape] = []
     counts: dict[str, int] = {}
+    tree = build_semantic_shape_tree(structure)
+    primitive_fits: dict[str, dict] = {}
     next_id = 795000
     image_lab = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
     face_part = _part(structure, "face")
@@ -221,6 +302,7 @@ def build_rinka_macro_partition(
             image_rgb,
             effective_mask,
             max_colors=int(spec["max_colors"]),
+            min_fraction=(0.012 if part_name == "outfit" else 0.035),
         )
         if part_name == "outfit":
             groups = _prioritize_outfit_groups(groups, face_ref)
@@ -234,32 +316,49 @@ def build_rinka_macro_partition(
         for _, group_mask, _ in groups:
             base_mask = np.maximum(base_mask, group_mask)
         base_mask = cv2.morphologyEx(base_mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+        tree_node = tree.get(part_name)
+        primitive_budget = max(1, int(tree_node.primitive_budget if tree_node else 1))
         base_contours = _largest_contours(
             base_mask,
-            max_components=int(spec["max_components"]),
+            max_components=min(int(spec["max_components"]), primitive_budget),
             min_area=max(8.0, part_area * 0.020),
         )
         for component_index, contour in enumerate(base_contours):
-            shape = _shape_from_contour(
-                contour,
-                shape_id=next_id,
-                color=base_color,
+            component_mask = np.zeros_like(base_mask)
+            cv2.drawContours(component_mask, [contour], -1, 1, thickness=-1)
+            fit, fit_trials = _fit_part_primitive(part_name, component_mask)
+            shape_kwargs = dict(
+                id=next_id,
+                fill_color=base_color,
                 z_index=int(spec["z"]) + component_index,
+                importance=1.0,
                 semantic_type=f"rinka_macro_{part_name}",
                 character_part=part_name,
                 source_role=f"rinka_macro:{part_name}:base",
                 layer_name=_macro_layer(part_name, accent=False),
+                part_confidence=0.98,
             )
+            if fit is not None:
+                shape = _shape_from_fit(fit, **shape_kwargs)
+                primitive_fits[f"{part_name}:{component_index}"] = {
+                    "selected": fit.to_dict(),
+                    "trials": fit_trials,
+                }
+            else:
+                shape = _shape_from_contour(contour, shape_id=next_id, color=base_color,
+                    z_index=int(spec["z"]) + component_index,
+                    semantic_type=f"rinka_macro_{part_name}", character_part=part_name,
+                    source_role=f"rinka_macro:{part_name}:base", layer_name=_macro_layer(part_name, accent=False))
             next_id += 1
             if shape is not None:
                 generated.append(shape)
                 part_count += 1
-        accent_limit = max(0, int(spec.get("accents", 0)))
+        accent_limit = min(max(0, int(spec.get("accents", 0))), max(0, primitive_budget - part_count))
         for group_index, (color, color_mask, _) in enumerate(groups[1 : 1 + accent_limit], start=1):
             contours = _largest_contours(
                 color_mask,
                 max_components=int(spec["max_components"]),
-                min_area=max(8.0, part_area * 0.035),
+                min_area=max(6.0, part_area * (0.012 if part_name == "outfit" else 0.035)),
             )
             for component_index, contour in enumerate(contours):
                 shape = _shape_from_contour(
@@ -278,6 +377,25 @@ def build_rinka_macro_partition(
                     part_count += 1
         counts[part_name] = part_count
 
+    head_feature_shapes, head_feature_report = build_head_feature_shapes(
+        image_rgb,
+        structure,
+        start_id=796000,
+    )
+    if head_feature_report.enabled:
+        generated.extend(head_feature_shapes)
+        counts["accessory"] = len(head_feature_shapes)
+        tree.add_synthetic(
+            "accessory",
+            parent="head",
+            primitive_budget=3,
+            merge_group="accessory",
+            protected=True,
+            metadata=head_feature_report.to_dict(),
+        )
+    else:
+        counts["accessory"] = 0
+
     if counts.get("face", 0) < 1 or counts.get("outfit", 0) < 1:
         return existing_shapes, RinkaMacroReport(False, "macro_gate", part_shape_counts=counts)
     retained = [shape for shape in existing_shapes if _keep_existing_detail(shape)]
@@ -289,4 +407,8 @@ def build_rinka_macro_partition(
         generated_shapes=len(generated),
         retained_detail_shapes=len(retained),
         part_shape_counts=counts,
+        semantic_tree_nodes=len(tree.nodes),
+        primitive_fits=primitive_fits,
+        semantic_tree=tree.to_dict(),
+        head_features=head_feature_report.to_dict(),
     )

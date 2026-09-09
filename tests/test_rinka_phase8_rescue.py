@@ -39,7 +39,7 @@ def test_phase8_rescues_omaru_single_slab_failure():
     macro = scene.metadata["rinka_macro_partition"]
     gate = rescue["baseline_gate"]
 
-    assert scene.metadata["target_style"]["version"] == "phase8"
+    assert scene.metadata["target_style"]["version"] == "phase9"
     assert rescue["activated"] is True
     assert gate["largest_shape_ratio"] >= 0.25
     assert gate["second_shape_ratio"] >= 0.22
@@ -59,7 +59,7 @@ def test_phase8_does_not_rescue_subaru_without_two_giant_shapes():
     macro = scene.metadata.get("rinka_macro_partition", {})
     gate = rescue["baseline_gate"]
 
-    assert scene.metadata["target_style"]["version"] == "phase8"
+    assert scene.metadata["target_style"]["version"] == "phase9"
     assert rescue["enabled"] is True
     assert rescue["activated"] is False
     assert gate["accepted"] is False
