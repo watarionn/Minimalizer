@@ -66,7 +66,7 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.6.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase6"; assert d["color_strip_version"] == "v0.1"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.7.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase6"; assert d["color_strip_version"] == "v0.2"; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
 
           python - <<'PY'
           import cv2
@@ -109,11 +109,17 @@ jobs:
             -F 'mode=color_strip' \
             -F 'colors=5' \
             -F 'color_similarity=18' \
+            -F 'color_size_mode=proportional' \
+            -F 'color_order=most_first' \
+            -F 'color_orientation=horizontal' \
             -F 'output_format=svg' \
             http://127.0.0.1:8000/api/minimalize
 
           grep -qi '^x-minimalizer-mode: color_strip' /tmp/minimalizer-color-strip-headers.txt
           grep -qi '^x-minimalizer-color-count:' /tmp/minimalizer-color-strip-headers.txt
+          grep -qi '^x-minimalizer-color-size-mode: proportional' /tmp/minimalizer-color-strip-headers.txt
+          grep -qi '^x-minimalizer-color-order: most_first' /tmp/minimalizer-color-strip-headers.txt
+          grep -qi '^x-minimalizer-color-orientation: horizontal' /tmp/minimalizer-color-strip-headers.txt
           grep -q '^<svg' /tmp/color-strip.svg
           grep -q '<rect ' /tmp/color-strip.svg
 
