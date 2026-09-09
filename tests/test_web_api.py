@@ -40,18 +40,25 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="download-png"' in response.text
     assert 'name="mode" value="standard" checked' in response.text
     assert 'name="mode" value="rinka_reference"' in response.text
+    assert 'name="mode" value="color_strip"' in response.text
+    assert 'id="color-strip-controls"' in response.text
+    assert 'id="color-similarity-range"' in response.text
     assert 'id="mode-description"' in response.text
 
 
 def test_phase2_static_assets_are_served():
     css = client.get("/static/styles.css")
+    color_strip_css = client.get("/static/color-strip.css")
     javascript = client.get("/static/app.js")
     assert css.status_code == 200
+    assert color_strip_css.status_code == 200
     assert javascript.status_code == 200
     assert ".drop-zone" in css.text
     assert "[hidden] { display: none !important; }" in css.text
+    assert ".color-strip-controls" in color_strip_css.text
     assert 'fetch("/api/minimalize"' in javascript.text
     assert 'form.append("mode", mode)' in javascript.text
+    assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
     assert ".mode-switch" in css.text
 
 
@@ -60,7 +67,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.5.0",
+        "web_version": "0.6.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -68,8 +75,11 @@ def test_service_info_reports_web_engine_and_limits():
         "max_image_side": 16_384,
         "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
-        "supported_modes": ["standard", "rinka_reference"],
+        "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": "phase6",
+        "color_strip_version": "v0.1",
+        "color_strip_default_colors": 5,
+        "color_strip_default_similarity": 18.0,
     }
 
 
@@ -141,6 +151,41 @@ def test_rinka_reference_rejects_custom_detail_settings():
     )
     assert response.status_code == 400
     assert "frozen level-4 profile" in response.json()["detail"]
+
+
+def test_color_strip_svg_upload_uses_color_only_pipeline():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "color_strip",
+            "colors": "3",
+            "color_similarity": "18",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("image/svg+xml")
+    assert response.content.startswith(b"<svg")
+    assert response.content.count(b"<rect ") == 3
+    assert response.headers["content-disposition"] == 'attachment; filename="color-strip.svg"'
+    assert response.headers["x-minimalizer-mode"] == "color_strip"
+    assert response.headers["x-minimalizer-level"] == "n/a"
+    assert response.headers["x-minimalizer-color-count"] == "3"
+    assert response.headers["x-minimalizer-color-similarity"] == "18"
+    assert response.headers["x-minimalizer-shape-count"] == "3"
+    assert response.headers["x-minimalizer-source-size"] == "64x48"
+
+
+def test_color_strip_rejects_color_count_outside_three_to_five():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"mode": "color_strip", "colors": "2", "output_format": "svg"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Color Strip color count must be between 3 and 5."
 
 
 def test_minimalize_svg_upload():
