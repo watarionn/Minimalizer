@@ -43,6 +43,10 @@ def test_phase2_root_serves_browser_workspace():
     assert 'name="mode" value="color_strip"' in response.text
     assert 'id="color-strip-controls"' in response.text
     assert 'id="color-similarity-range"' in response.text
+    assert 'id="color-strip-options"' in response.text
+    assert 'id="strip-size-mode-select"' in response.text
+    assert 'id="strip-order-select"' in response.text
+    assert 'id="strip-orientation-select"' in response.text
     assert 'id="mode-description"' in response.text
 
 
@@ -59,6 +63,9 @@ def test_phase2_static_assets_are_served():
     assert 'fetch("/api/minimalize"' in javascript.text
     assert 'form.append("mode", mode)' in javascript.text
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
+    assert 'form.append("color_size_mode", elements.stripSizeMode.value)' in javascript.text
+    assert 'form.append("color_order", elements.stripOrder.value)' in javascript.text
+    assert 'form.append("color_orientation", elements.stripOrientation.value)' in javascript.text
     assert ".mode-switch" in css.text
 
 
@@ -67,7 +74,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.6.0",
+        "web_version": "0.7.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -77,9 +84,15 @@ def test_service_info_reports_web_engine_and_limits():
         "max_concurrent_jobs": 2,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": "phase6",
-        "color_strip_version": "v0.1",
+        "color_strip_version": "v0.2",
         "color_strip_default_colors": 5,
         "color_strip_default_similarity": 18.0,
+        "color_strip_default_size_mode": "equal",
+        "color_strip_default_order": "least_first",
+        "color_strip_default_orientation": "vertical",
+        "color_strip_size_modes": ["equal", "proportional"],
+        "color_strip_orders": ["least_first", "most_first"],
+        "color_strip_orientations": ["vertical", "horizontal"],
     }
 
 
@@ -174,8 +187,34 @@ def test_color_strip_svg_upload_uses_color_only_pipeline():
     assert response.headers["x-minimalizer-level"] == "n/a"
     assert response.headers["x-minimalizer-color-count"] == "3"
     assert response.headers["x-minimalizer-color-similarity"] == "18"
+    assert response.headers["x-minimalizer-color-size-mode"] == "equal"
+    assert response.headers["x-minimalizer-color-order"] == "least_first"
+    assert response.headers["x-minimalizer-color-orientation"] == "vertical"
     assert response.headers["x-minimalizer-shape-count"] == "3"
     assert response.headers["x-minimalizer-source-size"] == "64x48"
+
+
+def test_color_strip_accepts_layout_options():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "color_strip",
+            "colors": "3",
+            "color_similarity": "18",
+            "color_size_mode": "proportional",
+            "color_order": "most_first",
+            "color_orientation": "horizontal",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-color-size-mode"] == "proportional"
+    assert response.headers["x-minimalizer-color-order"] == "most_first"
+    assert response.headers["x-minimalizer-color-orientation"] == "horizontal"
+    assert b'y="0" width="' in response.content
+    assert b'height="48"' in response.content
 
 
 def test_color_strip_rejects_color_count_outside_three_to_five():
@@ -186,6 +225,16 @@ def test_color_strip_rejects_color_count_outside_three_to_five():
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Color Strip color count must be between 3 and 5."
+
+
+def test_standard_rejects_color_strip_only_settings():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"mode": "standard", "color_orientation": "horizontal", "output_format": "svg"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Color Strip settings are only available in Color Strip mode."
 
 
 def test_minimalize_svg_upload():
