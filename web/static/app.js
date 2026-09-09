@@ -34,6 +34,7 @@ const elements = {
   stripColors: document.querySelector("#strip-colors-select"),
   colorSimilarity: document.querySelector("#color-similarity-range"),
   colorSimilarityOutput: document.querySelector("#color-similarity-output"),
+  stripSelectionMode: document.querySelector("#strip-selection-mode-select"),
   stripSizeMode: document.querySelector("#strip-size-mode-select"),
   stripOrder: document.querySelector("#strip-order-select"),
   stripOrientation: document.querySelector("#strip-orientation-select"),
@@ -89,7 +90,7 @@ function updateModeUi() {
     elements.modeDescription.textContent = "完成済みの凛夏手本版 Phase 6。検証済みのミニマル度4・専用プロファイルを固定で使用します。";
     elements.minimalizeButton.textContent = "凛夏手本版でミニマル化";
   } else if (colorStrip) {
-    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。オプションで太さ・並び順・向きを変更できます。";
+    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。使用量順または特徴色優先で選抜し、太さ・並び順・向きも変更できます。";
     elements.minimalizeButton.textContent = "Color Stripを生成";
   } else {
     elements.modeDescription.textContent = "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
@@ -120,6 +121,7 @@ function updateModeUi() {
   elements.background.disabled = state.busy || rinka || colorStrip;
   elements.stripColors.disabled = state.busy || !colorStrip;
   elements.colorSimilarity.disabled = state.busy || !colorStrip;
+  elements.stripSelectionMode.disabled = state.busy || !colorStrip;
   elements.stripSizeMode.disabled = state.busy || !colorStrip;
   elements.stripOrder.disabled = state.busy || !colorStrip;
   elements.stripOrientation.disabled = state.busy || !colorStrip;
@@ -129,7 +131,7 @@ function updateModeUi() {
 
   if (colorStrip) {
     elements.processingTitle.textContent = "色を抽出しています";
-    elements.processingCopy.textContent = "代表色をまとめてColor Stripを生成中…";
+    elements.processingCopy.textContent = "代表色と特徴色を評価してColor Stripを生成中…";
   } else {
     elements.processingTitle.textContent = "ミニマル化しています";
     elements.processingCopy.textContent = rinka ? "凛夏手本版プロファイルで整理中…" : "画像の構造を整理中…";
@@ -210,6 +212,7 @@ function buildFormData(outputFormat) {
   } else if (mode === "color_strip") {
     form.append("colors", elements.stripColors.value);
     form.append("color_similarity", elements.colorSimilarity.value);
+    form.append("color_selection_mode", elements.stripSelectionMode.value);
     form.append("color_size_mode", elements.stripSizeMode.value);
     form.append("color_order", elements.stripOrder.value);
     form.append("color_orientation", elements.stripOrientation.value);
@@ -243,11 +246,12 @@ function resultFilename(outputFormat) {
   return `${stem}.${outputFormat}`;
 }
 
-function colorStripOptionLabel(sizeMode, order, orientation) {
+function colorStripOptionLabel(selectionMode, sizeMode, order, orientation) {
+  const selectionLabel = selectionMode === "featured" ? "特徴色優先" : "使用量順";
   const sizeLabel = sizeMode === "proportional" ? "使用量比例" : "均等";
   const orderLabel = order === "most_first" ? "多→少" : "少→多";
   const orientationLabel = orientation === "horizontal" ? "横" : "縦";
-  return `${sizeLabel} · ${orderLabel} · ${orientationLabel}`;
+  return `${selectionLabel} · ${sizeLabel} · ${orderLabel} · ${orientationLabel}`;
 }
 
 async function requestMinimalize(outputFormat, { preview = false, download = false } = {}) {
@@ -286,6 +290,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
+      const colorSelectionMode = response.headers.get("x-minimalizer-color-selection-mode");
       const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
@@ -293,7 +298,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         ? "凛夏手本版"
         : responseMode === "color_strip" ? "Color Strip" : "";
       const colorOptionLabel = responseMode === "color_strip"
-        ? colorStripOptionLabel(colorSizeMode, colorOrder, colorOrientation)
+        ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
         : "";
       elements.resultMeta.textContent = [
         modeLabel,
@@ -374,6 +379,7 @@ for (const control of [
   elements.maxShapes,
   elements.background,
   elements.stripColors,
+  elements.stripSelectionMode,
   elements.stripSizeMode,
   elements.stripOrder,
   elements.stripOrientation,
@@ -394,7 +400,7 @@ for (const input of elements.modeInputs) {
       if (currentMode() === "rinka_reference") {
         setStatus("凛夏手本版を選択しました。完成プロファイルでミニマル化します。");
       } else if (currentMode() === "color_strip") {
-        setStatus("Color Stripを選択しました。代表色だけを抽出して並べます。");
+        setStatus("Color Stripを選択しました。代表色や特徴色を抽出して並べます。");
       } else {
         setStatus("通常モードを選択しました。");
       }
