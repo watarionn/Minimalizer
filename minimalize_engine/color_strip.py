@@ -7,23 +7,32 @@ from typing import Literal
 import numpy as np
 from PIL import Image, ImageDraw
 
-COLOR_STRIP_VERSION = "v0.2"
+COLOR_STRIP_VERSION = "v0.3"
 DEFAULT_COLOR_COUNT = 5
 DEFAULT_SIMILARITY = 18.0
 DEFAULT_SIZE_MODE = "equal"
 DEFAULT_ORDER = "least_first"
 DEFAULT_ORIENTATION = "vertical"
+DEFAULT_SELECTION_MODE = "dominant"
 MIN_COLOR_COUNT = 3
 MAX_COLOR_COUNT = 5
 MIN_SIMILARITY = 6.0
 MAX_SIMILARITY = 30.0
 QUANTIZE_COLORS = 64
+FEATURE_QUANTIZE_COLORS = 128
+FEATURE_MERGE_SIMILARITY = 10.0
+FEATURE_MIN_SHARE = 0.005
+FEATURE_MIN_DOMINANT_DISTANCE = 12.0
+FEATURE_CONTRAST_SCALE = 60.0
+FEATURE_CHROMA_SCALE = 80.0
+FEATURE_SHARE_SCALE = 0.05
 ANALYSIS_MAX_SIDE = 512
 OUTPUT_MAX_SIDE = 2048
 
 ColorStripSizeMode = Literal["equal", "proportional"]
 ColorStripOrder = Literal["least_first", "most_first"]
 ColorStripOrientation = Literal["vertical", "horizontal"]
+ColorStripSelectionMode = Literal["dominant", "featured"]
 
 
 @dataclass(frozen=True)
@@ -50,6 +59,7 @@ class ColorStripDocument:
     size_mode: ColorStripSizeMode
     order: ColorStripOrder
     orientation: ColorStripOrientation
+    selection_mode: ColorStripSelectionMode
 
     @property
     def color_count(self) -> int:
@@ -62,6 +72,7 @@ def _validate_options(
     size_mode: ColorStripSizeMode,
     order: ColorStripOrder,
     orientation: ColorStripOrientation,
+    selection_mode: ColorStripSelectionMode,
 ) -> None:
     if not MIN_COLOR_COUNT <= color_count <= MAX_COLOR_COUNT:
         raise ValueError("Color Strip color_count must be between 3 and 5.")
@@ -73,6 +84,8 @@ def _validate_options(
         raise ValueError("Color Strip order must be least_first or most_first.")
     if orientation not in {"vertical", "horizontal"}:
         raise ValueError("Color Strip orientation must be vertical or horizontal.")
+    if selection_mode not in {"dominant", "featured"}:
+        raise ValueError("Color Strip selection_mode must be dominant or featured.")
 
 
 def _fit_size(width: int, height: int, max_side: int) -> tuple[int, int]:
@@ -112,19 +125,23 @@ def _rgb_to_lab(rgb: np.ndarray) -> np.ndarray:
     return np.column_stack((lightness, a_axis, b_axis))
 
 
-def _quantized_candidates(rgb_pixels: np.ndarray) -> list[tuple[int, tuple[int, int, int]]]:
+def _quantized_candidates(
+    rgb_pixels: np.ndarray,
+    *,
+    color_limit: int = QUANTIZE_COLORS,
+) -> list[tuple[int, tuple[int, int, int]]]:
     if len(rgb_pixels) == 0:
         return []
 
     pixel_row = Image.fromarray(rgb_pixels.reshape(1, -1, 3).astype(np.uint8), mode="RGB")
     quantized = pixel_row.quantize(
-        colors=QUANTIZE_COLORS,
+        colors=color_limit,
         method=Image.Quantize.MEDIANCUT,
         dither=Image.Dither.NONE,
     )
     palette = quantized.getpalette() or []
     candidates: list[tuple[int, tuple[int, int, int]]] = []
-    for count, palette_index in quantized.getcolors(maxcolors=QUANTIZE_COLORS) or []:
+    for count, palette_index in quantized.getcolors(maxcolors=color_limit) or []:
         offset = palette_index * 3
         rgb = (
             int(palette[offset]),
@@ -175,6 +192,122 @@ def _merge_candidates(
     return merged
 
 
+def _feature_score(
+    count: int,
+    rgb: tuple[int, int, int],
+    total_visible: int,
+    dominant_labs: np.ndarray,
+) -> tuple[float, float]:
+    lab = _rgb_to_lab(np.asarray(rgb, dtype=np.float64).reshape(1, 3))[0]
+    if len(dominant_labs):
+        dominant_distance = float(np.min(np.linalg.norm(dominant_labs - lab, axis=1)))
+    else:
+        dominant_distance = FEATURE_CONTRAST_SCALE
+
+    share = count / total_visible
+    chroma = float(np.hypot(lab[1], lab[2]))
+    contrast_score = min(dominant_distance / FEATURE_CONTRAST_SCALE, 1.0)
+    chroma_score = min(chroma / FEATURE_CHROMA_SCALE, 1.0)
+    share_score = min(share / FEATURE_SHARE_SCALE, 1.0)
+    score = 0.45 * contrast_score + 0.35 * chroma_score + 0.20 * share_score
+    return score, dominant_distance
+
+
+def _select_feature_candidate(
+    rgb_pixels: np.ndarray,
+    dominant: list[tuple[int, tuple[int, int, int]]],
+    similarity: float,
+) -> tuple[int, tuple[int, int, int]] | None:
+    total_visible = len(rgb_pixels)
+    if total_visible == 0:
+        return None
+
+    dominant_rgbs = np.asarray([rgb for _, rgb in dominant], dtype=np.float64)
+    dominant_labs = (
+        _rgb_to_lab(dominant_rgbs)
+        if len(dominant_rgbs)
+        else np.empty((0, 3), dtype=np.float64)
+    )
+    feature_similarity = min(similarity, FEATURE_MERGE_SIMILARITY)
+    candidates = _merge_candidates(
+        _quantized_candidates(rgb_pixels, color_limit=FEATURE_QUANTIZE_COLORS),
+        feature_similarity,
+    )
+
+    ranked: list[tuple[float, int, tuple[int, int, int]]] = []
+    for count, rgb in candidates:
+        share = count / total_visible
+        if share < FEATURE_MIN_SHARE:
+            continue
+        score, dominant_distance = _feature_score(
+            count,
+            rgb,
+            total_visible,
+            dominant_labs,
+        )
+        if dominant_distance < FEATURE_MIN_DOMINANT_DISTANCE:
+            continue
+        ranked.append((score, count, rgb))
+
+    if not ranked:
+        return None
+    ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    _, count, rgb = ranked[0]
+    return count, rgb
+
+
+def _reassign_selected_counts(
+    rgb_pixels: np.ndarray,
+    selected: list[tuple[int, tuple[int, int, int]]],
+) -> list[tuple[int, tuple[int, int, int]]]:
+    if not selected:
+        return []
+
+    centers = np.asarray([rgb for _, rgb in selected], dtype=np.float64)
+    center_labs = _rgb_to_lab(centers)
+    pixel_labs = _rgb_to_lab(rgb_pixels)
+    distances = np.linalg.norm(pixel_labs[:, None, :] - center_labs[None, :, :], axis=2)
+    assignments = np.argmin(distances, axis=1)
+    counts = np.bincount(assignments, minlength=len(selected))
+    reassigned = [
+        (int(counts[index]), rgb)
+        for index, (_, rgb) in enumerate(selected)
+        if int(counts[index]) > 0
+    ]
+    reassigned.sort(key=lambda item: item[0], reverse=True)
+    return reassigned
+
+
+def _select_colors(
+    rgb_pixels: np.ndarray,
+    merged: list[tuple[int, tuple[int, int, int]]],
+    *,
+    color_count: int,
+    similarity: float,
+    selection_mode: ColorStripSelectionMode,
+) -> list[tuple[int, tuple[int, int, int]]]:
+    if selection_mode == "dominant":
+        return merged[:color_count]
+
+    dominant_slots = max(1, color_count - 1)
+    selected = list(merged[:dominant_slots])
+    featured = _select_feature_candidate(rgb_pixels, selected, similarity)
+    if featured is not None:
+        selected.append(featured)
+
+    if len(selected) < color_count:
+        selected_rgbs = {rgb for _, rgb in selected}
+        for candidate in merged[dominant_slots:]:
+            if candidate[1] in selected_rgbs:
+                continue
+            selected.append(candidate)
+            selected_rgbs.add(candidate[1])
+            if len(selected) >= color_count:
+                break
+
+    return _reassign_selected_counts(rgb_pixels, selected[:color_count])
+
+
 def extract_color_strip(
     input_path: str | Path,
     *,
@@ -183,11 +316,19 @@ def extract_color_strip(
     size_mode: ColorStripSizeMode = DEFAULT_SIZE_MODE,
     order: ColorStripOrder = DEFAULT_ORDER,
     orientation: ColorStripOrientation = DEFAULT_ORIENTATION,
+    selection_mode: ColorStripSelectionMode = DEFAULT_SELECTION_MODE,
     analysis_max_side: int = ANALYSIS_MAX_SIDE,
     output_max_side: int = OUTPUT_MAX_SIDE,
 ) -> ColorStripDocument:
-    """Extract dominant colors and return a configurable Color Strip document."""
-    _validate_options(color_count, similarity, size_mode, order, orientation)
+    """Extract representative colors and return a configurable Color Strip document."""
+    _validate_options(
+        color_count,
+        similarity,
+        size_mode,
+        order,
+        orientation,
+        selection_mode,
+    )
 
     with Image.open(input_path) as source:
         source_width, source_height = source.size
@@ -207,8 +348,14 @@ def extract_color_strip(
 
     candidates = _quantized_candidates(rgb_pixels)
     merged = _merge_candidates(candidates, similarity)
-    selected = merged[:color_count]
-    total_visible = sum(count for count, _ in merged)
+    selected = _select_colors(
+        rgb_pixels,
+        merged,
+        color_count=color_count,
+        similarity=similarity,
+        selection_mode=selection_mode,
+    )
+    total_visible = len(rgb_pixels)
 
     reverse = order == "most_first"
     colors = tuple(
@@ -233,6 +380,7 @@ def extract_color_strip(
         size_mode=size_mode,
         order=order,
         orientation=orientation,
+        selection_mode=selection_mode,
     )
 
 
