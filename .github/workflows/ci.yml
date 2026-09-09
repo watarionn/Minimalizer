@@ -47,7 +47,7 @@ jobs:
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
-        run: python -m pytest -q tests/test_web_api.py
+        run: python -m pytest -q tests/test_web_api.py tests/test_color_strip.py
 
       - name: Run real-server Web smoke
         shell: bash
@@ -66,7 +66,7 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.5.0"; assert d["supported_modes"] == ["standard", "rinka_reference"]; assert d["rinka_reference_version"] == "phase6"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.6.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase6"; assert d["color_strip_version"] == "v0.1"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
 
           python - <<'PY'
           import cv2
@@ -101,6 +101,21 @@ jobs:
 
           grep -qi '^x-minimalizer-mode: rinka_reference' /tmp/minimalizer-rinka-headers.txt
           grep -q '^<svg' /tmp/minimalized-rinka.svg
+
+          curl --fail --silent \
+            -D /tmp/minimalizer-color-strip-headers.txt \
+            -o /tmp/color-strip.svg \
+            -F 'file=@examples/input.webp;type=image/webp' \
+            -F 'mode=color_strip' \
+            -F 'colors=5' \
+            -F 'color_similarity=18' \
+            -F 'output_format=svg' \
+            http://127.0.0.1:8000/api/minimalize
+
+          grep -qi '^x-minimalizer-mode: color_strip' /tmp/minimalizer-color-strip-headers.txt
+          grep -qi '^x-minimalizer-color-count:' /tmp/minimalizer-color-strip-headers.txt
+          grep -q '^<svg' /tmp/color-strip.svg
+          grep -q '<rect ' /tmp/color-strip.svg
 
   rinka-target-eval:
     if: github.event_name == 'pull_request'
