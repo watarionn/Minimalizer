@@ -6,6 +6,12 @@ import cv2
 import numpy as np
 
 from .models import Shape
+from .subject_plane_cleanup import (
+    absorb_small_label_fragments,
+    component_priority,
+    is_macro_anchor,
+    safe_simplify_polygon,
+)
 
 
 @dataclass(frozen=True)
@@ -21,6 +27,12 @@ class SubjectPlaneResult:
     bridge_kernel_size: int = 1
     subject_coverage_ratio: float = 0.0
     outside_subject_ratio: float = 0.0
+    absorbed_fragment_count: int = 0
+    absorbed_fragment_pixels: int = 0
+    protected_fragment_count: int = 0
+    suppressed_plane_count: int = 0
+    adaptive_refinement_count: int = 0
+    macro_anchor_count: int = 0
 
     def to_dict(self) -> dict:
         return {
@@ -34,6 +46,12 @@ class SubjectPlaneResult:
             "bridge_kernel_size": self.bridge_kernel_size,
             "subject_coverage_ratio": self.subject_coverage_ratio,
             "outside_subject_ratio": self.outside_subject_ratio,
+            "absorbed_fragment_count": self.absorbed_fragment_count,
+            "absorbed_fragment_pixels": self.absorbed_fragment_pixels,
+            "protected_fragment_count": self.protected_fragment_count,
+            "suppressed_plane_count": self.suppressed_plane_count,
+            "adaptive_refinement_count": self.adaptive_refinement_count,
+            "macro_anchor_count": self.macro_anchor_count,
         }
 
 
@@ -146,6 +164,8 @@ def build_subject_color_planes(
     max_colors: int = 6,
     min_component_area_ratio: float = 0.0015,
     max_components_per_color: int = 4,
+    max_total_planes: int = 17,
+    fragment_area_ratio: float = 0.0030,
     simplify_epsilon_ratio: float = 0.036,
     bridge_radius_ratio: float = 0.0045,
 ) -> SubjectPlaneResult:
@@ -185,7 +205,16 @@ def build_subject_color_planes(
     bridge_kernel_size = 2 * bridge_radius + 1
     bridge_kernel = np.ones((bridge_kernel_size, bridge_kernel_size), dtype=np.uint8)
     subject_mask = mask.astype(np.uint8)
+    label_image, absorbed_fragment_count, absorbed_fragment_pixels, protected_fragment_count = (
+        absorb_small_label_fragments(
+            label_image,
+            centers,
+            subject_mask,
+            fragment_area_ratio=fragment_area_ratio,
+        )
+    )
     entries: list[tuple[int, int, np.ndarray, np.ndarray, np.ndarray]] = []
+    adaptive_refinement_count = 0
     for color_index in range(len(centers)):
         color_mask = (label_image == color_index).astype(np.uint8)
         color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_CLOSE, bridge_kernel)
@@ -206,15 +235,33 @@ def build_subject_color_planes(
             if not contours:
                 continue
             contour = max(contours, key=cv2.contourArea)
-            perimeter = float(cv2.arcLength(contour, True))
-            epsilon = max(1.5, float(simplify_epsilon_ratio) * perimeter)
-            polygon = cv2.approxPolyDP(contour, epsilon, True).reshape(-1, 2)
-            if len(polygon) < 3:
+            polygon, refinement_steps = safe_simplify_polygon(
+                contour, component_mask, subject_mask, simplify_epsilon_ratio
+            )
+            if polygon is None or len(polygon) < 3:
                 continue
+            adaptive_refinement_count += int(refinement_steps > 0)
             entries.append((area, color_index, polygon, stats[component_index], centroids[component_index]))
 
     if not entries:
         return SubjectPlaneResult(False, "no_planes")
+    raw_component_count = len(entries)
+    if raw_component_count > max(int(max_total_planes), 1):
+        prioritized = sorted(
+            entries,
+            key=lambda item: (
+                _component_is_gesture_plane(centers[item[1]], item[3], item[4], width, height),
+                component_priority(item[0], centers[item[1]], item[3], item[4], width, height),
+                item[0],
+            ),
+            reverse=True,
+        )
+        entries = prioritized[: max(int(max_total_planes), 1)]
+    suppressed_plane_count = raw_component_count - len(entries)
+    macro_anchor_count = sum(
+        int(is_macro_anchor(item[0], item[3], item[4], width, height))
+        for item in entries
+    )
     entries.sort(key=lambda item: item[0], reverse=True)
     shapes: list[Shape] = []
     gesture_count = 0
@@ -269,4 +316,10 @@ def build_subject_color_planes(
         bridge_kernel_size=bridge_kernel_size,
         subject_coverage_ratio=round(float(subject_coverage), 6),
         outside_subject_ratio=round(float(outside_subject), 6),
+        absorbed_fragment_count=absorbed_fragment_count,
+        absorbed_fragment_pixels=absorbed_fragment_pixels,
+        protected_fragment_count=protected_fragment_count,
+        suppressed_plane_count=suppressed_plane_count,
+        adaptive_refinement_count=adaptive_refinement_count,
+        macro_anchor_count=macro_anchor_count,
     )

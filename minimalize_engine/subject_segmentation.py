@@ -9,6 +9,9 @@ import numpy as np
 from .io.image_loader import load_image_data
 
 
+SUBJECT_SEGMENTATION_MIN_CONFIDENCE = 0.58
+
+
 @dataclass
 class SubjectSegmentation:
     enabled: bool
@@ -149,7 +152,7 @@ def segment_subject_without_ai(image_or_path) -> SubjectSegmentation:
         + 0.22 * (1.0 - min(border_leak / 0.35, 1.0)),
         0.0, 1.0,
     ))
-    if confidence < 0.60:
+    if confidence < SUBJECT_SEGMENTATION_MIN_CONFIDENCE:
         return SubjectSegmentation(False, "confidence_gate", background_rgb=colors[0], border_dominant_fraction=dominant, foreground_area_ratio=area_ratio, center_fill_ratio=center_fill, border_leak_ratio=border_leak, confidence=confidence)
 
     rgba = np.dstack([rgb, subject.astype(np.uint8) * 255])

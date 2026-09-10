@@ -1,8 +1,8 @@
 # Minimalizer CURRENT
 
 Current engine release: **v0.3.0 stable**
-Current production Web runtime: **v0.4.1 production-verified**
-Current Web integration candidate: **v0.5.0 Rinka Reference mode** on `feature/rinka-web-ui-mode-20260909`
+Current production Web runtime: **v0.8.0 production-verified**
+Current Rinka Reference engine: **Phase 10 Checkpoint 2 on production; Checkpoint 3 in development** on `feature/rinka-phase10-checkpoint3-fragment-consolidation-20260910`
 
 This file is the canonical restoration pointer.
 
@@ -29,7 +29,7 @@ Minimalizer Web is publicly hosted on Railway at:
 
 Production currently tracks `main`.
 
-Web v0.4.1 remains the public runtime. The current production source is `main` at merge commit `5c0e17ac99d980d7f5d78ea7354a03058b7ee30a`, which includes Rinka Reference Phase 3 as an opt-in engine path. Railway deployment `514a0040-9624-463b-a568-fa24c036b947` completed successfully for that commit.
+Web v0.8.0 is the public runtime. The current production source is `main` at merge commit `ea7d166b5f65512d955d8f7302ed4b728ec0822a`, which includes Rinka Reference Phase 10 Checkpoint 2. Railway deployment `20ec5413-5d7d-41eb-91d9-d4c4a99e2ad3` completed successfully for that commit and `/health` plus `/api/info` were verified with HTTP 200.
 
 Production uses the temporary hosted safety setting:
 
@@ -167,3 +167,11 @@ For Omaru at level 4 / analysis max side 220, the current scaffold has 24 subjec
 The fixed 16-image evaluator still activates Phase 10 segmentation/scaffolding on exactly **1/16** images. The other 15 retain worst pre-target identity/silhouette deltas around **-0.0449 / -0.0010**. Mean corpus shape/vertex reduction is about **36.71% / 31.38%**. Rejected trials include full silhouette underlays, local-color gap carriers, 5x5/7x7 color closing, and 0.05 contour epsilon because they produced oversized slabs or damaged pose structure.
 
 Do not push this Checkpoint 2 work merely to run GitHub Actions while metered Actions usage could become chargeable. Finish and validate locally first. The open Draft PR remains #20 until a safe update path is available.
+
+## Rinka Reference Phase 10 Checkpoint 3 (2026-09-10)
+
+Checkpoint 3 is implemented on `feature/rinka-phase10-checkpoint3-fragment-consolidation-20260910` from merged Phase 10 Checkpoint 2. It adds deterministic small-fragment absorption, saturation/gesture protection, raster-IoU-guarded adaptive polygon simplification, macro-anchor prioritization, and a 17-plane scaffold cap. The Phase 10 activation gate now covers four opaque thumbnails without filename-specific rules: Polka via the original giant-slab gate, Subaru/Noel via high-confidence subject structure, and Raden via a dense-subject gate.
+
+Fixed 16-image level-4 / 220px evidence: Phase 10 activation **4/16**, total subject planes **68**, total scaffold vertices **738**, total gesture planes **5**, mean subject-plane coverage about **75.90%**, maximum outside-subject overdraw about **2.45%**, and unaffected 12-image worst identity/silhouette deltas about **-0.0185 / -0.0010**. Mean corpus shape/vertex reduction is about **34.64% / 25.06%**. The lower reduction percentages are an intentional trade for substantially safer subject reconstruction on the newly activated thumbnails.
+
+Local validation: dedicated Phase 10 **6/6**, combined Phase 8/9/10 + target-style + Web API **65/65**, repository-wide **241 passed / 2 deselected** (the same missing `false_face_phase85.png` fixture tests). GitHub Actions must remain skipped while metered usage may be chargeable; local validation is the evidence for this checkpoint.
