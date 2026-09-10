@@ -34,12 +34,13 @@ def test_phase8_rescues_omaru_single_slab_failure():
         CORPUS / "Omaru-Polka_list_thumb.png",
         4,
         analysis_max_side=220,
+        enable_ai_free_subject_segmentation=False,
     )
     rescue = scene.metadata["rinka_opaque_subject_rescue"]
     macro = scene.metadata["rinka_macro_partition"]
     gate = rescue["baseline_gate"]
 
-    assert scene.metadata["target_style"]["version"] == "phase9"
+    assert scene.metadata["target_style"]["version"] == "phase10"
     assert rescue["activated"] is True
     assert gate["largest_shape_ratio"] >= 0.25
     assert gate["second_shape_ratio"] >= 0.22
@@ -54,12 +55,13 @@ def test_phase8_does_not_rescue_subaru_without_two_giant_shapes():
         CORPUS / "Oozora-Subaru_list_thumb.png",
         4,
         analysis_max_side=220,
+        enable_ai_free_subject_segmentation=False,
     )
     rescue = scene.metadata["rinka_opaque_subject_rescue"]
     macro = scene.metadata.get("rinka_macro_partition", {})
     gate = rescue["baseline_gate"]
 
-    assert scene.metadata["target_style"]["version"] == "phase9"
+    assert scene.metadata["target_style"]["version"] == "phase10"
     assert rescue["enabled"] is True
     assert rescue["activated"] is False
     assert gate["accepted"] is False

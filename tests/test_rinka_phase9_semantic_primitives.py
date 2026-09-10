@@ -11,13 +11,14 @@ def test_phase9_omaru_uses_semantic_tree_and_local_primitives():
         CORPUS / "Omaru-Polka_list_thumb.png",
         4,
         analysis_max_side=220,
+        enable_ai_free_subject_segmentation=False,
     )
     macro = scene.metadata["rinka_macro_partition"]
     tree = macro["semantic_tree"]
     fits = macro["primitive_fits"]
     counts = macro["part_shape_counts"]
 
-    assert scene.metadata["target_style"]["version"] == "phase9"
+    assert scene.metadata["target_style"]["version"] == "phase10"
     assert macro["enabled"] is True
     assert macro["semantic_tree_nodes"] >= 10
     assert tree["root"] == "subject"
@@ -38,6 +39,7 @@ def test_phase9_omaru_preserves_distinctive_blue_head_feature():
         CORPUS / "Omaru-Polka_list_thumb.png",
         4,
         analysis_max_side=220,
+        enable_ai_free_subject_segmentation=False,
     )
     report = scene.metadata["rinka_macro_partition"]["head_features"]
     assert report["enabled"] is True

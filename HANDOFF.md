@@ -294,3 +294,11 @@ Phase 9 adds Semantic Shape Tree and localized primitive optimization on `featur
 A small head-feature pass may add a protected synthetic `accessory` node for distinctive high-saturation color cues. Current Omaru evidence keeps one blue feature and rejects background-red, dark-noise, and duplicate-color candidates.
 
 Fixed-corpus Phase 9 checkpoint: mean shape reduction ~**38.72%**, mean vertex reduction ~**32.76%**, new semantic path **1/16**, nine primitive fits, largest rescue shape ~**6.39%**, second ~**5.37%**, non-rescue worst identity/silhouette ~**-0.0449 / -0.0010**. Keep VTracer-style region experiments out of this phase and do not broaden the rescue gate without new evidence.
+
+## Phase 10 handoff checkpoint (2026-09-10)
+
+Branch: `feature/rinka-phase10-ai-free-subject-segmentation-20260910`.
+
+Checkpoint 1 implements AI-free border/subject segmentation in `minimalize_engine/subject_segmentation.py` and wires it into Rinka Reference behind the existing Phase 8 failure gate. Existing alpha subjects bypass this segmentation. The current accepted Omaru path uses normal alpha-subject Character Structure rather than Phase 9 semantic-macro rescue, then removes the redundant `subject_base` underlay only for an activated Phase 10 mask.
+
+Do not reintroduce the rejected trimmed subject-bbox experiment or the broad white border prototype. Continue by simplifying shapes inside the already-separated subject, with special attention to retaining the raised right-arm gesture, baton, head/hair mass, torso, and blue lower accent. See `docs/RINKA_PHASE10_AI_FREE_SUBJECT_SEGMENTATION.md` for measurements and rejected experiments.

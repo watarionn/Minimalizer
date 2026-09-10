@@ -11,6 +11,7 @@ from .config import MinimalizeConfig
 from .models import Scene, Shape
 from .pipeline import minimalize
 from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
+from .subject_segmentation import SubjectSegmentation, segment_subject_without_ai
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
     OpaqueSubjectZones,
@@ -23,7 +24,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase9"
+RINKA_REFERENCE_VERSION = "phase10"
 
 
 _TARGET_MAX_SHAPES = {
@@ -1567,7 +1568,13 @@ def apply_rinka_reference_style(
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
-    hierarchical, hierarchy_stats = _apply_opaque_hierarchy(scene.shapes, opaque_hierarchy)
+    phase10_segmented = bool((scene.metadata.get("rinka_subject_segmentation") or {}).get("activated"))
+    input_shapes = scene.shapes
+    subject_base_removed = 0
+    if phase10_segmented:
+        input_shapes = [shape for shape in scene.shapes if "subject_base" not in _shape_tags(shape)]
+        subject_base_removed = len(scene.shapes) - len(input_shapes)
+    hierarchical, hierarchy_stats = _apply_opaque_hierarchy(input_shapes, opaque_hierarchy)
     zoned, zone_stats = _apply_opaque_zones(hierarchical, opaque_zones)
     pruned, structure_redundant_removed = _prune_structure_redundant_fragments(zoned, scene, opaque_zones)
     relaxed = [
@@ -1655,6 +1662,7 @@ def apply_rinka_reference_style(
             **(opaque_zones.to_dict() if opaque_zones is not None else {"enabled": False, "reason": "not_requested"}),
             **zone_stats,
         },
+        "phase10_subject_base_removed": subject_base_removed,
         "structure_redundant_removed": structure_redundant_removed,
         "global_scoring": global_scoring,
         "face_fragments_removed": face_removed,
@@ -1709,22 +1717,46 @@ def minimalize_rinka_reference(
     level: int = 4,
     *,
     curve_polygon_sides: int = 6,
+    enable_ai_free_subject_segmentation: bool = True,
     **config_overrides,
 ) -> Scene:
     config = rinka_reference_config(level, **config_overrides)
     rescue = prepare_rinka_opaque_subject_input(image_or_path)
+    segmentation = segment_subject_without_ai(image_or_path) if enable_ai_free_subject_segmentation else SubjectSegmentation(False, "disabled")
     rescue_gate = {"accepted": False, "reason": "candidate_disabled"}
     engine_input = image_or_path
     engine_config = config
+    segmentation_activated = False
+    rescue_activated = False
 
-    if rescue.enabled and rescue.rgba is not None:
+    candidate = segmentation if segmentation.enabled else rescue
+    if candidate.enabled and candidate.rgba is not None:
         baseline_config = config.with_overrides(
             enable_rinka_macro_partition=False,
             rinka_macro_rescue_active=False,
         )
         baseline_scene = minimalize(image_or_path, baseline_config)
-        rescue_gate = _opaque_rescue_failure_gate(baseline_scene, rescue)
-        if rescue_gate["accepted"]:
+        gate_probe = OpaqueSubjectRescue(
+            True,
+            "phase10_subject_segmentation" if segmentation.enabled else rescue.reason,
+            rgba=candidate.rgba,
+            background_rgb=candidate.background_rgb,
+            border_dominant_fraction=candidate.border_dominant_fraction,
+            foreground_area_ratio=candidate.foreground_area_ratio,
+            center_fill_ratio=candidate.center_fill_ratio,
+        )
+        rescue_gate = _opaque_rescue_failure_gate(baseline_scene, gate_probe)
+        if rescue_gate["accepted"] and segmentation.enabled:
+            engine_input = segmentation.rgba
+            engine_config = config.with_overrides(
+                background_mode=("custom" if config.background_mode == "source" else config.background_mode),
+                background_color=(segmentation.background_rgb if config.background_mode == "source" else config.background_color),
+                enable_rinka_macro_partition=False,
+                rinka_macro_rescue_active=False,
+            )
+            scene = minimalize(engine_input, engine_config)
+            segmentation_activated = True
+        elif rescue_gate["accepted"] and rescue.enabled and rescue.rgba is not None:
             engine_input = rescue.rgba
             engine_config = config.with_overrides(
                 background_mode=("custom" if config.background_mode == "source" else config.background_mode),
@@ -1732,15 +1764,22 @@ def minimalize_rinka_reference(
                 rinka_macro_rescue_active=True,
             )
             scene = minimalize(engine_input, engine_config)
+            rescue_activated = True
         else:
             scene = baseline_scene
     else:
         scene = minimalize(engine_input, engine_config)
 
+    scene.metadata["rinka_subject_segmentation"] = {
+        **segmentation.to_dict(),
+        "activated": segmentation_activated,
+        "baseline_gate": rescue_gate,
+    }
     scene.metadata["rinka_opaque_subject_rescue"] = {
         **rescue.to_dict(),
-        "activated": bool(rescue.enabled and rescue_gate.get("accepted")),
+        "activated": rescue_activated,
         "baseline_gate": rescue_gate,
+        "superseded_by_subject_segmentation": segmentation_activated,
     }
     opaque_hierarchy = estimate_opaque_subject_hierarchy(engine_input, scene)
     opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)

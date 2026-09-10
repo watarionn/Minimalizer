@@ -149,3 +149,11 @@ The rescue renderer now builds a Semantic Shape Tree, enforces per-part primitiv
 On the fixed 16-image corpus at level 4 / analysis max side 220, Phase 9 records about **38.72%** mean shape reduction and **32.76%** mean vertex reduction. The semantic tree / primitive path activates on exactly **1/16** images. Non-rescue worst identity and silhouette deltas remain about **-0.0449 / -0.0010**. The rescue case ends with largest/second filled-shape ratios about **6.39% / 5.37%**, below the Phase 8 safety limits.
 
 Current dedicated telemetry: Semantic Tree enabled **1**, primitive fits **9**, head feature enabled **1**, face ellipse **1**, outfit trapezoid **1**. Read `docs/RINKA_PHASE9_SEMANTIC_PRIMITIVES.md` before changing the primitive priors, semantic budgets, or head-feature gates.
+
+## Phase 10 AI-free Subject Segmentation checkpoint 1 (2026-09-10)
+
+Development resumed from current `main` on `feature/rinka-phase10-ai-free-subject-segmentation-20260910`. The first Phase 10 checkpoint adds deterministic subject/background segmentation for the opaque-character failure class. It uses border-color evidence plus edge-connected background components and does not use AI or learned models. The established Phase 8 giant-slab gate remains in front of the new path, so the fixed corpus changes only the known Omaru Polka rescue case.
+
+Real-image iteration rejected a broad prototype set that treated white subject edges as background, rejected a trimmed-bbox experiment that damaged pose layout, and rejected direct reuse of the Phase 9 semantic-macro rescue with the new mask. The accepted path converts the failure-gated image into an alpha subject, uses ordinary Character Structure analysis, and removes the now-redundant giant `subject_base` only when Phase 10 segmentation is actually active. On Omaru, the largest final filled shape is about 15.7% of canvas instead of the rejected prototype's 50.8% slab.
+
+Read `docs/RINKA_PHASE10_AI_FREE_SUBJECT_SEGMENTATION.md` before continuing. The next Phase 10 step is within-subject simplification that preserves the raised-arm gesture and major color blocks while moving the separated subject closer to the 凛夏 reference.
