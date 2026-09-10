@@ -3,7 +3,7 @@
 Current engine release: **v0.3.0 stable**
 Current production Web runtime: **v0.9.0 production-verified**
 Current Rinka Reference engine: **Phase 11 merged and production-verified; Phase 12 local closure complete** on `feature/rinka-phase12-head-body-anchor-guard-20260910`
-Current Web candidate: **v0.10.0 local candidate** reporting Rinka Reference phase12; production remains v0.9.0 until Phase 12 is separately approved, merged, deployed, and verified.
+Current Web candidate: **v0.10.0 local closure complete in Draft PR #24** reporting Rinka Reference `phase12`; production remains v0.9.0 until Phase 12 is separately approved, merged, deployed, and verified.
 
 This file is the canonical restoration pointer.
 
@@ -11,7 +11,7 @@ This file is the canonical restoration pointer.
 
 Phase 12 adds a failure-gated Head / Body Anchor Guard for opaque portrait inputs that still collapse into two or three giant slabs after the normal Rinka path. Rejected AI-free subject masks are retained as candidates but remain inactive unless a dedicated portrait-collapse gate accepts them. Accepted repairs rebuild subject color planes, synthesize one faceless skin-colored face slab plus one large hair anchor, require at least one torso anchor, and then pass a repair-quality gate before replacement is allowed. If the repair misses its required anchors, subject coverage falls below 0.64, or outside-subject overdraw exceeds 0.04, the renderer falls back to the previous baseline result.
 
-The two supplied regression images are now both handled by Phase 12: the white-hair case activates the three-slab route and the red-poster case activates the stricter two-slab-poster route. On the fixed 16-image corpus, Phase 12 rescue remains **0/16**, so established Phase 11 output metrics and poster-background behavior remain unchanged. Dedicated Phase 12 tests cover three-slab acceptance, two-slab poster acceptance, small-third-slab rejection, face anchor extraction, hair anchor extraction, and repair-quality requirements. See docs/RINKA_PHASE12_HEAD_BODY_ANCHOR_GUARD.md.
+The two supplied regression images are now both handled by Phase 12: the white-hair case activates the three-slab route and the red-poster case activates the stricter two-slab-poster route. On the fixed 16-image corpus, Phase 12 rescue remains **0/16**, so established Phase 11 output metrics and poster-background behavior remain unchanged. Dedicated Phase 12 tests cover three-slab acceptance, two-slab poster acceptance, small-third-slab rejection, face anchor extraction, hair anchor extraction, and repair-quality requirements. See `docs/RINKA_PHASE12_HEAD_BODY_ANCHOR_GUARD.md`.
 
 ## Latest development: Rinka Reference Phase 11
 
