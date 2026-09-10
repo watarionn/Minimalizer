@@ -26,7 +26,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase11"
+RINKA_REFERENCE_VERSION = "phase12"
 RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject")
 DEFAULT_RINKA_REFERENCE_PRESET = "geometric_poster"
 
@@ -888,6 +888,8 @@ def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
         return None
     kind_a = _target_mass_kind(a)
     kind_b = _target_mass_kind(b)
+    if "phase12_face_anchor" in _shape_tags(a) or "phase12_face_anchor" in _shape_tags(b) or "phase12_hair_anchor" in _shape_tags(a) or "phase12_hair_anchor" in _shape_tags(b):
+        return None
     if kind_a != kind_b or kind_a == "prop":
         return None
     if kind_a == "hand":
@@ -2169,6 +2171,9 @@ def apply_rinka_reference_style(
     opaque_zones: OpaqueSubjectZones | None = None,
     background_style: str = "source",
     preset: str | None = None,
+    protected_face_anchor: Shape | None = None,
+    protected_hair_anchor: Shape | None = None,
+    phase12_anchor_stats: dict | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
@@ -2234,7 +2239,12 @@ def apply_rinka_reference_style(
         global_thin_max_area_ratio=0.014,
     )
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
-    consolidated, mass_merges = _consolidate_masses(faceless, min_side)
+    anchored = faceless
+    protected_anchors = [anchor for anchor in (protected_hair_anchor, protected_face_anchor) if anchor is not None]
+    if protected_anchors:
+        protected_ids = {anchor.id for anchor in protected_anchors}
+        anchored = [shape for shape in faceless if shape.id not in protected_ids] + protected_anchors
+    consolidated, mass_merges = _consolidate_masses(anchored, min_side)
     outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
     outfit_refined, outfit_refinement_merges = _refine_outfit_layers_once(scene, outfit_consolidated, min_side)
     outfit_layer_merges += outfit_refinement_merges
@@ -2277,6 +2287,7 @@ def apply_rinka_reference_style(
         "structure_redundant_removed": structure_redundant_removed,
         "global_scoring": global_scoring,
         "face_fragments_removed": face_removed,
+        "phase12_anchor_guard": phase12_anchor_stats or {"enabled": False, "reason": "not_requested"},
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
         "hair_abstraction": hair_stats,
@@ -2334,6 +2345,314 @@ def _opaque_rescue_failure_gate(scene: Scene, rescue: OpaqueSubjectRescue) -> di
         "border_dominant_fraction": round(float(rescue.border_dominant_fraction), 6),
     }
 
+def _phase12_portrait_collapse_gate(segmentation: SubjectSegmentation, baseline_scene: Scene) -> dict:
+    canvas_area = max(float(baseline_scene.width * baseline_scene.height), 1.0)
+    ratios = sorted(
+        [
+            _shape_metrics(shape)[0] / canvas_area
+            for shape in baseline_scene.shapes
+            if shape.fill_color is not None and shape.shape_type != "line"
+        ],
+        reverse=True,
+    )
+    largest = ratios[0] if ratios else 0.0
+    second = ratios[1] if len(ratios) > 1 else 0.0
+    third = ratios[2] if len(ratios) > 2 else 0.0
+    common = (
+        segmentation.reason == "confidence_gate"
+        and segmentation.rgba is not None
+        and segmentation.mask is not None
+        and not bool(baseline_scene.metadata.get("subject_mode"))
+        and float(segmentation.confidence) >= 0.46
+        and float(segmentation.border_dominant_fraction) >= 0.28
+        and 0.50 <= float(segmentation.foreground_area_ratio) <= 0.78
+        and float(segmentation.center_fill_ratio) >= 0.88
+        and float(segmentation.border_leak_ratio) <= 0.45
+    )
+    three_slab = common and largest >= 0.22 and second >= 0.20 and third >= 0.14
+    two_slab_poster = (
+        common
+        and float(segmentation.confidence) >= 0.50
+        and float(segmentation.border_dominant_fraction) >= 0.35
+        and 0.58 <= float(segmentation.foreground_area_ratio) <= 0.72
+        and float(segmentation.center_fill_ratio) >= 0.92
+        and float(segmentation.border_leak_ratio) <= 0.41
+        and largest >= 0.235
+        and second >= 0.235
+    )
+    accepted = three_slab or two_slab_poster
+    variant = "three_slab" if three_slab else "two_slab_poster" if two_slab_poster else "none"
+    return {
+        "accepted": bool(accepted),
+        "reason": "portrait_collapse_rescue" if accepted else "gate_rejected",
+        "variant": variant,
+        "largest_shape_ratio": round(float(largest), 6),
+        "second_shape_ratio": round(float(second), 6),
+        "third_shape_ratio": round(float(third), 6),
+    }
+
+
+def _phase12_face_anchor(
+    segmentation: SubjectSegmentation,
+    width: int,
+    height: int,
+) -> tuple[Shape | None, dict]:
+    stats = {"enabled": False, "reason": "candidate_unavailable", "face_anchor_created": False}
+    if segmentation.rgba is None or segmentation.mask is None:
+        return None, stats
+    rgb = cv2.resize(segmentation.rgba[:, :, :3], (width, height), interpolation=cv2.INTER_AREA)
+    mask = cv2.resize(segmentation.mask.astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST) > 0
+    ys, xs = np.where(mask)
+    if xs.size < 64:
+        stats["reason"] = "subject_too_small"
+        return None, stats
+    sx0, sy0, sx1, sy1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+    sw, sh = max(sx1 - sx0, 1), max(sy1 - sy0, 1)
+    # The face is expected near the central upper subject. Arms may touch the
+    # image edges, so use a conservative central head window rather than the
+    # whole subject bbox.
+    hx0 = max(0, int(round(sx0 + sw * 0.22)))
+    hx1 = min(width, int(round(sx0 + sw * 0.78)))
+    hy0 = max(0, int(round(sy0 + sh * 0.03)))
+    hy1 = min(height, int(round(sy0 + sh * 0.48)))
+    if hx1 <= hx0 or hy1 <= hy0:
+        stats["reason"] = "head_window_empty"
+        return None, stats
+
+    ycrcb = cv2.cvtColor(rgb, cv2.COLOR_RGB2YCrCb)
+    yy, cr, cb = cv2.split(ycrcb)
+    skin = (yy >= 88) & (cr >= 138) & (cr <= 184) & (cb >= 72) & (cb <= 142) & mask
+    window = np.zeros_like(mask, dtype=bool)
+    window[hy0:hy1, hx0:hx1] = True
+    skin &= window
+    kernel = np.ones((3, 3), np.uint8)
+    skin_u8 = cv2.morphologyEx(skin.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+    count, labels, comp_stats, centroids = cv2.connectedComponentsWithStats(skin_u8, 8)
+    if count <= 1:
+        stats["reason"] = "skin_component_missing"
+        return None, stats
+
+    expected = np.asarray([sx0 + sw * 0.50, sy0 + sh * 0.36], dtype=float)
+    canvas_area = max(float(width * height), 1.0)
+    candidates = []
+    for index in range(1, count):
+        area = int(comp_stats[index, cv2.CC_STAT_AREA])
+        ratio = area / canvas_area
+        if ratio < 0.0015 or ratio > 0.085:
+            continue
+        cx, cy = centroids[index]
+        distance = float(np.linalg.norm(np.asarray([cx, cy]) - expected)) / max(float(min(width, height)), 1.0)
+        if distance > 0.24:
+            continue
+        score = ratio * 3.0 - distance * 0.35
+        candidates.append((score, area, index))
+    if candidates:
+        _score, area, index = max(candidates)
+        component = labels == index
+        cyx = np.argwhere(component)
+        y0, x0 = cyx.min(axis=0)
+        y1, x1 = cyx.max(axis=0) + 1
+    else:
+        # Some warm/blond poster portraits connect face, hair and arm into one
+        # broad skin-like component. Under the already strict Phase 12 collapse
+        # gate, synthesize a conservative central face slab from local warm
+        # pixels instead of discarding the otherwise useful subject repair.
+        fx0 = max(hx0, int(round(sx0 + sw * 0.39)))
+        fx1 = min(hx1, int(round(sx0 + sw * 0.61)))
+        fy0 = max(hy0, int(round(sy0 + sh * 0.18)))
+        fy1 = min(hy1, int(round(sy0 + sh * 0.43)))
+        fallback_window = np.zeros_like(mask, dtype=bool)
+        fallback_window[fy0:fy1, fx0:fx1] = True
+        loose_skin = (yy >= 88) & (cr >= 136) & (cr <= 190) & (cb >= 72) & (cb <= 148) & mask & fallback_window
+        if int(loose_skin.sum()) < max(18, int(round(canvas_area * 0.0012))):
+            stats["reason"] = "skin_component_gate"
+            return None, stats
+        component = loose_skin
+        area = int(component.sum())
+        y0, x0, y1, x1 = fy0, fx0, fy1, fx1
+        stats["fallback_geometry"] = True
+    bw, bh = max(int(x1 - x0), 1), max(int(y1 - y0), 1)
+    if bw < 3 or bh < 3:
+        stats["reason"] = "skin_component_too_thin"
+        return None, stats
+    pixels = rgb[component]
+    fill = tuple(int(v) for v in np.median(pixels, axis=0))
+    points = [
+        (x0 + 0.18 * bw, y0),
+        (x1 - 0.18 * bw, y0),
+        (x1, y0 + 0.32 * bh),
+        (x1 - 0.08 * bw, y1),
+        (x0 + 0.08 * bw, y1),
+        (x0, y0 + 0.32 * bh),
+    ]
+    shape = Shape(
+        id=945001,
+        shape_type="polygon",
+        fill_color=fill,
+        points=[(float(x), float(y)) for x, y in points],
+        z_index=39950,
+        importance=1.0,
+        source_role="phase12_face_anchor",
+        layer_name="foreground",
+        semantic_type="character_face_anchor",
+        character_part="face",
+    )
+    stats.update({
+        "enabled": True,
+        "reason": "face_anchor",
+        "face_anchor_created": True,
+        "face_anchor_area_ratio": round(float(area / canvas_area), 6),
+        "face_anchor_color": list(fill),
+        "face_anchor_bbox": [int(x0), int(y0), int(x1), int(y1)],
+    })
+    return shape, stats
+
+
+
+def _phase12_hair_anchor(
+    segmentation: SubjectSegmentation,
+    width: int,
+    height: int,
+    face_anchor: Shape | None,
+) -> tuple[Shape | None, dict]:
+    stats = {"enabled": False, "reason": "candidate_unavailable", "hair_anchor_created": False}
+    if segmentation.rgba is None or segmentation.mask is None:
+        return None, stats
+    rgb = cv2.resize(segmentation.rgba[:, :, :3], (width, height), interpolation=cv2.INTER_AREA)
+    mask = cv2.resize(segmentation.mask.astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST) > 0
+    ys, xs = np.where(mask)
+    if xs.size < 64:
+        stats["reason"] = "subject_too_small"
+        return None, stats
+    sx0, sy0, sx1, sy1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+    sw, sh = max(sx1 - sx0, 1), max(sy1 - sy0, 1)
+    hx0 = max(0, int(round(sx0 + sw * 0.28)))
+    hx1 = min(width, int(round(sx0 + sw * 0.72)))
+    hy0 = max(0, int(round(sy0 + sh * 0.01)))
+    hy1 = min(height, int(round(sy0 + sh * 0.48)))
+    window = np.zeros_like(mask, dtype=bool)
+    window[hy0:hy1, hx0:hx1] = True
+
+    rgbf = rgb.astype(np.float32)
+    luma = 0.2126 * rgbf[:, :, 0] + 0.7152 * rgbf[:, :, 1] + 0.0722 * rgbf[:, :, 2]
+    chroma = rgbf.max(axis=2) - rgbf.min(axis=2)
+    background = np.asarray(segmentation.background_rgb or (255, 255, 255), dtype=np.float32)
+    bg_distance = np.linalg.norm(rgbf - background[None, None, :], axis=2)
+    candidate = mask & window & (luma >= 145.0) & (chroma <= 82.0) & (bg_distance >= 32.0)
+
+    if face_anchor is not None:
+        fx0, fy0, fx1, fy1 = _shape_bbox(face_anchor)
+        pad_x = max(1, int(round((fx1 - fx0) * 0.08)))
+        pad_y = max(1, int(round((fy1 - fy0) * 0.04)))
+        candidate[max(0, int(fy0)-pad_y):min(height, int(fy1)+pad_y),
+                  max(0, int(fx0)-pad_x):min(width, int(fx1)+pad_x)] = False
+
+    candidate_u8 = cv2.morphologyEx(candidate.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+    count, labels, comp_stats, centroids = cv2.connectedComponentsWithStats(candidate_u8, 8)
+    canvas_area = max(float(width * height), 1.0)
+    expected = np.asarray([sx0 + sw * 0.50, sy0 + sh * 0.24], dtype=float)
+    selected: list[int] = []
+    for index in range(1, count):
+        area = int(comp_stats[index, cv2.CC_STAT_AREA])
+        ratio = area / canvas_area
+        if ratio < 0.0025 or ratio > 0.16:
+            continue
+        cx, cy = centroids[index]
+        distance = float(np.linalg.norm(np.asarray([cx, cy]) - expected)) / max(float(min(width, height)), 1.0)
+        if distance <= 0.30:
+            selected.append(index)
+    if not selected:
+        stats["reason"] = "hair_component_gate"
+        return None, stats
+
+    combined = np.isin(labels, selected).astype(np.uint8)
+    contours, _ = cv2.findContours(combined, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        stats["reason"] = "hair_contour_missing"
+        return None, stats
+    points = np.vstack([contour.reshape(-1, 2) for contour in contours])
+    hull = cv2.convexHull(points.astype(np.float32)).reshape(-1, 2)
+    perimeter = cv2.arcLength(hull.reshape(-1, 1, 2), True)
+    polygon = cv2.approxPolyDP(hull.reshape(-1, 1, 2), max(1.0, perimeter * 0.035), True).reshape(-1, 2)
+    if len(polygon) < 4:
+        polygon = hull
+    hair_pixels = rgb[combined > 0]
+    fill = tuple(int(v) for v in np.median(hair_pixels, axis=0))
+    shape = Shape(
+        id=945000,
+        shape_type="polygon",
+        fill_color=fill,
+        points=[(float(x), float(y)) for x, y in polygon],
+        z_index=39940,
+        importance=1.0,
+        source_role="phase12_hair_anchor",
+        layer_name="foreground",
+        semantic_type="character_hair_anchor",
+        character_part="hair",
+    )
+    stats.update({
+        "enabled": True,
+        "reason": "hair_anchor",
+        "hair_anchor_created": True,
+        "hair_anchor_color": list(fill),
+        "hair_anchor_components": len(selected),
+        "hair_anchor_vertices": len(shape.points),
+    })
+    return shape, stats
+
+
+def _phase12_repair_quality_gate(
+    subject_planes: SubjectPlaneResult,
+    face_anchor: Shape | None,
+    hair_anchor: Shape | None,
+    width: int,
+    height: int,
+) -> dict:
+    stats = {
+        "accepted": False,
+        "reason": "planes_disabled",
+        "torso_anchor_count": 0,
+        "subject_coverage_ratio": float(subject_planes.subject_coverage_ratio),
+        "outside_subject_ratio": float(subject_planes.outside_subject_ratio),
+    }
+    if not subject_planes.enabled:
+        return stats
+    if face_anchor is None:
+        stats["reason"] = "face_anchor_missing"
+        return stats
+    if hair_anchor is None:
+        stats["reason"] = "hair_anchor_missing"
+        return stats
+    if subject_planes.subject_coverage_ratio < 0.64:
+        stats["reason"] = "subject_coverage_low"
+        return stats
+    if subject_planes.outside_subject_ratio > 0.04:
+        stats["reason"] = "outside_subject_high"
+        return stats
+
+    canvas_area = max(float(width * height), 1.0)
+    torso_anchor_count = 0
+    for shape in subject_planes.shapes:
+        if shape.fill_color is None or shape.shape_type == "line":
+            continue
+        x0, y0, x1, y1 = _shape_bbox(shape)
+        cx, cy = (x0 + x1) * 0.5, (y0 + y1) * 0.5
+        area_ratio = _shape_metrics(shape)[0] / canvas_area
+        if (
+            width * 0.20 <= cx <= width * 0.80
+            and height * 0.40 <= cy <= height * 0.90
+            and area_ratio >= 0.015
+        ):
+            torso_anchor_count += 1
+    stats["torso_anchor_count"] = torso_anchor_count
+    if torso_anchor_count < 1:
+        stats["reason"] = "torso_anchor_missing"
+        return stats
+
+    stats["accepted"] = True
+    stats["reason"] = "anchors_present"
+    return stats
+
 def _phase10_segmentation_activation_gate(segmentation: SubjectSegmentation, legacy_gate: dict) -> dict:
     if not segmentation.enabled:
         return {"accepted": False, "reason": "segmentation_disabled"}
@@ -2389,25 +2708,35 @@ def minimalize_rinka_reference(
     engine_config = config
     segmentation_activated = False
     rescue_activated = False
+    phase12_rescue_activated = False
 
     candidate = segmentation if segmentation.enabled else rescue
-    if candidate.enabled and candidate.rgba is not None:
+    phase12_candidate_available = (
+        segmentation.reason == "confidence_gate"
+        and segmentation.rgba is not None
+        and segmentation.mask is not None
+    )
+    phase12_rescue_gate = {"accepted": False, "reason": "candidate_disabled"}
+    if (candidate.enabled and candidate.rgba is not None) or phase12_candidate_available:
         baseline_config = config.with_overrides(
             enable_rinka_macro_partition=False,
             rinka_macro_rescue_active=False,
         )
         baseline_scene = minimalize(image_or_path, baseline_config)
-        gate_probe = OpaqueSubjectRescue(
-            True,
-            "phase10_subject_segmentation" if segmentation.enabled else rescue.reason,
-            rgba=candidate.rgba,
-            background_rgb=candidate.background_rgb,
-            border_dominant_fraction=candidate.border_dominant_fraction,
-            foreground_area_ratio=candidate.foreground_area_ratio,
-            center_fill_ratio=candidate.center_fill_ratio,
-        )
-        rescue_gate = _opaque_rescue_failure_gate(baseline_scene, gate_probe)
+        if candidate.enabled and candidate.rgba is not None:
+            gate_probe = OpaqueSubjectRescue(
+                True,
+                "phase10_subject_segmentation" if segmentation.enabled else rescue.reason,
+                rgba=candidate.rgba,
+                background_rgb=candidate.background_rgb,
+                border_dominant_fraction=candidate.border_dominant_fraction,
+                foreground_area_ratio=candidate.foreground_area_ratio,
+                center_fill_ratio=candidate.center_fill_ratio,
+            )
+            rescue_gate = _opaque_rescue_failure_gate(baseline_scene, gate_probe)
         segmentation_gate = _phase10_segmentation_activation_gate(segmentation, rescue_gate)
+        if phase12_candidate_available:
+            phase12_rescue_gate = _phase12_portrait_collapse_gate(segmentation, baseline_scene)
         if segmentation_gate["accepted"] and segmentation.enabled:
             engine_input = segmentation.rgba
             engine_config = config.with_overrides(
@@ -2418,6 +2747,17 @@ def minimalize_rinka_reference(
             )
             scene = minimalize(engine_input, engine_config)
             segmentation_activated = True
+        elif phase12_rescue_gate["accepted"]:
+            engine_input = segmentation.rgba
+            engine_config = config.with_overrides(
+                background_mode=("custom" if config.background_mode == "source" else config.background_mode),
+                background_color=(segmentation.background_rgb if config.background_mode == "source" else config.background_color),
+                enable_rinka_macro_partition=False,
+                rinka_macro_rescue_active=False,
+            )
+            scene = minimalize(engine_input, engine_config)
+            segmentation_activated = True
+            phase12_rescue_activated = True
         elif rescue_gate["accepted"] and rescue.enabled and rescue.rgba is not None:
             engine_input = rescue.rgba
             engine_config = config.with_overrides(
@@ -2432,7 +2772,6 @@ def minimalize_rinka_reference(
     else:
         scene = minimalize(engine_input, engine_config)
 
-    structure_reference_scene = scene
     subject_planes = SubjectPlaneResult(False, "segmentation_not_activated")
     protected_structure_shapes: list[Shape] = []
     replaced_structure_shapes = 0
@@ -2455,11 +2794,47 @@ def minimalize_rinka_reference(
                 metadata=dict(scene.metadata),
             )
 
+    phase12_face_anchor = None
+    phase12_hair_anchor = None
+    phase12_anchor_stats = {"enabled": False, "reason": "rescue_not_activated", "face_anchor_created": False, "hair_anchor_created": False}
+    phase12_quality_gate = {"accepted": False, "reason": "rescue_not_activated", "torso_anchor_count": 0}
+    if phase12_rescue_activated:
+        phase12_face_anchor, face_anchor_stats = _phase12_face_anchor(
+            segmentation, scene.width, scene.height
+        )
+        phase12_hair_anchor, hair_anchor_stats = _phase12_hair_anchor(
+            segmentation, scene.width, scene.height, phase12_face_anchor
+        )
+        phase12_quality_gate = _phase12_repair_quality_gate(
+            subject_planes, phase12_face_anchor, phase12_hair_anchor, scene.width, scene.height
+        )
+        phase12_anchor_stats = {
+            **face_anchor_stats,
+            "hair": hair_anchor_stats,
+            "hair_anchor_created": bool(hair_anchor_stats.get("hair_anchor_created")),
+            "repair_quality_gate": phase12_quality_gate,
+        }
+        if not phase12_quality_gate["accepted"]:
+            scene = baseline_scene
+            engine_input = image_or_path
+            engine_config = baseline_config
+            segmentation_activated = False
+            phase12_rescue_activated = False
+            subject_planes = SubjectPlaneResult(False, "phase12_quality_fallback")
+            protected_structure_shapes = []
+            replaced_structure_shapes = 0
+            phase12_face_anchor = None
+            phase12_hair_anchor = None
+
+    structure_reference_scene = scene
     scene.metadata["rinka_subject_segmentation"] = {
         **segmentation.to_dict(),
         "activated": segmentation_activated,
         "baseline_gate": rescue_gate,
         "activation_gate": segmentation_gate,
+        "phase12_rescue_gate": phase12_rescue_gate,
+        "phase12_repair_quality_gate": phase12_quality_gate,
+        "phase12_rescue_activated": phase12_rescue_activated,
     }
     scene.metadata["rinka_subject_planes"] = {
         **subject_planes.to_dict(),
@@ -2484,4 +2859,7 @@ def minimalize_rinka_reference(
         opaque_zones=subject_zones,
         background_style="geometric" if preset == "geometric_poster" else "source",
         preset=preset,
+        protected_face_anchor=phase12_face_anchor,
+        protected_hair_anchor=phase12_hair_anchor,
+        phase12_anchor_stats=phase12_anchor_stats,
     )

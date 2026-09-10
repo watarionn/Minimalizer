@@ -43,7 +43,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.9.0"
+APP_VERSION = "0.10.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")

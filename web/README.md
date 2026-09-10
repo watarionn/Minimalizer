@@ -13,7 +13,7 @@ Included:
 - processing, empty, selected, and error states
 - segmented `通常 / 凛夏手本版 / Color Strip` mode selector
 - Standard mode abstraction level control with advanced settings collapsed by default
-- Rinka Reference mode locked to its validated Phase 11 level-4 subject profile
+- Rinka Reference mode locked to its validated Phase 12 level-4 subject profile
 - Rinka-only preset selector: `geometric_poster` (default) or `faceless_subject`
 - SVG preview and download
 - PNG download
@@ -78,7 +78,7 @@ Fields:
 - `max_shapes`: optional target shape limit, 5-500
 - `background`: optional `source`, `white`, or `transparent`
 
-`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 11 subject profile cannot be silently altered from the Web API. `rinka_preset` is accepted only in Rinka Reference mode.
+`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the Phase 12 Rinka profile cannot be silently altered from the Web API. `rinka_preset` is accepted only in Rinka Reference mode.
 
 Example:
 
@@ -115,4 +115,4 @@ The current upload/pixel limits are Web-service safety limits. They do not redef
 
 ## Next web phase
 
-After the v0.9.0 candidate is reviewed and explicitly approved for merge, deploy the same build to Railway and verify the public URL end to end in Standard, both Rinka presets, and Color Strip. Keep Standard as the default and confirm the hosted analysis-size cap remains respected before declaring production rollout complete.
+After the Phase 12 / Web v0.10.0 candidate is reviewed and explicitly approved for merge, deploy the same build to Railway and verify the public URL end to end in Standard, both Rinka presets, and Color Strip. Keep Standard as the default and confirm the hosted analysis-size cap remains respected before declaring the Phase 12 production rollout complete.

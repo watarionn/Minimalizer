@@ -1,17 +1,23 @@
 # Minimalizer CURRENT
 
 Current engine release: **v0.3.0 stable**
-Current production Web runtime: **v0.8.0 production-verified**
-Current Rinka Reference engine: **Phase 11 Checkpoint 2 merged to `main`; Checkpoint 3 local closure complete** on `feature/rinka-phase11-priority3-background-presets-ui-20260910`
-Current Web candidate: **v0.9.0 closure-validated locally in Draft PR #23** with Rinka Reference preset UI; production remains v0.8.0 until separately approved, merged, deployed, and verified.
+Current production Web runtime: **v0.9.0 production-verified**
+Current Rinka Reference engine: **Phase 11 merged and production-verified; Phase 12 local closure complete** on `feature/rinka-phase12-head-body-anchor-guard-20260910`
+Current Web candidate: **v0.10.0 local candidate** reporting Rinka Reference phase12; production remains v0.9.0 until Phase 12 is separately approved, merged, deployed, and verified.
 
 This file is the canonical restoration pointer.
+
+## Latest development: Rinka Reference Phase 12
+
+Phase 12 adds a failure-gated Head / Body Anchor Guard for opaque portrait inputs that still collapse into two or three giant slabs after the normal Rinka path. Rejected AI-free subject masks are retained as candidates but remain inactive unless a dedicated portrait-collapse gate accepts them. Accepted repairs rebuild subject color planes, synthesize one faceless skin-colored face slab plus one large hair anchor, require at least one torso anchor, and then pass a repair-quality gate before replacement is allowed. If the repair misses its required anchors, subject coverage falls below 0.64, or outside-subject overdraw exceeds 0.04, the renderer falls back to the previous baseline result.
+
+The two supplied regression images are now both handled by Phase 12: the white-hair case activates the three-slab route and the red-poster case activates the stricter two-slab-poster route. On the fixed 16-image corpus, Phase 12 rescue remains **0/16**, so established Phase 11 output metrics and poster-background behavior remain unchanged. Dedicated Phase 12 tests cover three-slab acceptance, two-slab poster acceptance, small-third-slab rejection, face anchor extraction, hair anchor extraction, and repair-quality requirements. See docs/RINKA_PHASE12_HEAD_BODY_ANCHOR_GUARD.md.
 
 ## Latest development: Rinka Reference Phase 11
 
 Phase 11 adopts the reviewed faceless geometric poster examples as the target direction. Priorities 1 and 2 were merged in PR #22 at `c5691318df69e1030ca89dd6a404e58294ba24a1`: strict faceless cleanup, one fingerless hand symbol per side, stronger micro-detail removal, larger hair planes, and larger outfit color blocks. Stable/Standard behavior remains untouched.
 
-Checkpoint 3 is now being implemented from that exact merged `main`. The default Rinka preset is `geometric_poster`: it keeps the accepted Phase 11 subject shapes unchanged and adds a flat poster background with three large five-vertex panels only when subject evidence exists. `faceless_subject` keeps the Phase 11 person abstraction but does not synthesize a background. A broad first background prototype was rejected during development because treating every generic `midground` shape as disposable could erase subject-supporting structure; the accepted gate only replaces definite background shapes. On the fixed 16-image corpus, geometric backgrounds activate on **15/16** character cases, generate/survive **45/45 panels**, and leave Night River untouched. The subject-shape signature is identical between the two presets on all **16/16** corpus images. The geometric preset currently measures about **31.10%** mean shape reduction and **21.59%** mean vertex reduction because its three intentional poster panels are counted as output geometry; Checkpoint 2 subject-only abstraction remains available unchanged through `faceless_subject`. Web v0.9.0 candidate adds a Rinka preset selector while Standard remains the default mode. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`. Local closure passes **259 tests / 2 known missing-fixture deselections**, `compileall`, JavaScript syntax validation, `git diff --check`, real-Uvicorn smoke for all four Web paths, and final 16-image visual/evaluator review.
+Checkpoint 3 is merged and production-verified from that exact Phase 11 line. The default Rinka preset is `geometric_poster`: it keeps the accepted Phase 11 subject shapes unchanged and adds a flat poster background with three large five-vertex panels only when subject evidence exists. `faceless_subject` keeps the Phase 11 person abstraction but does not synthesize a background. A broad first background prototype was rejected during development because treating every generic `midground` shape as disposable could erase subject-supporting structure; the accepted gate only replaces definite background shapes. On the fixed 16-image corpus, geometric backgrounds activate on **15/16** character cases, generate/survive **45/45 panels**, and leave Night River untouched. The subject-shape signature is identical between the two presets on all **16/16** corpus images. The geometric preset currently measures about **31.10%** mean shape reduction and **21.59%** mean vertex reduction because its three intentional poster panels are counted as output geometry; Checkpoint 2 subject-only abstraction remains available unchanged through `faceless_subject`. Web v0.9.0 production adds a Rinka preset selector while Standard remains the default mode. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`. Local closure passes **259 tests / 2 known missing-fixture deselections**, `compileall`, JavaScript syntax validation, `git diff --check`, real-Uvicorn smoke for all four Web paths, and final 16-image visual/evaluator review.
 
 ## GitHub source of truth
 
@@ -36,7 +42,7 @@ Minimalizer Web is publicly hosted on Railway at:
 
 Production currently tracks `main`.
 
-Web v0.8.0 is the public runtime. The current production source is `main` at merge commit `ea7d166b5f65512d955d8f7302ed4b728ec0822a`, which includes Rinka Reference Phase 10 Checkpoint 2. Railway deployment `20ec5413-5d7d-41eb-91d9-d4c4a99e2ad3` completed successfully for that commit and `/health` plus `/api/info` were verified with HTTP 200.
+Web v0.9.0 is the public runtime. The current production source is `main` at merge commit `3483154ccb4c98ca006cc5bc1f3482b99a3bdcee`, which includes Rinka Reference Phase 11 presets and geometric poster background support. Railway deployment `f0c48a18-786f-4280-8ba0-6cfc001da36f` completed successfully for that commit; `/health`, `/api/info`, Standard, both Rinka presets, and Color Strip were verified with HTTP 200.
 
 Production uses the temporary hosted safety setting:
 

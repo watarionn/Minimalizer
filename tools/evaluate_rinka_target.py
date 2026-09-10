@@ -153,6 +153,8 @@ def main() -> None:
         hair = target_meta.get("hair_abstraction", {})
         outfit_blocks = target_meta.get("outfit_color_blocks", {})
         background_geometry = target_meta.get("background_geometry", {})
+        phase12_anchor_guard = target_meta.get("phase12_anchor_guard", {})
+        phase12_quality_gate = segmentation_meta.get("phase12_repair_quality_gate", {}) or {}
         macro = target_meta.get("macro_priority", {})
         macro_shadow = macro.get("shadow", {})
         stable_identity = stable_quality.get("identity_score")
@@ -176,6 +178,12 @@ def main() -> None:
             "phase10_segmentation_activated": bool(segmentation_meta.get("activated", False)),
             "phase10_segmentation_confidence": segmentation_meta.get("confidence", 0.0),
             "phase10_activation_reason": (segmentation_meta.get("activation_gate") or {}).get("reason", "none"),
+            "phase12_rescue_gate_accepted": bool((segmentation_meta.get("phase12_rescue_gate") or {}).get("accepted", False)),
+            "phase12_rescue_activated": bool(segmentation_meta.get("phase12_rescue_activated", False)),
+            "phase12_repair_quality_accepted": bool(phase12_quality_gate.get("accepted", False)),
+            "phase12_torso_anchor_count": phase12_quality_gate.get("torso_anchor_count", 0),
+            "phase12_face_anchor_created": bool(phase12_anchor_guard.get("face_anchor_created", False)),
+            "phase12_hair_anchor_created": bool(phase12_anchor_guard.get("hair_anchor_created", False)),
             "phase10_subject_planes_enabled": bool(subject_planes.get("enabled", False)),
             "phase10_subject_plane_colors": subject_planes.get("color_count", 0),
             "phase10_subject_plane_count": subject_planes.get("plane_count", 0),
@@ -353,6 +361,12 @@ def main() -> None:
                 reason: sum(1 for r in phase10_rows if r["phase10_activation_reason"] == reason)
                 for reason in sorted({r["phase10_activation_reason"] for r in phase10_rows})
             },
+            "phase12_rescue_gate_accepted_count": sum(1 for r in rows if r["phase12_rescue_gate_accepted"]),
+            "phase12_rescue_activated_count": sum(1 for r in rows if r["phase12_rescue_activated"]),
+            "phase12_repair_quality_accepted_count": sum(1 for r in rows if r["phase12_repair_quality_accepted"]),
+            "phase12_face_anchor_created_count": sum(1 for r in rows if r["phase12_face_anchor_created"]),
+            "phase12_hair_anchor_created_count": sum(1 for r in rows if r["phase12_hair_anchor_created"]),
+            "phase12_total_torso_anchor_count": sum(r["phase12_torso_anchor_count"] for r in rows),
             "phase10_mean_subject_plane_coverage": mean(
                 r["phase10_subject_plane_coverage"] for r in phase10_rows
             ) if phase10_rows else 0.0,
