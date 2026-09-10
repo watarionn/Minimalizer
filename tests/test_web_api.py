@@ -84,7 +84,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.9.0",
+        "web_version": "0.10.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -93,7 +93,7 @@ def test_service_info_reports_web_engine_and_limits():
         "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
-        "rinka_reference_version": "phase11",
+        "rinka_reference_version": "phase12",
         "rinka_reference_default_preset": "geometric_poster",
         "rinka_reference_presets": ["geometric_poster", "faceless_subject"],
         "color_strip_version": "v0.3",

@@ -152,10 +152,19 @@ def segment_subject_without_ai(image_or_path) -> SubjectSegmentation:
         + 0.22 * (1.0 - min(border_leak / 0.35, 1.0)),
         0.0, 1.0,
     ))
-    if confidence < SUBJECT_SEGMENTATION_MIN_CONFIDENCE:
-        return SubjectSegmentation(False, "confidence_gate", background_rgb=colors[0], border_dominant_fraction=dominant, foreground_area_ratio=area_ratio, center_fill_ratio=center_fill, border_leak_ratio=border_leak, confidence=confidence)
-
     rgba = np.dstack([rgb, subject.astype(np.uint8) * 255])
+    if confidence < SUBJECT_SEGMENTATION_MIN_CONFIDENCE:
+        # Keep the candidate mask/RGBA even when the normal Phase 10 confidence
+        # gate rejects it. Phase 12 may use this only behind a stricter
+        # portrait-collapse rescue gate; enabled remains False so existing
+        # callers keep their previous behavior.
+        return SubjectSegmentation(
+            False, "confidence_gate", rgba=rgba, mask=subject,
+            background_rgb=colors[0], border_dominant_fraction=dominant,
+            foreground_area_ratio=area_ratio, center_fill_ratio=center_fill,
+            border_leak_ratio=border_leak, confidence=confidence,
+        )
+
     return SubjectSegmentation(
         True, "accepted", rgba=rgba, mask=subject,
         background_rgb=colors[0], border_dominant_fraction=dominant,
