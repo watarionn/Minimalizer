@@ -12,6 +12,7 @@ from .models import Scene, Shape
 from .pipeline import minimalize
 from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
 from .subject_segmentation import SubjectSegmentation, segment_subject_without_ai
+from .subject_planes import SubjectPlaneResult, build_subject_color_planes
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
     OpaqueSubjectZones,
@@ -608,7 +609,9 @@ def _apply_opaque_zones(
             side_hint = "right"
         importance = float(shape.importance)
         canonical = _strict_character_base(shape)
-        if structure_mode and canonical:
+        if structure_mode and shape.source_role == "phase10_gesture_plane":
+            out.append(replace(shape, side_hint=side_hint, importance=max(importance, floor)))
+        elif structure_mode and canonical:
             # Character Structure already produced a protected semantic base. Do
             # not rewrite its role/layer/importance; the zones are advisory here.
             out.append(replace(shape, side_hint=side_hint))
@@ -1712,6 +1715,19 @@ def _opaque_rescue_failure_gate(scene: Scene, rescue: OpaqueSubjectRescue) -> di
         "border_dominant_fraction": round(float(rescue.border_dominant_fraction), 6),
     }
 
+def _phase10_protected_structure_shapes(shapes: list[Shape]) -> list[Shape]:
+    protected: list[Shape] = []
+    for shape in shapes:
+        part = (shape.character_part or "unknown").lower()
+        tags = _shape_tags(shape)
+        if part in {"left_hand", "right_hand"}:
+            protected.append(shape)
+            continue
+        if any(token in tags for token in ("prop", "sword", "weapon")):
+            protected.append(shape)
+    return protected
+
+
 def minimalize_rinka_reference(
     image_or_path,
     level: int = 4,
@@ -1770,10 +1786,38 @@ def minimalize_rinka_reference(
     else:
         scene = minimalize(engine_input, engine_config)
 
+    structure_reference_scene = scene
+    subject_planes = SubjectPlaneResult(False, "segmentation_not_activated")
+    protected_structure_shapes: list[Shape] = []
+    replaced_structure_shapes = 0
+    if segmentation_activated and segmentation.rgba is not None:
+        subject_planes = build_subject_color_planes(
+            segmentation.rgba,
+            scene.width,
+            scene.height,
+            segmentation.background_rgb,
+            max_colors=min(6, max(4, int(config.palette_colors))),
+        )
+        if subject_planes.enabled:
+            protected_structure_shapes = _phase10_protected_structure_shapes(scene.shapes)
+            replaced_structure_shapes = len(scene.shapes) - len(protected_structure_shapes)
+            scene = Scene(
+                width=scene.width,
+                height=scene.height,
+                background=scene.background,
+                shapes=[*subject_planes.shapes, *protected_structure_shapes],
+                metadata=dict(scene.metadata),
+            )
+
     scene.metadata["rinka_subject_segmentation"] = {
         **segmentation.to_dict(),
         "activated": segmentation_activated,
         "baseline_gate": rescue_gate,
+    }
+    scene.metadata["rinka_subject_planes"] = {
+        **subject_planes.to_dict(),
+        "protected_structure_shapes": len(protected_structure_shapes),
+        "replaced_structure_shapes": replaced_structure_shapes,
     }
     scene.metadata["rinka_opaque_subject_rescue"] = {
         **rescue.to_dict(),
@@ -1781,9 +1825,9 @@ def minimalize_rinka_reference(
         "baseline_gate": rescue_gate,
         "superseded_by_subject_segmentation": segmentation_activated,
     }
-    opaque_hierarchy = estimate_opaque_subject_hierarchy(engine_input, scene)
-    opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, scene)
-    structure_zones = estimate_structure_subject_zones(scene)
+    opaque_hierarchy = estimate_opaque_subject_hierarchy(engine_input, structure_reference_scene)
+    opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, structure_reference_scene)
+    structure_zones = estimate_structure_subject_zones(structure_reference_scene)
     subject_zones = opaque_zones if opaque_zones.enabled else structure_zones
     return apply_rinka_reference_style(
         scene,

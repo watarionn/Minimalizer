@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 
 from minimalize_engine.subject_segmentation import segment_subject_without_ai
+from minimalize_engine.subject_planes import build_subject_color_planes
 from minimalize_engine.target_style import minimalize_rinka_reference
 
 
@@ -27,9 +28,23 @@ def test_phase10_omaru_uses_ai_free_subject_segmentation():
     assert segmentation["center_fill_ratio"] >= 0.90
     assert rescue["activated"] is False
     assert rescue["superseded_by_subject_segmentation"] is True
+    planes = scene.metadata["rinka_subject_planes"]
     assert macro["enabled"] is False
     assert scene.metadata["subject_mode"] is True
-    assert scene.metadata["target_style"]["phase10_subject_base_removed"] == 1
+    assert planes["enabled"] is True
+    assert planes["color_count"] == 6
+    assert 18 <= planes["plane_count"] <= 26
+    assert planes["vertex_count"] <= 180
+    assert planes["contrast_adjusted_colors"] >= 1
+    assert planes["gesture_plane_count"] >= 1
+    assert planes["bridge_kernel_size"] == 3
+    assert planes["subject_coverage_ratio"] >= 0.75
+    assert planes["outside_subject_ratio"] <= 0.03
+    assert planes["protected_structure_shapes"] >= 2
+    assert planes["replaced_structure_shapes"] >= 20
+    assert scene.metadata["target_style"]["phase10_subject_base_removed"] == 0
+    assert any(shape.source_role == "phase10_gesture_plane" and shape.side_hint == "right" for shape in scene.shapes)
+    assert any("character_sword_blade" in (shape.source_role or "") for shape in scene.shapes)
 
 
 def test_phase10_edge_connected_background_keeps_enclosed_matching_color():
@@ -54,3 +69,31 @@ def test_phase10_existing_alpha_subject_is_not_resegmented():
     result = segment_subject_without_ai(rgba)
     assert result.enabled is False
     assert result.reason == "alpha_subject"
+
+
+def test_phase10_subject_planes_are_deterministic_and_preserve_side_gesture():
+    rgba = np.zeros((128, 128, 4), dtype=np.uint8)
+    rgba[24:112, 28:92, :3] = (235, 220, 195)
+    rgba[24:112, 28:92, 3] = 255
+    rgba[24:70, 90:105, :3] = (48, 46, 47)
+    rgba[24:70, 90:105, 3] = 255
+    rgba[82:116, 18:60, :3] = (70, 145, 210)
+    rgba[82:116, 18:60, 3] = 255
+    rgba[70:108, 62:92, :3] = (180, 30, 38)
+    rgba[70:108, 62:92, 3] = 255
+
+    first = build_subject_color_planes(rgba, 128, 128, (207, 40, 48), max_colors=4)
+    second = build_subject_color_planes(rgba, 128, 128, (207, 40, 48), max_colors=4)
+    signature = lambda result: [
+        (shape.fill_color, shape.semantic_type, shape.side_hint, tuple(shape.points))
+        for shape in result.shapes
+    ]
+
+    assert first.enabled is True
+    assert first.to_dict() == second.to_dict()
+    assert signature(first) == signature(second)
+    assert first.contrast_adjusted_colors == 1
+    assert first.gesture_plane_count == 1
+    assert first.subject_coverage_ratio >= 0.90
+    assert first.outside_subject_ratio <= 0.03
+    assert any(shape.semantic_type == "phase10_gesture_plane" and shape.side_hint == "right" for shape in first.shapes)

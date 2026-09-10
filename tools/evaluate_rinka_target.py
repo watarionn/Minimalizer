@@ -130,6 +130,8 @@ def main() -> None:
         target_quality = target.metadata.get("quality", {})
         target_meta = target.metadata.get("target_style", {})
         rescue_meta = target.metadata.get("rinka_opaque_subject_rescue", {})
+        segmentation_meta = target.metadata.get("rinka_subject_segmentation", {})
+        subject_planes = target.metadata.get("rinka_subject_planes", {})
         macro_partition = target.metadata.get("rinka_macro_partition", {})
         primitive_fits = macro_partition.get("primitive_fits", {}) or {}
         face_primitive = ((primitive_fits.get("face:0") or {}).get("selected") or {}).get("kind", "none")
@@ -167,6 +169,18 @@ def main() -> None:
             "phase8_rescue_gate_largest_shape_ratio": (rescue_meta.get("baseline_gate") or {}).get("largest_shape_ratio", 0.0),
             "phase8_rescue_gate_second_shape_ratio": (rescue_meta.get("baseline_gate") or {}).get("second_shape_ratio", 0.0),
             "phase8_rescue_center_fill_ratio": rescue_meta.get("center_fill_ratio", 0.0),
+            "phase10_segmentation_activated": bool(segmentation_meta.get("activated", False)),
+            "phase10_segmentation_confidence": segmentation_meta.get("confidence", 0.0),
+            "phase10_subject_planes_enabled": bool(subject_planes.get("enabled", False)),
+            "phase10_subject_plane_colors": subject_planes.get("color_count", 0),
+            "phase10_subject_plane_count": subject_planes.get("plane_count", 0),
+            "phase10_subject_plane_vertices": subject_planes.get("vertex_count", 0),
+            "phase10_subject_plane_coverage": subject_planes.get("subject_coverage_ratio", 0.0),
+            "phase10_subject_plane_outside_ratio": subject_planes.get("outside_subject_ratio", 0.0),
+            "phase10_gesture_plane_count": subject_planes.get("gesture_plane_count", 0),
+            "phase10_contrast_adjusted_colors": subject_planes.get("contrast_adjusted_colors", 0),
+            "phase10_protected_structure_shapes": subject_planes.get("protected_structure_shapes", 0),
+            "phase10_replaced_structure_shapes": subject_planes.get("replaced_structure_shapes", 0),
             "phase8_macro_enabled": bool(macro_partition.get("enabled", False)),
             "phase8_macro_generated_shapes": macro_partition.get("generated_shapes", 0),
             "phase9_semantic_tree_nodes": macro_partition.get("semantic_tree_nodes", 0),
@@ -268,6 +282,19 @@ def main() -> None:
         non_rescue_rows = [r for r in rows if not r["phase8_rescue_activated"]]
         non_rescue_identity = [r["target_pre_identity_delta"] for r in non_rescue_rows if r["target_pre_identity_delta"] is not None]
         non_rescue_silhouette = [r["target_pre_silhouette_delta"] for r in non_rescue_rows if r["target_pre_silhouette_delta"] is not None]
+        phase10_rows = [r for r in rows if r["phase10_segmentation_activated"]]
+        phase10_unaffected_rows = [
+            r for r in rows
+            if not r["phase10_segmentation_activated"] and not r["phase8_rescue_activated"]
+        ]
+        phase10_unaffected_identity = [
+            r["target_pre_identity_delta"] for r in phase10_unaffected_rows
+            if r["target_pre_identity_delta"] is not None
+        ]
+        phase10_unaffected_silhouette = [
+            r["target_pre_silhouette_delta"] for r in phase10_unaffected_rows
+            if r["target_pre_silhouette_delta"] is not None
+        ]
         summary = {
             "count": len(rows),
             "target_style_version": rows[0].get("target_style_version"),
@@ -275,6 +302,23 @@ def main() -> None:
             "mean_shape_reduction_ratio": mean(r["shape_reduction_ratio"] for r in rows),
             "mean_vertex_reduction_ratio": mean(r["vertex_reduction_ratio"] for r in rows),
             "phase8_rescue_activated_count": len(rescue_rows),
+            "phase10_segmentation_activated_count": len(phase10_rows),
+            "phase10_subject_planes_enabled_count": sum(1 for r in rows if r["phase10_subject_planes_enabled"]),
+            "phase10_total_subject_plane_count": sum(r["phase10_subject_plane_count"] for r in rows),
+            "phase10_total_subject_plane_vertices": sum(r["phase10_subject_plane_vertices"] for r in rows),
+            "phase10_total_gesture_plane_count": sum(r["phase10_gesture_plane_count"] for r in rows),
+            "phase10_total_contrast_adjusted_colors": sum(r["phase10_contrast_adjusted_colors"] for r in rows),
+            "phase10_total_protected_structure_shapes": sum(r["phase10_protected_structure_shapes"] for r in rows),
+            "phase10_total_replaced_structure_shapes": sum(r["phase10_replaced_structure_shapes"] for r in rows),
+            "phase10_mean_subject_plane_coverage": mean(
+                r["phase10_subject_plane_coverage"] for r in phase10_rows
+            ) if phase10_rows else 0.0,
+            "phase10_max_subject_plane_outside_ratio": max(
+                (r["phase10_subject_plane_outside_ratio"] for r in phase10_rows),
+                default=0.0,
+            ),
+            "phase10_unaffected_worst_identity_delta": min(phase10_unaffected_identity) if phase10_unaffected_identity else None,
+            "phase10_unaffected_worst_silhouette_delta": min(phase10_unaffected_silhouette) if phase10_unaffected_silhouette else None,
             "phase8_macro_enabled_count": sum(1 for r in rows if r["phase8_macro_enabled"]),
             "phase9_semantic_tree_enabled_count": sum(1 for r in rows if r["phase9_semantic_tree_nodes"] > 0),
             "phase9_total_primitive_fit_count": sum(r["phase9_primitive_fit_count"] for r in rows),
