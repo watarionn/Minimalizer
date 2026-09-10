@@ -25,7 +25,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase10"
+RINKA_REFERENCE_VERSION = "phase11"
 
 
 _TARGET_MAX_SHAPES = {
@@ -797,11 +797,32 @@ def _face_box_from_metadata(scene: Scene) -> tuple[float, float, float, float] |
     return None
 
 
+_FACE_FEATURE_TOKENS = (
+    "eye", "iris", "pupil", "mouth", "lip", "eyebrow", "brow",
+    "nose", "eyelash", "face_detail", "facial_detail",
+)
+
+
+def _is_explicit_face_feature(shape: Shape) -> bool:
+    tags = _shape_tags(shape)
+    if any(token in tags for token in ("hair", "prop", "hand", "finger")):
+        return False
+    return any(token in tags for token in _FACE_FEATURE_TOKENS)
+
+
 def _suppress_face_fragments(
     scene: Scene,
     shapes: list[Shape],
     opaque_zones: OpaqueSubjectZones | None = None,
 ) -> tuple[list[Shape], int]:
+    """Make the default Rinka face a single quiet skin plane.
+
+    Phase 11 deliberately treats eyes, mouth, brows, nose and similar local
+    marks as removable even when upstream analysis gave them high importance.
+    The largest non-detail face carrier is retained so the head silhouette and
+    skin block remain readable. Hair, hands and props crossing the face box are
+    never consumed by this pass.
+    """
     box = _face_box_from_metadata(scene)
     if box is None and opaque_zones is not None and opaque_zones.enabled:
         head = opaque_zones.zone_bbox("head")
@@ -823,19 +844,25 @@ def _suppress_face_fragments(
         cx, cy = _shape_center(shape)
         if x0 <= cx <= x1 and y0 <= cy <= y1:
             inside.append(shape)
-    if len(inside) < 2:
+    if not inside:
         return shapes, 0
-    carrier = max(inside, key=lambda s: _shape_metrics(s)[0])
-    carrier_area = _shape_metrics(carrier)[0]
-    if carrier_area < face_area * 0.08:
-        return shapes, 0
-    remove_ids: set[int] = set()
-    for shape in inside:
-        if shape.id == carrier.id or float(shape.importance) >= 0.90:
-            continue
-        area = _shape_metrics(shape)[0]
-        if area <= max(face_area * 0.16, carrier_area * 0.65):
-            remove_ids.add(shape.id)
+
+    explicit_ids = {shape.id for shape in inside if _is_explicit_face_feature(shape)}
+    carrier_candidates = [shape for shape in inside if shape.id not in explicit_ids]
+    remove_ids: set[int] = set(explicit_ids)
+    if carrier_candidates:
+        carrier = max(carrier_candidates, key=lambda s: _shape_metrics(s)[0])
+        carrier_area = _shape_metrics(carrier)[0]
+        if carrier_area >= face_area * 0.06:
+            for shape in carrier_candidates:
+                if shape.id == carrier.id:
+                    continue
+                area = _shape_metrics(shape)[0]
+                # Faceless is the default target, so local interior marks are
+                # removed by relative size rather than upstream importance.
+                if area <= max(face_area * 0.24, carrier_area * 0.82):
+                    remove_ids.add(shape.id)
+
     if not remove_ids:
         return shapes, 0
     return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
@@ -1080,6 +1107,143 @@ def _polygon_centroid(points: np.ndarray) -> np.ndarray:
         [moments["m10"] / moments["m00"], moments["m01"] / moments["m00"]],
         dtype=np.float32,
     )
+
+
+def _hand_symbol_from_group(group: list[Shape], min_side: float) -> Shape | None:
+    """Collapse one hand into a single fingerless geometric symbol."""
+    polygons = [_shape_polygon_points(shape) for shape in group]
+    polygons = [poly for poly in polygons if poly is not None and len(poly) >= 3]
+    if not polygons:
+        return None
+    all_points = np.vstack(polygons).astype(np.float32)
+    (cx, cy), (rect_w, rect_h), angle = cv2.minAreaRect(all_points)
+    major = max(float(rect_w), float(rect_h))
+    minor = min(float(rect_w), float(rect_h))
+    if major <= 1e-6 or minor <= 1e-6:
+        return None
+    if rect_w < rect_h:
+        angle += 90.0
+
+    # A six-sided beveled block reads as a hand but cannot accidentally turn
+    # into a three/four-finger silhouette. Keep it compact by matching the
+    # source filled area rather than the spread-finger bounding hull.
+    source_area = max(sum(_shape_metrics(shape)[0] for shape in group), 1.0)
+    aspect = min(1.50, max(1.0, major / max(minor, 1e-6)))
+    unit = np.asarray(
+        [(-0.58, -1.0), (0.58, -1.0), (1.0, 0.0),
+         (0.58, 1.0), (-0.58, 1.0), (-1.0, 0.0)],
+        dtype=np.float32,
+    )
+    unit_area = max(abs(float(cv2.contourArea(unit))), 1e-6)
+    half_major = float(np.sqrt(source_area * aspect / unit_area))
+    half_minor = half_major / aspect
+    half_major = min(half_major, major * 0.50)
+    half_minor = min(half_minor, minor * 0.58)
+    floor = max(0.75, min_side * 0.004)
+    half_major = max(half_major, floor)
+    half_minor = max(half_minor, floor * 0.72)
+
+    local = unit * np.asarray([half_major, half_minor], dtype=np.float32)
+    theta = np.deg2rad(float(angle))
+    rotation = np.asarray(
+        [[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]],
+        dtype=np.float32,
+    )
+    points = local @ rotation.T + np.asarray([cx, cy], dtype=np.float32)
+
+    primary = max(group, key=lambda shape: (float(shape.importance), _shape_metrics(shape)[0]))
+    weighted = [(shape, max(_shape_metrics(shape)[0], 1.0)) for shape in group if shape.fill_color is not None]
+    fill = primary.fill_color
+    if weighted:
+        total = sum(weight for _, weight in weighted)
+        fill = tuple(
+            int(round(sum(shape.fill_color[channel] * weight for shape, weight in weighted) / total))
+            for channel in range(3)
+        )
+    return replace(
+        primary,
+        shape_type="polygon",
+        fill_color=fill,
+        points=[(float(x), float(y)) for x, y in points],
+        x=None, y=None, width=None, height=None,
+        cx=None, cy=None, rx=None, ry=None,
+        z_index=max(shape.z_index for shape in group),
+        importance=max(0.985, max(float(shape.importance) for shape in group)),
+        source_role="target_hand_symbol",
+        semantic_type="target_hand_symbol",
+    )
+
+
+def _abstract_hand_symbols(shapes: list[Shape], min_side: float) -> tuple[list[Shape], dict]:
+    """Replace anatomical hand contours with at most one block per known side."""
+    hand_shapes = [shape for shape in shapes if _gesture_carrier_kind(shape) == "hand"]
+    if not hand_shapes:
+        return shapes, {
+            "input_shapes": 0, "symbol_count": 0, "merged_shapes": 0,
+            "vertices_before": 0, "vertices_after": 0, "vertices_removed": 0,
+        }
+
+    groups: dict[str, list[Shape]] = {}
+    for shape in hand_shapes:
+        side = (shape.side_hint or "unknown").lower()
+        key = side if side in {"left", "right"} else f"unknown:{shape.id}"
+        groups.setdefault(key, []).append(shape)
+
+    replacements: dict[int, Shape] = {}
+    removed_ids: set[int] = set()
+    vertices_before = sum(len(shape.points) for shape in hand_shapes)
+    symbol_count = 0
+    for group in groups.values():
+        symbol = _hand_symbol_from_group(group, min_side)
+        if symbol is None:
+            continue
+        primary_id = symbol.id
+        replacements[primary_id] = symbol
+        removed_ids.update(shape.id for shape in group if shape.id != primary_id)
+        symbol_count += 1
+
+    out: list[Shape] = []
+    for shape in shapes:
+        if shape.id in removed_ids:
+            continue
+        out.append(replacements.get(shape.id, shape))
+    vertices_after = sum(
+        len(shape.points) for shape in out if (shape.source_role or "") == "target_hand_symbol"
+    )
+    return out, {
+        "input_shapes": len(hand_shapes),
+        "symbol_count": symbol_count,
+        "merged_shapes": max(0, len(hand_shapes) - symbol_count),
+        "vertices_before": vertices_before,
+        "vertices_after": vertices_after,
+        "vertices_removed": max(0, vertices_before - vertices_after),
+    }
+
+
+def _prune_target_microdetails(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape], int]:
+    """Drop explicit decorative crumbs after the identity-bearing masses exist."""
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    remove_ids: set[int] = set()
+    micro_tokens = ("ruffle", "lace", "stitch", "seam", "nail", "finger")
+    for shape in shapes:
+        tags = _shape_tags(shape)
+        if (shape.source_role or "") == "target_hand_symbol":
+            continue
+        if _target_mass_kind(shape) in {"prop", "hair"}:
+            continue
+        area_ratio = _shape_metrics(shape)[0] / canvas_area
+        explicit_micro = any(token in tags for token in micro_tokens)
+        target_fragment = "target_fragment" in tags or (
+            (shape.semantic_type or "").startswith("target_")
+            and (shape.semantic_type or "").endswith("_fragment")
+        )
+        if explicit_micro and area_ratio <= 0.0045:
+            remove_ids.add(shape.id)
+        elif target_fragment and area_ratio <= 0.0035 and float(shape.importance) < 0.90:
+            remove_ids.add(shape.id)
+    if not remove_ids:
+        return shapes, 0
+    return [shape for shape in shapes if shape.id not in remove_ids], len(remove_ids)
 
 
 def _gesture_hand_anchors(shapes: list[Shape]) -> dict[str, Shape]:
@@ -1637,8 +1801,10 @@ def apply_rinka_reference_style(
     outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
     outfit_refined, outfit_refinement_merges = _refine_outfit_layers_once(scene, outfit_consolidated, min_side)
     outfit_layer_merges += outfit_refinement_merges
-    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(outfit_refined, min_side)
-    compressed, background_removed = _compress_background(scene, gesture_abstracted)
+    hand_abstracted, hand_stats = _abstract_hand_symbols(outfit_refined, min_side)
+    gesture_abstracted, gesture_stats = _abstract_gesture_shapes(hand_abstracted, min_side)
+    micro_pruned, microdetail_removed = _prune_target_microdetails(scene, gesture_abstracted)
+    compressed, background_removed = _compress_background(scene, micro_pruned)
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
     polished, render_inert_occluded_removed = _prune_render_inert_occluded_fragments(scene, straight)
     shadow_budget = 24 if target_max_shapes == 28 else None
@@ -1671,6 +1837,8 @@ def apply_rinka_reference_style(
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
+        "hand_abstraction": hand_stats,
+        "microdetail_removed": microdetail_removed,
         "render_inert_occluded_removed": render_inert_occluded_removed,
         "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,

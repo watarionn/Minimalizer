@@ -149,6 +149,7 @@ def main() -> None:
         hierarchy = target_meta.get("opaque_hierarchy", {})
         zones = target_meta.get("opaque_zones", {})
         gesture = target_meta.get("gesture_abstraction", {})
+        hand = target_meta.get("hand_abstraction", {})
         macro = target_meta.get("macro_priority", {})
         macro_shadow = macro.get("shadow", {})
         stable_identity = stable_quality.get("identity_score")
@@ -221,7 +222,12 @@ def main() -> None:
             "target_gesture_vertices_removed": gesture.get("vertices_removed", 0),
             "target_gesture_anchored_simplifications": gesture.get("anchored_simplifications", 0),
             "target_gesture_hand_anchors": gesture.get("hand_anchors", 0),
+            "target_hand_input_shapes": hand.get("input_shapes", 0),
+            "target_hand_symbol_count": hand.get("symbol_count", 0),
+            "target_hand_merged_shapes": hand.get("merged_shapes", 0),
+            "target_hand_vertices_removed": hand.get("vertices_removed", 0),
             "target_face_fragments_removed": target_meta.get("face_fragments_removed", 0),
+            "target_microdetail_removed": target_meta.get("microdetail_removed", 0),
             "target_mass_merges": target_meta.get("mass_merges", 0),
             "target_background_removed": target_meta.get("background_removed", 0),
             "target_cap_removed": target_meta.get("cap_removed", 0),
@@ -367,7 +373,12 @@ def main() -> None:
             "total_target_gesture_vertices_removed": sum(r["target_gesture_vertices_removed"] for r in rows),
             "total_target_gesture_anchored_simplifications": sum(r["target_gesture_anchored_simplifications"] for r in rows),
             "total_target_gesture_hand_anchors": sum(r["target_gesture_hand_anchors"] for r in rows),
+            "total_target_hand_input_shapes": sum(r["target_hand_input_shapes"] for r in rows),
+            "total_target_hand_symbol_count": sum(r["target_hand_symbol_count"] for r in rows),
+            "total_target_hand_merged_shapes": sum(r["target_hand_merged_shapes"] for r in rows),
+            "total_target_hand_vertices_removed": sum(r["target_hand_vertices_removed"] for r in rows),
             "total_target_face_fragments_removed": sum(r["target_face_fragments_removed"] for r in rows),
+            "total_target_microdetail_removed": sum(r["target_microdetail_removed"] for r in rows),
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
             "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
             "total_target_cap_removed": sum(r["target_cap_removed"] for r in rows),

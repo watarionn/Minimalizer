@@ -11,6 +11,13 @@
 
 ## Current state
 
+### Active Rinka work: Phase 11 Checkpoint 1
+
+Active branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`, based on `main` `125b4883fe66cce1c12056d8ddf3e18b20f310c9`. Phase 10 Checkpoint 3 is already merged. The new target is the user-reviewed faceless geometric poster family. Priority 1 is implemented locally: strict facial micro-feature suppression, one fingerless six-vertex hand symbol per known side, and conservative micro-detail pruning. Do not skip directly to background/UI work. Next implementation priority is large hair planes plus clothing color-block consolidation, then geometric backgrounds/presets/UI. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
+
+Checkpoint 1 validation: fixed 16-image corpus at level 4 / analysis max side 220 = **35.56%** mean shape reduction, **25.76%** mean vertex reduction, 15 recognized hands -> 15 fingerless symbols, 4 micro-details removed, and ~0.103% mean target-PNG change versus Phase 10. Full local suite = **245 passed / 2 known missing-fixture tests deselected**. Keep the PR Draft until explicit user approval to send it for review.
+
+
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 
 GitHub contains the stable engine implementation, 42-file regression suite, all 16 original regression images, Web API/UI code, generic Docker packaging, permanent CI, and a formal quality target specification in `docs/TARGET_STYLE.md`.
