@@ -11,11 +11,13 @@
 
 ## Current state
 
-### Active Rinka work: Phase 11 Checkpoint 2
+### Active Rinka work: Phase 11 Checkpoint 3
 
-Active branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`, based on `main` `125b4883fe66cce1c12056d8ddf3e18b20f310c9`. Phase 10 Checkpoint 3 is already merged. Phase 11 priorities 1 and 2 are implemented on the Draft branch. Priority 1 provides strict faceless cleanup, one fingerless hand symbol per known side, and conservative micro-detail pruning. Priority 2 removes repeated local hair lines when filled hair masses already carry identity, preserves long flow cues, simplifies filled hair polygons under raster guards, and collapses nearby same-family garment colors into larger blocks. Next is priority 3: geometric background compression, presets, and Web UI exposure. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
+Active branch: `feature/rinka-phase11-priority3-background-presets-ui-20260910`, based on merged Phase 11 Checkpoint 2 main `c5691318df69e1030ca89dd6a404e58294ba24a1` (PR #22). Priorities 1 and 2 are already on `main`. Checkpoint 3 implements priority 3: safe geometric background generation, named Rinka presets, and Web UI/API exposure.
 
-Checkpoint 2 validation: fixed 16-image corpus at level 4 / analysis max side 220 = **40.32%** mean shape reduction and **26.99%** mean vertex reduction. Hair: 24 local line cues removed, 1 long cue preserved, 6 planes simplified / 9 vertices removed. Outfit blocks: 44 -> 36 colors via 8 recolors. Mean target-PNG change versus Checkpoint 1 is ~0.490%, max ~2.242%; Night River is unchanged. Full local suite = **249 passed / 2 known missing-fixture tests deselected**; targeted suite = **73 passed**. Keep the PR Draft until explicit user approval to send it for review.
+`geometric_poster` is the new Rinka default and adds exactly three large five-vertex background panels only when subject evidence exists. `faceless_subject` preserves the Phase 11 subject abstraction without adding synthetic background geometry. Do not restore the rejected broad background rule that classified arbitrary generic `midground` structure as disposable: the accepted path only replaces definite background layers/tags. Fixed-corpus validation currently activates poster backgrounds on **15/16**, generates/survives **45/45 panels**, preserves **11** strong scene cues, leaves Night River unchanged, and produces identical non-poster subject shape signatures between both presets on all **16/16** images. Geometric-poster corpus means are about **31.10% shape reduction / 21.59% vertex reduction**, lower than Checkpoint 2 because the three intentional background panels are counted. Web v0.9.0 candidate exposes the two presets only inside Rinka Reference and keeps Standard as the default mode.
+
+Draft PR **#23** is open for this work. Keep it Draft; do not mark Ready or merge until the user explicitly approves those steps. GitHub Actions remain unsafe for metered usage; use `[skip ci]` and local validation, and cancel any accidentally triggered run immediately. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
 
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
@@ -270,7 +272,7 @@ Optional Web follow-up, after or alongside quality work:
 - revisit `WEB_MAX_ANALYSIS_SIDE=400` only after new hosted measurements support a change.
 
 
-Phase 6 is merged and frozen at `a5e76fc365ad608bde7506b9b0a7b21a5e8527cc`. Web v0.5.0 integration starts from that exact baseline on `feature/rinka-web-ui-mode-20260909`. Add an explicit accessible segmented `?? / ?????` selector while keeping Standard selected by default. The API accepts `mode=standard|rinka_reference`; Standard preserves all existing controls, while Rinka Reference must stay locked to its validated Phase 6 level-4 profile and reject custom color/shape/background overrides. Both modes must obey the hosted analysis-size cap and processing semaphore. The response exposes `X-Minimalizer-Mode`; `/api/info` reports supported modes and `phase6`. Merge first, then verify both modes on the Railway production URL before calling v0.5.0 production-complete.
+Phase 6 is merged and frozen at `a5e76fc365ad608bde7506b9b0a7b21a5e8527cc`. Web v0.5.0 integration starts from that exact baseline on `feature/rinka-web-ui-mode-20260909`. Add an explicit accessible segmented `通常 / 凛夏手本版` selector while keeping Standard selected by default. The API accepts `mode=standard|rinka_reference`; Standard preserves all existing controls, while Rinka Reference must stay locked to its validated Phase 6 level-4 profile and reject custom color/shape/background overrides. Both modes must obey the hosted analysis-size cap and processing semaphore. The response exposes `X-Minimalizer-Mode`; `/api/info` reports supported modes and `phase6`. Merge first, then verify both modes on the Railway production URL before calling v0.5.0 production-complete.
 
 
 ## Rinka Reference Phase 7 handoff

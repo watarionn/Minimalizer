@@ -26,7 +26,12 @@ def _shape_area(shape) -> float:
 
 def _largest_ratio(scene) -> float:
     canvas = max(float(scene.width * scene.height), 1.0)
-    return max((_shape_area(shape) / canvas for shape in scene.shapes if shape.fill_color is not None), default=0.0)
+    return max((
+        _shape_area(shape) / canvas
+        for shape in scene.shapes
+        if shape.fill_color is not None
+        and shape.semantic_type != "target_geometric_background"
+    ), default=0.0)
 
 
 def test_phase8_rescues_omaru_single_slab_failure():

@@ -152,6 +152,7 @@ def main() -> None:
         hand = target_meta.get("hand_abstraction", {})
         hair = target_meta.get("hair_abstraction", {})
         outfit_blocks = target_meta.get("outfit_color_blocks", {})
+        background_geometry = target_meta.get("background_geometry", {})
         macro = target_meta.get("macro_priority", {})
         macro_shadow = macro.get("shadow", {})
         stable_identity = stable_quality.get("identity_score")
@@ -242,6 +243,13 @@ def main() -> None:
             "target_microdetail_removed": target_meta.get("microdetail_removed", 0),
             "target_mass_merges": target_meta.get("mass_merges", 0),
             "target_background_removed": target_meta.get("background_removed", 0),
+            "target_preset": target_meta.get("preset"),
+            "target_background_geometry_enabled": bool(background_geometry.get("enabled", False)),
+            "target_background_generated_panels": background_geometry.get("generated_panels", 0),
+            "target_background_surviving_panels": background_geometry.get("surviving_panels", 0),
+            "target_background_replaced_shapes": background_geometry.get("replaced_background_shapes", 0),
+            "target_background_preserved_scene_cues": background_geometry.get("preserved_scene_cues", 0),
+            "target_background_color_source": background_geometry.get("background_color_source", "source"),
             "target_cap_removed": target_meta.get("cap_removed", 0),
             "target_macro_removed_background": macro.get("removed_background", 0),
             "target_macro_removed_subject": macro.get("removed_subject", 0),
@@ -403,6 +411,15 @@ def main() -> None:
             "total_target_microdetail_removed": sum(r["target_microdetail_removed"] for r in rows),
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
             "total_target_background_removed": sum(r["target_background_removed"] for r in rows),
+            "target_presets": {
+                preset: sum(1 for r in rows if r["target_preset"] == preset)
+                for preset in sorted({str(r["target_preset"]) for r in rows})
+            },
+            "target_background_geometry_enabled_count": sum(1 for r in rows if r["target_background_geometry_enabled"]),
+            "total_target_background_generated_panels": sum(r["target_background_generated_panels"] for r in rows),
+            "total_target_background_surviving_panels": sum(r["target_background_surviving_panels"] for r in rows),
+            "total_target_background_replaced_shapes": sum(r["target_background_replaced_shapes"] for r in rows),
+            "total_target_background_preserved_scene_cues": sum(r["target_background_preserved_scene_cues"] for r in rows),
             "total_target_cap_removed": sum(r["target_cap_removed"] for r in rows),
             "total_target_macro_removed_background": sum(r["target_macro_removed_background"] for r in rows),
             "total_target_macro_removed_subject": sum(r["target_macro_removed_subject"] for r in rows),

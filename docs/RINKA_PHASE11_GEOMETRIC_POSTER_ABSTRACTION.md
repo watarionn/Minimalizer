@@ -1,8 +1,10 @@
 # Rinka Reference Phase 11: Geometric Poster Abstraction
 
-Status: **Checkpoint 2 implemented on Draft branch**
+Status: **Checkpoint 3 local closure complete; Draft PR #23 open**
 
-Branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`
+Branch: `feature/rinka-phase11-priority3-background-presets-ui-20260910`
+
+Checkpoint 2 was merged to `main` in PR #22 at `c5691318df69e1030ca89dd6a404e58294ba24a1`.
 
 ## Goal
 
@@ -60,6 +62,37 @@ Fixed 16-image corpus, level 4, `analysis_max_side=220`:
 
 Validation: **73 targeted tests passed**; full local suite **249 passed / 2 pre-existing missing-fixture tests deselected**; `compileall` and `git diff --check` pass. No GitHub Actions run is required for this checkpoint.
 
+## Checkpoint 3 implementation
+
+Priority 3 turns the accepted subject abstraction into a poster composition without rewriting the subject. Two explicit presets are now defined:
+
+- `geometric_poster` (default): Phase 11 faceless/fingerless subject abstraction plus a flat poster background and three large five-vertex angular panels.
+- `faceless_subject`: the same Phase 11 subject abstraction without synthetic background panels.
+
+Geometric background activation requires subject evidence. General scenes without subject evidence remain on their source background path. Transparent or near-neutral character inputs derive a deterministic contrasting base color from a dominant hair/garment anchor; already useful source background colors remain available as the base. Panel orientation mirrors with subject placement so the layout is not tied to one image. Up to two large, high-importance skyline/water/horizon/structure cues may survive as scene context.
+
+A first broad implementation was rejected during local evaluation because `_target_mass_kind()` intentionally classifies generic `midground` shapes as background-like for older cleanup logic; using that classification as a deletion rule caused identity-supporting midground structure to disappear. Checkpoint 3 therefore has a stricter background replacement gate: only explicit background layers/tags or accepted `opaque_background` evidence may be replaced. Generic midground structure is retained.
+
+Fixed 16-image corpus, level 4, `analysis_max_side=220`:
+
+- geometric background enabled: **15/16** images; Night River remains unchanged;
+- generated poster panels: **45**; surviving poster panels after the final shape cap: **45**;
+- definite background shapes additionally replaced by the new stage: **0** on this corpus;
+- strong scene cues preserved by the stage: **11**;
+- non-poster subject shape signatures are identical between `geometric_poster` and `faceless_subject` on **16/16** images;
+- geometric-poster mean shape reduction: about **31.10%**;
+- geometric-poster mean vertex reduction: about **21.59%**.
+
+The lower reduction percentages are intentional accounting, not a regression in subject abstraction: each character output now spends three extra shapes / fifteen vertices on the poster background.
+
+Web candidate v0.9.0 exposes the two presets only when Rinka Reference is selected. Standard remains the default mode and keeps its existing controls. The API accepts `rinka_preset=geometric_poster|faceless_subject`, reports the default/available presets from `/api/info`, and returns `X-Minimalizer-Rinka-Preset`. Rinka still uses the frozen level-4 subject profile and rejects Standard detail overrides.
+
+## Checkpoint 3 closure validation
+
+Local closure is complete. Repository-wide pytest passes **259 tests / 2 pre-existing missing-fixture tests deselected**, with the same missing `tests/assets/false_face_phase85.png` fixture as earlier phases. `compileall`, JavaScript syntax validation, and `git diff --check` pass. The final 16-image evaluator reproduces **31.10%** mean shape reduction and **21.59%** mean vertex reduction for `geometric_poster`, with Phase 10 activation still **4/16**, background generation **15/16**, and **45/45** generated panels surviving. A direct preset comparison confirms identical non-poster subject-shape signatures on **16/16** images.
+
+A real local Uvicorn smoke confirms HTTP 200 for Standard, Rinka `geometric_poster`, Rinka `faceless_subject`, and Color Strip. `/api/info` reports Web **0.9.0**, Rinka Phase **11**, default preset `geometric_poster`, and both available presets. The geometric-poster contact sheet was visually reviewed across all 16 corpus images; no new background-induced subject regression was found, and Night River stays on its ordinary scene background path.
+
 ## Next checkpoint
 
-Priority 3 is geometric background compression plus preset/Web UI exposure. Keep the current subject abstraction intact and avoid broad background deletion that can erase scene-defining cues.
+Draft PR **#23** is open with `[skip ci]` validation provenance. Keep it Draft until explicit approval to send it for review. Do not change the subject abstraction or broaden background deletion merely to improve reduction percentages. Production remains Web v0.8.0 until a later explicitly approved merge/deployment verifies v0.9.0 on Railway.

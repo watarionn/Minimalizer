@@ -29,7 +29,11 @@ from minimalize_engine.color_strip import (
     MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
     MIN_SIMILARITY as COLOR_STRIP_MIN_SIMILARITY,
 )
-from minimalize_engine.target_style import RINKA_REFERENCE_VERSION
+from minimalize_engine.target_style import (
+    DEFAULT_RINKA_REFERENCE_PRESET,
+    RINKA_REFERENCE_PRESETS,
+    RINKA_REFERENCE_VERSION,
+)
 
 from .service import (
     build_config,
@@ -39,7 +43,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.8.0"
+APP_VERSION = "0.9.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -130,6 +134,8 @@ def service_info() -> dict[str, object]:
         "max_concurrent_jobs": MAX_CONCURRENT_JOBS,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": RINKA_REFERENCE_VERSION,
+        "rinka_reference_default_preset": DEFAULT_RINKA_REFERENCE_PRESET,
+        "rinka_reference_presets": list(RINKA_REFERENCE_PRESETS),
         "color_strip_version": COLOR_STRIP_VERSION,
         "color_strip_default_colors": COLOR_STRIP_DEFAULT_COLOR_COUNT,
         "color_strip_default_similarity": COLOR_STRIP_DEFAULT_SIMILARITY,
@@ -211,6 +217,9 @@ async def minimalize_image(
     color_order: Annotated[Literal["least_first", "most_first"] | None, Form()] = None,
     color_orientation: Annotated[Literal["vertical", "horizontal"] | None, Form()] = None,
     color_selection_mode: Annotated[Literal["dominant", "featured"] | None, Form()] = None,
+    rinka_preset: Annotated[
+        Literal["geometric_poster", "faceless_subject"] | None, Form()
+    ] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,
 ) -> Response:
@@ -224,6 +233,7 @@ async def minimalize_image(
     strip_order = COLOR_STRIP_DEFAULT_ORDER
     strip_orientation = COLOR_STRIP_DEFAULT_ORIENTATION
     strip_selection_mode = COLOR_STRIP_DEFAULT_SELECTION_MODE
+    selected_rinka_preset = rinka_preset or DEFAULT_RINKA_REFERENCE_PRESET
 
     if mode == "rinka_reference":
         if (
@@ -245,6 +255,11 @@ async def minimalize_image(
         configured_analysis_max_side = config.analysis_max_side
         response_level = "4"
     elif mode == "color_strip":
+        if rinka_preset is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Rinka presets are only available in Rinka Reference mode.",
+            )
         if max_shapes is not None or background is not None:
             raise HTTPException(
                 status_code=400,
@@ -267,6 +282,11 @@ async def minimalize_image(
         response_level = "n/a"
         config = None
     else:
+        if rinka_preset is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Rinka presets are only available in Rinka Reference mode.",
+            )
         if (
             color_similarity is not None
             or color_size_mode is not None
@@ -323,6 +343,7 @@ async def minimalize_image(
                             input_path,
                             output_format,
                             analysis_max_side_cap=MAX_ANALYSIS_SIDE,
+                            preset=selected_rinka_preset,
                         )
                     elif mode == "color_strip":
                         result = await run_in_threadpool(
@@ -378,6 +399,8 @@ async def minimalize_image(
         "X-Minimalizer-Source-Format": source_format,
         "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
     }
+    if result.rinka_preset is not None:
+        headers["X-Minimalizer-Rinka-Preset"] = result.rinka_preset
     if result.color_count is not None:
         headers["X-Minimalizer-Color-Count"] = str(result.color_count)
     if result.color_similarity is not None:

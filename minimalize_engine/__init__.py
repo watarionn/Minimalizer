@@ -9,8 +9,11 @@ from .color_strip import (
 from .config import MinimalizeConfig
 from .pipeline import minimalize
 from .target_style import (
+    DEFAULT_RINKA_REFERENCE_PRESET,
+    RINKA_REFERENCE_PRESETS,
     apply_rinka_reference_style,
     minimalize_rinka_reference,
+    normalize_rinka_reference_preset,
     rinka_reference_config,
 )
 
@@ -20,6 +23,9 @@ __all__ = [
     "rinka_reference_config",
     "apply_rinka_reference_style",
     "minimalize_rinka_reference",
+    "RINKA_REFERENCE_PRESETS",
+    "DEFAULT_RINKA_REFERENCE_PRESET",
+    "normalize_rinka_reference_preset",
     "COLOR_STRIP_VERSION",
     "ColorStripColor",
     "ColorStripDocument",
