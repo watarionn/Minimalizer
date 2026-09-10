@@ -11,11 +11,11 @@
 
 ## Current state
 
-### Active Rinka work: Phase 11 Checkpoint 1
+### Active Rinka work: Phase 11 Checkpoint 2
 
-Active branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`, based on `main` `125b4883fe66cce1c12056d8ddf3e18b20f310c9`. Phase 10 Checkpoint 3 is already merged. The new target is the user-reviewed faceless geometric poster family. Priority 1 is implemented locally: strict facial micro-feature suppression, one fingerless six-vertex hand symbol per known side, and conservative micro-detail pruning. Do not skip directly to background/UI work. Next implementation priority is large hair planes plus clothing color-block consolidation, then geometric backgrounds/presets/UI. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
+Active branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`, based on `main` `125b4883fe66cce1c12056d8ddf3e18b20f310c9`. Phase 10 Checkpoint 3 is already merged. Phase 11 priorities 1 and 2 are implemented on the Draft branch. Priority 1 provides strict faceless cleanup, one fingerless hand symbol per known side, and conservative micro-detail pruning. Priority 2 removes repeated local hair lines when filled hair masses already carry identity, preserves long flow cues, simplifies filled hair polygons under raster guards, and collapses nearby same-family garment colors into larger blocks. Next is priority 3: geometric background compression, presets, and Web UI exposure. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
 
-Checkpoint 1 validation: fixed 16-image corpus at level 4 / analysis max side 220 = **35.56%** mean shape reduction, **25.76%** mean vertex reduction, 15 recognized hands -> 15 fingerless symbols, 4 micro-details removed, and ~0.103% mean target-PNG change versus Phase 10. Full local suite = **245 passed / 2 known missing-fixture tests deselected**. Keep the PR Draft until explicit user approval to send it for review.
+Checkpoint 2 validation: fixed 16-image corpus at level 4 / analysis max side 220 = **40.32%** mean shape reduction and **26.99%** mean vertex reduction. Hair: 24 local line cues removed, 1 long cue preserved, 6 planes simplified / 9 vertices removed. Outfit blocks: 44 -> 36 colors via 8 recolors. Mean target-PNG change versus Checkpoint 1 is ~0.490%, max ~2.242%; Night River is unchanged. Full local suite = **249 passed / 2 known missing-fixture tests deselected**; targeted suite = **73 passed**. Keep the PR Draft until explicit user approval to send it for review.
 
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.

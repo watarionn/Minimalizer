@@ -1,6 +1,6 @@
 # Rinka Reference Phase 11: Geometric Poster Abstraction
 
-Status: **Checkpoint 1 implemented on Draft branch**
+Status: **Checkpoint 2 implemented on Draft branch**
 
 Branch: `feature/rinka-phase11-priority1-faceless-hands-20260910`
 
@@ -41,6 +41,25 @@ Fixed 16-image corpus, level 4, `analysis_max_side=220`:
 
 Tests: **245 passed / 2 pre-existing missing-fixture tests deselected**. The deselected tests require `tests/assets/false_face_phase85.png`, which is absent from the repository baseline. Targeted Phase 11/target-style/Phase 10 regression tests: **43 passed**.
 
+## Checkpoint 2 implementation
+
+Priority 2 is now implemented. Hair is treated as a small set of filled poster planes: local bang/strand lines shorter than 22% of the short canvas side are removed when a nearby filled hair mass already carries the identity, while long flow cues are retained. Filled hair polygons may be simplified only when local raster IoU stays at least 0.93, area drift stays within 8%, and centroid movement stays within 1.5% of the short side.
+
+Outfit processing now groups nearby same-family garment pieces into shared dominant color blocks. Upper garments, lower garments, footwear, and generic segmented clothing remain separate families. Only near colors (distance <=32) and nearby pieces are flattened; signature accent colors remain distinct. A second geometric merge is allowed only for a small same-color piece whose union-to-hull IoU is at least 0.80, while the Phase 5 one-detail-per-base invariant remains protected.
+
+Fixed 16-image corpus, level 4, `analysis_max_side=220`:
+
+- Checkpoint 1 mean shape reduction: **35.56%**; Checkpoint 2: **40.32%**;
+- Checkpoint 1 mean vertex reduction: **25.76%**; Checkpoint 2: **26.99%**;
+- hair inputs: **52**; local line cues removed: **24**; long flow cues preserved: **1**;
+- simplified filled hair planes: **6**, removing **9** vertices;
+- outfit block candidates: **45**; color blocks: **44 -> 36**; recolored shapes: **8**;
+- no additional outfit hull merge activates on the fixed corpus, although the guarded merge path is covered by a focused test;
+- target-PNG change footprint versus Checkpoint 1 averages about **0.490%**, maximum about **2.242%** on Mizumiya;
+- Night River remains unchanged.
+
+Validation: **73 targeted tests passed**; full local suite **249 passed / 2 pre-existing missing-fixture tests deselected**; `compileall` and `git diff --check` pass. No GitHub Actions run is required for this checkpoint.
+
 ## Next checkpoint
 
-Priority 2 should consolidate hair into fewer major flow/color planes and outfit structure into fewer large color blocks. It must preserve pose, major silhouette, and signature color placement, and should be evaluated against the same fixed corpus before any background/UI work begins.
+Priority 3 is geometric background compression plus preset/Web UI exposure. Keep the current subject abstraction intact and avoid broad background deletion that can erase scene-defining cues.

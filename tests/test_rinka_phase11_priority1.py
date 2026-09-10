@@ -1,6 +1,8 @@
 from minimalize_engine.models import Scene, Shape
 from minimalize_engine.target_style import (
     _abstract_hand_symbols,
+    _abstract_hair_planes,
+    _consolidate_outfit_color_blocks,
     _prune_target_microdetails,
     _suppress_face_fragments,
     apply_rinka_reference_style,
@@ -159,3 +161,135 @@ def test_phase11_pipeline_reports_faceless_and_hand_symbol_abstraction():
     symbols = [shape for shape in out.shapes if shape.semantic_type == "target_hand_symbol"]
     assert len(symbols) == 1
     assert len(symbols[0].points) == 6
+
+
+
+def test_phase11_priority2_removes_local_bang_lines_but_keeps_major_hair_flow_cue():
+    hair = _poly(
+        10,
+        [(35, 25), (82, 24), (88, 80), (30, 82)],
+        part="hair",
+        semantic="character_hair",
+        role="character_hair_base",
+        importance=1.0,
+        color=(50, 45, 60),
+    )
+    bang = Shape(
+        id=11,
+        shape_type="line",
+        fill_color=None,
+        points=[(48, 30), (55, 46)],
+        stroke_color=(40, 35, 45),
+        stroke_width=2.0,
+        character_part="hair",
+        semantic_type="character_bangs",
+        source_role="character_bangs",
+        layer_name="foreground",
+        importance=0.95,
+    )
+    flow = Shape(
+        id=12,
+        shape_type="line",
+        fill_color=None,
+        points=[(82, 40), (84, 100)],
+        stroke_color=(40, 35, 45),
+        stroke_width=2.0,
+        character_part="hair",
+        semantic_type="character_back_hair",
+        source_role="character_back_hair",
+        layer_name="foreground",
+        importance=0.95,
+    )
+
+    out, stats = _abstract_hair_planes([hair, bang, flow], 220.0)
+
+    assert {shape.id for shape in out} == {10, 12}
+    assert stats["line_cues_removed"] == 1
+    assert stats["major_flow_cues_preserved"] == 1
+
+
+def test_phase11_priority2_simplifies_complex_hair_mass_with_raster_guard():
+    hair = _poly(
+        20,
+        [(20, 20), (35, 18), (50, 20), (66, 25), (72, 40), (70, 58),
+         (62, 72), (48, 80), (32, 76), (22, 66), (17, 50), (18, 34)],
+        part="hair",
+        semantic="character_hair",
+        role="character_hair_base",
+        importance=1.0,
+        color=(70, 55, 90),
+    )
+
+    out, stats = _abstract_hair_planes([hair], 220.0)
+
+    assert len(out) == 1
+    assert len(out[0].points) < len(hair.points)
+    assert stats["simplified_planes"] == 1
+    assert stats["vertices_removed"] > 0
+
+
+def test_phase11_priority2_flattens_near_duplicate_upper_garment_colors():
+    torso = _poly(
+        30,
+        [(40, 60), (85, 60), (88, 105), (38, 105)],
+        part="outfit",
+        semantic="character_outfit_torso",
+        role="character_outfit_torso",
+        importance=0.98,
+        color=(210, 202, 228),
+    )
+    sleeve = _poly(
+        31,
+        [(16, 65), (26, 64), (26, 95), (14, 92)],
+        part="outfit",
+        semantic="character_sleeve",
+        role="character_sleeve",
+        importance=0.98,
+        color=(215, 211, 225),
+        side="left",
+    )
+    accent = _poly(
+        32,
+        [(50, 80), (60, 80), (60, 90), (50, 90)],
+        part="outfit",
+        semantic="character_outfit_accent",
+        role="character_outfit_detail",
+        importance=0.95,
+        color=(120, 55, 90),
+    )
+
+    out, stats = _consolidate_outfit_color_blocks([torso, sleeve, accent], 220.0)
+    by_id = {shape.id: shape for shape in out}
+
+    assert by_id[31].fill_color == torso.fill_color
+    assert by_id[32].fill_color == accent.fill_color
+    assert stats["recolored_shapes"] == 1
+    assert stats["color_blocks_after"] < stats["color_blocks_before"]
+
+
+def test_phase11_priority2_merges_small_same_color_sleeve_when_hull_is_compact():
+    torso = _poly(
+        40,
+        [(40, 60), (80, 60), (80, 100), (40, 100)],
+        part="outfit",
+        semantic="character_outfit_torso",
+        role="character_outfit_torso",
+        importance=0.98,
+        color=(200, 195, 220),
+    )
+    sleeve = _poly(
+        41,
+        [(30, 68), (40, 68), (40, 92), (30, 92)],
+        part="outfit",
+        semantic="character_sleeve",
+        role="character_sleeve",
+        importance=0.96,
+        color=(202, 198, 218),
+        side="left",
+    )
+
+    out, stats = _consolidate_outfit_color_blocks([torso, sleeve], 220.0)
+
+    assert len(out) == 1
+    assert stats["merged_shapes"] == 1
+    assert out[0].shape_type == "polygon"

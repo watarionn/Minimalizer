@@ -2,15 +2,15 @@
 
 Current engine release: **v0.3.0 stable**
 Current production Web runtime: **v0.8.0 production-verified**
-Current Rinka Reference engine: **Phase 10 Checkpoint 3 merged to `main`; Phase 11 Checkpoint 1 in development** on `feature/rinka-phase11-priority1-faceless-hands-20260910`
+Current Rinka Reference engine: **Phase 10 Checkpoint 3 merged to `main`; Phase 11 Checkpoint 2 in development** on `feature/rinka-phase11-priority1-faceless-hands-20260910`
 
 This file is the canonical restoration pointer.
 
 ## Latest development: Rinka Reference Phase 11
 
-Phase 11 starts from `main` commit `125b4883fe66cce1c12056d8ddf3e18b20f310c9` and adopts the newly reviewed faceless geometric poster examples as the target direction. Checkpoint 1 implements priority 1 only: stronger faceless suppression, one fingerless six-vertex hand symbol per known side, and conservative post-removal of tiny decorative fragments. Stable/Standard behavior is untouched.
+Phase 11 starts from `main` commit `125b4883fe66cce1c12056d8ddf3e18b20f310c9` and adopts the newly reviewed faceless geometric poster examples as the target direction. Checkpoint 1 implemented stronger faceless suppression, one fingerless six-vertex hand symbol per known side, and conservative micro-detail pruning. Checkpoint 2 now implements priority 2: repeated local hair strand/bang lines are removed when a filled hair plane already carries the identity, long flow cues are preserved, filled hair contours are raster-guarded into calmer polygons, and nearby same-family garment colors are collapsed into larger color blocks. Stable/Standard behavior remains untouched.
 
-Local fixed-corpus validation at level 4 / analysis max side 220 gives **35.56%** mean shape reduction and **25.76%** mean vertex reduction, with **15/15 recognized hands converted to one-block symbols**, **4** additional micro-details removed, and only about **0.103%** mean target-PNG pixel change versus the Phase 10 baseline. Full local suite: **245 passed / 2 pre-existing missing-fixture tests deselected**. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`. Priority 2 is hair-plane and clothing-color-block consolidation; priority 3 is geometric backgrounds/presets/UI.
+Checkpoint 2 fixed-corpus validation at level 4 / analysis max side 220 gives **40.32%** mean shape reduction and **26.99%** mean vertex reduction. Across the corpus, **24** local hair-line cues are removed, **1** major flow cue is preserved, **6** hair planes are simplified by **9** vertices, and outfit color blocks shrink from **44 to 36** through **8** conservative recolors. Mean target-PNG change versus Checkpoint 1 is about **0.490%**, maximum about **2.242%**, with Night River unchanged. Full local suite: **249 passed / 2 pre-existing missing-fixture tests deselected**; targeted suite: **73 passed**. See `docs/RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`. Priority 3 is geometric backgrounds/presets/UI.
 
 ## GitHub source of truth
 

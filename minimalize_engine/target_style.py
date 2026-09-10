@@ -1246,6 +1246,221 @@ def _prune_target_microdetails(scene: Scene, shapes: list[Shape]) -> tuple[list[
     return [shape for shape in shapes if shape.id not in remove_ids], len(remove_ids)
 
 
+
+def _hair_line_length(shape: Shape) -> float:
+    if shape.shape_type != "line" or len(shape.points) < 2:
+        return 0.0
+    points = np.asarray(shape.points, dtype=np.float32)
+    return float(np.linalg.norm(points[-1] - points[0]))
+
+
+def _simplify_hair_plane(shape: Shape, min_side: float) -> tuple[Shape, int]:
+    """Reduce a filled hair contour to a calmer poster plane when raster-safe."""
+    if _target_mass_kind(shape) != "hair" or shape.shape_type != "polygon" or len(shape.points) <= 8:
+        return shape, 0
+    points = np.asarray(shape.points, dtype=np.float32)
+    contour = points.reshape(-1, 1, 2)
+    perimeter = float(cv2.arcLength(contour, True))
+    if perimeter <= 1e-6:
+        return shape, 0
+    original_area = max(abs(float(cv2.contourArea(points))), 1.0)
+    original_centroid = _polygon_centroid(points)
+    best: tuple[int, float, np.ndarray] | None = None
+    for epsilon_ratio in (0.10, 0.08, 0.06, 0.05, 0.04, 0.03, 0.025, 0.020, 0.015, 0.010):
+        candidate = cv2.approxPolyDP(contour, perimeter * epsilon_ratio, True).reshape(-1, 2)
+        if len(candidate) < 4 or len(candidate) >= len(points):
+            continue
+        candidate_area = max(abs(float(cv2.contourArea(candidate))), 1.0)
+        if abs(candidate_area - original_area) / original_area > 0.08:
+            continue
+        raster_iou = _polygon_raster_iou(points, candidate)
+        if raster_iou < 0.93:
+            continue
+        centroid_shift = float(np.linalg.norm(original_centroid - _polygon_centroid(candidate)))
+        if centroid_shift > max(1.0, min_side * 0.015):
+            continue
+        ranking = (len(candidate), -raster_iou)
+        if best is None or ranking < (best[0], -best[1]):
+            best = (len(candidate), raster_iou, candidate.copy())
+    if best is None:
+        return shape, 0
+    candidate = best[2]
+    return replace(shape, points=[(float(x), float(y)) for x, y in candidate]), len(points) - len(candidate)
+
+
+def _abstract_hair_planes(shapes: list[Shape], min_side: float) -> tuple[list[Shape], dict]:
+    """Prefer a few filled hair planes over repeated strand/bang line work."""
+    hair_shapes = [shape for shape in shapes if _target_mass_kind(shape) == "hair"]
+    filled = [shape for shape in hair_shapes if shape.fill_color is not None and shape.shape_type != "line"]
+    if not hair_shapes:
+        return shapes, {
+            "input_shapes": 0,
+            "filled_planes": 0,
+            "line_cues_removed": 0,
+            "major_flow_cues_preserved": 0,
+            "simplified_planes": 0,
+            "vertices_removed": 0,
+        }
+
+    remove_ids: set[int] = set()
+    preserved_major = 0
+    local_line_limit = max(1.0, min_side * 0.22)
+    local_gap_limit = max(2.0, min_side * 0.15)
+    if filled:
+        for shape in hair_shapes:
+            if shape.shape_type != "line":
+                continue
+            length = _hair_line_length(shape)
+            if length >= local_line_limit:
+                preserved_major += 1
+                continue
+            if min(_bbox_distance(_shape_bbox(shape), _shape_bbox(carrier)) for carrier in filled) <= local_gap_limit:
+                remove_ids.add(shape.id)
+
+    out: list[Shape] = []
+    simplified_planes = 0
+    vertices_removed = 0
+    for shape in shapes:
+        if shape.id in remove_ids:
+            continue
+        simplified, removed = _simplify_hair_plane(shape, min_side)
+        out.append(simplified)
+        if removed:
+            simplified_planes += 1
+            vertices_removed += removed
+    return out, {
+        "input_shapes": len(hair_shapes),
+        "filled_planes": len(filled),
+        "line_cues_removed": len(remove_ids),
+        "major_flow_cues_preserved": preserved_major,
+        "simplified_planes": simplified_planes,
+        "vertices_removed": vertices_removed,
+    }
+
+
+def _outfit_block_candidate(shape: Shape) -> bool:
+    if shape.fill_color is None or shape.shape_type == "line":
+        return False
+    part = (shape.character_part or "unknown").lower()
+    semantic = (shape.semantic_type or "").lower()
+    return part == "outfit" or semantic.startswith("target_zone_clothing_")
+
+
+def _outfit_block_family(shape: Shape) -> str:
+    tags = _shape_tags(shape)
+    if any(token in tags for token in ("shoe", "boot", "footwear")):
+        return "footwear"
+    if any(token in tags for token in ("skirt", "short", "pants", "trouser", "lower_outfit")):
+        return "lower"
+    if (shape.semantic_type or "").lower().startswith("target_zone_clothing_"):
+        return "generic_clothing"
+    return "upper"
+
+
+def _consolidate_outfit_color_blocks(shapes: list[Shape], min_side: float) -> tuple[list[Shape], dict]:
+    """Flatten near-duplicate garment colors and merge only raster-safe small pieces."""
+    working = list(shapes)
+    candidates = [shape for shape in working if _outfit_block_candidate(shape)]
+    if not candidates:
+        return working, {
+            "input_shapes": 0,
+            "color_blocks_before": 0,
+            "color_blocks_after": 0,
+            "recolored_shapes": 0,
+            "merged_shapes": 0,
+        }
+
+    before_colors = {shape.fill_color for shape in candidates if shape.fill_color is not None}
+    by_id = {shape.id: shape for shape in working}
+    recolored: dict[int, Shape] = {}
+    used: set[int] = set()
+    recolored_count = 0
+    for family in sorted({_outfit_block_family(shape) for shape in candidates}):
+        family_shapes = sorted(
+            [shape for shape in candidates if _outfit_block_family(shape) == family],
+            key=lambda shape: _shape_metrics(shape)[0],
+            reverse=True,
+        )
+        for anchor in family_shapes:
+            if anchor.id in used or anchor.fill_color is None:
+                continue
+            group = [anchor]
+            used.add(anchor.id)
+            for shape in family_shapes:
+                if shape.id in used or shape.fill_color is None:
+                    continue
+                if _color_distance(anchor.fill_color, shape.fill_color) > 32.0:
+                    continue
+                if _bbox_distance(_shape_bbox(anchor), _shape_bbox(shape)) > max(2.0, min_side * 0.10):
+                    continue
+                group.append(shape)
+                used.add(shape.id)
+            if len(group) < 2:
+                continue
+            dominant = anchor.fill_color
+            for shape in group[1:]:
+                if shape.fill_color != dominant:
+                    recolored[shape.id] = replace(shape, fill_color=dominant)
+                    recolored_count += 1
+
+    if recolored:
+        working = [recolored.get(shape.id, shape) for shape in working]
+
+    # After color flattening, absorb only a small adjacent piece into a larger
+    # block when the convex hull remains a faithful representation of the union.
+    merged_count = 0
+    changed = True
+    while changed:
+        changed = False
+        garment = [shape for shape in working if _outfit_block_candidate(shape)]
+        for base in sorted(garment, key=lambda shape: _shape_metrics(shape)[0], reverse=True):
+            base_area = max(_shape_metrics(base)[0], 1e-6)
+            for detail in garment:
+                if detail.id == base.id:
+                    continue
+                # Phase 5 deliberately limits canonical outfit-detail absorption
+                # to one detail per base. Priority 2 may recolor a surviving
+                # detail, but must not silently consume a second one here.
+                if _canonical_outfit_layer(detail) == "detail":
+                    continue
+                if _outfit_block_family(base) != _outfit_block_family(detail):
+                    continue
+                if base.fill_color is None or detail.fill_color is None or base.fill_color != detail.fill_color:
+                    continue
+                detail_area = max(_shape_metrics(detail)[0], 0.0)
+                if detail_area <= 0.0 or detail_area / base_area > 0.28:
+                    continue
+                side_base = (base.side_hint or "unknown").lower()
+                side_detail = (detail.side_hint or "unknown").lower()
+                if side_base in {"left", "right"} and side_detail in {"left", "right"} and side_base != side_detail:
+                    continue
+                if _bbox_distance(_shape_bbox(base), _shape_bbox(detail)) > max(1.0, min_side * 0.035):
+                    continue
+                if _union_hull_iou(base, detail) < 0.80:
+                    continue
+                merged = _merge_outfit_layer_pair(base, detail)
+                working = [
+                    merged if shape.id == base.id else shape
+                    for shape in working
+                    if shape.id != detail.id
+                ]
+                merged_count += 1
+                changed = True
+                break
+            if changed:
+                break
+
+    after_candidates = [shape for shape in working if _outfit_block_candidate(shape)]
+    after_colors = {shape.fill_color for shape in after_candidates if shape.fill_color is not None}
+    return working, {
+        "input_shapes": len(candidates),
+        "color_blocks_before": len(before_colors),
+        "color_blocks_after": len(after_colors),
+        "recolored_shapes": recolored_count,
+        "merged_shapes": merged_count,
+    }
+
+
 def _gesture_hand_anchors(shapes: list[Shape]) -> dict[str, Shape]:
     anchors: dict[str, Shape] = {}
     for shape in shapes:
@@ -1801,7 +2016,9 @@ def apply_rinka_reference_style(
     outfit_consolidated, outfit_layer_merges = _consolidate_outfit_layers(consolidated, min_side)
     outfit_refined, outfit_refinement_merges = _refine_outfit_layers_once(scene, outfit_consolidated, min_side)
     outfit_layer_merges += outfit_refinement_merges
-    hand_abstracted, hand_stats = _abstract_hand_symbols(outfit_refined, min_side)
+    hair_abstracted, hair_stats = _abstract_hair_planes(outfit_refined, min_side)
+    outfit_blocked, outfit_block_stats = _consolidate_outfit_color_blocks(hair_abstracted, min_side)
+    hand_abstracted, hand_stats = _abstract_hand_symbols(outfit_blocked, min_side)
     gesture_abstracted, gesture_stats = _abstract_gesture_shapes(hand_abstracted, min_side)
     micro_pruned, microdetail_removed = _prune_target_microdetails(scene, gesture_abstracted)
     compressed, background_removed = _compress_background(scene, micro_pruned)
@@ -1837,6 +2054,8 @@ def apply_rinka_reference_style(
         "face_fragments_removed": face_removed,
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
+        "hair_abstraction": hair_stats,
+        "outfit_color_blocks": outfit_block_stats,
         "hand_abstraction": hand_stats,
         "microdetail_removed": microdetail_removed,
         "render_inert_occluded_removed": render_inert_occluded_removed,

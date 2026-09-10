@@ -150,6 +150,8 @@ def main() -> None:
         zones = target_meta.get("opaque_zones", {})
         gesture = target_meta.get("gesture_abstraction", {})
         hand = target_meta.get("hand_abstraction", {})
+        hair = target_meta.get("hair_abstraction", {})
+        outfit_blocks = target_meta.get("outfit_color_blocks", {})
         macro = target_meta.get("macro_priority", {})
         macro_shadow = macro.get("shadow", {})
         stable_identity = stable_quality.get("identity_score")
@@ -226,6 +228,16 @@ def main() -> None:
             "target_hand_symbol_count": hand.get("symbol_count", 0),
             "target_hand_merged_shapes": hand.get("merged_shapes", 0),
             "target_hand_vertices_removed": hand.get("vertices_removed", 0),
+            "target_hair_input_shapes": hair.get("input_shapes", 0),
+            "target_hair_line_cues_removed": hair.get("line_cues_removed", 0),
+            "target_hair_major_flow_cues_preserved": hair.get("major_flow_cues_preserved", 0),
+            "target_hair_simplified_planes": hair.get("simplified_planes", 0),
+            "target_hair_vertices_removed": hair.get("vertices_removed", 0),
+            "target_outfit_block_input_shapes": outfit_blocks.get("input_shapes", 0),
+            "target_outfit_color_blocks_before": outfit_blocks.get("color_blocks_before", 0),
+            "target_outfit_color_blocks_after": outfit_blocks.get("color_blocks_after", 0),
+            "target_outfit_recolored_shapes": outfit_blocks.get("recolored_shapes", 0),
+            "target_outfit_block_merged_shapes": outfit_blocks.get("merged_shapes", 0),
             "target_face_fragments_removed": target_meta.get("face_fragments_removed", 0),
             "target_microdetail_removed": target_meta.get("microdetail_removed", 0),
             "target_mass_merges": target_meta.get("mass_merges", 0),
@@ -377,6 +389,16 @@ def main() -> None:
             "total_target_hand_symbol_count": sum(r["target_hand_symbol_count"] for r in rows),
             "total_target_hand_merged_shapes": sum(r["target_hand_merged_shapes"] for r in rows),
             "total_target_hand_vertices_removed": sum(r["target_hand_vertices_removed"] for r in rows),
+            "total_target_hair_input_shapes": sum(r["target_hair_input_shapes"] for r in rows),
+            "total_target_hair_line_cues_removed": sum(r["target_hair_line_cues_removed"] for r in rows),
+            "total_target_hair_major_flow_cues_preserved": sum(r["target_hair_major_flow_cues_preserved"] for r in rows),
+            "total_target_hair_simplified_planes": sum(r["target_hair_simplified_planes"] for r in rows),
+            "total_target_hair_vertices_removed": sum(r["target_hair_vertices_removed"] for r in rows),
+            "total_target_outfit_block_input_shapes": sum(r["target_outfit_block_input_shapes"] for r in rows),
+            "total_target_outfit_color_blocks_before": sum(r["target_outfit_color_blocks_before"] for r in rows),
+            "total_target_outfit_color_blocks_after": sum(r["target_outfit_color_blocks_after"] for r in rows),
+            "total_target_outfit_recolored_shapes": sum(r["target_outfit_recolored_shapes"] for r in rows),
+            "total_target_outfit_block_merged_shapes": sum(r["target_outfit_block_merged_shapes"] for r in rows),
             "total_target_face_fragments_removed": sum(r["target_face_fragments_removed"] for r in rows),
             "total_target_microdetail_removed": sum(r["target_microdetail_removed"] for r in rows),
             "total_target_mass_merges": sum(r["target_mass_merges"] for r in rows),
