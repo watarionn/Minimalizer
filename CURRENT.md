@@ -2,7 +2,7 @@
 
 Current engine release: **v0.3.0 stable**
 Current production Web runtime: **v0.10.0 production-verified**
-Current Rinka Reference engine: **Phase 12 merged and production-verified; Phase 13 color-anchor local closure complete** on `feature/rinka-phase13-face-hair-color-anchor-20260911`
+Current Rinka Reference engine: **Phase 12 merged and production-verified; Phase 13 color-anchor local closure complete in Draft PR #25** on `feature/rinka-phase13-face-hair-color-anchor-20260911`
 Current Web runtime remains **v0.10.0**; the Phase 13 candidate changes only Rinka color-anchor behavior and reports Rinka Reference `phase13`.
 
 This file is the canonical restoration pointer.
