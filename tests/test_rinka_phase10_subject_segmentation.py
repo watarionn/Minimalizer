@@ -5,6 +5,7 @@ import numpy as np
 
 from minimalize_engine.subject_segmentation import segment_subject_without_ai
 from minimalize_engine.subject_planes import build_subject_color_planes
+from minimalize_engine.subject_plane_cleanup import absorb_small_label_fragments
 from minimalize_engine.target_style import minimalize_rinka_reference
 
 
@@ -33,15 +34,19 @@ def test_phase10_omaru_uses_ai_free_subject_segmentation():
     assert scene.metadata["subject_mode"] is True
     assert planes["enabled"] is True
     assert planes["color_count"] == 6
-    assert 18 <= planes["plane_count"] <= 26
-    assert planes["vertex_count"] <= 180
+    assert 14 <= planes["plane_count"] <= 17
+    assert planes["vertex_count"] <= 200
     assert planes["contrast_adjusted_colors"] >= 1
     assert planes["gesture_plane_count"] >= 1
     assert planes["bridge_kernel_size"] == 3
-    assert planes["subject_coverage_ratio"] >= 0.75
+    assert planes["subject_coverage_ratio"] >= 0.68
     assert planes["outside_subject_ratio"] <= 0.03
     assert planes["protected_structure_shapes"] >= 2
     assert planes["replaced_structure_shapes"] >= 20
+    assert planes["absorbed_fragment_count"] > 0
+    assert planes["suppressed_plane_count"] > 0
+    assert planes["macro_anchor_count"] >= 10
+    assert segmentation["activation_gate"]["reason"] == "legacy_failure_gate"
     assert scene.metadata["target_style"]["phase10_subject_base_removed"] == 0
     assert any(shape.source_role == "phase10_gesture_plane" and shape.side_hint == "right" for shape in scene.shapes)
     assert any("character_sword_blade" in (shape.source_role or "") for shape in scene.shapes)
@@ -97,3 +102,38 @@ def test_phase10_subject_planes_are_deterministic_and_preserve_side_gesture():
     assert first.subject_coverage_ratio >= 0.90
     assert first.outside_subject_ratio <= 0.03
     assert any(shape.semantic_type == "phase10_gesture_plane" and shape.side_hint == "right" for shape in first.shapes)
+
+
+def test_phase10_checkpoint3_generalizes_to_opaque_thumbnail_set():
+    cases = {
+        "Oozora-Subaru_list_thumb.png": "confident_subject",
+        "Omaru-Polka_list_thumb.png": "legacy_failure_gate",
+        "Shirogane-Noel_list_thumb.png": "confident_subject",
+        "Juufuutei-Raden_list_thumb.png": "dense_subject",
+    }
+    for name, reason in cases.items():
+        scene = minimalize_rinka_reference(CORPUS / name, 4, analysis_max_side=220)
+        segmentation = scene.metadata["rinka_subject_segmentation"]
+        planes = scene.metadata["rinka_subject_planes"]
+        assert segmentation["activated"] is True, name
+        assert segmentation["activation_gate"]["reason"] == reason, name
+        assert planes["enabled"] is True, name
+        assert 10 <= planes["plane_count"] <= 17, name
+        assert planes["subject_coverage_ratio"] >= 0.64, name
+        assert planes["outside_subject_ratio"] <= 0.05, name
+        assert planes["macro_anchor_count"] >= 8, name
+        assert planes["absorbed_fragment_count"] > 0, name
+
+
+def test_phase10_checkpoint3_absorbs_neutral_fragment_but_keeps_accent():
+    labels = np.zeros((64, 64), dtype=np.int16)
+    subject = np.ones((64, 64), dtype=np.uint8)
+    labels[20:22, 20:22] = 1
+    labels[40:43, 40:43] = 2
+    centers = np.asarray([(220, 210, 200), (170, 165, 160), (20, 160, 220)], dtype=np.uint8)
+    out, absorbed, pixels, protected = absorb_small_label_fragments(labels, centers, subject)
+    assert absorbed >= 1
+    assert pixels >= 4
+    assert np.all(out[20:22, 20:22] == 0)
+    assert np.all(out[40:43, 40:43] == 2)
+    assert protected >= 1

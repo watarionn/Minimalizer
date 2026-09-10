@@ -1715,6 +1715,29 @@ def _opaque_rescue_failure_gate(scene: Scene, rescue: OpaqueSubjectRescue) -> di
         "border_dominant_fraction": round(float(rescue.border_dominant_fraction), 6),
     }
 
+def _phase10_segmentation_activation_gate(segmentation: SubjectSegmentation, legacy_gate: dict) -> dict:
+    if not segmentation.enabled:
+        return {"accepted": False, "reason": "segmentation_disabled"}
+    if bool(legacy_gate.get("accepted")):
+        return {"accepted": True, "reason": "legacy_failure_gate"}
+    confident_subject = (
+        float(segmentation.confidence) >= 0.62
+        and float(segmentation.border_dominant_fraction) >= 0.55
+        and float(segmentation.center_fill_ratio) >= 0.60
+        and float(segmentation.border_leak_ratio) <= 0.20
+    )
+    dense_subject = (
+        float(segmentation.confidence) >= 0.58
+        and float(segmentation.border_dominant_fraction) >= 0.46
+        and float(segmentation.foreground_area_ratio) >= 0.55
+        and float(segmentation.center_fill_ratio) >= 0.90
+        and float(segmentation.border_leak_ratio) <= 0.31
+    )
+    accepted = confident_subject or dense_subject
+    reason = "confident_subject" if confident_subject else "dense_subject" if dense_subject else "gate_rejected"
+    return {"accepted": accepted, "reason": reason}
+
+
 def _phase10_protected_structure_shapes(shapes: list[Shape]) -> list[Shape]:
     protected: list[Shape] = []
     for shape in shapes:
@@ -1740,6 +1763,7 @@ def minimalize_rinka_reference(
     rescue = prepare_rinka_opaque_subject_input(image_or_path)
     segmentation = segment_subject_without_ai(image_or_path) if enable_ai_free_subject_segmentation else SubjectSegmentation(False, "disabled")
     rescue_gate = {"accepted": False, "reason": "candidate_disabled"}
+    segmentation_gate = {"accepted": False, "reason": "candidate_disabled"}
     engine_input = image_or_path
     engine_config = config
     segmentation_activated = False
@@ -1762,7 +1786,8 @@ def minimalize_rinka_reference(
             center_fill_ratio=candidate.center_fill_ratio,
         )
         rescue_gate = _opaque_rescue_failure_gate(baseline_scene, gate_probe)
-        if rescue_gate["accepted"] and segmentation.enabled:
+        segmentation_gate = _phase10_segmentation_activation_gate(segmentation, rescue_gate)
+        if segmentation_gate["accepted"] and segmentation.enabled:
             engine_input = segmentation.rgba
             engine_config = config.with_overrides(
                 background_mode=("custom" if config.background_mode == "source" else config.background_mode),
@@ -1813,6 +1838,7 @@ def minimalize_rinka_reference(
         **segmentation.to_dict(),
         "activated": segmentation_activated,
         "baseline_gate": rescue_gate,
+        "activation_gate": segmentation_gate,
     }
     scene.metadata["rinka_subject_planes"] = {
         **subject_planes.to_dict(),

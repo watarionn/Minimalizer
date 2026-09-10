@@ -313,3 +313,13 @@ Do not restore the rejected full silhouette carrier or local-color gap carrier. 
 
 The fixed-corpus evaluator now exposes Phase 10 segmentation/scaffold telemetry. Current 16-image results: activation 1/16, mean shape reduction about 0.3671, mean vertex reduction about 0.3138, unaffected worst identity delta about -0.0449, unaffected worst silhouette delta about -0.0010. CI guards have been updated locally for Phase 10 but must not be triggered while Actions could incur metered charges. Validate with local pytest/evaluator instead.
 Do not reduce the accepted scaffold to four colors solely because the 220px metrics look better. That trial reached 17 shapes / 91 vertices at 220px, but the original 340px render collapsed head and torso separation into an oversized light slab. Six colors was retained after both checkpoint-scale and original-scale visual review.
+
+## Phase 10 handoff checkpoint 3 (2026-09-10)
+
+Branch: `feature/rinka-phase10-checkpoint3-fragment-consolidation-20260910`, based on merged Phase 10 Checkpoint 2 main `ea7d166b5f65512d955d8f7302ed4b728ec0822a`.
+
+Checkpoint 3 adds `minimalize_engine/subject_plane_cleanup.py`. Before contour extraction, tiny neutral label islands may be absorbed into a nearby dominant color; saturated accents and elongated gesture carriers are protected. Contours use adaptive raster-IoU validation so an aggressive `approxPolyDP` result cannot silently become a large triangular slab. Macro-anchor ranking caps the final subject scaffold at 17 planes while preserving large central/head masses, side gestures, accents, and protected Character Structure hand/prop carriers.
+
+Activation routes on the supplied opaque thumbnails at level 4 / 220px are: Subaru=`confident_subject`, Polka=`legacy_failure_gate`, Noel=`confident_subject`, Raden=`dense_subject`. Do not replace these gates with a single confidence threshold. The 16-image evaluator activates exactly 4 cases and leaves the other 12 on the established path. Key guard values are mean Phase 10 coverage >=0.75, max outside-subject overdraw <=0.03, unaffected worst identity >=-0.03, unaffected worst silhouette >=-0.01, and exactly the three activation-reason classes above.
+
+Local closure evidence before push: Phase 10 tests 6/6; combined Phase 8/9/10 + target/Web suite 65/65; full repository 241 passed / 2 known missing-fixture deselections. Update/keep the GitHub workflow Phase 10 guard, but use `[skip ci]` on commits while GitHub Actions metered usage is unsafe.

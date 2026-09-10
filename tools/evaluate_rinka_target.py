@@ -171,6 +171,7 @@ def main() -> None:
             "phase8_rescue_center_fill_ratio": rescue_meta.get("center_fill_ratio", 0.0),
             "phase10_segmentation_activated": bool(segmentation_meta.get("activated", False)),
             "phase10_segmentation_confidence": segmentation_meta.get("confidence", 0.0),
+            "phase10_activation_reason": (segmentation_meta.get("activation_gate") or {}).get("reason", "none"),
             "phase10_subject_planes_enabled": bool(subject_planes.get("enabled", False)),
             "phase10_subject_plane_colors": subject_planes.get("color_count", 0),
             "phase10_subject_plane_count": subject_planes.get("plane_count", 0),
@@ -181,6 +182,12 @@ def main() -> None:
             "phase10_contrast_adjusted_colors": subject_planes.get("contrast_adjusted_colors", 0),
             "phase10_protected_structure_shapes": subject_planes.get("protected_structure_shapes", 0),
             "phase10_replaced_structure_shapes": subject_planes.get("replaced_structure_shapes", 0),
+            "phase10_absorbed_fragment_count": subject_planes.get("absorbed_fragment_count", 0),
+            "phase10_absorbed_fragment_pixels": subject_planes.get("absorbed_fragment_pixels", 0),
+            "phase10_protected_fragment_count": subject_planes.get("protected_fragment_count", 0),
+            "phase10_suppressed_plane_count": subject_planes.get("suppressed_plane_count", 0),
+            "phase10_adaptive_refinement_count": subject_planes.get("adaptive_refinement_count", 0),
+            "phase10_macro_anchor_count": subject_planes.get("macro_anchor_count", 0),
             "phase8_macro_enabled": bool(macro_partition.get("enabled", False)),
             "phase8_macro_generated_shapes": macro_partition.get("generated_shapes", 0),
             "phase9_semantic_tree_nodes": macro_partition.get("semantic_tree_nodes", 0),
@@ -310,6 +317,16 @@ def main() -> None:
             "phase10_total_contrast_adjusted_colors": sum(r["phase10_contrast_adjusted_colors"] for r in rows),
             "phase10_total_protected_structure_shapes": sum(r["phase10_protected_structure_shapes"] for r in rows),
             "phase10_total_replaced_structure_shapes": sum(r["phase10_replaced_structure_shapes"] for r in rows),
+            "phase10_total_absorbed_fragment_count": sum(r["phase10_absorbed_fragment_count"] for r in rows),
+            "phase10_total_absorbed_fragment_pixels": sum(r["phase10_absorbed_fragment_pixels"] for r in rows),
+            "phase10_total_protected_fragment_count": sum(r["phase10_protected_fragment_count"] for r in rows),
+            "phase10_total_suppressed_plane_count": sum(r["phase10_suppressed_plane_count"] for r in rows),
+            "phase10_total_adaptive_refinement_count": sum(r["phase10_adaptive_refinement_count"] for r in rows),
+            "phase10_total_macro_anchor_count": sum(r["phase10_macro_anchor_count"] for r in rows),
+            "phase10_activation_reasons": {
+                reason: sum(1 for r in phase10_rows if r["phase10_activation_reason"] == reason)
+                for reason in sorted({r["phase10_activation_reason"] for r in phase10_rows})
+            },
             "phase10_mean_subject_plane_coverage": mean(
                 r["phase10_subject_plane_coverage"] for r in phase10_rows
             ) if phase10_rows else 0.0,
