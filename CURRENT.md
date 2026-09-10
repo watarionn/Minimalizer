@@ -1,11 +1,15 @@
 # Minimalizer CURRENT
 
 Current engine release: **v0.3.0 stable**
-Current production Web runtime: **v0.9.0 production-verified**
-Current Rinka Reference engine: **Phase 11 merged and production-verified; Phase 12 local closure complete** on `feature/rinka-phase12-head-body-anchor-guard-20260910`
-Current Web candidate: **v0.10.0 local closure complete in Draft PR #24** reporting Rinka Reference `phase12`; production remains v0.9.0 until Phase 12 is separately approved, merged, deployed, and verified.
+Current production Web runtime: **v0.10.0 production-verified**
+Current Rinka Reference engine: **Phase 12 merged and production-verified; Phase 13 color-anchor local closure complete** on `feature/rinka-phase13-face-hair-color-anchor-20260911`
+Current Web runtime remains **v0.10.0**; the Phase 13 candidate changes only Rinka color-anchor behavior and reports Rinka Reference `phase13`.
 
 This file is the canonical restoration pointer.
+
+## Latest development: Rinka Reference Phase 13
+
+Phase 13 improves source-color fidelity for the Phase 12 faceless face slab and major hair anchor. Face pixels are clustered and ranked for skin plausibility plus background separation instead of using one raw median. Hair pixels are clustered independently; bright low-chroma source clusters are preferred, and if the dominant hair candidate is too face-like, a better-separated real source cluster is selected. This specifically targets pale-skin / white-hair portraits on bright backgrounds without adding facial features or hair micro-detail. See `docs/RINKA_PHASE13_COLOR_ANCHOR.md`. Closure passes **269 tests / 2 known missing-fixture deselections**, dedicated Phase 12+13 **10/10**, the fixed 16-image evaluator with unchanged Phase 12 corpus metrics, `compileall`, Web JavaScript syntax, `git diff --check`, and real-Uvicorn HTTP 200 smoke for Standard, both Rinka presets, and Color Strip.
 
 ## Latest development: Rinka Reference Phase 12
 
@@ -42,7 +46,7 @@ Minimalizer Web is publicly hosted on Railway at:
 
 Production currently tracks `main`.
 
-Web v0.9.0 is the public runtime. The current production source is `main` at merge commit `3483154ccb4c98ca006cc5bc1f3482b99a3bdcee`, which includes Rinka Reference Phase 11 presets and geometric poster background support. Railway deployment `f0c48a18-786f-4280-8ba0-6cfc001da36f` completed successfully for that commit; `/health`, `/api/info`, Standard, both Rinka presets, and Color Strip were verified with HTTP 200.
+Web v0.10.0 is the public runtime. The current production source is `main` at merge commit `2da9b1aa693bbc68dde8a59994bff9503673f7d8`, which includes Rinka Reference Phase 12 Head / Body Anchor Guard. Railway deployment `940903ca-4afc-4558-b5bb-d78d78ad60b4` completed successfully for that commit; `/health`, `/api/info`, Standard, both Rinka presets, and Color Strip were verified with HTTP 200.
 
 Production uses the temporary hosted safety setting:
 
