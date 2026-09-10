@@ -22,7 +22,7 @@ def test_phase10_omaru_uses_ai_free_subject_segmentation():
     rescue = scene.metadata["rinka_opaque_subject_rescue"]
     macro = scene.metadata["rinka_macro_partition"]
 
-    assert scene.metadata["target_style"]["version"] == "phase10"
+    assert scene.metadata["target_style"]["version"] == "phase11"
     assert segmentation["enabled"] is True
     assert segmentation["activated"] is True
     assert segmentation["confidence"] >= 0.60

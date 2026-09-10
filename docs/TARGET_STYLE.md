@@ -80,12 +80,12 @@ Remove:
 
 Hands should be simplified aggressively:
 
-- merge fingers into one or a few angular blocks;
-- preserve only the gesture direction and silhouette;
-- omit individual finger anatomy unless the gesture would become unreadable;
-- remove tiny joints, nail detail, and local contour noise.
+- do not render individual fingers in the default Rinka Reference output, even for a fully opened hand;
+- collapse each visible hand into one compact angular hand symbol;
+- preserve gesture direction through arm orientation, hand placement, and the single hand block rather than digit count;
+- remove tiny joints, nail detail, finger gaps, and local contour noise.
 
-A readable hand gesture with 1-3 major shapes is preferred over an anatomically detailed hand made from many fragments.
+A fingerless one-block hand is preferred to a partial three/four-finger silhouette. The latter can look uncanny and is not part of the target style.
 
 ### 6. Clothing becomes major masses
 
@@ -182,7 +182,7 @@ When comparing future output to the Rinka Reference, ask:
 
 - Is the source still recognizable from the large shapes?
 - Did we remove details that do not carry identity?
-- Are hands and clothing simplified enough?
+- Are hands fingerless geometric symbols, and is clothing simplified enough?
 - Is the background quieter than the subject?
 - Are there unnecessary thin rectangles or slivers?
 - Is the shape hierarchy intentional and poster-like?
@@ -205,3 +205,9 @@ After the Phase 8 failure gate accepts semantic macro rescue, Phase 9 may constr
 Primitive choice balances raster fidelity with geometric simplicity. Part-aware priors may favor an ellipse-like face or trapezoid-like garment mass, but fidelity guards prevent the preferred family from overriding a clearly better representation. Large outfit primitives are area-limited through scaling and re-evaluation so intentional simplification cannot recreate the giant-slab failure.
 
 Distinctive head-region color cues may be retained conservatively when they are small, saturated, separated from skin/hair/background, and not redundant with another selected cue. See `RINKA_PHASE9_SEMANTIC_PRIMITIVES.md` for the current architecture, rejected experiments, and corpus evidence.
+
+## Phase 11 implementation note: stricter geometric poster abstraction
+
+Phase 11 adopts the expanded faceless geometric reference family reviewed on 2026-09-10. Priority order is: (1) faceless output, fingerless hand symbols, and stronger micro-detail removal; (2) larger hair planes and clothing color blocks; (3) geometric background generation, presets, and UI exposure.
+
+Checkpoint 1 makes faceless behavior explicit in post-processing, turns every recognized hand into one six-vertex beveled polygon per known side, and removes a narrow class of decorative crumbs only after identity-bearing masses exist. Checkpoint 2 then removes short repeated hair strand/bang lines when a nearby filled hair plane already carries identity, simplifies filled hair contours only under raster/area/centroid guards, and flattens nearby same-family garment colors into larger poster blocks while keeping signature accents separate. This is target-style-only behavior; the stable Minimalizer path is unchanged. See `RINKA_PHASE11_GEOMETRIC_POSTER_ABSTRACTION.md`.
