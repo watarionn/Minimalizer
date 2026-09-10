@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from colorsys import hsv_to_rgb, rgb_to_hsv
 from dataclasses import replace
 from math import cos, pi, sin
 
@@ -26,6 +27,16 @@ from .target_hierarchy import (
 
 RINKA_REFERENCE_NAME = "rinka_reference"
 RINKA_REFERENCE_VERSION = "phase11"
+RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject")
+DEFAULT_RINKA_REFERENCE_PRESET = "geometric_poster"
+
+
+def normalize_rinka_reference_preset(preset: str) -> str:
+    value = str(preset or "").strip().lower()
+    if value not in RINKA_REFERENCE_PRESETS:
+        allowed = ", ".join(RINKA_REFERENCE_PRESETS)
+        raise ValueError(f"Unknown Rinka Reference preset: {preset!r}. Use one of: {allowed}.")
+    return value
 
 
 _TARGET_MAX_SHAPES = {
@@ -1634,6 +1645,215 @@ def _compress_background(scene: Scene, shapes: list[Shape]) -> tuple[list[Shape]
     return [s for s in shapes if s.id not in remove_ids], len(remove_ids)
 
 
+def _rgb_saturation(color: tuple[int, int, int]) -> float:
+    values = np.asarray(color, dtype=float) / 255.0
+    maximum = float(np.max(values))
+    minimum = float(np.min(values))
+    if maximum <= 1e-6:
+        return 0.0
+    return (maximum - minimum) / maximum
+
+
+def _mix_rgb(a: tuple[int, int, int], b: tuple[int, int, int], ratio: float) -> tuple[int, int, int]:
+    t = max(0.0, min(1.0, float(ratio)))
+    return tuple(
+        int(round(max(0.0, min(255.0, float(x) * (1.0 - t) + float(y) * t))))
+        for x, y in zip(a, b)
+    )
+
+
+def _poster_subject_shapes(shapes: list[Shape]) -> list[Shape]:
+    return [
+        shape for shape in shapes
+        if shape.fill_color is not None
+        and (
+            _strict_character_base(shape)
+            or _macro_zone_kind(shape) is not None
+            or _gesture_carrier_kind(shape) is not None
+            or _target_mass_kind(shape) in {"hair", "garment", "hand", "prop"}
+        )
+    ]
+
+
+def _has_poster_subject_evidence(scene: Scene, shapes: list[Shape]) -> bool:
+    if bool(scene.metadata.get("subject_mode")):
+        return True
+    segmentation = scene.metadata.get("rinka_subject_segmentation") or {}
+    if bool(segmentation.get("activated")):
+        return True
+    return len(_poster_subject_shapes(shapes)) >= 2
+
+
+def _poster_anchor_color(shapes: list[Shape]) -> tuple[int, int, int] | None:
+    candidates = []
+    for shape in _poster_subject_shapes(shapes):
+        color = shape.fill_color
+        if color is None:
+            continue
+        area = _shape_metrics(shape)[0]
+        saturation = _rgb_saturation(color)
+        mass = _target_mass_kind(shape)
+        mass_bonus = 1.25 if mass in {"garment", "hair"} else 1.0
+        score = area * mass_bonus * (0.82 + 0.28 * saturation) * (0.80 + 0.20 * float(shape.importance))
+        candidates.append((score, color))
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: item[0])[1]
+
+
+def _poster_base_color(
+    scene: Scene,
+    shapes: list[Shape],
+) -> tuple[tuple[int, int, int], tuple[int, int, int] | None, str]:
+    source = scene.background
+    if source is not None:
+        saturation = _rgb_saturation(source)
+        brightness = sum(source) / (3.0 * 255.0)
+        if saturation >= 0.08 or brightness <= 0.90:
+            return source, _poster_anchor_color(shapes), "source"
+
+    anchor = _poster_anchor_color(shapes)
+    if anchor is None:
+        return (232, 232, 230), None, "neutral_fallback"
+
+    saturation = _rgb_saturation(anchor)
+    brightness = sum(anchor) / (3.0 * 255.0)
+    if saturation < 0.08:
+        base = (226, 230, 236) if brightness < 0.62 else (58, 61, 68)
+        return base, anchor, "neutral_contrast"
+
+    red, green, blue = (channel / 255.0 for channel in anchor)
+    hue, sat, value = rgb_to_hsv(red, green, blue)
+    hue = (hue + 0.46) % 1.0
+    sat = max(0.28, min(0.56, 0.20 + sat * 0.58))
+    value = 0.34 if value >= 0.72 else 0.80
+    rgb = hsv_to_rgb(hue, sat, value)
+    base = tuple(int(round(channel * 255.0)) for channel in rgb)
+    return base, anchor, "derived_contrast"
+
+
+def _poster_panel_colors(
+    base: tuple[int, int, int],
+    anchor: tuple[int, int, int] | None,
+) -> list[tuple[int, int, int]]:
+    if anchor is None or _color_distance(base, anchor) < 18.0:
+        brightness = sum(base) / 3.0
+        anchor = (36, 39, 46) if brightness >= 150.0 else (232, 234, 238)
+    contrast = (28, 31, 38) if sum(base) / 3.0 >= 150.0 else (238, 239, 242)
+    return [
+        _mix_rgb(base, anchor, 0.18),
+        _mix_rgb(base, anchor, 0.34),
+        _mix_rgb(base, contrast, 0.14),
+    ]
+
+
+def _subject_bbox_from_shapes(shapes: list[Shape]) -> tuple[float, float, float, float] | None:
+    subject = _poster_subject_shapes(shapes)
+    if not subject:
+        return None
+    boxes = [_shape_bbox(shape) for shape in subject]
+    return (
+        min(box[0] for box in boxes),
+        min(box[1] for box in boxes),
+        max(box[2] for box in boxes),
+        max(box[3] for box in boxes),
+    )
+
+
+def _geometrize_background(
+    scene: Scene,
+    shapes: list[Shape],
+    *,
+    style: str = "source",
+) -> tuple[list[Shape], tuple[int, int, int] | None, dict]:
+    stats = {
+        "enabled": False,
+        "style": style,
+        "reason": "source_background",
+        "generated_panels": 0,
+        "surviving_panels": 0,
+        "replaced_background_shapes": 0,
+        "preserved_scene_cues": 0,
+        "background_color_source": "source",
+        "background_color": scene.background,
+    }
+    if style == "source":
+        return shapes, scene.background, stats
+    if style != "geometric":
+        raise ValueError(f"Unsupported Rinka background style: {style}")
+    if not _has_poster_subject_evidence(scene, shapes):
+        stats["reason"] = "no_subject_evidence"
+        return shapes, scene.background, stats
+
+    canvas_area = max(float(scene.width * scene.height), 1.0)
+    def definite_background(shape: Shape) -> bool:
+        tags = _shape_tags(shape)
+        layer = (shape.layer_name or "").lower()
+        if _is_character_like(shape) or "opaque_subject" in tags:
+            return False
+        if "opaque_background" in tags or layer == "background":
+            return True
+        return any(token in tags for token in ("background", "skyline", "water", "horizon"))
+
+    background_shapes = [shape for shape in shapes if definite_background(shape)]
+    protected_ids: set[int] = set()
+    ranked_cues: list[tuple[float, Shape]] = []
+    for shape in background_shapes:
+        tags = _shape_tags(shape)
+        area_ratio = _shape_metrics(shape)[0] / canvas_area
+        semantic_cue = any(token in tags for token in ("skyline", "water", "structure", "horizon"))
+        if (semantic_cue and area_ratio >= 0.045 and float(shape.importance) >= 0.78) or (
+            area_ratio >= 0.18 and float(shape.importance) >= 0.94
+        ):
+            ranked_cues.append((area_ratio * (0.5 + float(shape.importance)), shape))
+    for _score, shape in sorted(ranked_cues, key=lambda item: item[0], reverse=True)[:2]:
+        protected_ids.add(shape.id)
+
+    remove_ids = {shape.id for shape in background_shapes if shape.id not in protected_ids}
+    retained = [shape for shape in shapes if shape.id not in remove_ids]
+    base, anchor, source = _poster_base_color(scene, retained)
+    panel_colors = _poster_panel_colors(base, anchor)
+    subject_bbox = _subject_bbox_from_shapes(retained)
+    subject_center_x = (subject_bbox[0] + subject_bbox[2]) * 0.5 if subject_bbox else scene.width * 0.5
+    mirror = subject_center_x < scene.width * 0.5
+
+    templates = [
+        [(0.00, 0.00), (0.64, 0.00), (0.53, 0.16), (0.34, 0.31), (0.00, 0.26)],
+        [(1.00, 0.15), (1.00, 0.69), (0.80, 0.61), (0.64, 0.42), (0.78, 0.22)],
+        [(0.00, 0.66), (0.19, 0.56), (0.43, 0.74), (0.34, 1.00), (0.00, 1.00)],
+    ]
+    if mirror:
+        templates = [[(1.0 - x, y) for x, y in points] for points in templates]
+
+    min_z = min((shape.z_index for shape in retained), default=0)
+    next_id = max((shape.id for shape in retained), default=0) + 1001
+    panels: list[Shape] = []
+    for index, (points, color) in enumerate(zip(templates, panel_colors)):
+        panels.append(Shape(
+            id=next_id + index,
+            shape_type="polygon",
+            fill_color=color,
+            points=[(x * scene.width, y * scene.height) for x, y in points],
+            z_index=min_z - 100 + index,
+            importance=0.88 - index * 0.03,
+            source_role="target_geometric_background",
+            layer_name="background",
+            semantic_type="target_geometric_background",
+            character_part="background",
+        ))
+
+    stats.update({
+        "enabled": True,
+        "reason": "geometric_poster",
+        "generated_panels": len(panels),
+        "replaced_background_shapes": len(remove_ids),
+        "preserved_scene_cues": len(protected_ids),
+        "background_color_source": source,
+        "background_color": base,
+    })
+    return panels + retained, base, stats
+
+
 def _curve_to_polygon(shape: Shape, sides: int = 6) -> Shape:
     if shape.shape_type not in {"circle", "ellipse"}:
         return shape
@@ -1947,6 +2167,8 @@ def apply_rinka_reference_style(
     target_max_shapes: int | None = None,
     opaque_hierarchy: OpaqueSubjectHierarchy | None = None,
     opaque_zones: OpaqueSubjectZones | None = None,
+    background_style: str = "source",
+    preset: str | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
@@ -2022,7 +2244,10 @@ def apply_rinka_reference_style(
     gesture_abstracted, gesture_stats = _abstract_gesture_shapes(hand_abstracted, min_side)
     micro_pruned, microdetail_removed = _prune_target_microdetails(scene, gesture_abstracted)
     compressed, background_removed = _compress_background(scene, micro_pruned)
-    straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in compressed]
+    background_styled, result_background, background_geometry = _geometrize_background(
+        scene, compressed, style=background_style
+    )
+    straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in background_styled]
     polished, render_inert_occluded_removed = _prune_render_inert_occluded_fragments(scene, straight)
     shadow_budget = 24 if target_max_shapes == 28 else None
     macro_shadow = _macro_priority_shadow(scene, polished, opaque_zones, budget=shadow_budget)
@@ -2061,6 +2286,13 @@ def apply_rinka_reference_style(
         "render_inert_occluded_removed": render_inert_occluded_removed,
         "gesture_abstraction": gesture_stats,
         "background_removed": background_removed,
+        "background_geometry": {
+            **background_geometry,
+            "surviving_panels": sum(
+                1 for shape in capped if (shape.semantic_type or "") == "target_geometric_background"
+            ),
+        },
+        "preset": preset,
         "cap_removed": cap_removed,
         "macro_priority": macro_priority,
         "cleanup": report.to_dict(),
@@ -2068,7 +2300,7 @@ def apply_rinka_reference_style(
     return Scene(
         width=scene.width,
         height=scene.height,
-        background=scene.background,
+        background=result_background,
         shapes=capped,
         metadata=metadata,
     )
@@ -2144,8 +2376,10 @@ def minimalize_rinka_reference(
     *,
     curve_polygon_sides: int = 6,
     enable_ai_free_subject_segmentation: bool = True,
+    preset: str = DEFAULT_RINKA_REFERENCE_PRESET,
     **config_overrides,
 ) -> Scene:
+    preset = normalize_rinka_reference_preset(preset)
     config = rinka_reference_config(level, **config_overrides)
     rescue = prepare_rinka_opaque_subject_input(image_or_path)
     segmentation = segment_subject_without_ai(image_or_path) if enable_ai_free_subject_segmentation else SubjectSegmentation(False, "disabled")
@@ -2248,4 +2482,6 @@ def minimalize_rinka_reference(
         target_max_shapes=config.target_max_shapes,
         opaque_hierarchy=opaque_hierarchy,
         opaque_zones=subject_zones,
+        background_style="geometric" if preset == "geometric_poster" else "source",
+        preset=preset,
     )

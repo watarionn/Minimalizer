@@ -5,7 +5,14 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
-from minimalize_engine import MinimalizeConfig, minimalize, minimalize_rinka_reference, rinka_reference_config
+from minimalize_engine import (
+    DEFAULT_RINKA_REFERENCE_PRESET,
+    MinimalizeConfig,
+    minimalize,
+    minimalize_rinka_reference,
+    normalize_rinka_reference_preset,
+    rinka_reference_config,
+)
 from minimalize_engine.color_strip import (
     ANALYSIS_MAX_SIDE as COLOR_STRIP_ANALYSIS_MAX_SIDE,
     DEFAULT_COLOR_COUNT as COLOR_STRIP_DEFAULT_COLOR_COUNT,
@@ -43,6 +50,7 @@ class RenderedResult:
     color_order: ColorStripOrder | None = None
     color_orientation: ColorStripOrientation | None = None
     color_selection_mode: ColorStripSelectionMode | None = None
+    rinka_preset: str | None = None
 
 
 def build_config(
@@ -67,7 +75,12 @@ def build_config(
     return config
 
 
-def _render_result(scene, output_format: OutputFormat) -> RenderedResult:
+def _render_result(
+    scene,
+    output_format: OutputFormat,
+    *,
+    rinka_preset: str | None = None,
+) -> RenderedResult:
     if output_format == "svg":
         content = scene_to_svg(scene).encode("utf-8")
         media_type = "image/svg+xml"
@@ -88,6 +101,7 @@ def _render_result(scene, output_format: OutputFormat) -> RenderedResult:
         shape_count=int(scene.metadata.get("shape_count", len(scene.shapes))),
         analysis_size=f"{scene.width}x{scene.height}",
         source_size=f"{scene.metadata.get('source_width', scene.width)}x{scene.metadata.get('source_height', scene.height)}",
+        rinka_preset=rinka_preset,
     )
 
 
@@ -111,14 +125,17 @@ def minimalize_rinka_path(
     output_format: OutputFormat = "svg",
     *,
     analysis_max_side_cap: int | None = None,
+    preset: str = DEFAULT_RINKA_REFERENCE_PRESET,
 ) -> RenderedResult:
+    preset = normalize_rinka_reference_preset(preset)
     config = build_rinka_config(analysis_max_side_cap=analysis_max_side_cap)
     scene = minimalize_rinka_reference(
         input_path,
         level=4,
+        preset=preset,
         analysis_max_side=config.analysis_max_side,
     )
-    return _render_result(scene, output_format)
+    return _render_result(scene, output_format, rinka_preset=preset)
 
 
 def color_strip_path(

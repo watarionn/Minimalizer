@@ -27,6 +27,8 @@ const elements = {
   controlCard: document.querySelector(".control-card"),
   levelControl: document.querySelector("#level-control"),
   level: document.querySelector("#level-select"),
+  rinkaPresetControl: document.querySelector("#rinka-preset-control"),
+  rinkaPreset: document.querySelector("#rinka-preset-select"),
   colors: document.querySelector("#colors-input"),
   maxShapes: document.querySelector("#max-shapes-input"),
   background: document.querySelector("#background-select"),
@@ -111,11 +113,13 @@ function updateModeUi() {
   }
 
   elements.levelControl.hidden = colorStrip;
+  elements.rinkaPresetControl.hidden = !rinka;
   elements.colorStripControls.hidden = !colorStrip;
   elements.advancedControls.hidden = colorStrip;
   elements.colorStripOptions.hidden = !colorStrip;
 
   elements.level.disabled = state.busy || rinka || colorStrip;
+  elements.rinkaPreset.disabled = state.busy || !rinka;
   elements.colors.disabled = state.busy || rinka || colorStrip;
   elements.maxShapes.disabled = state.busy || rinka || colorStrip;
   elements.background.disabled = state.busy || rinka || colorStrip;
@@ -205,7 +209,9 @@ function buildFormData(outputFormat) {
   form.append("level", mode === "standard" ? elements.level.value : "4");
   form.append("output_format", outputFormat);
 
-  if (mode === "standard") {
+  if (mode === "rinka_reference") {
+    form.append("rinka_preset", elements.rinkaPreset.value);
+  } else if (mode === "standard") {
     if (elements.colors.value) form.append("colors", elements.colors.value);
     if (elements.maxShapes.value) form.append("max_shapes", elements.maxShapes.value);
     if (elements.background.value) form.append("background", elements.background.value);
@@ -244,6 +250,10 @@ function downloadBlob(blob, filename) {
 function resultFilename(outputFormat) {
   const stem = currentMode() === "color_strip" ? "color-strip" : "minimalized";
   return `${stem}.${outputFormat}`;
+}
+
+function rinkaPresetLabel(preset) {
+  return preset === "faceless_subject" ? "人物ミニマル" : "幾何学ポスター";
 }
 
 function colorStripOptionLabel(selectionMode, sizeMode, order, orientation) {
@@ -290,6 +300,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
+      const rinkaPreset = response.headers.get("x-minimalizer-rinka-preset");
       const colorSelectionMode = response.headers.get("x-minimalizer-color-selection-mode");
       const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
       const colorOrder = response.headers.get("x-minimalizer-color-order");
@@ -302,6 +313,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : "";
       elements.resultMeta.textContent = [
         modeLabel,
+        responseMode === "rinka_reference" && rinkaPreset ? rinkaPresetLabel(rinkaPreset) : "",
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
         colorOptionLabel,
         size || "",
@@ -375,6 +387,7 @@ elements.downloadPng.addEventListener("click", () => {
 
 for (const control of [
   elements.level,
+  elements.rinkaPreset,
   elements.colors,
   elements.maxShapes,
   elements.background,
@@ -386,6 +399,8 @@ for (const control of [
 ]) {
   control.addEventListener("change", invalidateAfterSettingChange);
 }
+
+elements.rinkaPreset.addEventListener("change", updateModeUi);
 
 elements.colorSimilarity.addEventListener("input", () => {
   updateSimilarityLabel();

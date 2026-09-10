@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from io import BytesIO
 
@@ -41,6 +41,13 @@ def test_phase2_root_serves_browser_workspace():
     assert 'name="mode" value="standard" checked' in response.text
     assert 'name="mode" value="rinka_reference"' in response.text
     assert 'name="mode" value="color_strip"' in response.text
+    assert 'id="rinka-preset-control"' in response.text
+    assert 'id="rinka-preset-select"' in response.text
+    assert 'value="geometric_poster" selected' in response.text
+    assert 'value="faceless_subject"' in response.text
+    assert "凛夏プリセット" in response.text
+    assert "幾何学ポスター" in response.text
+    assert "人物ミニマル" in response.text
     assert 'id="color-strip-controls"' in response.text
     assert 'id="color-similarity-range"' in response.text
     assert 'id="color-strip-options"' in response.text
@@ -63,6 +70,7 @@ def test_phase2_static_assets_are_served():
     assert ".color-strip-controls" in color_strip_css.text
     assert 'fetch("/api/minimalize"' in javascript.text
     assert 'form.append("mode", mode)' in javascript.text
+    assert 'form.append("rinka_preset", elements.rinkaPreset.value)' in javascript.text
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
     assert 'form.append("color_selection_mode", elements.stripSelectionMode.value)' in javascript.text
     assert 'form.append("color_size_mode", elements.stripSizeMode.value)' in javascript.text
@@ -76,7 +84,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.8.0",
+        "web_version": "0.9.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -86,6 +94,8 @@ def test_service_info_reports_web_engine_and_limits():
         "max_concurrent_jobs": 2,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": "phase11",
+        "rinka_reference_default_preset": "geometric_poster",
+        "rinka_reference_presets": ["geometric_poster", "faceless_subject"],
         "color_strip_version": "v0.3",
         "color_strip_default_colors": 5,
         "color_strip_default_similarity": 18.0,
@@ -156,8 +166,41 @@ def test_rinka_reference_svg_upload_uses_frozen_web_mode():
     assert response.content.startswith(b"<svg")
     assert response.headers["x-minimalizer-mode"] == "rinka_reference"
     assert response.headers["x-minimalizer-level"] == "4"
+    assert response.headers["x-minimalizer-rinka-preset"] == "geometric_poster"
     assert response.headers["x-minimalizer-configured-analysis-max-side"] == "640"
     assert int(response.headers["x-minimalizer-shape-count"]) >= 1
+
+
+def test_rinka_reference_accepts_faceless_subject_preset():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "rinka_reference",
+            "level": "4",
+            "rinka_preset": "faceless_subject",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-rinka-preset"] == "faceless_subject"
+
+
+def test_standard_mode_rejects_rinka_preset():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "standard",
+            "level": "4",
+            "rinka_preset": "geometric_poster",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "only available in Rinka Reference mode" in response.json()["detail"]
 
 
 def test_rinka_reference_rejects_custom_detail_settings():

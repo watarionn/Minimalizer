@@ -4,16 +4,17 @@ Minimalizer Web exposes the existing Minimalizer v0.3.0 stable engine through Fa
 
 ## Current web phase
 
-**Web v0.5.0** adds the completed Rinka Reference / ????? as an explicit opt-in browser/API mode while preserving the existing Standard mode and stable engine behavior.
+**Web v0.9.0 candidate** extends the completed Rinka Reference / 凛夏手本版 Phase 11 with explicit poster presets while preserving the existing Standard mode and stable engine behavior.
 
 Included:
 
 - drag-and-drop or file-picker image input
 - side-by-side source/result preview
 - processing, empty, selected, and error states
-- segmented `?? / ?????` mode selector
+- segmented `通常 / 凛夏手本版 / Color Strip` mode selector
 - Standard mode abstraction level control with advanced settings collapsed by default
-- Rinka Reference mode locked to its validated Phase 7 level-4 profile
+- Rinka Reference mode locked to its validated Phase 11 level-4 subject profile
+- Rinka-only preset selector: `geometric_poster` (default) or `faceless_subject`
 - SVG preview and download
 - PNG download
 - responsive mobile layout
@@ -69,14 +70,15 @@ See `docs/WEB_DEPLOYMENT.md` for production sizing and hosting notes.
 Fields:
 
 - `file`: PNG, JPEG, or WebP source image, required
-- `mode`: `standard` or `rinka_reference`, default `standard`
+- `mode`: `standard`, `rinka_reference`, or `color_strip`, default `standard`
 - `level`: abstraction level 1-5, default 4; Rinka Reference requires level 4
 - `output_format`: `svg` or `png`, default `svg`
+- `rinka_preset`: Rinka-only `geometric_poster` or `faceless_subject`; default `geometric_poster`
 - `colors`: optional palette color override, 2-32
 - `max_shapes`: optional target shape limit, 5-500
 - `background`: optional `source`, `white`, or `transparent`
 
-`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 7 profile cannot be silently altered from the Web API.
+`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the completed Phase 11 subject profile cannot be silently altered from the Web API. `rinka_preset` is accepted only in Rinka Reference mode.
 
 Example:
 
@@ -98,6 +100,7 @@ curl -X POST http://127.0.0.1:8000/api/minimalize \
   -F "file=@examples/input.webp;type=image/webp" \
   -F "mode=rinka_reference" \
   -F "level=4" \
+  -F "rinka_preset=geometric_poster" \
   -F "output_format=svg" \
   --output minimalized-rinka.svg
 ```
@@ -112,4 +115,4 @@ The current upload/pixel limits are Web-service safety limits. They do not redef
 
 ## Next web phase
 
-After v0.5.0 is merged, deploy the same build to Railway and verify the public URL end to end in both Standard and Rinka Reference modes. Keep Standard as the default and confirm the hosted analysis-size cap remains respected by both modes before declaring production rollout complete.
+After the v0.9.0 candidate is reviewed and explicitly approved for merge, deploy the same build to Railway and verify the public URL end to end in Standard, both Rinka presets, and Color Strip. Keep Standard as the default and confirm the hosted analysis-size cap remains respected before declaring production rollout complete.

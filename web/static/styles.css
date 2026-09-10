@@ -372,6 +372,10 @@ button:disabled { cursor: not-allowed; }
   gap: 14px;
 }
 
+.control-card.is-rinka .primary-controls {
+  grid-template-columns: minmax(180px, 240px) minmax(240px, 340px) 1fr;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -474,7 +478,7 @@ button:disabled { cursor: not-allowed; }
   .drop-zone, .result-stage, #source-preview, #result-preview { min-height: 340px; }
   .mode-row { align-items: stretch; flex-direction: column; }
   .mode-switch { width: 100%; min-width: 0; }
-  .primary-controls { grid-template-columns: 1fr; }
+  .primary-controls, .control-card.is-rinka .primary-controls { grid-template-columns: 1fr; }
   .advanced-grid { grid-template-columns: 1fr; }
 }
 
