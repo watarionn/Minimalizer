@@ -149,3 +149,21 @@ The rescue renderer now builds a Semantic Shape Tree, enforces per-part primitiv
 On the fixed 16-image corpus at level 4 / analysis max side 220, Phase 9 records about **38.72%** mean shape reduction and **32.76%** mean vertex reduction. The semantic tree / primitive path activates on exactly **1/16** images. Non-rescue worst identity and silhouette deltas remain about **-0.0449 / -0.0010**. The rescue case ends with largest/second filled-shape ratios about **6.39% / 5.37%**, below the Phase 8 safety limits.
 
 Current dedicated telemetry: Semantic Tree enabled **1**, primitive fits **9**, head feature enabled **1**, face ellipse **1**, outfit trapezoid **1**. Read `docs/RINKA_PHASE9_SEMANTIC_PRIMITIVES.md` before changing the primitive priors, semantic budgets, or head-feature gates.
+
+## Phase 10 AI-free Subject Segmentation checkpoint 1 (2026-09-10)
+
+Development resumed from current `main` on `feature/rinka-phase10-ai-free-subject-segmentation-20260910`. The first Phase 10 checkpoint adds deterministic subject/background segmentation for the opaque-character failure class. It uses border-color evidence plus edge-connected background components and does not use AI or learned models. The established Phase 8 giant-slab gate remains in front of the new path, so the fixed corpus changes only the known Omaru Polka rescue case.
+
+Real-image iteration rejected a broad prototype set that treated white subject edges as background, rejected a trimmed-bbox experiment that damaged pose layout, and rejected direct reuse of the Phase 9 semantic-macro rescue with the new mask. The accepted path converts the failure-gated image into an alpha subject, uses ordinary Character Structure analysis, and removes the now-redundant giant `subject_base` only when Phase 10 segmentation is actually active. On Omaru, the largest final filled shape is about 15.7% of canvas instead of the rejected prototype's 50.8% slab.
+
+Read `docs/RINKA_PHASE10_AI_FREE_SUBJECT_SEGMENTATION.md` before continuing. The next Phase 10 step is within-subject simplification that preserves the raised-arm gesture and major color blocks while moving the separated subject closer to the 凛夏 reference.
+
+## Rinka Reference Phase 10 Checkpoint 2 (2026-09-10)
+
+Checkpoint 2 is implemented locally on `feature/rinka-phase10-ai-free-subject-segmentation-20260910`. After the existing failure-gated AI-free segmentation accepts an opaque character thumbnail, the accepted path now rebuilds subject internals as a deterministic six-color polygon scaffold in `minimalize_engine/subject_planes.py`. Small same-color gaps are bridged only inside the accepted subject mask before contour simplification. Hand and prop/weapon carriers from Character Structure are retained on top of the scaffold, and a conservative dark side-plane detector protects the raised-arm gesture.
+
+For Omaru at level 4 / analysis max side 220, the current scaffold has 24 subject planes / 126 scaffold vertices, one protected gesture plane, one backdrop-contrast color adjustment, about **76.99%** segmented-subject coverage and about **1.35%** outside-subject overdraw. Final output is 26 shapes / 137 vertices. Direct rendered foreground versus the accepted segmentation mask measures about **0.756 IoU / 0.764 recall**, compared with Checkpoint 1's **0.651 IoU / 0.661 recall** at 25 shapes / 187 vertices.
+
+The fixed 16-image evaluator still activates Phase 10 segmentation/scaffolding on exactly **1/16** images. The other 15 retain worst pre-target identity/silhouette deltas around **-0.0449 / -0.0010**. Mean corpus shape/vertex reduction is about **36.71% / 31.38%**. Rejected trials include full silhouette underlays, local-color gap carriers, 5x5/7x7 color closing, and 0.05 contour epsilon because they produced oversized slabs or damaged pose structure.
+
+Do not push this Checkpoint 2 work merely to run GitHub Actions while metered Actions usage could become chargeable. Finish and validate locally first. The open Draft PR remains #20 until a safe update path is available.

@@ -294,3 +294,22 @@ Phase 9 adds Semantic Shape Tree and localized primitive optimization on `featur
 A small head-feature pass may add a protected synthetic `accessory` node for distinctive high-saturation color cues. Current Omaru evidence keeps one blue feature and rejects background-red, dark-noise, and duplicate-color candidates.
 
 Fixed-corpus Phase 9 checkpoint: mean shape reduction ~**38.72%**, mean vertex reduction ~**32.76%**, new semantic path **1/16**, nine primitive fits, largest rescue shape ~**6.39%**, second ~**5.37%**, non-rescue worst identity/silhouette ~**-0.0449 / -0.0010**. Keep VTracer-style region experiments out of this phase and do not broaden the rescue gate without new evidence.
+
+## Phase 10 handoff checkpoint (2026-09-10)
+
+Branch: `feature/rinka-phase10-ai-free-subject-segmentation-20260910`.
+
+Checkpoint 1 implements AI-free border/subject segmentation in `minimalize_engine/subject_segmentation.py` and wires it into Rinka Reference behind the existing Phase 8 failure gate. Existing alpha subjects bypass this segmentation. The current accepted Omaru path uses normal alpha-subject Character Structure rather than Phase 9 semantic-macro rescue, then removes the redundant `subject_base` underlay only for an activated Phase 10 mask.
+
+Do not reintroduce the rejected trimmed subject-bbox experiment or the broad white border prototype. Continue by simplifying shapes inside the already-separated subject, with special attention to retaining the raised right-arm gesture, baton, head/hair mass, torso, and blue lower accent. See `docs/RINKA_PHASE10_AI_FREE_SUBJECT_SEGMENTATION.md` for measurements and rejected experiments.
+
+## Phase 10 handoff checkpoint 2 (2026-09-10)
+
+Continue on `feature/rinka-phase10-ai-free-subject-segmentation-20260910`. Checkpoint 2 adds `minimalize_engine/subject_planes.py` after the Checkpoint 1 segmentation gate. It deterministically reduces accepted subject pixels to a small color set, closes only tiny same-color gaps inside the subject mask, and converts the largest connected color components into straight polygon planes. It then preserves the Character Structure hand and prop/weapon carriers on top.
+
+The important Omaru level-4 / 220px checkpoint values are: six colors, 24 scaffold planes, 126 scaffold vertices, 3x3 bridge kernel, subject coverage 0.769937, outside-subject ratio 0.013525, one right-side gesture plane, one contrast-adjusted color, three protected Character Structure shapes, and 24 replaced structure shapes. The final target has 26 shapes / 137 vertices. Foreground-to-segmentation IoU improves from Checkpoint 1's 0.6511 to about 0.7560, while recall improves from 0.6613 to about 0.7638.
+
+Do not restore the rejected full silhouette carrier or local-color gap carrier. Do not increase the bridge to 5x5/7x7 at the 220px checkpoint; those trials over-smoothed the pose. Keep the contour epsilon at 0.036 unless a new real-image comparison demonstrates a safer improvement. Preserve the dedicated `phase10_gesture_plane` role through structure-zone tagging so the raised right arm is not rewritten as a generic hair/head candidate.
+
+The fixed-corpus evaluator now exposes Phase 10 segmentation/scaffold telemetry. Current 16-image results: activation 1/16, mean shape reduction about 0.3671, mean vertex reduction about 0.3138, unaffected worst identity delta about -0.0449, unaffected worst silhouette delta about -0.0010. CI guards have been updated locally for Phase 10 but must not be triggered while Actions could incur metered charges. Validate with local pytest/evaluator instead.
+Do not reduce the accepted scaffold to four colors solely because the 220px metrics look better. That trial reached 17 shapes / 91 vertices at 220px, but the original 340px render collapsed head and torso separation into an oversized light slab. Six colors was retained after both checkpoint-scale and original-scale visual review.
