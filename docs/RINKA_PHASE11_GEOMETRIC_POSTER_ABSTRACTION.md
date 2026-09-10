@@ -1,6 +1,6 @@
 # Rinka Reference Phase 11: Geometric Poster Abstraction
 
-Status: **Checkpoint 3 local closure complete; Draft PR preparation**
+Status: **Checkpoint 3 local closure complete; Draft PR #23 open**
 
 Branch: `feature/rinka-phase11-priority3-background-presets-ui-20260910`
 
@@ -95,4 +95,4 @@ A real local Uvicorn smoke confirms HTTP 200 for Standard, Rinka `geometric_post
 
 ## Next checkpoint
 
-Open a Draft PR with `[skip ci]` validation provenance. Do not change the subject abstraction or broaden background deletion merely to improve reduction percentages. Production remains Web v0.8.0 until a later explicitly approved deployment verifies v0.9.0 on Railway.
+Draft PR **#23** is open with `[skip ci]` validation provenance. Keep it Draft until explicit approval to send it for review. Do not change the subject abstraction or broaden background deletion merely to improve reduction percentages. Production remains Web v0.8.0 until a later explicitly approved merge/deployment verifies v0.9.0 on Railway.

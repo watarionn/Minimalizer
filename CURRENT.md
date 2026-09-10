@@ -3,7 +3,7 @@
 Current engine release: **v0.3.0 stable**
 Current production Web runtime: **v0.8.0 production-verified**
 Current Rinka Reference engine: **Phase 11 Checkpoint 2 merged to `main`; Checkpoint 3 local closure complete** on `feature/rinka-phase11-priority3-background-presets-ui-20260910`
-Current Web candidate: **v0.9.0 closure-validated locally** with Rinka Reference preset UI; production remains v0.8.0 until separately approved, deployed, and verified.
+Current Web candidate: **v0.9.0 closure-validated locally in Draft PR #23** with Rinka Reference preset UI; production remains v0.8.0 until separately approved, merged, deployed, and verified.
 
 This file is the canonical restoration pointer.
 
