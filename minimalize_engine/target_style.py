@@ -26,7 +26,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase12"
+RINKA_REFERENCE_VERSION = "phase13"
 RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject")
 DEFAULT_RINKA_REFERENCE_PRESET = "geometric_poster"
 
@@ -2392,6 +2392,120 @@ def _phase12_portrait_collapse_gate(segmentation: SubjectSegmentation, baseline_
     }
 
 
+def _phase13_lab_distance(color_a: tuple[int, int, int], color_b: tuple[int, int, int]) -> float:
+    sample = np.asarray([[list(color_a), list(color_b)]], dtype=np.uint8)
+    lab = cv2.cvtColor(sample, cv2.COLOR_RGB2LAB).astype(np.float32)[0]
+    return float(np.linalg.norm(lab[0] - lab[1]))
+
+
+def _phase13_rank_color_clusters(pixels: np.ndarray, *, bin_size: int = 16) -> list[dict]:
+    if pixels.size == 0:
+        return []
+    values = np.asarray(pixels, dtype=np.uint8).reshape(-1, 3)
+    quantized = (values // bin_size).astype(np.int16)
+    keys, inverse, counts = np.unique(quantized, axis=0, return_inverse=True, return_counts=True)
+    clusters: list[dict] = []
+    for index, count in enumerate(counts):
+        members = values[inverse == index]
+        color = tuple(int(v) for v in np.median(members, axis=0))
+        rgbf = np.asarray(color, dtype=np.float32)
+        luma = float(0.2126 * rgbf[0] + 0.7152 * rgbf[1] + 0.0722 * rgbf[2])
+        chroma = float(rgbf.max() - rgbf.min())
+        clusters.append({
+            "color": color,
+            "count": int(count),
+            "fraction": float(count / max(len(values), 1)),
+            "luma": luma,
+            "chroma": chroma,
+        })
+    clusters.sort(key=lambda item: item["count"], reverse=True)
+    return clusters
+
+
+def _phase13_pick_face_color(
+    pixels: np.ndarray,
+    background_rgb: tuple[int, int, int] | None,
+) -> tuple[tuple[int, int, int], dict]:
+    clusters = _phase13_rank_color_clusters(pixels)
+    fallback = tuple(int(v) for v in np.median(pixels, axis=0))
+    background = tuple(int(v) for v in (background_rgb or (255, 255, 255)))
+    candidates = []
+    for cluster in clusters:
+        color = cluster["color"]
+        sample = np.asarray([[list(color)]], dtype=np.uint8)
+        ycrcb = cv2.cvtColor(sample, cv2.COLOR_RGB2YCrCb)[0, 0]
+        yy, cr, cb = (int(v) for v in ycrcb)
+        bg_distance = _phase13_lab_distance(color, background)
+        warmth = float(color[0] - color[2])
+        if not (88 <= yy and 136 <= cr <= 190 and 70 <= cb <= 150):
+            continue
+        if bg_distance < 12.0:
+            continue
+        score = cluster["fraction"] * 2.5 + max(warmth, 0.0) / 255.0 * 0.7
+        candidates.append((score, cluster, bg_distance))
+    if not candidates:
+        return fallback, {"enabled": False, "reason": "face_cluster_fallback", "cluster_count": len(clusters)}
+    _score, chosen, bg_distance = max(candidates, key=lambda item: item[0])
+    return chosen["color"], {
+        "enabled": True,
+        "reason": "face_cluster",
+        "cluster_count": len(clusters),
+        "selected_fraction": round(float(chosen["fraction"]), 6),
+        "background_distance": round(float(bg_distance), 3),
+    }
+
+
+def _phase13_pick_hair_colors(
+    pixels: np.ndarray,
+    background_rgb: tuple[int, int, int] | None,
+    face_color: tuple[int, int, int] | None,
+) -> tuple[tuple[int, int, int], tuple[int, int, int] | None, dict]:
+    clusters = _phase13_rank_color_clusters(pixels)
+    fallback = tuple(int(v) for v in np.median(pixels, axis=0))
+    background = tuple(int(v) for v in (background_rgb or (255, 255, 255)))
+    candidates = []
+    for cluster in clusters:
+        color = cluster["color"]
+        bg_distance = _phase13_lab_distance(color, background)
+        face_distance = _phase13_lab_distance(color, face_color) if face_color is not None else 99.0
+        if cluster["luma"] < 132.0 or cluster["chroma"] > 92.0 or bg_distance < 18.0:
+            continue
+        neutrality = 1.0 - min(cluster["chroma"] / 92.0, 1.0)
+        brightness = min(cluster["luma"] / 255.0, 1.0)
+        separation = min(face_distance / 48.0, 1.0)
+        score = cluster["fraction"] * 2.8 + neutrality * 0.55 + brightness * 0.25 + separation * 0.35
+        candidates.append((score, cluster, face_distance, bg_distance))
+    if not candidates:
+        return fallback, None, {"enabled": False, "reason": "hair_cluster_fallback", "cluster_count": len(clusters)}
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    primary_entry = candidates[0]
+    if face_color is not None and primary_entry[2] < 13.0:
+        separated = [item for item in candidates[1:] if item[2] >= 16.0 and item[1]["fraction"] >= 0.06]
+        if separated:
+            primary_entry = max(separated, key=lambda item: (item[1]["fraction"], item[2]))
+    primary = primary_entry[1]["color"]
+    secondary = None
+    for _score, cluster, face_distance, _bg_distance in candidates:
+        color = cluster["color"]
+        if color == primary or cluster["fraction"] < 0.08:
+            continue
+        if _phase13_lab_distance(primary, color) < 10.0:
+            continue
+        if face_color is not None and face_distance < 10.0:
+            continue
+        secondary = color
+        break
+    return primary, secondary, {
+        "enabled": True,
+        "reason": "hair_cluster",
+        "cluster_count": len(clusters),
+        "primary_fraction": round(float(primary_entry[1]["fraction"]), 6),
+        "face_distance": round(float(primary_entry[2]), 3),
+        "background_distance": round(float(primary_entry[3]), 3),
+        "secondary_color": list(secondary) if secondary is not None else None,
+    }
+
+
 def _phase12_face_anchor(
     segmentation: SubjectSegmentation,
     width: int,
@@ -2476,7 +2590,7 @@ def _phase12_face_anchor(
         stats["reason"] = "skin_component_too_thin"
         return None, stats
     pixels = rgb[component]
-    fill = tuple(int(v) for v in np.median(pixels, axis=0))
+    fill, phase13_color_stats = _phase13_pick_face_color(pixels, segmentation.background_rgb)
     points = [
         (x0 + 0.18 * bw, y0),
         (x1 - 0.18 * bw, y0),
@@ -2504,6 +2618,7 @@ def _phase12_face_anchor(
         "face_anchor_area_ratio": round(float(area / canvas_area), 6),
         "face_anchor_color": list(fill),
         "face_anchor_bbox": [int(x0), int(y0), int(x1), int(y1)],
+        "phase13_face_color": phase13_color_stats,
     })
     return shape, stats
 
@@ -2577,7 +2692,10 @@ def _phase12_hair_anchor(
     if len(polygon) < 4:
         polygon = hull
     hair_pixels = rgb[combined > 0]
-    fill = tuple(int(v) for v in np.median(hair_pixels, axis=0))
+    face_color = face_anchor.fill_color if face_anchor is not None else None
+    fill, secondary_fill, phase13_color_stats = _phase13_pick_hair_colors(
+        hair_pixels, segmentation.background_rgb, face_color
+    )
     shape = Shape(
         id=945000,
         shape_type="polygon",
@@ -2595,6 +2713,8 @@ def _phase12_hair_anchor(
         "reason": "hair_anchor",
         "hair_anchor_created": True,
         "hair_anchor_color": list(fill),
+        "hair_anchor_secondary_color": list(secondary_fill) if secondary_fill is not None else None,
+        "phase13_hair_color": phase13_color_stats,
         "hair_anchor_components": len(selected),
         "hair_anchor_vertices": len(shape.points),
     })
