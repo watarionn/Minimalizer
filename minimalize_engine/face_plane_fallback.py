@@ -114,10 +114,10 @@ def _component_candidate(
         _distance, index = min(oversized)
         component = labels == index
         core = np.zeros_like(component, dtype=bool)
-        fx0 = max(0, int(round(sx0 + sw * 0.36)))
-        fx1 = min(width, int(round(sx0 + sw * 0.64)))
-        fy0 = max(0, int(round(sy0 + sh * 0.18)))
-        fy1 = min(height, int(round(sy0 + sh * 0.44)))
+        fx0 = max(0, int(round(sx0 + sw * 0.39)))
+        fx1 = min(width, int(round(sx0 + sw * 0.61)))
+        fy0 = max(0, int(round(sy0 + sh * 0.20)))
+        fy1 = min(height, int(round(sy0 + sh * 0.42)))
         core[fy0:fy1, fx0:fx1] = True
         sliced = (component & core).astype(np.uint8)
         if int(sliced.sum()) >= max(18, int(round(canvas_area * 0.0012))):
@@ -132,10 +132,10 @@ def _component_candidate(
         bbox_ratio = float(max(bx1 - bx0, 1) * max(by1 - by0, 1)) / canvas_area
         if bbox_ratio > 0.085:
             core = np.zeros_like(component, dtype=bool)
-            fx0 = max(0, int(round(sx0 + sw * 0.36)))
-            fx1 = min(width, int(round(sx0 + sw * 0.64)))
-            fy0 = max(0, int(round(sy0 + sh * 0.18)))
-            fy1 = min(height, int(round(sy0 + sh * 0.44)))
+            fx0 = max(0, int(round(sx0 + sw * 0.39)))
+            fx1 = min(width, int(round(sx0 + sw * 0.61)))
+            fy0 = max(0, int(round(sy0 + sh * 0.20)))
+            fy1 = min(height, int(round(sy0 + sh * 0.42)))
             core[fy0:fy1, fx0:fx1] = True
             sliced = (component & core).astype(np.uint8)
             if int(sliced.sum()) >= max(18, int(round(canvas_area * 0.0012))):
@@ -266,7 +266,9 @@ def _plane_from_component(
         shape_type="polygon",
         fill_color=fill,
         points=[(float(x), float(y)) for x, y in points],
-        z_index=39950,
+        # Keep the blank face above ordinary coarse planes. Approved-reference
+        # rendering selectively promotes only 1-2 fringe planes above this carrier.
+        z_index=31000,
         importance=1.0,
         source_role="phase15_face_fallback_anchor",
         layer_name="foreground",
@@ -329,10 +331,10 @@ def build_face_plane_fallback(
     sw = max(sx1 - sx0, 1)
     sh = max(sy1 - sy0, 1)
     core = np.zeros_like(component, dtype=np.uint8)
-    fx0 = max(0, int(round(sx0 + sw * 0.36)))
-    fx1 = min(width, int(round(sx0 + sw * 0.64)))
-    fy0 = max(0, int(round(sy0 + sh * 0.18)))
-    fy1 = min(height, int(round(sy0 + sh * 0.44)))
+    fx0 = max(0, int(round(sx0 + sw * 0.39)))
+    fx1 = min(width, int(round(sx0 + sw * 0.61)))
+    fy0 = max(0, int(round(sy0 + sh * 0.20)))
+    fy1 = min(height, int(round(sy0 + sh * 0.42)))
     core[fy0:fy1, fx0:fx1] = 1
     sliced = (component.astype(np.uint8) & core).astype(np.uint8)
     if int(sliced.sum()) < max(18, int(round(width * height * 0.0012))):

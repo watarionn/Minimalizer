@@ -45,9 +45,10 @@ def test_phase15_approved_reference_uses_direct_coarse_planes():
     )
     target = scene.metadata["target_style"]
 
-    assert target["version"] == "phase15"
+    assert target["version"] == "phase16"
     assert target["preset"] == "approved_reference"
     assert target["approved_reference_direct"] is True
     assert target["macro_subject_guard"]["enabled"] is True
     assert target["phase15_face_fallback"]["face_plane_created"] is True
+    assert target["macro_anchor_injected"] >= 2
     assert len(scene.shapes) <= 22

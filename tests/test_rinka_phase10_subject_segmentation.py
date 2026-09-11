@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from minimalize_engine.subject_segmentation import segment_subject_without_ai
-from minimalize_engine.subject_planes import build_subject_color_planes
+from minimalize_engine.subject_planes import build_subject_color_planes, _is_upper_gesture_representative
 from minimalize_engine.subject_plane_cleanup import absorb_small_label_fragments
 from minimalize_engine.target_style import minimalize_rinka_reference
 
@@ -22,7 +22,7 @@ def test_phase10_omaru_uses_ai_free_subject_segmentation():
     rescue = scene.metadata["rinka_opaque_subject_rescue"]
     macro = scene.metadata["rinka_macro_partition"]
 
-    assert scene.metadata["target_style"]["version"] == "phase15"
+    assert scene.metadata["target_style"]["version"] == "phase16"
     assert segmentation["enabled"] is True
     assert segmentation["activated"] is True
     assert segmentation["confidence"] >= 0.60
@@ -137,3 +137,19 @@ def test_phase10_checkpoint3_absorbs_neutral_fragment_but_keeps_accent():
     assert np.all(out[20:22, 20:22] == 0)
     assert np.all(out[40:43, 40:43] == 2)
     assert protected >= 1
+
+
+
+def test_phase16_upper_gesture_gate_requires_bright_outer_upper_mass():
+    stats = np.asarray([90, 5, 24, 24, 576], dtype=np.int32)
+    centroid = np.asarray([102.0, 22.0], dtype=np.float64)
+    assert _is_upper_gesture_representative(
+        576, stats, centroid, np.asarray((245, 220, 205), dtype=np.uint8), 128, 128, 128 * 128
+    )
+    assert not _is_upper_gesture_representative(
+        576, stats, centroid, np.asarray((90, 85, 88), dtype=np.uint8), 128, 128, 128 * 128
+    )
+    centered = np.asarray([64.0, 22.0], dtype=np.float64)
+    assert not _is_upper_gesture_representative(
+        576, stats, centered, np.asarray((245, 220, 205), dtype=np.uint8), 128, 128, 128 * 128
+    )

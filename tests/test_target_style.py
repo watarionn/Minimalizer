@@ -7,8 +7,10 @@ from minimalize_engine.target_style import (
     _abstract_gesture_shapes,
     _final_shape_cap,
     _macro_shape_priority_score,
+    _shape_metrics,
     _macro_priority_shadow,
     _macro_subject_continuity,
+    _promote_approved_reference_fringe,
     _prune_render_inert_occluded_fragments,
     _merge_mass_pair,
     apply_rinka_reference_style,
@@ -110,7 +112,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase15"
+    assert out.metadata["target_style"]["version"] == "phase16"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -474,7 +476,7 @@ def test_phase5_consolidates_one_safe_outfit_detail_per_base():
 
     out = apply_rinka_reference_style(scene, target_max_shapes=10)
 
-    assert out.metadata["target_style"]["version"] == "phase15"
+    assert out.metadata["target_style"]["version"] == "phase16"
     assert out.metadata["target_style"]["outfit_layer_merges"] == 1
     assert len(out.shapes) == 2
     merged = next(shape for shape in out.shapes if shape.id == 1)
@@ -703,7 +705,7 @@ def test_phase7_global_scoring_removes_moderate_background_sliver():
     scoring = out.metadata["target_style"]["global_scoring"]
     assert 1101 in ids
     assert 1102 not in ids
-    assert out.metadata["target_style"]["version"] == "phase15"
+    assert out.metadata["target_style"]["version"] == "phase16"
     assert scoring["enabled"] is True
     assert scoring["score_version"] == "v1"
     assert scoring["low_value_thin_candidates"] >= 1
@@ -741,3 +743,57 @@ def test_phase7_global_scoring_preserves_salient_foreground_sliver():
         d["shape_id"] == 1112 and d["reason"] == "global_low_value_sliver"
         for d in out.metadata["target_style"]["cleanup"]["decisions"]
     )
+
+
+
+def test_phase16_promotes_only_top_face_overlapping_fringe_planes():
+    face = Shape(id=90, shape_type="rectangle", fill_color=(235, 190, 170), x=40, y=30, width=40, height=50, z_index=31000, importance=1.0)
+    fringe_a = _rect(1, 42, 20, 18, 26, role="phase10_subject_plane", fill_color=(45, 35, 50))
+    fringe_b = _rect(2, 58, 22, 18, 25, role="phase10_subject_plane", fill_color=(60, 45, 65))
+    torso = _rect(3, 38, 68, 44, 40, role="phase10_subject_plane", fill_color=(40, 80, 130))
+    skin_fragment = _rect(4, 45, 34, 20, 20, role="phase10_subject_plane", fill_color=(230, 188, 168))
+
+    out, stats = _promote_approved_reference_fringe([fringe_a, fringe_b, torso, skin_fragment, face], face, 120, 120)
+    by_id = {shape.id: shape for shape in out}
+
+    assert stats["promoted"] == 2
+    assert set(stats["promoted_ids"]) == {1, 2}
+    assert by_id[1].z_index > face.z_index
+    assert by_id[2].z_index > face.z_index
+    assert by_id[3].z_index < face.z_index
+    assert by_id[4].z_index < face.z_index
+
+
+
+def test_phase16_clips_oversized_upper_hair_when_no_regular_fringe_candidate():
+    face = Shape(id=90, shape_type="rectangle", fill_color=(235, 190, 170), x=40, y=35, width=40, height=42, z_index=31000, importance=1.0)
+    huge_hair = _rect(1, 20, 5, 90, 72, role="phase10_subject_plane", fill_color=(145, 120, 165))
+    torso = _rect(2, 35, 80, 50, 35, role="phase10_subject_plane", fill_color=(50, 60, 90))
+    out, stats = _promote_approved_reference_fringe([huge_hair, torso, face], face, 120, 120)
+    clipped = [shape for shape in out if shape.source_role == "phase16_fringe_slice"]
+    assert stats["clipped_fallback"] is True
+    assert stats["promoted"] == 1
+    assert len(clipped) == 1
+    assert clipped[0].z_index > face.z_index
+    assert _shape_metrics(clipped[0])[0] < _shape_metrics(huge_hair)[0]
+
+
+
+def test_phase16_rejects_dark_neutral_fringe_for_bright_head():
+    face = Shape(id=90, shape_type="rectangle", fill_color=(245, 220, 205), x=40, y=30, width=40, height=50, z_index=31000, importance=1.0)
+    head = _rect(91, 25, 5, 70, 55, role="phase15_macro_head_anchor", part="head", fill_color=(250, 240, 220))
+    gray = _rect(1, 44, 20, 18, 26, role="phase10_subject_plane", fill_color=(170, 168, 169))
+    out, stats = _promote_approved_reference_fringe([gray, face, head], face, 120, 120, head)
+    by_id = {shape.id: shape for shape in out}
+    assert stats["promoted"] == 0
+    assert by_id[1].z_index < face.z_index
+
+
+def test_phase16_allows_chromatic_fringe_for_bright_head():
+    face = Shape(id=90, shape_type="rectangle", fill_color=(245, 220, 205), x=40, y=30, width=40, height=50, z_index=31000, importance=1.0)
+    head = _rect(91, 25, 5, 70, 55, role="phase15_macro_head_anchor", part="head", fill_color=(250, 240, 220))
+    pink = _rect(1, 44, 20, 18, 26, role="phase10_subject_plane", fill_color=(205, 120, 155))
+    out, stats = _promote_approved_reference_fringe([pink, face, head], face, 120, 120, head)
+    by_id = {shape.id: shape for shape in out}
+    assert stats["promoted"] == 1
+    assert by_id[1].z_index > face.z_index

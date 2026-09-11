@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from minimalize_engine.macro_subject_guard import build_macro_subject_guard
+from minimalize_engine.macro_subject_guard import build_macro_subject_guard, phase15_subject_candidate
 from minimalize_engine.subject_segmentation import SubjectSegmentation
 
 
@@ -77,3 +77,42 @@ def test_phase15_macro_guard_requires_existing_ai_free_subject_candidate():
     assert result.enabled is False
     assert result.reason == "subject_candidate_missing"
     assert result.shapes == ()
+
+
+def test_phase16_rejected_candidate_does_not_outrank_accepted_opaque_rescue():
+    segmentation = _portrait_candidate(confidence=0.52, reason="confidence_gate")
+    rescue_rgba = segmentation.rgba.copy()
+    rescue_mask = segmentation.mask.copy()
+    from minimalize_engine.opaque_subject_rescue import OpaqueSubjectRescue
+
+    rescue = OpaqueSubjectRescue(
+        True,
+        "accepted",
+        rgba=rescue_rgba,
+        background_rgb=segmentation.background_rgb,
+        border_dominant_fraction=0.62,
+        foreground_area_ratio=float(rescue_mask.mean()),
+        center_fill_ratio=0.84,
+    )
+    chosen = phase15_subject_candidate(np.dstack([rescue_rgba[:, :, :3], np.full_like(rescue_mask, 255)]), segmentation, rescue)
+
+    assert chosen.reason == "phase15_opaque_rescue"
+    assert chosen is not segmentation
+
+
+def test_phase16_accepted_candidate_still_has_priority_over_rescue():
+    segmentation = _portrait_candidate(confidence=0.64, reason="accepted")
+    from minimalize_engine.opaque_subject_rescue import OpaqueSubjectRescue
+
+    rescue = OpaqueSubjectRescue(
+        True,
+        "accepted",
+        rgba=segmentation.rgba.copy(),
+        background_rgb=segmentation.background_rgb,
+        border_dominant_fraction=0.70,
+        foreground_area_ratio=float(segmentation.mask.mean()),
+        center_fill_ratio=0.90,
+    )
+    chosen = phase15_subject_candidate(np.dstack([segmentation.rgba[:, :, :3], np.full_like(segmentation.mask, 255)]), segmentation, rescue)
+
+    assert chosen is segmentation

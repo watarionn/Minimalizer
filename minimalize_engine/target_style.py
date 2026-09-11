@@ -32,7 +32,7 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase15"
+RINKA_REFERENCE_VERSION = "phase16"
 RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject", "approved_reference")
 DEFAULT_RINKA_REFERENCE_PRESET = "geometric_poster"
 
@@ -2180,12 +2180,125 @@ def _final_shape_cap(
     return capped, len(removed), stats
 
 
+
+
+def _promote_approved_reference_fringe(
+    shapes: list[Shape],
+    face_anchor: Shape | None,
+    width: int,
+    height: int,
+    head_anchor: Shape | None = None,
+) -> tuple[list[Shape], dict]:
+    stats = {"candidate_count": 0, "promoted": 0, "promoted_ids": [], "clipped_fallback": False}
+    if face_anchor is None or face_anchor.fill_color is None:
+        return shapes, stats
+    fx0, fy0, fx1, fy1 = _shape_bbox(face_anchor)
+    fw, fh = max(fx1 - fx0, 1.0), max(fy1 - fy0, 1.0)
+    face_area = fw * fh
+    zx0, zy0, zx1, zy1 = fx0 - 0.22 * fw, fy0 - 0.34 * fh, fx1 + 0.22 * fw, fy0 + 0.60 * fh
+    candidates: list[tuple[float, Shape]] = []
+    oversized: list[tuple[float, Shape]] = []
+    for shape in shapes:
+        if shape.id == face_anchor.id or shape.fill_color is None:
+            continue
+        if shape.source_role not in {"phase10_subject_plane", "phase10_gesture_plane"}:
+            continue
+        sx0, sy0, sx1, sy1 = _shape_bbox(shape)
+        area = _shape_metrics(shape)[0]
+        if area <= 1.0:
+            continue
+        color_distance = _color_distance(shape.fill_color, face_anchor.fill_color)
+        if color_distance < 24.0:
+            continue
+        if head_anchor is not None and head_anchor.fill_color is not None:
+            head = np.asarray(head_anchor.fill_color, dtype=np.float32)
+            candidate = np.asarray(shape.fill_color, dtype=np.float32)
+            head_luma = float(0.2126 * head[0] + 0.7152 * head[1] + 0.0722 * head[2])
+            candidate_luma = float(0.2126 * candidate[0] + 0.7152 * candidate[1] + 0.0722 * candidate[2])
+            candidate_chroma = float(candidate.max() - candidate.min())
+            if head_luma >= 215.0 and candidate_luma <= 205.0 and candidate_chroma <= 28.0:
+                continue
+        qx0, qy0 = max(sx0, zx0), max(sy0, zy0)
+        qx1, qy1 = min(sx1, zx1), min(sy1, zy1)
+        zone_area = max(0.0, qx1 - qx0) * max(0.0, qy1 - qy0)
+        if area > face_area * 1.35:
+            if area <= face_area * 6.0 and zone_area / max(face_area, 1.0) >= 0.18:
+                oversized.append((zone_area / max(face_area, 1.0) + min(color_distance / 180.0, 1.0) * 0.12, shape))
+            continue
+        cx, cy = _shape_center(shape)
+        if cy > fy0 + 0.62 * fh:
+            continue
+        ix0, iy0 = max(sx0, fx0), max(sy0, fy0)
+        ix1, iy1 = min(sx1, fx1), min(sy1, fy1)
+        face_overlap = max(0.0, ix1 - ix0) * max(0.0, iy1 - iy0) / max(face_area, 1.0)
+        zone_overlap = zone_area / max(area, 1.0)
+        if face_overlap < 0.025 and zone_overlap < 0.18:
+            continue
+        vertical_bonus = max(0.0, 1.0 - max(cy - fy0, 0.0) / max(fh, 1.0))
+        score = face_overlap * 4.0 + zone_overlap * 0.75 + vertical_bonus * 0.25 + min(color_distance / 160.0, 1.0) * 0.10
+        candidates.append((score, shape))
+    stats["candidate_count"] = len(candidates)
+    selected = [shape for _score, shape in sorted(candidates, key=lambda item: item[0], reverse=True)[:2]]
+    selected_ids = {shape.id for shape in selected}
+    promoted: list[Shape] = []
+    rank = {shape.id: index for index, shape in enumerate(selected)}
+    for shape in shapes:
+        if shape.id in selected_ids:
+            promoted.append(replace(shape, z_index=face_anchor.z_index + 20 + rank[shape.id], importance=max(float(shape.importance), 0.995)))
+        else:
+            promoted.append(shape)
+    if not selected and oversized:
+        _score, source = max(oversized, key=lambda item: item[0])
+        points = _shape_polygon_points(source)
+        if points is not None:
+            mask = np.zeros((max(int(height), 1), max(int(width), 1)), dtype=np.uint8)
+            cv2.fillPoly(mask, [np.round(points).astype(np.int32)], 1)
+            clip = np.zeros_like(mask)
+            cx0 = max(0, int(round(fx0 - 0.12 * fw)))
+            cx1 = min(mask.shape[1], int(round(fx1 + 0.12 * fw)))
+            cy0 = max(0, int(round(fy0 - 0.24 * fh)))
+            cy1 = min(mask.shape[0], int(round(fy0 + 0.46 * fh)))
+            clip[cy0:cy1, cx0:cx1] = 1
+            clipped = mask & clip
+            if int(clipped.sum()) >= max(18, int(round(face_area * 0.08))):
+                contours, _ = cv2.findContours(clipped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                if contours:
+                    contour = max(contours, key=cv2.contourArea)
+                    perimeter = float(cv2.arcLength(contour, True))
+                    polygon = None
+                    for ratio in (0.035, 0.05, 0.07, 0.09):
+                        approx = cv2.approxPolyDP(contour, max(1.0, perimeter * ratio), True).reshape(-1, 2)
+                        if 3 <= len(approx) <= 8:
+                            polygon = approx
+                            break
+                    if polygon is not None:
+                        fringe = Shape(
+                            id=max((shape.id for shape in promoted), default=949000) + 1000,
+                            shape_type="polygon",
+                            fill_color=source.fill_color,
+                            points=[(float(x), float(y)) for x, y in polygon],
+                            z_index=face_anchor.z_index + 20,
+                            importance=0.995,
+                            source_role="phase16_fringe_slice",
+                            layer_name="foreground",
+                            semantic_type="character_hair_fringe",
+                            character_part="hair",
+                            part_confidence=0.88,
+                        )
+                        promoted.append(fringe)
+                        selected_ids.add(fringe.id)
+                        stats["clipped_fallback"] = True
+    stats["promoted"] = len(selected_ids)
+    stats["promoted_ids"] = sorted(selected_ids)
+    return promoted, stats
+
 def _apply_approved_reference_direct_style(
     scene: Scene,
     *,
     curve_polygon_sides: int,
     target_max_shapes: int | None,
     protected_face_anchor: Shape | None,
+    protected_macro_anchors: tuple[Shape, ...] | list[Shape] | None,
     macro_subject_guard_stats: dict | None,
     phase12_anchor_stats: dict | None,
     phase15_face_fallback_stats: dict | None,
@@ -2199,9 +2312,18 @@ def _apply_approved_reference_direct_style(
     blank face carrier, and only adds the geometric background plus the final cap.
     """
     shapes = list(scene.shapes)
+    macro_anchor_ids: set[int] = set()
+    if protected_macro_anchors:
+        macro_anchor_ids = {shape.id for shape in protected_macro_anchors}
+        shapes = [shape for shape in shapes if shape.id not in macro_anchor_ids]
+        shapes.extend(protected_macro_anchors)
     if protected_face_anchor is not None:
         shapes = [shape for shape in shapes if shape.id != protected_face_anchor.id]
         shapes.append(protected_face_anchor)
+    macro_head = next((shape for shape in (protected_macro_anchors or []) if shape.character_part == "head"), None)
+    shapes, fringe_promotion = _promote_approved_reference_fringe(
+        shapes, protected_face_anchor, scene.width, scene.height, macro_head
+    )
 
     background_styled, result_background, background_geometry = _geometrize_background(
         scene,
@@ -2229,6 +2351,8 @@ def _apply_approved_reference_direct_style(
         "phase12_anchor_guard": phase12_anchor_stats or {"enabled": False, "reason": "not_requested"},
         "macro_subject_guard": macro_subject_guard_stats or {"enabled": False, "reason": "not_requested"},
         "phase15_face_fallback": phase15_face_fallback_stats or {"enabled": False, "reason": "not_requested"},
+        "macro_anchor_injected": len(macro_anchor_ids),
+        "fringe_promotion": fringe_promotion,
         "face_fragments_removed": 0,
         "mass_merges": 0,
         "outfit_layer_merges": 0,
@@ -3061,10 +3185,13 @@ def minimalize_rinka_reference(
             scene.width,
             scene.height,
             macro_segmentation.background_rgb,
-            max_colors=7,
-            max_total_planes=16,
+            max_colors=6,
+            max_total_planes=10,
             fragment_area_ratio=0.0035,
-            simplify_epsilon_ratio=0.045,
+            simplify_epsilon_ratio=0.052,
+            preserve_light_component_tones=True,
+            preserve_color_representatives=True,
+            preserve_upper_gesture_representatives=True,
         )
         if approved_reference_planes.enabled:
             approved_protected = _phase10_protected_structure_shapes(scene.shapes)
@@ -3122,6 +3249,7 @@ def minimalize_rinka_reference(
             curve_polygon_sides=curve_polygon_sides,
             target_max_shapes=min(config.target_max_shapes, 22),
             protected_face_anchor=phase15_face_fallback.shape or phase12_face_anchor,
+            protected_macro_anchors=macro_subject_guard.shapes,
             macro_subject_guard_stats={
                 **macro_subject_guard.to_dict(),
                 "candidate_reason": macro_segmentation.reason,
