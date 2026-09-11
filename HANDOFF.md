@@ -11,13 +11,13 @@
 
 ## Current state
 
-### Active Rinka work: Phase 13 Face / Hair Color Anchor
+### Active Rinka work: Phase 16 Approved 18 Identity / Structure
 
-Active branch: `feature/rinka-phase13-face-hair-color-anchor-20260911`, based on production-verified Phase 12 `main` at `2da9b1aa693bbc68dde8a59994bff9503673f7d8` (PR #24). Phase 12 is merged and deployed on Railway as Web v0.10.0 / Rinka `phase12`.
+Active branch: `feature/rinka-phase16-approved18-microplane-pruning-20260911`, based on merged Phase 15 `main` at `155db1ffc4e0c2ab1911db747a1930cacf613bb7` (PR #26). Phase 16 uses the 18 user-approved Google Drive geometric references as the fixed visual regression set.
 
-Phase 13 changes only the source-color choice for the existing Phase 12 face and hair anchors. Face candidate pixels are quantized into source-derived clusters and ranked by frequency, skin plausibility, warmth, and background separation. Hair candidate pixels are clustered separately; bright low-chroma candidates must remain sufficiently far from the background, and a more face-separated real source cluster is preferred when the dominant candidate is too skin-like. A secondary hair source color may be recorded for future use, but Phase 13 keeps the major-hair-plane geometry simple and does not add strand detail.
+The accepted direction is not blind microplane deletion. Phase 16 fixes rejected-mask precedence, renders Phase 15 macro anchors as a real pose skeleton, uses a six-color / ten-plane approved-reference scaffold, narrows the blank face carrier, promotes only safe fringe planes, derives torso/arm colors from role-specific source zones, preserves important bright clothing and chromatic identity planes, and protects large bright upper gesture masses. Standard subject-plane defaults remain unchanged; the aggressive representative rules are opt-in through `approved_reference`.
 
-Standard mode, Color Strip, Phase 12 collapse gating, face/hair geometry, repair fallback, and both Rinka presets remain unchanged. GitHub Actions must remain skipped while metered usage is unsafe. See `docs/RINKA_PHASE13_COLOR_ANCHOR.md`. Local closure on 2026-09-11 passes **269 tests / 2 known missing-fixture deselections**, dedicated Phase 12+13 **10/10**, fixed 16-image evaluation with unchanged Phase 12 corpus metrics, `compileall`, Web JavaScript syntax, `git diff --check`, and real-Uvicorn HTTP 200 smoke for all four Web paths. Draft PR **#25** contains the closure candidate and must remain unmerged until Ready-for-review and explicit user reconfirmation.
+Candidate21 is the current closure candidate after rejecting an oversized upper-arm bridge experiment. Approved 18 structural gate is **18/18**, macro guard **18/18**, face carrier **18/18**, and mean final shape count is about **18.33**. Closure passes **78 targeted tests**; repository-wide pytest is **284 passed / 2 known missing-fixture failures**; compileall, Web JavaScript syntax, git diff check, and real-Uvicorn `/api/info` smoke pass. Read `docs/RINKA_PHASE16_APPROVED18_IDENTITY_STRUCTURE.md` before changing these thresholds. GitHub Actions must remain skipped while metered usage could be chargeable; local validation is the source of truth.
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 

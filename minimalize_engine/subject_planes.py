@@ -126,6 +126,57 @@ def _contrast_adjusted(
     return adjusted.astype(np.uint8), True
 
 
+def _component_source_tone_override(
+    display_color: np.ndarray,
+    local_color: np.ndarray,
+) -> tuple[np.ndarray, bool]:
+    local = np.asarray(local_color, dtype=np.uint8)
+    ycc = cv2.cvtColor(local.reshape(1, 1, 3), cv2.COLOR_RGB2YCrCb)[0, 0]
+    yy, cr, cb = (int(v) for v in ycc)
+    chroma = int(local.max()) - int(local.min())
+    skin_like = 78 <= yy and 132 <= cr <= 194 and 68 <= cb <= 154
+    if yy >= 205 and chroma <= 36 and not skin_like:
+        return local, True
+    return np.asarray(display_color, dtype=np.uint8), False
+
+
+def _identity_component_bonus(
+    local_color: np.ndarray, area: int, canvas_area: float,
+    centroid: np.ndarray, width: int, height: int,
+) -> float:
+    local = np.asarray(local_color, dtype=np.uint8)
+    yy, cr, cb = (int(v) for v in cv2.cvtColor(local.reshape(1, 1, 3), cv2.COLOR_RGB2YCrCb)[0, 0])
+    chroma = int(local.max()) - int(local.min())
+    skin_like = 78 <= yy and 132 <= cr <= 194 and 68 <= cb <= 154
+    area_ratio = float(area) / max(float(canvas_area), 1.0)
+    bonus = 0.0
+    if yy >= 205 and chroma <= 36 and not skin_like and area_ratio >= 0.0040:
+        bonus += 0.018
+    cx, cy = (float(v) for v in centroid)
+    central = 0.20 <= cx / max(float(width), 1.0) <= 0.80
+    lower_head = cy / max(float(height), 1.0) >= 0.48
+    if yy >= 185 and chroma <= 70 and central and lower_head and area_ratio >= 0.0060:
+        bonus += 0.016
+    return bonus
+
+
+
+def _is_upper_gesture_representative(
+    area: int, stats: np.ndarray, centroid: np.ndarray, local_color: np.ndarray,
+    width: int, height: int, canvas_area: float,
+) -> bool:
+    area_ratio = float(area) / max(float(canvas_area), 1.0)
+    _x, _y, bw, bh, _a = [float(v) for v in stats]
+    cx, cy = (float(v) for v in centroid)
+    nx, ny = cx / max(float(width), 1.0), cy / max(float(height), 1.0)
+    extent = max(bw / max(float(width), 1.0), bh / max(float(height), 1.0))
+    color = np.asarray(local_color, dtype=np.float32)
+    luma = float(0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2])
+    return (
+        0.010 <= area_ratio <= 0.050 and ny <= 0.42 and
+        (nx <= 0.30 or nx >= 0.70) and extent >= 0.18 and luma >= 175.0
+    )
+
 def _component_is_gesture_plane(
     color: np.ndarray,
     stats: np.ndarray,
@@ -168,6 +219,9 @@ def build_subject_color_planes(
     fragment_area_ratio: float = 0.0030,
     simplify_epsilon_ratio: float = 0.036,
     bridge_radius_ratio: float = 0.0045,
+    preserve_light_component_tones: bool = False,
+    preserve_color_representatives: bool = False,
+    preserve_upper_gesture_representatives: bool = False,
 ) -> SubjectPlaneResult:
     if rgba.ndim != 3 or rgba.shape[2] < 4:
         return SubjectPlaneResult(False, "rgba_required")
@@ -213,7 +267,7 @@ def build_subject_color_planes(
             fragment_area_ratio=fragment_area_ratio,
         )
     )
-    entries: list[tuple[int, int, np.ndarray, np.ndarray, np.ndarray]] = []
+    entries: list[tuple[int, int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = []
     adaptive_refinement_count = 0
     for color_index in range(len(centers)):
         color_mask = (label_image == color_index).astype(np.uint8)
@@ -241,22 +295,65 @@ def build_subject_color_planes(
             if polygon is None or len(polygon) < 3:
                 continue
             adaptive_refinement_count += int(refinement_steps > 0)
-            entries.append((area, color_index, polygon, stats[component_index], centroids[component_index]))
+            local_color = np.median(rgb[component_mask > 0], axis=0).astype(np.uint8)
+            entries.append((area, color_index, polygon, stats[component_index], centroids[component_index], local_color))
 
     if not entries:
         return SubjectPlaneResult(False, "no_planes")
     raw_component_count = len(entries)
     if raw_component_count > max(int(max_total_planes), 1):
-        prioritized = sorted(
-            entries,
-            key=lambda item: (
+        def entry_priority(item):
+            return (
                 _component_is_gesture_plane(centers[item[1]], item[3], item[4], width, height),
-                component_priority(item[0], centers[item[1]], item[3], item[4], width, height),
+                component_priority(item[0], centers[item[1]], item[3], item[4], width, height)
+                + (
+                    _identity_component_bonus(
+                        item[5], item[0], canvas_area, item[4], width, height
+                    )
+                    if preserve_light_component_tones else 0.0
+                ),
                 item[0],
-            ),
-            reverse=True,
-        )
-        entries = prioritized[: max(int(max_total_planes), 1)]
+            )
+        prioritized = sorted(entries, key=entry_priority, reverse=True)
+        budget = max(int(max_total_planes), 1)
+        selected_prefix = []
+        if preserve_upper_gesture_representatives:
+            for side in ("left", "right"):
+                side_candidates = []
+                for item in prioritized:
+                    nx = float(item[4][0]) / max(float(width), 1.0)
+                    if side == "left" and nx > 0.30:
+                        continue
+                    if side == "right" and nx < 0.70:
+                        continue
+                    if _is_upper_gesture_representative(item[0], item[3], item[4], item[5], width, height, canvas_area):
+                        side_candidates.append(item)
+                if side_candidates:
+                    selected_prefix.append(max(side_candidates, key=entry_priority))
+        if preserve_color_representatives:
+            representatives = []
+            for color_index in range(len(centers)):
+                center = centers[color_index]
+                if int(center.max()) - int(center.min()) < 35:
+                    continue
+                candidates = [
+                    item for item in prioritized
+                    if item[1] == color_index and item[0] / canvas_area >= 0.0055
+                ]
+                if candidates:
+                    representatives.append(candidates[0])
+            representatives = sorted(representatives, key=entry_priority, reverse=True)[:budget]
+            seed = []
+            seen = set()
+            for item in selected_prefix + representatives:
+                if id(item) not in seen and len(seed) < budget:
+                    seed.append(item); seen.add(id(item))
+            entries = seed + [item for item in prioritized if id(item) not in seen][: max(0, budget - len(seed))]
+        elif selected_prefix:
+            seen = {id(item) for item in selected_prefix}
+            entries = selected_prefix + [item for item in prioritized if id(item) not in seen][: max(0, budget - len(selected_prefix))]
+        else:
+            entries = prioritized[:budget]
     suppressed_plane_count = raw_component_count - len(entries)
     macro_anchor_count = sum(
         int(is_macro_anchor(item[0], item[3], item[4], width, height))
@@ -265,7 +362,7 @@ def build_subject_color_planes(
     entries.sort(key=lambda item: item[0], reverse=True)
     shapes: list[Shape] = []
     gesture_count = 0
-    for index, (area, color_index, polygon, component_stats, centroid) in enumerate(entries):
+    for index, (area, color_index, polygon, component_stats, centroid, local_color) in enumerate(entries):
         gesture = _component_is_gesture_plane(
             centers[color_index],
             component_stats,
@@ -275,21 +372,38 @@ def build_subject_color_planes(
         )
         center_x = float(centroid[0]) / max(float(width), 1.0)
         side_hint = "left" if center_x <= 0.40 else "right" if center_x >= 0.60 else "unknown"
-        semantic_type = "phase10_gesture_plane" if gesture else "subject_mass"
-        source_role = "phase10_gesture_plane" if gesture else "phase10_subject_plane"
-        importance = 0.985 if gesture else min(0.97, 0.55 + 2.5 * area / canvas_area)
+        upper_gesture = bool(
+            preserve_upper_gesture_representatives
+            and _is_upper_gesture_representative(
+                area, component_stats, centroid, local_color, width, height, canvas_area
+            )
+        )
+        semantic_type = (
+            "phase16_upper_gesture_plane" if upper_gesture
+            else "phase10_gesture_plane" if gesture else "subject_mass"
+        )
+        source_role = (
+            "phase16_upper_gesture_plane" if upper_gesture
+            else "phase10_gesture_plane" if gesture else "phase10_subject_plane"
+        )
+        importance = 0.995 if upper_gesture else 0.985 if gesture else min(0.97, 0.55 + 2.5 * area / canvas_area)
         if gesture:
             gesture_count += 1
+        fill_color = display_centers[color_index]
+        if preserve_light_component_tones:
+            fill_color, _ = _component_source_tone_override(fill_color, local_color)
         shapes.append(Shape(
             id=930000 + index,
             shape_type="polygon",
-            fill_color=tuple(int(value) for value in display_centers[color_index]),
+            fill_color=tuple(int(value) for value in fill_color),
             points=[(float(x), float(y)) for x, y in polygon],
-            z_index=30000 + index,
+            z_index=(31040 + index) if upper_gesture else (30000 + index),
             importance=importance,
             source_role=source_role,
             layer_name="foreground",
             semantic_type=semantic_type,
+            character_part=(f"{side_hint}_arm" if upper_gesture and side_hint in {"left", "right"} else "unknown"),
+            part_confidence=0.82 if upper_gesture else 0.0,
             side_hint=side_hint,
         ))
 

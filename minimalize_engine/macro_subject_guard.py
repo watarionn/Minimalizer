@@ -70,6 +70,89 @@ def _dominant_source_color(
     return max(ranked, key=lambda item: item[0])[1]
 
 
+def _coarse_color_candidates(pixels: np.ndarray, *, step: int = 64) -> list[tuple[float, tuple[int, int, int]]]:
+    if pixels.size == 0:
+        return []
+    pixels = pixels.reshape(-1, 3).astype(np.uint8, copy=False)
+    bins = (pixels.astype(np.int16) // max(int(step), 1)).astype(np.int16)
+    _keys, inverse, counts = np.unique(bins, axis=0, return_inverse=True, return_counts=True)
+    total = max(int(len(pixels)), 1)
+    out = []
+    for index, count in enumerate(counts):
+        color = tuple(int(v) for v in np.median(pixels[inverse == index], axis=0))
+        out.append((float(count) / float(total), color))
+    return sorted(out, key=lambda item: item[0], reverse=True)
+
+
+def _arm_identity_color(
+    pixels: np.ndarray,
+    background: tuple[int, int, int] | None,
+    head_color: tuple[int, int, int] | None,
+) -> tuple[int, int, int]:
+    candidates = _coarse_color_candidates(pixels, step=64)
+    if not candidates:
+        return _dominant_source_color(pixels, background)
+    default_fraction, default = candidates[0]
+    if head_color is None or float(np.linalg.norm(np.asarray(default) - np.asarray(head_color))) >= 48.0:
+        return default
+    if default_fraction >= 0.45:
+        return default
+    alternatives = []
+    for fraction, color in candidates[1:]:
+        chroma = max(color) - min(color)
+        head_distance = float(np.linalg.norm(np.asarray(color) - np.asarray(head_color)))
+        if fraction < 0.10 or chroma < 40 or head_distance < 70.0:
+            continue
+        alternatives.append((fraction + min(chroma / 255.0, 1.0) * 0.04, color))
+    return max(alternatives, key=lambda item: item[0])[1] if alternatives else default
+
+
+def _torso_identity_color(
+    pixels: np.ndarray,
+    background: tuple[int, int, int] | None,
+) -> tuple[int, int, int]:
+    candidates = _coarse_color_candidates(pixels, step=48)
+    if not candidates:
+        return _dominant_source_color(pixels, background, avoid_skin=True)
+    bg = np.asarray(background or (255, 255, 255), dtype=np.float32)
+    ranked = []
+    for fraction, color in candidates:
+        arr = np.asarray(color, dtype=np.uint8)
+        yy, cr, cb = (int(v) for v in cv2.cvtColor(arr.reshape(1, 1, 3), cv2.COLOR_RGB2YCrCb)[0, 0])
+        skin_like = 78 <= yy and 132 <= cr <= 194 and 68 <= cb <= 154
+        if skin_like or float(np.linalg.norm(arr.astype(np.float32) - bg)) < 14.0:
+            continue
+        chroma = max(color) - min(color)
+        score = fraction + (yy / 255.0) * 0.04 + (chroma / 255.0) * 0.01
+        ranked.append((score, color))
+    return max(ranked, key=lambda item: item[0])[1] if ranked else _dominant_source_color(pixels, background, avoid_skin=True)
+
+
+def _role_color_pixels(
+    rgb: np.ndarray,
+    component: np.ndarray,
+    bbox: tuple[int, int, int, int],
+    zone_name: str,
+) -> np.ndarray:
+    sx0, sy0, sx1, sy1 = bbox
+    sw, sh = max(sx1 - sx0, 1), max(sy1 - sy0, 1)
+    limits = {
+        "left_arm": (0.00, 0.14, 0.34, 0.84),
+        "right_arm": (0.66, 0.14, 1.00, 0.84),
+        "torso": (0.28, 0.42, 0.72, 0.95),
+    }
+    if zone_name not in limits:
+        return rgb[component > 0]
+    x0r, y0r, x1r, y1r = limits[zone_name]
+    sample = np.zeros_like(component, dtype=bool)
+    x0 = max(0, int(round(sx0 + sw * x0r))); x1 = min(component.shape[1], int(round(sx0 + sw * x1r)))
+    y0 = max(0, int(round(sy0 + sh * y0r))); y1 = min(component.shape[0], int(round(sy0 + sh * y1r)))
+    sample[y0:y1, x0:x1] = True
+    sample &= component > 0
+    pixels = rgb[sample]
+    return pixels if len(pixels) >= 64 else rgb[component > 0]
+
+
 def _bounded_rect(
     bbox: tuple[int, int, int, int],
     width: int,
@@ -201,6 +284,7 @@ def build_macro_subject_guard(
     anchor_masks: list[np.ndarray] = []
     outside_weighted = 0.0
     outside_pixels = 0
+    head_color: tuple[int, int, int] | None = None
     for zone_name, character_part, shape_id, x0r, y0r, x1r, y1r, outside_limit in zone_specs:
         rect = _bounded_rect(bbox, width, height, x0r, y0r, x1r, y1r)
         polygon, component, outside_ratio = _simplified_component_polygon(
@@ -212,11 +296,15 @@ def build_macro_subject_guard(
         )
         if polygon is None or component is None:
             continue
-        color = _dominant_source_color(
-            rgb[component > 0],
-            segmentation.background_rgb,
-            avoid_skin=zone_name == "torso",
-        )
+        color_pixels = _role_color_pixels(rgb, component, bbox, zone_name)
+        if zone_name == "torso":
+            color = _torso_identity_color(color_pixels, segmentation.background_rgb)
+        elif zone_name in {"left_arm", "right_arm"}:
+            color = _arm_identity_color(color_pixels, segmentation.background_rgb, head_color)
+        else:
+            color = _dominant_source_color(color_pixels, segmentation.background_rgb)
+        if zone_name == "head":
+            head_color = color
         anchor = Shape(
             id=shape_id,
             shape_type="polygon",
@@ -422,13 +510,27 @@ def phase15_subject_candidate(
     segmentation: SubjectSegmentation,
     rescue: OpaqueSubjectRescue,
 ) -> SubjectSegmentation:
-    """Return the strongest existing or safely recovered deterministic portrait mask."""
-    if segmentation.rgba is not None and segmentation.mask is not None:
+    """Return the strongest accepted or safely recovered deterministic portrait mask.
+
+    A rejected Phase 10 candidate may still carry RGBA/mask data for later rescue.
+    Presence of those arrays must not outrank an actually accepted opaque rescue,
+    otherwise a confidence-gated mask can become the final portrait mask.
+    """
+    if segmentation.enabled and segmentation.rgba is not None and segmentation.mask is not None:
         return segmentation
     rescue_candidate = _candidate_from_opaque_rescue(rescue)
     if rescue_candidate is not None:
-        return rescue_candidate
+        rescue_usable = (
+            0.18 <= float(rescue_candidate.foreground_area_ratio) <= 0.82
+            and float(rescue_candidate.center_fill_ratio) >= 0.35
+            and float(rescue_candidate.border_leak_ratio) <= 0.56
+            and float(rescue_candidate.confidence) >= 0.42
+        )
+        if rescue_usable:
+            return rescue_candidate
     relaxed = _relaxed_border_candidate(image_or_path, segmentation)
     if relaxed is not None:
         return relaxed
+    if segmentation.rgba is not None and segmentation.mask is not None:
+        return segmentation
     return segmentation

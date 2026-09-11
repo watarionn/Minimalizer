@@ -2,10 +2,14 @@
 
 Current engine release: **v0.3.0 stable**
 Current production Web runtime: **v0.10.0 production-verified**
-Current Rinka Reference engine: **Phase 12 merged and production-verified; Phase 13 color-anchor local closure complete in Draft PR #25** on `feature/rinka-phase13-face-hair-color-anchor-20260911`
-Current Web runtime remains **v0.10.0**; the Phase 13 candidate changes only Rinka color-anchor behavior and reports Rinka Reference `phase13`.
+Current Rinka Reference engine: **Phase 15 merged on `main`; Phase 16 Approved 18 identity/structure closure candidate is active** on `feature/rinka-phase16-approved18-microplane-pruning-20260911`.
+Phase 16 is engine-quality work only. No production deployment is part of this branch; Rinka metadata reports `phase16`.
 
 This file is the canonical restoration pointer.
+
+## Latest development: Rinka Reference Phase 16
+
+Phase 16 uses the 18 user-approved Google Drive references as the fixed visual regression set. It fixes rejected-mask precedence, injects macro head/torso/arm anchors into the approved-reference renderer, reduces the direct scaffold to six colors / ten coarse planes, narrows the blank face fallback, and layers only selected fringe planes above it. Role-aware macro colors recover large identity blocks such as Hakos cyan/yellow and Marine red/white/gold. Bright-head fringe rejection prevents gray shadow aggregates from covering pale-haired faces. Chromatic representative and upper-gesture guards are restricted to the `approved_reference` path. Candidate21 passes the Approved 18 structural gate 18/18 with about 18.33 mean final shapes. Local closure passes 78 targeted tests; repository-wide pytest is 284 passed / 2 known missing-fixture failures; `compileall`, Web JavaScript syntax, `git diff --check`, and real-Uvicorn `/api/info` smoke all pass. See `docs/RINKA_PHASE16_APPROVED18_IDENTITY_STRUCTURE.md`.
 
 ## Latest development: Rinka Reference Phase 13
 
