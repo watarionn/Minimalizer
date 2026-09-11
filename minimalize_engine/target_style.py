@@ -10,6 +10,7 @@ import numpy as np
 from .analysis.shape_cleanup import cleanup_minimal_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
+from .macro_subject_guard import MacroSubjectGuardResult, build_macro_subject_guard
 from .pipeline import minimalize
 from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
 from .subject_segmentation import SubjectSegmentation, segment_subject_without_ai
@@ -888,7 +889,10 @@ def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
         return None
     kind_a = _target_mass_kind(a)
     kind_b = _target_mass_kind(b)
-    if "phase12_face_anchor" in _shape_tags(a) or "phase12_face_anchor" in _shape_tags(b) or "phase12_hair_anchor" in _shape_tags(a) or "phase12_hair_anchor" in _shape_tags(b):
+    if any(
+        token in _shape_tags(a) or token in _shape_tags(b)
+        for token in ("phase12_face_anchor", "phase12_hair_anchor", "phase15_macro_")
+    ):
         return None
     if kind_a != kind_b or kind_a == "prop":
         return None
@@ -2174,6 +2178,8 @@ def apply_rinka_reference_style(
     protected_face_anchor: Shape | None = None,
     protected_hair_anchor: Shape | None = None,
     phase12_anchor_stats: dict | None = None,
+    protected_macro_anchors: tuple[Shape, ...] | list[Shape] | None = None,
+    macro_subject_guard_stats: dict | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
@@ -2241,6 +2247,7 @@ def apply_rinka_reference_style(
     faceless, face_removed = _suppress_face_fragments(scene, cleaned, opaque_zones)
     anchored = faceless
     protected_anchors = [anchor for anchor in (protected_hair_anchor, protected_face_anchor) if anchor is not None]
+    protected_anchors.extend(list(protected_macro_anchors or ()))
     if protected_anchors:
         protected_ids = {anchor.id for anchor in protected_anchors}
         anchored = [shape for shape in faceless if shape.id not in protected_ids] + protected_anchors
@@ -2288,6 +2295,7 @@ def apply_rinka_reference_style(
         "global_scoring": global_scoring,
         "face_fragments_removed": face_removed,
         "phase12_anchor_guard": phase12_anchor_stats or {"enabled": False, "reason": "not_requested"},
+        "macro_subject_guard": macro_subject_guard_stats or {"enabled": False, "reason": "not_requested"},
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
         "hair_abstraction": hair_stats,
@@ -2815,6 +2823,7 @@ def minimalize_rinka_reference(
     *,
     curve_polygon_sides: int = 6,
     enable_ai_free_subject_segmentation: bool = True,
+    enable_macro_subject_guard: bool = False,
     preset: str = DEFAULT_RINKA_REFERENCE_PRESET,
     **config_overrides,
 ) -> Scene:
@@ -2946,6 +2955,12 @@ def minimalize_rinka_reference(
             phase12_face_anchor = None
             phase12_hair_anchor = None
 
+    macro_subject_guard = (
+        build_macro_subject_guard(segmentation, scene.width, scene.height)
+        if enable_macro_subject_guard
+        else MacroSubjectGuardResult(False, "not_requested")
+    )
+
     structure_reference_scene = scene
     scene.metadata["rinka_subject_segmentation"] = {
         **segmentation.to_dict(),
@@ -2982,4 +2997,6 @@ def minimalize_rinka_reference(
         protected_face_anchor=phase12_face_anchor,
         protected_hair_anchor=phase12_hair_anchor,
         phase12_anchor_stats=phase12_anchor_stats,
+        protected_macro_anchors=macro_subject_guard.shapes,
+        macro_subject_guard_stats=macro_subject_guard.to_dict(),
     )
