@@ -43,7 +43,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.10.0"
+APP_VERSION = "0.11.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -218,7 +218,7 @@ async def minimalize_image(
     color_orientation: Annotated[Literal["vertical", "horizontal"] | None, Form()] = None,
     color_selection_mode: Annotated[Literal["dominant", "featured"] | None, Form()] = None,
     rinka_preset: Annotated[
-        Literal["geometric_poster", "faceless_subject"] | None, Form()
+        Literal["geometric_poster", "faceless_subject", "approved_reference"] | None, Form()
     ] = None,
     max_shapes: Annotated[int | None, Form(ge=5, le=500)] = None,
     background: Annotated[Literal["source", "white", "transparent"] | None, Form()] = None,

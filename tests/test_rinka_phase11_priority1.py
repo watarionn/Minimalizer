@@ -155,7 +155,7 @@ def test_phase11_pipeline_reports_faceless_and_hand_symbol_abstraction():
     out = apply_rinka_reference_style(scene)
     target = out.metadata["target_style"]
 
-    assert target["version"] == "phase13"
+    assert target["version"] == "phase15"
     assert target["face_fragments_removed"] >= 1
     assert target["hand_abstraction"]["symbol_count"] == 1
     symbols = [shape for shape in out.shapes if shape.semantic_type == "target_hand_symbol"]

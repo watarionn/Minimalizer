@@ -45,6 +45,7 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="rinka-preset-select"' in response.text
     assert 'value="geometric_poster" selected' in response.text
     assert 'value="faceless_subject"' in response.text
+    assert 'value="approved_reference"' in response.text
     assert "凛夏プリセット" in response.text
     assert "幾何学ポスター" in response.text
     assert "人物ミニマル" in response.text
@@ -84,7 +85,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.10.0",
+        "web_version": "0.11.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -93,9 +94,9 @@ def test_service_info_reports_web_engine_and_limits():
         "max_analysis_side": 640,
         "max_concurrent_jobs": 2,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
-        "rinka_reference_version": "phase13",
+        "rinka_reference_version": "phase15",
         "rinka_reference_default_preset": "geometric_poster",
-        "rinka_reference_presets": ["geometric_poster", "faceless_subject"],
+        "rinka_reference_presets": ["geometric_poster", "faceless_subject", "approved_reference"],
         "color_strip_version": "v0.3",
         "color_strip_default_colors": 5,
         "color_strip_default_similarity": 18.0,
@@ -185,6 +186,22 @@ def test_rinka_reference_accepts_faceless_subject_preset():
 
     assert response.status_code == 200
     assert response.headers["x-minimalizer-rinka-preset"] == "faceless_subject"
+
+
+def test_rinka_reference_accepts_approved_reference_preset():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "rinka_reference",
+            "level": "4",
+            "rinka_preset": "approved_reference",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-rinka-preset"] == "approved_reference"
 
 
 def test_standard_mode_rejects_rinka_preset():
