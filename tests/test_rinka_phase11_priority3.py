@@ -53,7 +53,7 @@ def _subject_scene(background=None):
 
 def test_phase11_priority3_preset_names_are_stable():
     assert DEFAULT_RINKA_REFERENCE_PRESET == "geometric_poster"
-    assert RINKA_REFERENCE_PRESETS == ("geometric_poster", "faceless_subject")
+    assert RINKA_REFERENCE_PRESETS == ("geometric_poster", "faceless_subject", "approved_reference")
     assert normalize_rinka_reference_preset("GEOMETRIC_POSTER") == "geometric_poster"
     with pytest.raises(ValueError):
         normalize_rinka_reference_preset("unknown")

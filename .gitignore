@@ -11,3 +11,8 @@ examples/visual_review_*/
 examples/*comparison*.png
 examples/*preview*.png
 *.log
+
+# Local Approved 18 regression assets and generated Phase 15 review output
+examples/phase14_user18_input/
+examples/phase14_user18_approved/
+examples/phase15_*/

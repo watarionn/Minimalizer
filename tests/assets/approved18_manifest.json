@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "name": "Minimalizer Approved 18 Geometric Reference",
+  "drive_folder_id": "1oWUtdUAfLE4x8_T5VS5GQyHEHn7FQ35v",
+  "drive_readme_file": "README_APPROVED_GEOMETRIC_REFERENCES.md",
+  "generation_baseline": {
+    "level": 4,
+    "analysis_max_side": 320,
+    "preset": "approved_reference"
+  },
+  "entries": [
+    {
+      "order": 1,
+      "character": "Kikirara-Vivi",
+      "input_file": "Kikirara-Vivi_list_thumb.png",
+      "input_sha256": "25f7ab0dc7636b92011fb45aa3c069ba2969c462184868f4cd363c15a5560214",
+      "approved_file": "01_Kikirara-Vivi_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "7be77c461797b2ccd31f645fc3af84245be43c33dde15526aa73b2fccb45a5af"
+    },
+    {
+      "order": 2,
+      "character": "Isaki-Riona",
+      "input_file": "Isaki-Riona_list_thumb.png",
+      "input_sha256": "0315a85ed59d536144dd459c2fcdc0530151a003ff7cae13eeded56aeaa16a9e",
+      "approved_file": "02_Isaki-Riona_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "3ae17c9d030970186d29f24fa54f7d75e3ee7e3c7f92dd54a6040f62573e374b"
+    },
+    {
+      "order": 3,
+      "character": "Koganei-Niko",
+      "input_file": "Koganei-Niko_list_thumb.png",
+      "input_sha256": "8e0cd5c4481db5c9633b5808b21a54cb556d0db908a60704d0f4af4e98ea5552",
+      "approved_file": "03_Koganei-Niko_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "fa92f076844f9f9ac1affc6cb4635230ec17c9cc873f5a2a7a6a7745178fe1ef"
+    },
+    {
+      "order": 4,
+      "character": "Vestia-Zeta",
+      "input_file": "Vestia-Zeta_list_thumb.png",
+      "input_sha256": "5922eba47f5a550914add363a0d556009a3ff70198073a59f8b93e43b639e065",
+      "approved_file": "04_Vestia-Zeta_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "b281b60cc6b65fb661d9a637efb431d0ec352dec75bc9b8bacd2f2d501203eea"
+    },
+    {
+      "order": 5,
+      "character": "Todoroki-Hajime",
+      "input_file": "Todoroki-Hajime_list_thumb.png",
+      "input_sha256": "d180a3170f9032c5cdf725d9754fc6dc10cc1f16583a250e070649ad7656d887",
+      "approved_file": "05_Todoroki-Hajime_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "9a8d6f1324d8831a5bf820bffece14cc564bc036cd5a5429ae44abbc6e4b39fe"
+    },
+    {
+      "order": 6,
+      "character": "Shishiro-Botan",
+      "input_file": "Shishiro-Botan_list_thumb.png",
+      "input_sha256": "58e5608e9b7110c17f00c6a2cdf1e042a76f5122208a2203f57858a734ca27cc",
+      "approved_file": "06_Shishiro-Botan_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "e87ce683dd2db21b0a8cba80c219263136838e1c3b784d66878406c562abe774"
+    },
+    {
+      "order": 7,
+      "character": "Shiori-Novella",
+      "input_file": "Shiori-Novella_list_thumb.png",
+      "input_sha256": "ac20fc38486cc60913f31548af7b8b8728254b39e5748208ea6356724fe50df1",
+      "approved_file": "07_Shiori-Novella_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "7bbab97a8291d188a637d6fe3449ccdb73b3142c64974676c8b3a684e7fa121a"
+    },
+    {
+      "order": 8,
+      "character": "Natsuiro-Matsuri",
+      "input_file": "Natsuiro-Matsuri_list_thumb.png",
+      "input_sha256": "1a0e49ebecca6eb729854bc4b24508c4773d8707e471eae446a87e63e94ca905",
+      "approved_file": "08_Natsuiro-Matsuri_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "e72dbe90644d07ef3372747661c40b996f5f815f3e9d011ff810879b95e02604"
+    },
+    {
+      "order": 9,
+      "character": "Otonose-Kanade",
+      "input_file": "Otonose-Kanade_list_thumb.png",
+      "input_sha256": "87e0c5995b0f6ca8d9efa863545279d49e36322c849c52b0e0d2661a5767b2d3",
+      "approved_file": "09_Otonose-Kanade_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "0ab74e6e72c407ae846b8fece3309d59d206295c8d7a1db821c0c5dac4021334"
+    },
+    {
+      "order": 10,
+      "character": "Mori-Calliope",
+      "input_file": "Mori-Calliope_list_thumb.png",
+      "input_sha256": "2eb93ef83c0fb4ac136586170b2bd5f8c43cf6884b4e9632c2d6f4218a0e8fb0",
+      "approved_file": "10_Mori-Calliope_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "7bcddcc684a7e332828d14ccf46648741764ad175a21c495275f7e1cc6f914ca"
+    },
+    {
+      "order": 11,
+      "character": "Momosuzu-Nene",
+      "input_file": "Momosuzu-Nene_list_thumb.png",
+      "input_sha256": "2fbd77da0ba4c2be94e44eede84ad9a4e6aa3735d95a6b81ac3930cf7452f3aa",
+      "approved_file": "11_Momosuzu-Nene_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "c3cce5b7d7627afc16ce79ba928fe79a674ce2e076fc8c2cba4dc19a00cbf404"
+    },
+    {
+      "order": 12,
+      "character": "Koseki-Bijou",
+      "input_file": "Koseki-Bijou_list_thumb.png",
+      "input_sha256": "1c7de78603de1bcf871c70a186dd40413a655e0339e3abf4ac414a1bde1e9f54",
+      "approved_file": "12_Koseki-Bijou_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "9d0d31f7123eb8d13cff21f59d18e5640d11952baceadc226ed5d508843be633"
+    },
+    {
+      "order": 13,
+      "character": "Kobo-Kanaeru",
+      "input_file": "Kobo-Kanaeru_list_thumb.png",
+      "input_sha256": "7eea4c2284bd73dc98bc30f0b3e3a468faacc7d23e47a38b5774cfd2a91b982f",
+      "approved_file": "13_Kobo-Kanaeru_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "995d096204fbb7dbb26fb09a9992e7657a7fb04679e602cda249accebbb7e766"
+    },
+    {
+      "order": 14,
+      "character": "Houshou-Marine",
+      "input_file": "Houshou-Marine_list_thumb.png",
+      "input_sha256": "926b4df3bb8a2bc492dc1fb27c1c86d398784c72a6942d91096ebf08277807ad",
+      "approved_file": "14_Houshou-Marine_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "2f767e78ca3e0349663cf580d7c0010d2e62a50743ff7577aac683c752d66ada"
+    },
+    {
+      "order": 15,
+      "character": "Hakos-Baelz",
+      "input_file": "Hakos-Baelz_list_thumb.png",
+      "input_sha256": "a283cb34a1df4b7a67cbdeff19a9d459a41d7f9c7c91c03af012d3d9cc988862",
+      "approved_file": "15_Hakos-Baelz_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "41871296c69af00aad7c518af3eb1ad79b82e4a02fa338aea622296ef3aa7bd5"
+    },
+    {
+      "order": 16,
+      "character": "Gigi-Murin",
+      "input_file": "Gigi-Murin_list_thumb.png",
+      "input_sha256": "4b4d2e5a11f39fdfe64352284a0a813ae11247581a6d24392ff08e94b8c97d0a",
+      "approved_file": "16_Gigi-Murin_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "727b573d6767e90daf54043a7cfe9c4fb1407770d22b9d202b879032604b7bf5"
+    },
+    {
+      "order": 17,
+      "character": "Aki-Rosenthal",
+      "input_file": "Aki-Rosenthal_list_thumb.png",
+      "input_sha256": "c803ae6d827b932bbe58c68db005a27fd6b9858d5c4a82e5cc0297ecb4d37687",
+      "approved_file": "17_Aki-Rosenthal_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "46f12bd5de44f914f1ba317d86c08605fdd5c2964733a1258e531b3cc7a77d6b"
+    },
+    {
+      "order": 18,
+      "character": "Raora-Panthera",
+      "input_file": "Raora-Panthera_list_thumb.png",
+      "input_sha256": "66fc5f14c1a3be1de787e5b864639343bd437e497b9ca8d51eda9117024b750f",
+      "approved_file": "18_Raora-Panthera_APPROVED_GEOMETRIC_REFERENCE.png",
+      "approved_sha256": "327d1dcc1d48235cbdb3e11e49ccb643bc4b64a4e527ae2861226c1a76868470"
+    }
+  ]
+}

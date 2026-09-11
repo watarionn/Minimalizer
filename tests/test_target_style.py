@@ -110,7 +110,7 @@ def test_rinka_style_removes_low_value_hair_sliver_but_keeps_major_hair_mass():
 
     assert [s.id for s in out.shapes] == [1]
     assert out.metadata["target_style"]["name"] == "rinka_reference"
-    assert out.metadata["target_style"]["version"] == "phase13"
+    assert out.metadata["target_style"]["version"] == "phase15"
     assert out.metadata["target_style"]["shape_count_before"] == 2
     assert out.metadata["target_style"]["shape_count_after"] == 1
 
@@ -474,7 +474,7 @@ def test_phase5_consolidates_one_safe_outfit_detail_per_base():
 
     out = apply_rinka_reference_style(scene, target_max_shapes=10)
 
-    assert out.metadata["target_style"]["version"] == "phase13"
+    assert out.metadata["target_style"]["version"] == "phase15"
     assert out.metadata["target_style"]["outfit_layer_merges"] == 1
     assert len(out.shapes) == 2
     merged = next(shape for shape in out.shapes if shape.id == 1)
@@ -703,7 +703,7 @@ def test_phase7_global_scoring_removes_moderate_background_sliver():
     scoring = out.metadata["target_style"]["global_scoring"]
     assert 1101 in ids
     assert 1102 not in ids
-    assert out.metadata["target_style"]["version"] == "phase13"
+    assert out.metadata["target_style"]["version"] == "phase15"
     assert scoring["enabled"] is True
     assert scoring["score_version"] == "v1"
     assert scoring["low_value_thin_candidates"] >= 1

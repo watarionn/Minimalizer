@@ -10,7 +10,12 @@ import numpy as np
 from .analysis.shape_cleanup import cleanup_minimal_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
-from .macro_subject_guard import MacroSubjectGuardResult, build_macro_subject_guard
+from .macro_subject_guard import (
+    MacroSubjectGuardResult,
+    build_macro_subject_guard,
+    phase15_subject_candidate,
+)
+from .face_plane_fallback import FacePlaneFallbackResult, build_face_plane_fallback
 from .pipeline import minimalize
 from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
 from .subject_segmentation import SubjectSegmentation, segment_subject_without_ai
@@ -27,8 +32,8 @@ from .target_hierarchy import (
 
 
 RINKA_REFERENCE_NAME = "rinka_reference"
-RINKA_REFERENCE_VERSION = "phase13"
-RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject")
+RINKA_REFERENCE_VERSION = "phase15"
+RINKA_REFERENCE_PRESETS = ("geometric_poster", "faceless_subject", "approved_reference")
 DEFAULT_RINKA_REFERENCE_PRESET = "geometric_poster"
 
 
@@ -891,7 +896,7 @@ def _merge_mass_pair(a: Shape, b: Shape, min_side: float) -> Shape | None:
     kind_b = _target_mass_kind(b)
     if any(
         token in _shape_tags(a) or token in _shape_tags(b)
-        for token in ("phase12_face_anchor", "phase12_hair_anchor", "phase15_macro_")
+        for token in ("phase12_face_anchor", "phase12_hair_anchor", "phase15_macro_", "phase15_face_fallback_anchor")
     ):
         return None
     if kind_a != kind_b or kind_a == "prop":
@@ -1771,6 +1776,8 @@ def _geometrize_background(
     shapes: list[Shape],
     *,
     style: str = "source",
+    preserve_large_generic_cues: bool = True,
+    preserve_semantic_cues: bool = True,
 ) -> tuple[list[Shape], tuple[int, int, int] | None, dict]:
     stats = {
         "enabled": False,
@@ -1808,8 +1815,15 @@ def _geometrize_background(
         tags = _shape_tags(shape)
         area_ratio = _shape_metrics(shape)[0] / canvas_area
         semantic_cue = any(token in tags for token in ("skyline", "water", "structure", "horizon"))
-        if (semantic_cue and area_ratio >= 0.045 and float(shape.importance) >= 0.78) or (
-            area_ratio >= 0.18 and float(shape.importance) >= 0.94
+        if (
+            preserve_semantic_cues
+            and semantic_cue
+            and area_ratio >= 0.045
+            and float(shape.importance) >= 0.78
+        ) or (
+            preserve_large_generic_cues
+            and area_ratio >= 0.18
+            and float(shape.importance) >= 0.94
         ):
             ranked_cues.append((area_ratio * (0.5 + float(shape.importance)), shape))
     for _score, shape in sorted(ranked_cues, key=lambda item: item[0], reverse=True)[:2]:
@@ -2166,6 +2180,79 @@ def _final_shape_cap(
     return capped, len(removed), stats
 
 
+def _apply_approved_reference_direct_style(
+    scene: Scene,
+    *,
+    curve_polygon_sides: int,
+    target_max_shapes: int | None,
+    protected_face_anchor: Shape | None,
+    macro_subject_guard_stats: dict | None,
+    phase12_anchor_stats: dict | None,
+    phase15_face_fallback_stats: dict | None,
+) -> Scene:
+    """Render the approved-reference preset from coarse subject planes directly.
+
+    The approved 18 references favor large source-colored planes over the generic
+    target-style cleanup stack. Re-running those planes through hierarchy, global
+    scoring, mass merging, and gesture abstraction fragments good portrait masses.
+    This path therefore keeps the deterministic subject planes intact, overlays one
+    blank face carrier, and only adds the geometric background plus the final cap.
+    """
+    shapes = list(scene.shapes)
+    if protected_face_anchor is not None:
+        shapes = [shape for shape in shapes if shape.id != protected_face_anchor.id]
+        shapes.append(protected_face_anchor)
+
+    background_styled, result_background, background_geometry = _geometrize_background(
+        scene,
+        shapes,
+        style="geometric",
+        preserve_large_generic_cues=False,
+        preserve_semantic_cues=False,
+    )
+    straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in background_styled]
+    capped, cap_removed, macro_priority = _final_shape_cap(scene, straight, target_max_shapes)
+
+    metadata = dict(scene.metadata)
+    metadata["shape_count_pre_target_style"] = len(scene.shapes)
+    metadata["shape_count"] = len(capped)
+    metadata["target_style"] = {
+        "name": RINKA_REFERENCE_NAME,
+        "version": RINKA_REFERENCE_VERSION,
+        "curve_polygon_sides": max(4, int(curve_polygon_sides)),
+        "target_max_shapes": target_max_shapes,
+        "shape_count_before": len(scene.shapes),
+        "shape_count_after": len(capped),
+        "quality_metrics_scope": "pre_target_style",
+        "preset": "approved_reference",
+        "approved_reference_direct": True,
+        "phase12_anchor_guard": phase12_anchor_stats or {"enabled": False, "reason": "not_requested"},
+        "macro_subject_guard": macro_subject_guard_stats or {"enabled": False, "reason": "not_requested"},
+        "phase15_face_fallback": phase15_face_fallback_stats or {"enabled": False, "reason": "not_requested"},
+        "face_fragments_removed": 0,
+        "mass_merges": 0,
+        "outfit_layer_merges": 0,
+        "microdetail_removed": 0,
+        "render_inert_occluded_removed": 0,
+        "background_removed": 0,
+        "background_geometry": {
+            **background_geometry,
+            "surviving_panels": sum(
+                1 for shape in capped if (shape.semantic_type or "") == "target_geometric_background"
+            ),
+        },
+        "cap_removed": cap_removed,
+        "macro_priority": macro_priority,
+    }
+    return Scene(
+        width=scene.width,
+        height=scene.height,
+        background=result_background,
+        shapes=sorted(capped, key=lambda shape: shape.z_index),
+        metadata=metadata,
+    )
+
+
 def apply_rinka_reference_style(
     scene: Scene,
     *,
@@ -2180,6 +2267,7 @@ def apply_rinka_reference_style(
     phase12_anchor_stats: dict | None = None,
     protected_macro_anchors: tuple[Shape, ...] | list[Shape] | None = None,
     macro_subject_guard_stats: dict | None = None,
+    phase15_face_fallback_stats: dict | None = None,
 ) -> Scene:
     canvas_area = max(float(scene.width * scene.height), 1.0)
     min_side = max(float(min(scene.width, scene.height)), 1.0)
@@ -2262,7 +2350,11 @@ def apply_rinka_reference_style(
     micro_pruned, microdetail_removed = _prune_target_microdetails(scene, gesture_abstracted)
     compressed, background_removed = _compress_background(scene, micro_pruned)
     background_styled, result_background, background_geometry = _geometrize_background(
-        scene, compressed, style=background_style
+        scene,
+        compressed,
+        style=background_style,
+        preserve_large_generic_cues=preset != "approved_reference",
+        preserve_semantic_cues=preset != "approved_reference",
     )
     straight = [_curve_to_polygon(shape, curve_polygon_sides) for shape in background_styled]
     polished, render_inert_occluded_removed = _prune_render_inert_occluded_fragments(scene, straight)
@@ -2296,6 +2388,7 @@ def apply_rinka_reference_style(
         "face_fragments_removed": face_removed,
         "phase12_anchor_guard": phase12_anchor_stats or {"enabled": False, "reason": "not_requested"},
         "macro_subject_guard": macro_subject_guard_stats or {"enabled": False, "reason": "not_requested"},
+        "phase15_face_fallback": phase15_face_fallback_stats or {"enabled": False, "reason": "not_requested"},
         "mass_merges": mass_merges,
         "outfit_layer_merges": outfit_layer_merges,
         "hair_abstraction": hair_stats,
@@ -2828,6 +2921,7 @@ def minimalize_rinka_reference(
     **config_overrides,
 ) -> Scene:
     preset = normalize_rinka_reference_preset(preset)
+    enable_macro_subject_guard = bool(enable_macro_subject_guard or preset == "approved_reference")
     config = rinka_reference_config(level, **config_overrides)
     rescue = prepare_rinka_opaque_subject_input(image_or_path)
     segmentation = segment_subject_without_ai(image_or_path) if enable_ai_free_subject_segmentation else SubjectSegmentation(False, "disabled")
@@ -2955,11 +3049,46 @@ def minimalize_rinka_reference(
             phase12_face_anchor = None
             phase12_hair_anchor = None
 
+    macro_segmentation = (
+        phase15_subject_candidate(image_or_path, segmentation, rescue)
+        if enable_macro_subject_guard
+        else segmentation
+    )
+    approved_reference_planes = SubjectPlaneResult(False, "not_requested")
+    if preset == "approved_reference" and macro_segmentation.rgba is not None:
+        approved_reference_planes = build_subject_color_planes(
+            macro_segmentation.rgba,
+            scene.width,
+            scene.height,
+            macro_segmentation.background_rgb,
+            max_colors=7,
+            max_total_planes=16,
+            fragment_area_ratio=0.0035,
+            simplify_epsilon_ratio=0.045,
+        )
+        if approved_reference_planes.enabled:
+            approved_protected = _phase10_protected_structure_shapes(scene.shapes)
+            scene = Scene(
+                width=scene.width,
+                height=scene.height,
+                background=scene.background,
+                shapes=[*approved_reference_planes.shapes, *approved_protected],
+                metadata=dict(scene.metadata),
+            )
+
     macro_subject_guard = (
-        build_macro_subject_guard(segmentation, scene.width, scene.height)
+        build_macro_subject_guard(macro_segmentation, scene.width, scene.height)
         if enable_macro_subject_guard
         else MacroSubjectGuardResult(False, "not_requested")
     )
+    if enable_macro_subject_guard and (phase12_face_anchor is None or preset == "approved_reference"):
+        phase15_face_fallback = build_face_plane_fallback(
+            macro_segmentation, macro_subject_guard, scene.width, scene.height
+        )
+    elif phase12_face_anchor is not None:
+        phase15_face_fallback = FacePlaneFallbackResult(False, "phase12_face_anchor_active")
+    else:
+        phase15_face_fallback = FacePlaneFallbackResult(False, "not_requested")
 
     structure_reference_scene = scene
     scene.metadata["rinka_subject_segmentation"] = {
@@ -2976,6 +3105,7 @@ def minimalize_rinka_reference(
         "protected_structure_shapes": len(protected_structure_shapes),
         "replaced_structure_shapes": replaced_structure_shapes,
     }
+    scene.metadata["rinka_approved_reference_planes"] = approved_reference_planes.to_dict()
     scene.metadata["rinka_opaque_subject_rescue"] = {
         **rescue.to_dict(),
         "activated": rescue_activated,
@@ -2986,17 +3116,34 @@ def minimalize_rinka_reference(
     opaque_zones = estimate_opaque_subject_zones(opaque_hierarchy, structure_reference_scene)
     structure_zones = estimate_structure_subject_zones(structure_reference_scene)
     subject_zones = opaque_zones if opaque_zones.enabled else structure_zones
+    if preset == "approved_reference" and approved_reference_planes.enabled:
+        return _apply_approved_reference_direct_style(
+            scene,
+            curve_polygon_sides=curve_polygon_sides,
+            target_max_shapes=min(config.target_max_shapes, 22),
+            protected_face_anchor=phase15_face_fallback.shape or phase12_face_anchor,
+            macro_subject_guard_stats={
+                **macro_subject_guard.to_dict(),
+                "candidate_reason": macro_segmentation.reason,
+            },
+            phase12_anchor_stats=phase12_anchor_stats,
+            phase15_face_fallback_stats=phase15_face_fallback.to_dict(),
+        )
     return apply_rinka_reference_style(
         scene,
         curve_polygon_sides=curve_polygon_sides,
-        target_max_shapes=config.target_max_shapes,
+        target_max_shapes=(min(config.target_max_shapes, 22) if preset == "approved_reference" else config.target_max_shapes),
         opaque_hierarchy=opaque_hierarchy,
         opaque_zones=subject_zones,
-        background_style="geometric" if preset == "geometric_poster" else "source",
+        background_style="geometric" if preset in {"geometric_poster", "approved_reference"} else "source",
         preset=preset,
-        protected_face_anchor=phase12_face_anchor,
+        protected_face_anchor=phase12_face_anchor or phase15_face_fallback.shape,
         protected_hair_anchor=phase12_hair_anchor,
         phase12_anchor_stats=phase12_anchor_stats,
         protected_macro_anchors=macro_subject_guard.shapes,
-        macro_subject_guard_stats=macro_subject_guard.to_dict(),
+        macro_subject_guard_stats={
+            **macro_subject_guard.to_dict(),
+            "candidate_reason": macro_segmentation.reason if enable_macro_subject_guard else "not_requested",
+        },
+        phase15_face_fallback_stats=phase15_face_fallback.to_dict(),
     )

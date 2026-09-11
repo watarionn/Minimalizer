@@ -18,7 +18,7 @@ def test_phase9_omaru_uses_semantic_tree_and_local_primitives():
     fits = macro["primitive_fits"]
     counts = macro["part_shape_counts"]
 
-    assert scene.metadata["target_style"]["version"] == "phase13"
+    assert scene.metadata["target_style"]["version"] == "phase15"
     assert macro["enabled"] is True
     assert macro["semantic_tree_nodes"] >= 10
     assert tree["root"] == "subject"

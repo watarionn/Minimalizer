@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import cv2
 import numpy as np
 
 from .models import Shape
 from .subject_segmentation import SubjectSegmentation
+from .opaque_subject_rescue import OpaqueSubjectRescue
+from .io.image_loader import load_image_data
 
 
 @dataclass(frozen=True)
@@ -40,6 +43,8 @@ class MacroSubjectGuardResult:
 def _dominant_source_color(
     pixels: np.ndarray,
     background: tuple[int, int, int] | None,
+    *,
+    avoid_skin: bool = False,
 ) -> tuple[int, int, int]:
     if pixels.size == 0:
         return (128, 128, 128)
@@ -52,10 +57,16 @@ def _dominant_source_color(
     for index, _key in enumerate(keys):
         selected = pixels[inverse == index]
         color_array = np.median(selected, axis=0).astype(np.float32)
+        color = tuple(int(v) for v in np.round(color_array))
         distance = float(np.linalg.norm(color_array - background_array))
         fraction = float(counts[index]) / float(total)
+        ycc = cv2.cvtColor(np.asarray(color, dtype=np.uint8).reshape(1, 1, 3), cv2.COLOR_RGB2YCrCb)[0, 0]
+        yy, cr, cb = (int(v) for v in ycc)
+        skin_like = 78 <= yy and 132 <= cr <= 194 and 68 <= cb <= 154
         score = fraction + min(distance / 255.0, 1.0) * 0.08
-        ranked.append((score, tuple(int(v) for v in np.round(color_array))))
+        if avoid_skin and skin_like:
+            score -= 0.35
+        ranked.append((score, color))
     return max(ranked, key=lambda item: item[0])[1]
 
 
@@ -112,25 +123,26 @@ def _simplified_component_polygon(
     perimeter = float(cv2.arcLength(contour, True))
     if perimeter <= 1e-6:
         return None, None, 1.0
-    polygon = None
-    for epsilon_ratio in (0.045, 0.055, 0.070, 0.090, 0.120):
-        candidate = cv2.approxPolyDP(contour, max(1.0, perimeter * epsilon_ratio), True).reshape(-1, 2)
-        if 3 <= len(candidate) <= max_vertices:
-            polygon = candidate
-            break
-    if polygon is None:
-        hull = cv2.convexHull(contour).reshape(-1, 2)
-        if len(hull) < 3:
-            return None, None, 1.0
-        polygon = hull if len(hull) <= max_vertices else cv2.approxPolyDP(
-            hull.reshape(-1, 1, 2), max(1.0, perimeter * 0.10), True
+
+    component_pixels = max(int(component.sum()), 1)
+    polygon_candidates: list[tuple[float, int, float, np.ndarray]] = []
+    for epsilon_ratio in (0.012, 0.018, 0.025, 0.030, 0.040, 0.045, 0.055, 0.070):
+        polygon = cv2.approxPolyDP(
+            contour, max(1.0, perimeter * epsilon_ratio), True
         ).reshape(-1, 2)
-    if len(polygon) < 3:
+        if not 3 <= len(polygon) <= max_vertices:
+            continue
+        polygon_mask = np.zeros((height, width), dtype=np.uint8)
+        cv2.fillPoly(polygon_mask, [np.round(polygon).astype(np.int32)], 1)
+        polygon_pixels = max(int(polygon_mask.sum()), 1)
+        outside_ratio = int((polygon_mask & (1 - subject_mask)).sum()) / polygon_pixels
+        component_coverage = int((polygon_mask & component).sum()) / component_pixels
+        if component_coverage < 0.65:
+            continue
+        polygon_candidates.append((outside_ratio, len(polygon), -component_coverage, polygon))
+    if not polygon_candidates:
         return None, None, 1.0
-    polygon_mask = np.zeros((height, width), dtype=np.uint8)
-    cv2.fillPoly(polygon_mask, [np.round(polygon).astype(np.int32)], 1)
-    polygon_pixels = max(int(polygon_mask.sum()), 1)
-    outside_ratio = int((polygon_mask & (1 - subject_mask)).sum()) / polygon_pixels
+    outside_ratio, _vertices, _coverage, polygon = min(polygon_candidates, key=lambda item: item[:3])
     if outside_ratio > max_outside_ratio:
         return None, None, outside_ratio
     return polygon.astype(np.float32), component, outside_ratio
@@ -150,9 +162,10 @@ def build_macro_subject_guard(
     """
     if segmentation.rgba is None or segmentation.mask is None:
         return MacroSubjectGuardResult(False, "subject_candidate_missing")
-    if segmentation.reason not in {"accepted", "confidence_gate"}:
+    if segmentation.reason not in {"accepted", "confidence_gate", "phase15_opaque_rescue", "phase15_relaxed_border"}:
         return MacroSubjectGuardResult(False, "subject_candidate_reason_gate")
-    if float(segmentation.border_dominant_fraction) < 0.30:
+    border_floor = 0.18 if segmentation.reason == "phase15_relaxed_border" else 0.30
+    if float(segmentation.border_dominant_fraction) < border_floor:
         return MacroSubjectGuardResult(False, "background_evidence_gate")
     if float(segmentation.center_fill_ratio) < 0.35:
         return MacroSubjectGuardResult(False, "center_fill_gate")
@@ -179,10 +192,10 @@ def build_macro_subject_guard(
     canvas_area = max(float(width * height), 1.0)
     min_pixels = max(8, int(round(canvas_area * 0.0045)))
     zone_specs = (
-        ("head", "head", 947000, 0.18, 0.00, 0.82, 0.46, 0.20),
-        ("torso", "torso", 947001, 0.20, 0.32, 0.80, 1.00, 0.18),
-        ("left_arm", "left_arm", 947002, 0.00, 0.08, 0.40, 0.88, 0.28),
-        ("right_arm", "right_arm", 947003, 0.60, 0.08, 1.00, 0.88, 0.28),
+        ("head", "head", 947000, 0.18, 0.00, 0.82, 0.46, 0.46),
+        ("torso", "torso", 947001, 0.27, 0.34, 0.73, 0.98, 0.32),
+        ("left_arm", "left_arm", 947002, 0.00, 0.08, 0.40, 0.88, 0.40),
+        ("right_arm", "right_arm", 947003, 0.60, 0.08, 1.00, 0.88, 0.40),
     )
     anchors: list[Shape] = []
     anchor_masks: list[np.ndarray] = []
@@ -194,18 +207,22 @@ def build_macro_subject_guard(
             mask,
             rect,
             min_pixels=min_pixels,
-            max_vertices=8,
+            max_vertices=10 if zone_name == "head" else 8,
             max_outside_ratio=outside_limit,
         )
         if polygon is None or component is None:
             continue
-        color = _dominant_source_color(rgb[component > 0], segmentation.background_rgb)
+        color = _dominant_source_color(
+            rgb[component > 0],
+            segmentation.background_rgb,
+            avoid_skin=zone_name == "torso",
+        )
         anchor = Shape(
             id=shape_id,
             shape_type="polygon",
             fill_color=color,
             points=[(float(x), float(y)) for x, y in polygon],
-            z_index=39800 + len(anchors),
+            z_index=19950 + len(anchors),
             importance=1.0,
             source_role=f"phase15_macro_{zone_name}_anchor",
             layer_name="foreground",
@@ -267,3 +284,151 @@ def build_macro_subject_guard(
         torso_anchor_count=torso_count,
         arm_anchor_count=arm_count,
     )
+
+
+
+def _mask_border_leak(mask: np.ndarray) -> float:
+    edge = np.concatenate([mask[0, :], mask[-1, :], mask[:, 0], mask[:, -1]])
+    return float(edge.mean()) if edge.size else 1.0
+
+
+def _candidate_from_opaque_rescue(rescue: OpaqueSubjectRescue) -> SubjectSegmentation | None:
+    if not rescue.enabled or rescue.rgba is None:
+        return None
+    mask = (rescue.rgba[:, :, 3] >= 128).astype(np.uint8)
+    if int(mask.sum()) < 64:
+        return None
+    leak = _mask_border_leak(mask)
+    confidence = float(np.clip(
+        0.40 * float(rescue.border_dominant_fraction)
+        + 0.38 * min(float(rescue.center_fill_ratio) / 0.85, 1.0)
+        + 0.22 * (1.0 - min(leak / 0.45, 1.0)),
+        0.0,
+        1.0,
+    ))
+    return SubjectSegmentation(
+        False,
+        "phase15_opaque_rescue",
+        rgba=rescue.rgba,
+        mask=mask,
+        background_rgb=rescue.background_rgb,
+        border_dominant_fraction=float(rescue.border_dominant_fraction),
+        foreground_area_ratio=float(mask.mean()),
+        center_fill_ratio=float(rescue.center_fill_ratio),
+        border_leak_ratio=leak,
+        confidence=confidence,
+    )
+
+
+def _relaxed_border_candidate(image_or_path, existing: SubjectSegmentation) -> SubjectSegmentation | None:
+    if existing.reason != "border_gate" or float(existing.border_dominant_fraction) < 0.18:
+        return None
+    if isinstance(image_or_path, (str, Path)):
+        data = load_image_data(image_or_path)
+        rgb, alpha = data.rgb, data.alpha
+    else:
+        arr = np.asarray(image_or_path)
+        if arr.ndim != 3 or arr.shape[2] not in {3, 4}:
+            return None
+        rgb = arr[:, :, :3].astype(np.uint8, copy=False)
+        alpha = arr[:, :, 3] if arr.shape[2] == 4 else None
+    height, width = rgb.shape[:2]
+    aspect = min(height, width) / max(float(max(height, width)), 1.0)
+    if aspect < 0.90:
+        return None
+    if alpha is not None and bool(np.any(alpha < 250)):
+        transparent_fraction = float((alpha < 250).mean())
+        # Small anti-aliased/transparent border specks are common in otherwise
+        # opaque portrait thumbnails. They should not disable the relaxed
+        # border recovery path, but genuinely alpha-cut subjects stay out.
+        if transparent_fraction > 0.02:
+            return None
+
+    border_width = max(2, int(round(min(height, width) * 0.04)))
+    border = np.concatenate([
+        rgb[:border_width].reshape(-1, 3),
+        rgb[height-border_width:].reshape(-1, 3),
+        rgb[border_width:height-border_width, :border_width].reshape(-1, 3),
+        rgb[border_width:height-border_width, width-border_width:].reshape(-1, 3),
+    ])
+    bins = (border // 24).astype(np.int16)
+    keys = bins[:, 0] * 121 + bins[:, 1] * 11 + bins[:, 2]
+    values, counts = np.unique(keys, return_counts=True)
+    order = np.argsort(counts)[::-1]
+    labs: list[np.ndarray] = []
+    colors: list[tuple[int, int, int]] = []
+    total = max(len(border), 1)
+    for idx in order[:10]:
+        fraction = float(counts[idx]) / float(total)
+        if fraction < 0.025:
+            continue
+        selected = border[keys == values[idx]]
+        color = np.median(selected, axis=0).astype(np.uint8)
+        labs.append(cv2.cvtColor(color.reshape(1, 1, 3), cv2.COLOR_RGB2LAB).astype(np.float32)[0, 0])
+        colors.append(tuple(int(v) for v in color))
+    if len(labs) < 2:
+        return None
+
+    lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+    centers = np.stack(labs)
+    distance = np.linalg.norm(lab[:, :, None, :] - centers[None, None, :, :], axis=3).min(axis=2)
+    background_candidate = (distance <= 26.0).astype(np.uint8)
+    if alpha is not None:
+        background_candidate[alpha < 128] = 1
+    count, labels, _, _ = cv2.connectedComponentsWithStats(background_candidate, 8)
+    if count <= 1:
+        return None
+    edge_labels = np.unique(np.concatenate([labels[0, :], labels[-1, :], labels[:, 0], labels[:, -1]]))
+    edge_labels = edge_labels[edge_labels != 0]
+    background = np.isin(labels, edge_labels).astype(np.uint8)
+    subject = (1 - background).astype(np.uint8)
+    if alpha is not None:
+        subject[alpha < 16] = 0
+    close_k = max(3, int(round(min(height, width) * 0.010)))
+    if close_k % 2 == 0:
+        close_k += 1
+    subject = cv2.morphologyEx(subject, cv2.MORPH_CLOSE, np.ones((close_k, close_k), np.uint8))
+    subject = cv2.morphologyEx(subject, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    area = float(subject.mean())
+    center = subject[int(height*0.20):int(height*0.80), int(width*0.20):int(width*0.80)]
+    center_fill = float(center.mean()) if center.size else 0.0
+    leak = _mask_border_leak(subject)
+    if not 0.20 <= area <= 0.72 or center_fill < 0.32 or leak > 0.38:
+        return None
+    confidence = float(np.clip(
+        0.30 * min(float(existing.border_dominant_fraction) / 0.30, 1.0)
+        + 0.42 * min(center_fill / 0.80, 1.0)
+        + 0.28 * (1.0 - min(leak / 0.45, 1.0)),
+        0.0,
+        1.0,
+    ))
+    rgba = np.dstack([rgb, subject * 255]).astype(np.uint8)
+    return SubjectSegmentation(
+        False,
+        "phase15_relaxed_border",
+        rgba=rgba,
+        mask=subject,
+        background_rgb=colors[0],
+        border_dominant_fraction=float(existing.border_dominant_fraction),
+        foreground_area_ratio=area,
+        center_fill_ratio=center_fill,
+        border_leak_ratio=leak,
+        confidence=confidence,
+    )
+
+
+def phase15_subject_candidate(
+    image_or_path,
+    segmentation: SubjectSegmentation,
+    rescue: OpaqueSubjectRescue,
+) -> SubjectSegmentation:
+    """Return the strongest existing or safely recovered deterministic portrait mask."""
+    if segmentation.rgba is not None and segmentation.mask is not None:
+        return segmentation
+    rescue_candidate = _candidate_from_opaque_rescue(rescue)
+    if rescue_candidate is not None:
+        return rescue_candidate
+    relaxed = _relaxed_border_candidate(image_or_path, segmentation)
+    if relaxed is not None:
+        return relaxed
+    return segmentation

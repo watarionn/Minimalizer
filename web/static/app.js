@@ -253,7 +253,9 @@ function resultFilename(outputFormat) {
 }
 
 function rinkaPresetLabel(preset) {
-  return preset === "faceless_subject" ? "人物ミニマル" : "幾何学ポスター";
+  if (preset === "faceless_subject") return "人物ミニマル";
+  if (preset === "approved_reference") return "採用見本18";
+  return "幾何学ポスター";
 }
 
 function colorStripOptionLabel(selectionMode, sizeMode, order, orientation) {
