@@ -11,6 +11,7 @@ special handling for white/dark/muted colors.
 from __future__ import annotations
 
 import math
+from collections import deque
 from dataclasses import dataclass
 
 import numpy as np
@@ -86,9 +87,49 @@ def estimate_background_mask(rgb: np.ndarray, border_fraction: float = 0.045, de
     cover = np.array([(delta_e76(lab_border, c) < de_threshold).mean() for c in lab_cand])
     bg_lab = lab_cand[int(np.argmax(cover))]
     lab = rgb_to_lab(rgb)
-    mask = delta_e76(lab, bg_lab) < de_threshold
-    border_mask = np.concatenate([mask[:bw].ravel(), mask[-bw:].ravel(), mask[:, :bw].ravel(), mask[:, -bw:].ravel()])
-    return mask if border_mask.mean() >= 0.26 else np.zeros((h, w), dtype=bool)
+    similar = delta_e76(lab, bg_lab) < de_threshold
+    border_mask = np.concatenate([
+        similar[:bw].ravel(), similar[-bw:].ravel(),
+        similar[:, :bw].ravel(), similar[:, -bw:].ravel(),
+    ])
+    if border_mask.mean() < 0.26:
+        return np.zeros((h, w), dtype=bool)
+
+    # Only remove background-like pixels that are actually connected to the image
+    # border. A pale interior region (white clothes, skin highlights, etc.) may be
+    # close to a pale background in Lab but is still foreground if enclosed.
+    connected = np.zeros((h, w), dtype=bool)
+    queue: deque[tuple[int, int]] = deque()
+
+    for x in range(w):
+        if similar[0, x]:
+            connected[0, x] = True
+            queue.append((0, x))
+        if h > 1 and similar[h - 1, x] and not connected[h - 1, x]:
+            connected[h - 1, x] = True
+            queue.append((h - 1, x))
+    for y in range(h):
+        if similar[y, 0] and not connected[y, 0]:
+            connected[y, 0] = True
+            queue.append((y, 0))
+        if w > 1 and similar[y, w - 1] and not connected[y, w - 1]:
+            connected[y, w - 1] = True
+            queue.append((y, w - 1))
+
+    while queue:
+        y, x = queue.popleft()
+        for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+            if (
+                0 <= ny < h
+                and 0 <= nx < w
+                and similar[ny, nx]
+                and not connected[ny, nx]
+                and float(delta_e76(lab[ny, nx], lab[y, x])) <= 7.5
+            ):
+                connected[ny, nx] = True
+                queue.append((ny, nx))
+
+    return connected
 
 
 def weighted_kmeans_lab(lab: np.ndarray, weights: np.ndarray, k: int, iterations: int = 24, seed: int = 42):

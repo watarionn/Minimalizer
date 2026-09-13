@@ -53,6 +53,7 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="color-similarity-range"' in response.text
     assert 'id="color-strip-options"' in response.text
     assert 'id="strip-selection-mode-select"' in response.text
+    assert 'value="characteristic"' in response.text
     assert 'id="strip-size-mode-select"' in response.text
     assert 'id="strip-order-select"' in response.text
     assert 'id="strip-orientation-select"' in response.text
@@ -74,6 +75,7 @@ def test_phase2_static_assets_are_served():
     assert 'form.append("rinka_preset", elements.rinkaPreset.value)' in javascript.text
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
     assert 'form.append("color_selection_mode", elements.stripSelectionMode.value)' in javascript.text
+    assert 'selectionMode === "characteristic"' in javascript.text
     assert 'form.append("color_size_mode", elements.stripSizeMode.value)' in javascript.text
     assert 'form.append("color_order", elements.stripOrder.value)' in javascript.text
     assert 'form.append("color_orientation", elements.stripOrientation.value)' in javascript.text
@@ -85,7 +87,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.11.0",
+        "web_version": "0.12.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -107,7 +109,7 @@ def test_service_info_reports_web_engine_and_limits():
         "color_strip_size_modes": ["equal", "proportional"],
         "color_strip_orders": ["least_first", "most_first"],
         "color_strip_orientations": ["vertical", "horizontal"],
-        "color_strip_selection_modes": ["dominant", "featured"],
+        "color_strip_selection_modes": ["dominant", "featured", "characteristic"],
     }
 
 
@@ -282,6 +284,29 @@ def test_color_strip_accepts_selection_and_layout_options():
     assert response.headers["x-minimalizer-color-orientation"] == "horizontal"
     assert b'y="0" width="' in response.content
     assert b'height="48"' in response.content
+
+
+def test_color_strip_accepts_characteristic_feature_palette_mode():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={
+            "mode": "color_strip",
+            "colors": "3",
+            "color_selection_mode": "characteristic",
+            "color_size_mode": "equal",
+            "color_order": "most_first",
+            "color_orientation": "vertical",
+            "output_format": "svg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-color-selection-mode"] == "characteristic"
+    assert response.headers["x-minimalizer-color-count"] == "3"
+    assert "x-minimalizer-color-similarity" not in response.headers
+    assert response.content.startswith(b"<svg")
+    assert response.content.count(b"<rect ") == 3
 
 
 def test_color_strip_rejects_color_count_outside_three_to_five():

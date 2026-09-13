@@ -88,10 +88,25 @@ def extract_characteristic_color_strip(
         n_colors=color_count,
         remove_background=remove_background,
     )
+    if remove_background and len(selected) < color_count:
+        fallback = extract_feature_palette(
+            rgba,
+            n_colors=color_count,
+            remove_background=False,
+        )
+        selected_rgbs = {color.rgb for color in selected}
+        for color in fallback:
+            if color.rgb in selected_rgbs:
+                continue
+            selected.append(color)
+            selected_rgbs.add(color.rgb)
+            if len(selected) >= color_count:
+                break
     if not selected:
         raise ValueError("Characteristic Color Strip could not select representative colors.")
 
-    selected_rgbs = [color.rgb for color in selected]
+    selected_rgbs = [color.rgb for color in selected[:color_count]]
+    selected = selected[:color_count]
     counts = _reassign_counts(rgb_pixels, selected_rgbs)
     total_visible = len(rgb_pixels)
 

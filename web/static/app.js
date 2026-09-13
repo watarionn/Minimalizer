@@ -77,8 +77,12 @@ function similarityLabel(value) {
   return "大まか";
 }
 
+function isCharacteristicSelection() {
+  return elements.stripSelectionMode.value === "characteristic";
+}
+
 function updateSimilarityLabel() {
-  elements.colorSimilarityOutput.textContent = similarityLabel(elements.colorSimilarity.value);
+  elements.colorSimilarityOutput.textContent = isCharacteristicSelection() ? "v5で自動" : similarityLabel(elements.colorSimilarity.value);
 }
 
 function updateModeUi() {
@@ -92,7 +96,7 @@ function updateModeUi() {
     elements.modeDescription.textContent = "完成済みの凛夏手本版 Phase 7。検証済みのミニマル度4・専用プロファイルを固定で使用します。";
     elements.minimalizeButton.textContent = "凛夏手本版でミニマル化";
   } else if (colorStrip) {
-    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。使用量順または特徴色優先で選抜し、太さ・並び順・向きも変更できます。";
+    elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。使用量順・特徴色優先・特徴色 v5を比較できます。";
     elements.minimalizeButton.textContent = "Color Stripを生成";
   } else {
     elements.modeDescription.textContent = "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
@@ -124,7 +128,7 @@ function updateModeUi() {
   elements.maxShapes.disabled = state.busy || rinka || colorStrip;
   elements.background.disabled = state.busy || rinka || colorStrip;
   elements.stripColors.disabled = state.busy || !colorStrip;
-  elements.colorSimilarity.disabled = state.busy || !colorStrip;
+  elements.colorSimilarity.disabled = state.busy || !colorStrip || isCharacteristicSelection();
   elements.stripSelectionMode.disabled = state.busy || !colorStrip;
   elements.stripSizeMode.disabled = state.busy || !colorStrip;
   elements.stripOrder.disabled = state.busy || !colorStrip;
@@ -135,7 +139,9 @@ function updateModeUi() {
 
   if (colorStrip) {
     elements.processingTitle.textContent = "色を抽出しています";
-    elements.processingCopy.textContent = "代表色と特徴色を評価してColor Stripを生成中…";
+    elements.processingCopy.textContent = isCharacteristicSelection()
+      ? "背景と色ファミリーを整理し、特徴色 v5でColor Stripを生成中…"
+      : "代表色と特徴色を評価してColor Stripを生成中…";
   } else {
     elements.processingTitle.textContent = "ミニマル化しています";
     elements.processingCopy.textContent = rinka ? "凛夏手本版プロファイルで整理中…" : "画像の構造を整理中…";
@@ -217,7 +223,7 @@ function buildFormData(outputFormat) {
     if (elements.background.value) form.append("background", elements.background.value);
   } else if (mode === "color_strip") {
     form.append("colors", elements.stripColors.value);
-    form.append("color_similarity", elements.colorSimilarity.value);
+    if (!isCharacteristicSelection()) form.append("color_similarity", elements.colorSimilarity.value);
     form.append("color_selection_mode", elements.stripSelectionMode.value);
     form.append("color_size_mode", elements.stripSizeMode.value);
     form.append("color_order", elements.stripOrder.value);
@@ -259,7 +265,9 @@ function rinkaPresetLabel(preset) {
 }
 
 function colorStripOptionLabel(selectionMode, sizeMode, order, orientation) {
-  const selectionLabel = selectionMode === "featured" ? "特徴色優先" : "使用量順";
+  const selectionLabel = selectionMode === "characteristic"
+    ? "特徴色 v5"
+    : selectionMode === "featured" ? "特徴色優先" : "使用量順";
   const sizeLabel = sizeMode === "proportional" ? "使用量比例" : "均等";
   const orderLabel = order === "most_first" ? "多→少" : "少→多";
   const orientationLabel = orientation === "horizontal" ? "横" : "縦";
@@ -403,6 +411,7 @@ for (const control of [
 }
 
 elements.rinkaPreset.addEventListener("change", updateModeUi);
+elements.stripSelectionMode.addEventListener("change", updateModeUi);
 
 elements.colorSimilarity.addEventListener("input", () => {
   updateSimilarityLabel();
