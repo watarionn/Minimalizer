@@ -11,13 +11,15 @@
 
 ## Current state
 
-### Active Rinka work: Phase 16 Approved 18 Identity / Structure
+### Active Rinka work: Phase 17 Structure-First Prototype
 
-Active branch: `feature/rinka-phase16-approved18-microplane-pruning-20260911`, based on merged Phase 15 `main` at `155db1ffc4e0c2ab1911db747a1930cacf613bb7` (PR #26). Phase 16 uses the 18 user-approved Google Drive geometric references as the fixed visual regression set.
+Active branch: `feature/rinka-phase17-structure-first-20260912`, based on merged Phase 16 `main` at `50a37755f782254410678fef7bae33ef6790c025` (PR #27). Production remains Phase 16.
 
-The accepted direction is not blind microplane deletion. Phase 16 fixes rejected-mask precedence, renders Phase 15 macro anchors as a real pose skeleton, uses a six-color / ten-plane approved-reference scaffold, narrows the blank face carrier, promotes only safe fringe planes, derives torso/arm colors from role-specific source zones, preserves important bright clothing and chromatic identity planes, and protects large bright upper gesture masses. Standard subject-plane defaults remain unchanged; the aggressive representative rules are opt-in through `approved_reference`.
+Phase 17 is locally closure-gated as a shadow/comparison path. The final order is subject-mask arbitration -> face locator -> face/sleeve completion -> gated Structure Voronoi or fallback body partition -> silhouette head/hair -> body planes -> carrier guard -> candidate gate. Color follows structure rather than defining it.
 
-Candidate21 is the current closure candidate after rejecting an oversized upper-arm bridge experiment. Approved 18 structural gate is **18/18**, macro guard **18/18**, face carrier **18/18**, and mean final shape count is about **18.33**. Closure passes **78 targeted tests**; repository-wide pytest is **284 passed / 2 known missing-fixture failures**; compileall, Web JavaScript syntax, git diff check, and real-Uvicorn `/api/info` smoke pass. Read `docs/RINKA_PHASE16_APPROVED18_IDENTITY_STRUCTURE.md` before changing these thresholds. GitHub Actions must remain skipped while metered usage could be chargeable; local validation is the source of truth.
+Exact Approved 18 structure-gate audit passes 18/18. The repository auxiliary corpus passes all 15 character images and rejects the Night River non-character image. Body residual pixels are assigned to the nearest structural zone before polygonization; this removes the former 30-40% carrier-exposure failures without loosening the carrier gate. Hair is capped at 1-3 coarse connected planes and blank face remains one plane.
+
+Read `docs/RINKA_PHASE17_STRUCTURE_GATE_CLOSURE.md` before changing Phase 17. Do not connect Phase 17 to production until its Draft PR is reviewed and explicitly approved. GitHub Actions remain skipped while metered usage may be chargeable; local validation is the evidence source.
 
 Minimalizer v0.3.0 stable is complete and is the engine regression baseline. The original product goal remains simple: input image -> minimalized graphic. Core minimalization quality takes priority over optional character-specific features.
 

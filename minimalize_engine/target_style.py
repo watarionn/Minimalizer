@@ -8,8 +8,10 @@ import cv2
 import numpy as np
 
 from .analysis.shape_cleanup import cleanup_minimal_shapes
+from .alpha_structure import AlphaStructureResult, build_alpha_structure_shapes
 from .config import MinimalizeConfig
 from .models import Scene, Shape
+from .io.image_loader import load_image_data
 from .macro_subject_guard import (
     MacroSubjectGuardResult,
     build_macro_subject_guard,
@@ -20,6 +22,26 @@ from .pipeline import minimalize
 from .opaque_subject_rescue import OpaqueSubjectRescue, prepare_rinka_opaque_subject_input
 from .subject_segmentation import SubjectSegmentation, segment_subject_without_ai
 from .subject_planes import SubjectPlaneResult, build_subject_color_planes
+from .structure_first import StructureFirstResult, build_structure_first_parts
+from .structure_candidate_gate import (
+    StructureCandidateGateResult,
+    evaluate_structure_candidate,
+)
+from .structure_foreground import StructureForegroundResult, build_structure_foreground
+from .structure_foreground_completion import (
+    StructureForegroundCompletionResult,
+    accept_structure_foreground_completion,
+    complete_structure_foreground,
+)
+from .structure_face_locator import StructureFaceResult, locate_structure_face
+from .structure_head_anchor import StructureHeadAnchorResult, build_face_anchored_head
+from .structure_head_silhouette import StructureSilhouetteHeadResult, build_silhouette_head
+from .structure_mask_selector import StructureMaskSelection, select_structure_mask
+from .structure_sleeve_completion import (
+    StructureSleeveCompletionResult,
+    accept_structure_sleeve_completion,
+    complete_structure_sleeves,
+)
 from .target_hierarchy import (
     OpaqueSubjectHierarchy,
     OpaqueSubjectZones,
@@ -3178,6 +3200,211 @@ def minimalize_rinka_reference(
         if enable_macro_subject_guard
         else segmentation
     )
+    structure_first_shadow = StructureFirstResult(False, "not_requested")
+    structure_candidate_gate = StructureCandidateGateResult(False, ("not_evaluated",))
+    alpha_structure_shadow = AlphaStructureResult(False, "not_requested")
+    structure_foreground_shadow = StructureForegroundResult(False, "not_requested")
+    structure_face_shadow = StructureFaceResult(False, "not_requested")
+    structure_head_anchor_shadow = StructureHeadAnchorResult(False, "not_requested")
+    structure_silhouette_head_shadow = StructureSilhouetteHeadResult(False, "not_requested")
+    structure_foreground_completion = StructureForegroundCompletionResult(False, "not_requested")
+    structure_sleeve_completion = StructureSleeveCompletionResult(False, "not_requested")
+    structure_mask_selection = StructureMaskSelection(False, "not_requested")
+    structure_first_mask_source = "none"
+    if preset == "approved_reference":
+        structure_rgb = None
+        structure_mask = None
+        source_rgb = None
+        source_alpha = None
+        try:
+            if isinstance(image_or_path, np.ndarray):
+                source = np.asarray(image_or_path)
+                source_rgb = source[:, :, :3]
+                source_alpha = source[:, :, 3] if source.ndim == 3 and source.shape[2] >= 4 else None
+            else:
+                image_data = load_image_data(image_or_path)
+                source_rgb = image_data.rgb
+                source_alpha = image_data.alpha
+        except (OSError, ValueError, TypeError):
+            source_rgb = None
+            source_alpha = None
+
+        if source_rgb is not None:
+            structure_foreground_shadow = build_structure_foreground(source_rgb)
+
+        selection_rgb = source_rgb
+        candidate_masks: dict[str, np.ndarray | None] = {}
+        if selection_rgb is None and macro_segmentation.rgba is not None:
+            selection_rgb = np.asarray(macro_segmentation.rgba)[:, :, :3]
+
+        if selection_rgb is not None and macro_segmentation.rgba is not None:
+            rgba = np.asarray(macro_segmentation.rgba)
+            if macro_segmentation.mask is not None:
+                phase15_mask = (np.asarray(macro_segmentation.mask) > 0).astype(np.uint8)
+                if phase15_mask.shape != selection_rgb.shape[:2]:
+                    phase15_mask = cv2.resize(
+                        phase15_mask,
+                        (selection_rgb.shape[1], selection_rgb.shape[0]),
+                        interpolation=cv2.INTER_NEAREST,
+                    )
+                candidate_masks["phase15_mask"] = phase15_mask
+            elif rgba.shape[2] >= 4:
+                phase15_alpha = (rgba[:, :, 3] >= 16).astype(np.uint8)
+                if phase15_alpha.shape != selection_rgb.shape[:2]:
+                    phase15_alpha = cv2.resize(
+                        phase15_alpha,
+                        (selection_rgb.shape[1], selection_rgb.shape[0]),
+                        interpolation=cv2.INTER_NEAREST,
+                    )
+                candidate_masks["phase15_alpha"] = phase15_alpha
+
+        if selection_rgb is not None and source_alpha is not None:
+            candidate_masks["source_alpha"] = (source_alpha >= 16).astype(np.uint8)
+        if selection_rgb is not None and structure_foreground_shadow.enabled:
+            candidate_masks["border_background"] = structure_foreground_shadow.mask
+
+        if selection_rgb is not None:
+            structure_mask_selection = select_structure_mask(selection_rgb, candidate_masks)
+            if structure_mask_selection.enabled and structure_mask_selection.mask is not None:
+                structure_rgb = selection_rgb
+                structure_mask = structure_mask_selection.mask
+                structure_first_mask_source = structure_mask_selection.source
+                seed_face = locate_structure_face(selection_rgb, structure_mask)
+                if seed_face.enabled and seed_face.mask is not None:
+                    structure_foreground_completion = complete_structure_foreground(
+                        selection_rgb,
+                        structure_mask,
+                        seed_face.mask,
+                    )
+                    if structure_foreground_completion.enabled and structure_foreground_completion.mask is not None:
+                        original_score = float(structure_mask_selection.score)
+                        completed_selection = select_structure_mask(
+                            selection_rgb,
+                            {
+                                structure_first_mask_source: structure_mask,
+                                "face_seeded_completion": structure_foreground_completion.mask,
+                            },
+                        )
+                        if (
+                            completed_selection.enabled
+                            and completed_selection.mask is not None
+                            and completed_selection.source == "face_seeded_completion"
+                            and accept_structure_foreground_completion(
+                                structure_foreground_completion,
+                                original_score,
+                                completed_selection.score,
+                            )
+                        ):
+                            structure_mask_selection = completed_selection
+                            structure_mask = completed_selection.mask
+                            structure_first_mask_source = completed_selection.source
+
+                sleeve_face = locate_structure_face(selection_rgb, structure_mask)
+                if sleeve_face.enabled and sleeve_face.mask is not None:
+                    structure_sleeve_completion = complete_structure_sleeves(
+                        selection_rgb,
+                        structure_mask,
+                        sleeve_face.mask,
+                    )
+                    if structure_sleeve_completion.enabled and structure_sleeve_completion.mask is not None:
+                        sleeve_selection = select_structure_mask(
+                            selection_rgb,
+                            {
+                                structure_first_mask_source: structure_mask,
+                                "sleeve_completion": structure_sleeve_completion.mask,
+                            },
+                        )
+                        sleeve_completed_face = locate_structure_face(
+                            selection_rgb, sleeve_selection.mask
+                        ) if sleeve_selection.mask is not None else StructureFaceResult(False, "missing")
+                        if (
+                            sleeve_selection.enabled
+                            and sleeve_selection.mask is not None
+                            and sleeve_selection.source == "sleeve_completion"
+                            and sleeve_completed_face.enabled
+                            and accept_structure_sleeve_completion(
+                                structure_sleeve_completion,
+                                structure_mask_selection.score,
+                                sleeve_selection.score,
+                                sleeve_face.score,
+                                sleeve_completed_face.score,
+                            )
+                        ):
+                            structure_mask_selection = sleeve_selection
+                            structure_mask = sleeve_selection.mask
+                            structure_first_mask_source = sleeve_selection.source
+
+        if structure_rgb is not None and structure_mask is not None:
+            target_size = (scene.width, scene.height)
+            if structure_rgb.shape[:2] != (scene.height, scene.width):
+                structure_rgb = cv2.resize(structure_rgb, target_size, interpolation=cv2.INTER_AREA)
+            if structure_mask.shape != (scene.height, scene.width):
+                structure_mask = cv2.resize(
+                    structure_mask.astype(np.uint8),
+                    target_size,
+                    interpolation=cv2.INTER_NEAREST,
+                )
+            structure_face_shadow = locate_structure_face(structure_rgb, structure_mask)
+            structure_first_shadow = build_structure_first_parts(
+                structure_rgb,
+                structure_mask,
+                face_anchor_mask=(
+                    structure_face_shadow.mask
+                    if structure_face_shadow.enabled and structure_face_shadow.mask is not None
+                    else None
+                ),
+            )
+            preferred_face_mask = (
+                structure_face_shadow.mask
+                if structure_face_shadow.enabled
+                else structure_first_shadow.masks.get("face") if structure_first_shadow.masks else None
+            )
+            if structure_face_shadow.enabled and structure_face_shadow.mask is not None:
+                structure_silhouette_head_shadow = build_silhouette_head(
+                    structure_rgb,
+                    structure_mask,
+                    structure_face_shadow.mask,
+                )
+                structure_head_anchor_shadow = build_face_anchored_head(
+                    structure_rgb,
+                    structure_mask,
+                    structure_face_shadow.mask,
+                )
+            if structure_silhouette_head_shadow.enabled:
+                preferred_face_mask = structure_silhouette_head_shadow.face_mask
+            preferred_head_mask = (
+                structure_silhouette_head_shadow.head_mask
+                if structure_silhouette_head_shadow.enabled
+                else structure_head_anchor_shadow.head_mask
+                if structure_head_anchor_shadow.enabled
+                else structure_first_shadow.masks.get("head") if structure_first_shadow.masks else None
+            )
+            preferred_hair_mask = (
+                structure_silhouette_head_shadow.hair_mask
+                if structure_silhouette_head_shadow.enabled
+                else structure_head_anchor_shadow.hair_mask
+                if structure_head_anchor_shadow.enabled
+                else structure_first_shadow.masks.get("hair") if structure_first_shadow.masks else None
+            )
+            alpha_structure_shadow = build_alpha_structure_shapes(
+                structure_rgb,
+                structure_mask,
+                face_mask=preferred_face_mask,
+                head_mask=preferred_head_mask,
+                hair_mask=preferred_hair_mask,
+                torso_mask=structure_first_shadow.masks.get("torso") if structure_first_shadow.masks else None,
+                left_arm_mask=structure_first_shadow.masks.get("left_arm") if structure_first_shadow.masks else None,
+                right_arm_mask=structure_first_shadow.masks.get("right_arm") if structure_first_shadow.masks else None,
+            )
+            structure_candidate_gate = evaluate_structure_candidate(
+                structure_enabled=structure_first_shadow.enabled,
+                face_enabled=structure_face_shadow.enabled,
+                head_enabled=structure_silhouette_head_shadow.enabled or structure_head_anchor_shadow.enabled,
+                alpha_enabled=alpha_structure_shadow.enabled,
+                shapes=alpha_structure_shadow.shapes,
+                carrier_exposure_ratio=alpha_structure_shadow.carrier_exposure_ratio,
+                carrier_patch_count=alpha_structure_shadow.carrier_patch_count,
+            )
     approved_reference_planes = SubjectPlaneResult(False, "not_requested")
     if preset == "approved_reference" and macro_segmentation.rgba is not None:
         approved_reference_planes = build_subject_color_planes(
@@ -3233,6 +3460,21 @@ def minimalize_rinka_reference(
         "replaced_structure_shapes": replaced_structure_shapes,
     }
     scene.metadata["rinka_approved_reference_planes"] = approved_reference_planes.to_dict()
+    scene.metadata["rinka_structure_foreground_shadow"] = structure_foreground_shadow.to_dict()
+    scene.metadata["rinka_structure_foreground_completion"] = structure_foreground_completion.to_dict()
+    scene.metadata["rinka_structure_sleeve_completion"] = structure_sleeve_completion.to_dict()
+    scene.metadata["rinka_structure_mask_selection"] = structure_mask_selection.to_dict()
+    scene.metadata["rinka_structure_face_shadow"] = structure_face_shadow.to_dict()
+    scene.metadata["rinka_structure_head_anchor_shadow"] = structure_head_anchor_shadow.to_dict()
+    scene.metadata["rinka_structure_first_shadow"] = {
+        **structure_first_shadow.to_dict(),
+        "mask_source": structure_first_mask_source,
+    }
+    scene.metadata["rinka_alpha_structure_shadow"] = {
+        **alpha_structure_shadow.to_dict(),
+        "mask_source": structure_first_mask_source,
+    }
+    scene.metadata["rinka_structure_candidate_gate"] = structure_candidate_gate.to_dict()
     scene.metadata["rinka_opaque_subject_rescue"] = {
         **rescue.to_dict(),
         "activated": rescue_activated,
