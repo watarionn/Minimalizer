@@ -575,16 +575,33 @@ def test_phase17_hair_is_limited_to_three_coarse_planes():
     )
 
 
-def test_phase17_body_accent_is_torso_only_and_single():
+def test_phase18_characteristic_outfit_keeps_torso_to_three_major_colors():
     from minimalize_engine.structure_body_planes import build_structure_body_planes
 
-    rgb, mask = _synthetic_pose()
-    face = locate_structure_face(rgb, mask)
-    assert face.enabled and face.mask is not None
-    result = build_structure_body_planes(rgb, mask, face_mask=face.mask, max_accents=2)
-    accents = [s for s in result.shapes if "phase17_body_accent_" in s.source_role]
-    assert len(accents) <= 1
-    assert all(s.source_role == "phase17_body_accent_torso" for s in accents)
+    rgb = np.full((220, 220, 3), 245, dtype=np.uint8)
+    subject = np.zeros((220, 220), dtype=np.uint8)
+    torso = np.zeros_like(subject); left = np.zeros_like(subject); right = np.zeros_like(subject)
+    torso[75:205, 75:145] = 1
+    left[90:185, 35:75] = 1
+    right[90:185, 145:185] = 1
+    subject |= torso | left | right
+    rgb[subject > 0] = (35, 40, 55)
+    rgb[85:130, 80:140] = (210, 45, 55)
+    rgb[135:165, 80:140] = (238, 196, 45)
+    rgb[170:200, 80:140] = (40, 90, 205)
+
+    result = build_structure_body_planes(
+        rgb, subject, torso_mask=torso, left_arm_mask=left, right_arm_mask=right, max_accents=2,
+    )
+    torso_shapes = [shape for shape in result.shapes if shape.character_part == "torso"]
+    accents = [shape for shape in torso_shapes if shape.source_role.startswith("phase18_body_accent_torso_")]
+    base = next(shape for shape in torso_shapes if shape.source_role == "phase17_body_zone_torso")
+    sleeve_accents = [shape for shape in result.shapes if "accent" in shape.source_role and shape.character_part == "arm"]
+    assert base.fill_color == (35, 40, 55)
+    assert 1 <= len(torso_shapes) <= 3
+    assert 1 <= len(accents) <= 2
+    assert not sleeve_accents
+    assert all(len(shape.points) <= 7 for shape in accents)
 
 
 def test_geometric_hair_split_uses_structural_roles_only():

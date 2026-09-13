@@ -4,8 +4,10 @@ from dataclasses import dataclass
 
 import cv2
 import numpy as np
+from PIL import Image
 
 from .models import Shape
+from .palette.feature_palette import extract_feature_palette, rgb_to_lab
 from .structure_geometry import simplify_mask_polygon
 
 
@@ -216,6 +218,48 @@ def _accent_mask(rgb: np.ndarray, zone: np.ndarray) -> np.ndarray | None:
     return component
 
 
+def _characteristic_torso_planes(rgb: np.ndarray, zone: np.ndarray, max_colors: int = 4):
+    ys, xs = np.where(zone > 0)
+    if len(xs) < 120:
+        return None
+    rgba = np.zeros((*zone.shape, 4), dtype=np.uint8)
+    rgba[..., :3] = rgb
+    rgba[..., 3] = (zone > 0).astype(np.uint8) * 255
+    try:
+        palette = extract_feature_palette(Image.fromarray(rgba, "RGBA"), n_colors=max_colors, remove_background=False)
+    except ValueError:
+        return None
+    if len(palette) < 2:
+        return None
+    pixels = rgb[ys, xs]
+    labs = rgb_to_lab(pixels)
+    centers = rgb_to_lab(np.asarray([color.rgb for color in palette], dtype=np.uint8))
+    labels = np.argmin(np.linalg.norm(labs[:, None, :] - centers[None, :, :], axis=2), axis=1)
+    counts = np.bincount(labels, minlength=len(palette))
+    base_index = int(np.argmax(counts))
+    base_color = tuple(int(v) for v in palette[base_index].rgb)
+    accents = []
+    base_lab = centers[base_index]
+    order = sorted((i for i in range(len(palette)) if i != base_index), key=lambda i: palette[i].score, reverse=True)
+    for index in order:
+        share = float(counts[index]) / max(float(len(labels)), 1.0)
+        if share < 0.07 or share > 0.48 or float(np.linalg.norm(centers[index] - base_lab)) < 14.0:
+            continue
+        candidate = np.zeros_like(zone, dtype=np.uint8)
+        chosen = labels == index
+        candidate[ys[chosen], xs[chosen]] = 1
+        candidate = cv2.morphologyEx(candidate, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) & zone
+        count, components, stats, _ = cv2.connectedComponentsWithStats(candidate, 8)
+        if count <= 1:
+            continue
+        component_index = int(np.argmax(stats[1:, cv2.CC_STAT_AREA])) + 1
+        component = (components == component_index).astype(np.uint8)
+        if int(component.sum()) < max(40, int(zone.sum() * 0.05)):
+            continue
+        accents.append((component, tuple(int(v) for v in palette[index].rgb), palette[index].family))
+    return base_color, accents
+
+
 def build_structure_body_planes(
     rgb: np.ndarray,
     subject_mask: np.ndarray,
@@ -272,11 +316,15 @@ def build_structure_body_planes(
         points = simplify_mask_polygon(zone, max_points=14, min_iou=0.88)
         if points is None:
             continue
+        characteristic = _characteristic_torso_planes(rgb, zone, max_colors=4) if name == "torso" else None
+        # Keep the established dominant major plane as the torso base.
+        # Characteristic selection is only allowed to rescue secondary identity colors.
+        base_color = _dominant_color(rgb, zone)
         shapes.append(
             Shape(
                 id=shape_id,
                 shape_type="polygon",
-                fill_color=_dominant_color(rgb, zone),
+                fill_color=base_color,
                 points=points,
                 z_index=30320 + zone_index * 10,
                 importance=0.985,
@@ -291,40 +339,45 @@ def build_structure_body_planes(
         shape_id += 1
         zone_count += 1
 
-        # Sleeves stay as one coarse plane. Only torso may receive one
-        # secondary major color, matching the approved geometric references.
-        if name != "torso" or accent_count >= min(max_accents, 1):
+        # Sleeves stay as one coarse plane. Torso can use up to two
+        # characteristic major-color planes selected inside the torso mask.
+        if name != "torso" or accent_count >= max_accents:
             continue
-        accent = _accent_mask(rgb, zone)
-        if accent is None:
-            continue
-        accent_points = _polygon(accent, max_points=8)
-        if accent_points is None:
-            continue
-        base_color = np.asarray(_dominant_color(rgb, zone), dtype=np.uint8).reshape(1, 1, 3)
-        accent_color = np.asarray(_median_color(rgb, accent), dtype=np.uint8).reshape(1, 1, 3)
-        base_lab = cv2.cvtColor(base_color, cv2.COLOR_RGB2LAB).astype(np.float32)[0, 0]
-        accent_lab = cv2.cvtColor(accent_color, cv2.COLOR_RGB2LAB).astype(np.float32)[0, 0]
-        if float(np.linalg.norm(base_lab - accent_lab)) < 16.0:
-            continue
-        shapes.append(
-            Shape(
-                id=shape_id,
-                shape_type="polygon",
-                fill_color=_median_color(rgb, accent),
-                points=accent_points,
-                z_index=30325 + zone_index * 10,
-                importance=0.94,
-                source_role=f"phase17_body_accent_{name}",
-                layer_name="foreground",
-                semantic_type="character_body_accent",
-                character_part="torso" if name == "torso" else "arm",
-                part_confidence=0.80,
-                side_hint="left" if name == "left_sleeve" else "right" if name == "right_sleeve" else "unknown",
+        candidates = []
+        if characteristic is not None:
+            candidates = characteristic[1][: max(0, max_accents - accent_count)]
+        if not candidates:
+            accent = _accent_mask(rgb, zone)
+            if accent is not None:
+                candidates = [(accent, _median_color(rgb, accent), "fallback")]
+        base_lab_actual = rgb_to_lab(np.asarray(base_color, dtype=np.uint8))
+        for accent_index, (accent, accent_color, family) in enumerate(candidates):
+            if accent_count >= max_accents:
+                break
+            accent_lab_actual = rgb_to_lab(np.asarray(accent_color, dtype=np.uint8))
+            if float(np.linalg.norm(accent_lab_actual - base_lab_actual)) < 14.0:
+                continue
+            accent_points = _polygon(accent, max_points=7)
+            if accent_points is None:
+                continue
+            shapes.append(
+                Shape(
+                    id=shape_id,
+                    shape_type="polygon",
+                    fill_color=accent_color,
+                    points=accent_points,
+                    z_index=30325 + zone_index * 10 + accent_count,
+                    importance=0.95,
+                    source_role=f"phase18_body_accent_torso_{family}_{accent_index + 1}",
+                    layer_name="foreground",
+                    semantic_type="character_body_accent",
+                    character_part="torso",
+                    part_confidence=0.84,
+                    side_hint="unknown",
+                )
             )
-        )
-        shape_id += 1
-        accent_count += 1
+            shape_id += 1
+            accent_count += 1
 
     if not shapes:
         return StructureBodyPlaneResult(False, "zone_polygon_failed", body_area_ratio=area_ratio)
