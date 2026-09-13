@@ -523,8 +523,32 @@ def test_silhouette_head_caps_blank_face_against_real_head_area():
     head_area = int(result.head_mask.sum())
     face_area = int(result.face_mask.sum())
     assert head_area > 0
-    assert 0.12 <= face_area / head_area <= 0.30
+    assert 0.08 <= face_area / head_area <= 0.22
     assert np.all(result.face_mask <= result.head_mask)
+
+
+def test_phase18_blank_face_is_faceted_and_front_hair_renders_above_it():
+    from minimalize_engine.alpha_structure import build_alpha_structure_shapes
+    from minimalize_engine.structure_head_silhouette import build_silhouette_head
+
+    rgb, mask = _synthetic_long_hair_pose()
+    face = locate_structure_face(rgb, mask)
+    assert face.enabled and face.mask is not None
+    head = build_silhouette_head(rgb, mask, face.mask)
+    assert head.enabled and head.face_mask is not None and head.hair_mask is not None
+
+    contours, _ = cv2.findContours(head.face_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour = max(contours, key=cv2.contourArea)
+    approx = cv2.approxPolyDP(contour, max(1.0, cv2.arcLength(contour, True) * 0.02), True)
+    assert 5 <= len(approx) <= 10
+
+    result = build_alpha_structure_shapes(
+        rgb, mask, face_mask=head.face_mask, head_mask=head.head_mask, hair_mask=head.hair_mask,
+    )
+    blank = next(shape for shape in result.shapes if shape.source_role == "phase17_alpha_blank_face")
+    fronts = [shape for shape in result.shapes if shape.source_role == "phase17_alpha_hair_front"]
+    assert fronts
+    assert all(shape.z_index > blank.z_index for shape in fronts)
 
 
 def test_phase17_hair_is_limited_to_three_coarse_planes():

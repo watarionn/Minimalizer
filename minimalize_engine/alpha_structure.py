@@ -316,7 +316,7 @@ def build_alpha_structure_shapes(
                     shape_type="polygon",
                     fill_color=_dominant_color(rgb, hair_region),
                     points=points,
-                    z_index=30650 + hair_index,
+                    z_index=30720 if hair_role == "front" else 30650 + hair_index,
                     importance=0.99 if hair_role == "front" else 0.97,
                     source_role=f"phase17_alpha_hair_{hair_role}",
                     layer_name="foreground",

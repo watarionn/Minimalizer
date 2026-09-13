@@ -67,22 +67,40 @@ def _compact_face_from_head(face_mask: np.ndarray, head_mask: np.ndarray) -> np.
     fx0, fy0, fx1, fy1 = face_box
     hx0, hy0, hx1, hy1 = head_box
     hw, hh = max(hx1 - hx0, 1), max(hy1 - hy0, 1)
-    center = (int(round((fx0 + fx1) * 0.5)), int(round((fy0 + fy1) * 0.5)))
-    axes = (max(4, int(round(hw * 0.19))), max(5, int(round(hh * 0.23))))
-    compact = np.zeros_like(face_mask, dtype=np.uint8)
-    cv2.ellipse(compact, center, axes, 0, 0, 360, 1, -1)
-    compact &= (head_mask > 0).astype(np.uint8)
+    cx = int(round((fx0 + fx1) * 0.5))
+    cy = int(round((fy0 + fy1) * 0.5))
+
+    def make_face(scale: float) -> np.ndarray:
+        half_w = max(4, int(round(hw * 0.15 * scale)))
+        half_h = max(5, int(round(hh * 0.18 * scale)))
+        pts = np.asarray([
+            (cx - int(half_w * 0.62), cy - half_h),
+            (cx + int(half_w * 0.62), cy - half_h),
+            (cx + half_w, cy - int(half_h * 0.55)),
+            (cx + int(half_w * 0.92), cy + int(half_h * 0.40)),
+            (cx + int(half_w * 0.48), cy + half_h),
+            (cx - int(half_w * 0.48), cy + half_h),
+            (cx - int(half_w * 0.92), cy + int(half_h * 0.40)),
+            (cx - half_w, cy - int(half_h * 0.55)),
+        ], dtype=np.int32)
+        result = np.zeros_like(face_mask, dtype=np.uint8)
+        cv2.fillPoly(result, [pts], 1)
+        result &= (head_mask > 0).astype(np.uint8)
+        face_hint = cv2.dilate(
+            (face_mask > 0).astype(np.uint8),
+            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
+        )
+        return result & face_hint
+
     head_area = max(int((head_mask > 0).sum()), 1)
-    while int(compact.sum()) / head_area > 0.30 and min(axes) > 4:
-        axes = (max(4, int(round(axes[0] * 0.90))), max(5, int(round(axes[1] * 0.90))))
-        compact[:] = 0
-        cv2.ellipse(compact, center, axes, 0, 0, 360, 1, -1)
-        compact &= (head_mask > 0).astype(np.uint8)
-    while int(compact.sum()) / head_area < 0.12 and max(axes) < max(hw, hh) * 0.40:
-        axes = (max(4, int(round(axes[0] * 1.08))), max(5, int(round(axes[1] * 1.08))))
-        compact[:] = 0
-        cv2.ellipse(compact, center, axes, 0, 0, 360, 1, -1)
-        compact &= (head_mask > 0).astype(np.uint8)
+    scale = 1.0
+    compact = make_face(scale)
+    while int(compact.sum()) / head_area > 0.22 and scale > 0.72:
+        scale *= 0.90
+        compact = make_face(scale)
+    while int(compact.sum()) / head_area < 0.08 and scale < 1.30:
+        scale *= 1.08
+        compact = make_face(scale)
     return compact
 
 def build_silhouette_head(
