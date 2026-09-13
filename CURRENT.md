@@ -1,11 +1,15 @@
 # Minimalizer CURRENT
 
 Current engine release: **v0.3.0 stable**
-Current production Web runtime: **v0.10.0 production-verified**
-Current Rinka Reference engine: **Phase 15 merged on `main`; Phase 16 Approved 18 identity/structure closure candidate is active** on `feature/rinka-phase16-approved18-microplane-pruning-20260911`.
-Phase 16 is engine-quality work only. No production deployment is part of this branch; Rinka metadata reports `phase16`.
+Current production Web runtime: **v0.11.0 production-verified**
+Current Rinka Reference engine: **Phase 16 merged and production-verified; Phase 17 structure-first prototype is active** on `feature/rinka-phase17-structure-first-20260912`.
+Phase 17 is experimental engine-quality work and is not connected to the production renderer yet.
 
 This file is the canonical restoration pointer.
+
+## Latest development: Rinka Reference Phase 17
+
+Phase 17 is now locally closure-gated as a structure-first shadow/comparison path. It arbitrates subject masks, recovers face/upper-body structure, uses gated Structure Voronoi or fallback body partitioning, derives compact silhouette-based head/hair, absorbs body residuals into structural zones, and applies a carrier-exposure candidate gate. The exact Approved 18 structure audit passes 18/18; the auxiliary repository corpus passes all 15 character images and rejects Night River. Production remains Phase 16 and Phase 17 is not yet the live renderer. See `docs/RINKA_PHASE17_STRUCTURE_GATE_CLOSURE.md`.
 
 ## Latest development: Rinka Reference Phase 16
 
