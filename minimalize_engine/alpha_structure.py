@@ -255,6 +255,44 @@ def _split_hair_regions(
 
     return regions or [("front", hair)]
 
+def _directional_hair_polygon(mask: np.ndarray, role: str) -> list[tuple[float, float]] | None:
+    ys, xs = np.where(mask > 0)
+    if len(xs) < 24:
+        return None
+    y0, y1 = int(ys.min()), int(ys.max())
+    height = max(y1 - y0, 1)
+
+    def span(frac: float) -> tuple[float, float, float]:
+        target = int(round(y0 + height * frac))
+        for radius in range(0, max(3, height // 6) + 1):
+            for yy in (target - radius, target + radius):
+                if yy < y0 or yy > y1:
+                    continue
+                row = np.where(mask[yy] > 0)[0]
+                if len(row):
+                    return float(row.min()), float(row.max()), float(yy)
+        return float(xs.min()), float(xs.max()), float(target)
+
+    top_l, top_r, top_y = span(0.08)
+    mid_l, mid_r, mid_y = span(0.48)
+    low_l, low_r, low_y = span(0.90)
+    if role == "front":
+        center = (low_l + low_r) * 0.5
+        pts = [(top_l, top_y), (top_r, top_y), (mid_r, mid_y),
+               (center + (low_r - low_l) * 0.16, low_y),
+               (center - (low_r - low_l) * 0.18, low_y), (mid_l, mid_y)]
+    elif role == "left":
+        pts = [(top_r, top_y), (top_l, top_y), (mid_l, mid_y),
+               (low_l, low_y), (low_r, low_y)]
+    elif role == "right":
+        pts = [(top_l, top_y), (top_r, top_y), (mid_r, mid_y),
+               (low_r, low_y), (low_l, low_y)]
+    else:
+        pts = [(top_l, top_y), (top_r, top_y), (mid_r, mid_y),
+               (low_r, low_y), (low_l, low_y), (mid_l, mid_y)]
+    return [(float(x), float(y)) for x, y in pts]
+
+
 def build_alpha_structure_shapes(
     rgb: np.ndarray,
     subject_mask: np.ndarray,
@@ -303,11 +341,7 @@ def build_alpha_structure_shapes(
         hair = _coarsen_hair_mask(hair, strong=False) & mask
         for hair_index, (hair_role, hair_region) in enumerate(_split_hair_regions(hair, face_mask, head_mask)):
             hair_region = _coarsen_hair_mask(hair_region, strong=(hair_role != "front")) & mask
-            points = simplify_mask_polygon(
-                hair_region,
-                max_points=8 if hair_role == "front" else 7,
-                min_iou=0.82 if hair_role == "front" else 0.78,
-            )
+            points = _directional_hair_polygon(hair_region, hair_role)
             if points is None:
                 continue
             shapes.append(

@@ -564,8 +564,15 @@ def test_phase17_hair_is_limited_to_three_coarse_planes():
         head_mask=head.head_mask, hair_mask=head.hair_mask,
     )
     hair = [s for s in result.shapes if s.character_part == "hair"]
+    face_shapes = [s for s in result.shapes if s.source_role == "phase17_alpha_blank_face"]
     assert len(hair) <= 3
-    assert all(len(shape.points) <= 8 for shape in hair)
+    assert all(len(shape.points) <= 6 for shape in hair)
+    assert len(face_shapes) == 1
+    face_z = face_shapes[0].z_index
+    assert all(
+        shape.z_index > face_z if shape.source_role == "phase17_alpha_hair_front" else shape.z_index < face_z
+        for shape in hair
+    )
 
 
 def test_phase17_body_accent_is_torso_only_and_single():
