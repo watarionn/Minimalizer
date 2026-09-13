@@ -229,6 +229,97 @@ def color_family(lab_triplet, neutral_kind):
     return best_name
 
 
+
+def _lab_distance(a, b) -> float:
+    return float(delta_e76(np.asarray(a, dtype=np.float64), np.asarray(b, dtype=np.float64)))
+
+
+def _diversity_multiplier(candidate, selected) -> float:
+    if not selected:
+        return 1.0
+    d = min(_lab_distance(candidate["lab"], item["lab"]) for item in selected)
+    return 0.12 + 0.88 * min(1.0, max(0.0, (d - 9.0) / 30.0))
+
+
+def _candidate_family(candidate) -> str:
+    return color_family(candidate["lab"], candidate["neutral"])
+
+
+def _role_select(merged, n_colors: int):
+    """Select Main / Neutral / Accent / Support roles from merged candidates."""
+    if not merged or n_colors <= 0:
+        return []
+
+    remaining = list(merged)
+    selected = []
+
+    def take(best, role, role_score):
+        picked = dict(best)
+        picked["role"] = role
+        picked["final_score"] = float(role_score)
+        selected.append(picked)
+        remaining.remove(best)
+
+    # MAIN: preserve the image's visual mass. This prevents dark dominant outfits
+    # from disappearing merely because a smaller saturated accent is more colorful.
+    main = max(
+        remaining,
+        key=lambda c: c["score"] * (0.80 + 1.20 * min(1.0, c["area"] / 0.24)),
+    )
+    main_score = main["score"] * (0.80 + 1.20 * min(1.0, main["area"] / 0.24))
+    take(main, "main", main_score)
+
+    if len(selected) >= n_colors:
+        return selected
+
+    # NEUTRAL: reserve one structural light/dark/gray color when it has real mass.
+    # If MAIN is already neutral, we avoid mechanically adding another neutral here.
+    if main["neutral"] == "color":
+        neutrals = [c for c in remaining if c["neutral"] != "color" and c["area"] >= 0.035]
+        if neutrals and n_colors >= 4:
+            neutral = max(
+                neutrals,
+                key=lambda c: c["score"] * (0.85 + 0.55 * min(1.0, c["area"] / 0.16)),
+            )
+            neutral_score = neutral["score"] * (0.85 + 0.55 * min(1.0, neutral["area"] / 0.16))
+            take(neutral, "neutral", neutral_score)
+
+
+
+    # ACCENT: prefer chromatic, distinctive, not-too-dominant colors.
+    chromatic = [c for c in remaining if c["neutral"] == "color" and c["area"] >= 0.006]
+    if chromatic:
+        seen_families = {_candidate_family(c) for c in selected}
+        def accent_metric(c):
+            family_bonus = 1.18 if _candidate_family(c) not in seen_families else 0.72
+            chroma_bonus = 0.45 + 1.75 * min(1.0, c["chroma"] / 58.0)
+            if c["chroma"] >= 28.0:
+                chroma_bonus *= 1.20
+            elif c["chroma"] < 20.0:
+                chroma_bonus *= 0.72
+            rarity_bonus = 1.16 - 0.28 * min(1.0, c["area"] / 0.18)
+            return c["score"] * chroma_bonus * rarity_bonus * family_bonus * _diversity_multiplier(c, selected)
+        accent = max(chromatic, key=accent_metric)
+        take(accent, "accent", accent_metric(accent))
+
+    if len(selected) >= n_colors:
+        return selected
+
+    # SUPPORT slots: fill remaining capacity using perceptual diversity while
+    # softly preferring substantial colors and unseen families.
+    while remaining and len(selected) < n_colors:
+        seen_families = {_candidate_family(c) for c in selected}
+        def support_metric(c):
+            family_bonus = 1.12 if _candidate_family(c) not in seen_families else 0.62
+            area_bonus = 0.90 + 0.28 * min(1.0, c["area"] / 0.14)
+            neutral_penalty = 0.78 if c["neutral"] != "color" and any(x["neutral"] != "color" for x in selected) else 1.0
+            return c["score"] * family_bonus * area_bonus * neutral_penalty * _diversity_multiplier(c, selected)
+        support = max(remaining, key=support_metric)
+        take(support, "support", support_metric(support))
+
+    return selected
+
+
 def extract_feature_palette(image: Image.Image, n_colors: int = 4, remove_background: bool = True,
                             sample_max: int = 12000, clusters: int = 18, seed: int = 42) -> list[FeatureColor]:
     rgba = image.convert("RGBA")
@@ -285,40 +376,7 @@ def extract_feature_palette(image: Image.Image, n_colors: int = 4, remove_backgr
         if any(float(delta_e76(np.array(c["lab"]), np.array(m["lab"]))) < 13.0 for m in merged):
             continue
         merged.append(c)
-    selected = []
-    pool = merged[:]
-    for slot in range(min(n_colors, len(pool))):
-        best, bestscore = None, -1.0
-        for c in pool:
-            score = c["score"]
-            fam = color_family(c["lab"], c["neutral"])
-            if c["neutral"] == "color" and c["area"] >= 0.009:
-                score *= 1.0 + 0.16 * min(1.0, c["chroma"] / 48.0)
-            if selected:
-                d = min(float(delta_e76(np.array(c["lab"]), np.array(s["lab"]))) for s in selected)
-                score *= 0.12 + 0.88 * min(1.0, max(0.0, (d - 9.0) / 30.0))
-                seen = [color_family(s["lab"], s["neutral"]) for s in selected]
-                if fam in seen:
-                    score *= 0.18 if fam in {"white","black","gray","bluegray","mauve","beige","brown"} else 0.22
-                elif c["area"] >= 0.008:
-                    score *= 1.10 if fam in {"bluegray","mauve","beige","brown","gray"} else 1.16
-                neutrals = [s for s in selected if s["neutral"] != "color"]
-                if c["neutral"] != "color" and neutrals:
-                    opposite = any((c["neutral"] == "light" and s["neutral"] == "dark") or
-                                   (c["neutral"] == "dark" and s["neutral"] == "light") for s in neutrals)
-                    score *= 0.78 if opposite and c["area"] >= 0.065 else 0.46
-            if c["neutral"] == "light" and c["area"] >= 0.050:
-                score *= 1.10
-            if slot >= 2 and sum(s["neutral"] == "color" for s in selected) < 2 and c["neutral"] == "color" and c["area"] >= 0.009:
-                score *= 1.18
-            if score > bestscore:
-                best, bestscore = c, score
-        if best is None:
-            break
-        best = dict(best)
-        best["final_score"] = float(bestscore)
-        selected.append(best)
-        pool.remove(next(x for x in pool if x is not None and x["hex"] == best["hex"] and x["lab"] == best["lab"]))
+    selected = _role_select(merged, n_colors)
     return [FeatureColor(
         rgb=s["rgb"], hex=s["hex"], lab=s["lab"], area=float(s["area"]), chroma=float(s["chroma"]),
         spread=float(s["spread"]), neutral_kind=s["neutral"], family=color_family(s["lab"], s["neutral"]),

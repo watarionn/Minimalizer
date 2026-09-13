@@ -48,3 +48,25 @@
 
 `tools/compare_color_selection.py` で既存 corpus を一括評価できます。
 比較画像とJSONは `artifacts/color-selection-comparison/` に生成します。生成物は評価用のためGit管理対象にはしません。
+
+## Role-based Selection follow-up
+
+The characteristic selector now assigns palette capacity by visual role instead of treating every slot as the same ranking problem.
+
+Roles are evaluated in this order:
+
+1. **Main**: preserves the image's largest visual mass, including dark clothing.
+2. **Neutral**: reserves a meaningful light/dark/gray structural color when needed.
+3. **Accent**: aggressively rescues smaller high-chroma identifying colors.
+4. **Support**: fills remaining slots using perceptual distance and unseen-family preference.
+
+The 16-image corpus was regenerated after this change. The most important improvements were:
+
+- dark-dominant characters keep their black/dark main color;
+- Rindo Chihaya again retains the cyan accent instead of spending the final slot on another muted pink/gray;
+- the night-city sample keeps both a dark structural base and vivid warm accent colors;
+- red, cyan, orange and gold accessory colors survive more consistently in character thumbnails.
+
+Todoroki Hajime remains intentionally purple-heavy because the source itself has very little independent hue structure. This is preferable to injecting a weak unrelated color merely to satisfy family diversity.
+
+The current conclusion remains conservative: `characteristic` is ready for user-facing comparison, but should not replace `dominant` as the default until additional approved-reference images are reviewed manually.

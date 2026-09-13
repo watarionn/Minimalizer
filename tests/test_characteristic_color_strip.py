@@ -2,6 +2,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from minimalize_engine.palette import extract_feature_palette
+
 from minimalize_engine import (
     color_strip_to_svg,
     extract_characteristic_color_strip,
@@ -48,3 +50,22 @@ def test_characteristic_color_strip_uses_existing_renderers(tmp_path: Path) -> N
     assert svg.startswith('<svg xmlns="http://www.w3.org/2000/svg"')
     assert svg.count("<rect") == document.color_count
     assert raster.size == (document.output_width, document.output_height)
+
+
+def test_role_balancing_keeps_dark_main_and_small_chromatic_accent(tmp_path: Path) -> None:
+    path = tmp_path / "role-balance.png"
+    image = Image.new("RGB", (160, 120), (24, 24, 28))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((12, 12, 147, 107), fill=(34, 35, 40))
+    draw.rectangle((25, 24, 72, 96), fill=(235, 231, 226))
+    draw.rectangle((118, 26, 143, 58), fill=(35, 180, 188))
+    draw.rectangle((116, 68, 142, 98), fill=(195, 48, 55))
+    image.save(path)
+
+    with Image.open(path) as source:
+        palette = extract_feature_palette(source, n_colors=4, remove_background=False)
+
+    families = {color.family for color in palette}
+    assert any(color.neutral_kind == "dark" for color in palette)
+    assert families & {"cyan", "blue", "green"}
+    assert families & {"red", "pink", "orange"}
