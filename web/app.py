@@ -43,7 +43,7 @@ from .service import (
     minimalize_rinka_path,
 )
 
-APP_VERSION = "0.11.0"
+APP_VERSION = "0.12.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 STATIC_DIR = Path(__file__).with_name("static")
@@ -146,7 +146,7 @@ def service_info() -> dict[str, object]:
         "color_strip_size_modes": ["equal", "proportional"],
         "color_strip_orders": ["least_first", "most_first"],
         "color_strip_orientations": ["vertical", "horizontal"],
-        "color_strip_selection_modes": ["dominant", "featured"],
+        "color_strip_selection_modes": ["dominant", "featured", "characteristic"],
     }
 
 
@@ -216,7 +216,10 @@ async def minimalize_image(
     color_size_mode: Annotated[Literal["equal", "proportional"] | None, Form()] = None,
     color_order: Annotated[Literal["least_first", "most_first"] | None, Form()] = None,
     color_orientation: Annotated[Literal["vertical", "horizontal"] | None, Form()] = None,
-    color_selection_mode: Annotated[Literal["dominant", "featured"] | None, Form()] = None,
+    color_selection_mode: Annotated[
+        Literal["dominant", "featured", "characteristic"] | None,
+        Form(),
+    ] = None,
     rinka_preset: Annotated[
         Literal["geometric_poster", "faceless_subject", "approved_reference"] | None, Form()
     ] = None,

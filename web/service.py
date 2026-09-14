@@ -8,6 +8,7 @@ from typing import Literal
 from minimalize_engine import (
     DEFAULT_RINKA_REFERENCE_PRESET,
     MinimalizeConfig,
+    extract_characteristic_color_strip,
     minimalize,
     minimalize_rinka_reference,
     normalize_rinka_reference_preset,
@@ -23,7 +24,6 @@ from minimalize_engine.color_strip import (
     DEFAULT_SIZE_MODE as COLOR_STRIP_DEFAULT_SIZE_MODE,
     ColorStripOrientation,
     ColorStripOrder,
-    ColorStripSelectionMode,
     ColorStripSizeMode,
     color_strip_to_svg,
     extract_color_strip,
@@ -34,6 +34,7 @@ from minimalize_engine.io.svg_exporter import scene_to_svg
 
 OutputFormat = Literal["svg", "png"]
 ProcessingMode = Literal["standard", "rinka_reference", "color_strip"]
+ColorStripWebSelectionMode = Literal["dominant", "featured", "characteristic"]
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,7 @@ class RenderedResult:
     color_size_mode: ColorStripSizeMode | None = None
     color_order: ColorStripOrder | None = None
     color_orientation: ColorStripOrientation | None = None
-    color_selection_mode: ColorStripSelectionMode | None = None
+    color_selection_mode: ColorStripWebSelectionMode | None = None
     rinka_preset: str | None = None
 
 
@@ -147,23 +148,34 @@ def color_strip_path(
     size_mode: ColorStripSizeMode = COLOR_STRIP_DEFAULT_SIZE_MODE,
     order: ColorStripOrder = COLOR_STRIP_DEFAULT_ORDER,
     orientation: ColorStripOrientation = COLOR_STRIP_DEFAULT_ORIENTATION,
-    selection_mode: ColorStripSelectionMode = COLOR_STRIP_DEFAULT_SELECTION_MODE,
+    selection_mode: ColorStripWebSelectionMode = COLOR_STRIP_DEFAULT_SELECTION_MODE,
     analysis_max_side_cap: int | None = None,
 ) -> RenderedResult:
     analysis_max_side = COLOR_STRIP_ANALYSIS_MAX_SIDE
     if analysis_max_side_cap is not None:
         analysis_max_side = min(analysis_max_side, analysis_max_side_cap)
 
-    document = extract_color_strip(
-        input_path,
-        color_count=color_count,
-        similarity=similarity,
-        size_mode=size_mode,
-        order=order,
-        orientation=orientation,
-        selection_mode=selection_mode,
-        analysis_max_side=analysis_max_side,
-    )
+    if selection_mode == "characteristic":
+        document = extract_characteristic_color_strip(
+            input_path,
+            color_count=color_count,
+            size_mode=size_mode,
+            order=order,
+            orientation=orientation,
+            analysis_max_side=analysis_max_side,
+            remove_background=True,
+        )
+    else:
+        document = extract_color_strip(
+            input_path,
+            color_count=color_count,
+            similarity=similarity,
+            size_mode=size_mode,
+            order=order,
+            orientation=orientation,
+            selection_mode=selection_mode,
+            analysis_max_side=analysis_max_side,
+        )
 
     if output_format == "svg":
         content = color_strip_to_svg(document).encode("utf-8")
@@ -186,9 +198,9 @@ def color_strip_path(
         analysis_size=f"{document.analysis_width}x{document.analysis_height}",
         source_size=f"{document.source_width}x{document.source_height}",
         color_count=document.color_count,
-        color_similarity=document.similarity,
+        color_similarity=None if selection_mode == "characteristic" else document.similarity,
         color_size_mode=document.size_mode,
         color_order=document.order,
         color_orientation=document.orientation,
-        color_selection_mode=document.selection_mode,
+        color_selection_mode=selection_mode,
     )

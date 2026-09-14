@@ -16,3 +16,6 @@ examples/*preview*.png
 examples/phase14_user18_input/
 examples/phase14_user18_approved/
 examples/phase15_*/
+
+# Local evaluation artifacts
+artifacts/

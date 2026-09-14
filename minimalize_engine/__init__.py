@@ -1,3 +1,4 @@
+from .characteristic_color_strip import extract_characteristic_color_strip
 from .color_strip import (
     COLOR_STRIP_VERSION,
     ColorStripColor,
@@ -30,6 +31,7 @@ __all__ = [
     "ColorStripColor",
     "ColorStripDocument",
     "extract_color_strip",
+    "extract_characteristic_color_strip",
     "color_strip_to_svg",
     "render_color_strip",
 ]
