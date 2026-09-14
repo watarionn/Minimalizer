@@ -9,6 +9,7 @@ from .models import Shape
 from .structure_body_planes import build_structure_body_planes
 from .structure_carrier_guard import build_carrier_guard
 from .structure_geometry import simplify_mask_polygon
+from .structure_identity_planes import build_identity_hand_planes, build_major_prop_plane
 
 
 @dataclass
@@ -20,6 +21,11 @@ class AlphaStructureResult:
     color_plane_count: int = 0
     carrier_exposure_ratio: float = 0.0
     carrier_patch_count: int = 0
+    identity_hand_count: int = 0
+    identity_prop_count: int = 0
+    identity_prop_shape_count: int = 0
+    identity_prop_type: str = "none"
+    identity_prop_confidence: float = 0.0
 
     def to_dict(self) -> dict:
         return {
@@ -30,6 +36,11 @@ class AlphaStructureResult:
             "color_plane_count": int(self.color_plane_count),
             "carrier_exposure_ratio": round(float(self.carrier_exposure_ratio), 6),
             "carrier_patch_count": int(self.carrier_patch_count),
+            "identity_hand_count": int(self.identity_hand_count),
+            "identity_prop_count": int(self.identity_prop_count),
+            "identity_prop_shape_count": int(self.identity_prop_shape_count),
+            "identity_prop_type": self.identity_prop_type,
+            "identity_prop_confidence": round(float(self.identity_prop_confidence), 6),
         }
 
 
@@ -334,6 +345,25 @@ def build_alpha_structure_shapes(
         shapes.extend(body_planes.shapes)
     shape_id = start_id + 1 + len(body_planes.shapes)
 
+    identity = build_identity_hand_planes(
+        rgb, mask, face_mask,
+        left_arm_mask=left_arm_mask, right_arm_mask=right_arm_mask,
+        start_id=shape_id,
+    )
+    if identity.enabled:
+        shapes.extend(identity.shapes)
+        shape_id += len(identity.shapes)
+
+    major_prop = build_major_prop_plane(
+        rgb, mask, face_mask,
+        head_mask=head_mask, torso_mask=torso_mask,
+        left_arm_mask=left_arm_mask, right_arm_mask=right_arm_mask,
+        start_id=shape_id,
+    )
+    if major_prop.enabled:
+        shapes.extend(major_prop.shapes)
+        shape_id += len(major_prop.shapes)
+
     if hair_mask is not None and hair_mask.shape == mask.shape:
         hair = _constrain_hair_envelope(
             (hair_mask > 0).astype(np.uint8) & mask, head_mask, face_mask
@@ -396,6 +426,11 @@ def build_alpha_structure_shapes(
             color_plane_count=sum(1 for shape in shapes if shape.source_role.startswith("phase17_body_")),
             carrier_exposure_ratio=carrier_guard.exposure_ratio,
             carrier_patch_count=0,
+            identity_hand_count=len(identity.shapes) if identity.enabled else 0,
+            identity_prop_count=major_prop.prop_count if major_prop.enabled else 0,
+            identity_prop_shape_count=len(major_prop.shapes) if major_prop.enabled else 0,
+            identity_prop_type=major_prop.prop_type,
+            identity_prop_confidence=major_prop.confidence,
         )
     shapes = [*carrier_guard.patches, *shapes]
     return AlphaStructureResult(
@@ -406,4 +441,9 @@ def build_alpha_structure_shapes(
         color_plane_count=sum(1 for shape in shapes if shape.source_role.startswith("phase17_body_")),
         carrier_exposure_ratio=carrier_guard.exposure_ratio,
         carrier_patch_count=carrier_guard.fallback_count,
+        identity_hand_count=len(identity.shapes) if identity.enabled else 0,
+        identity_prop_count=major_prop.prop_count if major_prop.enabled else 0,
+        identity_prop_shape_count=len(major_prop.shapes) if major_prop.enabled else 0,
+        identity_prop_type=major_prop.prop_type,
+        identity_prop_confidence=major_prop.confidence,
     )

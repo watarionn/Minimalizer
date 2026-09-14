@@ -29,3 +29,17 @@ The established dominant torso color remains the base plane. `characteristic` is
 Sleeves remain one plane each and never receive characteristic accents. If feature-palette extraction cannot produce a safe torso accent, the previous two-cluster accent detector remains as fallback.
 
 A/B review against Checkpoint 2 showed that keeping the dominant base avoids large recoloring on Koganei while still restoring meaningful salmon/purple secondary planes on Otonose and Todoroki. The 16-image auxiliary audit remains 15/15 character PASS with Night River rejected; maximum carrier exposure is about 0.203.
+
+## Checkpoint 4: Identity-bearing hands and major props
+
+Hands return only as coarse masses: at most one polygon per side, three to six vertices, no fingers. Skin color comes from the compact blank face, while a widened face geometry is used only for hand-position gating so shoulder highlights are not mistaken for hands.
+
+The auxiliary audit keeps hand recovery conservative: 10 of 15 accepted character images receive hands, 11 total hand planes, with only Omaru receiving both sides. Shirogane's earlier shoulder false positive is rejected.
+
+Major props use a separate high-precision gate. Phase 18 promotes only external staff/sword-like objects and handheld microphone-like objects. Hat detection remains experimental and is intentionally not promoted because Otonose produced a false positive.
+
+Long props must sit outside known head/torso/arm structure, differ from body color, avoid skin-like colors, and pass a low surrounding-subject occupancy gate. This preserves Nerissa's real staff while removing Koganei's clothing-edge false staff.
+
+Microphones require a dark, highly saturated magenta head close to an arm. One logical microphone is rendered as at most two geometric planes: a characteristic-color head and a dark stem. Metadata distinguishes `identity_prop_count=1` from `identity_prop_shape_count=2`.
+
+Final auxiliary closure: all 15 character images pass the Structure Candidate Gate, Night River remains rejected, Isaki alone carries the microphone symbol, Nerissa alone carries the staff symbol, and the remaining 13 images carry no major prop. Maximum shape count is 10 and maximum carrier exposure stays about 0.194.
