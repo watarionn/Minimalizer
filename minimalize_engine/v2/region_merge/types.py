@@ -274,3 +274,54 @@ class RegionMergeTree:
             raise ValueError("merge_sequence must not contain duplicates")
         if any(region_id not in node_ids for region_id in self.merge_sequence):
             raise ValueError("merge_sequence must reference merge-tree nodes")
+
+
+@dataclass(frozen=True, slots=True)
+class RegionMergeMetrics:
+    initial_edge_count: int
+    evaluation_count: int
+    blocked_evaluation_count: int
+    safe_candidate_count: int
+    final_root_count: int
+    barrier_counts: tuple[tuple[str, int], ...] = ()
+
+    def __post_init__(self) -> None:
+        for name in (
+            "initial_edge_count", "evaluation_count", "blocked_evaluation_count",
+            "safe_candidate_count", "final_root_count",
+        ):
+            if getattr(self, name) < 0:
+                raise ValueError(f"{name} must be non-negative")
+        keys = tuple(key for key, _ in self.barrier_counts)
+        if len(keys) != len(set(keys)) or any(count < 0 for _, count in self.barrier_counts):
+            raise ValueError("barrier_counts must contain unique non-negative entries")
+
+
+@dataclass(frozen=True, slots=True)
+class RegionMergeResult:
+    initial_labels: LabelMap
+    tree: RegionMergeTree
+    initial_region_count: int
+    safe_merge_count: int
+    hierarchy_merge_count: int
+    metrics: RegionMergeMetrics
+
+    def __post_init__(self) -> None:
+        labels = np.array(self.initial_labels, dtype=np.int32, copy=True)
+        if labels.ndim != 2 or labels.size == 0 or np.any(labels < 0):
+            raise ValueError("initial_labels must be a non-empty 2D non-negative map")
+        labels.flags.writeable = False
+        object.__setattr__(self, "initial_labels", labels)
+        if self.initial_region_count <= 0:
+            raise ValueError("initial_region_count must be positive")
+        if self.safe_merge_count < 0 or self.hierarchy_merge_count < 0:
+            raise ValueError("merge counts must be non-negative")
+        total_merges = self.safe_merge_count + self.hierarchy_merge_count
+        if total_merges != len(self.tree.merge_sequence):
+            raise ValueError("merge counts must match merge-tree sequence")
+        if self.metrics.final_root_count != len(self.tree.roots):
+            raise ValueError("metrics final_root_count must match tree roots")
+        if len(self.tree.leaf_ids) != self.initial_region_count:
+            raise ValueError("initial_region_count must match merge-tree leaves")
+        if self.initial_region_count - total_merges != len(self.tree.roots):
+            raise ValueError("initial regions minus merges must equal root count")
