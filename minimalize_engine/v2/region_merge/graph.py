@@ -9,6 +9,8 @@ from numpy.typing import NDArray
 from minimalize_engine.v2.types import (
     CharacteristicSupport,
     EdgeKey,
+    ImageBundle,
+    LabelMap,
     RegionAnnotation,
     RegionId,
 )
@@ -317,7 +319,7 @@ def _collect_boundaries(
     return buckets
 
 
-def build_region_graph(
+def build_region_graph_from_arrays(
     initial_labels: NDArray[np.integer],
     analysis_lab: NDArray[np.floating],
     edge_raw: NDArray[np.floating],
@@ -383,6 +385,44 @@ def build_region_graph(
         initial_labels=labels,
         next_region_id=max(stats) + 1,
     )
+
+
+def build_region_graph(
+    bundle: ImageBundle,
+    labels: LabelMap,
+    *,
+    annotations: Mapping[RegionId, RegionAnnotation] | None = None,
+    gradient_bins: int = DEFAULT_GRADIENT_BINS,
+) -> RegionGraph:
+    labels_array = np.asarray(labels)
+    if labels_array.dtype != np.int32:
+        raise ValueError("initial labels must have dtype int32")
+    expected_shape = bundle.analysis_rgb.shape[:2]
+    if labels_array.shape != expected_shape:
+        raise ValueError("initial labels must match analysis resolution")
+    region_ids = np.unique(labels_array)
+    expected_ids = np.arange(region_ids.size, dtype=np.int32)
+    if not np.array_equal(region_ids, expected_ids):
+        raise ValueError("initial labels must be sequential from 0")
+    if annotations is not None:
+        unknown_annotations = set(annotations) - set(int(value) for value in region_ids)
+        if unknown_annotations:
+            raise ValueError(
+                f"annotations reference unknown regions: {sorted(unknown_annotations)}"
+            )
+    graph = build_region_graph_from_arrays(
+        labels_array,
+        bundle.analysis_lab,
+        bundle.edge_raw,
+        bundle.edge_structural,
+        subject_prob=bundle.subject_prob,
+        subject_confidence=bundle.subject_confidence,
+        alpha=bundle.alpha,
+        annotations=annotations,
+        gradient_bins=gradient_bins,
+    )
+    validate_graph(graph)
+    return graph
 
 
 def build_initial_merge_tree(graph: RegionGraph) -> RegionMergeTree:

@@ -4,7 +4,7 @@ import pytest
 from minimalize_engine.v2.region_merge.graph import (
     apply_merge,
     build_initial_merge_tree,
-    build_region_graph,
+    build_region_graph_from_arrays,
     build_region_stats,
     merge_region_edges,
     merge_region_stats,
@@ -48,7 +48,7 @@ def test_region_stats_generation_uses_pixel_centers_and_exclusive_bbox():
 
 def test_rag_construction_is_symmetric_and_builds_histograms():
     labels, lab, raw, structural = _fixture()
-    graph = build_region_graph(labels, lab, raw, structural)
+    graph = build_region_graph_from_arrays(labels, lab, raw, structural)
     validate_graph(graph)
     assert graph.adjacency[0] == {1, 2}
     assert graph.adjacency[1] == {0, 2}
@@ -63,7 +63,7 @@ def test_rag_construction_is_symmetric_and_builds_histograms():
 
 def test_merge_region_stats_preserves_additive_statistics_and_perimeter():
     labels, lab, raw, structural = _fixture()
-    graph = build_region_graph(labels, lab, raw, structural)
+    graph = build_region_graph_from_arrays(labels, lab, raw, structural)
     merged = merge_region_stats(
         graph.nodes[0],
         graph.nodes[1],
@@ -93,7 +93,7 @@ def test_merge_region_edges_adds_histograms_and_boundary_weighted_alpha():
 
 def test_apply_merge_uses_monotonic_ids_keeps_labels_immutable_and_updates_tree():
     labels, lab, raw, structural = _fixture()
-    graph = build_region_graph(labels, lab, raw, structural)
+    graph = build_region_graph_from_arrays(labels, lab, raw, structural)
     tree = build_initial_merge_tree(graph)
     initial_copy = graph.initial_labels.copy()
 

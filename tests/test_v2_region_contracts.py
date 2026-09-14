@@ -9,7 +9,7 @@ from minimalize_engine.v2.types import (
 from minimalize_engine.v2.region_merge.graph import (
     apply_merge,
     build_initial_merge_tree,
-    build_region_graph,
+    build_region_graph_from_arrays,
     validate_graph,
     validate_merge_tree,
 )
@@ -24,7 +24,7 @@ def _graph_fixture():
     lab[labels == 2] = (70, 7, 8)
     raw = np.zeros((3, 3), dtype=np.float32)
     structural = np.zeros((3, 3), dtype=np.float32)
-    return build_region_graph(labels, lab, raw, structural)
+    return build_region_graph_from_arrays(labels, lab, raw, structural)
 
 
 def test_image_bundle_enforces_analysis_shape_and_core_dtypes():
