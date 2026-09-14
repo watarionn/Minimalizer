@@ -43,3 +43,12 @@ Long props must sit outside known head/torso/arm structure, differ from body col
 Microphones require a dark, highly saturated magenta head close to an arm. One logical microphone is rendered as at most two geometric planes: a characteristic-color head and a dark stem. Metadata distinguishes `identity_prop_count=1` from `identity_prop_shape_count=2`.
 
 Final auxiliary closure: all 15 character images pass the Structure Candidate Gate, Night River remains rejected, Isaki alone carries the microphone symbol, Nerissa alone carries the staff symbol, and the remaining 13 images carry no major prop. Maximum shape count is 10 and maximum carrier exposure stays about 0.194.
+
+## Final Approved 18 production gate
+
+The locked Approved 18 final review was completed on 2026-09-14.
+The Phase 18 candidate rendered all 18 inputs successfully and is visually cleaner than Phase 16, but it removes too much pose-defining arm, hair, torso, sleeve, and outfit structure to replace production.
+
+Production promotion verdict: **NO-GO**.
+
+See `docs/RINKA_PHASE18_APPROVED18_FINAL_REVIEW.md` for the corpus integrity checks, production-path sanity check, and next implementation priorities.
