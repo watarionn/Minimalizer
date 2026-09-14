@@ -523,8 +523,32 @@ def test_silhouette_head_caps_blank_face_against_real_head_area():
     head_area = int(result.head_mask.sum())
     face_area = int(result.face_mask.sum())
     assert head_area > 0
-    assert 0.12 <= face_area / head_area <= 0.30
+    assert 0.08 <= face_area / head_area <= 0.22
     assert np.all(result.face_mask <= result.head_mask)
+
+
+def test_phase18_blank_face_is_faceted_and_front_hair_renders_above_it():
+    from minimalize_engine.alpha_structure import build_alpha_structure_shapes
+    from minimalize_engine.structure_head_silhouette import build_silhouette_head
+
+    rgb, mask = _synthetic_long_hair_pose()
+    face = locate_structure_face(rgb, mask)
+    assert face.enabled and face.mask is not None
+    head = build_silhouette_head(rgb, mask, face.mask)
+    assert head.enabled and head.face_mask is not None and head.hair_mask is not None
+
+    contours, _ = cv2.findContours(head.face_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour = max(contours, key=cv2.contourArea)
+    approx = cv2.approxPolyDP(contour, max(1.0, cv2.arcLength(contour, True) * 0.02), True)
+    assert 5 <= len(approx) <= 10
+
+    result = build_alpha_structure_shapes(
+        rgb, mask, face_mask=head.face_mask, head_mask=head.head_mask, hair_mask=head.hair_mask,
+    )
+    blank = next(shape for shape in result.shapes if shape.source_role == "phase17_alpha_blank_face")
+    fronts = [shape for shape in result.shapes if shape.source_role == "phase17_alpha_hair_front"]
+    assert fronts
+    assert all(shape.z_index > blank.z_index for shape in fronts)
 
 
 def test_phase17_hair_is_limited_to_three_coarse_planes():
@@ -540,20 +564,81 @@ def test_phase17_hair_is_limited_to_three_coarse_planes():
         head_mask=head.head_mask, hair_mask=head.hair_mask,
     )
     hair = [s for s in result.shapes if s.character_part == "hair"]
+    face_shapes = [s for s in result.shapes if s.source_role == "phase17_alpha_blank_face"]
     assert len(hair) <= 3
-    assert all(len(shape.points) <= 8 for shape in hair)
+    assert all(len(shape.points) <= 6 for shape in hair)
+    assert len(face_shapes) == 1
+    face_z = face_shapes[0].z_index
+    assert all(
+        shape.z_index > face_z if shape.source_role == "phase17_alpha_hair_front" else shape.z_index < face_z
+        for shape in hair
+    )
 
 
-def test_phase17_body_accent_is_torso_only_and_single():
+def test_phase18_characteristic_outfit_keeps_torso_to_three_major_colors():
     from minimalize_engine.structure_body_planes import build_structure_body_planes
+
+    rgb = np.full((220, 220, 3), 245, dtype=np.uint8)
+    subject = np.zeros((220, 220), dtype=np.uint8)
+    torso = np.zeros_like(subject); left = np.zeros_like(subject); right = np.zeros_like(subject)
+    torso[75:205, 75:145] = 1
+    left[90:185, 35:75] = 1
+    right[90:185, 145:185] = 1
+    subject |= torso | left | right
+    rgb[subject > 0] = (35, 40, 55)
+    rgb[85:130, 80:140] = (210, 45, 55)
+    rgb[135:165, 80:140] = (238, 196, 45)
+    rgb[170:200, 80:140] = (40, 90, 205)
+
+    result = build_structure_body_planes(
+        rgb, subject, torso_mask=torso, left_arm_mask=left, right_arm_mask=right, max_accents=2,
+    )
+    torso_shapes = [shape for shape in result.shapes if shape.character_part == "torso"]
+    accents = [shape for shape in torso_shapes if shape.source_role.startswith("phase18_body_accent_torso_")]
+    base = next(shape for shape in torso_shapes if shape.source_role == "phase17_body_zone_torso")
+    sleeve_accents = [shape for shape in result.shapes if "accent" in shape.source_role and shape.character_part == "arm"]
+    assert base.fill_color == (35, 40, 55)
+    assert 1 <= len(torso_shapes) <= 3
+    assert 1 <= len(accents) <= 2
+    assert not sleeve_accents
+    assert all(len(shape.points) <= 7 for shape in accents)
+
+
+def test_phase18_identity_hand_is_one_coarse_mass_without_fingers():
+    from minimalize_engine.structure_identity_planes import build_identity_hand_planes
+
+    rgb, mask = _synthetic_raised_hand_pose()
+    face = locate_structure_face(rgb, mask)
+    assert face.enabled and face.mask is not None
+    structure = build_structure_first_parts(rgb, mask, face_anchor_mask=face.mask)
+    result = build_identity_hand_planes(
+        rgb, mask, face.mask,
+        left_arm_mask=structure.masks.get("left_arm"),
+        right_arm_mask=structure.masks.get("right_arm"),
+    )
+    assert result.enabled is True
+    assert result.hand_count == 1
+    hand = result.shapes[0]
+    assert hand.character_part == "hand"
+    assert hand.source_role == "phase18_identity_hand_right"
+    assert 3 <= len(hand.points) <= 6
+    assert hand.z_index == 30710
+
+
+def test_phase18_identity_hand_does_not_invent_hands_without_skin_endpoint():
+    from minimalize_engine.structure_identity_planes import build_identity_hand_planes
 
     rgb, mask = _synthetic_pose()
     face = locate_structure_face(rgb, mask)
     assert face.enabled and face.mask is not None
-    result = build_structure_body_planes(rgb, mask, face_mask=face.mask, max_accents=2)
-    accents = [s for s in result.shapes if "phase17_body_accent_" in s.source_role]
-    assert len(accents) <= 1
-    assert all(s.source_role == "phase17_body_accent_torso" for s in accents)
+    structure = build_structure_first_parts(rgb, mask, face_anchor_mask=face.mask)
+    result = build_identity_hand_planes(
+        rgb, mask, face.mask,
+        left_arm_mask=structure.masks.get("left_arm"),
+        right_arm_mask=structure.masks.get("right_arm"),
+    )
+    assert result.enabled is False
+    assert result.hand_count == 0
 
 
 def test_geometric_hair_split_uses_structural_roles_only():
@@ -652,3 +737,57 @@ def test_phase17_candidate_gate_rejects_overfragmented_or_exposed_structure():
     assert "body_zone_gate" in result.reasons
     assert "carrier_exposure_gate" in result.reasons
     assert "carrier_patch_gate" in result.reasons
+
+
+def test_phase18_major_prop_keeps_external_staff_as_one_plane():
+    from minimalize_engine.structure_identity_planes import build_major_prop_plane
+    rgb, subject = _synthetic_pose()
+    face = locate_structure_face(rgb, subject)
+    assert face.enabled and face.mask is not None
+    head = build_face_anchored_head(rgb, subject, face.mask)
+    assert head.enabled and head.head_mask is not None
+    staff = np.zeros_like(subject)
+    cv2.line(staff, (28, 26), (32, 224), 1, 8)
+    subject |= staff
+    rgb[staff > 0] = (72, 52, 38)
+    result = build_major_prop_plane(rgb, subject, face.mask, head_mask=head.head_mask)
+    assert result.enabled
+    assert result.prop_type == "staff_like"
+    assert result.prop_count == 1
+    assert len(result.shapes[0].points) <= 6
+
+
+def test_phase18_major_prop_rejects_central_clothing_line():
+    from minimalize_engine.structure_identity_planes import build_major_prop_plane
+    rgb, subject = _synthetic_pose()
+    face = locate_structure_face(rgb, subject)
+    assert face.enabled and face.mask is not None
+    cv2.line(rgb, (128, 96), (128, 202), (12, 12, 12), 5)
+    result = build_major_prop_plane(rgb, subject, face.mask)
+    assert not result.enabled
+    assert result.prop_count == 0
+
+
+def test_phase18_microphone_is_one_prop_with_two_symbol_planes():
+    from minimalize_engine.structure_identity_planes import build_major_prop_plane
+    rgb, base = _synthetic_pose()
+    face = locate_structure_face(rgb, base)
+    assert face.enabled and face.mask is not None
+    structure = build_structure_first_parts(rgb, base, face_anchor_mask=face.mask)
+    subject = base.copy()
+    cv2.ellipse(subject, (156, 86), (5, 9), 0, 0, 360, 1, -1)
+    cv2.ellipse(rgb, (156, 86), (5, 9), 0, 0, 360, (105, 12, 78), -1)
+    cv2.line(subject, (156, 94), (162, 111), 1, 4)
+    cv2.line(rgb, (156, 94), (162, 111), (28, 30, 38), 4)
+    result = build_major_prop_plane(
+        rgb, subject, face.mask,
+        torso_mask=structure.masks.get("torso"),
+        left_arm_mask=structure.masks.get("left_arm"),
+        right_arm_mask=structure.masks.get("right_arm"),
+    )
+    assert result.enabled and result.prop_type == "microphone_like"
+    assert result.prop_count == 1 and len(result.shapes) == 2
+    assert {shape.source_role for shape in result.shapes} == {
+        "phase18_identity_prop_microphone_head",
+        "phase18_identity_prop_microphone_stem",
+    }
