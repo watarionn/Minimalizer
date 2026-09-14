@@ -325,3 +325,80 @@ class RegionMergeResult:
             raise ValueError("initial_region_count must match merge-tree leaves")
         if self.initial_region_count - total_merges != len(self.tree.roots):
             raise ValueError("initial regions minus merges must equal root count")
+
+
+@dataclass(frozen=True, slots=True)
+class CutPolicy:
+    target_min: int
+    target_max: int
+    max_hierarchy_height: float
+    complexity_lambda: float
+    target_weight: float = 0.25
+    anchor_protection_weight: float = 0.50
+    semantic_protection_weight: float = 0.25
+    subject_protection_weight: float = 0.25
+
+    def __post_init__(self) -> None:
+        if self.target_min <= 0 or self.target_max < self.target_min:
+            raise ValueError("cut target range must be positive and ordered")
+        for name in (
+            "max_hierarchy_height", "complexity_lambda", "target_weight",
+            "anchor_protection_weight", "semantic_protection_weight",
+            "subject_protection_weight",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative")
+
+@dataclass(frozen=True, slots=True)
+class HierarchyCut:
+    preset: str
+    selected_ids: frozenset[RegionId]
+    region_count: int
+    visual_loss: float
+    normalized_visual_loss: float
+    objective: float
+    max_selected_hierarchy_height: float
+
+    def __post_init__(self) -> None:
+        if not self.preset:
+            raise ValueError("cut preset must not be empty")
+        if self.region_count <= 0 or self.region_count != len(self.selected_ids):
+            raise ValueError("region_count must match selected_ids")
+        if any(region_id < 0 for region_id in self.selected_ids):
+            raise ValueError("cut region ids must be non-negative")
+        for name in (
+            "visual_loss", "normalized_visual_loss", "objective",
+            "max_selected_hierarchy_height",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative")
+
+@dataclass(frozen=True, slots=True)
+class HierarchyCutFamily:
+    detailed: HierarchyCut
+    balanced: HierarchyCut
+    minimal: HierarchyCut
+    ultra_minimal: HierarchyCut
+
+
+@dataclass(frozen=True, slots=True)
+class RegionSelection:
+    preset: str
+    cut: HierarchyCut
+    labels: LabelMap
+    region_ids: frozenset[RegionId]
+
+    def __post_init__(self) -> None:
+        labels = np.array(self.labels, dtype=np.int32, copy=True)
+        if labels.ndim != 2 or labels.size == 0 or np.any(labels < 0):
+            raise ValueError("selection labels must be a non-empty non-negative 2D map")
+        if self.preset != self.cut.preset:
+            raise ValueError("selection preset must match cut preset")
+        if self.region_ids != self.cut.selected_ids:
+            raise ValueError("selection region_ids must match cut selected_ids")
+        if set(int(value) for value in np.unique(labels)) != set(self.region_ids):
+            raise ValueError("selection labels must materialize every selected region exactly")
+        labels.flags.writeable = False
+        object.__setattr__(self, "labels", labels)
