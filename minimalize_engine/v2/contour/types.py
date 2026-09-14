@@ -108,6 +108,8 @@ class RegionContour:
     loops: tuple[PointArray, ...]
     area_px: int
     centroid: tuple[float, float]
+    semantic_tag: str | None = None
+    semantic_confidence: float = 0.0
 
     def __post_init__(self) -> None:
         if self.region_id < 0 or self.area_px <= 0:
@@ -125,6 +127,10 @@ class RegionContour:
             normalized.append(points)
         if not all(np.isfinite(value) for value in self.centroid):
             raise ValueError("RegionContour centroid must be finite")
+        if not 0.0 <= self.semantic_confidence <= 1.0:
+            raise ValueError("semantic_confidence must be within [0, 1]")
+        if self.semantic_tag is None and self.semantic_confidence > 0.0:
+            raise ValueError("semantic confidence requires semantic tag")
         object.__setattr__(self, "loops", tuple(normalized))
 
 

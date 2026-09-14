@@ -161,6 +161,7 @@ def _candidate_valid_for_regions(
 
 def _contour_from_final_graph(
     graph: BoundaryGraph,
+    merge_result: RegionMergeResult,
     selection: RegionSelection,
     region_id: RegionId,
     config: ContourSimplificationConfig,
@@ -170,11 +171,14 @@ def _contour_from_final_graph(
     ys, xs = np.nonzero(mask)
     if len(xs) == 0:
         raise ValueError(f"final contour removed region {region_id}")
+    stats = merge_result.tree.nodes[region_id].stats
     contour = RegionContour(
         region_id=region_id,
         loops=tuple(loop.astype(np.float32, copy=False) for loop in loops),
         area_px=int(len(xs)),
         centroid=(float(np.mean(xs + 0.5)), float(np.mean(ys + 0.5))),
+        semantic_tag=stats.semantic_tag,
+        semantic_confidence=stats.semantic_confidence,
     )
     return contour, mask
 
@@ -274,7 +278,7 @@ def simplify_boundary_graph(
     final_masks: dict[RegionId, np.ndarray] = {}
     for region_id in sorted(selection.region_ids):
         contour, mask = _contour_from_final_graph(
-            final_graph, selection, region_id, config
+            final_graph, merge_result, selection, region_id, config
         )
         contours[region_id] = contour
         final_masks[region_id] = mask
