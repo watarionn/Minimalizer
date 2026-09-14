@@ -552,6 +552,10 @@ def apply_merge(
     raw_merge_cost: float,
     stage: str,
 ) -> RegionId:
+    if not np.isfinite(raw_merge_cost) or raw_merge_cost < 0.0:
+        raise ValueError("raw_merge_cost must be finite and non-negative")
+    if not stage:
+        raise ValueError("stage must not be empty")
     if left_id == right_id:
         raise ValueError("cannot merge a region with itself")
     if left_id not in graph.nodes or right_id not in graph.nodes:
@@ -630,6 +634,10 @@ def apply_merge(
 
 
 def validate_graph(graph: RegionGraph) -> None:
+    if graph.initial_labels.flags.writeable:
+        raise ValueError("initial_labels must be immutable")
+    if graph.nodes and graph.next_region_id <= max(graph.nodes):
+        raise ValueError("next_region_id must be greater than all active region ids")
     if set(graph.nodes) != set(graph.adjacency):
         raise ValueError("graph nodes and adjacency keys differ")
 
@@ -652,3 +660,45 @@ def validate_graph(graph: RegionGraph) -> None:
             or edge.a not in graph.adjacency[edge.b]
         ):
             raise ValueError("edge is missing from adjacency")
+
+def validate_merge_tree(tree: RegionMergeTree) -> None:
+    node_ids = set(tree.nodes)
+    if not tree.leaf_ids <= node_ids:
+        raise ValueError("leaf_ids must reference merge-tree nodes")
+    if not tree.roots <= node_ids:
+        raise ValueError("roots must reference merge-tree nodes")
+    if len(tree.merge_sequence) != len(set(tree.merge_sequence)):
+        raise ValueError("merge_sequence must not contain duplicates")
+
+    parent_count = {region_id: 0 for region_id in node_ids}
+    internal_ids: set[RegionId] = set()
+    for region_id, node in tree.nodes.items():
+        if node.region_id != region_id or node.stats.id != region_id:
+            raise ValueError("merge-tree node ids must match dictionary keys and stats ids")
+        is_leaf = node.left_id is None and node.right_id is None
+        if is_leaf:
+            if region_id not in tree.leaf_ids:
+                raise ValueError("every childless merge-tree node must be a leaf")
+            continue
+        if node.left_id is None or node.right_id is None:
+            raise ValueError("merge-tree nodes must have either zero or two children")
+        internal_ids.add(region_id)
+        for child_id in (node.left_id, node.right_id):
+            if child_id not in tree.nodes:
+                raise ValueError("merge-tree child references a missing node")
+            if child_id == region_id:
+                raise ValueError("merge-tree node cannot reference itself as a child")
+            parent_count[child_id] += 1
+            child = tree.nodes[child_id]
+            if node.hierarchy_height + 1e-12 < child.hierarchy_height:
+                raise ValueError("hierarchy_height must be monotonic")
+
+    if set(tree.merge_sequence) != internal_ids:
+        raise ValueError("merge_sequence must contain every internal node exactly once")
+    if tree.leaf_ids & internal_ids:
+        raise ValueError("leaf_ids must not contain internal nodes")
+    expected_roots = {region_id for region_id, count in parent_count.items() if count == 0}
+    if expected_roots != tree.roots:
+        raise ValueError("roots must be exactly the parentless merge-tree nodes")
+    if any(count > 1 for count in parent_count.values()):
+        raise ValueError("merge-tree nodes may have at most one parent")
