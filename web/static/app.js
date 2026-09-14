@@ -93,7 +93,7 @@ function updateModeUi() {
   elements.controlCard.classList.toggle("is-color-strip", colorStrip);
 
   if (rinka) {
-    elements.modeDescription.textContent = "完成済みの凛夏手本版 Phase 7。検証済みのミニマル度4・専用プロファイルを固定で使用します。";
+    elements.modeDescription.textContent = "本番稼働中の凛夏手本版 Phase 16。採用見本18で検証したミニマル度4・専用プロファイルを使用します。";
     elements.minimalizeButton.textContent = "凛夏手本版でミニマル化";
   } else if (colorStrip) {
     elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。使用量順・特徴色優先・特徴色 v5を比較できます。";

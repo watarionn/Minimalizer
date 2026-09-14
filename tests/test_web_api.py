@@ -54,6 +54,7 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="color-strip-options"' in response.text
     assert 'id="strip-selection-mode-select"' in response.text
     assert 'value="characteristic"' in response.text
+    assert "characteristic · 人の見た目優先" in response.text
     assert 'id="strip-size-mode-select"' in response.text
     assert 'id="strip-order-select"' in response.text
     assert 'id="strip-orientation-select"' in response.text
@@ -76,6 +77,8 @@ def test_phase2_static_assets_are_served():
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
     assert 'form.append("color_selection_mode", elements.stripSelectionMode.value)' in javascript.text
     assert 'selectionMode === "characteristic"' in javascript.text
+    assert "凛夏手本版 Phase 16" in javascript.text
+    assert "凛夏手本版 Phase 7" not in javascript.text
     assert 'form.append("color_size_mode", elements.stripSizeMode.value)' in javascript.text
     assert 'form.append("color_order", elements.stripOrder.value)' in javascript.text
     assert 'form.append("color_orientation", elements.stripOrientation.value)' in javascript.text
