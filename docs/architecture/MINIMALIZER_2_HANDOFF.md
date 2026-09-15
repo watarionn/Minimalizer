@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering baseline commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+Current engineering commit: `e7b9d5e384182acc84815d6cf52f402cc987fb81`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering baseline message: `Calibrate Minimalizer 2 medium detail`
+Engineering commit message: `Add Calibration 05 line diagnostics`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -26,7 +26,8 @@ Local RDC clone:
 5. `docs/architecture/MINIMALIZER_2_CALIBRATION_03.md`
 6. `docs/architecture/MINIMALIZER_2_CALIBRATION_04.md`
 7. `docs/architecture/MINIMALIZER_2_POST_CALIBRATION_04_REVIEW.md`
-8. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+8. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`
+9. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -76,8 +77,8 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 04: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 04: `106 passed`.
-Latest full repository regression after Calibration 04: `438 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase A: `107 passed`.
+Latest full repository regression after Calibration 05 Phase A: `439 passed, 2 failed, 1 warning`.
 
 The two known failures are pre-existing and caused only by the missing asset:
 `tests/assets/false_face_phase85.png`
@@ -138,13 +139,15 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase A: planar-polygonization diagnostics and conservative smoke probes.
-First add a diagnostic for visible-boundary straight-segment support after Detail Budget, without changing production output.
-Then probe long-line reconstruction on Kikirara-Vivi, Otonose-Kanade, Todoroki-Hajime, Raora-Panthera, and Hakos-Baelz.
+Proceed to Calibration 05 Phase B: Shared-Boundary Line Fitting.
 
-Do not globally lower visual-group targets. Preserve shared boundaries, topology, coverage, characteristic anchors, protected palette relationships, Contour IoU, and directional guards.
-Do not force arbitrary angular planes into rectangles/ellipses/capsules merely to increase primitive-conversion rate.
-Do not reopen Region Merge unless evidence proves a later-stage solution cannot create the required planar structure.
+Phase A is complete. The new observational diagnostics are `visible_edge_density`, `long_line_support`, and `long_line_count`. Five-case normalized current/reference long-line support ratio averaged `0.2648`, with invariant failures `0`.
+
+A global contour-epsilon probe (`0.022`, `0.024`, `0.026`, `0.030`) was rejected. Mean support barely moved (`0.162654 -> 0.166273`) while worst Contour IoU fell from `0.934010` to `0.912322`.
+
+Phase B should add a dedicated shared-boundary line-fitting candidate on the BoundaryGraph. It must preserve both-neighbor boundary agreement, protected vertices, chain endpoints, topology, coverage, characteristic anchors, palette relationships, Contour IoU, and directional guards.
+
+Do not change Region Merge or Detail Budget targets in Phase B. Do not use stronger global RDP as the primary mechanism.
 
 ## Operational rules for the next chat
 
@@ -168,16 +171,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering baseline commit `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+engineering commit `e7b9d5e384182acc84815d6cf52f402cc987fb81`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_POST_CALIBRATION_04_REVIEW.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`.
 
 Suggested first user-facing statement in the next chat:
-`Post-Calibration-04 review の確定状態をGitHub/RDCで確認してから、Calibration 05 Phase A（Planar Polygonization / Long-Line Reconstruction の診断指標と保守的プローブ）を開始します。`
+`Calibration 05 Phase A の確定状態をGitHub/RDCで確認してから、Phase B（Shared-Boundary Line Fitting）の候補設計と保守的 smoke probe を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 review/planning is also on a feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A is also on a feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
