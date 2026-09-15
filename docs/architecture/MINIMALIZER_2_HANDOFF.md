@@ -6,12 +6,12 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 ## Start here
 
 Repository: `watarionn/Minimalizer`
-Current branch: `feature/minimalizer-2-calibration-04-medium-detail`
-Current engineering commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
-Current branch HEAD: verify the remote branch; handoff metadata may be a later documentation-only commit
-Engineering commit message: `Calibrate Minimalizer 2 medium detail`
+Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
+Current engineering baseline commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
+Engineering baseline message: `Calibrate Minimalizer 2 medium detail`
 
-This branch is pushed to origin. It is NOT merged to `main` and no PR was created.
+This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
 
 Local RDC clone:
@@ -25,7 +25,8 @@ Local RDC clone:
 4. `docs/architecture/MINIMALIZER_2_CALIBRATION_02.md`
 5. `docs/architecture/MINIMALIZER_2_CALIBRATION_03.md`
 6. `docs/architecture/MINIMALIZER_2_CALIBRATION_04.md`
-7. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+7. `docs/architecture/MINIMALIZER_2_POST_CALIBRATION_04_REVIEW.md`
+8. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -119,13 +120,31 @@ Calibration 03 remains active for Minimal contour cleanup:
 
 Calibration 04 adds a second Detail Budget cleanup band after micro-detail cleanup. It does not alter Region Merge, Hierarchy Cut, Contour geometry, Primitive fitting, Palette Consolidation, or coverage geometry.
 
+## Post-Calibration-04 review result
+
+Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
+Mean current/reference image-metric ratios were:
+- edge density: `0.7503`
+- long-line support: `0.3155`
+- approximate polygon vertices: `1.3825`
+- edge-contour count: `0.9483`
+
+Long-line support was lower than the Approved Reference in `18 / 18` cases, and edge density was lower in `18 / 18` cases.
+The dominant remaining mismatch is therefore not simply excess detail. Visible boundaries are too locally fragmented, while the Approved References use long straight edges and deliberate large planar facets.
+
+Internal Calibration 04 diagnostics also show mean selected regions `70.89`, mean contour vertices `5696.72`, and polygon share `90.44%`.
+Calibration 05 is fixed as **Planar Polygonization / Long-Line Reconstruction**.
+Stronger global Detail Budget collapse is specifically not the next step; Todoroki-Hajime is already too flat, while Raora-Panthera demonstrates that important accessory planes must survive.
+
 ## Recommended next engineering step
 
-Proceed to post-Calibration-04 visual review before choosing Calibration 05.
-Goal: compare Calibration 04 outputs against the Approved Geometric References and determine whether the next remaining mismatch is primarily geometry count, primitive complexity, contour character, or palette/detail grouping.
+Proceed to Calibration 05 Phase A: planar-polygonization diagnostics and conservative smoke probes.
+First add a diagnostic for visible-boundary straight-segment support after Detail Budget, without changing production output.
+Then probe long-line reconstruction on Kikirara-Vivi, Otonose-Kanade, Todoroki-Hajime, Raora-Panthera, and Hakos-Baelz.
 
-Do not guess another threshold first. Start with measurement and side-by-side inspection.
-Do not reopen Region Merge unless evidence proves a later-stage solution cannot solve the remaining mismatch.
+Do not globally lower visual-group targets. Preserve shared boundaries, topology, coverage, characteristic anchors, protected palette relationships, Contour IoU, and directional guards.
+Do not force arbitrary angular planes into rectangles/ellipses/capsules merely to increase primitive-conversion rate.
+Do not reopen Region Merge unless evidence proves a later-stage solution cannot create the required planar structure.
 
 ## Operational rules for the next chat
 
@@ -148,17 +167,17 @@ Run these first on RDC:
 `git status --short`
 
 Expected clean state at this handoff:
-branch `feature/minimalizer-2-calibration-04-medium-detail`
-engineering commit `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
-branch HEAD may be a later documentation-only handoff commit; verify the remote branch HEAD before work.
+branch `feature/minimalizer-2-calibration-05-planar-polygonization`
+engineering baseline commit `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_04.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_POST_CALIBRATION_04_REVIEW.md`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 04 の完了状態をGitHub/RDCで確認してから、採用見本との視覚比較に進み、Calibration 05 の対象を測定ベースで決めます。`
+`Post-Calibration-04 review の確定状態をGitHub/RDCで確認してから、Calibration 05 Phase A（Planar Polygonization / Long-Line Reconstruction の診断指標と保守的プローブ）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 are feature-branch work. Calibration 04 is not merged to `main`.
-No PR has been created for Calibration 04.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 review/planning is also on a feature branch. Nothing here is merged to `main`.
+No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
