@@ -241,7 +241,6 @@ def hard_barriers(
         anchors_distinct
         and left_anchor_conf >= config.anchor_confidence_threshold
         and right_anchor_conf >= config.anchor_confidence_threshold
-        and anchor_delta_e >= config.anchor_delta_e_threshold
     ):
         blocked.append("characteristic_anchor")
 
