@@ -222,7 +222,8 @@ def _split_vertices_for_pair(
         if on_border and pair[0] >= 0 and pair[1] >= 0:
             local.add("image_border_anchor")
         if (
-            _is_turn(point, neighbors)
+            config.strong_corner_split_enabled_for(preset)
+            and _is_turn(point, neighbors)
             and _edge_strength(bundle, point) >= config.strong_corner_threshold_for(preset)
         ):
             local.add("strong_structural_corner")

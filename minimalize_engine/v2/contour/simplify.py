@@ -63,6 +63,47 @@ def _simplify_open_chain(points: np.ndarray, epsilon: float) -> np.ndarray:
     return candidate
 
 
+def _planar_line_candidate(
+    points: np.ndarray,
+    shape: tuple[int, int],
+    config: ContourSimplificationConfig,
+) -> np.ndarray:
+    points = np.asarray(points, dtype=np.float32)
+    if len(points) < config.planar_line_fit_min_points:
+        return points
+    height, width = shape
+    diagonal = max(1.0, float(np.hypot(width, height)))
+    min_span = diagonal * config.planar_line_fit_min_span_diagonal_ratio
+    max_deviation = diagonal * config.planar_line_fit_max_deviation_diagonal_ratio
+    output = [points[0]]
+    start = 0
+    while start < len(points) - 1:
+        best = start + 1
+        minimum_end = start + config.planar_line_fit_min_points - 1
+        for end in range(len(points) - 1, minimum_end - 1, -1):
+            span = points[start:end + 1].astype(np.float64, copy=False)
+            chord_vector = span[-1] - span[0]
+            chord = float(np.linalg.norm(chord_vector))
+            if chord < min_span:
+                continue
+            arc = _chain_length(span)
+            if arc <= 0.0 or chord / arc < config.planar_line_fit_min_efficiency:
+                continue
+            unit = chord_vector / chord
+            relative = span - span[0]
+            projection = relative @ unit
+            if float(projection.min()) < -1e-6 or float(projection.max()) > chord + 1e-6:
+                continue
+            normal = np.asarray([-unit[1], unit[0]], dtype=np.float64)
+            deviation = np.abs(relative @ normal)
+            if float(deviation.max()) <= max_deviation:
+                best = end
+                break
+        output.append(points[best])
+        start = best
+    return np.asarray(output, dtype=np.float32)
+
+
 def _epsilon_for_chain(
     chain: BoundaryChain,
     preset: str,
@@ -269,6 +310,16 @@ def simplify_boundary_graph(
                 simplified = factor > 0.0 and len(candidate) < len(chain.points)
                 break
             rejected_candidate_count += 1
+        if config.planar_line_fit_enabled_for(selection.preset) and len(accepted) >= config.planar_line_fit_min_points:
+            planar = _planar_line_candidate(accepted, selection.labels.shape, config)
+            if len(planar) < len(accepted):
+                points_by_chain[chain_id] = planar
+                if _candidate_valid_for_regions(
+                    graph, merge_result, selection, original_masks,
+                    points_by_chain, chain_id, chain.regions, config,
+                ):
+                    accepted = planar
+                    simplified = True
         points_by_chain[chain_id] = accepted
         if not simplified and len(chain.points) > 2:
             fallback_chain_count += 1

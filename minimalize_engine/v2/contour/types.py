@@ -155,6 +155,12 @@ class ContourSimplificationConfig:
     major_mass_directional_factor: float = 0.80
     major_mass_ratio: float = 0.03
     raster_scale: int = 2
+    planar_line_fit_presets: tuple[str, ...] = ("minimal",)
+    strong_corner_split_presets: tuple[str, ...] = ("detailed", "balanced", "ultra_minimal")
+    planar_line_fit_min_points: int = 4
+    planar_line_fit_min_span_diagonal_ratio: float = 0.03
+    planar_line_fit_max_deviation_diagonal_ratio: float = 0.004
+    planar_line_fit_min_efficiency: float = 0.94
 
     def __post_init__(self) -> None:
         ratios = (
@@ -192,6 +198,31 @@ class ContourSimplificationConfig:
                 raise ValueError(f"{name} must be finite and within [0, 1]")
         if self.raster_scale < 2:
             raise ValueError("raster_scale must be at least 2")
+        allowed = {"detailed", "balanced", "minimal", "ultra_minimal"}
+        if len(self.strong_corner_split_presets) != len(set(self.strong_corner_split_presets)):
+            raise ValueError("strong-corner split presets must be unique")
+        if set(self.strong_corner_split_presets) - allowed:
+            raise ValueError("unknown strong-corner split preset")
+        if len(self.planar_line_fit_presets) != len(set(self.planar_line_fit_presets)):
+            raise ValueError("planar line-fit presets must be unique")
+        if set(self.planar_line_fit_presets) - allowed:
+            raise ValueError("unknown planar line-fit preset")
+        if self.planar_line_fit_min_points < 3:
+            raise ValueError("planar line-fit min points must be at least 3")
+        for name in ("planar_line_fit_min_span_diagonal_ratio", "planar_line_fit_max_deviation_diagonal_ratio", "planar_line_fit_min_efficiency"):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be finite and within [0, 1]")
+
+    def strong_corner_split_enabled_for(self, preset: str) -> bool:
+        if preset not in {"detailed", "balanced", "minimal", "ultra_minimal"}:
+            raise ValueError(f"unknown contour preset: {preset}")
+        return preset in self.strong_corner_split_presets
+
+    def planar_line_fit_enabled_for(self, preset: str) -> bool:
+        if preset not in {"detailed", "balanced", "minimal", "ultra_minimal"}:
+            raise ValueError(f"unknown contour preset: {preset}")
+        return preset in self.planar_line_fit_presets
 
     def strong_corner_threshold_for(self, preset: str) -> float:
         if preset not in {"detailed", "balanced", "minimal", "ultra_minimal"}:

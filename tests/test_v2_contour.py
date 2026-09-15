@@ -15,6 +15,7 @@ from minimalize_engine.v2.contour.validation import (
     loops_have_self_intersection,
 )
 from minimalize_engine.v2.preprocessing import build_image_bundle
+from minimalize_engine.v2.contour.simplify import _planar_line_candidate
 from minimalize_engine.v2.region_merge.graph import (
     build_initial_merge_tree,
     build_region_graph_from_arrays,
@@ -197,3 +198,35 @@ def test_minimal_preset_uses_calibrated_strong_corner_threshold():
 def test_unknown_preset_rejected_by_corner_threshold_lookup():
     with pytest.raises(ValueError, match="unknown contour preset"):
         ContourSimplificationConfig().strong_corner_threshold_for("unknown")
+
+
+def test_planar_line_candidate_replaces_local_zigzag_with_one_shared_segment():
+    points = np.asarray([[0.0, 0.0], [3.0, 0.6], [6.0, -0.5], [10.0, 0.0]], dtype=np.float32)
+    config = ContourSimplificationConfig(
+        planar_line_fit_min_span_diagonal_ratio=0.02,
+        planar_line_fit_max_deviation_diagonal_ratio=0.03,
+        planar_line_fit_min_efficiency=0.90,
+    )
+    candidate = _planar_line_candidate(points, (20, 20), config)
+    assert candidate.shape == (2, 2)
+    assert np.array_equal(candidate[0], points[0])
+    assert np.array_equal(candidate[-1], points[-1])
+
+
+def test_planar_line_candidate_keeps_true_corner():
+    points = np.asarray([[0.0, 0.0], [5.0, 0.0], [5.0, 5.0], [10.0, 5.0]], dtype=np.float32)
+    config = ContourSimplificationConfig(
+        planar_line_fit_min_span_diagonal_ratio=0.02,
+        planar_line_fit_max_deviation_diagonal_ratio=0.01,
+        planar_line_fit_min_efficiency=0.95,
+    )
+    candidate = _planar_line_candidate(points, (20, 20), config)
+    assert len(candidate) >= 3
+
+
+def test_minimal_preset_treats_raw_strong_corners_as_soft_line_fit_candidates():
+    config = ContourSimplificationConfig()
+    assert config.strong_corner_split_enabled_for("minimal") is False
+    assert config.strong_corner_split_enabled_for("balanced") is True
+    assert config.planar_line_fit_enabled_for("minimal") is True
+    assert config.planar_line_fit_enabled_for("balanced") is False
