@@ -154,11 +154,11 @@ class DetailBudgetConfig:
     contrast_assigned_delta_e: float = 5.0
     significant_delta_l: float = 12.0
     ultra_minimal_target: tuple[int, int] = (20, 40)
-    minimal_target: tuple[int, int] = (35, 60)
+    minimal_target: tuple[int, int] = (28, 44)
     balanced_target: tuple[int, int] = (55, 95)
     detailed_target: tuple[int, int] = (90, 150)
     ultra_minimal_importance_limit: float = 0.64
-    minimal_importance_limit: float = 0.56
+    minimal_importance_limit: float = 0.60
     balanced_importance_limit: float = 0.48
     detailed_importance_limit: float = 0.40
 

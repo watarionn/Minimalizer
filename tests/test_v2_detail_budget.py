@@ -234,3 +234,10 @@ def test_detail_budget_is_deterministic():
     assert dict(first.actions) == dict(second.actions)
     assert dict(first.effective_palette_by_region) == dict(second.effective_palette_by_region)
     assert first.metrics == second.metrics
+
+
+def test_minimal_preset_calibration_targets_coarser_visual_groups():
+    config = DetailBudgetConfig()
+    policy = config.policy_for("minimal")
+    assert (policy.target_min, policy.target_max) == (28, 44)
+    assert policy.collapse_importance_limit == 0.60
