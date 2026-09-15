@@ -8,6 +8,7 @@ from typing import Mapping
 import cv2
 import numpy as np
 
+from minimalize_engine.v2.facet.render import apply_planar_facet_overlay
 from minimalize_engine.v2.pipeline import MinimalizerV2Result, SceneModel
 from minimalize_engine.v2.primitive.scoring import rasterize_geometry
 
@@ -74,14 +75,22 @@ def _render_geometry_scene(
     return canvas
 
 
-def _render_scene(scene: SceneModel) -> np.ndarray:
+def _render_scene(scene: SceneModel, *, include_facets: bool = False) -> np.ndarray:
     entries = {entry.palette_id: entry for entry in scene.palette}
     geometries = {shape.region_id: shape.geometry for shape in scene.shapes}
     palette_ids = {shape.region_id: shape.palette_id for shape in scene.shapes}
     visible = {shape.region_id: shape.visible for shape in scene.shapes}
-    return _render_geometry_scene(
+    canvas = _render_geometry_scene(
         (scene.height, scene.width), geometries, palette_ids, entries, visible
     )
+    if include_facets:
+        for overlay in sorted(scene.facet_overlays, key=lambda item: item.region_id):
+            if not visible.get(overlay.region_id, True):
+                continue
+            canvas = apply_planar_facet_overlay(
+                canvas, geometries[overlay.region_id], overlay
+            )
+    return canvas
 
 
 def _contour_image(result, preset: str) -> np.ndarray:
@@ -155,6 +164,14 @@ def build_decision_summary(
             "candidate_count": pipeline.facet_reconstruction.metrics.candidate_count,
             "candidate_area_ratio": pipeline.facet_reconstruction.metrics.candidate_area_ratio,
             "mean_gradient_range": pipeline.facet_reconstruction.metrics.mean_gradient_range,
+        },
+        "facet_gate": {
+            "accepted_count": pipeline.facet_render_plan.metrics.accepted_count,
+            "accepted_area_ratio": pipeline.facet_render_plan.metrics.accepted_area_ratio,
+            "baseline_facet_count": pipeline.facet_render_plan.metrics.baseline_facet_count,
+            "final_facet_count": pipeline.facet_render_plan.metrics.final_facet_count,
+            "baseline_long_line_support": pipeline.facet_render_plan.metrics.baseline_long_line_support,
+            "final_long_line_support": pipeline.facet_render_plan.metrics.final_long_line_support,
         },
     }
 

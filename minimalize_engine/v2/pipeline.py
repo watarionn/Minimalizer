@@ -21,7 +21,11 @@ from minimalize_engine.v2.detail_budget import (
     analyze_shape_importance,
     apply_detail_budget,
 )
-from minimalize_engine.v2.facet import PlanarFacetConfig, PlanarFacetResult, build_planar_facets
+from minimalize_engine.v2.facet import (
+    PlanarFacetConfig, PlanarFacetGateConfig, PlanarFacetOverlay,
+    PlanarFacetRenderPlan, PlanarFacetResult, build_facet_render_plan,
+    build_planar_facets,
+)
 from minimalize_engine.v2.palette import (
     PaletteConfig,
     PaletteConsolidationResult,
@@ -79,6 +83,7 @@ class SceneModel:
     height: int
     shapes: tuple[SceneShape, ...]
     palette: tuple[PaletteEntry, ...]
+    facet_overlays: tuple[PlanarFacetOverlay, ...] = ()
 
     def __post_init__(self) -> None:
         if self.width <= 0 or self.height <= 0:
@@ -89,6 +94,11 @@ class SceneModel:
         palette_ids = {entry.palette_id for entry in self.palette}
         if any(shape.palette_id not in palette_ids for shape in self.shapes):
             raise ValueError("scene shape references unknown palette entry")
+        overlay_ids = tuple(item.region_id for item in self.facet_overlays)
+        if len(overlay_ids) != len(set(overlay_ids)):
+            raise ValueError("scene facet overlay region ids must be unique")
+        if set(overlay_ids) - set(region_ids):
+            raise ValueError("scene facet overlays must reference scene regions")
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +109,7 @@ class PipelineConfig:
     palette: PaletteConfig = field(default_factory=PaletteConfig)
     detail_budget: DetailBudgetConfig = field(default_factory=DetailBudgetConfig)
     facet: PlanarFacetConfig = field(default_factory=PlanarFacetConfig)
+    facet_gate: PlanarFacetGateConfig = field(default_factory=PlanarFacetGateConfig)
 @dataclass(frozen=True, slots=True)
 class PresetPipelineResult:
     preset: str
@@ -108,6 +119,7 @@ class PresetPipelineResult:
     palette: PaletteConsolidationResult
     detail_budget: DetailBudgetResult
     facet_reconstruction: PlanarFacetResult
+    facet_render_plan: PlanarFacetRenderPlan
     scene: SceneModel
 
     def __post_init__(self) -> None:
@@ -124,6 +136,8 @@ class PresetPipelineResult:
             raise ValueError("detail-budget regions must match preset selection")
         if not set(self.facet_reconstruction.candidates) <= expected:
             raise ValueError("facet candidates must belong to preset selection")
+        if set(self.facet_render_plan.overlays) - set(self.facet_reconstruction.candidates):
+            raise ValueError("accepted facet overlays must come from facet candidates")
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,6 +163,7 @@ def _scene_from_results(
     primitives: PrimitiveFittingResult,
     palette: PaletteConsolidationResult,
     detail_budget: DetailBudgetResult,
+    facet_render_plan: PlanarFacetRenderPlan,
 ) -> SceneModel:
     shapes: list[SceneShape] = []
     for region_id in sorted(primitives.primitives):
@@ -173,6 +188,7 @@ def _scene_from_results(
         height=int(height),
         shapes=tuple(shapes),
         palette=palette_entries,
+        facet_overlays=tuple(facet_render_plan.overlays[rid] for rid in sorted(facet_render_plan.overlays)),
     )
 
 
@@ -262,10 +278,13 @@ def _run_preset_pipeline(
             preset=preset, config=config.facet,
         ),
     )
+    facet_render_plan = _timed(
+        observer, f"{preset}.facet_gate",
+        lambda: build_facet_render_plan(selection.labels.shape, primitives, palette, detail_budget, facet_reconstruction, preset=preset, config=config.facet_gate),
+    )
     scene = _timed(
-        observer,
-        f"{preset}.scene",
-        lambda: _scene_from_results(bundle, primitives, palette, detail_budget),
+        observer, f"{preset}.scene",
+        lambda: _scene_from_results(bundle, primitives, palette, detail_budget, facet_render_plan),
     )
     return PresetPipelineResult(
         preset=preset,
@@ -275,6 +294,7 @@ def _run_preset_pipeline(
         palette=palette,
         detail_budget=detail_budget,
         facet_reconstruction=facet_reconstruction,
+        facet_render_plan=facet_render_plan,
         scene=scene,
     )
 

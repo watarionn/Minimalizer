@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from typing import Mapping
 
-import cv2
 import numpy as np
 
 from minimalize_engine.v2.palette.sampling import ciede2000
 from minimalize_engine.v2.pipeline import MinimalizerV2Result, PipelineConfig
 from minimalize_engine.v2.regression.debug import _render_scene
 from minimalize_engine.v2.regression.types import RegressionConfig, RegressionMetrics
+from minimalize_engine.v2.visual_metrics import (
+    measure_long_line_support as _measure_long_line_support,
+    measure_macro_facets as _measure_macro_facets,
+)
 
 
 def _micro_region_ratio(result: MinimalizerV2Result, preset: str, threshold: float) -> float:
@@ -76,69 +79,24 @@ def _contrast_metrics(result: MinimalizerV2Result, preset: str) -> tuple[float, 
 def measure_raster_line_metrics(
     image: np.ndarray, config: RegressionConfig
 ) -> tuple[float, float, int]:
-    gray = cv2.cvtColor(np.asarray(image, dtype=np.uint8), cv2.COLOR_RGB2GRAY)
-    edges = cv2.Canny(cv2.GaussianBlur(gray, (3, 3), 0), 50, 120)
-    edge_mask = edges > 0
-    edge_count = int(edge_mask.sum())
-    edge_density = edge_count / float(edge_mask.size) if edge_mask.size else 0.0
-    height, width = edge_mask.shape
-    diagonal = float(np.hypot(width, height))
-    min_length = max(2, int(round(diagonal * config.long_line_min_diagonal_ratio)))
-    max_gap = max(1, int(round(diagonal * config.long_line_max_gap_diagonal_ratio)))
-    lines = cv2.HoughLinesP(
-        edges, 1.0, np.pi / 180.0, config.long_line_hough_threshold,
-        minLineLength=min_length, maxLineGap=max_gap,
+    return _measure_long_line_support(
+        image,
+        min_diagonal_ratio=config.long_line_min_diagonal_ratio,
+        max_gap_diagonal_ratio=config.long_line_max_gap_diagonal_ratio,
+        hough_threshold=config.long_line_hough_threshold,
     )
-    if lines is None or edge_count == 0:
-        return float(edge_density), 0.0, 0
-    support = np.zeros_like(edges)
-    for x1, y1, x2, y2 in lines[:, 0]:
-        cv2.line(support, (int(x1), int(y1)), (int(x2), int(y2)), 255, 1, cv2.LINE_8)
-    support = cv2.dilate(support, np.ones((3, 3), dtype=np.uint8), iterations=1) > 0
-    long_line_support = float(np.logical_and(edge_mask, support).sum() / edge_count)
-    return float(edge_density), long_line_support, int(len(lines))
 
 
 def measure_macro_facet_metrics(
     image: np.ndarray, config: RegressionConfig
 ) -> tuple[int, float, float]:
-    rgb = np.asarray(image, dtype=np.uint8)
-    if rgb.ndim != 3 or rgb.shape[2] != 3:
-        raise ValueError("macro-facet image must have shape (H, W, 3)")
-    step = config.macro_facet_rgb_quantization
-    quantized = np.clip(
-        (rgb.astype(np.int16) + step // 2) // step * step, 0, 255
-    ).astype(np.uint8)
-    height, width = quantized.shape[:2]
-    total = float(height * width)
-    min_area = total * config.macro_facet_min_area_ratio
-    large_area = total * config.macro_facet_large_area_ratio
-    components: list[tuple[int, int]] = []
-    for color in np.unique(quantized.reshape(-1, 3), axis=0):
-        mask = np.all(quantized == color, axis=2).astype(np.uint8)
-        count, labels, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
-        for component_id in range(1, count):
-            area = int(stats[component_id, cv2.CC_STAT_AREA])
-            if area < min_area:
-                continue
-            component = (labels == component_id).astype(np.uint8)
-            contours, _ = cv2.findContours(
-                component, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
-            if not contours:
-                continue
-            contour = max(contours, key=cv2.contourArea)
-            perimeter = float(cv2.arcLength(contour, True))
-            epsilon = config.macro_facet_polygon_epsilon_ratio * perimeter
-            vertices = len(cv2.approxPolyDP(contour, epsilon, True))
-            components.append((area, vertices))
-    if not components:
-        return 0, 0.0, 0.0
-    areas = np.asarray([item[0] for item in components], dtype=np.float64)
-    vertices = np.asarray([item[1] for item in components], dtype=np.float64)
-    large_share = float(areas[areas >= large_area].sum() / total)
-    mean_vertices = float(np.average(vertices, weights=areas))
-    return len(components), large_share, mean_vertices
+    return _measure_macro_facets(
+        image,
+        rgb_quantization=config.macro_facet_rgb_quantization,
+        min_area_ratio=config.macro_facet_min_area_ratio,
+        large_area_ratio=config.macro_facet_large_area_ratio,
+        polygon_epsilon_ratio=config.macro_facet_polygon_epsilon_ratio,
+    )
 
 
 def _visible_line_metrics(
