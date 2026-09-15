@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `0b2486bfa8be62b5d500bab191793908559831f8`
+Current engineering commit: `57a752051598e42e8562b8b22219f5e8b7e35254`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Add Calibration 05 planar facet candidate stage`
+Engineering commit message: `Add Calibration 05 facet rendering gate`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -30,7 +30,8 @@ Local RDC clone:
 9. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`
 10. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`
 11. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`
-12. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+12. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`
+13. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -52,6 +53,7 @@ Calibration 05 Phase A engineering commit: `e7b9d5e384182acc84815d6cf52f402cc987
 Calibration 05 Phase B engineering commit: `82e99f5b979a034080fb2ae31de91ff686cca3d3`
 Calibration 05 Phase C engineering commit: `a5ce9dd22acf8aaeb89a27e1cb5a41d9802cf60f`
 Calibration 05 Phase D engineering commit: `0b2486bfa8be62b5d500bab191793908559831f8`
+Calibration 05 Phase E engineering commit: `57a752051598e42e8562b8b22219f5e8b7e35254`
 
 ## Calibration results so far
 
@@ -84,9 +86,9 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 04: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase D: `115 passed`.
-Latest full repository regression after Calibration 05 Phase D: `447 passed, 2 failed, 1 warning`.
-Latest 18-case Phase D visual regression: hard invariant failures `0 / 18`.
+Latest V2 regression after Calibration 05 Phase E: `118 passed`.
+Latest full repository regression after Calibration 05 Phase E: `450 passed, 2 failed, 1 warning`.
+Latest 18-case Phase E visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
 `tests/assets/false_face_phase85.png`
@@ -142,7 +144,9 @@ Calibration 05 Phase C adds observational macro-facet diagnostics only:
 - `macro_mean_vertices`
 - production output is unchanged by the diagnostics
 
-Calibration 05 Phase D adds a first-class planar-facet candidate stage after Detail Budget. It is observational only and is not yet wired into SceneModel.
+Calibration 05 Phase D adds a first-class planar-facet candidate stage after Detail Budget.
+
+Calibration 05 Phase E adds a conservative rendering gate and `SceneModel.facet_overlays`. Accepted overlays remain opt-in and are not rendered by the normal production path.
 
 ## Post-Calibration-04 review result
 
@@ -162,21 +166,20 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase E: Facet Scene Representation / Rendering Gate.
+Proceed to Calibration 05 Phase F: Opt-in Facet Rendering / Visual Acceptance.
 
-Phase D established a deterministic candidate-generation stage without changing production output:
-- mean candidate count: `4.8889` per image, range `0..10`
-- mean candidate overlay area ratio: `0.07520`
-- production final PNG SHA-256: Phase C/Phase D match `18 / 18`
+Phase E established a conservative scene representation and rendering gate:
+- mean accepted facets: `0.7222` per image
+- facet count: `31.5556 -> 32.5000`
+- large-facet share: `0.88499 -> 0.87684`
+- vertices/facet: `9.7450 -> 9.6163`
+- long-line support: `0.235422 -> 0.240738`
 - hard invariant failures: `0 / 18`
+- normal final PNG SHA-256 matches Phase D: `18 / 18`
 
-Hypothetical canonical overlay rendering moves the macro metrics in the desired direction while keeping line loss small:
-- facet count: `31.5556 -> 34.1667`
-- large-facet share: `0.88499 -> 0.86538`
-- vertices/facet: `9.7450 -> 9.6087`
-- long-line support: `0.235422 -> 0.233668` (about `-0.75%`)
+The gate allows at most `0.005` absolute long-line-support loss from baseline, requires macro-facet improvement, retains at least `75%` of protected palette contrast, and forbids significant lightness-order reversals. Accepted overlays are stored separately in `SceneModel.facet_overlays`; normal rendering still ignores them.
 
-Phase E must define an explicit scene representation and acceptance gate before any candidate can affect production rendering. The gate must protect long-line support, topology/coverage, protected palette relationships, characteristic structures, and guard-case identity. Do not reopen Region Merge or lower Detail Budget targets.
+Phase F should render only the accepted overlays through an explicit opt-in path for all 18 canonical cases, build a visual comparison against the approved references, and decide whether the gate is visually trustworthy enough for default Minimal rendering. Do not enable facets by default before that review.
 
 ## Operational rules for the next chat
 
@@ -200,16 +203,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `0b2486bfa8be62b5d500bab191793908559831f8`
+engineering commit `57a752051598e42e8562b8b22219f5e8b7e35254`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase D の確定状態をGitHub/RDCで確認してから、Phase E（Facet Scene Representation / Rendering Gate）の設計と保守的 probe を開始します。`
+`Calibration 05 Phase E の確定状態をGitHub/RDCで確認してから、Phase F（Opt-in Facet Rendering / Visual Acceptance）の18ケース視覚監査を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, and Phase D are also on the same feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, and Phase E are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
