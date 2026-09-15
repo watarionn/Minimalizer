@@ -7,8 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-03-contour-micro-cleanup`
-Current HEAD: `6989b2741ea581dd307008142d872ae1eb60d60d`
-Commit message: `Calibrate Minimalizer 2 weak contour corners`
+Current engineering commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
+Current branch HEAD: verify the remote branch; handoff metadata may be a later documentation-only commit
+Engineering commit message: `Calibrate Minimalizer 2 weak contour corners`
 
 This branch is pushed to origin. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -83,6 +84,13 @@ All 18 source SHA-256 values were rechecked against the manifest during Calibrat
 Google Drive Minimalizer root folder:
 `1Fore4mo1NOxCOFP_SjgbThUV87K-p-Mj`
 
+Google Drive handoff folder:
+`1Obe4PsQVh0x4RkWV0wIP1FEcRhVHD-6f` (`00_HANDOFF`)
+
+Google Drive handoff document:
+`16pSPtRC2VqFKUaV0tezn8_A7PFcZP-FwXDY2108j1ko`
+`https://docs.google.com/document/d/16pSPtRC2VqFKUaV0tezn8_A7PFcZP-FwXDY2108j1ko/edit`
+
 Google Drive Approved Geometric Reference folder:
 `1oWUtdUAfLE4x8_T5VS5GQyHEHn7FQ35v`
 Folder name: `採用見本_幾何学ミニマル_20260911`
@@ -139,7 +147,8 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-03-contour-micro-cleanup`
-HEAD `6989b2741ea581dd307008142d872ae1eb60d60d`
+engineering commit `6989b2741ea581dd307008142d872ae1eb60d60d`
+branch HEAD may be a later documentation-only handoff commit; verify the remote branch HEAD before work
 
 Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_03.md`.
 
