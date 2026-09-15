@@ -99,6 +99,48 @@ def measure_raster_line_metrics(
     return float(edge_density), long_line_support, int(len(lines))
 
 
+def measure_macro_facet_metrics(
+    image: np.ndarray, config: RegressionConfig
+) -> tuple[int, float, float]:
+    rgb = np.asarray(image, dtype=np.uint8)
+    if rgb.ndim != 3 or rgb.shape[2] != 3:
+        raise ValueError("macro-facet image must have shape (H, W, 3)")
+    step = config.macro_facet_rgb_quantization
+    quantized = np.clip(
+        (rgb.astype(np.int16) + step // 2) // step * step, 0, 255
+    ).astype(np.uint8)
+    height, width = quantized.shape[:2]
+    total = float(height * width)
+    min_area = total * config.macro_facet_min_area_ratio
+    large_area = total * config.macro_facet_large_area_ratio
+    components: list[tuple[int, int]] = []
+    for color in np.unique(quantized.reshape(-1, 3), axis=0):
+        mask = np.all(quantized == color, axis=2).astype(np.uint8)
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
+        for component_id in range(1, count):
+            area = int(stats[component_id, cv2.CC_STAT_AREA])
+            if area < min_area:
+                continue
+            component = (labels == component_id).astype(np.uint8)
+            contours, _ = cv2.findContours(
+                component, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+            )
+            if not contours:
+                continue
+            contour = max(contours, key=cv2.contourArea)
+            perimeter = float(cv2.arcLength(contour, True))
+            epsilon = config.macro_facet_polygon_epsilon_ratio * perimeter
+            vertices = len(cv2.approxPolyDP(contour, epsilon, True))
+            components.append((area, vertices))
+    if not components:
+        return 0, 0.0, 0.0
+    areas = np.asarray([item[0] for item in components], dtype=np.float64)
+    vertices = np.asarray([item[1] for item in components], dtype=np.float64)
+    large_share = float(areas[areas >= large_area].sum() / total)
+    mean_vertices = float(np.average(vertices, weights=areas))
+    return len(components), large_share, mean_vertices
+
+
 def _visible_line_metrics(
     result: MinimalizerV2Result, preset: str, config: RegressionConfig
 ) -> tuple[float, float, int]:
@@ -135,6 +177,10 @@ def compute_regression_metrics(
     visible_edge_density, long_line_support, long_line_count = _visible_line_metrics(
         result, preset, regression_config
     )
+    rendered = _render_scene(pipeline.scene)
+    macro_facet_count, macro_large_facet_share, macro_mean_vertices = (
+        measure_macro_facet_metrics(rendered, regression_config)
+    )
     return RegressionMetrics(
         initial_region_count=result.region_merge.initial_region_count,
         selected_region_count=len(selected),
@@ -160,6 +206,9 @@ def compute_regression_metrics(
         visible_edge_density=visible_edge_density,
         long_line_support=long_line_support,
         long_line_count=long_line_count,
+        macro_facet_count=macro_facet_count,
+        macro_large_facet_share=macro_large_facet_share,
+        macro_mean_vertices=macro_mean_vertices,
         total_complexity=float(sum(item.complexity for item in selected_primitives)),
         subject_background_leakage=(
             float(critical_leakage)

@@ -66,6 +66,9 @@ def test_regression_case_writes_manifest_metrics_and_debug(tmp_path):
     assert 0.0 <= result.metrics.visible_edge_density <= 1.0
     assert 0.0 <= result.metrics.long_line_support <= 1.0
     assert result.metrics.long_line_count >= 0
+    assert result.metrics.macro_facet_count >= 0
+    assert 0.0 <= result.metrics.macro_large_facet_share <= 1.0
+    assert result.metrics.macro_mean_vertices >= 0.0
     for name in ("manifest", "metrics", "invariants", "summary", "decision_log"):
         assert name in result.debug_artifacts
         assert Path(result.debug_artifacts[name]).exists()
@@ -112,3 +115,15 @@ def test_long_line_diagnostic_is_observational_only():
     after = minimalize_v2(image, presets=("minimal",))
     assert result.algorithm_digest == digest
     assert algorithm_digest(after, "minimal") == digest
+
+
+def test_macro_facet_diagnostic_is_observational_only():
+    image = _image()
+    before = minimalize_v2(image, presets=("minimal",))
+    digest = algorithm_digest(before, "minimal")
+    result = run_regression_case(
+        image, regression_config=RegressionConfig(artifact_level="none")
+    )
+    assert result.metrics.macro_facet_count > 0
+    assert result.algorithm_digest == digest
+    assert algorithm_digest(minimalize_v2(image, presets=("minimal",)), "minimal") == digest
