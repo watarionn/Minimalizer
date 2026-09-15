@@ -45,6 +45,7 @@ Calibration 01 commit: `9f357e54f22f9f3be9a2194375b420e6df1f81c6`
 Calibration 02 commit: `e05dafdca122d2fe622bd28ccf69b01936f53e40`
 Calibration 03 commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
 Calibration 04 engineering commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+Calibration 05 Phase A engineering commit: `e7b9d5e384182acc84815d6cf52f402cc987fb81`
 
 ## Calibration results so far
 
