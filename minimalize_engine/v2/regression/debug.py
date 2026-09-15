@@ -151,6 +151,11 @@ def build_decision_summary(
             "protection_reasons": dict(sorted(budget_protection.items())),
             "budget_overflow": pipeline.detail_budget.metrics.budget_overflow,
         },
+        "facet_reconstruction": {
+            "candidate_count": pipeline.facet_reconstruction.metrics.candidate_count,
+            "candidate_area_ratio": pipeline.facet_reconstruction.metrics.candidate_area_ratio,
+            "mean_gradient_range": pipeline.facet_reconstruction.metrics.mean_gradient_range,
+        },
     }
 
 

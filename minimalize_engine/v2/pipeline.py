@@ -21,6 +21,7 @@ from minimalize_engine.v2.detail_budget import (
     analyze_shape_importance,
     apply_detail_budget,
 )
+from minimalize_engine.v2.facet import PlanarFacetConfig, PlanarFacetResult, build_planar_facets
 from minimalize_engine.v2.palette import (
     PaletteConfig,
     PaletteConsolidationResult,
@@ -97,6 +98,7 @@ class PipelineConfig:
     primitive: PrimitiveFitConfig = field(default_factory=PrimitiveFitConfig)
     palette: PaletteConfig = field(default_factory=PaletteConfig)
     detail_budget: DetailBudgetConfig = field(default_factory=DetailBudgetConfig)
+    facet: PlanarFacetConfig = field(default_factory=PlanarFacetConfig)
 @dataclass(frozen=True, slots=True)
 class PresetPipelineResult:
     preset: str
@@ -105,6 +107,7 @@ class PresetPipelineResult:
     primitives: PrimitiveFittingResult
     palette: PaletteConsolidationResult
     detail_budget: DetailBudgetResult
+    facet_reconstruction: PlanarFacetResult
     scene: SceneModel
 
     def __post_init__(self) -> None:
@@ -119,6 +122,8 @@ class PresetPipelineResult:
             raise ValueError("palette regions must match preset selection")
         if set(self.detail_budget.shape_info) != expected:
             raise ValueError("detail-budget regions must match preset selection")
+        if not set(self.facet_reconstruction.candidates) <= expected:
+            raise ValueError("facet candidates must belong to preset selection")
 
 
 @dataclass(frozen=True, slots=True)
@@ -249,6 +254,14 @@ def _run_preset_pipeline(
             config=config.detail_budget,
         ),
     )
+    facet_reconstruction = _timed(
+        observer,
+        f"{preset}.facet_reconstruction",
+        lambda: build_planar_facets(
+            bundle, selection, primitives, palette, detail_budget,
+            preset=preset, config=config.facet,
+        ),
+    )
     scene = _timed(
         observer,
         f"{preset}.scene",
@@ -261,6 +274,7 @@ def _run_preset_pipeline(
         primitives=primitives,
         palette=palette,
         detail_budget=detail_budget,
+        facet_reconstruction=facet_reconstruction,
         scene=scene,
     )
 
