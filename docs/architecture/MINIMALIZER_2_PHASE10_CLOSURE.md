@@ -27,6 +27,8 @@ Aggregate results:
 - maximum runtime: `12.8217 s`
 The lowest contour IoU case was `Natsuiro-Matsuri` at `0.9191919192`, still above the configured `0.90` guard.
 
+Calibration 02 reproducibility audit re-ran commit `2499b3a` against all 18 manifest-verified source hashes. The canonical re-run retained minimum contour IoU `0.9191919192` and measured mean contour IoU `0.941356`; original runtime figures below remain environment-specific measurements from the closure run.
+
 The corpus source images and Approved References remain external regression assets and are not committed as generated/debug payloads.
 
 ## Human A/B smoke review

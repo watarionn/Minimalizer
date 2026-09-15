@@ -241,3 +241,48 @@ def test_minimal_preset_calibration_targets_coarser_visual_groups():
     policy = config.policy_for("minimal")
     assert (policy.target_min, policy.target_max) == (28, 44)
     assert policy.collapse_importance_limit == 0.60
+    assert config.micro_detail_area_ratio == 0.0008
+    assert config.micro_detail_importance_limit == 0.60
+    assert config.micro_detail_presets == ("minimal",)
+
+
+def test_minimal_micro_detail_cleanup_stops_at_target_min():
+    bundle, selection, contours, primitives, palette = _fixture(
+        [(120, 120, 120), (122, 122, 122), (124, 124, 124), (126, 126, 126)]
+    )
+    config = _loose_config()
+    info = dict(analyze_shape_importance(
+        bundle, selection, contours, primitives, palette, config=config
+    ))
+    for region_id in (1, 2):
+        info[region_id] = replace(
+            info[region_id], area_ratio=0.0001, importance=0.10,
+            protected=False, protection_reasons=(),
+        )
+    result = apply_detail_budget(
+        info, palette,
+        policy=DetailBudgetPolicy("minimal", 3, 4, 1.0),
+        config=config,
+    )
+    assert result.metrics.visual_group_count == 3
+    assert result.metrics.collapsed_style_count == 1
+
+
+def test_micro_detail_cleanup_is_disabled_for_balanced_by_default():
+    bundle, selection, contours, primitives, palette = _fixture(
+        [(120, 120, 120), (122, 122, 122), (124, 124, 124), (126, 126, 126)]
+    )
+    config = _loose_config()
+    info = dict(analyze_shape_importance(
+        bundle, selection, contours, primitives, palette, config=config
+    ))
+    info[1] = replace(
+        info[1], area_ratio=0.0001, importance=0.10,
+        protected=False, protection_reasons=(),
+    )
+    result = apply_detail_budget(
+        info, palette,
+        policy=DetailBudgetPolicy("balanced", 3, 4, 1.0), config=config,
+    )
+    assert result.metrics.visual_group_count == 4
+    assert result.metrics.collapsed_style_count == 0

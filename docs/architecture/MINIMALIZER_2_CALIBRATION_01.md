@@ -23,9 +23,9 @@ A probe at `0.026` reduced very few vertices while lowering contour IoU on Kikir
 
 With the new target:
 
-- Kikirara-Vivi: `41 -> 41` visual groups, no forced collapse
-- Otonose-Kanade: `60 -> 44`, 17 style collapses
-- Hakos-Baelz: `54 -> 44`, 10 style collapses
+- Kikirara-Vivi: `40 -> 40` visual groups, no forced collapse
+- Otonose-Kanade: `60 -> 44`, 16 style collapses
+- Hakos-Baelz: `55 -> 44`, 11 style collapses
 
 All three retained zero hard-invariant failures.
 
@@ -35,12 +35,14 @@ All three retained zero hard-invariant failures.
 - hard invariant failures: `0`
 - budget overflow cases: `0`
 - visual-group range: `21..44` (closure baseline was `21..60`)
-- mean visual groups: `42.389`
-- total style collapses: `125`
-- cases with at least one collapse: `15 / 18`
+- mean visual groups: `41.944` (closure baseline: `48.278`)
+- total style collapses: `112`
+- cases with at least one collapse: `13 / 18`
 - minimum contour IoU: `0.9191919192` (unchanged from closure)
 
 The calibration reduces style fragmentation without removing core geometry or weakening contour guards.
+
+Calibration 02 later re-ran commits `2499b3a` and `9f357e5` in detached worktrees against manifest-verified inputs. The values above are the canonical commit-to-commit measurements; earlier transient probe values were corrected by that audit.
 
 ## Decision
 
