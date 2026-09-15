@@ -60,6 +60,9 @@ class RegressionMetrics:
     contrast_retention: float
     lightness_flip_count: int
     visual_group_count: int
+    visible_edge_density: float
+    long_line_support: float
+    long_line_count: int
     total_complexity: float
     subject_background_leakage: float | None
     runtime_seconds: float
@@ -69,7 +72,7 @@ class RegressionMetrics:
         counts = (
             self.initial_region_count, self.selected_region_count,
             self.vertex_count, self.palette_count,
-            self.lightness_flip_count, self.visual_group_count,
+            self.lightness_flip_count, self.visual_group_count, self.long_line_count,
         )
         if any(value < 0 for value in counts):
             raise ValueError("regression counts must be non-negative")
@@ -78,6 +81,7 @@ class RegressionMetrics:
             self.contour_iou, self.max_directional_loss,
             self.primitive_conversion_rate, self.polygon_fallback_rate,
             self.neighbor_leakage, self.contrast_retention,
+            self.visible_edge_density, self.long_line_support,
         )
         if any(not np.isfinite(value) or not 0.0 <= value <= 1.0 for value in bounded):
             raise ValueError("bounded regression metrics must be within [0, 1]")
@@ -99,15 +103,23 @@ class RegressionConfig:
     micro_region_area_ratio: float = 0.001
     thin_region_ratio_threshold: float = 0.15
     performance_warning_factor: float = 1.5
+    long_line_min_diagonal_ratio: float = 0.04
+    long_line_max_gap_diagonal_ratio: float = 0.007
+    long_line_hough_threshold: int = 25
 
     def __post_init__(self) -> None:
         if self.artifact_level not in _ARTIFACT_LEVELS:
             raise ValueError("unknown debug artifact level")
         if self.main_preset not in {"ultra_minimal", "minimal", "balanced", "detailed"}:
             raise ValueError("unknown regression preset")
-        for value in (self.micro_region_area_ratio, self.thin_region_ratio_threshold):
+        for value in (
+            self.micro_region_area_ratio, self.thin_region_ratio_threshold,
+            self.long_line_min_diagonal_ratio, self.long_line_max_gap_diagonal_ratio,
+        ):
             if not np.isfinite(value) or not 0.0 <= value <= 1.0:
                 raise ValueError("regression ratio thresholds must be within [0, 1]")
+        if self.long_line_hough_threshold <= 0:
+            raise ValueError("long-line Hough threshold must be positive")
         if not np.isfinite(self.performance_warning_factor) or self.performance_warning_factor < 1.0:
             raise ValueError("performance warning factor must be at least 1")
 

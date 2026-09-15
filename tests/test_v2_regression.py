@@ -63,6 +63,9 @@ def test_regression_case_writes_manifest_metrics_and_debug(tmp_path):
     assert result.manifest.preset == "minimal"
     assert not result.invariant_failures
     assert result.metrics.runtime_seconds >= 0.0
+    assert 0.0 <= result.metrics.visible_edge_density <= 1.0
+    assert 0.0 <= result.metrics.long_line_support <= 1.0
+    assert result.metrics.long_line_count >= 0
     for name in ("manifest", "metrics", "invariants", "summary", "decision_log"):
         assert name in result.debug_artifacts
         assert Path(result.debug_artifacts[name]).exists()
@@ -99,3 +102,13 @@ def test_global_invariant_contract_names_are_covered():
         "detail_budget_has_no_core_coverage_holes", "preset_hierarchy_nested",
     }
     assert required <= names
+
+
+def test_long_line_diagnostic_is_observational_only():
+    image = _image()
+    before = minimalize_v2(image, presets=("minimal",))
+    digest = algorithm_digest(before, "minimal")
+    result = run_regression_case(image, regression_config=RegressionConfig(artifact_level="none"))
+    after = minimalize_v2(image, presets=("minimal",))
+    assert result.algorithm_digest == digest
+    assert algorithm_digest(after, "minimal") == digest

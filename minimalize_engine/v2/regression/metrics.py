@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import Mapping
 
+import cv2
 import numpy as np
 
 from minimalize_engine.v2.palette.sampling import ciede2000
 from minimalize_engine.v2.pipeline import MinimalizerV2Result, PipelineConfig
+from minimalize_engine.v2.regression.debug import _render_scene
 from minimalize_engine.v2.regression.types import RegressionConfig, RegressionMetrics
 
 
@@ -71,6 +73,38 @@ def _contrast_metrics(result: MinimalizerV2Result, preset: str) -> tuple[float, 
     return retention, int(flips)
 
 
+def measure_raster_line_metrics(
+    image: np.ndarray, config: RegressionConfig
+) -> tuple[float, float, int]:
+    gray = cv2.cvtColor(np.asarray(image, dtype=np.uint8), cv2.COLOR_RGB2GRAY)
+    edges = cv2.Canny(cv2.GaussianBlur(gray, (3, 3), 0), 50, 120)
+    edge_mask = edges > 0
+    edge_count = int(edge_mask.sum())
+    edge_density = edge_count / float(edge_mask.size) if edge_mask.size else 0.0
+    height, width = edge_mask.shape
+    diagonal = float(np.hypot(width, height))
+    min_length = max(2, int(round(diagonal * config.long_line_min_diagonal_ratio)))
+    max_gap = max(1, int(round(diagonal * config.long_line_max_gap_diagonal_ratio)))
+    lines = cv2.HoughLinesP(
+        edges, 1.0, np.pi / 180.0, config.long_line_hough_threshold,
+        minLineLength=min_length, maxLineGap=max_gap,
+    )
+    if lines is None or edge_count == 0:
+        return float(edge_density), 0.0, 0
+    support = np.zeros_like(edges)
+    for x1, y1, x2, y2 in lines[:, 0]:
+        cv2.line(support, (int(x1), int(y1)), (int(x2), int(y2)), 255, 1, cv2.LINE_8)
+    support = cv2.dilate(support, np.ones((3, 3), dtype=np.uint8), iterations=1) > 0
+    long_line_support = float(np.logical_and(edge_mask, support).sum() / edge_count)
+    return float(edge_density), long_line_support, int(len(lines))
+
+
+def _visible_line_metrics(
+    result: MinimalizerV2Result, preset: str, config: RegressionConfig
+) -> tuple[float, float, int]:
+    image = _render_scene(result.presets[preset].scene)
+    return measure_raster_line_metrics(image, config)
+
 def compute_regression_metrics(
     result: MinimalizerV2Result,
     *,
@@ -98,6 +132,9 @@ def compute_regression_metrics(
         default=0.0,
     )
     contrast_retention, lightness_flips = _contrast_metrics(result, preset)
+    visible_edge_density, long_line_support, long_line_count = _visible_line_metrics(
+        result, preset, regression_config
+    )
     return RegressionMetrics(
         initial_region_count=result.region_merge.initial_region_count,
         selected_region_count=len(selected),
@@ -120,6 +157,9 @@ def compute_regression_metrics(
         contrast_retention=contrast_retention,
         lightness_flip_count=lightness_flips,
         visual_group_count=pipeline.detail_budget.metrics.visual_group_count,
+        visible_edge_density=visible_edge_density,
+        long_line_support=long_line_support,
+        long_line_count=long_line_count,
         total_complexity=float(sum(item.complexity for item in selected_primitives)),
         subject_background_leakage=(
             float(critical_leakage)
