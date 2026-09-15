@@ -184,3 +184,16 @@ def test_incremental_intersection_guard_distinguishes_touch_from_overlap():
     overlap = dict(safe)
     overlap[0] = np.array([[0, 0], [0, 4], [4, 4]], dtype=np.float32)
     assert candidate_chain_intersection_free(graph, 0, 0, overlap) is False
+
+
+def test_minimal_preset_uses_calibrated_strong_corner_threshold():
+    config = ContourSimplificationConfig()
+    assert config.strong_corner_threshold_for("detailed") == pytest.approx(0.65)
+    assert config.strong_corner_threshold_for("balanced") == pytest.approx(0.65)
+    assert config.strong_corner_threshold_for("minimal") == pytest.approx(0.6525)
+    assert config.strong_corner_threshold_for("ultra_minimal") == pytest.approx(0.65)
+
+
+def test_unknown_preset_rejected_by_corner_threshold_lookup():
+    with pytest.raises(ValueError, match="unknown contour preset"):
+        ContourSimplificationConfig().strong_corner_threshold_for("unknown")

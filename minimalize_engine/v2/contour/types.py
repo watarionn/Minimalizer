@@ -144,6 +144,7 @@ class ContourSimplificationConfig:
     epsilon_max_px: float = 18.0
     candidate_factors: tuple[float, ...] = (1.0, 0.75, 0.50, 0.25, 0.0)
     strong_corner_threshold: float = 0.65
+    minimal_strong_corner_threshold: float = 0.6525
     characteristic_protection_confidence: float = 0.80
     semantic_protection_confidence: float = 0.90
     max_area_change: float = 0.08
@@ -179,7 +180,8 @@ class ContourSimplificationConfig:
         ):
             raise ValueError("candidate factors must be descending")
         for name in (
-            "strong_corner_threshold", "characteristic_protection_confidence",
+            "strong_corner_threshold", "minimal_strong_corner_threshold",
+            "characteristic_protection_confidence",
             "semantic_protection_confidence", "max_area_change", "min_iou",
             "max_centroid_shift_ratio", "max_directional_loss",
             "face_directional_factor", "major_mass_directional_factor",
@@ -190,6 +192,13 @@ class ContourSimplificationConfig:
                 raise ValueError(f"{name} must be finite and within [0, 1]")
         if self.raster_scale < 2:
             raise ValueError("raster_scale must be at least 2")
+
+    def strong_corner_threshold_for(self, preset: str) -> float:
+        if preset not in {"detailed", "balanced", "minimal", "ultra_minimal"}:
+            raise ValueError(f"unknown contour preset: {preset}")
+        if preset == "minimal":
+            return self.minimal_strong_corner_threshold
+        return self.strong_corner_threshold
 
     def epsilon_ratio_for(self, preset: str) -> float:
         lookup = {

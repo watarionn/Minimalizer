@@ -208,6 +208,7 @@ def _split_vertices_for_pair(
     incident_regions: dict[Coord, set[RegionId]],
     bundle: ImageBundle,
     config: ContourSimplificationConfig,
+    preset: str,
 ) -> tuple[set[Coord], dict[Coord, set[str]]]:
     height, width = bundle.analysis_rgb.shape[:2]
     split: set[Coord] = set()
@@ -222,7 +223,7 @@ def _split_vertices_for_pair(
             local.add("image_border_anchor")
         if (
             _is_turn(point, neighbors)
-            and _edge_strength(bundle, point) >= config.strong_corner_threshold
+            and _edge_strength(bundle, point) >= config.strong_corner_threshold_for(preset)
         ):
             local.add("strong_structural_corner")
         if local:
@@ -320,7 +321,7 @@ def build_boundary_graph(
     for pair in sorted(pair_edges):
         adjacency = _pair_adjacency(pair_edges[pair])
         split, reasons = _split_vertices_for_pair(
-            pair, adjacency, incident_regions, bundle, config
+            pair, adjacency, incident_regions, bundle, config, selection.preset
         )
         for point, local in reasons.items():
             vertex_reasons_by_coord[point].update(local)
