@@ -6,10 +6,10 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 ## Start here
 
 Repository: `watarionn/Minimalizer`
-Current branch: `feature/minimalizer-2-calibration-03-contour-micro-cleanup`
-Current engineering commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
+Current branch: `feature/minimalizer-2-calibration-04-medium-detail`
+Current engineering commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
 Current branch HEAD: verify the remote branch; handoff metadata may be a later documentation-only commit
-Engineering commit message: `Calibrate Minimalizer 2 weak contour corners`
+Engineering commit message: `Calibrate Minimalizer 2 medium detail`
 
 This branch is pushed to origin. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -24,7 +24,8 @@ Local RDC clone:
 3. `docs/architecture/MINIMALIZER_2_CALIBRATION_01.md`
 4. `docs/architecture/MINIMALIZER_2_CALIBRATION_02.md`
 5. `docs/architecture/MINIMALIZER_2_CALIBRATION_03.md`
-6. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+6. `docs/architecture/MINIMALIZER_2_CALIBRATION_04.md`
+7. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -41,26 +42,41 @@ Phase X Closure commit: `2499b3a09f61fbbe1ee2ad049473b8d552cdb00c`
 Calibration 01 commit: `9f357e54f22f9f3be9a2194375b420e6df1f81c6`
 Calibration 02 commit: `e05dafdca122d2fe622bd28ccf69b01936f53e40`
 Calibration 03 commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
+Calibration 04 engineering commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
 
 ## Calibration results so far
 
 Closure mean visual groups: `48.278`
 Calibration 01 mean visual groups: `41.944`
 Calibration 02 mean visual groups: `37.167`
-Calibration 03 keeps the same visual-group range and safely reduces weak contour vertices.
+Calibration 03 keeps the Calibration 02 visual-group range and safely reduces weak contour vertices.
+Calibration 04 mean visual groups: `33.833`.
 
-Calibration 03, 18-case result:
+Calibration 04, direct 18-case comparison against Calibration 03 behavior:
 - hard invariant failures: `0 / 18`
-- vertices: `102,508 -> 102,291`
-- vertex reduction: `217` (`0.212%`)
-- cases with fewer vertices: `18 / 18`
-- Contour IoU changed: `0 / 18`
-- max directional loss changed: `0 / 18`
+- mean visual groups: `37.167 -> 33.833`
+- visual-group range: `21..44 -> 21..43`
+- additional style collapses: `58`
+- cases with fewer visual groups: `15 / 18`
+- cases at Minimal `target_min=28`: `3`
+- Kikirara-Vivi: `37 -> 31`
+- Otonose-Kanade: `34 -> 28`
+- Hakos-Baelz: `42 -> 41`
+
+Calibration 04 uses a conservative medium-detail band after the existing micro-detail pass:
+- Minimal preset only
+- `0.0008 < area_ratio <= 0.0015`
+- `importance <= 0.60`
+- core coverage geometry remains present; only style collapses
+- existing characteristic-anchor, protected relationship, adjacency fallback, and `target_min` guards remain active
+
+Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333` and six cases would reach the lower bound, which was too aggressive for this calibration.
 
 ## Regression status
 
-Latest V2 regression after Calibration 03: `104 passed`.
-Latest full repository regression after Calibration 03: `436 passed, 2 failed, 1 warning`.
+Latest canonical 18-case run after Calibration 04: hard invariant failures `0 / 18`.
+Latest V2 regression after Calibration 04: `106 passed`.
+Latest full repository regression after Calibration 04: `438 passed, 2 failed, 1 warning`.
 
 The two known failures are pre-existing and caused only by the missing asset:
 `tests/assets/false_face_phase85.png`
@@ -95,35 +111,21 @@ Google Drive Approved Geometric Reference folder:
 `1oWUtdUAfLE4x8_T5VS5GQyHEHn7FQ35v`
 Folder name: `採用見本_幾何学ミニマル_20260911`
 
-## Current Calibration 03 behavior
+## Current calibration behavior
 
-Minimal preset uses:
+Calibration 03 remains active for Minimal contour cleanup:
 - `strong_corner_threshold = 0.65` for normal presets
 - `minimal_strong_corner_threshold = 0.6525` for Minimal only
 
-The stronger probes were intentionally rejected:
-- `0.655` begins to worsen directional loss on Hakos-Baelz
-- `0.66+` begins to reduce Contour IoU on some cases
-- `0.70` was clearly too aggressive, e.g. Kobo-Kanaeru IoU dropped near the guard
-
-The accepted implementation changes only weak corner anchoring in the shared boundary graph. It does not post-warp one side of a shared boundary.
+Calibration 04 adds a second Detail Budget cleanup band after micro-detail cleanup. It does not alter Region Merge, Hierarchy Cut, Contour geometry, Primitive fitting, Palette Consolidation, or coverage geometry.
 
 ## Recommended next engineering step
 
-Proceed to `Calibration 04`.
-Goal: reduce medium-size accessory / clothing detail that still exceeds the Approved Reference style, while preserving the large face/hair/torso/arm/outfit masses.
+Proceed to post-Calibration-04 visual review before choosing Calibration 05.
+Goal: compare Calibration 04 outputs against the Approved Geometric References and determine whether the next remaining mismatch is primarily geometry count, primitive complexity, contour character, or palette/detail grouping.
 
-Start with measurement, not a threshold guess:
-1. Verify RDC branch/head/status and GitHub remote branch first.
-2. Read Calibration 02 and 03 docs.
-3. Identify medium-size retained regions after Detail Budget, especially accessory/clothing fragments.
-4. Probe conservative area/importance bands on smoke cases first.
-5. Reuse existing anchor, relationship, coverage, and target-min guards.
-6. Run the canonical 18-case corpus before accepting a change.
-7. Require hard invariant failures = 0.
-8. Run V2 regression and full repository regression.
-
-Do not reopen Region Merge unless evidence proves a later-stage solution cannot solve the problem.
+Do not guess another threshold first. Start with measurement and side-by-side inspection.
+Do not reopen Region Merge unless evidence proves a later-stage solution cannot solve the remaining mismatch.
 
 ## Operational rules for the next chat
 
@@ -146,16 +148,17 @@ Run these first on RDC:
 `git status --short`
 
 Expected clean state at this handoff:
-branch `feature/minimalizer-2-calibration-03-contour-micro-cleanup`
-engineering commit `6989b2741ea581dd307008142d872ae1eb60d60d`
-branch HEAD may be a later documentation-only handoff commit; verify the remote branch HEAD before work
+branch `feature/minimalizer-2-calibration-04-medium-detail`
+engineering commit `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
+branch HEAD may be a later documentation-only handoff commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_03.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_04.md`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 03 の完了状態をGitHub/RDCで確認してから、Calibration 04（中サイズのアクセサリー・衣装ディテール整理）を再開します。`
+`Calibration 04 の完了状態をGitHub/RDCで確認してから、採用見本との視覚比較に進み、Calibration 05 の対象を測定ベースで決めます。`
 
 ## Current merge state
 
-Calibration 01, 02, and 03 are feature-branch work. The current Calibration 03 branch is pushed but not merged to `main`.
-GitHub Actions for commit `6989b2741ea581dd307008142d872ae1eb60d60d` were confirmed as zero runs.
+Calibration 01, 02, 03, and 04 are feature-branch work. Calibration 04 is not merged to `main`.
+No PR has been created for Calibration 04.
+The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
