@@ -221,26 +221,56 @@ def _segments_intersect(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarr
 
 
 def loops_have_self_intersection(loops: tuple[np.ndarray, ...]) -> bool:
-    segments: list[tuple[int, int, np.ndarray, np.ndarray]] = []
+    starts_list: list[np.ndarray] = []
+    ends_list: list[np.ndarray] = []
+    loop_ids: list[int] = []
+    edge_ids: list[int] = []
+    loop_counts = [len(loop) for loop in loops]
     for loop_index, loop in enumerate(loops):
-        count = len(loop)
-        for index in range(count):
-            segments.append((loop_index, index, loop[index], loop[(index + 1) % count]))
-    for left_index, left in enumerate(segments):
-        loop_a, edge_a, a, b = left
-        for loop_b, edge_b, c, d in segments[left_index + 1:]:
-            if loop_a == loop_b:
-                count = len(loops[loop_a])
-                if edge_b in {edge_a, (edge_a + 1) % count, (edge_a - 1) % count}:
-                    continue
-            shared_endpoint = any(
-                np.allclose(first, second)
-                for first in (a, b)
-                for second in (c, d)
-            )
-            if shared_endpoint:
-                continue
-            if _segments_intersect(a, b, c, d):
+        points = np.asarray(loop, dtype=np.float32)
+        count = len(points)
+        starts_list.extend(points[index] for index in range(count))
+        ends_list.extend(points[(index + 1) % count] for index in range(count))
+        loop_ids.extend([loop_index] * count)
+        edge_ids.extend(range(count))
+    if len(starts_list) < 2:
+        return False
+    starts = np.asarray(starts_list, dtype=np.float32)
+    ends = np.asarray(ends_list, dtype=np.float32)
+    loop_ids_array = np.asarray(loop_ids, dtype=np.int32)
+    edge_ids_array = np.asarray(edge_ids, dtype=np.int32)
+    low = np.minimum(starts, ends)
+    high = np.maximum(starts, ends)
+    eps = 1e-6
+    for index in range(len(starts) - 1):
+        candidates = np.arange(index + 1, len(starts), dtype=np.int32)
+        overlap = (
+            (high[candidates, 0] + eps >= low[index, 0])
+            & (low[candidates, 0] - eps <= high[index, 0])
+            & (high[candidates, 1] + eps >= low[index, 1])
+            & (low[candidates, 1] - eps <= high[index, 1])
+        )
+        candidates = candidates[overlap]
+        if candidates.size == 0:
+            continue
+        same_loop = loop_ids_array[candidates] == loop_ids_array[index]
+        if np.any(same_loop):
+            count = loop_counts[int(loop_ids_array[index])]
+            delta = (edge_ids_array[candidates] - edge_ids_array[index]) % count
+            adjacent = same_loop & ((delta == 1) | (delta == count - 1))
+            candidates = candidates[~adjacent]
+        if candidates.size == 0:
+            continue
+        a, b = starts[index], ends[index]
+        shared = (
+            np.all(starts[candidates] == a, axis=1)
+            | np.all(ends[candidates] == a, axis=1)
+            | np.all(starts[candidates] == b, axis=1)
+            | np.all(ends[candidates] == b, axis=1)
+        )
+        candidates = candidates[~shared]
+        for other_index in candidates:
+            if _segments_intersect(a, b, starts[other_index], ends[other_index]):
                 return True
     return False
 
