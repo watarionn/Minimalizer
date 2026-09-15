@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `e7b9d5e384182acc84815d6cf52f402cc987fb81`
+Current engineering commit: `82e99f5b979a034080fb2ae31de91ff686cca3d3`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Add Calibration 05 line diagnostics`
+Engineering commit message: `Implement Calibration 05 shared boundary line fitting`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -27,7 +27,8 @@ Local RDC clone:
 6. `docs/architecture/MINIMALIZER_2_CALIBRATION_04.md`
 7. `docs/architecture/MINIMALIZER_2_POST_CALIBRATION_04_REVIEW.md`
 8. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`
-9. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+9. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`
+10. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -46,6 +47,7 @@ Calibration 02 commit: `e05dafdca122d2fe622bd28ccf69b01936f53e40`
 Calibration 03 commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
 Calibration 04 engineering commit: `dc10ca1e6cd4daf2dddee6af41ca19a53f75188d`
 Calibration 05 Phase A engineering commit: `e7b9d5e384182acc84815d6cf52f402cc987fb81`
+Calibration 05 Phase B engineering commit: `82e99f5b979a034080fb2ae31de91ff686cca3d3`
 
 ## Calibration results so far
 
@@ -78,8 +80,9 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 04: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase A: `107 passed`.
-Latest full repository regression after Calibration 05 Phase A: `439 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase B: `110 passed`.
+Latest full repository regression after Calibration 05 Phase B: `442 passed, 2 failed, 1 warning`.
+Latest 18-case Phase B visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
 `tests/assets/false_face_phase85.png`
@@ -122,6 +125,13 @@ Calibration 03 remains active for Minimal contour cleanup:
 
 Calibration 04 adds a second Detail Budget cleanup band after micro-detail cleanup. It does not alter Region Merge, Hierarchy Cut, Contour geometry, Primitive fitting, Palette Consolidation, or coverage geometry.
 
+Calibration 05 Phase B changes Minimal shared-boundary geometry only:
+- Minimal no longer hard-splits every pixel-scale strong corner
+- junctions/borders/protected relationships remain hard structure
+- conservative shared-boundary line-fit is enabled only for Minimal
+- line-fit defaults: min points `4`, span `0.03*diag`, max deviation `0.004*diag`, efficiency `0.94`
+- every accepted line still passes the existing topology/IoU/directional/intersection guards
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -140,15 +150,19 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase B: Shared-Boundary Line Fitting.
+Proceed to Calibration 05 Phase C investigation: Macro Planar-Facet Reconstruction / Effective Visual-Group Geometry.
 
-Phase A is complete. The new observational diagnostics are `visible_edge_density`, `long_line_support`, and `long_line_count`. Five-case normalized current/reference long-line support ratio averaged `0.2648`, with invariant failures `0`.
+Phase B is validated as the conservative shared-boundary line-fitting direction:
+- hard invariant failures: `0 / 18`
+- mean long-line support: `0.195941 -> 0.235422` (`+20.15%`)
+- improved support cases: `15 / 18`
+- mean current/reference support ratio: `0.289346 -> 0.346412`
+- mean contour vertices: `5696.72 -> 1427.11`
+- visual groups essentially unchanged: `34.556 -> 34.667`
 
-A global contour-epsilon probe (`0.022`, `0.024`, `0.026`, `0.030`) was rejected. Mean support barely moved (`0.162654 -> 0.166273`) while worst Contour IoU fell from `0.934010` to `0.912322`.
+The all-18 comparison still shows a substantial macro-geometry gap. Approved references organize the subject into deliberate large planar facets, while current output still follows too many source-image region decisions even after boundary straightening.
 
-Phase B should add a dedicated shared-boundary line-fitting candidate on the BoundaryGraph. It must preserve both-neighbor boundary agreement, protected vertices, chain endpoints, topology, coverage, characteristic anchors, palette relationships, Contour IoU, and directional guards.
-
-Do not change Region Merge or Detail Budget targets in Phase B. Do not use stronger global RDP as the primary mechanism.
+Phase C should begin with diagnostics/probes that operate on final/effective visual-group geometry. Do not reopen Region Merge or lower Detail Budget targets by default. Do not use blanket face/accessory deletion; Hakos-Baelz and Raora-Panthera remain guard cases.
 
 ## Operational rules for the next chat
 
@@ -172,16 +186,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `e7b9d5e384182acc84815d6cf52f402cc987fb81`
+engineering commit `82e99f5b979a034080fb2ae31de91ff686cca3d3`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md` and `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase A の確定状態をGitHub/RDCで確認してから、Phase B（Shared-Boundary Line Fitting）の候補設計と保守的 smoke probe を開始します。`
+`Calibration 05 Phase B の確定状態をGitHub/RDCで確認してから、Phase C（Macro Planar-Facet Reconstruction）の診断と保守的 probe を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A is also on a feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A and Phase B are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
