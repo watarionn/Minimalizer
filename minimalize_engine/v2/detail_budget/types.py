@@ -152,6 +152,9 @@ class DetailBudgetConfig:
     micro_detail_area_ratio: float = 0.0008
     micro_detail_importance_limit: float = 0.60
     micro_detail_presets: tuple[str, ...] = ("minimal",)
+    medium_detail_area_ratio: float = 0.0015
+    medium_detail_importance_limit: float = 0.60
+    medium_detail_presets: tuple[str, ...] = ("minimal",)
     anchor_equivalence_delta_e: float = 6.0
     contrast_original_delta_e: float = 12.0
     contrast_assigned_delta_e: float = 5.0
@@ -178,6 +181,7 @@ class DetailBudgetConfig:
             self.structural_mass_area_ratio, self.silhouette_protection_ratio,
             self.pose_protection_threshold, self.semantic_protection_confidence,
             self.micro_detail_area_ratio, self.micro_detail_importance_limit,
+            self.medium_detail_area_ratio, self.medium_detail_importance_limit,
         )
         if any(not np.isfinite(value) or not 0.0 <= value <= 1.0 for value in bounded):
             raise ValueError("detail-budget thresholds must be within [0, 1]")
@@ -196,9 +200,15 @@ class DetailBudgetConfig:
             raise ValueError("critical semantic tags must be unique")
         if len(self.micro_detail_presets) != len(set(self.micro_detail_presets)):
             raise ValueError("micro-detail presets must be unique")
+        if len(self.medium_detail_presets) != len(set(self.medium_detail_presets)):
+            raise ValueError("medium-detail presets must be unique")
+        if self.medium_detail_area_ratio < self.micro_detail_area_ratio:
+            raise ValueError("medium-detail area ratio must not be below micro-detail area ratio")
         valid_presets = {"ultra_minimal", "minimal", "balanced", "detailed"}
         if not set(self.micro_detail_presets) <= valid_presets:
             raise ValueError("micro-detail presets contain unknown names")
+        if not set(self.medium_detail_presets) <= valid_presets:
+            raise ValueError("medium-detail presets contain unknown names")
         for target in (
             self.ultra_minimal_target, self.minimal_target,
             self.balanced_target, self.detailed_target,

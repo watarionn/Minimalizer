@@ -272,6 +272,44 @@ def apply_detail_budget(
                 group_count = after
                 break
 
+    if policy.preset in config.medium_detail_presets and group_count > policy.target_min:
+        medium_candidates = sorted(
+            (
+                item for item in info.values()
+                if not item.overlay and not item.protected
+                and actions[item.region_id] == RETAIN
+                and config.micro_detail_area_ratio < item.area_ratio
+                and item.area_ratio <= config.medium_detail_area_ratio
+                and item.importance <= config.medium_detail_importance_limit
+            ),
+            key=lambda item: (item.area_ratio, item.importance, item.region_id),
+        )
+        for item in medium_candidates:
+            if group_count <= policy.target_min:
+                break
+            region_id = item.region_id
+            before = group_count
+            for fallback_region in _fallback_candidates(
+                region_id, info, palettes, palette_result
+            ):
+                candidate_palette = palettes[fallback_region]
+                if not _keeps_last_anchor_support(
+                    region_id, candidate_palette, info, palettes, palette_result
+                ):
+                    continue
+                tentative = dict(palettes)
+                tentative[region_id] = candidate_palette
+                if not _all_relationships_safe(tentative, palette_result, config):
+                    continue
+                after = _visual_group_count(info, actions, tentative)
+                if after >= before or after < policy.target_min:
+                    continue
+                palettes = tentative
+                actions[region_id] = COLLAPSE_STYLE
+                fallbacks[region_id] = fallback_region
+                group_count = after
+                break
+
     metrics = DetailBudgetMetrics(
         draw_geometry_count=_draw_geometry_count(info, actions),
         visual_group_count=group_count,
