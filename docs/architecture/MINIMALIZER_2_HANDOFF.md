@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `53f1961bd627c4bfdda4695de105f3c14fe58c68`
+Current engineering commit: `cbcb660b826256b4f332edefa44ecaf54e0c9a3d`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Add Calibration 05 V2 entry-point integration gate`
+Engineering commit message: `Add Calibration 05 migration readiness gate`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -34,7 +34,8 @@ Local RDC clone:
 13. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`
 14. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`
 15. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`
-16. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+16. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`
+17. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -60,6 +61,7 @@ Calibration 05 Phase E engineering commit: `57a752051598e42e8562b8b22219f5e8b7e3
 Calibration 05 Phase F engineering commit: `57d47d33d6616c2bb01ecee77463e14bdd044d57`
 Calibration 05 Phase G engineering commit: `aba56cd779f8a080a4bea092c3acc967175a9987`
 Calibration 05 Phase H engineering commit: `53f1961bd627c4bfdda4695de105f3c14fe58c68`
+Calibration 05 Phase I engineering commit: `cbcb660b826256b4f332edefa44ecaf54e0c9a3d`
 
 ## Calibration results so far
 
@@ -92,8 +94,8 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase H: `125 passed`.
-Latest full repository regression after Calibration 05 Phase H: `461 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase I: `128 passed`.
+Latest full repository regression after Calibration 05 Phase I: `464 passed, 2 failed, 1 warning`.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -160,6 +162,8 @@ Calibration 05 Phase G adds the stable V2 PNG export contract `minimalizer-v2-pn
 
 Calibration 05 Phase H adds explicit opt-in legacy-boundary integration only: `minimalize_file_png()`, `/api/v2/info`, `/api/v2/minimalize`, and CLI `--v2-shadow-png`. Existing `/api/minimalize`, `/api/info`, browser UI, and normal CLI outputs remain legacy-default.
 
+Calibration 05 Phase I adds a machine-readable migration-readiness gate. It currently reports `ready_for_default=false` with six blockers; quality, deterministic PNG export, and opt-in entry-point integration are ready, while compatibility and performance remain blockers.
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -178,7 +182,7 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase I: Legacy-to-V2 Migration Readiness.
+Proceed to Calibration 05 Phase J: V2 Performance Profiling / Budget Preparation.
 
 Phase H completed explicit opt-in integration across the real application boundary while preserving all legacy defaults:
 - V2 file adapter: `minimalize_engine.v2.minimalize_file_png()`
@@ -189,7 +193,7 @@ Phase H completed explicit opt-in integration across the real application bounda
 - Hakos-Baelz legacy SVG SHA-256 was identical with and without V2 shadow output
 - hard invariant failures: `0 / 18`
 
-Phase I should measure migration readiness rather than switch defaults. Build a machine-readable comparison of legacy and V2 capabilities, configuration semantics, output formats, metadata, and unsupported behaviors. Define explicit blockers and a go/no-go gate for a future default migration. Do not change the legacy default engine, browser UI, or deploy in Phase I.
+Phase I fixed the migration decision as `ready_for_default=false` with six blockers: Web control mapping, output-format parity, alpha/background parity, CLI control mapping, browser UI migration, and performance budget. Representative five-case profiling measured legacy standard at 0.740 s mean versus V2 minimal at 5.954 s mean, about 8.28x slower. Phase J should profile V2 phase timings and prepare a performance budget without changing canonical pixels, algorithm digest, facet decisions, legacy defaults, browser UI, or deployment.
 
 ## Operational rules for the next chat
 
@@ -213,16 +217,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `53f1961bd627c4bfdda4695de105f3c14fe58c68`
+engineering commit `cbcb660b826256b4f332edefa44ecaf54e0c9a3d`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase H の確定状態をGitHub/RDCで確認してから、Phase I（Legacy-to-V2 Migration Readiness）を開始します。`
+`Calibration 05 Phase I の確定状態をGitHub/RDCで確認してから、Phase J（V2 Performance Profiling / Budget Preparation）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, and Phase H are also on the same feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, and Phase I are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
