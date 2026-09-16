@@ -1,5 +1,11 @@
 """Minimalizer 2.0 core package."""
 
+from .compatibility import (
+    PUBLIC_CONTRACT_SCHEMA_VERSION,
+    PublicContractCompatibilityReport,
+    PublicControlCompatibility,
+    build_public_contract_compatibility,
+)
 from .export import PNG_CONTRACT_VERSION, V2PngExport, V2PngMetadata, export_png
 from .file_api import minimalize_file_png
 from .migration import (
@@ -25,4 +31,6 @@ __all__ = [
     "render_scene", "PNG_CONTRACT_VERSION", "V2PngExport", "V2PngMetadata",
     "export_png", "minimalize_file_png", "MIGRATION_SCHEMA_VERSION",
     "MigrationItem", "MigrationReadinessReport", "build_migration_readiness",
+    "PUBLIC_CONTRACT_SCHEMA_VERSION", "PublicControlCompatibility",
+    "PublicContractCompatibilityReport", "build_public_contract_compatibility",
 ]

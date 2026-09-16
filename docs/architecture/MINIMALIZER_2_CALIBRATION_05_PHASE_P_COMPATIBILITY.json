@@ -1,0 +1,540 @@
+{
+  "disposition_counts": {
+    "legacy_retained": 58,
+    "mapped": 2,
+    "out_of_scope": 6,
+    "versioned_deprecated": 0
+  },
+  "items": [
+    {
+      "control": "file",
+      "disposition": "mapped",
+      "rationale": "Both standard entry points accept the same source-image file boundary.",
+      "route": "v2",
+      "surface": "web",
+      "v2_target": "input file"
+    },
+    {
+      "control": "level",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "output_format",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "mode",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "colors",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "max_shapes",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "background",
+      "disposition": "legacy_retained",
+      "rationale": "No exact V2 public-contract equivalence has been approved; retain legacy semantics until its dependent compatibility blocker is resolved.",
+      "route": "legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "color_similarity",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "color_size_mode",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "color_order",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "color_orientation",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "color_selection_mode",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "rinka_preset",
+      "disposition": "out_of_scope",
+      "rationale": "This control belongs to Rinka Reference or Color Strip, which remain separately routed specialized modes.",
+      "route": "specialized_legacy",
+      "surface": "web",
+      "v2_target": null
+    },
+    {
+      "control": "input",
+      "disposition": "mapped",
+      "rationale": "Legacy CLI and V2 shadow CLI consume the same source-image path.",
+      "route": "v2",
+      "surface": "cli",
+      "v2_target": "input file"
+    },
+    {
+      "control": "output",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "png",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "webp",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "level",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "colors",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "max_shapes",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "padding",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "background",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_lines",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_layer_composition",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_macro_underlays",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_composition_skeleton",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_multiscale",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_semantics",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_design_primitives",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_design_palette",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_patterns",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_auto_retry",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "ignore_alpha",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "quality_report",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_global_shape_value",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_global_shape_cleanup",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_character_structure",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_body_primitives",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hand_analysis",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hand_primitives",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hand_geometry_validation",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hand_validation",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hand_quality",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_limb_geometry_refine",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hair_body_guard",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_character_layout",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_character_quality",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_character_auto_retry",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_pose_proxy",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "character_preset",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_rules",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "face_primitives",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_validation",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_geometry_quality",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_contour_fit",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_boundary_guard",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_identity_budget",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_face_identity_validation",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_hair_rules",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_outfit_rules",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_prop_rules",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_adaptive_character_budget",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_outfit_structure_quality",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_prop_symbol_quality",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "no_character_wide_identity",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    },
+    {
+      "control": "debug_dir",
+      "disposition": "legacy_retained",
+      "rationale": "The control has legacy-specific output or algorithm semantics and stays on the legacy route unless a later versioned contract maps or deprecates it.",
+      "route": "legacy",
+      "surface": "cli",
+      "v2_target": null
+    }
+  ],
+  "schema_version": "minimalizer-v2-public-contract-v1",
+  "scope": "legacy_standard_public_controls_to_v2"
+}

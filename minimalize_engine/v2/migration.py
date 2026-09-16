@@ -59,10 +59,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "V2 opt-in Web endpoint and CLI shadow preserve Phase G bytes",
         ),
         MigrationItem(
-            "web_control_mapping", "web", "blocked",
+            "web_control_mapping", "web", "ready",
             "standard mode exposes level, colors, max_shapes, background, and svg/png",
-            "V2 opt-in exposes preset, include_facets, and PNG only",
-            "Define a compatibility mapping or explicitly version the default Web contract.",
+            "Phase P matrix exhaustively classifies the exposed legacy Web controls as mapped, legacy-retained, or out of scope",
         ),
         MigrationItem(
             "output_format_parity", "export", "blocked",
@@ -77,10 +76,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "Define alpha preservation and background-mode semantics for V2.",
         ),
         MigrationItem(
-            "cli_control_mapping", "cli", "blocked",
+            "cli_control_mapping", "cli", "ready",
             "legacy CLI exposes level/detail, composition, cleanup, character, face, hand, and debug switches",
-            "V2 CLI integration is shadow PNG plus preset/facet controls only",
-            "Classify legacy CLI switches as mapped, deprecated, or retained on the legacy route.",
+            "Phase P matrix exhaustively classifies every legacy CLI control as mapped or legacy-retained",
         ),
         MigrationItem(
             "browser_ui_migration", "web_ui", "blocked",

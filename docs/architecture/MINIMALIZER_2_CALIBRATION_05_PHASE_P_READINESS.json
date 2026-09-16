@@ -1,0 +1,94 @@
+{
+  "blocker_count": 4,
+  "blocker_ids": [
+    "output_format_parity",
+    "alpha_background_parity",
+    "browser_ui_migration",
+    "performance_budget"
+  ],
+  "items": [
+    {
+      "area": "quality",
+      "id": "canonical_quality",
+      "legacy_contract": "legacy default remains active",
+      "required_action": null,
+      "status": "ready",
+      "v2_contract": "V2 canonical 18-case hard invariants pass 18/18"
+    },
+    {
+      "area": "export",
+      "id": "deterministic_png",
+      "legacy_contract": "legacy PNG encoding is exporter-dependent",
+      "required_action": null,
+      "status": "ready",
+      "v2_contract": "minimalizer-v2-png-v1 is deterministic and hash-addressable"
+    },
+    {
+      "area": "integration",
+      "id": "entry_point_boundary",
+      "legacy_contract": "legacy Web/CLI default paths remain unchanged",
+      "required_action": null,
+      "status": "ready",
+      "v2_contract": "V2 opt-in Web endpoint and CLI shadow preserve Phase G bytes"
+    },
+    {
+      "area": "web",
+      "id": "web_control_mapping",
+      "legacy_contract": "standard mode exposes level, colors, max_shapes, background, and svg/png",
+      "required_action": null,
+      "status": "ready",
+      "v2_contract": "Phase P matrix exhaustively classifies the exposed legacy Web controls as mapped, legacy-retained, or out of scope"
+    },
+    {
+      "area": "export",
+      "id": "output_format_parity",
+      "legacy_contract": "Web supports SVG/PNG; CLI supports SVG plus optional PNG/WEBP",
+      "required_action": "Add V2 SVG/WEBP contracts or define a backward-compatible routing policy.",
+      "status": "blocked",
+      "v2_contract": "V2 export contract currently supports PNG only"
+    },
+    {
+      "area": "image_io",
+      "id": "alpha_background_parity",
+      "legacy_contract": "legacy supports source/white/transparent/custom backgrounds and alpha controls",
+      "required_action": "Define alpha preservation and background-mode semantics for V2.",
+      "status": "blocked",
+      "v2_contract": "V2 file adapter currently composites source alpha onto white RGB"
+    },
+    {
+      "area": "cli",
+      "id": "cli_control_mapping",
+      "legacy_contract": "legacy CLI exposes level/detail, composition, cleanup, character, face, hand, and debug switches",
+      "required_action": null,
+      "status": "ready",
+      "v2_contract": "Phase P matrix exhaustively classifies every legacy CLI control as mapped or legacy-retained"
+    },
+    {
+      "area": "web_ui",
+      "id": "browser_ui_migration",
+      "legacy_contract": "browser workspace submits only legacy modes to /api/minimalize",
+      "required_action": "Design an explicit migration/rollback UI contract before changing the default.",
+      "status": "blocked",
+      "v2_contract": "V2 is API-only opt-in and intentionally absent from the browser UI"
+    },
+    {
+      "area": "operations",
+      "id": "performance_budget",
+      "legacy_contract": "legacy default has established hosted behavior",
+      "required_action": "Define and pass a representative latency/resource budget before migration.",
+      "status": "blocked",
+      "v2_contract": "V2 has regression timings but no default-migration latency budget"
+    },
+    {
+      "area": "scope",
+      "id": "special_modes",
+      "legacy_contract": "Rinka Reference and Color Strip are separate legacy Web modes",
+      "required_action": "Keep specialized modes separately routed during standard-engine migration.",
+      "status": "out_of_scope",
+      "v2_contract": "Phase I targets only the standard-engine default"
+    }
+  ],
+  "ready_for_default": false,
+  "schema_version": "minimalizer-v2-migration-v1",
+  "scope": "legacy_standard_default_to_v2"
+}
