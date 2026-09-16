@@ -28,6 +28,10 @@ from .output_contract import (
     OutputFormatPolicy,
     build_output_format_compatibility,
 )
+from .performance_budget import (
+    PERFORMANCE_BUDGET_SCHEMA_VERSION, PerformanceBudget, PerformanceMeasurement,
+    PerformanceBudgetEvaluation, evaluate_performance_budget,
+)
 from .migration import (
     MIGRATION_SCHEMA_VERSION,
     MigrationItem,
@@ -51,6 +55,8 @@ __all__ = [
     "render_scene", "PNG_CONTRACT_VERSION", "V2PngExport", "V2PngMetadata",
     "export_png", "minimalize_file_png", "MIGRATION_SCHEMA_VERSION",
     "MigrationItem", "MigrationReadinessReport", "build_migration_readiness",
+    "PERFORMANCE_BUDGET_SCHEMA_VERSION", "PerformanceBudget", "PerformanceMeasurement",
+    "PerformanceBudgetEvaluation", "evaluate_performance_budget",
     "OUTPUT_FORMAT_SCHEMA_VERSION", "OutputFormatPolicy",
     "OutputFormatCompatibilityReport", "build_output_format_compatibility",
     "BROWSER_MIGRATION_SCHEMA_VERSION", "BrowserRolloutStage",

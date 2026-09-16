@@ -1,0 +1,383 @@
+{
+  "all_batches_passed": true,
+  "batches": [
+    {
+      "cases": [
+        {
+          "case": "Kikirara-Vivi_list_thumb.png",
+          "legacy_repeats": [
+            0.6889741999912076,
+            0.6907039000070654
+          ],
+          "legacy_seconds": 0.6898390499991365,
+          "ratio": 6.858041089447562,
+          "v2_repeats": [
+            4.609896900001331,
+            4.851992199997767
+          ],
+          "v2_seconds": 4.730944549999549
+        },
+        {
+          "case": "Otonose-Kanade_list_thumb.png",
+          "legacy_repeats": [
+            0.610239299989189,
+            0.6007263000064995
+          ],
+          "legacy_seconds": 0.6054827999978443,
+          "ratio": 7.318460243650209,
+          "v2_repeats": [
+            4.46987590000208,
+            4.392527699994389
+          ],
+          "v2_seconds": 4.4312017999982345
+        },
+        {
+          "case": "Todoroki-Hajime_list_thumb.png",
+          "legacy_repeats": [
+            0.5927918999950634,
+            0.606369100001757
+          ],
+          "legacy_seconds": 0.5995804999984102,
+          "ratio": 6.385570244539565,
+          "v2_repeats": [
+            3.8517511999962153,
+            3.805575599995791
+          ],
+          "v2_seconds": 3.828663399996003
+        },
+        {
+          "case": "Raora-Panthera_list_thumb.png",
+          "legacy_repeats": [
+            0.8621340999961831,
+            0.8738245999993524
+          ],
+          "legacy_seconds": 0.8679793499977677,
+          "ratio": 5.2473286951038505,
+          "v2_repeats": [
+            4.528804000001401,
+            4.580341900000349
+          ],
+          "v2_seconds": 4.554572950000875
+        },
+        {
+          "case": "Hakos-Baelz_list_thumb.png",
+          "legacy_repeats": [
+            0.8883784000063315,
+            0.9293308999913279
+          ],
+          "legacy_seconds": 0.9088546499988297,
+          "ratio": 4.784550863011254,
+          "v2_repeats": [
+            4.34928910000599,
+            4.347633500001393
+          ],
+          "v2_seconds": 4.348461300003692
+        }
+      ],
+      "evaluation": {
+        "budget": {
+          "case_count": 5,
+          "confirmation_batches": 3,
+          "max_analysis_side": 400,
+          "max_case_ratio_max": 9.0,
+          "max_case_v2_seconds_max": 5.5,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio_max": 7.0,
+          "mean_v2_seconds_max": 5.0,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "checks": {
+          "analysis_max_side": true,
+          "case_count": true,
+          "max_case_ratio": true,
+          "max_case_v2_seconds": true,
+          "max_concurrent_jobs": true,
+          "mean_case_ratio": true,
+          "mean_v2_seconds": true,
+          "repeats": true,
+          "web_workers": true
+        },
+        "measurement": {
+          "analysis_max_side": 400,
+          "case_count": 5,
+          "max_case_ratio": 7.318460243650209,
+          "max_case_v2_seconds": 4.730944549999549,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio": 6.118790227150488,
+          "mean_legacy_seconds": 0.7343472699983977,
+          "mean_v2_seconds": 4.378768799999671,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "passed": true,
+        "schema_version": "minimalizer-v2-performance-budget-v1"
+      }
+    },
+    {
+      "cases": [
+        {
+          "case": "Kikirara-Vivi_list_thumb.png",
+          "legacy_repeats": [
+            0.7152001000067685,
+            0.7049666999955662
+          ],
+          "legacy_seconds": 0.7100834000011673,
+          "ratio": 6.416421648500221,
+          "v2_repeats": [
+            4.549908700006199,
+            4.5624803000100655
+          ],
+          "v2_seconds": 4.556194500008132
+        },
+        {
+          "case": "Otonose-Kanade_list_thumb.png",
+          "legacy_repeats": [
+            0.6116752000089036,
+            0.5949394000053871
+          ],
+          "legacy_seconds": 0.6033073000071454,
+          "ratio": 7.3354377610539725,
+          "v2_repeats": [
+            4.4437020999903325,
+            4.407344199993531
+          ],
+          "v2_seconds": 4.425523149991932
+        },
+        {
+          "case": "Todoroki-Hajime_list_thumb.png",
+          "legacy_repeats": [
+            0.6039536000025691,
+            0.6165096000040649
+          ],
+          "legacy_seconds": 0.610231600003317,
+          "ratio": 6.2306633251808545,
+          "v2_repeats": [
+            3.8226127000089036,
+            3.781682600005297
+          ],
+          "v2_seconds": 3.8021476500071003
+        },
+        {
+          "case": "Raora-Panthera_list_thumb.png",
+          "legacy_repeats": [
+            0.8742376000009244,
+            0.8676073999959044
+          ],
+          "legacy_seconds": 0.8709224999984144,
+          "ratio": 5.23277679702738,
+          "v2_repeats": [
+            4.563357900013216,
+            4.5513281999883475
+          ],
+          "v2_seconds": 4.557343050000782
+        },
+        {
+          "case": "Hakos-Baelz_list_thumb.png",
+          "legacy_repeats": [
+            0.9165649000060512,
+            0.8963905999989947
+          ],
+          "legacy_seconds": 0.906477750002523,
+          "ratio": 4.857233726902765,
+          "v2_repeats": [
+            4.358409699998447,
+            4.447538899999927
+          ],
+          "v2_seconds": 4.402974299999187
+        }
+      ],
+      "evaluation": {
+        "budget": {
+          "case_count": 5,
+          "confirmation_batches": 3,
+          "max_analysis_side": 400,
+          "max_case_ratio_max": 9.0,
+          "max_case_v2_seconds_max": 5.5,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio_max": 7.0,
+          "mean_v2_seconds_max": 5.0,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "checks": {
+          "analysis_max_side": true,
+          "case_count": true,
+          "max_case_ratio": true,
+          "max_case_v2_seconds": true,
+          "max_concurrent_jobs": true,
+          "mean_case_ratio": true,
+          "mean_v2_seconds": true,
+          "repeats": true,
+          "web_workers": true
+        },
+        "measurement": {
+          "analysis_max_side": 400,
+          "case_count": 5,
+          "max_case_ratio": 7.3354377610539725,
+          "max_case_v2_seconds": 4.557343050000782,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio": 6.014506651733039,
+          "mean_legacy_seconds": 0.7402045100025134,
+          "mean_v2_seconds": 4.348836530001426,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "passed": true,
+        "schema_version": "minimalizer-v2-performance-budget-v1"
+      }
+    },
+    {
+      "cases": [
+        {
+          "case": "Kikirara-Vivi_list_thumb.png",
+          "legacy_repeats": [
+            0.7144196000008378,
+            0.6990010000008624
+          ],
+          "legacy_seconds": 0.7067103000008501,
+          "ratio": 6.466330758156982,
+          "v2_repeats": [
+            4.621176900007413,
+            4.518468199996278
+          ],
+          "v2_seconds": 4.569822550001845
+        },
+        {
+          "case": "Otonose-Kanade_list_thumb.png",
+          "legacy_repeats": [
+            0.6070031999988714,
+            0.5887371999997413
+          ],
+          "legacy_seconds": 0.5978701999993064,
+          "ratio": 7.433936412963662,
+          "v2_repeats": [
+            4.480982400011271,
+            4.40807569999015
+          ],
+          "v2_seconds": 4.44452905000071
+        },
+        {
+          "case": "Todoroki-Hajime_list_thumb.png",
+          "legacy_repeats": [
+            0.5951689999928931,
+            0.5916440000000875
+          ],
+          "legacy_seconds": 0.5934064999964903,
+          "ratio": 6.5082652448484355,
+          "v2_repeats": [
+            3.7707941999979084,
+            3.9532995999907143
+          ],
+          "v2_seconds": 3.8620468999943114
+        },
+        {
+          "case": "Raora-Panthera_list_thumb.png",
+          "legacy_repeats": [
+            0.9198093000013614,
+            0.8832282000075793
+          ],
+          "legacy_seconds": 0.9015187500044703,
+          "ratio": 5.065840116998756,
+          "v2_repeats": [
+            4.636864999993122,
+            4.497034700005315
+          ],
+          "v2_seconds": 4.566949849999219
+        },
+        {
+          "case": "Hakos-Baelz_list_thumb.png",
+          "legacy_repeats": [
+            0.9142165999946883,
+            0.9131860000052257
+          ],
+          "legacy_seconds": 0.913701299999957,
+          "ratio": 4.765893076862662,
+          "v2_repeats": [
+            4.349414499985869,
+            4.35979089999455
+          ],
+          "v2_seconds": 4.35460269999021
+        }
+      ],
+      "evaluation": {
+        "budget": {
+          "case_count": 5,
+          "confirmation_batches": 3,
+          "max_analysis_side": 400,
+          "max_case_ratio_max": 9.0,
+          "max_case_v2_seconds_max": 5.5,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio_max": 7.0,
+          "mean_v2_seconds_max": 5.0,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "checks": {
+          "analysis_max_side": true,
+          "case_count": true,
+          "max_case_ratio": true,
+          "max_case_v2_seconds": true,
+          "max_concurrent_jobs": true,
+          "mean_case_ratio": true,
+          "mean_v2_seconds": true,
+          "repeats": true,
+          "web_workers": true
+        },
+        "measurement": {
+          "analysis_max_side": 400,
+          "case_count": 5,
+          "max_case_ratio": 7.433936412963662,
+          "max_case_v2_seconds": 4.569822550001845,
+          "max_concurrent_jobs": 2,
+          "mean_case_ratio": 6.0480531219661,
+          "mean_legacy_seconds": 0.7426414100002148,
+          "mean_v2_seconds": 4.359590209997259,
+          "repeats": 2,
+          "web_workers": 1
+        },
+        "passed": true,
+        "schema_version": "minimalizer-v2-performance-budget-v1"
+      }
+    }
+  ],
+  "benchmark_contract": {
+    "cases": [
+      "Kikirara-Vivi_list_thumb.png",
+      "Otonose-Kanade_list_thumb.png",
+      "Todoroki-Hajime_list_thumb.png",
+      "Raora-Panthera_list_thumb.png",
+      "Hakos-Baelz_list_thumb.png"
+    ],
+    "confirmation_batches": 3,
+    "execution": "sequential same-process, gc before each timed call",
+    "legacy": "web.service.minimalize_path PNG, level=4, analysis cap=400",
+    "repeats_per_batch": 2,
+    "v2": "web.service.minimalize_v2_path minimal + facets, analysis cap=400"
+  },
+  "budget": {
+    "case_count": 5,
+    "confirmation_batches": 3,
+    "max_analysis_side": 400,
+    "max_case_ratio_max": 9.0,
+    "max_case_v2_seconds_max": 5.5,
+    "max_concurrent_jobs": 2,
+    "mean_case_ratio_max": 7.0,
+    "mean_v2_seconds_max": 5.0,
+    "repeats": 2,
+    "web_workers": 1
+  },
+  "resource_envelope": {
+    "max_analysis_side": 400,
+    "max_concurrent_jobs": 2,
+    "requires_resource_increase": false,
+    "web_workers": 1
+  },
+  "schema_version": "minimalizer-v2-performance-budget-confirmation-v1",
+  "worst_observed": {
+    "max_case_ratio": 7.433936412963662,
+    "max_case_v2_seconds": 4.730944549999549,
+    "mean_case_ratio": 6.118790227150488,
+    "mean_v2_seconds": 4.378768799999671
+  }
+}

@@ -84,10 +84,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "Phase S defines explicit legacy-default, Standard opt-in, Standard-default, eligibility, specialized-mode, and rollback rules without changing the current browser default",
         ),
         MigrationItem(
-            "performance_budget", "operations", "blocked",
+            "performance_budget", "operations", "ready",
             "legacy default has established hosted behavior",
-            "V2 has regression timings but no default-migration latency budget",
-            "Define and pass a representative latency/resource budget before migration.",
+            "Phase T fixes and passes the representative five-case/two-repeat latency/resource budget within the hosted 400 analysis cap, one-worker, two-slot resource envelope",
         ),
         MigrationItem(
             "special_modes", "scope", "out_of_scope",

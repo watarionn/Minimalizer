@@ -11,14 +11,14 @@ from minimalize_engine.v2 import (
 )
 
 
-def test_migration_readiness_is_machine_readable_and_blocked():
+def test_migration_readiness_is_machine_readable_and_ready():
     report = build_migration_readiness()
     payload = report.to_dict()
     assert payload["schema_version"] == MIGRATION_SCHEMA_VERSION
     assert payload["scope"] == "legacy_standard_default_to_v2"
-    assert payload["ready_for_default"] is False
-    assert payload["blocker_count"] == 1
-    assert payload["blocker_ids"] == ["performance_budget"]
+    assert payload["ready_for_default"] is True
+    assert payload["blocker_count"] == 0
+    assert payload["blocker_ids"] == []
     json.dumps(payload, sort_keys=True)
 
 

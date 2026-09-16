@@ -32,7 +32,7 @@ from minimalize_engine.v2.palette import (
     PaletteEntry,
     consolidate_palette,
 )
-from minimalize_engine.v2.preprocessing import build_image_bundle
+from minimalize_engine.v2.preprocessing import DEFAULT_ANALYSIS_MAX_SIDE, build_image_bundle
 from minimalize_engine.v2.primitive import (
     PrimitiveFitConfig,
     PrimitiveFittingResult,
@@ -103,6 +103,7 @@ class SceneModel:
 
 @dataclass(frozen=True, slots=True)
 class PipelineConfig:
+    analysis_max_side: int = DEFAULT_ANALYSIS_MAX_SIDE
     region_merge: RegionMergeConfig = field(default_factory=RegionMergeConfig)
     contour: ContourSimplificationConfig = field(default_factory=ContourSimplificationConfig)
     primitive: PrimitiveFitConfig = field(default_factory=PrimitiveFitConfig)
@@ -327,7 +328,7 @@ def _minimalize_v2_impl(
     bundle = _timed(
         observer,
         "preprocessing",
-        lambda: build_image_bundle(source_rgb),
+        lambda: build_image_bundle(source_rgb, analysis_max_side=config.analysis_max_side),
     )
     segmentation = _timed(
         observer,

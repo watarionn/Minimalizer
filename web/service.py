@@ -31,7 +31,7 @@ from minimalize_engine.color_strip import (
 )
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
-from minimalize_engine.v2 import V2PngExport, minimalize_file_png
+from minimalize_engine.v2 import PipelineConfig, V2PngExport, minimalize_file_png
 
 OutputFormat = Literal["svg", "png"]
 ProcessingMode = Literal["standard", "rinka_reference", "color_strip"]
@@ -212,9 +212,15 @@ def minimalize_v2_path(
     *,
     preset: str = "minimal",
     include_facets: bool = True,
+    analysis_max_side_cap: int | None = None,
 ) -> V2PngExport:
+    config = None
+    if analysis_max_side_cap is not None:
+        default_max_side = PipelineConfig().analysis_max_side
+        config = PipelineConfig(analysis_max_side=min(default_max_side, analysis_max_side_cap))
     return minimalize_file_png(
         input_path,
         preset=preset,
         include_facets=include_facets,
+        config=config,
     )
