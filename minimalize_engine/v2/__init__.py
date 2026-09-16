@@ -1,5 +1,12 @@
 """Minimalizer 2.0 core package."""
 
+from .alpha_contract import (
+    ALPHA_BACKGROUND_SCHEMA_VERSION,
+    AlphaBackgroundCompatibilityReport,
+    AlphaBackgroundPolicy,
+    build_alpha_background_compatibility,
+    resolve_alpha_background_route,
+)
 from .compatibility import (
     PUBLIC_CONTRACT_SCHEMA_VERSION,
     PublicContractCompatibilityReport,
@@ -39,6 +46,8 @@ __all__ = [
     "MigrationItem", "MigrationReadinessReport", "build_migration_readiness",
     "OUTPUT_FORMAT_SCHEMA_VERSION", "OutputFormatPolicy",
     "OutputFormatCompatibilityReport", "build_output_format_compatibility",
-    "PUBLIC_CONTRACT_SCHEMA_VERSION", "PublicControlCompatibility",
+    "ALPHA_BACKGROUND_SCHEMA_VERSION", "AlphaBackgroundPolicy",
+    "AlphaBackgroundCompatibilityReport", "build_alpha_background_compatibility",
+    "resolve_alpha_background_route", "PUBLIC_CONTRACT_SCHEMA_VERSION", "PublicControlCompatibility",
     "PublicContractCompatibilityReport", "build_public_contract_compatibility",
 ]

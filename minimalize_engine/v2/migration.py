@@ -69,10 +69,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "Phase Q routes PNG to the deterministic V2 contract while retaining SVG/WEBP on the legacy renderers",
         ),
         MigrationItem(
-            "alpha_background_parity", "image_io", "blocked",
+            "alpha_background_parity", "image_io", "ready",
             "legacy supports source/white/transparent/custom backgrounds and alpha controls",
-            "V2 file adapter currently composites source alpha onto white RGB",
-            "Define alpha preservation and background-mode semantics for V2.",
+            "Phase R uses V2 only for opaque white-background requests and retains every alpha-sensitive/background-specific request on the legacy renderer",
         ),
         MigrationItem(
             "cli_control_mapping", "cli", "ready",
