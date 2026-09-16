@@ -1,0 +1,31 @@
+{
+  "schema_version": "minimalizer-v2-cutover-plan-v1",
+  "phase": "Calibration 05 Phase W",
+  "status": "staged_not_executed",
+  "requires_explicit_user_approval": true,
+  "approved": false,
+  "production_state_before": "legacy_default",
+  "target_state": "v2_standard_default",
+  "rollback_target": "legacy_default",
+  "rollback_requires_data_migration": false,
+  "candidate_default": {
+    "mode": "standard",
+    "output_format": "png",
+    "background": "white",
+    "source_transparency": false,
+    "route": "v2",
+    "hosted_analysis_max_side": 400
+  },
+  "legacy_retained": [
+    "svg",
+    "source_background",
+    "transparent_background",
+    "transparent_source",
+    "ignore_source_alpha",
+    "rinka_reference",
+    "color_strip"
+  ],
+  "automatic_error_fallback": false,
+  "phase_u_rc": "pass",
+  "phase_v_pre_cutover_gate": "pass"
+}
