@@ -45,7 +45,10 @@ Local RDC clone:
 24. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`
 25. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`
 26. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`
-27. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+27. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_O.md`
+28. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_O_PERFORMANCE.json`
+29. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_O_READINESS.json`
+30. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -112,6 +115,7 @@ Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failur
 Latest V2 regression after Calibration 05 Phase N: `134 passed`.
 Latest full repository regression after Calibration 05 Phase N: `470 passed, 2 failed, 1 warning`.
 Latest Phase N exact-output comparison: algorithm digest, pixel SHA, PNG SHA, and accepted facet region IDs all `18 / 18` identical; comparison JSON exact match. Raw SLICO labels also matched `36 / 36` across 18 cases and initial/retry region sizes.
+Latest Phase O migration-readiness reassessment: `ready_for_default=false`, `6` blockers; focused migration tests `3 passed`.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -190,6 +194,8 @@ Calibration 05 Phase M reuses the already-computed pairwise CIEDE2000 matrix dur
 
 Calibration 05 Phase N groups SLICO pixel positions once per iteration with a stable sort instead of rescanning the full label image for every cluster. Raw SLICO labels match `36 / 36` across the canonical corpus initial/retry region sizes, and final canonical outputs match Phase M `18 / 18`; same-machine timing improved oversegmentation by about `63.92%` and whole V2 wall time by about `23.34%`.
 
+Calibration 05 Phase O is a post-optimization reassessment only. Service-level V2 mean latency improved from Phase I `5.954 s` to `4.451 s` while legacy remained about `0.74 s`; mean V2/legacy ratio narrowed from `8.28x` to `6.21x`. The readiness gate still reports six blockers because compatibility work remains and no migration performance budget has been approved.
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -208,7 +214,7 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase O: Post-Optimization Performance / Migration Readiness Reassessment.
+Proceed to Calibration 05 Phase P: Public Contract Compatibility Mapping.
 
 Phase K through Phase M established the exact-result optimization discipline:
 - Phase K: facet overlay mask reuse, targeted facet gate about `6.68%` faster
@@ -220,7 +226,9 @@ Phase K through Phase M established the exact-result optimization discipline:
 
 Phase N completed a fourth exact-result optimization: stable SLICO cluster-position grouping. Same-machine five-case/two-repeat timing improved oversegmentation by about `63.92%` and whole V2 wall time by about `23.34%`, while canonical outputs remained unchanged `18 / 18`.
 
-Phase O should reassess the post-optimization pipeline and migration readiness before selecting another optimization target. Compare current V2 service-level performance with the Phase I migration evidence, but do not invent an SLA, change defaults, or weaken compatibility requirements.
+Phase O completed the post-optimization reassessment. Performance improved materially, but the migration gate remains blocked by five compatibility items plus the undefined performance budget.
+
+Phase P should build a machine-readable public-control compatibility matrix for legacy standard Web and CLI controls. Classify each control as directly mapped, legacy-retained, intentionally deprecated through a versioned decision, or out of scope. Do not switch defaults or browser routing.
 
 ## Operational rules for the next chat
 
@@ -247,13 +255,13 @@ branch `feature/minimalizer-2-calibration-05-planar-polygonization`
 engineering commit `139b868dc34b3acf320f25b8ecb7e81a66b80b89`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O_PERFORMANCE.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_O_READINESS.json`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase N の確定状態をGitHub/RDCで確認してから、Phase O（Post-Optimization Performance / Migration Readiness Reassessment）を開始します。`
+`Calibration 05 Phase O の再評価状態をGitHub/RDCで確認してから、Phase P（Public Contract Compatibility Mapping）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, Phase L, Phase M, and Phase N are also on the same feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, Phase L, Phase M, Phase N, and the Phase O reassessment are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.

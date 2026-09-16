@@ -1,0 +1,40 @@
+{
+  "schema_version": "minimalizer-v2-migration-performance-reassessment-v1",
+  "baseline_phase": "Calibration 05 Phase I",
+  "current_phase": "Calibration 05 Phase O after Phase N",
+  "benchmark_contract": {
+    "legacy": "web.service.minimalize_path PNG, MinimalizeConfig.from_level(4)",
+    "v2": "minimalize_engine.v2.file_api.minimalize_file_png preset=minimal include_facets=true",
+    "case_count": 5,
+    "repeats": 2
+  },
+  "phase_i": {
+    "mean_legacy_seconds": 0.74,
+    "mean_v2_seconds": 5.954,
+    "mean_case_ratio": 8.28
+  },
+  "phase_o": {
+    "mean_legacy_seconds": 0.7367616399998951,
+    "mean_v2_seconds": 4.451426390000416,
+    "mean_case_ratio": 6.212866533076935
+  },
+  "change_percent": {
+    "legacy_mean": -0.4376162162303965,
+    "v2_mean": -25.236372354712532,
+    "mean_case_ratio": -24.96538003530272
+  },
+  "phase_n_profile": {
+    "mean_wall_seconds": 4.405855880001764,
+    "oversegmentation_seconds": 0.7154267800004164,
+    "contour_seconds": 0.81958295000004,
+    "region_merge_seconds": 0.7270674899998995,
+    "preprocessing_seconds": 0.6804548299995077,
+    "facet_gate_seconds": 0.45844719000087936,
+    "palette_seconds": 0.4331460999979754
+  },
+  "readiness": {
+    "ready_for_default": false,
+    "blocker_count": 6,
+    "performance_budget_status": "blocked_no_approved_budget"
+  }
+}
