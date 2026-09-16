@@ -1,0 +1,26 @@
+{
+  "schema_version": "minimalizer-v2-performance-optimization-v1",
+  "optimization": "region_merge_geometry_hull_only",
+  "baseline_commit": "ef247f21fb61bc46564c8e780be160607fbf341f",
+  "preset": "minimal",
+  "repeats": 2,
+  "case_count": 5,
+  "baseline_mean_wall_seconds": 5.8988511899988225,
+  "optimized_mean_wall_seconds": 5.620624430001044,
+  "baseline_region_merge_seconds": 1.0351143399995635,
+  "optimized_region_merge_seconds": 0.7832494499998575,
+  "region_merge_change_percent": -24.33208393188836,
+  "wall_change_percent": -4.716626187646444,
+  "equivalence": {
+    "algorithm_digest": "18/18",
+    "pixel_sha256": "18/18",
+    "png_sha256": "18/18",
+    "accepted_facet_region_ids": "18/18",
+    "json_exact_match": true
+  },
+  "regression": {
+    "v2": "132 passed",
+    "full_repo": "468 passed, 2 failed, 1 warning",
+    "known_failures": "tests/assets/false_face_phase85.png missing"
+  }
+}

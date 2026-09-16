@@ -11,8 +11,12 @@ from minimalize_engine.v2.region_merge.cost import (
     boundary_cost,
     color_cost,
     evaluate_merge,
+    geometry_cost,
 )
-from minimalize_engine.v2.region_merge.graph import build_region_graph_from_arrays
+from minimalize_engine.v2.region_merge.graph import (
+    build_region_graph_from_arrays,
+    merge_region_stats,
+)
 
 
 def _two_region_graph(*, lab_left=(50, 0, 0), lab_right=(50, 0, 0), subject=None, confidence=None, alpha=None, annotations=None):
@@ -48,6 +52,22 @@ def test_boundary_cost_uses_structural_and_raw_quantiles():
     graph = _two_region_graph()
     edge = graph.edges[(0, 1)]
     assert boundary_cost(edge) == pytest.approx(0.0)
+
+
+def test_geometry_cost_matches_full_merged_stats_reference():
+    graph = _two_region_graph(lab_left=(30, 4, -2), lab_right=(55, -3, 6))
+    left, right = graph.nodes[0], graph.nodes[1]
+    edge = graph.edges[(0, 1)]
+    candidate = merge_region_stats(
+        left,
+        right,
+        new_region_id=2,
+        shared_boundary_px=edge.shared_boundary_px,
+    )
+    base_hull = max(1e-12, left.hull_area + right.hull_area)
+    inflation = max(0.0, candidate.hull_area - base_hull) / base_hull
+    expected = float(np.clip(1.0 - math.exp(-inflation / 0.25), 0.0, 1.0))
+    assert geometry_cost(left, right, edge, tau=0.25) == expected
 
 
 def test_subject_background_hard_barrier():

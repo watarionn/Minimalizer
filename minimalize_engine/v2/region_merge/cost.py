@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from minimalize_engine.v2.region_merge.graph import merge_region_stats
+from minimalize_engine.v2.region_merge.graph import _merged_hull
 from minimalize_engine.v2.region_merge.types import RegionEdge, RegionStats
 
 
@@ -170,14 +170,12 @@ def topology_cost(left: RegionStats, right: RegionStats, edge: RegionEdge, *, ta
 
 
 def geometry_cost(left: RegionStats, right: RegionStats, edge: RegionEdge, *, tau: float) -> float:
-    candidate = merge_region_stats(
-        left,
-        right,
-        new_region_id=max(left.id, right.id) + 1,
-        shared_boundary_px=edge.shared_boundary_px,
-    )
+    # Geometry cost only needs the merged hull area. Building a full RegionStats
+    # candidate here repeats accumulator, annotation, and validation work that is
+    # only required when a merge is actually applied.
+    _, merged_hull_area = _merged_hull(left.hull_xy, right.hull_xy)
     base_hull = max(1e-12, left.hull_area + right.hull_area)
-    inflation = max(0.0, candidate.hull_area - base_hull) / base_hull
+    inflation = max(0.0, merged_hull_area - base_hull) / base_hull
     return float(np.clip(1.0 - math.exp(-inflation / tau), 0.0, 1.0))
 
 
