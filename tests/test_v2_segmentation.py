@@ -1,3 +1,4 @@
+import hashlib
 import cv2
 import numpy as np
 import pytest
@@ -40,6 +41,18 @@ def test_connectivity_split_preserves_fragments_instead_of_absorbing_them():
             connectivity=4,
         )
         assert count == 2
+
+
+def test_numpy_slico_exact_fixture_digest_is_stable():
+    bundle = build_image_bundle(_two_mass_image())
+    labels = segmentation._run_numpy_slico(
+        bundle.structural_lab,
+        bundle.edge_structural,
+        region_size=8,
+        iterations=4,
+    )
+    digest = hashlib.sha256(labels.tobytes()).hexdigest()
+    assert digest == "3a2965da334ce898e5619577dbd8a3bcf5233ae3478724f3970b7fc6dd56028f"
 
 
 def test_numpy_slico_is_deterministic_sequential_and_four_connected():

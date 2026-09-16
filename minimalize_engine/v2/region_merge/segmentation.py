@@ -113,8 +113,11 @@ def _run_numpy_slico(
     distances = np.full((height, width), np.inf, dtype=np.float64)
 
     yy, xx = np.indices((height, width), dtype=np.float64)
+    yy_flat = yy.ravel()
+    xx_flat = xx.ravel()
     spatial_scale = max(float(region_size * region_size), 1.0)
     lab64 = lab.astype(np.float64, copy=False)
+    lab_flat = lab64.reshape(-1, 3)
 
     for _ in range(iterations):
         labels.fill(-1)
@@ -145,19 +148,25 @@ def _run_numpy_slico(
 
         flat = labels.ravel()
         counts = np.bincount(flat, minlength=cluster_count).astype(np.float64)
+        # Group pixel positions once per iteration. Stable ordering preserves the
+        # exact C-order previously produced by boolean masks for every cluster.
+        order = np.argsort(flat, kind="stable")
+        ends = np.cumsum(counts.astype(np.int64))
+        start = 0
         for cluster_id in range(cluster_count):
-            if counts[cluster_id] <= 0.0:
-                continue
-            mask = labels == cluster_id
-            pixels = lab64[mask]
-            centers[cluster_id, :3] = pixels.mean(axis=0)
-            centers[cluster_id, 3] = yy[mask].mean()
-            centers[cluster_id, 4] = xx[mask].mean()
-            color_delta = pixels - centers[cluster_id, :3]
-            color_scales[cluster_id] = max(
-                DEFAULT_SLICO_COLOR_SCALE_FLOOR,
-                float(np.max(np.sum(color_delta * color_delta, axis=1))),
-            )
+            end = int(ends[cluster_id])
+            if counts[cluster_id] > 0.0:
+                positions = order[start:end]
+                pixels = lab_flat[positions]
+                centers[cluster_id, :3] = pixels.mean(axis=0)
+                centers[cluster_id, 3] = yy_flat[positions].mean()
+                centers[cluster_id, 4] = xx_flat[positions].mean()
+                color_delta = pixels - centers[cluster_id, :3]
+                color_scales[cluster_id] = max(
+                    DEFAULT_SLICO_COLOR_SCALE_FLOOR,
+                    float(np.max(np.sum(color_delta * color_delta, axis=1))),
+                )
+            start = end
 
     return labels.astype(np.int32, copy=False)
 

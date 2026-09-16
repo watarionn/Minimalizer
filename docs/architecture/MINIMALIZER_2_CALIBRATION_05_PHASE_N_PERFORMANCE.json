@@ -1,0 +1,28 @@
+{
+  "schema_version": "minimalizer-v2-performance-optimization-v1",
+  "optimization": "slico_stable_cluster_position_grouping",
+  "baseline_commit": "5e7faec7fd376aabcfa97033fdcf28887a60b3dd",
+  "preset": "minimal",
+  "repeats": 2,
+  "case_count": 5,
+  "baseline_mean_wall_seconds": 5.747477800000342,
+  "optimized_mean_wall_seconds": 4.405855880001764,
+  "baseline_oversegmentation_seconds": 1.9830295800005842,
+  "optimized_oversegmentation_seconds": 0.7154267800004164,
+  "oversegmentation_change_percent": -63.92253614289477,
+  "wall_change_percent": -23.342794294890513,
+  "equivalence": {
+    "raw_slico_labels_initial_and_retry": "36/36",
+    "algorithm_digest": "18/18",
+    "pixel_sha256": "18/18",
+    "png_sha256": "18/18",
+    "accepted_facet_region_ids": "18/18",
+    "json_exact_match": true
+  },
+  "regression": {
+    "focused_segmentation": "8 passed",
+    "v2": "134 passed",
+    "full_repository": "470 passed, 2 failed, 1 warning",
+    "known_failures": "tests/assets/false_face_phase85.png missing"
+  }
+}
