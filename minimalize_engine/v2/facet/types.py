@@ -210,6 +210,8 @@ class PlanarFacetGateConfig:
     max_mean_vertices_increase: float = 0.10
     min_large_share_gain: float = 0.002
     min_mean_vertices_gain: float = 0.05
+    min_overlay_short_side_diagonal_ratio: float = 0.05
+    max_overlay_aspect_ratio: float = 3.0
     protected_relationship_threshold: float = 0.75
     min_protected_contrast_ratio: float = 0.75
     significant_delta_l: float = 12.0
@@ -229,7 +231,8 @@ class PlanarFacetGateConfig:
             raise ValueError("facet gate presets contain unknown names")
         bounded = (
             self.max_long_line_loss, self.max_large_share_increase,
-            self.min_large_share_gain, self.protected_relationship_threshold,
+            self.min_large_share_gain, self.min_overlay_short_side_diagonal_ratio,
+            self.protected_relationship_threshold,
             self.min_protected_contrast_ratio, self.line_min_diagonal_ratio,
             self.line_max_gap_diagonal_ratio, self.macro_min_area_ratio,
             self.macro_large_area_ratio, self.macro_polygon_epsilon_ratio,
@@ -242,6 +245,8 @@ class PlanarFacetGateConfig:
         )
         if any(not np.isfinite(v) or v < 0.0 for v in positive):
             raise ValueError("facet gate thresholds must be finite and non-negative")
+        if not np.isfinite(self.max_overlay_aspect_ratio) or self.max_overlay_aspect_ratio < 1.0:
+            raise ValueError("facet gate max overlay aspect ratio must be at least 1")
         if self.line_hough_threshold <= 0:
             raise ValueError("facet gate Hough threshold must be positive")
         if not 2 <= self.macro_rgb_quantization <= 128:

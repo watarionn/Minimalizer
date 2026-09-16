@@ -9,6 +9,7 @@ from .pipeline import (
     minimalize_v2,
     run_preset_pipeline,
 )
+from .render import render_scene
 
 __all__ = [
     "MinimalizerV2Result",
@@ -18,4 +19,5 @@ __all__ = [
     "SceneShape",
     "minimalize_v2",
     "run_preset_pipeline",
+    "render_scene",
 ]

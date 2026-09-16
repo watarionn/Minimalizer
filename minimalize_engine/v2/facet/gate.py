@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from minimalize_engine.v2.detail_budget.types import HIDE_OVERLAY, DetailBudgetResult
-from minimalize_engine.v2.facet.render import apply_planar_facet_overlay
+from minimalize_engine.v2.facet.render import apply_planar_facet_overlay, facet_overlay_mask
 from minimalize_engine.v2.facet.types import (
     PlanarFacetCandidate,
     PlanarFacetGateConfig,
@@ -100,6 +100,29 @@ def _protected_relationship_ok(
                 return False
     return True
 
+
+def _overlay_shape_reasons(
+    shape: tuple[int, int],
+    geometry,
+    overlay: PlanarFacetOverlay,
+    config: PlanarFacetGateConfig,
+) -> tuple[str, ...]:
+    mask = facet_overlay_mask(shape, geometry, overlay)
+    ys, xs = np.where(mask)
+    if xs.size == 0:
+        return ("empty_overlay",)
+    width = int(xs.max() - xs.min() + 1)
+    height = int(ys.max() - ys.min() + 1)
+    diagonal = max(1.0, float(np.hypot(shape[1], shape[0])))
+    short_ratio = min(width, height) / diagonal
+    aspect_ratio = max(width, height) / max(1.0, min(width, height))
+    reasons: list[str] = []
+    if short_ratio < config.min_overlay_short_side_diagonal_ratio:
+        reasons.append("overlay_too_thin")
+    if aspect_ratio > config.max_overlay_aspect_ratio:
+        reasons.append("overlay_too_elongated")
+    return tuple(reasons)
+
 def build_facet_render_plan(
     shape: tuple[int, int],
     primitives: PrimitiveFittingResult,
@@ -144,19 +167,23 @@ def build_facet_render_plan(
         key=lambda item: (-item.source_gradient_range, -item.overlay_area_ratio, item.region_id),
     )
     for candidate in ordered:
+        overlay = _overlay_from_candidate(candidate)
+        geometry = primitives.primitives[candidate.region_id].selected.geometry
+        preliminary: list[str] = []
         if not _protected_relationship_ok(candidate, palette, detail_budget, config):
+            preliminary.append("protected_relationship")
+        preliminary.extend(_overlay_shape_reasons(shape, geometry, overlay, config))
+        if preliminary:
             decisions[candidate.region_id] = PlanarFacetGateDecision(
                 region_id=candidate.region_id,
                 accepted=False,
-                reasons=("protected_relationship",),
+                reasons=tuple(preliminary),
                 facet_count_delta=0,
                 large_share_delta=0.0,
                 mean_vertices_delta=0.0,
                 long_line_delta=0.0,
             )
             continue
-        overlay = _overlay_from_candidate(candidate)
-        geometry = primitives.primitives[candidate.region_id].selected.geometry
         trial_image = apply_planar_facet_overlay(current_image, geometry, overlay)
         trial_macro = _macro(trial_image, config)
         trial_line = _line_support(trial_image, config)

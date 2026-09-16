@@ -70,20 +70,20 @@ def test_facet_overlay_mask_is_clipped_to_primitive_geometry():
     assert not mask[16:, :].any()
 
 
-def test_scene_facets_are_opt_in_for_rendering():
+def test_v2_renderer_includes_accepted_facets_by_default_with_baseline_opt_out():
     from minimalize_engine.v2.facet import PlanarFacetOverlay
     from minimalize_engine.v2.palette import PaletteEntry
     from minimalize_engine.v2.pipeline import SceneModel, SceneShape
     from minimalize_engine.v2.primitive import PrimitiveGeometry
-    from minimalize_engine.v2.regression.debug import _render_scene
+    from minimalize_engine.v2 import render_scene
 
     loop = np.asarray([[0, 0], [19, 0], [19, 19], [0, 19]], dtype=np.float32)
     geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
     entry = PaletteEntry(0, (1,), 1, np.asarray([50.0, 0.0, 0.0]), (100, 100, 100), (0, 0))
     overlay = PlanarFacetOverlay(1, (200, 50, 50), 1.0, 0.0, 0.0, 1)
     scene = SceneModel(20, 20, (SceneShape(1, geometry, 0),), (entry,), (overlay,))
-    base = _render_scene(scene)
-    faceted = _render_scene(scene, include_facets=True)
+    faceted = render_scene(scene)
+    base = render_scene(scene, include_facets=False)
     assert not np.array_equal(base, faceted)
     assert tuple(base[10, 15]) == (100, 100, 100)
     assert tuple(faceted[10, 15]) == (200, 50, 50)
@@ -97,3 +97,35 @@ def test_facet_gate_config_rejects_excessive_line_loss():
     except ValueError:
         return
     raise AssertionError("invalid facet gate line-loss limit was accepted")
+
+
+def test_facet_shape_guard_rejects_thin_strip_overlay():
+    from minimalize_engine.v2.facet import PlanarFacetGateConfig, PlanarFacetOverlay
+    from minimalize_engine.v2.facet.gate import _overlay_shape_reasons
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    loop = np.asarray([[0, 0], [99, 0], [99, 99], [0, 99]], dtype=np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
+    overlay = PlanarFacetOverlay(
+        region_id=1, rgb=(180, 120, 80), line_a=0.0, line_b=1.0,
+        line_c=0.47, variant_side=-1,
+    )
+    reasons = _overlay_shape_reasons(
+        (100, 100), geometry, overlay, PlanarFacetGateConfig()
+    )
+    assert "overlay_too_thin" in reasons
+    assert "overlay_too_elongated" in reasons
+
+
+def test_facet_shape_guard_accepts_compact_half_plane():
+    from minimalize_engine.v2.facet import PlanarFacetGateConfig, PlanarFacetOverlay
+    from minimalize_engine.v2.facet.gate import _overlay_shape_reasons
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    loop = np.asarray([[0, 0], [99, 0], [99, 99], [0, 99]], dtype=np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
+    overlay = PlanarFacetOverlay(1, (180, 120, 80), 1.0, 0.0, 0.0, 1)
+    reasons = _overlay_shape_reasons(
+        (100, 100), geometry, overlay, PlanarFacetGateConfig()
+    )
+    assert reasons == ()
