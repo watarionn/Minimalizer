@@ -77,3 +77,14 @@ def test_algorithm_digest_tracks_scene_facet_overlays():
     modified_pipeline = replace(pipeline, scene=modified_scene)
     modified = replace(result, presets={"minimal": modified_pipeline})
     assert algorithm_digest(result, "minimal") != algorithm_digest(modified, "minimal")
+
+
+def test_file_adapter_preserves_v2_png_contract(tmp_path):
+    from minimalize_engine.v2 import minimalize_file_png
+
+    source_path = tmp_path / "source.png"
+    bgr = cv2.cvtColor(_image(), cv2.COLOR_RGB2BGR)
+    assert cv2.imwrite(str(source_path), bgr)
+    direct = export_png(minimalize_v2(_image(), presets=("minimal",)))
+    adapted = minimalize_file_png(source_path)
+    assert adapted == direct

@@ -29,6 +29,7 @@ from minimalize_engine.color_strip import (
     MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
     MIN_SIMILARITY as COLOR_STRIP_MIN_SIMILARITY,
 )
+from minimalize_engine.v2 import PNG_CONTRACT_VERSION
 from minimalize_engine.target_style import (
     DEFAULT_RINKA_REFERENCE_PRESET,
     RINKA_REFERENCE_PRESETS,
@@ -41,11 +42,13 @@ from .service import (
     color_strip_path,
     minimalize_path,
     minimalize_rinka_path,
+    minimalize_v2_path,
 )
 
 APP_VERSION = "0.12.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
+V2_PRESETS = ("minimal", "balanced", "detailed", "ultra_minimal")
 STATIC_DIR = Path(__file__).with_name("static")
 logger = logging.getLogger("minimalizer.web")
 
@@ -150,6 +153,20 @@ def service_info() -> dict[str, object]:
     }
 
 
+@app.get("/api/v2/info")
+def v2_service_info() -> dict[str, object]:
+    return {
+        "status": "experimental_opt_in",
+        "endpoint": "/api/v2/minimalize",
+        "png_contract_version": PNG_CONTRACT_VERSION,
+        "default_preset": "minimal",
+        "presets": list(V2_PRESETS),
+        "default_include_facets": True,
+        "legacy_default_endpoint": "/api/minimalize",
+        "legacy_default_unchanged": True,
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "engine_version": _engine_version()}
@@ -199,6 +216,78 @@ def _validate_image_file(path: Path) -> tuple[int, int, str]:
             detail=f"Image exceeds {MAX_IMAGE_PIXELS:,} pixel limit.",
         )
     return width, height, image_format
+
+
+@app.post("/api/v2/minimalize")
+async def minimalize_image_v2(
+    request: Request,
+    file: Annotated[UploadFile, File(description="Source image")],
+    preset: Annotated[Literal["minimal", "balanced", "detailed", "ultra_minimal"], Form()] = "minimal",
+    include_facets: Annotated[bool, Form()] = True,
+) -> Response:
+    request_id = request.state.request_id
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
+
+    try:
+        with TemporaryDirectory(prefix="minimalizer-web-v2-") as temp_dir:
+            input_path = Path(temp_dir) / "input.upload"
+            size = await _save_upload(file, input_path)
+            if size == 0:
+                raise HTTPException(status_code=400, detail="Uploaded image is empty.")
+            source_width, source_height, source_format = _validate_image_file(input_path)
+
+            if not _PROCESS_SLOTS.acquire(blocking=False):
+                raise HTTPException(
+                    status_code=429,
+                    detail="Minimalizer is busy. Please retry shortly.",
+                    headers={"Retry-After": "2"},
+                )
+
+            processing_started = perf_counter()
+            try:
+                try:
+                    result = await run_in_threadpool(
+                        minimalize_v2_path,
+                        input_path,
+                        preset=preset,
+                        include_facets=include_facets,
+                    )
+                except (ValueError, OSError) as exc:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Could not minimalize the uploaded image with V2.",
+                    ) from exc
+            finally:
+                processing_ms = (perf_counter() - processing_started) * 1000.0
+                _PROCESS_SLOTS.release()
+    finally:
+        await file.close()
+
+    metadata = result.metadata
+    logger.info(
+        "minimalize_v2_success request_id=%s preset=%s format=%s width=%s height=%s processing_ms=%.1f facets=%s",
+        request_id, preset, source_format, source_width, source_height,
+        processing_ms, metadata.rendered_facet_count,
+    )
+    headers = {
+        "Content-Disposition": f'attachment; filename="{result.filename}"',
+        "X-Minimalizer-Mode": "v2-opt-in",
+        "X-Minimalizer-V2-Contract-Version": metadata.contract_version,
+        "X-Minimalizer-V2-Preset": metadata.preset,
+        "X-Minimalizer-V2-Include-Facets": str(metadata.include_facets).lower(),
+        "X-Minimalizer-V2-Pixel-SHA256": metadata.pixel_sha256,
+        "X-Minimalizer-V2-PNG-SHA256": metadata.png_sha256,
+        "X-Minimalizer-V2-Scene-Facet-Count": str(metadata.scene_facet_count),
+        "X-Minimalizer-V2-Rendered-Facet-Count": str(metadata.rendered_facet_count),
+        "X-Minimalizer-Shape-Count": str(metadata.visible_shape_count),
+        "X-Minimalizer-Analysis-Size": f"{metadata.width}x{metadata.height}",
+        "X-Minimalizer-Source-Size": f"{metadata.source_width}x{metadata.source_height}",
+        "X-Minimalizer-Validated-Source-Size": f"{source_width}x{source_height}",
+        "X-Minimalizer-Source-Format": source_format,
+        "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
+    }
+    return Response(content=result.content, media_type=result.media_type, headers=headers)
 
 
 @app.post("/api/minimalize")

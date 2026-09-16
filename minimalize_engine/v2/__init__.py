@@ -6,6 +6,7 @@ from .export import (
     V2PngMetadata,
     export_png,
 )
+from .file_api import minimalize_file_png
 from .pipeline import (
     MinimalizerV2Result,
     PipelineConfig,
@@ -30,4 +31,5 @@ __all__ = [
     "V2PngExport",
     "V2PngMetadata",
     "export_png",
+    "minimalize_file_png",
 ]

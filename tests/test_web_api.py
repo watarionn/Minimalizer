@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw
 
 import web.app as web_app_module
 from web.app import app
-from web.service import build_config, build_rinka_config
+from web.service import build_config, build_rinka_config, minimalize_v2_path
 
 client = TestClient(app)
 
@@ -445,3 +445,55 @@ def test_env_int_uses_default_and_clamps(monkeypatch):
 
     monkeypatch.setenv("MINIMALIZER_TEST_INT", "bad")
     assert web_app_module._env_int("MINIMALIZER_TEST_INT", 3, minimum=1, maximum=5) == 3
+
+
+def test_v2_info_is_separate_from_legacy_mode_contract():
+    legacy = client.get("/api/info")
+    assert legacy.status_code == 200
+    assert legacy.json()["supported_modes"] == ["standard", "rinka_reference", "color_strip"]
+
+    response = client.get("/api/v2/info")
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "experimental_opt_in",
+        "endpoint": "/api/v2/minimalize",
+        "png_contract_version": "minimalizer-v2-png-v1",
+        "default_preset": "minimal",
+        "presets": ["minimal", "balanced", "detailed", "ultra_minimal"],
+        "default_include_facets": True,
+        "legacy_default_endpoint": "/api/minimalize",
+        "legacy_default_unchanged": True,
+    }
+
+
+def test_v2_opt_in_endpoint_preserves_png_contract(tmp_path):
+    source = _sample_png()
+    source_path = tmp_path / "sample.png"
+    source_path.write_bytes(source)
+    direct = minimalize_v2_path(source_path, preset="minimal", include_facets=True)
+
+    response = client.post(
+        "/api/v2/minimalize",
+        files={"file": ("sample.png", source, "image/png")},
+        data={"preset": "minimal", "include_facets": "true"},
+    )
+
+    assert response.status_code == 200
+    assert response.content == direct.content
+    assert response.headers["content-type"].startswith("image/png")
+    assert response.headers["x-minimalizer-mode"] == "v2-opt-in"
+    assert response.headers["x-minimalizer-v2-contract-version"] == direct.metadata.contract_version
+    assert response.headers["x-minimalizer-v2-preset"] == "minimal"
+    assert response.headers["x-minimalizer-v2-png-sha256"] == direct.metadata.png_sha256
+    assert response.headers["x-minimalizer-v2-pixel-sha256"] == direct.metadata.pixel_sha256
+    assert response.headers["x-minimalizer-v2-rendered-facet-count"] == str(direct.metadata.rendered_facet_count)
+    assert response.headers["x-minimalizer-source-size"] == "64x48"
+
+
+def test_legacy_endpoint_does_not_accept_v2_as_a_mode():
+    response = client.post(
+        "/api/minimalize",
+        files={"file": ("sample.png", _sample_png(), "image/png")},
+        data={"mode": "v2", "output_format": "png"},
+    )
+    assert response.status_code == 422

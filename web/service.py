@@ -31,6 +31,7 @@ from minimalize_engine.color_strip import (
 )
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
+from minimalize_engine.v2 import V2PngExport, minimalize_file_png
 
 OutputFormat = Literal["svg", "png"]
 ProcessingMode = Literal["standard", "rinka_reference", "color_strip"]
@@ -203,4 +204,17 @@ def color_strip_path(
         color_order=document.order,
         color_orientation=document.orientation,
         color_selection_mode=selection_mode,
+    )
+
+
+def minimalize_v2_path(
+    input_path: str | Path,
+    *,
+    preset: str = "minimal",
+    include_facets: bool = True,
+) -> V2PngExport:
+    return minimalize_file_png(
+        input_path,
+        preset=preset,
+        include_facets=include_facets,
     )
