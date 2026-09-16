@@ -28,8 +28,16 @@ def apply_planar_facet_overlay(
     image: np.ndarray,
     geometry: PrimitiveGeometry,
     overlay: PlanarFacetOverlay,
+    *,
+    mask: np.ndarray | None = None,
 ) -> np.ndarray:
     canvas = np.asarray(image, dtype=np.uint8).copy()
-    mask = facet_overlay_mask(canvas.shape[:2], geometry, overlay)
-    canvas[mask] = np.asarray(overlay.rgb, dtype=np.uint8)
+    active_mask = (
+        facet_overlay_mask(canvas.shape[:2], geometry, overlay)
+        if mask is None
+        else np.asarray(mask, dtype=bool)
+    )
+    if active_mask.shape != canvas.shape[:2]:
+        raise ValueError("facet overlay mask must match image shape")
+    canvas[active_mask] = np.asarray(overlay.rgb, dtype=np.uint8)
     return canvas

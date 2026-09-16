@@ -129,3 +129,21 @@ def test_facet_shape_guard_accepts_compact_half_plane():
         (100, 100), geometry, overlay, PlanarFacetGateConfig()
     )
     assert reasons == ()
+
+
+def test_precomputed_facet_mask_matches_direct_overlay_application():
+    from minimalize_engine.v2.facet import (
+        PlanarFacetOverlay,
+        apply_planar_facet_overlay,
+        facet_overlay_mask,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    image = np.full((32, 32, 3), 120, dtype=np.uint8)
+    loop = np.asarray([[3, 4], [27, 5], [26, 27], [5, 26]], dtype=np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
+    overlay = PlanarFacetOverlay(1, (220, 80, 40), 0.7, -0.3, 0.02, 1)
+    mask = facet_overlay_mask(image.shape[:2], geometry, overlay)
+    direct = apply_planar_facet_overlay(image, geometry, overlay)
+    reused = apply_planar_facet_overlay(image, geometry, overlay, mask=mask)
+    assert np.array_equal(reused, direct)

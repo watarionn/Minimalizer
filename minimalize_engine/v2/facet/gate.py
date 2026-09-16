@@ -101,13 +101,11 @@ def _protected_relationship_ok(
     return True
 
 
-def _overlay_shape_reasons(
+def _overlay_shape_reasons_from_mask(
     shape: tuple[int, int],
-    geometry,
-    overlay: PlanarFacetOverlay,
+    mask: np.ndarray,
     config: PlanarFacetGateConfig,
 ) -> tuple[str, ...]:
-    mask = facet_overlay_mask(shape, geometry, overlay)
     ys, xs = np.where(mask)
     if xs.size == 0:
         return ("empty_overlay",)
@@ -122,6 +120,17 @@ def _overlay_shape_reasons(
     if aspect_ratio > config.max_overlay_aspect_ratio:
         reasons.append("overlay_too_elongated")
     return tuple(reasons)
+
+
+def _overlay_shape_reasons(
+    shape: tuple[int, int],
+    geometry,
+    overlay: PlanarFacetOverlay,
+    config: PlanarFacetGateConfig,
+) -> tuple[str, ...]:
+    mask = facet_overlay_mask(shape, geometry, overlay)
+    return _overlay_shape_reasons_from_mask(shape, mask, config)
+
 
 def build_facet_render_plan(
     shape: tuple[int, int],
@@ -169,10 +178,11 @@ def build_facet_render_plan(
     for candidate in ordered:
         overlay = _overlay_from_candidate(candidate)
         geometry = primitives.primitives[candidate.region_id].selected.geometry
+        overlay_mask = facet_overlay_mask(shape, geometry, overlay)
         preliminary: list[str] = []
         if not _protected_relationship_ok(candidate, palette, detail_budget, config):
             preliminary.append("protected_relationship")
-        preliminary.extend(_overlay_shape_reasons(shape, geometry, overlay, config))
+        preliminary.extend(_overlay_shape_reasons_from_mask(shape, overlay_mask, config))
         if preliminary:
             decisions[candidate.region_id] = PlanarFacetGateDecision(
                 region_id=candidate.region_id,
@@ -184,7 +194,9 @@ def build_facet_render_plan(
                 long_line_delta=0.0,
             )
             continue
-        trial_image = apply_planar_facet_overlay(current_image, geometry, overlay)
+        trial_image = apply_planar_facet_overlay(
+            current_image, geometry, overlay, mask=overlay_mask
+        )
         trial_macro = _macro(trial_image, config)
         trial_line = _line_support(trial_image, config)
         count_delta = trial_macro[0] - current_macro[0]

@@ -1,0 +1,21 @@
+{
+  "schema_version": "minimalizer-v2-performance-optimization-v1",
+  "optimization": "facet_overlay_mask_reuse",
+  "baseline_commit": "006b52877a27d427f6420555a2f6db6230a4f3e4",
+  "preset": "minimal",
+  "repeats": 2,
+  "case_count": 5,
+  "baseline_mean_wall_seconds": 5.885142760000599,
+  "optimized_mean_wall_seconds": 5.878943019999861,
+  "baseline_facet_gate_seconds": 0.5276597099997161,
+  "optimized_facet_gate_seconds": 0.4923902399998042,
+  "facet_gate_change_percent": -6.684131710554686,
+  "wall_change_percent": -0.10534561783065444,
+  "equivalence": {
+    "algorithm_digest": "18/18",
+    "pixel_sha256": "18/18",
+    "png_sha256": "18/18",
+    "accepted_facet_region_ids": "18/18",
+    "json_exact_match": true
+  }
+}
