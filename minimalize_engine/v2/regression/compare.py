@@ -59,6 +59,13 @@ def algorithm_digest(result: MinimalizerV2Result, preset: str) -> str:
         digest.update(
             repr((shape.region_id, shape.palette_id, shape.visible)).encode("utf-8")
         )
+    for overlay in sorted(pipeline.scene.facet_overlays, key=lambda item: item.region_id):
+        digest.update(
+            repr((
+                overlay.region_id, overlay.rgb, overlay.line_a, overlay.line_b,
+                overlay.line_c, overlay.variant_side,
+            )).encode("utf-8")
+        )
     return digest.hexdigest()
 
 
