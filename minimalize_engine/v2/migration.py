@@ -64,10 +64,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "Phase P matrix exhaustively classifies the exposed legacy Web controls as mapped, legacy-retained, or out of scope",
         ),
         MigrationItem(
-            "output_format_parity", "export", "blocked",
+            "output_format_parity", "export", "ready",
             "Web supports SVG/PNG; CLI supports SVG plus optional PNG/WEBP",
-            "V2 export contract currently supports PNG only",
-            "Add V2 SVG/WEBP contracts or define a backward-compatible routing policy.",
+            "Phase Q routes PNG to the deterministic V2 contract while retaining SVG/WEBP on the legacy renderers",
         ),
         MigrationItem(
             "alpha_background_parity", "image_io", "blocked",

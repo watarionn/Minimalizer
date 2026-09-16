@@ -1,0 +1,41 @@
+{
+  "policies": [
+    {
+      "media_type": "image/png",
+      "output_format": "png",
+      "rationale": "Use the deterministic minimalizer-v2-png-v1 export when the standard default migrates.",
+      "route_on_v2_default": "v2",
+      "surface": "web"
+    },
+    {
+      "media_type": "image/svg+xml",
+      "output_format": "svg",
+      "rationale": "Retain the existing vector SVG route; V2 does not claim an SVG contract.",
+      "route_on_v2_default": "legacy",
+      "surface": "web"
+    },
+    {
+      "media_type": "image/png",
+      "output_format": "png",
+      "rationale": "PNG output may use the deterministic V2 PNG contract after default migration.",
+      "route_on_v2_default": "v2",
+      "surface": "cli"
+    },
+    {
+      "media_type": "image/svg+xml",
+      "output_format": "svg",
+      "rationale": "Retain the existing CLI SVG renderer rather than changing vector semantics.",
+      "route_on_v2_default": "legacy",
+      "surface": "cli"
+    },
+    {
+      "media_type": "image/webp",
+      "output_format": "webp",
+      "rationale": "Retain the existing CLI WEBP renderer; no V2 WEBP contract is asserted.",
+      "route_on_v2_default": "legacy",
+      "surface": "cli"
+    }
+  ],
+  "preserves_current_default": true,
+  "schema_version": "minimalizer-v2-output-format-v1"
+}
