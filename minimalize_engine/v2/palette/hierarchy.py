@@ -238,11 +238,12 @@ def evaluate_palette_merge(
     relationships: tuple[PaletteRelationship, ...],
     anchor_labs: dict[int, np.ndarray],
     config: PaletteConfig,
+    *,
+    color_distance: float | None = None,
 ) -> PaletteMergeEvaluation:
-    color_cost = min(
-        float(ciede2000(first.lab, second.lab)) / config.color_distance_scale,
-        1.0,
-    )
+    if color_distance is None:
+        color_distance = float(ciede2000(first.lab, second.lab))
+    color_cost = min(color_distance / config.color_distance_scale, 1.0)
     anchor_cost, anchor_block = _anchor_cost(first, second, anchor_labs, config)
     semantic_cost = _semantic_cost(first, second)
     relationship_cost, relationship_block = _relationship_cost(
@@ -383,8 +384,15 @@ def build_palette_hierarchy(
         if a == b:
             return
         left, right = (a, b) if a < b else (b, a)
+        color_distance = float(
+            distances[
+                region_index[nodes[left].representative_region_id],
+                region_index[nodes[right].representative_region_id],
+            ]
+        )
         evaluation = evaluate_palette_merge(
-            nodes[left], nodes[right], relationships, anchor_labs, config
+            nodes[left], nodes[right], relationships, anchor_labs, config,
+            color_distance=color_distance,
         )
         if evaluation.allowed:
             heapq.heappush(heap, (evaluation.total_cost, left, right))
@@ -396,8 +404,15 @@ def build_palette_hierarchy(
         _, left_id, right_id = heapq.heappop(heap)
         if left_id not in active or right_id not in active:
             continue
+        color_distance = float(
+            distances[
+                region_index[nodes[left_id].representative_region_id],
+                region_index[nodes[right_id].representative_region_id],
+            ]
+        )
         evaluation = evaluate_palette_merge(
-            nodes[left_id], nodes[right_id], relationships, anchor_labs, config
+            nodes[left_id], nodes[right_id], relationships, anchor_labs, config,
+            color_distance=color_distance,
         )
         if not evaluation.allowed:
             continue

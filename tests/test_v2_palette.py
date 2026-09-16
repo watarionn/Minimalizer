@@ -8,6 +8,8 @@ import pytest
 
 from minimalize_engine.v2.contour import ContourSimplificationConfig, simplify_region_contours
 from minimalize_engine.v2.palette import PaletteConfig, ciede2000, consolidate_palette
+from minimalize_engine.v2.palette.hierarchy import evaluate_palette_merge
+from minimalize_engine.v2.palette.types import PaletteNode
 from minimalize_engine.v2.preprocessing import build_image_bundle
 from minimalize_engine.v2.primitive import PrimitiveFitConfig, fit_region_primitives
 from minimalize_engine.v2.region_merge.graph import (
@@ -98,6 +100,19 @@ def test_ciede2000_matches_reference_pair():
 def test_palette_config_is_json_serializable():
     encoded = json.dumps(asdict(PaletteConfig()))
     assert '"mode": "auto"' in encoded
+
+
+def test_precomputed_palette_distance_matches_direct_evaluation_bit_exact():
+    first = PaletteNode(0, None, None, (0,), 0, np.asarray([51.0, 22.0, -18.0]), (120, 80, 70), (0, 0))
+    second = PaletteNode(1, None, None, (1,), 1, np.asarray([63.0, -12.0, 31.0]), (80, 130, 170), (1, 0))
+    colors = np.stack((first.lab, second.lab))
+    matrix = np.asarray(ciede2000(colors[:, None, :], colors[None, :, :]), dtype=np.float64)
+    direct_distance = np.float64(ciede2000(first.lab, second.lab))
+    assert matrix[0, 1].tobytes() == direct_distance.tobytes()
+    config = PaletteConfig()
+    direct = evaluate_palette_merge(first, second, (), {}, config)
+    reused = evaluate_palette_merge(first, second, (), {}, config, color_distance=float(matrix[0, 1]))
+    assert reused == direct
 
 
 def test_palette_entries_are_observed_source_colors():

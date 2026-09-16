@@ -1,0 +1,26 @@
+{
+  "schema_version": "minimalizer-v2-performance-optimization-v1",
+  "optimization": "palette_pairwise_distance_reuse",
+  "baseline_commit": "d2760b1b00eaba040dbad58f700daf1d2c20f449",
+  "preset": "minimal",
+  "repeats": 2,
+  "case_count": 5,
+  "baseline_mean_wall_seconds": 5.608317240000178,
+  "optimized_mean_wall_seconds": 5.44125297999999,
+  "baseline_palette_seconds": 0.5695631000002322,
+  "optimized_palette_seconds": 0.41464492000086467,
+  "palette_change_percent": -27.19947622999179,
+  "wall_change_percent": -2.9788660814091705,
+  "equivalence": {
+    "algorithm_digest": "18/18",
+    "pixel_sha256": "18/18",
+    "png_sha256": "18/18",
+    "accepted_facet_region_ids": "18/18",
+    "json_exact_match": true
+  },
+  "regression": {
+    "v2": "133 passed",
+    "full_repository": "469 passed, 2 failed, 1 warning",
+    "known_failures": "tests/assets/false_face_phase85.png missing"
+  }
+}
