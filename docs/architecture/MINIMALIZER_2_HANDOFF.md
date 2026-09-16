@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `5af7fc517d72f97f75c20d0657e949660b52ad76`
+Current engineering commit: `897c7759d76e2c49e9276b35c758d017e963da7f`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Define Calibration 05 public compatibility mapping`
+Engineering commit message: `Define Calibration 05 output format compatibility`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -51,7 +51,10 @@ Local RDC clone:
 30. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_P.md`
 31. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_P_COMPATIBILITY.json`
 32. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_P_READINESS.json`
-33. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+33. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Q.md`
+34. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Q_OUTPUT_FORMAT.json`
+35. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Q_READINESS.json`
+36. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -84,6 +87,7 @@ Calibration 05 Phase L engineering commit: `9cea8cc5886f7acc03f7488d7e2ba4451483
 Calibration 05 Phase M engineering commit: `be7cc7f2e4d60639126c5cf8279bf43c95ccda74`
 Calibration 05 Phase N engineering commit: `139b868dc34b3acf320f25b8ecb7e81a66b80b89`
 Calibration 05 Phase P engineering commit: `5af7fc517d72f97f75c20d0657e949660b52ad76`
+Calibration 05 Phase Q engineering commit: `897c7759d76e2c49e9276b35c758d017e963da7f`
 
 ## Calibration results so far
 
@@ -116,10 +120,10 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase P: `137 passed`.
-Latest full repository regression after Calibration 05 Phase P: `473 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase Q: `139 passed`.
+Latest full repository regression after Calibration 05 Phase Q: `475 passed, 2 failed, 1 warning`.
 Latest Phase N exact-output comparison: algorithm digest, pixel SHA, PNG SHA, and accepted facet region IDs all `18 / 18` identical; comparison JSON exact match. Raw SLICO labels also matched `36 / 36` across 18 cases and initial/retry region sizes.
-Latest Phase P migration-readiness state: `ready_for_default=false`, `4` blockers; focused compatibility + migration tests `6 passed`.
+Latest Phase Q migration-readiness state: `ready_for_default=false`, `3` blockers; focused output-contract + migration tests `5 passed`.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -202,6 +206,8 @@ Calibration 05 Phase O is a post-optimization reassessment only. Service-level V
 
 Calibration 05 Phase P adds an exhaustive machine-readable public-control compatibility matrix. Web/CLI mapping ambiguity is resolved conservatively with `2` mapped, `58` legacy-retained, `0` deprecated, and `6` out-of-scope controls. `web_control_mapping` and `cli_control_mapping` are now ready; the migration gate has `4` remaining blockers.
 
+Calibration 05 Phase Q adds a versioned output-format routing contract. PNG is V2-capable under the deterministic PNG contract, while SVG and WEBP remain on the established legacy renderers. `output_format_parity` is now ready; the migration gate has `3` remaining blockers.
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -220,7 +226,7 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase Q: Output Format Compatibility Contract.
+Proceed to Calibration 05 Phase R: Alpha / Background Compatibility Contract.
 
 Phase K through Phase M established the exact-result optimization discipline:
 - Phase K: facet overlay mask reuse, targeted facet gate about `6.68%` faster
@@ -234,7 +240,7 @@ Phase N completed a fourth exact-result optimization: stable SLICO cluster-posit
 
 Phase O completed the post-optimization reassessment. Performance improved materially, but the migration gate remains blocked by five compatibility items plus the undefined performance budget.
 
-Phase P completed the public-control compatibility mapping without changing default routing. Phase Q should resolve `output_format_parity` with the smallest backward-compatible policy for legacy SVG/PNG/WEBP expectations while preserving the deterministic V2 PNG contract. Do not change alpha/background semantics, browser default routing, or the performance-budget status unless independently proven.
+Phase P completed the public-control compatibility mapping without changing default routing. Phase Q then resolved `output_format_parity` with a backward-compatible routing contract: PNG is V2-capable, while SVG and WEBP remain on legacy renderers. Phase R should resolve `alpha_background_parity` without changing opaque-image canonical behavior, browser default routing, or the performance-budget status.
 
 ## Operational rules for the next chat
 
@@ -258,16 +264,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `5af7fc517d72f97f75c20d0657e949660b52ad76`
+engineering commit `897c7759d76e2c49e9276b35c758d017e963da7f`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O_PERFORMANCE.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_O_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P_COMPATIBILITY.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_P_READINESS.json`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O_PERFORMANCE.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_O_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P_COMPATIBILITY.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_Q.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_Q_OUTPUT_FORMAT.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_Q_READINESS.json`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase P の確定状態をGitHub/RDCで確認してから、Phase Q（Output Format Compatibility Contract）を開始します。`
+`Calibration 05 Phase Q の確定状態をGitHub/RDCで確認してから、Phase R（Alpha / Background Compatibility Contract）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, Phase L, Phase M, Phase N, the Phase O reassessment, and Phase P are also on the same feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, Phase L, Phase M, Phase N, the Phase O reassessment, Phase P, and Phase Q are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
