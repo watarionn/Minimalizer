@@ -7,9 +7,9 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `f852f6c8d7e32e9ed4e2e4df8ca85101127466cd`
+Current engineering commit: `9cea8cc5886f7acc03f7488d7e2ba4451483697a`
 Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Optimize Calibration 05 facet gate mask reuse`
+Engineering commit message: `Optimize Calibration 05 Region Merge geometry cost`
 
 This is a feature branch. It is NOT merged to `main` and no PR was created.
 Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -39,7 +39,9 @@ Local RDC clone:
 18. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`
 19. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`
 20. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`
-21. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+21. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`
+22. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`
+23. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -68,6 +70,7 @@ Calibration 05 Phase H engineering commit: `53f1961bd627c4bfdda4695de105f3c14fe5
 Calibration 05 Phase I engineering commit: `cbcb660b826256b4f332edefa44ecaf54e0c9a3d`
 Calibration 05 Phase J engineering commit: `e68e4476bcf3912bf3709dd417a6d50cc02b3250`
 Calibration 05 Phase K engineering commit: `f852f6c8d7e32e9ed4e2e4df8ca85101127466cd`
+Calibration 05 Phase L engineering commit: `9cea8cc5886f7acc03f7488d7e2ba4451483697a`
 
 ## Calibration results so far
 
@@ -100,8 +103,9 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase K: `131 passed`.
-Latest full repository regression after Calibration 05 Phase K: `467 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase L: `132 passed`.
+Latest full repository regression after Calibration 05 Phase L: `468 passed, 2 failed, 1 warning`.
+Latest Phase L exact-output comparison: algorithm digest, pixel SHA, PNG SHA, and accepted facet region IDs all `18 / 18` identical; comparison JSON exact match.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -174,6 +178,8 @@ Calibration 05 Phase J adds observational performance instrumentation only. Five
 
 Calibration 05 Phase K reuses the exact same facet overlay mask for shape checking and trial rendering. Canonical digest, pixel SHA, PNG SHA, and accepted facet IDs match Phase J `18 / 18`; the targeted facet-gate phase improved by about `6.68%`.
 
+Calibration 05 Phase L removes full `RegionStats` candidate construction from `geometry_cost()` when only the merged hull area is needed. The same hull helper and cost formula are preserved. Phase K vs Phase L canonical outputs match `18 / 18`; same-machine five-case/two-repeat timing improved Region Merge by about `24.33%` and whole V2 wall time by about `4.72%`.
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -192,17 +198,15 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase L: Exact-Result Performance Optimization II.
+Proceed to Calibration 05 Phase M: Exact-Result Performance Optimization III.
 
-Phase J fixed the performance baseline without changing image-producing behavior:
-- canonical profiler schema: `minimalizer-v2-performance-v1`
-- representative five-case/two-repeat mean: `5.885 s`
-- dominant costs: oversegmentation, Region Merge, contour, preprocessing, palette, facet gate
-- profiler and normal execution produce the same `algorithm_digest`
-- V2 regression: `130 passed`
-- full repository: `466 passed, 2 failed, 1 warning`
+Phase K and Phase L established the exact-result optimization discipline:
+- Phase K: facet overlay mask reuse, targeted facet gate about `6.68%` faster
+- Phase L: hull-only Region Merge geometry-cost evaluation, targeted Region Merge about `24.33%` faster
+- Phase L whole-pipeline same-machine wall time: `5.898851 s -> 5.620624 s` (`4.72%` faster)
+- canonical algorithm digest, rendered pixels, deterministic PNG, and facet IDs remain unchanged `18 / 18`
 
-Phase K completed one exact-result optimization: reuse the planar facet overlay mask instead of generating it twice. The 18-case digest, pixel SHA, PNG SHA, and facet IDs are all unchanged, while the targeted facet-gate timing improved by about 6.68%. Phase L should inspect the next measured hotspot for another exact-result opportunity, preferably immutable preprocessing scaffolding or repeated identical computation. Do not change visual thresholds or legacy defaults.
+Phase M should re-profile the remaining hotspots and inspect redundant immutable computation or allocation first. Oversegmentation, contour, preprocessing, palette, and remaining facet-gate work are candidates for inspection only. Do not alter visual thresholds, SLIC targets, Region Merge semantics, or facet acceptance criteria.
 
 ## Operational rules for the next chat
 
@@ -226,16 +230,16 @@ Run these first on RDC:
 
 Expected clean state at this handoff:
 branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `f852f6c8d7e32e9ed4e2e4df8ca85101127466cd`
+engineering commit `9cea8cc5886f7acc03f7488d7e2ba4451483697a`
 branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`.
+Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase K の確定状態をGitHub/RDCで確認してから、Phase L（Exact-Result Performance Optimization II）を開始します。`
+`Calibration 05 Phase L の確定状態をGitHub/RDCで確認してから、Phase M（Exact-Result Performance Optimization III）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, and Phase K are also on the same feature branch. Nothing here is merged to `main`.
+Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, and Phase L are also on the same feature branch. Nothing here is merged to `main`.
 No PR has been created for Calibration 05.
 The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
