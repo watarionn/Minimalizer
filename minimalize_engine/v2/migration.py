@@ -79,10 +79,9 @@ def build_migration_readiness() -> MigrationReadinessReport:
             "Phase P matrix exhaustively classifies every legacy CLI control as mapped or legacy-retained",
         ),
         MigrationItem(
-            "browser_ui_migration", "web_ui", "blocked",
-            "browser workspace submits only legacy modes to /api/minimalize",
-            "V2 is API-only opt-in and intentionally absent from the browser UI",
-            "Design an explicit migration/rollback UI contract before changing the default.",
+            "browser_ui_migration", "web_ui", "ready",
+            "browser workspace currently submits all modes to /api/minimalize",
+            "Phase S defines explicit legacy-default, Standard opt-in, Standard-default, eligibility, specialized-mode, and rollback rules without changing the current browser default",
         ),
         MigrationItem(
             "performance_budget", "operations", "blocked",

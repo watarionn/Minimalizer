@@ -7,6 +7,13 @@ from .alpha_contract import (
     build_alpha_background_compatibility,
     resolve_alpha_background_route,
 )
+from .browser_migration import (
+    BROWSER_MIGRATION_SCHEMA_VERSION,
+    BrowserMigrationContract,
+    BrowserRolloutStage,
+    build_browser_migration_contract,
+    resolve_browser_route,
+)
 from .compatibility import (
     PUBLIC_CONTRACT_SCHEMA_VERSION,
     PublicContractCompatibilityReport,
@@ -46,6 +53,9 @@ __all__ = [
     "MigrationItem", "MigrationReadinessReport", "build_migration_readiness",
     "OUTPUT_FORMAT_SCHEMA_VERSION", "OutputFormatPolicy",
     "OutputFormatCompatibilityReport", "build_output_format_compatibility",
+    "BROWSER_MIGRATION_SCHEMA_VERSION", "BrowserRolloutStage",
+    "BrowserMigrationContract", "build_browser_migration_contract",
+    "resolve_browser_route",
     "ALPHA_BACKGROUND_SCHEMA_VERSION", "AlphaBackgroundPolicy",
     "AlphaBackgroundCompatibilityReport", "build_alpha_background_compatibility",
     "resolve_alpha_background_route", "PUBLIC_CONTRACT_SCHEMA_VERSION", "PublicControlCompatibility",

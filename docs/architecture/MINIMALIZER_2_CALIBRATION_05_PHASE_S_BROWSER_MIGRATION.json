@@ -1,0 +1,33 @@
+{
+  "automatic_error_fallback": false,
+  "current_state": "legacy_default",
+  "legacy_endpoint": "/api/minimalize",
+  "rollback_requires_data_migration": false,
+  "rollback_target": "legacy_default",
+  "schema_version": "minimalizer-v2-browser-migration-v1",
+  "specialized_modes": [
+    "rinka_reference",
+    "color_strip"
+  ],
+  "stages": [
+    {
+      "description": "Current production browser behavior; all modes stay on /api/minimalize.",
+      "explicit_v2_selector": false,
+      "standard_default_route": "legacy",
+      "state": "legacy_default"
+    },
+    {
+      "description": "Standard mode may expose an explicit V2 selector; specialized modes remain legacy.",
+      "explicit_v2_selector": true,
+      "standard_default_route": "legacy",
+      "state": "v2_standard_opt_in"
+    },
+    {
+      "description": "Eligible Standard PNG requests default to V2; incompatible requests and specialized modes stay legacy.",
+      "explicit_v2_selector": true,
+      "standard_default_route": "v2",
+      "state": "v2_standard_default"
+    }
+  ],
+  "v2_endpoint": "/api/v2/minimalize"
+}

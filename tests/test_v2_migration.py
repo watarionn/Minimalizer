@@ -17,11 +17,8 @@ def test_migration_readiness_is_machine_readable_and_blocked():
     assert payload["schema_version"] == MIGRATION_SCHEMA_VERSION
     assert payload["scope"] == "legacy_standard_default_to_v2"
     assert payload["ready_for_default"] is False
-    assert payload["blocker_count"] == 2
-    assert payload["blocker_ids"] == [
-        "browser_ui_migration",
-        "performance_budget",
-    ]
+    assert payload["blocker_count"] == 1
+    assert payload["blocker_ids"] == ["performance_budget"]
     json.dumps(payload, sort_keys=True)
 
 

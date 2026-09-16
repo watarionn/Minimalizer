@@ -29,7 +29,7 @@ from minimalize_engine.color_strip import (
     MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
     MIN_SIMILARITY as COLOR_STRIP_MIN_SIMILARITY,
 )
-from minimalize_engine.v2 import PNG_CONTRACT_VERSION
+from minimalize_engine.v2 import PNG_CONTRACT_VERSION, build_browser_migration_contract
 from minimalize_engine.target_style import (
     DEFAULT_RINKA_REFERENCE_PRESET,
     RINKA_REFERENCE_PRESETS,
@@ -164,6 +164,7 @@ def v2_service_info() -> dict[str, object]:
         "default_include_facets": True,
         "legacy_default_endpoint": "/api/minimalize",
         "legacy_default_unchanged": True,
+        "browser_migration": build_browser_migration_contract().to_dict(),
     }
 
 

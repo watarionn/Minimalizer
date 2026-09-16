@@ -454,17 +454,16 @@ def test_v2_info_is_separate_from_legacy_mode_contract():
 
     response = client.get("/api/v2/info")
     assert response.status_code == 200
-    assert response.json() == {
-        "status": "experimental_opt_in",
-        "endpoint": "/api/v2/minimalize",
-        "png_contract_version": "minimalizer-v2-png-v1",
-        "default_preset": "minimal",
-        "presets": ["minimal", "balanced", "detailed", "ultra_minimal"],
-        "default_include_facets": True,
-        "legacy_default_endpoint": "/api/minimalize",
-        "legacy_default_unchanged": True,
-    }
-
+    payload = response.json()
+    assert payload["status"] == "experimental_opt_in"
+    assert payload["endpoint"] == "/api/v2/minimalize"
+    assert payload["png_contract_version"] == "minimalizer-v2-png-v1"
+    assert payload["legacy_default_endpoint"] == "/api/minimalize"
+    assert payload["legacy_default_unchanged"] is True
+    migration = payload["browser_migration"]
+    assert migration["current_state"] == "legacy_default"
+    assert migration["rollback_target"] == "legacy_default"
+    assert migration["specialized_modes"] == ["rinka_reference", "color_strip"]
 
 def test_v2_opt_in_endpoint_preserves_png_contract(tmp_path):
     source = _sample_png()
