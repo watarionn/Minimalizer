@@ -11,8 +11,9 @@ Latest local engineering commit: `2a61ad4` (`Execute Calibration 05 default migr
 Current remote feature branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
 Remote feature branch HEAD: `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` (`Record Calibration 05 Phase T handoff`)
 Calibration 05 Phase X Default Migration is committed and regression-verified locally.
+Calibration 05 Phase Y Post-Cutover Acceptance / Release Preparation is complete locally and awaiting its local commit.
 
-This is feature-branch work. It is NOT merged to `main` and no PR was created for Phase U-X.
+This is feature-branch work. It is NOT merged to `main` and no PR was created for Phase U-Y.
 Do not push, create a PR, merge, deploy, or touch `main` unless the user explicitly approves that step.
 
 Local RDC clone:
@@ -71,7 +72,10 @@ Local RDC clone:
 49. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_W_CUTOVER_PLAN.json`
 50. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_X.md`
 51. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_X_DEFAULT_MIGRATION.json`
-52. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+52. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Y.md`
+53. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Y_ACCEPTANCE.json`
+54. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_Y_RELEASE_PREP.md`
+55. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -144,9 +148,12 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failures `0 / 18`.
 Latest V2 regression after Calibration 05 Phase X: `171 passed, 334 deselected, 1 warning`.
 Latest full repository regression after Calibration 05 Phase X: `503 passed, 2 failed, 1 warning`.
-Latest Default Migration focused suite: `49 passed, 1 warning`.
+Latest Phase Y Default Migration endpoint suite: `10 passed, 1 warning`; expanded migration/Web focused suite: `47 passed, 1 warning`; CI Web/API/UI command: `49 passed, 1 warning`.
+Phase Y live Uvicorn HTTP acceptance: PASS. Eligible browser Standard PNG routed to V2 with cap `400`; SVG, transparent input, direct legacy API, and Rinka Reference routed to legacy as designed.
+Phase Y rollback endpoint proof: PASS. A temporary `legacy_default` contract returns the same otherwise eligible browser request to legacy without data migration.
+Phase Y Rinka Phase 16 16-case retained CI safety guard: PASS. CI YAML and real-server V2 smoke were also validated locally without running GitHub Actions.
 Latest Phase N exact-output comparison: algorithm digest, pixel SHA, PNG SHA, and accepted facet region IDs all `18 / 18` identical; comparison JSON exact match. Raw SLICO labels also matched `36 / 36` across 18 cases and initial/retry region sizes.
-Phase T migration-readiness state remains `ready_for_default=true`, `0` blockers. Phase X has now executed the approved browser cutover locally: browser rollout state is `v2_standard_default`, eligible Standard browser PNG requests use V2, and incompatible/specialized routes remain legacy.
+Phase T migration-readiness state remains `ready_for_default=true`, `0` blockers. Phase X executed the approved browser cutover locally and Phase Y completed post-cutover acceptance/release preparation.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -245,6 +252,8 @@ Calibration 05 Phase W records the executable cutover package and explicit appro
 
 Calibration 05 Phase X executes the approved Default Migration locally. The browser Standard one-click path now previews PNG and identifies itself with `X-Minimalizer-Browser-Default: v2`; only default level-4, white-background, opaque, non-custom Standard PNG requests route to V2. Direct `/api/minimalize` callers without the browser marker remain legacy-routed. SVG, transparency-sensitive requests, custom `colors`/`max_shapes`, Rinka Reference, and Color Strip remain legacy. The hosted V2 default keeps the Phase T `analysis_max_side <= 400` envelope, and V2 errors are not silently retried through legacy.
 
+Calibration 05 Phase Y completes post-cutover acceptance and release preparation locally. Real Uvicorn HTTP checks prove both V2 and compatibility routes, endpoint-level rollback back to `legacy_default`, browser asset defaults, and download media types. The GitHub workflow is brought forward from stale Web `0.8.0` / Rinka `phase10` expectations to Web `0.13.0`, Rinka `phase16`, characteristic Color Strip support, Default Migration tests, and a real-server V2-default smoke. The obsolete Phase-10 aggregate shape/vertex reduction thresholds are removed without inventing replacement thresholds; established segmentation, coverage, identity, silhouette, cap, and macro-shadow safety guards remain. Workflow YAML, the 16-case Phase 16 guard, Web/API/UI tests, and real-server smoke all pass locally. No GitHub Actions run is started.
+
 ## Post-Calibration-04 review result
 
 Approved Reference SHA-256 values matched `18 / 18`, and the comparison run had hard invariant failures `0 / 18`.
@@ -263,17 +272,19 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Phase X Default Migration is complete locally and all new migration regressions are green.
-The next engineering step is **Phase Y: Post-Cutover Acceptance / Release Preparation**.
+Phase Y Post-Cutover Acceptance / Release Preparation is complete locally. The migration implementation, rollback proof, live HTTP acceptance, release notes, and CI-definition readiness are all green without running GitHub Actions.
 
-Phase Y should:
-- perform browser-level acceptance against the local migrated route using representative opaque Standard PNG inputs
-- confirm user-visible route metadata and download behavior for both V2 and legacy compatibility paths
-- recheck rollback by temporarily exercising `legacy_default` in tests without changing canonical rollout state
-- package the final release/PR notes and exact rollback instructions
-- avoid changing visual thresholds, SLIC targets, Region Merge costs, facet acceptance, or V2 preset semantics
+The next boundary is **remote feature-branch publication / Draft PR preparation**. It is not an automatic engineering step because the project workflow requires separate user approval before push or PR creation.
 
-Do not push, create a PR, merge, or deploy until separately approved. GitHub Actions must not be intentionally triggered if they can incur metered cost.
+When publication is explicitly approved:
+- recheck the remote feature branch and `.github/workflows/ci.yml` before pushing
+- push only a feature branch; do not push `main`
+- feature-branch push alone should not trigger the current CI workflow
+- creating a PR will trigger CI, so confirm the user's GitHub Actions cost policy before opening it
+- use the prepared Phase Y PR summary, verification evidence, and rollback instructions
+- keep Ready-for-review, merge, and deployment as later separate approval boundaries
+
+Do not change visual thresholds, SLIC targets, Region Merge costs, facet acceptance, or V2 preset semantics as part of publication.
 
 ## Operational rules for the next chat
 
@@ -295,19 +306,20 @@ Run these first on RDC:
 `git rev-parse HEAD`
 `git status --short`
 
-Expected local state after the Phase X commit:
+Expected local state after the Phase Y commit:
 branch `feature/minimalizer-2-calibration-05-phase-u`
 working tree clean
 browser rollout contract `v2_standard_default`
-remote feature branch still `feature/minimalizer-2-calibration-05-planar-polygonization` at `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` unless a later publish step was explicitly approved.
+Phase Y acceptance/release-prep artifacts committed locally
+remote feature branch still `feature/minimalizer-2-calibration-05-planar-polygonization` at `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` unless a later publication step was explicitly approved.
 
-Then verify GitHub and read this handoff plus the Phase T-U-V-W-X documents and their JSON snapshots before continuing.
+Then verify GitHub and read this handoff plus the Phase X/Y documents and JSON snapshots before continuing.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase X のDefault Migration確定状態をGitHub/RDCで確認してから、Phase Y（Post-Cutover Acceptance / Release Preparation）を開始します。`
+`Calibration 05 Phase Y のPost-Cutover Acceptance確定状態をGitHub/RDCで確認してから、remote publish / Draft PR の承認境界を確認します。`
 
 ## Current merge state
 
-Calibration 01-04 and Calibration 05 Phase A-X remain feature-branch work. Nothing here is merged to `main`.
-No PR has been created for Calibration 05 Phase U-X, and Phase X has not been pushed remotely.
-The CI workflow is configured for pull requests and pushes to `main`; do not intentionally trigger GitHub Actions when doing so could incur metered cost.
+Calibration 01-04 and Calibration 05 Phase A-Y remain feature-branch work. Nothing here is merged to `main`.
+No PR has been created for Calibration 05 Phase U-Y, and Phase X/Y have not been pushed remotely.
+The CI workflow is configured for pull requests and pushes to `main`; feature-branch push alone is not a trigger. Do not intentionally trigger GitHub Actions when doing so could incur metered cost.

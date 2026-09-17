@@ -1,4 +1,5 @@
 from io import BytesIO
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
@@ -162,3 +163,19 @@ def test_v2_default_error_is_not_silently_retried_on_legacy(monkeypatch):
     )
     assert response.status_code == 400
     assert legacy_called is False
+
+
+def test_rollback_state_returns_browser_default_endpoint_to_legacy(monkeypatch):
+    monkeypatch.setattr(
+        web_app_module,
+        "build_browser_migration_contract",
+        lambda: SimpleNamespace(current_state="legacy_default"),
+    )
+    response = client.post(
+        "/api/minimalize",
+        headers=BROWSER_HEADERS,
+        files={"file": ("sample.png", _opaque_png(), "image/png")},
+        data={"mode": "standard", "level": "4", "output_format": "png", "background": "white"},
+    )
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-route"] == "legacy"
