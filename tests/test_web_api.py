@@ -22,6 +22,15 @@ def _sample_png() -> bytes:
     return buffer.getvalue()
 
 
+def _sample_transparent_png() -> bytes:
+    image = Image.new("RGBA", (64, 48), (242, 238, 228, 255))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((8, 8, 32, 40), fill=(45, 75, 120, 180))
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 def _sample_gif() -> bytes:
     image = Image.new("RGB", (16, 16), (120, 80, 50))
     buffer = BytesIO()
@@ -59,6 +68,7 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="strip-order-select"' in response.text
     assert 'id="strip-orientation-select"' in response.text
     assert 'id="mode-description"' in response.text
+    assert '<option value="white" selected>白</option>' in response.text
 
 
 def test_phase2_static_assets_are_served():
@@ -72,6 +82,8 @@ def test_phase2_static_assets_are_served():
     assert "[hidden] { display: none !important; }" in css.text
     assert ".color-strip-controls" in color_strip_css.text
     assert 'fetch("/api/minimalize"' in javascript.text
+    assert '"X-Minimalizer-Browser-Default": "v2"' in javascript.text
+    assert 'currentMode() === "standard" ? "png" : "svg"' in javascript.text
     assert 'form.append("mode", mode)' in javascript.text
     assert 'form.append("rinka_preset", elements.rinkaPreset.value)' in javascript.text
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
@@ -90,7 +102,7 @@ def test_service_info_reports_web_engine_and_limits():
     assert response.status_code == 200
     assert response.json() == {
         "service": "Minimalizer Web",
-        "web_version": "0.12.0",
+        "web_version": "0.13.0",
         "engine_version": "0.3.0",
         "docs": "/docs",
         "max_upload_mb": 20,
@@ -455,13 +467,14 @@ def test_v2_info_is_separate_from_legacy_mode_contract():
     response = client.get("/api/v2/info")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["status"] == "experimental_opt_in"
+    assert payload["status"] == "standard_default"
     assert payload["endpoint"] == "/api/v2/minimalize"
     assert payload["png_contract_version"] == "minimalizer-v2-png-v1"
-    assert payload["legacy_default_endpoint"] == "/api/minimalize"
-    assert payload["legacy_default_unchanged"] is True
+    assert payload["browser_router_endpoint"] == "/api/minimalize"
+    assert payload["hosted_default_analysis_max_side"] == 400
+    assert payload["legacy_default_unchanged"] is False
     migration = payload["browser_migration"]
-    assert migration["current_state"] == "legacy_default"
+    assert migration["current_state"] == "v2_standard_default"
     assert migration["rollback_target"] == "legacy_default"
     assert migration["specialized_modes"] == ["rinka_reference", "color_strip"]
 

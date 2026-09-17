@@ -1,24 +1,28 @@
 # Minimalizer 2.0 Current
 
-Updated: 2026-09-15
+Updated: 2026-09-17
 
 Canonical handoff: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
-Drive handoff: `Minimalizer/00_HANDOFF/Minimalizer 2.0 HANDOFF 2026-09-15`
-Current branch: `feature/minimalizer-2-calibration-03-contour-micro-cleanup`
-Current engineering commit: `6989b2741ea581dd307008142d872ae1eb60d60d`
-Handoff metadata: stored in documentation-only commits after the engineering commit; use the remote branch HEAD
+Local RDC branch: `feature/minimalizer-2-calibration-05-phase-u`
+Latest committed gate: `cf2104b` (`Stage Calibration 05 default migration cutover gate`)
+Remote feature branch remains at `5bce1a9` until an explicitly approved publish step.
 
 Status:
 - Architecture Phase I-X: complete
-- Phase X Closure: complete
-- Calibration 01: complete
-- Calibration 02: complete
-- Calibration 03: complete
-- next: Calibration 04, medium-size accessory/clothing detail cleanup
+- Calibration 01-04: complete
+- Calibration 05 Phase A-T: complete
+- Phase U release-candidate dry run: PASS
+- Phase V pre-cutover gate: PASS
+- Phase W cutover package: READY
+- Phase X Default Migration: implemented and verified locally
+- browser rollout state: `v2_standard_default`
+- specialized Rinka Reference / Color Strip remain legacy-routed
 
 Latest quality gates:
-- V2: `104 passed`
-- full repo: `436 passed, 2 known missing-asset failures, 1 warning`
-- canonical 18-case hard invariant failures: `0`
+- Default Migration focused: `49 passed, 1 warning`
+- V2: `171 passed, 334 deselected, 1 warning`
+- full repo: `503 passed, 2 known missing-asset failures, 1 warning`
+- new Default Migration regressions: `0`
 
+No push, PR, main change, merge, deployment, or GitHub Actions execution has occurred for Phase U-X.
 Read `MINIMALIZER_2_HANDOFF.md` before doing any work.

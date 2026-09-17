@@ -15,9 +15,9 @@ def test_phase_v_requires_a_passing_phase_u_release_candidate():
     assert rc["ready_for_explicit_cutover_decision"] is True
 
 
-def test_phase_v_current_contract_is_still_pre_cutover():
+def test_phase_v_cutover_keeps_the_verified_rollback_contract():
     contract = build_browser_migration_contract().to_dict()
-    assert contract["current_state"] == "legacy_default"
+    assert contract["current_state"] == "v2_standard_default"
     assert contract["rollback_target"] == "legacy_default"
     assert contract["rollback_requires_data_migration"] is False
     assert contract["automatic_error_fallback"] is False

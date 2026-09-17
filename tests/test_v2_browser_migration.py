@@ -13,7 +13,7 @@ def test_browser_migration_contract_is_explicit_and_rollback_safe():
     report = build_browser_migration_contract()
     payload = report.to_dict()
     assert payload["schema_version"] == BROWSER_MIGRATION_SCHEMA_VERSION
-    assert payload["current_state"] == "legacy_default"
+    assert payload["current_state"] == "v2_standard_default"
     assert payload["legacy_endpoint"] == "/api/minimalize"
     assert payload["v2_endpoint"] == "/api/v2/minimalize"
     assert payload["specialized_modes"] == ["rinka_reference", "color_strip"]

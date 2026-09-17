@@ -1,18 +1,19 @@
 # Minimalizer 2.0 Handoff
 
-Updated: 2026-09-16
+Updated: 2026-09-17
 Purpose: canonical restart document for the next ChatGPT development chat.
 
 ## Start here
 
 Repository: `watarionn/Minimalizer`
-Current branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
-Current engineering commit: `89e81934862c804618d33727f11ea13d3e2ad3af`
-Current branch HEAD: verify the remote branch; review/handoff metadata may be later documentation-only commits
-Engineering commit message: `Close Calibration 05 performance migration gate`
+Current local RDC branch: `feature/minimalizer-2-calibration-05-phase-u`
+Latest committed local gate: `cf2104b` (`Stage Calibration 05 default migration cutover gate`)
+Current remote feature branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
+Remote feature branch HEAD: `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` (`Record Calibration 05 Phase T handoff`)
+Current uncommitted engineering state: Calibration 05 Phase X Default Migration implemented and regression-verified locally.
 
-This is a feature branch. It is NOT merged to `main` and no PR was created.
-Do not merge, deploy, or touch `main` unless the user explicitly approves that step.
+This is feature-branch work. It is NOT merged to `main` and no PR was created for Phase U-X.
+Do not push, create a PR, merge, deploy, or touch `main` unless the user explicitly approves that step.
 
 Local RDC clone:
 `C:\Users\watar\AppData\Local\Temp\minimalizer_phase1_verify`
@@ -63,7 +64,14 @@ Local RDC clone:
 42. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_T.md`
 43. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_T_PERFORMANCE.json`
 44. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_T_READINESS.json`
-45. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
+45. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_U.md`
+46. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_U_RC.json`
+47. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_V.md`
+48. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_W.md`
+49. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_W_CUTOVER_PLAN.json`
+50. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_X.md`
+51. `docs/architecture/MINIMALIZER_2_CALIBRATION_05_PHASE_X_DEFAULT_MIGRATION.json`
+52. This file: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 
 ## Architecture status
 
@@ -132,10 +140,11 @@ Probe `0.0020` was rejected because the 18-case mean would fall to about `31.333
 ## Regression status
 
 Latest canonical 18-case run after Calibration 05 Phase H: hard invariant failures `0 / 18`.
-Latest V2 regression after Calibration 05 Phase T: `151 passed`.
-Latest full repository regression after Calibration 05 Phase T: `487 passed, 2 failed, 1 warning`.
+Latest V2 regression after Calibration 05 Phase X: `171 passed, 334 deselected, 1 warning`.
+Latest full repository regression after Calibration 05 Phase X: `503 passed, 2 failed, 1 warning`.
+Latest Default Migration focused suite: `49 passed, 1 warning`.
 Latest Phase N exact-output comparison: algorithm digest, pixel SHA, PNG SHA, and accepted facet region IDs all `18 / 18` identical; comparison JSON exact match. Raw SLICO labels also matched `36 / 36` across 18 cases and initial/retry region sizes.
-Latest Phase T migration-readiness state: `ready_for_default=true`, `0` blockers; focused performance/migration/Web tests `37 passed, 1 warning`. Current browser JavaScript remains legacy-routed and no cutover has occurred.
+Phase T migration-readiness state remains `ready_for_default=true`, `0` blockers. Phase X has now executed the approved browser cutover locally: browser rollout state is `v2_standard_default`, eligible Standard browser PNG requests use V2, and incompatible/specialized routes remain legacy.
 Latest 18-case Phase H visual regression: hard invariant failures `0 / 18`.
 
 The two known failures are pre-existing and caused only by the missing asset:
@@ -224,7 +233,15 @@ Calibration 05 Phase R adds a conservative alpha/background routing contract. On
 
 Calibration 05 Phase S adds an explicit browser rollout/rollback contract with `legacy_default`, `v2_standard_opt_in`, and `v2_standard_default` states. Rinka Reference and Color Strip stay pinned to legacy; Phase Q/R eligibility is composed rather than duplicated; rollback is a routing-state change with no data migration. `browser_ui_migration` is now ready.
 
-Calibration 05 Phase T defines and passes the versioned performance/resource budget under the hosted `400 / 1 worker / 2 slots` envelope. Formal five-case/two-repeat results are mean V2 `4.383244 s`, slowest V2 case `4.626395 s`, mean ratio `6.098657x`, max ratio `7.485155x`; all nine checks passed. `performance_budget` is now ready and migration readiness reports `ready_for_default=true` with zero blockers. This is readiness only; no default cutover occurred.
+Calibration 05 Phase T defines and passes the versioned performance/resource budget under the hosted `400 / 1 worker / 2 slots` envelope. Formal five-case/two-repeat results are mean V2 `4.383244 s`, slowest V2 case `4.626395 s`, mean ratio `6.098657x`, max ratio `7.485155x`; all nine checks passed. `performance_budget` is ready and migration readiness reports `ready_for_default=true` with zero blockers.
+
+Calibration 05 Phase U performs the release-candidate dry run without changing production routing. Focused migration tests, V2 regression, rollback behavior, and known full-suite failures were verified locally.
+
+Calibration 05 Phase V passes the final pre-cutover gate. The candidate `v2_standard_default` routing preserves SVG, alpha/background compatibility, specialized-mode legacy pinning, and the no-data-migration rollback target.
+
+Calibration 05 Phase W records the executable cutover package and explicit approval boundary. No remote publish or deployment occurs in Phase W.
+
+Calibration 05 Phase X executes the approved Default Migration locally. The browser Standard one-click path now previews PNG and identifies itself with `X-Minimalizer-Browser-Default: v2`; only default level-4, white-background, opaque, non-custom Standard PNG requests route to V2. Direct `/api/minimalize` callers without the browser marker remain legacy-routed. SVG, transparency-sensitive requests, custom `colors`/`max_shapes`, Rinka Reference, and Color Strip remain legacy. The hosted V2 default keeps the Phase T `analysis_max_side <= 400` envelope, and V2 errors are not silently retried through legacy.
 
 ## Post-Calibration-04 review result
 
@@ -244,21 +261,17 @@ Stronger global Detail Budget collapse is specifically not the next step; Todoro
 
 ## Recommended next engineering step
 
-Proceed to Calibration 05 Phase U: Default-Migration Dry Run / Release Candidate Verification.
+Phase X Default Migration is complete locally and all new migration regressions are green.
+The next engineering step is **Phase Y: Post-Cutover Acceptance / Release Preparation**.
 
-Phase K through Phase M established the exact-result optimization discipline:
-- Phase K: facet overlay mask reuse, targeted facet gate about `6.68%` faster
-- Phase L: hull-only Region Merge geometry-cost evaluation, targeted Region Merge about `24.33%` faster
-- Phase L whole-pipeline same-machine wall time: `5.898851 s -> 5.620624 s` (`4.72%` faster)
-- Phase M: pairwise palette-distance reuse, targeted palette about `27.20%` faster
-- Phase M whole-pipeline same-machine wall time: `5.608317 s -> 5.441253 s` (`2.98%` faster)
-- canonical algorithm digest, rendered pixels, deterministic PNG, and facet IDs remain unchanged `18 / 18`
+Phase Y should:
+- perform browser-level acceptance against the local migrated route using representative opaque Standard PNG inputs
+- confirm user-visible route metadata and download behavior for both V2 and legacy compatibility paths
+- recheck rollback by temporarily exercising `legacy_default` in tests without changing canonical rollout state
+- package the final release/PR notes and exact rollback instructions
+- avoid changing visual thresholds, SLIC targets, Region Merge costs, facet acceptance, or V2 preset semantics
 
-Phase N completed a fourth exact-result optimization: stable SLICO cluster-position grouping. Same-machine five-case/two-repeat timing improved oversegmentation by about `63.92%` and whole V2 wall time by about `23.34%`, while canonical outputs remained unchanged `18 / 18`.
-
-Phase O completed the post-optimization reassessment. Performance improved materially, but the migration gate remains blocked by five compatibility items plus the undefined performance budget.
-
-Phase P completed the public-control compatibility mapping. Phase Q resolved `output_format_parity`, Phase R resolved `alpha_background_parity`, Phase S resolved `browser_ui_migration`, and Phase T resolved the final `performance_budget` blocker under the hosted 400-cap resource envelope. The migration gate is now clear, but the current browser remains legacy-routed. Phase U should exercise the complete migration route as a reversible release-candidate dry run before any explicit production cutover decision.
+Do not push, create a PR, merge, or deploy until separately approved. GitHub Actions must not be intentionally triggered if they can incur metered cost.
 
 ## Operational rules for the next chat
 
@@ -280,18 +293,19 @@ Run these first on RDC:
 `git rev-parse HEAD`
 `git status --short`
 
-Expected clean state at this handoff:
-branch `feature/minimalizer-2-calibration-05-planar-polygonization`
-engineering commit `89e81934862c804618d33727f11ea13d3e2ad3af`
-branch HEAD may be a later review/documentation commit; verify the remote branch HEAD before work.
+Expected local state after the Phase X commit:
+branch `feature/minimalizer-2-calibration-05-phase-u`
+working tree clean
+browser rollout contract `v2_standard_default`
+remote feature branch still `feature/minimalizer-2-calibration-05-planar-polygonization` at `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` unless a later publish step was explicitly approved.
 
-Then verify the same remote branch on GitHub and read this handoff file plus `MINIMALIZER_2_CALIBRATION_05_PHASE_A.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_B.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_C.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_D.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_E.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_F.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_G.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_H.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_I.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_J.md`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_J_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_K_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_L_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_M_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_N_PERFORMANCE.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_O_PERFORMANCE.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_O_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P_COMPATIBILITY.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_P_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_Q.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_Q_OUTPUT_FORMAT.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_Q_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_R.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_R_ALPHA_BACKGROUND.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_R_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_S.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_S_BROWSER_MIGRATION.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_S_READINESS.json`, `MINIMALIZER_2_CALIBRATION_05_PHASE_T.md`, `MINIMALIZER_2_CALIBRATION_05_PHASE_T_PERFORMANCE.json`, and `MINIMALIZER_2_CALIBRATION_05_PHASE_T_READINESS.json`.
+Then verify GitHub and read this handoff plus the Phase T-U-V-W-X documents and their JSON snapshots before continuing.
 
 Suggested first user-facing statement in the next chat:
-`Calibration 05 Phase T の確定状態をGitHub/RDCで確認してから、Phase U（Default-Migration Dry Run / Release Candidate Verification）を開始します。`
+`Calibration 05 Phase X のDefault Migration確定状態をGitHub/RDCで確認してから、Phase Y（Post-Cutover Acceptance / Release Preparation）を開始します。`
 
 ## Current merge state
 
-Calibration 01, 02, 03, and 04 remain feature-branch work. Calibration 05 Phase A, Phase B, Phase C, Phase D, Phase E, Phase F, Phase G, Phase H, Phase I, Phase J, Phase K, Phase L, Phase M, Phase N, the Phase O reassessment, Phase P, Phase Q, Phase R, Phase S, and Phase T are also on the same feature branch. Nothing here is merged to `main`.
-No PR has been created for Calibration 05.
-The CI workflow is configured for pull requests and pushes to `main`; pushing this feature branch must not intentionally trigger GitHub Actions.
+Calibration 01-04 and Calibration 05 Phase A-X remain feature-branch work. Nothing here is merged to `main`.
+No PR has been created for Calibration 05 Phase U-X, and Phase X has not been pushed remotely.
+The CI workflow is configured for pull requests and pushes to `main`; do not intentionally trigger GitHub Actions when doing so could incur metered cost.

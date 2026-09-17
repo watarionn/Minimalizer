@@ -1,0 +1,37 @@
+{
+  "schema_version": "minimalizer-v2-default-migration-v1",
+  "phase": "Calibration 05 Phase X",
+  "date": "2026-09-17",
+  "result": "pass",
+  "browser_rollout_state": "v2_standard_default",
+  "rollback_target": "legacy_default",
+  "rollback_requires_data_migration": false,
+  "automatic_error_fallback": false,
+  "browser_router_endpoint": "/api/minimalize",
+  "browser_marker_header": "X-Minimalizer-Browser-Default: v2",
+  "hosted_analysis_max_side": 400,
+  "eligible_route": {
+    "mode": "standard",
+    "level": 4,
+    "output_format": "png",
+    "background": "white",
+    "source_transparency": false,
+    "custom_colors": false,
+    "custom_max_shapes": false,
+    "route": "v2"
+  },
+  "specialized_modes_legacy_pinned": ["rinka_reference", "color_strip"],
+  "direct_legacy_api_unchanged_without_browser_marker": true,
+  "tests": {
+    "focused": {"passed": 49, "failed": 0, "warnings": 1},
+    "v2_regression": {"passed": 171, "failed": 0, "deselected": 334, "warnings": 1},
+    "full_repo": {"passed": 503, "failed": 2, "warnings": 1, "known_missing_asset_only": true}
+  },
+  "cutover_scope": "local_feature_branch",
+  "remote_publish_performed": false,
+  "pull_request_created": false,
+  "main_modified": false,
+  "merged": false,
+  "deployed": false,
+  "github_actions_executed": false
+}

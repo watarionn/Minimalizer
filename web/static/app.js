@@ -99,7 +99,7 @@ function updateModeUi() {
     elements.modeDescription.textContent = "画像から代表色を3〜5色だけ抽出してストリップ化します。使用量順・特徴色優先・特徴色 v5を比較できます。";
     elements.minimalizeButton.textContent = "Color Stripを生成";
   } else {
-    elements.modeDescription.textContent = "通常のMinimalizer。ミニマル度や詳細設定を調整できます。";
+    elements.modeDescription.textContent = "通常モードはMinimalizer 2.0が既定です。白背景・既定設定ではV2、互換性が必要な設定は自動で従来エンジンへ切り替わります。";
     elements.minimalizeButton.textContent = "ミニマル化";
   }
 
@@ -107,7 +107,6 @@ function updateModeUi() {
     elements.level.value = "4";
     elements.colors.value = "";
     elements.maxShapes.value = "";
-    elements.background.value = "";
     elements.advancedControls.open = false;
   }
   if (colorStrip) {
@@ -289,6 +288,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
   try {
     const response = await fetch("/api/minimalize", {
       method: "POST",
+      headers: { "X-Minimalizer-Browser-Default": "v2" },
       body: buildFormData(outputFormat),
     });
     if (!response.ok) throw new Error(await responseError(response));
@@ -307,6 +307,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.downloadRow.hidden = false;
 
       const responseMode = response.headers.get("x-minimalizer-mode");
+      const responseRoute = response.headers.get("x-minimalizer-route");
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
@@ -317,7 +318,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = responseMode === "rinka_reference"
         ? "凛夏手本版"
-        : responseMode === "color_strip" ? "Color Strip" : "";
+        : responseMode === "color_strip"
+          ? "Color Strip"
+          : responseRoute === "v2" ? "Minimalizer 2.0" : "従来エンジン";
       const colorOptionLabel = responseMode === "color_strip"
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
         : "";
@@ -383,17 +386,22 @@ elements.dropZone.addEventListener("drop", (event) => {
   if (!state.busy) setFile(event.dataTransfer?.files?.[0]);
 });
 
+function downloadOrRequest(outputFormat) {
+  if (state.resultBlob && state.resultFilename.endsWith(`.${outputFormat}`)) {
+    downloadBlob(state.resultBlob, state.resultFilename);
+    setStatus(`${outputFormat.toUpperCase()}を保存しました。`);
+    return;
+  }
+  requestMinimalize(outputFormat, { download: true });
+}
+
 elements.minimalizeButton.addEventListener("click", () => {
-  requestMinimalize("svg", { preview: true });
+  const previewFormat = currentMode() === "standard" ? "png" : "svg";
+  requestMinimalize(previewFormat, { preview: true });
 });
 
-elements.downloadSvg.addEventListener("click", () => {
-  if (state.resultBlob) downloadBlob(state.resultBlob, state.resultFilename);
-});
-
-elements.downloadPng.addEventListener("click", () => {
-  requestMinimalize("png", { download: true });
-});
+elements.downloadSvg.addEventListener("click", () => downloadOrRequest("svg"));
+elements.downloadPng.addEventListener("click", () => downloadOrRequest("png"));
 
 for (const control of [
   elements.level,

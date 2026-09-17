@@ -29,7 +29,11 @@ from minimalize_engine.color_strip import (
     MIN_COLOR_COUNT as COLOR_STRIP_MIN_COLOR_COUNT,
     MIN_SIMILARITY as COLOR_STRIP_MIN_SIMILARITY,
 )
-from minimalize_engine.v2 import PNG_CONTRACT_VERSION, build_browser_migration_contract
+from minimalize_engine.v2 import (
+    PNG_CONTRACT_VERSION,
+    build_browser_migration_contract,
+    resolve_browser_route,
+)
 from minimalize_engine.target_style import (
     DEFAULT_RINKA_REFERENCE_PRESET,
     RINKA_REFERENCE_PRESETS,
@@ -45,7 +49,7 @@ from .service import (
     minimalize_v2_path,
 )
 
-APP_VERSION = "0.12.0"
+APP_VERSION = "0.13.0"
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 SUPPORTED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 V2_PRESETS = ("minimal", "balanced", "detailed", "ultra_minimal")
@@ -77,6 +81,7 @@ MAX_IMAGE_PIXELS = _env_int(
 )
 MAX_IMAGE_SIDE = _env_int("WEB_MAX_IMAGE_SIDE", 16_384, minimum=512, maximum=65_535)
 MAX_ANALYSIS_SIDE = _env_int("WEB_MAX_ANALYSIS_SIDE", 640, minimum=256, maximum=2_048)
+V2_DEFAULT_ANALYSIS_MAX_SIDE = min(MAX_ANALYSIS_SIDE, 400)
 MAX_CONCURRENT_JOBS = _env_int("WEB_MAX_CONCURRENT_JOBS", 2, minimum=1, maximum=8)
 _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 
@@ -156,14 +161,15 @@ def service_info() -> dict[str, object]:
 @app.get("/api/v2/info")
 def v2_service_info() -> dict[str, object]:
     return {
-        "status": "experimental_opt_in",
+        "status": "standard_default",
         "endpoint": "/api/v2/minimalize",
         "png_contract_version": PNG_CONTRACT_VERSION,
         "default_preset": "minimal",
         "presets": list(V2_PRESETS),
         "default_include_facets": True,
-        "legacy_default_endpoint": "/api/minimalize",
-        "legacy_default_unchanged": True,
+        "browser_router_endpoint": "/api/minimalize",
+        "hosted_default_analysis_max_side": V2_DEFAULT_ANALYSIS_MAX_SIDE,
+        "legacy_default_unchanged": False,
         "browser_migration": build_browser_migration_contract().to_dict(),
     }
 
@@ -190,11 +196,19 @@ async def _save_upload(upload: UploadFile, destination: Path) -> int:
     return total
 
 
-def _validate_image_file(path: Path) -> tuple[int, int, str]:
+def _validate_image_file(path: Path) -> tuple[int, int, str, bool]:
     try:
         with Image.open(path) as image:
             image_format = (image.format or "").upper()
             width, height = image.size
+            if "A" in image.getbands():
+                alpha_min = image.getchannel("A").getextrema()[0]
+                has_material_transparency = alpha_min < 250
+            elif image.mode == "P" and "transparency" in image.info:
+                alpha_min = image.convert("RGBA").getchannel("A").getextrema()[0]
+                has_material_transparency = alpha_min < 250
+            else:
+                has_material_transparency = False
     except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
         raise HTTPException(status_code=400, detail="Uploaded file is not a readable image.") from exc
 
@@ -216,7 +230,7 @@ def _validate_image_file(path: Path) -> tuple[int, int, str]:
             status_code=413,
             detail=f"Image exceeds {MAX_IMAGE_PIXELS:,} pixel limit.",
         )
-    return width, height, image_format
+    return width, height, image_format, has_material_transparency
 
 
 @app.post("/api/v2/minimalize")
@@ -236,7 +250,7 @@ async def minimalize_image_v2(
             size = await _save_upload(file, input_path)
             if size == 0:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
-            source_width, source_height, source_format = _validate_image_file(input_path)
+            source_width, source_height, source_format, _ = _validate_image_file(input_path)
 
             if not _PROCESS_SLOTS.acquire(blocking=False):
                 raise HTTPException(
@@ -408,7 +422,25 @@ async def minimalize_image(
             if size == 0:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
 
-            source_width, source_height, source_format = _validate_image_file(input_path)
+            source_width, source_height, source_format, source_has_transparency = _validate_image_file(input_path)
+
+            browser_route = "legacy"
+            if (
+                request.headers.get("X-Minimalizer-Browser-Default") == "v2"
+                and mode == "standard"
+                and level == 4
+                and colors is None
+                and max_shapes is None
+            ):
+                browser_route = resolve_browser_route(
+                    rollout_state=build_browser_migration_contract().current_state,
+                    mode=mode,
+                    output_format=output_format,
+                    background_mode=background or "source",
+                    source_has_transparency=source_has_transparency,
+                )
+            if browser_route == "v2":
+                configured_analysis_max_side = V2_DEFAULT_ANALYSIS_MAX_SIDE
 
             if not _PROCESS_SLOTS.acquire(blocking=False):
                 logger.info(
@@ -430,7 +462,15 @@ async def minimalize_image(
             processing_started = perf_counter()
             try:
                 try:
-                    if mode == "rinka_reference":
+                    if browser_route == "v2":
+                        result = await run_in_threadpool(
+                            minimalize_v2_path,
+                            input_path,
+                            preset="minimal",
+                            include_facets=True,
+                            analysis_max_side_cap=V2_DEFAULT_ANALYSIS_MAX_SIDE,
+                        )
+                    elif mode == "rinka_reference":
                         result = await run_in_threadpool(
                             minimalize_rinka_path,
                             input_path,
@@ -466,6 +506,39 @@ async def minimalize_image(
     finally:
         await file.close()
 
+    if browser_route == "v2":
+        metadata = result.metadata
+        logger.info(
+            "minimalize_default_v2_success request_id=%s format=%s width=%s height=%s processing_ms=%.1f facets=%s",
+            request_id,
+            source_format,
+            source_width,
+            source_height,
+            processing_ms,
+            metadata.rendered_facet_count,
+        )
+        headers = {
+            "Content-Disposition": 'attachment; filename="minimalized.png"',
+            "X-Minimalizer-Mode": "standard",
+            "X-Minimalizer-Route": "v2",
+            "X-Minimalizer-Level": response_level,
+            "X-Minimalizer-Configured-Analysis-Max-Side": str(configured_analysis_max_side),
+            "X-Minimalizer-V2-Contract-Version": metadata.contract_version,
+            "X-Minimalizer-V2-Preset": metadata.preset,
+            "X-Minimalizer-V2-Include-Facets": str(metadata.include_facets).lower(),
+            "X-Minimalizer-V2-Pixel-SHA256": metadata.pixel_sha256,
+            "X-Minimalizer-V2-PNG-SHA256": metadata.png_sha256,
+            "X-Minimalizer-V2-Scene-Facet-Count": str(metadata.scene_facet_count),
+            "X-Minimalizer-V2-Rendered-Facet-Count": str(metadata.rendered_facet_count),
+            "X-Minimalizer-Shape-Count": str(metadata.visible_shape_count),
+            "X-Minimalizer-Analysis-Size": f"{metadata.width}x{metadata.height}",
+            "X-Minimalizer-Source-Size": f"{metadata.source_width}x{metadata.source_height}",
+            "X-Minimalizer-Validated-Source-Size": f"{source_width}x{source_height}",
+            "X-Minimalizer-Source-Format": source_format,
+            "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
+        }
+        return Response(content=result.content, media_type=result.media_type, headers=headers)
+
     logger.info(
         "minimalize_success request_id=%s mode=%s format=%s width=%s height=%s level=%s analysis_max_side=%s output=%s processing_ms=%.1f shapes=%s",
         request_id,
@@ -483,6 +556,7 @@ async def minimalize_image(
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
         "X-Minimalizer-Mode": mode,
+        "X-Minimalizer-Route": "legacy",
         "X-Minimalizer-Level": response_level,
         "X-Minimalizer-Configured-Analysis-Max-Side": str(configured_analysis_max_side),
         "X-Minimalizer-Shape-Count": str(result.shape_count),

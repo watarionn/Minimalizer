@@ -105,7 +105,7 @@ def build_browser_migration_contract() -> BrowserMigrationContract:
     )
     return BrowserMigrationContract(
         schema_version=BROWSER_MIGRATION_SCHEMA_VERSION,
-        current_state="legacy_default",
+        current_state="v2_standard_default",
         legacy_endpoint="/api/minimalize",
         v2_endpoint="/api/v2/minimalize",
         specialized_modes=("rinka_reference", "color_strip"),
