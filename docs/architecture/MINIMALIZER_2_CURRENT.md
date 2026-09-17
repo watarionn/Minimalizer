@@ -4,7 +4,7 @@ Updated: 2026-09-17
 
 Canonical handoff: `docs/architecture/MINIMALIZER_2_HANDOFF.md`
 Local RDC branch: `feature/minimalizer-2-calibration-05-phase-u`
-Latest committed gate: `cf2104b` (`Stage Calibration 05 default migration cutover gate`)
+Latest local engineering commit: `2a61ad4` (`Execute Calibration 05 default migration`)
 Remote feature branch remains at `5bce1a9` until an explicitly approved publish step.
 
 Status:

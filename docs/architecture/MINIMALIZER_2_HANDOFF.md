@@ -7,10 +7,10 @@ Purpose: canonical restart document for the next ChatGPT development chat.
 
 Repository: `watarionn/Minimalizer`
 Current local RDC branch: `feature/minimalizer-2-calibration-05-phase-u`
-Latest committed local gate: `cf2104b` (`Stage Calibration 05 default migration cutover gate`)
+Latest local engineering commit: `2a61ad4` (`Execute Calibration 05 default migration`)
 Current remote feature branch: `feature/minimalizer-2-calibration-05-planar-polygonization`
 Remote feature branch HEAD: `5bce1a9b4b9c765c65b2c78df0bd37a0ad5dee3` (`Record Calibration 05 Phase T handoff`)
-Current uncommitted engineering state: Calibration 05 Phase X Default Migration implemented and regression-verified locally.
+Calibration 05 Phase X Default Migration is committed and regression-verified locally.
 
 This is feature-branch work. It is NOT merged to `main` and no PR was created for Phase U-X.
 Do not push, create a PR, merge, deploy, or touch `main` unless the user explicitly approves that step.
@@ -108,6 +108,8 @@ Calibration 05 Phase Q engineering commit: `897c7759d76e2c49e9276b35c758d017e963
 Calibration 05 Phase R engineering commit: `84fc96e6c324f5511a7fcaa1716f16bd15597f99`
 Calibration 05 Phase S engineering commit: `cbc6885ab87909236bfe9b6ad4763394a7c92de3`
 Calibration 05 Phase T engineering commit: `89e81934862c804618d33727f11ea13d3e2ad3af`
+Calibration 05 Phase U/V/W gate commit: `cf2104b`
+Calibration 05 Phase X Default Migration engineering commit: `2a61ad4`
 
 ## Calibration results so far
 
