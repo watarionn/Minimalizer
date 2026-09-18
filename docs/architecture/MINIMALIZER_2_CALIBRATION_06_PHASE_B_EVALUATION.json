@@ -1,0 +1,93 @@
+{
+  "schema_version": "minimalizer-v2-calibration06-rembg-v1",
+  "phase": "Calibration 06 Phase B",
+  "date": "2026-09-17",
+  "result": "pass_with_integration_followup",
+  "environment": {
+    "python": "3.11.9",
+    "rembg": "2.0.84",
+    "onnxruntime": "1.30.0",
+    "isolated": true,
+    "base_requirements_modified": false
+  },
+  "approved18_case_count": 18,
+  "selected_rembg_model": "isnet-anime",
+  "production_default_enabled": false,
+  "models": {
+    "isnet-anime": {
+      "mean_seconds": 0.6462043,
+      "mean_subject_area_ratio": 0.6716786813,
+      "mean_ambiguous_fraction": 0.0208016148,
+      "mean_component_count": 1.8333333333,
+      "mean_largest_component_share": 0.9998367740,
+      "visual_assessment": "robust_character_silhouette"
+    },
+    "isnet-general-use": {
+      "mean_seconds": 0.5772379889,
+      "mean_subject_area_ratio": 0.4830718954,
+      "mean_ambiguous_fraction": 0.1017623030,
+      "mean_component_count": 8.3333333333,
+      "mean_largest_component_share": 0.9946940413,
+      "visual_assessment": "interior_subject_underconfidence"
+    },
+    "u2net_human_seg": {
+      "mean_seconds": 0.2031970667,
+      "mean_subject_area_ratio": 0.3963725490,
+      "mean_ambiguous_fraction": 0.0658934064,
+      "mean_component_count": 11.2222222222,
+      "mean_largest_component_share": 0.9434109592,
+      "visual_assessment": "rejected_for_character_illustrations",
+      "catastrophic_low_subject_cases": [
+        "Koganei-Niko_list_thumb",
+        "Koseki-Bijou_list_thumb",
+        "Mori-Calliope_list_thumb",
+        "Vestia-Zeta_list_thumb"
+      ]
+    }
+  },
+  "guided_v2_approved18": {
+    "model": "isnet-anime",
+    "analysis_max_side": 400,
+    "digest_changed_cases": 18,
+    "invariant_failure_cases": 0,
+    "mean_final_root_delta": 5.6666666667,
+    "mean_subject_background_barrier_delta": 1048.7222222222
+  },
+  "guided_visual_subset": {
+    "case_count": 8,
+    "selected_regions_unchanged_cases": 8,
+    "mean_baseline_visual_groups": 32.5,
+    "mean_guided_visual_groups": 36.5,
+    "mean_visual_group_delta": 4.0,
+    "cases": {
+      "Koseki-Bijou_list_thumb": [33, 40],
+      "Isaki-Riona_list_thumb": [30, 40],
+      "Momosuzu-Nene_list_thumb": [30, 39],
+      "Koganei-Niko_list_thumb": [37, 38],
+      "Kobo-Kanaeru_list_thumb": [41, 41],
+      "Kikirara-Vivi_list_thumb": [31, 36],
+      "Raora-Panthera_list_thumb": [37, 35],
+      "Todoroki-Hajime_list_thumb": [21, 23]
+    }
+  },
+  "decision": {
+    "rembg_candidate_accepted": true,
+    "preferred_model": "isnet-anime",
+    "mask_as_final_geometry": false,
+    "current_hard_barrier_strategy_accepted_as_default": false,
+    "reason": "foreground separation is robust, but direct hard-barrier guidance increases visual-group fragmentation in representative cases",
+    "next_step": "scope foreground/background protection so background leakage falls without increasing character fragmentation"
+  },
+  "deferred": {
+    "birefnet_general_lite": "not_required_after_clear_isnet_anime_win",
+    "mediapipe": "next_semantic_hint_phase_after_foreground_integration",
+    "grounded_sam": "not_installed",
+    "yolo_segmentation": "not_installed"
+  },
+  "remote_publish_performed": false,
+  "pull_request_created": false,
+  "main_modified": false,
+  "merged": false,
+  "deployed": false,
+  "github_actions_executed": false
+}

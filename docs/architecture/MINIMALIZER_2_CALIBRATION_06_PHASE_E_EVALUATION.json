@@ -1,0 +1,693 @@
+{
+  "schema_version": "minimalizer-v2-calibration06-groundedsam-v1",
+  "phase": "Calibration 06 Phase E",
+  "date": "2026-09-18",
+  "result": "pass_optional_high_quality_semantic_provider",
+  "architecture_contract": {
+    "foreground_authority": "rembg isnet-anime confidence_power=2.0",
+    "mediapipe_role": "optional lightweight high-confidence semantic hint",
+    "groundedsam_role": "optional higher-cost semantic gap filler",
+    "final_geometry_generated_by_minimalizer": true,
+    "groundedsam_masks_rendered_directly": false,
+    "semantic_hard_pairs_enabled": false,
+    "yolo_segmentation": "deferred"
+  },
+  "environment": {
+    "python": "3.11.9",
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "transformers": "5.17.0",
+    "cuda": "12.8",
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "isolated": true,
+    "isolated_environment_size_gb": 4.4734,
+    "base_requirements_modified": false
+  },
+  "models": {
+    "detector": "IDEA-Research/grounding-dino-tiny",
+    "segmenter": "facebook/sam-vit-base",
+    "official_repo_licenses": {
+      "GroundingDINO": "Apache-2.0",
+      "Segment Anything": "Apache-2.0",
+      "Grounded-Segment-Anything": "Apache-2.0"
+    },
+    "prompt": "hair. face. arm. hand. leg. ribbon. bow. hat. headband. necklace. earrings. microphone. accessory."
+  },
+  "quality_gates": {
+    "subject_probability_provider": "rembg isnet-anime",
+    "subject_threshold": 0.5,
+    "detection_threshold": 0.2,
+    "text_threshold": 0.2,
+    "max_subject_ratio": {
+      "hair": 0.5,
+      "face-skin": 0.15,
+      "limb": 0.45,
+      "accessory": 0.3
+    },
+    "oversize_rejection_count": 6
+  },
+  "approved18_semantics": {
+    "case_count": 18,
+    "mean_elapsed_seconds": 0.3065258444,
+    "max_peak_cuda_memory_mb": 1378.613281,
+    "mean_active_area_ratio": {
+      "hair": 0.1229579969,
+      "face-skin": 0.0289595348,
+      "limb": 0.088664456,
+      "accessory": 0.1025965975
+    },
+    "mean_active_union_ratio": 0.3148798539,
+    "mean_semantic_overlap_ratio": 0.0281478278,
+    "nonzero_case_counts": {
+      "hair": 18,
+      "face-skin": 18,
+      "limb": 17,
+      "accessory": 18
+    },
+    "zero_area_cases": {
+      "hair": [],
+      "face-skin": [],
+      "limb": [
+        "Houshou-Marine_list_thumb"
+      ],
+      "accessory": []
+    },
+    "cases": [
+      {
+        "name": "Aki-Rosenthal_list_thumb",
+        "accepted_detection_count": 25,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1407698962,
+          "face-skin": 0.0326989619,
+          "limb": 0.0618858131,
+          "accessory": 0.1112975779
+        },
+        "active_union_ratio": 0.3456055363,
+        "semantic_overlap_ratio": 0.0010467128
+      },
+      {
+        "name": "Gigi-Murin_list_thumb",
+        "accepted_detection_count": 18,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.0524394464,
+          "face-skin": 0.0315311419,
+          "limb": 0.1735380623,
+          "accessory": 0.2203114187
+        },
+        "active_union_ratio": 0.3607612457,
+        "semantic_overlap_ratio": 0.1170588235
+      },
+      {
+        "name": "Hakos-Baelz_list_thumb",
+        "accepted_detection_count": 21,
+        "rejected_oversize_count": 1,
+        "active_area_ratio": {
+          "hair": 0.0651903114,
+          "face-skin": 0.0266349481,
+          "limb": 0.2243252595,
+          "accessory": 0.0432179931
+        },
+        "active_union_ratio": 0.3574134948,
+        "semantic_overlap_ratio": 0.0019550173
+      },
+      {
+        "name": "Houshou-Marine_list_thumb",
+        "accepted_detection_count": 25,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.0792906574,
+          "face-skin": 0.046349481,
+          "limb": 0.0,
+          "accessory": 0.32816609
+        },
+        "active_union_ratio": 0.4276124567,
+        "semantic_overlap_ratio": 0.0261937716
+      },
+      {
+        "name": "Isaki-Riona_list_thumb",
+        "accepted_detection_count": 22,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.2415138408,
+          "face-skin": 0.0332525952,
+          "limb": 0.0577508651,
+          "accessory": 0.1677681661
+        },
+        "active_union_ratio": 0.475916955,
+        "semantic_overlap_ratio": 0.0243685121
+      },
+      {
+        "name": "Kikirara-Vivi_list_thumb",
+        "accepted_detection_count": 23,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.0221280277,
+          "face-skin": 0.0307871972,
+          "limb": 0.1340916955,
+          "accessory": 0.0855103806
+        },
+        "active_union_ratio": 0.2720847751,
+        "semantic_overlap_ratio": 0.000432526
+      },
+      {
+        "name": "Kobo-Kanaeru_list_thumb",
+        "accepted_detection_count": 19,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.0001643599,
+          "face-skin": 0.0291435986,
+          "limb": 0.0628373702,
+          "accessory": 0.0349221453
+        },
+        "active_union_ratio": 0.127067474,
+        "semantic_overlap_ratio": 0.0
+      },
+      {
+        "name": "Koganei-Niko_list_thumb",
+        "accepted_detection_count": 26,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1566435986,
+          "face-skin": 0.0310726644,
+          "limb": 0.0900778547,
+          "accessory": 0.1632525952
+        },
+        "active_union_ratio": 0.3989532872,
+        "semantic_overlap_ratio": 0.0420761246
+      },
+      {
+        "name": "Koseki-Bijou_list_thumb",
+        "accepted_detection_count": 23,
+        "rejected_oversize_count": 1,
+        "active_area_ratio": {
+          "hair": 0.2164100346,
+          "face-skin": 0.0293598616,
+          "limb": 0.0435467128,
+          "accessory": 0.1392906574
+        },
+        "active_union_ratio": 0.4203200692,
+        "semantic_overlap_ratio": 0.0082871972
+      },
+      {
+        "name": "Momosuzu-Nene_list_thumb",
+        "accepted_detection_count": 27,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1313754325,
+          "face-skin": 0.0250692042,
+          "limb": 0.1029757785,
+          "accessory": 0.0588235294
+        },
+        "active_union_ratio": 0.3007525952,
+        "semantic_overlap_ratio": 0.0161591696
+      },
+      {
+        "name": "Mori-Calliope_list_thumb",
+        "accepted_detection_count": 26,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1852941176,
+          "face-skin": 0.0282612457,
+          "limb": 0.0426384083,
+          "accessory": 0.0294031142
+        },
+        "active_union_ratio": 0.2478719723,
+        "semantic_overlap_ratio": 0.0377249135
+      },
+      {
+        "name": "Natsuiro-Matsuri_list_thumb",
+        "accepted_detection_count": 22,
+        "rejected_oversize_count": 1,
+        "active_area_ratio": {
+          "hair": 0.1090397924,
+          "face-skin": 0.0267041522,
+          "limb": 0.0412024221,
+          "accessory": 0.0443771626
+        },
+        "active_union_ratio": 0.2131920415,
+        "semantic_overlap_ratio": 0.0081314879
+      },
+      {
+        "name": "Otonose-Kanade_list_thumb",
+        "accepted_detection_count": 25,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1433650519,
+          "face-skin": 0.0295847751,
+          "limb": 0.1007958478,
+          "accessory": 0.0536418685
+        },
+        "active_union_ratio": 0.3039186851,
+        "semantic_overlap_ratio": 0.0234688581
+      },
+      {
+        "name": "Raora-Panthera_list_thumb",
+        "accepted_detection_count": 23,
+        "rejected_oversize_count": 1,
+        "active_area_ratio": {
+          "hair": 0.2556574394,
+          "face-skin": 0.0295242215,
+          "limb": 0.0649567474,
+          "accessory": 0.0878633218
+        },
+        "active_union_ratio": 0.3623183391,
+        "semantic_overlap_ratio": 0.0744290657
+      },
+      {
+        "name": "Shiori-Novella_list_thumb",
+        "accepted_detection_count": 31,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1151124567,
+          "face-skin": 0.0192474048,
+          "limb": 0.0258650519,
+          "accessory": 0.03933391
+        },
+        "active_union_ratio": 0.1985640138,
+        "semantic_overlap_ratio": 0.0009342561
+      },
+      {
+        "name": "Shishiro-Botan_list_thumb",
+        "accepted_detection_count": 31,
+        "rejected_oversize_count": 2,
+        "active_area_ratio": {
+          "hair": 0.1760899654,
+          "face-skin": 0.02433391,
+          "limb": 0.1075605536,
+          "accessory": 0.1778027682
+        },
+        "active_union_ratio": 0.3711591696,
+        "semantic_overlap_ratio": 0.1146280277
+      },
+      {
+        "name": "Todoroki-Hajime_list_thumb",
+        "accepted_detection_count": 20,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.1164446367,
+          "face-skin": 0.0243944637,
+          "limb": 0.1818252595,
+          "accessory": 0.0122750865
+        },
+        "active_union_ratio": 0.3251211073,
+        "semantic_overlap_ratio": 0.009766436
+      },
+      {
+        "name": "Vestia-Zeta_list_thumb",
+        "accepted_detection_count": 18,
+        "rejected_oversize_count": 0,
+        "active_area_ratio": {
+          "hair": 0.0063148789,
+          "face-skin": 0.0233217993,
+          "limb": 0.0800865052,
+          "accessory": 0.0494809689
+        },
+        "active_union_ratio": 0.1592041522,
+        "semantic_overlap_ratio": 0.0
+      }
+    ]
+  },
+  "v2_comparison": {
+    "baseline": "Phase D rembg + MediaPipe",
+    "guided": "Phase D + Grounded-SAM",
+    "analysis_max_side": 400,
+    "case_count": 18,
+    "digest_changed_count": 17,
+    "invariant_failure_count": 0,
+    "mean_final_root_delta": 0.0,
+    "mean_visual_group_delta": 0.3333333333333333,
+    "mean_vertex_delta": -2.9444444444444446,
+    "mean_semantic_changed_initial_regions": 277.44444444444446,
+    "mean_semantic_region_delta_ge_050": 115.33333333333333,
+    "mean_semantic_region_delta_ge_080": 63.611111111111114,
+    "total_semantic_hard_barriers": 0,
+    "cases": [
+      {
+        "name": "Aki-Rosenthal_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 36,
+          "phase_e": 39,
+          "delta": 3
+        },
+        "vertices": {
+          "phase_d": 1535,
+          "phase_e": 1535,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 279,
+        "semantic_region_delta_ge_050": 102,
+        "semantic_region_delta_ge_080": 64,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Gigi-Murin_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 41,
+          "phase_e": 42,
+          "delta": 1
+        },
+        "vertices": {
+          "phase_d": 1323,
+          "phase_e": 1319,
+          "delta": -4
+        },
+        "semantic_changed_initial_regions": 174,
+        "semantic_region_delta_ge_050": 71,
+        "semantic_region_delta_ge_080": 49,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Hakos-Baelz_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 43,
+          "phase_e": 43,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1589,
+          "phase_e": 1589,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 447,
+        "semantic_region_delta_ge_050": 94,
+        "semantic_region_delta_ge_080": 88,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Houshou-Marine_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 39,
+          "phase_e": 37,
+          "delta": -2
+        },
+        "vertices": {
+          "phase_d": 1712,
+          "phase_e": 1712,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 369,
+        "semantic_region_delta_ge_050": 183,
+        "semantic_region_delta_ge_080": 159,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Isaki-Riona_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 36,
+          "phase_e": 38,
+          "delta": 2
+        },
+        "vertices": {
+          "phase_d": 1515,
+          "phase_e": 1515,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 327,
+        "semantic_region_delta_ge_050": 135,
+        "semantic_region_delta_ge_080": 57,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Kikirara-Vivi_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 34,
+          "phase_e": 36,
+          "delta": 2
+        },
+        "vertices": {
+          "phase_d": 1351,
+          "phase_e": 1323,
+          "delta": -28
+        },
+        "semantic_changed_initial_regions": 137,
+        "semantic_region_delta_ge_050": 32,
+        "semantic_region_delta_ge_080": 27,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Kobo-Kanaeru_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 41,
+          "phase_e": 41,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1380,
+          "phase_e": 1391,
+          "delta": 11
+        },
+        "semantic_changed_initial_regions": 94,
+        "semantic_region_delta_ge_050": 39,
+        "semantic_region_delta_ge_080": 37,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Koganei-Niko_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 38,
+          "phase_e": 37,
+          "delta": -1
+        },
+        "vertices": {
+          "phase_d": 1374,
+          "phase_e": 1381,
+          "delta": 7
+        },
+        "semantic_changed_initial_regions": 230,
+        "semantic_region_delta_ge_050": 135,
+        "semantic_region_delta_ge_080": 149,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Koseki-Bijou_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 35,
+          "phase_e": 36,
+          "delta": 1
+        },
+        "vertices": {
+          "phase_d": 1490,
+          "phase_e": 1490,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 432,
+        "semantic_region_delta_ge_050": 253,
+        "semantic_region_delta_ge_080": 36,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Momosuzu-Nene_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 31,
+          "phase_e": 31,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1254,
+          "phase_e": 1254,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 292,
+        "semantic_region_delta_ge_050": 69,
+        "semantic_region_delta_ge_080": 27,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Mori-Calliope_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 39,
+          "phase_e": 38,
+          "delta": -1
+        },
+        "vertices": {
+          "phase_d": 1428,
+          "phase_e": 1428,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 263,
+        "semantic_region_delta_ge_050": 115,
+        "semantic_region_delta_ge_080": 32,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Natsuiro-Matsuri_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 28,
+          "phase_e": 28,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1516,
+          "phase_e": 1575,
+          "delta": 59
+        },
+        "semantic_changed_initial_regions": 180,
+        "semantic_region_delta_ge_050": 80,
+        "semantic_region_delta_ge_080": 68,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Otonose-Kanade_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 28,
+          "phase_e": 28,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1598,
+          "phase_e": 1497,
+          "delta": -101
+        },
+        "semantic_changed_initial_regions": 349,
+        "semantic_region_delta_ge_050": 182,
+        "semantic_region_delta_ge_080": 166,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Raora-Panthera_list_thumb",
+        "digest_changed": false,
+        "visual_groups": {
+          "phase_d": 34,
+          "phase_e": 34,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1563,
+          "phase_e": 1563,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 346,
+        "semantic_region_delta_ge_050": 241,
+        "semantic_region_delta_ge_080": 73,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Shiori-Novella_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 36,
+          "phase_e": 36,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1576,
+          "phase_e": 1576,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 306,
+        "semantic_region_delta_ge_050": 130,
+        "semantic_region_delta_ge_080": 13,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Shishiro-Botan_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 28,
+          "phase_e": 28,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1227,
+          "phase_e": 1233,
+          "delta": 6
+        },
+        "semantic_changed_initial_regions": 302,
+        "semantic_region_delta_ge_050": 108,
+        "semantic_region_delta_ge_080": 29,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Todoroki-Hajime_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 22,
+          "phase_e": 23,
+          "delta": 1
+        },
+        "vertices": {
+          "phase_d": 969,
+          "phase_e": 966,
+          "delta": -3
+        },
+        "semantic_changed_initial_regions": 117,
+        "semantic_region_delta_ge_050": 38,
+        "semantic_region_delta_ge_080": 29,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      },
+      {
+        "name": "Vestia-Zeta_list_thumb",
+        "digest_changed": true,
+        "visual_groups": {
+          "phase_d": 40,
+          "phase_e": 40,
+          "delta": 0
+        },
+        "vertices": {
+          "phase_d": 1246,
+          "phase_e": 1246,
+          "delta": 0
+        },
+        "semantic_changed_initial_regions": 350,
+        "semantic_region_delta_ge_050": 69,
+        "semantic_region_delta_ge_080": 42,
+        "semantic_barriers": 0,
+        "failed_invariants": []
+      }
+    ]
+  },
+  "decision": {
+    "groundedsam_candidate_accepted": true,
+    "accepted_scope": "optional high-quality semantic provider",
+    "default_required_dependency": false,
+    "foreground_authority": false,
+    "semantic_authority": false,
+    "provider_evidence_requires_rembg_gate": true,
+    "semantic_hard_pairs_enabled": false,
+    "mask_as_final_geometry": false,
+    "mediapipe_replaced": false
+  },
+  "validation": {
+    "groundedsam_adapter_tests": "8 passed",
+    "focused_guidance_tests": "23 passed",
+    "v2_regression": "195 passed, 334 deselected, 1 warning"
+  },
+  "remote_publish_performed": false,
+  "pull_request_created": false,
+  "main_modified": false,
+  "merged": false,
+  "deployed": false,
+  "github_actions_executed": false
+}

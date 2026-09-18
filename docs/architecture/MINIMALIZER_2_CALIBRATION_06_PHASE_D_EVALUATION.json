@@ -1,0 +1,110 @@
+{
+  "schema_version": "minimalizer-v2-calibration06-mediapipe-v1",
+  "phase": "Calibration 06 Phase D",
+  "date": "2026-09-18",
+  "result": "pass_limited_semantic_hint_with_gap",
+  "environment": {
+    "python": "3.11.9",
+    "mediapipe": "1.0.1",
+    "opencv_contrib_python": "4.14.0.94",
+    "isolated": true,
+    "base_requirements_modified": false
+  },
+  "model": {
+    "name": "selfie_multiclass_256x256",
+    "labels": [
+      "background",
+      "hair",
+      "body-skin",
+      "face-skin",
+      "clothes",
+      "others"
+    ],
+    "mean_elapsed_seconds": 0.0762179444
+  },
+  "approved18_semantics": {
+    "case_count": 18,
+    "mean_max_confidence": 0.8290796346,
+    "mean_margin": 0.7408505215,
+    "mean_low_margin_fraction": 0.0469242599,
+    "mean_foreground_area_ratio": 0.2337543253,
+    "mean_class_area_ratio": {
+      "background": 0.7662456747,
+      "hair": 0.0088211265,
+      "body-skin": 0.0065297001,
+      "face-skin": 0.0025278739,
+      "clothes": 0.1976706075,
+      "others": 0.0182050173
+    },
+    "nonzero_case_counts": {
+      "hair": 6,
+      "body-skin": 16,
+      "face-skin": 6,
+      "clothes": 18,
+      "others": 14
+    }
+  },
+  "coverage_gaps": {
+    "severe_low_foreground_cases": {
+      "Hakos-Baelz_list_thumb": 0.0065051903,
+      "Raora-Panthera_list_thumb": 0.0099221453,
+      "Vestia-Zeta_list_thumb": 0.0171539792
+    },
+    "hair_detected_cases": 6,
+    "face_skin_detected_cases": 6,
+    "assessment": "clothes evidence is broadly available; hair and face/skin evidence is sparse and input-dependent"
+  },
+  "v2_comparison": {
+    "baseline": "rembg isnet-anime confidence_power=2.0",
+    "case_count": 18,
+    "digest_changed_count": 15,
+    "invariant_failure_count": 0,
+    "mean_final_root_delta": 0.0,
+    "mean_visual_group_delta": -0.3333333333,
+    "mean_high_conf_semantic_regions": 68.5,
+    "total_semantic_hard_barriers": 0
+  },
+  "visual_review": {
+    "improved_or_simplified": [
+      "Gigi-Murin_list_thumb",
+      "Houshou-Marine_list_thumb",
+      "Koseki-Bijou_list_thumb",
+      "Momosuzu-Nene_list_thumb",
+      "Todoroki-Hajime_list_thumb"
+    ],
+    "slightly_unstable": [
+      "Isaki-Riona_list_thumb",
+      "Koganei-Niko_list_thumb",
+      "Shiori-Novella_list_thumb"
+    ],
+    "no_meaningful_effect": [
+      "Hakos-Baelz_list_thumb",
+      "Raora-Panthera_list_thumb",
+      "Vestia-Zeta_list_thumb"
+    ]
+  },
+  "decision": {
+    "mediapipe_candidate_accepted": true,
+    "accepted_scope": "optional high-confidence semantic hint",
+    "semantic_authority": false,
+    "semantic_hard_pairs_enabled": false,
+    "mask_as_final_geometry": false,
+    "hair_face_skin_gap_demonstrated": true
+  },
+  "next_boundary": {
+    "phase": "Calibration 06 Phase E",
+    "action": "limited Grounded-SAM semantic-part evaluation",
+    "target_gaps": ["hair", "face-skin", "body-part", "accessories"],
+    "yolo_segmentation": "deferred"
+  },
+  "validation": {
+    "focused_guidance_tests": "15 passed",
+    "v2_regression": "187 passed, 334 deselected, 1 warning"
+  },
+  "remote_publish_performed": false,
+  "pull_request_created": false,
+  "main_modified": false,
+  "merged": false,
+  "deployed": false,
+  "github_actions_executed": false
+}

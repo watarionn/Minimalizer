@@ -4,6 +4,7 @@ from pathlib import Path
 from minimalize_engine import MinimalizeConfig, minimalize
 from minimalize_engine.io.svg_exporter import export_svg
 from minimalize_engine.io.image_exporter import export_png, export_webp
+from minimalize_engine.v2 import minimalize_file_png
 
 
 def build_parser():
@@ -61,6 +62,9 @@ def build_parser():
     p.add_argument("--no-prop-symbol-quality", action="store_true")
     p.add_argument("--no-character-wide-identity", action="store_true")
     p.add_argument("--debug-dir")
+    p.add_argument("--v2-shadow-png", help="write an additional opt-in V2 PNG without changing legacy outputs")
+    p.add_argument("--v2-preset", choices=["minimal", "balanced", "detailed", "ultra_minimal"], default="minimal")
+    p.add_argument("--v2-no-facets", action="store_true")
     return p
 
 
@@ -176,6 +180,18 @@ def main():
     print(f"shapes: {scene.metadata['shape_count']}")
     print(f"analysis: {scene.width}x{scene.height}")
     print(f"source: {scene.metadata['source_width']}x{scene.metadata['source_height']}")
+    if args.v2_shadow_png:
+        v2_output = minimalize_file_png(
+            args.input,
+            preset=args.v2_preset,
+            include_facets=not args.v2_no_facets,
+            filename=Path(args.v2_shadow_png).name,
+        )
+        Path(args.v2_shadow_png).write_bytes(v2_output.content)
+        print(f"V2 PNG: {Path(args.v2_shadow_png).resolve()}")
+        print(f"V2 contract: {v2_output.metadata.contract_version}")
+        print(f"V2 PNG SHA256: {v2_output.metadata.png_sha256}")
+
     if args.quality_report:
         print(f"quality: {scene.metadata.get('quality', {})}")
         print(f"auto_retry_attempts: {scene.metadata.get('auto_retry_attempts', 0)}")
