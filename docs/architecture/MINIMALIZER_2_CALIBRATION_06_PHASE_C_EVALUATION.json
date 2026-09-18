@@ -1,0 +1,110 @@
+{
+  "schema_version": "minimalizer-v2-calibration06-rembg-confidence-v1",
+  "phase": "Calibration 06 Phase C",
+  "date": "2026-09-17",
+  "result": "pass",
+  "provider": "rembg",
+  "model": "isnet-anime",
+  "analysis_max_side": 400,
+  "confidence_calibration": {
+    "formula": "clip(2 * abs(p - 0.5), 0, 1) ** power",
+    "power": 2.0,
+    "region_merge_thresholds_modified": false,
+    "visual_thresholds_modified": false
+  },
+  "approved18": {
+    "case_count": 18,
+    "digest_changed_cases": 18,
+    "invariant_failure_cases": 0,
+    "mean_final_root_delta": 4.166666666666667,
+    "mean_visual_group_delta": 1.2777777777777777,
+    "mean_subject_background_barrier_delta": 959.8333333333334
+  },
+  "phase_b_comparison": {
+    "phase_b_mean_final_root_delta": 5.6666666667,
+    "phase_c_mean_final_root_delta": 4.166666666666667,
+    "phase_b_mean_subject_background_barrier_delta": 1048.7222222222,
+    "phase_c_mean_subject_background_barrier_delta": 959.8333333333334,
+    "phase_b_visual_subset_mean_group_delta": 4.0,
+    "phase_c_same_visual_subset_mean_group_delta": 1.625,
+    "boundary_barrier_retention_ratio": 0.9152407691900392
+  },
+  "same_visual_subset": {
+    "case_count": 8,
+    "cases": {
+      "Koseki-Bijou_list_thumb": [
+        33,
+        37
+      ],
+      "Isaki-Riona_list_thumb": [
+        30,
+        33
+      ],
+      "Momosuzu-Nene_list_thumb": [
+        30,
+        34
+      ],
+      "Koganei-Niko_list_thumb": [
+        37,
+        37
+      ],
+      "Kobo-Kanaeru_list_thumb": [
+        41,
+        41
+      ],
+      "Kikirara-Vivi_list_thumb": [
+        31,
+        34
+      ],
+      "Raora-Panthera_list_thumb": [
+        37,
+        34
+      ],
+      "Todoroki-Hajime_list_thumb": [
+        21,
+        23
+      ]
+    }
+  },
+  "highest_group_delta_cases": [
+    {
+      "name": "Vestia-Zeta_list_thumb",
+      "delta": 6
+    },
+    {
+      "name": "Koseki-Bijou_list_thumb",
+      "delta": 4
+    },
+    {
+      "name": "Momosuzu-Nene_list_thumb",
+      "delta": 4
+    },
+    {
+      "name": "Isaki-Riona_list_thumb",
+      "delta": 3
+    },
+    {
+      "name": "Kikirara-Vivi_list_thumb",
+      "delta": 3
+    }
+  ],
+  "validation": {
+    "v2_pytest": "183 passed, 334 deselected, 1 warning"
+  },
+  "decision": {
+    "accepted_confidence_power": 2.0,
+    "isnet_anime_remains_preferred": true,
+    "production_browser_default_enabled": false,
+    "next_step": "evaluate MediaPipe semantic hints without changing the established rembg foreground contract"
+  },
+  "deferred": {
+    "grounded_sam": "not_required_yet",
+    "yolo_segmentation": "not_required_yet"
+  },
+  "remote_publish_performed": false,
+  "pull_request_created": false,
+  "main_modified": false,
+  "merged": false,
+  "deployed": false,
+  "github_actions_executed": false
+}

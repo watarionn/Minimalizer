@@ -1,0 +1,27 @@
+{
+  "schema_version": "minimalizer-v2-release-candidate-v1",
+  "phase": "Calibration 05 Phase U",
+  "dry_run_state": "v2_standard_opt_in",
+  "production_state": "legacy_default",
+  "result": "pass",
+  "cutover_performed": false,
+  "rollback_verified": true,
+  "specialized_modes_legacy_pinned": true,
+  "focused_tests": {
+    "passed": 49,
+    "failed": 0,
+    "warnings": 1
+  },
+  "v2_regression": {
+    "passed": 158,
+    "failed": 0,
+    "warnings": 1
+  },
+  "full_repo": {
+    "passed": 490,
+    "failed": 2,
+    "warnings": 1,
+    "known_missing_asset_only": true
+  },
+  "ready_for_explicit_cutover_decision": true
+}

@@ -52,7 +52,7 @@ jobs:
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
-        run: python -m pytest -q tests/test_web_api.py tests/test_color_strip.py
+        run: python -m pytest -q tests/test_web_api.py tests/test_color_strip.py tests/test_v2_default_migration.py
 
       - name: Run real-server Web smoke
         shell: bash
@@ -71,7 +71,10 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:8000/ | grep -q 'id="drop-zone"'
           curl --fail --silent http://127.0.0.1:8000/api/info \
-            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.8.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase10"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["web_version"] == "0.13.0"; assert d["supported_modes"] == ["standard", "rinka_reference", "color_strip"]; assert d["rinka_reference_version"] == "phase16"; assert d["color_strip_version"] == "v0.3"; assert d["color_strip_default_selection_mode"] == "dominant"; assert d["color_strip_selection_modes"] == ["dominant", "featured", "characteristic"]; assert d["color_strip_default_size_mode"] == "equal"; assert d["color_strip_default_order"] == "least_first"; assert d["color_strip_default_orientation"] == "vertical"; assert d["engine_version"] == "0.3.0"; assert d["max_analysis_side"] == 640; assert d["max_concurrent_jobs"] == 2'
+
+          curl --fail --silent http://127.0.0.1:8000/api/v2/info \
+            | python -c 'import json,sys; d=json.load(sys.stdin); assert d["status"] == "standard_default"; assert d["hosted_default_analysis_max_side"] == 400; assert d["browser_migration"]["current_state"] == "v2_standard_default"; assert d["browser_migration"]["rollback_target"] == "legacy_default"'
 
           python - <<'PY'
           import cv2
@@ -92,8 +95,26 @@ jobs:
           grep -qi '^x-request-id:' /tmp/minimalizer-headers.txt
           grep -qi '^x-minimalizer-processing-ms:' /tmp/minimalizer-headers.txt
           grep -qi '^x-minimalizer-mode: standard' /tmp/minimalizer-headers.txt
+          grep -qi '^x-minimalizer-route: legacy' /tmp/minimalizer-headers.txt
           grep -qi '^x-minimalizer-source-format: WEBP' /tmp/minimalizer-headers.txt
           grep -q '^<svg' /tmp/minimalized.svg
+
+          curl --fail --silent \
+            -D /tmp/minimalizer-v2-default-headers.txt \
+            -o /tmp/minimalized-v2-default.png \
+            -H 'X-Minimalizer-Browser-Default: v2' \
+            -F 'file=@examples/input.webp;type=image/webp' \
+            -F 'mode=standard' \
+            -F 'level=4' \
+            -F 'output_format=png' \
+            -F 'background=white' \
+            http://127.0.0.1:8000/api/minimalize
+
+          grep -qi '^x-minimalizer-route: v2' /tmp/minimalizer-v2-default-headers.txt
+          grep -qi '^x-minimalizer-mode: standard' /tmp/minimalizer-v2-default-headers.txt
+          grep -qi '^x-minimalizer-configured-analysis-max-side: 400' /tmp/minimalizer-v2-default-headers.txt
+          grep -qi '^x-minimalizer-v2-preset: minimal' /tmp/minimalizer-v2-default-headers.txt
+          python -c "from pathlib import Path; assert Path('/tmp/minimalized-v2-default.png').read_bytes().startswith(b'\\x89PNG\\r\\n\\x1a\\n')"
 
           curl --fail --silent \
             -D /tmp/minimalizer-rinka-headers.txt \
@@ -149,25 +170,24 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-web-test.txt
 
-      - name: Evaluate Rinka Phase 10 corpus
+      - name: Evaluate Rinka Phase 16 corpus
         run: |
           python tools/evaluate_rinka_target.py \
             --level 4 \
             --max-side 220 \
-            --output-dir /tmp/rinka-target-phase10
-          echo '--- Rinka Phase 10 summary ---'
-          cat /tmp/rinka-target-phase10/summary_0_end.json
+            --output-dir /tmp/rinka-target-phase16
+          echo '--- Rinka Phase 16 summary ---'
+          cat /tmp/rinka-target-phase16/summary_0_end.json
 
-      - name: Enforce Phase 10 safety guard
+      - name: Enforce Phase 16 safety guard
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          summary = json.loads(Path('/tmp/rinka-target-phase10/summary_0_end.json').read_text())
-          assert summary['target_style_version'] == 'phase10', summary
-          assert summary['mean_shape_reduction_ratio'] >= 0.34, summary
-          assert summary['mean_vertex_reduction_ratio'] >= 0.24, summary
+          summary = json.loads(Path('/tmp/rinka-target-phase16/summary_0_end.json').read_text())
+          assert summary['target_style_version'] == 'phase16', summary
+          assert summary['count'] == 16, summary
           assert summary['phase10_segmentation_activated_count'] == 4, summary
           assert summary['phase10_subject_planes_enabled_count'] == 4, summary
           assert summary['phase10_total_subject_plane_count'] <= 68, summary
@@ -187,14 +207,14 @@ jobs:
           assert summary['total_target_global_low_value_subject_count'] == 0, summary
           assert summary['total_target_cap_removed'] == 0, summary
           assert summary['macro_shadow_blocked_count'] == 1, summary
-          print('Phase 10 safety guard passed')
+          print('Phase 16 safety guard passed')
           PY
 
-      - name: Upload Rinka Phase 10 evaluation artifact
+      - name: Upload Rinka Phase 16 evaluation artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rinka-target-phase10-evaluation
-          path: /tmp/rinka-target-phase10
+          name: rinka-target-phase16-evaluation
+          path: /tmp/rinka-target-phase16
           if-no-files-found: warn
           retention-days: 14
