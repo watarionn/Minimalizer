@@ -231,6 +231,8 @@ def build_region_stats(
             characteristic_supports=annotation.characteristic_supports,
             semantic_tag=annotation.semantic_tag,
             semantic_confidence=annotation.semantic_confidence,
+            structure_tag=annotation.structure_tag,
+            structure_confidence=annotation.structure_confidence,
         )
 
     return stats
@@ -250,25 +252,29 @@ def _collect_boundaries(
     edge_raw: NDArray[np.floating],
     edge_structural: NDArray[np.floating],
     alpha: NDArray[np.floating] | None,
-) -> dict[EdgeKey, tuple[list[float], list[float], int, int]]:
-    buckets: dict[EdgeKey, tuple[list[float], list[float], int, int]] = {}
+    line_support: NDArray[np.floating] | None,
+) -> dict[EdgeKey, tuple[list[float], list[float], list[float], int, int]]:
+    buckets: dict[EdgeKey, tuple[list[float], list[float], list[float], int, int]] = {}
 
     def add_pair(
         a: int,
         b: int,
         raw_value: float,
         structural_value: float,
+        line_value: float,
         alpha_hit: bool,
     ) -> None:
         key = edge_key(a, b)
         if key not in buckets:
-            buckets[key] = ([], [], 0, 0)
-        raw_values, structural_values, alpha_hits, total = buckets[key]
+            buckets[key] = ([], [], [], 0, 0)
+        raw_values, structural_values, line_values, alpha_hits, total = buckets[key]
         raw_values.append(raw_value)
         structural_values.append(structural_value)
+        line_values.append(line_value)
         buckets[key] = (
             raw_values,
             structural_values,
+            line_values,
             alpha_hits + int(alpha_hit),
             total + 1,
         )
@@ -278,12 +284,16 @@ def _collect_boundaries(
             lhs_labels, rhs_labels = labels[:, :-1], labels[:, 1:]
             lhs_raw, rhs_raw = edge_raw[:, :-1], edge_raw[:, 1:]
             lhs_struct, rhs_struct = edge_structural[:, :-1], edge_structural[:, 1:]
+            if line_support is not None:
+                lhs_line, rhs_line = line_support[:, :-1], line_support[:, 1:]
             if alpha is not None:
                 lhs_alpha, rhs_alpha = alpha[:, :-1], alpha[:, 1:]
         else:
             lhs_labels, rhs_labels = labels[:-1, :], labels[1:, :]
             lhs_raw, rhs_raw = edge_raw[:-1, :], edge_raw[1:, :]
             lhs_struct, rhs_struct = edge_structural[:-1, :], edge_structural[1:, :]
+            if line_support is not None:
+                lhs_line, rhs_line = line_support[:-1, :], line_support[1:, :]
             if alpha is not None:
                 lhs_alpha, rhs_alpha = alpha[:-1, :], alpha[1:, :]
 
@@ -295,16 +305,21 @@ def _collect_boundaries(
         b_values = rhs_labels[mask]
         raw_values = np.maximum(lhs_raw[mask], rhs_raw[mask])
         structural_values = np.maximum(lhs_struct[mask], rhs_struct[mask])
+        if line_support is None:
+            line_values = np.zeros(a_values.shape, dtype=np.float64)
+        else:
+            line_values = np.maximum(lhs_line[mask], rhs_line[mask])
         if alpha is None:
             alpha_hits = np.zeros(a_values.shape, dtype=bool)
         else:
             alpha_hits = np.abs(lhs_alpha[mask] - rhs_alpha[mask]) >= _ALPHA_EDGE_DELTA
 
-        for a, b, raw_value, structural_value, alpha_hit in zip(
+        for a, b, raw_value, structural_value, line_value, alpha_hit in zip(
             a_values,
             b_values,
             raw_values,
             structural_values,
+            line_values,
             alpha_hits,
             strict=True,
         ):
@@ -313,6 +328,7 @@ def _collect_boundaries(
                 int(b),
                 float(raw_value),
                 float(structural_value),
+                float(line_value),
                 bool(alpha_hit),
             )
 
@@ -328,6 +344,7 @@ def build_region_graph_from_arrays(
     subject_prob: NDArray[np.floating] | None = None,
     subject_confidence: NDArray[np.floating] | None = None,
     alpha: NDArray[np.floating] | None = None,
+    line_support: NDArray[np.floating] | None = None,
     annotations: Mapping[RegionId, RegionAnnotation] | None = None,
     gradient_bins: int = DEFAULT_GRADIENT_BINS,
 ) -> RegionGraph:
@@ -341,6 +358,10 @@ def build_region_graph_from_arrays(
     _validate_optional_map("subject_prob", subject_prob, (height, width))
     _validate_optional_map("subject_confidence", subject_confidence, (height, width))
     _validate_optional_map("alpha", alpha, (height, width))
+    _validate_optional_map("line_support", line_support, (height, width))
+    if line_support is not None:
+        if not np.all(np.isfinite(line_support)) or np.any((line_support < 0.0) | (line_support > 1.0)):
+            raise ValueError("line_support values must be finite and within [0, 1]")
     if gradient_bins <= 1:
         raise ValueError("gradient_bins must be greater than 1")
 
@@ -357,9 +378,12 @@ def build_region_graph_from_arrays(
     for key, (
         raw_values,
         structural_values,
+        line_values,
         alpha_hits,
         total,
-    ) in _collect_boundaries(labels, edge_raw, edge_structural, alpha).items():
+    ) in _collect_boundaries(
+        labels, edge_raw, edge_structural, alpha, line_support
+    ).items():
         a, b = key
         adjacency[a].add(b)
         adjacency[b].add(a)
@@ -376,6 +400,9 @@ def build_region_graph_from_arrays(
                 gradient_bins,
             ),
             alpha_boundary_fraction=(alpha_hits / total) if total else 0.0,
+            line_support_mean=(
+                float(np.mean(line_values, dtype=np.float64)) if line_values else 0.0
+            ),
         )
 
     return RegionGraph(
@@ -392,6 +419,7 @@ def build_region_graph(
     labels: LabelMap,
     *,
     annotations: Mapping[RegionId, RegionAnnotation] | None = None,
+    line_support: NDArray[np.floating] | None = None,
     gradient_bins: int = DEFAULT_GRADIENT_BINS,
 ) -> RegionGraph:
     labels_array = np.asarray(labels)
@@ -418,6 +446,7 @@ def build_region_graph(
         subject_prob=bundle.subject_prob,
         subject_confidence=bundle.subject_confidence,
         alpha=bundle.alpha,
+        line_support=line_support,
         annotations=annotations,
         gradient_bins=gradient_bins,
     )
@@ -510,6 +539,17 @@ def merge_region_stats(
         semantic_tag = None
         semantic_confidence = 0.0
 
+    if left.structure_tag is not None and left.structure_tag == right.structure_tag:
+        structure_tag = left.structure_tag
+        total_pixels = left.pixel_count + right.pixel_count
+        structure_confidence = (
+            left.structure_confidence * left.pixel_count
+            + right.structure_confidence * right.pixel_count
+        ) / total_pixels
+    else:
+        structure_tag = None
+        structure_confidence = 0.0
+
     return RegionStats(
         id=new_region_id,
         pixel_count=left.pixel_count + right.pixel_count,
@@ -536,6 +576,8 @@ def merge_region_stats(
         ),
         semantic_tag=semantic_tag,
         semantic_confidence=semantic_confidence,
+        structure_tag=structure_tag,
+        structure_confidence=structure_confidence,
     )
 
 
@@ -572,6 +614,10 @@ def merge_region_edges(
         )
         / shared_boundary
     )
+    line_support_mean = (
+        sum(edge.line_support_mean * edge.shared_boundary_px for edge in edges)
+        / shared_boundary
+    )
 
     return RegionEdge(
         a=new_region_id,
@@ -580,6 +626,7 @@ def merge_region_edges(
         raw_gradient_hist=raw_hist,
         structural_gradient_hist=structural_hist,
         alpha_boundary_fraction=alpha_fraction,
+        line_support_mean=line_support_mean,
     )
 
 

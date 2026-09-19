@@ -15,6 +15,7 @@ from minimalize_engine.v2.types import (
 )
 
 SemanticRegions = Mapping[RegionId, tuple[str, float]]
+StructuralRegions = Mapping[RegionId, tuple[str, float]]
 
 
 def _validate_initial_labels(bundle: ImageBundle, labels: LabelMap) -> NDArray[np.int32]:
@@ -92,15 +93,22 @@ def annotate_initial_regions(
     *,
     characteristic: CharacteristicContext | None = None,
     semantic: SemanticRegions | None = None,
+    structural: StructuralRegions | None = None,
 ) -> Mapping[RegionId, RegionAnnotation]:
     labels32 = _validate_initial_labels(bundle, labels)
     supports = _characteristic_supports(labels32, characteristic)
 
     semantic = semantic or {}
+    structural = structural or {}
     valid_ids = set(int(value) for value in np.unique(labels32))
     unknown_semantic = set(semantic) - valid_ids
     if unknown_semantic:
         raise ValueError(f"semantic annotations reference unknown regions: {sorted(unknown_semantic)}")
+    unknown_structural = set(structural) - valid_ids
+    if unknown_structural:
+        raise ValueError(
+            f"structural annotations reference unknown regions: {sorted(unknown_structural)}"
+        )
 
     annotations: dict[RegionId, RegionAnnotation] = {}
     for region_id in sorted(valid_ids):
@@ -111,9 +119,18 @@ def annotate_initial_regions(
             if not isinstance(semantic_tag, str) or not semantic_tag:
                 raise ValueError("semantic tags must be non-empty strings")
             semantic_confidence = float(semantic_confidence)
+        structure_tag: str | None = None
+        structure_confidence = 0.0
+        if region_id in structural:
+            structure_tag, structure_confidence = structural[region_id]
+            if not isinstance(structure_tag, str) or not structure_tag:
+                raise ValueError("structural tags must be non-empty strings")
+            structure_confidence = float(structure_confidence)
         annotations[region_id] = RegionAnnotation(
             characteristic_supports=supports[region_id],
             semantic_tag=semantic_tag,
             semantic_confidence=semantic_confidence,
+            structure_tag=structure_tag,
+            structure_confidence=structure_confidence,
         )
     return annotations

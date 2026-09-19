@@ -72,3 +72,29 @@ def test_public_run_region_merge_builds_shared_hierarchy_end_to_end():
     assert result.metrics.final_root_count == len(result.tree.roots)
     assert result.initial_labels.dtype == np.int32
     assert result.initial_labels.flags.writeable is False
+
+
+def test_safe_consolidation_is_line_neutral():
+    labels = np.ones((40, 40), dtype=np.int32)
+    labels[20, 20] = 0
+    lab = np.zeros((40, 40, 3), dtype=np.float32)
+    lab[:] = (50, 0, 0)
+    structural = np.zeros((40, 40), dtype=np.float32)
+    structural[20, 20] = 0.05
+    no_line = np.zeros((40, 40), dtype=np.float32)
+    full_line = np.ones((40, 40), dtype=np.float32)
+    config = RegionMergeConfig(line_prior_strength=1.0)
+
+    baseline = run_region_merge_from_graph(
+        build_region_graph_from_arrays(labels, lab, structural, structural, line_support=no_line),
+        config=config,
+    )
+    guided = run_region_merge_from_graph(
+        build_region_graph_from_arrays(labels, lab, structural, structural, line_support=full_line),
+        config=config,
+    )
+
+    assert baseline.safe_merge_count == guided.safe_merge_count == 1
+    baseline_safe = [baseline.tree.nodes[i].raw_merge_cost for i in baseline.tree.merge_sequence if baseline.tree.nodes[i].stage == "safe"]
+    guided_safe = [guided.tree.nodes[i].raw_merge_cost for i in guided.tree.merge_sequence if guided.tree.nodes[i].stage == "safe"]
+    assert guided_safe == baseline_safe

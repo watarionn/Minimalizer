@@ -1,6 +1,11 @@
 """Minimalizer 2.0 core package."""
 
-from .analysis_guidance import AnalysisGuidance, SemanticGuide
+from .analysis_guidance import (
+    AnalysisGuidance,
+    LineGuide,
+    SemanticGuide,
+    StructuralGuide,
+)
 from .alpha_contract import (
     ALPHA_BACKGROUND_SCHEMA_VERSION,
     AlphaBackgroundCompatibilityReport,
@@ -60,14 +65,41 @@ from .mediapipe_guidance import (
     build_mediapipe_semantic_guide,
     create_mediapipe_segmenter,
 )
+from .deeplsd_guidance import (
+    DEEPLSD_INFERENCE_CONFIG,
+    DeepLsdLineConfig,
+    DeepLsdRuntime,
+    LineDetectionSummary,
+    attach_deeplsd_lines,
+    build_deeplsd_line_guide,
+    build_line_guide_from_segments,
+    create_deeplsd_runtime,
+)
+from .rtmlib_guidance import (
+    RTMLIB_STRUCTURAL_LABELS,
+    RtmlibStructuralConfig,
+    SkeletonSelection,
+    attach_rtmlib_structure,
+    build_rtmlib_structural_guide,
+    build_structural_guide_from_pose,
+    create_rtmlib_wholebody,
+    select_primary_skeleton,
+)
 from .render import render_scene
 
 __all__ = [
-    "AnalysisGuidance", "SemanticGuide",
+    "AnalysisGuidance", "SemanticGuide", "StructuralGuide", "LineGuide",
     "RembgGuidanceConfig", "build_rembg_guidance", "create_rembg_session",
     "MEDIAPIPE_MULTICLASS_LABELS", "MediaPipeSemanticConfig",
     "attach_mediapipe_semantics", "build_mediapipe_semantic_guide",
     "create_mediapipe_segmenter",
+    "DEEPLSD_INFERENCE_CONFIG", "DeepLsdLineConfig", "DeepLsdRuntime",
+    "LineDetectionSummary", "attach_deeplsd_lines", "build_deeplsd_line_guide",
+    "build_line_guide_from_segments", "create_deeplsd_runtime",
+    "RTMLIB_STRUCTURAL_LABELS", "RtmlibStructuralConfig", "SkeletonSelection",
+    "attach_rtmlib_structure", "build_rtmlib_structural_guide",
+    "build_structural_guide_from_pose", "create_rtmlib_wholebody",
+    "select_primary_skeleton",
     "MinimalizerV2Result", "PipelineConfig", "PresetPipelineResult",
     "SceneModel", "SceneShape", "minimalize_v2", "run_preset_pipeline",
     "render_scene", "PNG_CONTRACT_VERSION", "V2PngExport", "V2PngMetadata",

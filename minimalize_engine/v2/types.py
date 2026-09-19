@@ -113,6 +113,8 @@ class RegionAnnotation:
     characteristic_supports: tuple[CharacteristicSupport, ...] = ()
     semantic_tag: str | None = None
     semantic_confidence: float = 0.0
+    structure_tag: str | None = None
+    structure_confidence: float = 0.0
 
     def __post_init__(self) -> None:
         anchor_ids = tuple(item.anchor_id for item in self.characteristic_supports)
@@ -121,3 +123,6 @@ class RegionAnnotation:
         _validate_confidence("semantic_confidence", self.semantic_confidence)
         if self.semantic_tag is None and self.semantic_confidence != 0.0:
             raise ValueError("semantic_confidence requires semantic_tag")
+        _validate_confidence("structure_confidence", self.structure_confidence)
+        if self.structure_tag is None and self.structure_confidence != 0.0:
+            raise ValueError("structure_confidence requires structure_tag")

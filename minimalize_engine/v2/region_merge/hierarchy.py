@@ -62,6 +62,7 @@ def _evaluate_active_edge(
     *,
     image_area: int,
     config: RegionMergeConfig,
+    use_line_prior: bool = True,
 ) -> MergeEvaluation:
     key = edge_key(left_id, right_id)
     return evaluate_merge(
@@ -70,6 +71,7 @@ def _evaluate_active_edge(
         graph.edges[key],
         image_area=image_area,
         config=config,
+        use_line_prior=use_line_prior,
     )
 
 
@@ -84,7 +86,7 @@ def _push_safe_candidate(
     metrics: _MergeMetricsCollector,
 ) -> None:
     evaluation = _evaluate_active_edge(
-        graph, left_id, right_id, image_area=image_area, config=config
+        graph, left_id, right_id, image_area=image_area, config=config, use_line_prior=False
     )
     edge = graph.edges[edge_key(left_id, right_id)]
     safe = is_safe_consolidation(
@@ -126,7 +128,7 @@ def run_safe_consolidation(
         if left_id not in graph.nodes or right_id not in graph.nodes or key not in graph.edges:
             continue
         evaluation = _evaluate_active_edge(
-            graph, left_id, right_id, image_area=image_area, config=config
+            graph, left_id, right_id, image_area=image_area, config=config, use_line_prior=False
         )
         edge = graph.edges[key]
         safe = is_safe_consolidation(
