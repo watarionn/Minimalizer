@@ -1,0 +1,76 @@
+{
+  "schema_version": "minimalizer-v2-approved78-hierarchy-cut-v2",
+  "date": "2026-09-19",
+  "base_commit": "1440201aeffb77e7b9ab11c2ef1ad834bece747a",
+  "scope": "full Approved-78 corpus",
+  "case_count": 78,
+  "guidance": "none",
+  "minimal": {
+    "old_policy": {
+      "mean_visible_shapes": 74.217949,
+      "mean_color_similarity": 0.932866,
+      "mean_edge_iou": 0.096545,
+      "mean_silhouette_iou": 0.543229
+    },
+    "selected_40": {
+      "mean_visible_shapes": 40.0,
+      "mean_color_similarity": 0.932102,
+      "mean_edge_iou": 0.090415,
+      "mean_silhouette_iou": 0.519639
+    },
+    "candidate_32": {
+      "mean_visible_shapes": 32.0,
+      "mean_color_similarity": 0.93202,
+      "mean_edge_iou": 0.086899,
+      "mean_silhouette_iou": 0.511585
+    },
+    "candidate_24": {
+      "mean_visible_shapes": 24.0,
+      "mean_color_similarity": 0.931248,
+      "mean_edge_iou": 0.081886,
+      "mean_silhouette_iou": 0.496173
+    }
+  },
+  "selected_policy": {
+    "minimal": [
+      24,
+      40,
+      1.0,
+      1.1,
+      1.1
+    ],
+    "ultra_minimal": [
+      12,
+      20,
+      1.3,
+      1.25,
+      1.35
+    ]
+  },
+  "compact_v6": {
+    "ok_count": 78,
+    "error_count": 0,
+    "mean_runtime_seconds": 3.645196
+  },
+  "remaining_gate": "feature-branch commit / review before merge",
+  "production_default_gate": {
+    "execution": "chunk-isolated, no cut-policy monkeypatch",
+    "ok_count": 78,
+    "error_count": 0,
+    "mean_visible_shapes": 40.0,
+    "mean_color_similarity": 0.932102,
+    "mean_edge_iou": 0.090415,
+    "mean_silhouette_iou": 0.519639,
+    "mean_edge_density_delta": 0.031458,
+    "mean_runtime_seconds": 3.840241,
+    "metrics_match_compact_v6": true
+  },
+  "hierarchy_cut_unit_suite": "6/6 passed",
+  "repository_pytest": {
+    "passed": 528,
+    "failed": 2,
+    "warning_count": 1,
+    "failure_class": "pre-existing missing fixture tests/assets/false_face_phase85.png",
+    "calibration_regression_observed": false
+  }
+}

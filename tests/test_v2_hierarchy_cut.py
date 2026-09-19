@@ -5,6 +5,7 @@ from minimalize_engine.v2.region_merge.cost import RegionMergeConfig
 from minimalize_engine.v2.region_merge.cut import (
     build_cut_family,
     cumulative_visual_loss,
+    default_cut_policies,
     materialize_region_selection,
     validate_cut_family,
 )
@@ -99,6 +100,16 @@ def test_nested_cut_family_and_materialization_are_deterministic():
         for region_id in finer.region_ids:
             mask = finer.labels == region_id
             assert np.unique(coarser.labels[mask]).size == 1
+
+def test_default_minimal_cut_policy_matches_approved78_calibration():
+    policies = default_cut_policies()
+    assert policies["minimal"] == CutPolicy(
+        24, 40, 1.00, 1.10, target_weight=1.10
+    )
+    assert policies["ultra_minimal"] == CutPolicy(
+        12, 20, 1.30, 1.25, target_weight=1.35
+    )
+
 
 def test_cut_policy_mapping_is_explicit_and_ordered():
     result = _stripe_result(4)
