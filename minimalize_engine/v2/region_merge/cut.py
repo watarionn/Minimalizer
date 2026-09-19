@@ -23,8 +23,12 @@ def default_cut_policies() -> dict[str, CutPolicy]:
     return {
         "detailed": CutPolicy(100, 170, 0.40, 0.80),
         "balanced": CutPolicy(65, 110, 0.55, 1.25),
-        "minimal": CutPolicy(40, 70, 0.70, 0.75),
-        "ultra_minimal": CutPolicy(25, 45, 0.85, 0.85),
+        # Approved-78 calibration: 24 shapes was too aggressive corpus-wide.
+        # A 40-shape ceiling removes roughly half of the old Minimal complexity
+        # while preserving substantially more silhouette and edge structure.
+        "minimal": CutPolicy(24, 40, 1.00, 1.10, target_weight=1.10),
+        # Keep the preset family monotonic below the calibrated Minimal range.
+        "ultra_minimal": CutPolicy(12, 20, 1.30, 1.25, target_weight=1.35),
     }
 
 @dataclass(frozen=True, slots=True)
