@@ -18,6 +18,8 @@ class RegionMergeConfig:
     anchor_weight: float = 0.10
     geometry_weight: float = 0.10
     redundancy_weight: float = 0.15
+    pose_relation_weight: float = 0.0
+    line_prior_strength: float = 0.0
     color_tau: float = 25.0
     hull_inflation_tau: float = 0.25
     thin_neck_tau: float = 0.15
@@ -75,6 +77,7 @@ class RegionMergeConfig:
             "safe_structure_cost", "safe_anchor_cost", "safe_topology_cost",
             "safe_shared_boundary_ratio", "safe_soft_protection",
             "edge_coverage_threshold", "retry_scale",
+            "pose_relation_weight", "line_prior_strength",
         ):
             value = float(getattr(self, name))
             if not math.isfinite(value) or not 0.0 <= value <= 1.0:
@@ -146,12 +149,20 @@ def color_cost(left: RegionStats, right: RegionStats, *, tau: float) -> float:
     return float(1.0 - math.exp(-per_pixel / tau))
 
 
-def boundary_cost(edge: RegionEdge) -> float:
+def boundary_cost(
+    edge: RegionEdge,
+    *,
+    line_prior_strength: float = 0.0,
+) -> float:
+    if not math.isfinite(line_prior_strength) or not 0.0 <= line_prior_strength <= 1.0:
+        raise ValueError("line_prior_strength must be finite and within [0, 1]")
     structural = 0.45 * _hist_quantile(edge.structural_gradient_hist, 0.75)
     structural += 0.55 * _hist_quantile(edge.structural_gradient_hist, 0.90)
     raw = 0.40 * _hist_quantile(edge.raw_gradient_hist, 0.90)
     raw += 0.60 * _hist_quantile(edge.raw_gradient_hist, 0.98)
-    return float(np.clip(max(structural, 0.35 * raw), 0.0, 1.0))
+    base = max(structural, 0.35 * raw)
+    guided = base + line_prior_strength * edge.line_support_mean * structural * (1.0 - base)
+    return float(np.clip(guided, 0.0, 1.0))
 
 
 def shared_boundary_ratio(left: RegionStats, right: RegionStats, edge: RegionEdge) -> float:
@@ -162,6 +173,22 @@ def shared_boundary_ratio(left: RegionStats, right: RegionStats, edge: RegionEdg
 def structure_cost(left: RegionStats, right: RegionStats) -> float:
     confidence = min(left.subject_confidence, right.subject_confidence)
     return float(np.clip(abs(left.subject_ratio - right.subject_ratio) * confidence, 0.0, 1.0))
+
+
+def pose_relation_cost(left: RegionStats, right: RegionStats) -> float:
+    if (
+        left.structure_tag is None
+        or right.structure_tag is None
+        or left.structure_tag == right.structure_tag
+    ):
+        return 0.0
+    return float(
+        np.clip(
+            min(left.structure_confidence, right.structure_confidence),
+            0.0,
+            1.0,
+        )
+    )
 
 
 def topology_cost(left: RegionStats, right: RegionStats, edge: RegionEdge, *, tau: float) -> float:
@@ -273,7 +300,8 @@ def soft_protection(
     if right_ids - left_ids:
         unique_anchor_conf = max(unique_anchor_conf, right.primary_anchor_confidence)
     accent = config.accent_weight * unique_anchor_conf
-    return float(min(config.soft_protection_cap, major + accent))
+    pose = config.pose_relation_weight * pose_relation_cost(left, right)
+    return float(min(config.soft_protection_cap, major + accent + pose))
 
 
 def redundancy_reward(
@@ -300,11 +328,15 @@ def evaluate_merge(
     *,
     image_area: int,
     config: RegionMergeConfig,
+    use_line_prior: bool = True,
 ) -> MergeEvaluation:
     if image_area <= 0:
         raise ValueError("image_area must be positive")
     c_color = color_cost(left, right, tau=config.color_tau)
-    c_boundary = boundary_cost(edge)
+    c_boundary = boundary_cost(
+        edge,
+        line_prior_strength=(config.line_prior_strength if use_line_prior else 0.0),
+    )
     c_structure = structure_cost(left, right)
     c_topology = topology_cost(left, right, edge, tau=config.thin_neck_tau)
     c_anchor, anchor_delta_e, anchors_distinct = anchor_cost(

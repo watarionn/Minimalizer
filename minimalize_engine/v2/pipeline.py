@@ -8,7 +8,12 @@ from typing import Callable, Mapping
 import numpy as np
 from numpy.typing import NDArray
 
-from minimalize_engine.v2.analysis_guidance import AnalysisGuidance, semantic_regions_from_guide
+from minimalize_engine.v2.analysis_guidance import (
+    AnalysisGuidance,
+    line_support_from_guide,
+    semantic_regions_from_guide,
+    structural_regions_from_guide,
+)
 from minimalize_engine.v2.characteristic import annotate_initial_regions
 from minimalize_engine.v2.contour import (
     ContourSimplificationConfig,
@@ -351,14 +356,29 @@ def _minimalize_v2_impl(
             provider=config.region_merge.slic_provider,
         ),
     )
-    semantic_regions = _timed(
+    def project_guidance():
+        active = guidance or AnalysisGuidance()
+        return (
+            semantic_regions_from_guide(
+                bundle,
+                segmentation.labels,
+                active.semantic,
+            ),
+            structural_regions_from_guide(
+                bundle,
+                segmentation.labels,
+                active.structural,
+            ),
+            line_support_from_guide(
+                bundle,
+                active.line,
+            ),
+        )
+
+    semantic_regions, structural_regions, line_support = _timed(
         observer,
         "analysis_guidance",
-        lambda: semantic_regions_from_guide(
-            bundle,
-            segmentation.labels,
-            guidance.semantic if guidance is not None else None,
-        ),
+        project_guidance,
     )
     annotations = _timed(
         observer,
@@ -368,6 +388,7 @@ def _minimalize_v2_impl(
             segmentation.labels,
             characteristic=characteristic,
             semantic=semantic_regions,
+            structural=structural_regions,
         ),
     )
     graph = _timed(
@@ -377,6 +398,7 @@ def _minimalize_v2_impl(
             bundle,
             segmentation.labels,
             annotations=annotations,
+            line_support=line_support,
             gradient_bins=config.region_merge.gradient_bins,
         ),
     )

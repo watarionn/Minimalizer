@@ -40,6 +40,8 @@ class RegionStats:
     characteristic_supports: tuple[CharacteristicSupport, ...] = ()
     semantic_tag: str | None = None
     semantic_confidence: float = 0.0
+    structure_tag: str | None = None
+    structure_confidence: float = 0.0
 
     def __post_init__(self) -> None:
         if self.id < 0:
@@ -50,6 +52,7 @@ class RegionStats:
             self.sum_x, self.sum_y, self.sum_xx, self.sum_yy, self.sum_xy,
             self.perimeter_px, self.hull_area, self.subject_prob_sum,
             self.subject_confidence_sum, self.semantic_confidence,
+            self.structure_confidence,
         )
         if not all(np.isfinite(value) for value in scalar_values):
             raise ValueError("RegionStats scalar values must be finite")
@@ -63,6 +66,10 @@ class RegionStats:
             raise ValueError("semantic_confidence must be within [0, 1]")
         if self.semantic_tag is None and self.semantic_confidence != 0.0:
             raise ValueError("semantic_confidence requires semantic_tag")
+        if not 0.0 <= self.structure_confidence <= 1.0:
+            raise ValueError("structure_confidence must be within [0, 1]")
+        if self.structure_tag is None and self.structure_confidence != 0.0:
+            raise ValueError("structure_confidence requires structure_tag")
         support_ids = tuple(item.anchor_id for item in self.characteristic_supports)
         if len(support_ids) != len(set(support_ids)):
             raise ValueError("characteristic support anchor ids must be unique")
@@ -183,6 +190,7 @@ class RegionEdge:
     raw_gradient_hist: NDArray[np.int64]
     structural_gradient_hist: NDArray[np.int64]
     alpha_boundary_fraction: float = 0.0
+    line_support_mean: float = 0.0
 
     def __post_init__(self) -> None:
         if self.a < 0 or self.b < 0:
@@ -202,11 +210,14 @@ class RegionEdge:
             raise ValueError("shared_boundary_px must be finite and positive")
         if not np.isfinite(self.alpha_boundary_fraction) or not 0.0 <= self.alpha_boundary_fraction <= 1.0:
             raise ValueError("alpha_boundary_fraction must be within [0, 1]")
+        if not np.isfinite(self.line_support_mean) or not 0.0 <= self.line_support_mean <= 1.0:
+            raise ValueError("line_support_mean must be within [0, 1]")
         object.__setattr__(self, "a", a)
         object.__setattr__(self, "b", b)
         object.__setattr__(self, "raw_gradient_hist", raw)
         object.__setattr__(self, "structural_gradient_hist", structural)
         object.__setattr__(self, "alpha_boundary_fraction", float(self.alpha_boundary_fraction))
+        object.__setattr__(self, "line_support_mean", float(self.line_support_mean))
 
 
 @dataclass(slots=True)
