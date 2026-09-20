@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import json
 
 import numpy as np
@@ -199,3 +199,35 @@ def test_palette_consolidation_is_deterministic():
         sorted((key, value.rgb) for key, value in second.entries.items())
     )
     assert first.metrics == second.metrics
+
+def test_subject_class_conflict_prevents_cross_class_palette_merge():
+    labels, image = _vertical_fixture([(120, 120, 120), (121, 121, 121)], stripe=6)
+    bundle, selection, contours, primitives = _pipeline_fixture(labels, image)
+    bundle = replace(
+        bundle,
+        subject_prob=np.where(labels == 0, 0.95, 0.05).astype(np.float32),
+        subject_confidence=np.ones(labels.shape, dtype=np.float32),
+    )
+    result = consolidate_palette(
+        bundle,
+        selection,
+        contours,
+        primitives,
+        config=PaletteConfig(mode="fixed", fixed_palette_size=1),
+    )
+    assert result.metrics.palette_count == 2
+    assert result.region_to_palette[0] != result.region_to_palette[1]
+
+
+def test_subject_class_conflict_is_inactive_without_guidance():
+    labels, image = _vertical_fixture([(120, 120, 120), (121, 121, 121)], stripe=6)
+    bundle, selection, contours, primitives = _pipeline_fixture(labels, image)
+    result = consolidate_palette(
+        bundle,
+        selection,
+        contours,
+        primitives,
+        config=PaletteConfig(mode="fixed", fixed_palette_size=1),
+    )
+    assert result.metrics.palette_count == 1
+    assert result.region_to_palette[0] == result.region_to_palette[1]

@@ -82,7 +82,7 @@ MAX_IMAGE_PIXELS = _env_int(
 MAX_IMAGE_SIDE = _env_int("WEB_MAX_IMAGE_SIDE", 16_384, minimum=512, maximum=65_535)
 MAX_ANALYSIS_SIDE = _env_int("WEB_MAX_ANALYSIS_SIDE", 640, minimum=256, maximum=2_048)
 V2_DEFAULT_ANALYSIS_MAX_SIDE = min(MAX_ANALYSIS_SIDE, 400)
-MAX_CONCURRENT_JOBS = _env_int("WEB_MAX_CONCURRENT_JOBS", 2, minimum=1, maximum=8)
+MAX_CONCURRENT_JOBS = _env_int("WEB_MAX_CONCURRENT_JOBS", 1, minimum=1, maximum=8)
 _PROCESS_SLOTS = BoundedSemaphore(MAX_CONCURRENT_JOBS)
 
 app = FastAPI(
@@ -267,6 +267,7 @@ async def minimalize_image_v2(
                         input_path,
                         preset=preset,
                         include_facets=include_facets,
+                        analysis_max_side_cap=V2_DEFAULT_ANALYSIS_MAX_SIDE,
                     )
                 except (ValueError, OSError) as exc:
                     raise HTTPException(

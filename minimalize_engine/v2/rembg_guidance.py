@@ -66,10 +66,14 @@ def _load_rembg():
     return module
 
 
-def create_rembg_session(config: RembgGuidanceConfig | None = None):
+def create_rembg_session(
+    config: RembgGuidanceConfig | None = None,
+    *,
+    sess_opts=None,
+):
     active = config or RembgGuidanceConfig()
     rembg = _load_rembg()
-    return rembg.new_session(active.model)
+    return rembg.new_session(active.model, sess_opts=sess_opts)
 
 
 def build_rembg_guidance(

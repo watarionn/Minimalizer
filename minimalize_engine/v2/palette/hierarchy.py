@@ -364,6 +364,7 @@ def build_palette_hierarchy(
     *,
     characteristic: CharacteristicContext | None,
     config: PaletteConfig,
+    subject_classes: dict[RegionId, int] | None = None,
 ) -> PaletteHierarchy:
     if not samples:
         raise ValueError("palette hierarchy requires region color samples")
@@ -380,6 +381,15 @@ def build_palette_hierarchy(
     if characteristic is not None:
         anchor_labs = {anchor.id: anchor.lab for anchor in characteristic.anchors}
     heap: list[tuple[float, int, int]] = []
+    def subject_conflict(first: PaletteNode, second: PaletteNode) -> bool:
+        if subject_classes is None:
+            return False
+        classes = {
+            subject_classes.get(region_id, 0)
+            for region_id in first.member_regions + second.member_regions
+        }
+        return -1 in classes and 1 in classes
+
     def push_pair(a: int, b: int) -> None:
         if a == b:
             return
@@ -390,6 +400,8 @@ def build_palette_hierarchy(
                 region_index[nodes[right].representative_region_id],
             ]
         )
+        if subject_conflict(nodes[left], nodes[right]):
+            return
         evaluation = evaluate_palette_merge(
             nodes[left], nodes[right], relationships, anchor_labs, config,
             color_distance=color_distance,
@@ -410,6 +422,8 @@ def build_palette_hierarchy(
                 region_index[nodes[right_id].representative_region_id],
             ]
         )
+        if subject_conflict(nodes[left_id], nodes[right_id]):
+            continue
         evaluation = evaluate_palette_merge(
             nodes[left_id], nodes[right_id], relationships, anchor_labs, config,
             color_distance=color_distance,

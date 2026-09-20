@@ -4,7 +4,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PORT=8000 \
-    WEB_WORKERS=1
+    WEB_WORKERS=1 \
+    REMBG_HOME=/app/.rembg
 
 WORKDIR /app
 
@@ -16,6 +17,8 @@ COPY requirements-web.txt ./
 RUN python -m pip install --upgrade pip \
     && python -m pip install -r requirements-web.txt
 
+RUN python -c "from rembg.sessions.u2netp import U2netpSession; print(U2netpSession.download_models())"
+
 COPY VERSION ./VERSION
 COPY minimalize_engine ./minimalize_engine
 COPY web ./web
@@ -23,6 +26,8 @@ COPY web ./web
 RUN useradd --create-home --uid 10001 minimalizer \
     && chown -R minimalizer:minimalizer /app
 USER minimalizer
+
+ENV WEB_MAX_CONCURRENT_JOBS=1
 
 EXPOSE 8000
 

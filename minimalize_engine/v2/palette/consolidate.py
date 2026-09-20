@@ -207,11 +207,29 @@ def consolidate_palette(
         characteristic=characteristic,
         config=config,
     )
+    subject_classes = None
+    if bundle.subject_prob is not None:
+        subject_classes = {}
+        for region_id in sorted(selection.region_ids):
+            mask = selection.labels == region_id
+            ratio = float(np.mean(bundle.subject_prob[mask], dtype=np.float64))
+            confidence = 1.0 if bundle.subject_confidence is None else float(
+                np.mean(bundle.subject_confidence[mask], dtype=np.float64)
+            )
+            if confidence < config.subject_confidence_threshold:
+                subject_classes[region_id] = 0
+            elif ratio >= config.subject_high_threshold:
+                subject_classes[region_id] = 1
+            elif ratio <= config.subject_low_threshold:
+                subject_classes[region_id] = -1
+            else:
+                subject_classes[region_id] = 0
     hierarchy = build_palette_hierarchy(
         samples,
         relationships,
         characteristic=characteristic,
         config=config,
+        subject_classes=subject_classes,
     )
     target = config.target_range(selection.preset)
     desired = _desired_palette_count(samples, target, config)

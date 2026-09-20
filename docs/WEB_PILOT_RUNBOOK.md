@@ -14,7 +14,7 @@ This runbook is for Web Phase 4: the first real hosted Minimalizer pilot.
 
 ```text
 WEB_WORKERS=1
-WEB_MAX_CONCURRENT_JOBS=2
+WEB_MAX_CONCURRENT_JOBS=1
 ```
 
 6. Configure Railway healthcheck path to `/health`.
@@ -55,12 +55,12 @@ For each request record:
 
 ## 4. Concurrency pass
 
-The initial container should run with one worker and two application processing slots.
+The initial container should run with one worker and one application processing slot.
 
-1. Start two representative minimalization requests closely enough that both overlap.
-2. While both processing slots are occupied, send a third request.
-3. Confirm the third request receives HTTP `429` with `Retry-After: 2`.
-4. Confirm the two accepted requests complete normally.
+1. Start one representative minimalization request.
+2. While the processing slot is occupied, send a second request.
+3. Confirm the second request receives HTTP `429` with `Retry-After: 2`.
+4. Confirm the accepted request completes normally.
 5. Check Railway memory and CPU during the overlap.
 
 Do not increase workers or processing slots until memory headroom is measured under this test.

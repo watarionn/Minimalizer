@@ -109,7 +109,7 @@ def test_service_info_reports_web_engine_and_limits():
         "max_image_pixels": 64_000_000,
         "max_image_side": 16_384,
         "max_analysis_side": 640,
-        "max_concurrent_jobs": 2,
+        "max_concurrent_jobs": 1,
         "supported_modes": ["standard", "rinka_reference", "color_strip"],
         "rinka_reference_version": "phase16",
         "rinka_reference_default_preset": "geometric_poster",

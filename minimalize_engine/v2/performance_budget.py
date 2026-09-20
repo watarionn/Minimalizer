@@ -12,7 +12,7 @@ class PerformanceBudget:
     confirmation_batches: int = 3
     max_analysis_side: int = 400
     web_workers: int = 1
-    max_concurrent_jobs: int = 2
+    max_concurrent_jobs: int = 1
     mean_v2_seconds_max: float = 5.0
     max_case_v2_seconds_max: float = 5.5
     mean_case_ratio_max: float = 7.0
@@ -33,7 +33,7 @@ class PerformanceMeasurement:
     repeats: int
     analysis_max_side: int = 400
     web_workers: int = 1
-    max_concurrent_jobs: int = 2
+    max_concurrent_jobs: int = 1
 
 
 @dataclass(frozen=True, slots=True)

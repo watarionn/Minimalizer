@@ -7,6 +7,7 @@ import pytest
 from minimalize_engine.v2.rembg_guidance import (
     RembgGuidanceConfig,
     build_rembg_guidance,
+    create_rembg_session,
     subject_confidence_from_probability,
 )
 
@@ -97,3 +98,24 @@ def test_build_rembg_guidance_accepts_reused_session(monkeypatch):
     assert calls["new_session"] == 0
     assert guidance.subject_prob is not None
     assert np.all(guidance.subject_prob == 1.0)
+
+
+def test_create_rembg_session_passes_session_options(monkeypatch):
+    calls = {}
+    session_options = object()
+
+    def fake_new_session(model, *, sess_opts=None):
+        calls["model"] = model
+        calls["sess_opts"] = sess_opts
+        return "session"
+
+    fake = SimpleNamespace(new_session=fake_new_session)
+    monkeypatch.setattr("minimalize_engine.v2.rembg_guidance._load_rembg", lambda: fake)
+
+    session = create_rembg_session(
+        RembgGuidanceConfig(model="u2netp"),
+        sess_opts=session_options,
+    )
+
+    assert session == "session"
+    assert calls == {"model": "u2netp", "sess_opts": session_options}

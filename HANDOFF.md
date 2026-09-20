@@ -65,9 +65,9 @@ Recommended hosted settings after the first pilot and v0.4.1 production follow-u
 
 ```text
 WEB_WORKERS=1
-WEB_MAX_CONCURRENT_JOBS=2
+WEB_MAX_CONCURRENT_JOBS=1
 WEB_BIND_PORT=8080  # Railway production service
-WEB_MAX_ANALYSIS_SIDE=400  # temporary 1 GB hosted safety setting
+WEB_MAX_ANALYSIS_SIDE=400  # 1 GB hosted safety setting
 ```
 
 See `docs/WEB_DEPLOYMENT.md` and `docs/WEB_PILOT_RUNBOOK.md`.
@@ -102,7 +102,7 @@ Representative Night River result on the final Phase 4 tested code commit `3a1a0
 
 An earlier successful PNG output on the same OpenCV-4-compatible code path measured about 8288 ms, and SVG about 8045 ms. Treat these as pilot measurements, not performance guarantees.
 
-Concurrency behavior was exercised on the public service. With `WEB_MAX_CONCURRENT_JOBS=2`, overlapping requests produced two successful 200 responses while the excess request returned HTTP 429 as designed. Keep this limit until additional capacity testing supports a change.
+Historical Phase 4 concurrency behavior was exercised on the public service with `WEB_MAX_CONCURRENT_JOBS=2`: two overlapping requests completed with 200 responses while an excess request returned HTTP 429. The current guided V2 production bridge changes the hosted recommendation to `WEB_MAX_CONCURRENT_JOBS=1`. With the production low-memory ONNX Runtime session, repeated u2netp-guided V2 requests used about 475-501 MiB post-request in a 1 GiB constrained container; the default ONNX allocation climbed to roughly 979 MiB and was rejected. Keep one processing slot until new hosted measurements support a higher limit.
 
 Railway metrics during the pilot on a 1 GB memory limit:
 - observed memory maximum about 0.782 GB;
