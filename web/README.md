@@ -1,37 +1,35 @@
 # Minimalizer Web
 
-Minimalizer Web exposes the existing Minimalizer v0.3.0 stable engine through FastAPI and provides a lightweight browser workspace.
+Minimalizer Web exposes the Minimalizer engine through FastAPI and provides a lightweight browser workspace.
 
-## Current web phase
+## Current browser experience
 
-**Web v0.9.0 candidate** extends the completed Rinka Reference / 凛夏手本版 Phase 11 with explicit poster presets while preserving the existing Standard mode and stable engine behavior.
+The browser UI exposes one canonical minimalization path: **Minimalizer 2.0 high-accuracy V2**. Users no longer choose between Standard and Rinka Reference. Color Strip remains separate because it produces a different kind of output.
 
-Included:
+Browser behavior:
 
 - drag-and-drop or file-picker image input
 - side-by-side source/result preview
-- processing, empty, selected, and error states
-- segmented `通常 / 凛夏手本版 / Color Strip` mode selector
-- Standard mode abstraction level control with advanced settings collapsed by default
-- Rinka Reference mode locked to its validated Phase 12 level-4 subject profile
-- Rinka-only preset selector: `geometric_poster` (default) or `faceless_subject`
-- SVG preview and download
-- PNG download
+- `ミニマル化 / Color Strip` tool selector
+- browser minimalization always calls `POST /api/v2/minimalize`
+- V2 uses the production `minimal` preset with facets enabled and returns PNG
+- legacy level/color/max-shape/background controls are not exposed in the browser
+- Rinka Reference is not exposed in the browser
+- Color Strip keeps its color-selection and layout controls
+- PNG download for the canonical V2 minimalization result
+- SVG and PNG download for Color Strip
 - responsive mobile layout
 - FastAPI Swagger UI retained at `/docs`
-- server-side actual-image validation with Pillow
 - accepted source formats limited to PNG, JPEG, and WebP
 - 20 MB upload limit
 - 64,000,000 pixel total-image limit
 - 16,384 pixel maximum side limit
-- two concurrent image-processing jobs per application process
-- immediate HTTP 429 + `Retry-After` when all processing slots are busy
+- one concurrent image-processing job per application process
+- immediate HTTP 429 + `Retry-After` when the processing slot is busy
 - basic security response headers and no-store API responses
-- generic production Docker image
-- CI cancellation for superseded PR runs
-- real-Uvicorn server smoke coverage in CI
+- production Docker image with the hosted rembg model baked in
 
-No account system, database, billing, or persistent storage is required for the current product.
+The legacy `standard` and `rinka_reference` API modes remain available for backward compatibility and evaluation tooling. Removing them from the browser does not remove those API contracts.
 
 ## Install
 
@@ -49,6 +47,7 @@ Open:
 
 - Browser UI: `http://127.0.0.1:8000/`
 - API information: `http://127.0.0.1:8000/api/info`
+- V2 API information: `http://127.0.0.1:8000/api/v2/info`
 - Health check: `http://127.0.0.1:8000/health`
 - Swagger UI: `http://127.0.0.1:8000/docs`
 
@@ -59,60 +58,46 @@ docker build -t minimalizer-web .
 docker run --rm -p 8000:8000 minimalizer-web
 ```
 
-The container reads `PORT` and `WEB_WORKERS`. Defaults are port `8000` and one Uvicorn worker.
+The container reads `PORT`, `WEB_WORKERS`, and the Web safety-limit variables. Production uses one Uvicorn worker and one image-processing slot.
 
 See `docs/WEB_DEPLOYMENT.md` for production sizing and hosting notes.
 
-## Minimalize API
+## Canonical V2 minimalization API
 
-`POST /api/minimalize` accepts `multipart/form-data`.
+`POST /api/v2/minimalize` accepts multipart form data.
 
 Fields:
 
 - `file`: PNG, JPEG, or WebP source image, required
-- `mode`: `standard`, `rinka_reference`, or `color_strip`, default `standard`
-- `level`: abstraction level 1-5, default 4; Rinka Reference requires level 4
-- `output_format`: `svg` or `png`, default `svg`
-- `rinka_preset`: Rinka-only `geometric_poster` or `faceless_subject`; default `geometric_poster`
-- `colors`: optional palette color override, 2-32
-- `max_shapes`: optional target shape limit, 5-500
-- `background`: optional `source`, `white`, or `transparent`
-
-`colors`, `max_shapes`, and `background` are Standard-mode overrides. Rinka Reference deliberately rejects those overrides so the Phase 12 Rinka profile cannot be silently altered from the Web API. `rinka_preset` is accepted only in Rinka Reference mode.
+- `preset`: `minimal`, `balanced`, `detailed`, or `ultra_minimal`; browser uses `minimal`
+- `include_facets`: boolean; browser uses `true`
 
 Example:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/minimalize \
+curl -X POST http://127.0.0.1:8000/api/v2/minimalize \
   -F "file=@examples/input.webp;type=image/webp" \
-  -F "mode=standard" \
-  -F "level=4" \
-  -F "output_format=svg" \
-  --output minimalized.svg
+  -F "preset=minimal" \
+  -F "include_facets=true" \
+  --output minimalized.png
 ```
 
-The response includes the selected mode, shape count, analysis size, source size, validated source dimensions, and detected source format in `X-Minimalizer-*` headers.
+## Compatibility API
 
-Rinka Reference example:
+`POST /api/minimalize` remains available for historical and specialist modes.
 
-```bash
-curl -X POST http://127.0.0.1:8000/api/minimalize \
-  -F "file=@examples/input.webp;type=image/webp" \
-  -F "mode=rinka_reference" \
-  -F "level=4" \
-  -F "rinka_preset=geometric_poster" \
-  -F "output_format=svg" \
-  --output minimalized-rinka.svg
-```
+Supported modes:
 
-If both processing slots are occupied, the service returns HTTP `429` with `Retry-After: 2` instead of starting unlimited CPU-heavy jobs.
+- `standard`
+- `rinka_reference`
+- `color_strip`
+
+This route still supports legacy Standard settings, Rinka Reference presets, and Color Strip settings. The browser only uses it for Color Strip.
+
+Rinka Reference is retained for compatibility and evaluation. It is not presented as a competing browser button against the canonical V2 path.
 
 ## Production boundary
 
-The browser UI deliberately keeps the primary flow simple: choose an image, minimalize, compare, download. Production safeguards sit behind that flow and do not alter engine behavior.
+The browser intentionally exposes only the current canonical V2 minimalization path. Historical and specialist engines remain available through the API for compatibility, testing, and comparison, but users do not need to understand or choose between those internal generations.
 
-The current upload/pixel limits are Web-service safety limits. They do not redefine the capabilities of the desktop/CLI engine.
-
-## Next web phase
-
-After the Phase 12 / Web v0.10.0 candidate is reviewed and explicitly approved for merge, deploy the same build to Railway and verify the public URL end to end in Standard, both Rinka presets, and Color Strip. Keep Standard as the default and confirm the hosted analysis-size cap remains respected before declaring the Phase 12 production rollout complete.
+The current upload, pixel, analysis-size, and concurrency limits are Web-service safety limits. They do not redefine the capabilities of the desktop/CLI engine.
