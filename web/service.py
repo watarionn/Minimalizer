@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from io import BytesIO
+import logging
 from pathlib import Path
+from threading import Lock
 from typing import Literal
 
 from minimalize_engine import (
@@ -32,6 +34,54 @@ from minimalize_engine.color_strip import (
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
 from minimalize_engine.v2 import PipelineConfig, V2PngExport, minimalize_file_png
+from minimalize_engine.io.image_loader import load_image
+from minimalize_engine.v2.rembg_guidance import (
+    RembgGuidanceConfig,
+    build_rembg_guidance,
+    create_rembg_session,
+)
+
+logger = logging.getLogger(__name__)
+
+_REMBG_SESSION = None
+_REMBG_LOCK = Lock()
+_REMBG_FAILURE_LOGGED = False
+_PRODUCTION_REMBG_MODEL = "u2netp"
+
+
+def _production_rembg_session_options():
+    import onnxruntime as ort
+
+    options = ort.SessionOptions()
+    options.enable_cpu_mem_arena = False
+    options.enable_mem_pattern = False
+    options.intra_op_num_threads = 1
+    options.inter_op_num_threads = 1
+    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+    return options
+
+
+def _production_v2_guidance(input_path: str | Path):
+    global _REMBG_SESSION, _REMBG_FAILURE_LOGGED
+    try:
+        config = RembgGuidanceConfig(model=_PRODUCTION_REMBG_MODEL)
+        with _REMBG_LOCK:
+            if _REMBG_SESSION is None:
+                _REMBG_SESSION = create_rembg_session(
+                    config,
+                    sess_opts=_production_rembg_session_options(),
+                )
+            return build_rembg_guidance(
+                load_image(input_path),
+                config=config,
+                session=_REMBG_SESSION,
+            )
+    except Exception:
+        if not _REMBG_FAILURE_LOGGED:
+            logger.warning("Production V2 rembg guidance unavailable; falling back to unguided V2.", exc_info=True)
+            _REMBG_FAILURE_LOGGED = True
+        return None
+
 
 OutputFormat = Literal["svg", "png"]
 ProcessingMode = Literal["standard", "rinka_reference", "color_strip"]
@@ -223,4 +273,5 @@ def minimalize_v2_path(
         preset=preset,
         include_facets=include_facets,
         config=config,
+        guidance=_production_v2_guidance(input_path),
     )

@@ -13,7 +13,7 @@ Runtime defaults:
 - listen address: `0.0.0.0`
 - port: `PORT` environment variable, default `8000`
 - Uvicorn workers: `WEB_WORKERS`, default `1`
-- application-level image-processing concurrency: `WEB_MAX_CONCURRENT_JOBS`, default `2` per process
+- application-level image-processing concurrency: `WEB_MAX_CONCURRENT_JOBS`, default `1` per process
 - health endpoint: `GET /health`
 - accepted source formats: PNG, JPEG, WebP
 - upload limit: `WEB_MAX_UPLOAD_MB`, default `20`
@@ -52,10 +52,12 @@ For a public service:
 
 - do not assume a 512 MB instance is sufficient for the configured maximum image size;
 - start with `WEB_WORKERS=1`;
-- start with `WEB_MAX_CONCURRENT_JOBS=2`;
+- start with `WEB_MAX_CONCURRENT_JOBS=1`;
 - monitor peak RSS and request duration with real uploads before increasing concurrency;
 - scale by increasing instance resources first, then replicas/workers only after measuring;
 - remember that each Uvicorn worker owns its own concurrency semaphore, so total possible image jobs are approximately `WEB_WORKERS * WEB_MAX_CONCURRENT_JOBS` per container.
+
+The guided V2 production path uses rembg `u2netp`. The production ONNX Runtime session disables the CPU memory arena and memory pattern, uses one intra-op/inter-op thread, and BASIC graph optimization. Real V2 requests completed under a 1 GiB Docker limit with post-request memory around 475-501 MiB. The larger `isnet-anime` provider exceeded the same envelope and was rejected for the hosted default. Keep one processing slot on the 1 GiB service until new hosted measurements justify more concurrency.
 
 The existing 52.21 MP engine stress result demonstrates engine capability on the development machine, not a guarantee that a small cloud instance can process the same image safely.
 
@@ -85,7 +87,7 @@ Recommended initial Railway variables:
 
 ```text
 WEB_WORKERS=1
-WEB_MAX_CONCURRENT_JOBS=2
+WEB_MAX_CONCURRENT_JOBS=1
 ```
 
 Leave the image/upload limits at application defaults for the first measurement pass.
@@ -117,7 +119,7 @@ References:
 - verify deployed `/health`, `/`, `/api/info`, and `/docs`;
 - upload representative PNG, JPEG, and WebP images;
 - record `X-Minimalizer-Processing-Ms` and Railway peak memory for each sample;
-- exercise two concurrent conversions, then verify an additional overlapping request receives HTTP 429 when both local processing slots are occupied;
+- start one conversion, then verify a second overlapping request receives HTTP 429 while the single local processing slot is occupied;
 - test a larger source image only after checking memory headroom;
 - keep one worker until memory headroom is measured;
 - do not add persistent storage unless a future feature actually needs it.

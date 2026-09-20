@@ -4,3 +4,5 @@ Pillow
 fastapi==0.141.1
 uvicorn[standard]==0.52.4
 python-multipart==0.0.32
+rembg==2.0.84
+onnxruntime==1.26.0
