@@ -45,32 +45,26 @@ def test_phase2_root_serves_browser_workspace():
     assert 'id="drop-zone"' in response.text
     assert 'id="source-preview"' in response.text
     assert 'id="result-preview"' in response.text
-    assert 'id="download-svg"' in response.text
+    assert 'id="download-svg" type="button" hidden' in response.text
     assert 'id="download-png"' in response.text
     assert 'name="mode" value="standard" checked' in response.text
-    assert 'name="mode" value="rinka_reference"' in response.text
+    assert 'name="mode" value="rinka_reference"' not in response.text
     assert 'name="mode" value="color_strip"' in response.text
-    assert 'id="rinka-preset-control"' in response.text
-    assert 'id="rinka-preset-select"' in response.text
-    assert 'value="geometric_poster" selected' in response.text
-    assert 'value="faceless_subject"' in response.text
-    assert 'value="approved_reference"' in response.text
-    assert "凛夏プリセット" in response.text
-    assert "幾何学ポスター" in response.text
-    assert "人物ミニマル" in response.text
+    assert 'id="rinka-preset-control"' not in response.text
+    assert 'id="rinka-preset-select"' not in response.text
+    assert 'id="level-select"' not in response.text
+    assert 'id="colors-input"' not in response.text
+    assert 'id="max-shapes-input"' not in response.text
+    assert 'id="background-select"' not in response.text
     assert 'id="color-strip-controls"' in response.text
     assert 'id="color-similarity-range"' in response.text
     assert 'id="color-strip-options"' in response.text
     assert 'id="strip-selection-mode-select"' in response.text
     assert 'value="characteristic"' in response.text
-    assert "characteristic · 人の見た目優先" in response.text
     assert 'id="strip-size-mode-select"' in response.text
     assert 'id="strip-order-select"' in response.text
     assert 'id="strip-orientation-select"' in response.text
     assert 'id="mode-description"' in response.text
-    assert '<option value="white" selected>白</option>' in response.text
-
-
 def test_phase2_static_assets_are_served():
     css = client.get("/static/styles.css")
     color_strip_css = client.get("/static/color-strip.css")
@@ -81,22 +75,21 @@ def test_phase2_static_assets_are_served():
     assert ".drop-zone" in css.text
     assert "[hidden] { display: none !important; }" in css.text
     assert ".color-strip-controls" in color_strip_css.text
-    assert 'fetch("/api/minimalize"' in javascript.text
-    assert '"X-Minimalizer-Browser-Default": "v2"' in javascript.text
-    assert 'currentMode() === "standard" ? "png" : "svg"' in javascript.text
-    assert 'form.append("mode", mode)' in javascript.text
-    assert 'form.append("rinka_preset", elements.rinkaPreset.value)' in javascript.text
+    assert '"/api/v2/minimalize"' in javascript.text
+    assert '"/api/minimalize"' in javascript.text
+    assert 'buildV2FormData()' in javascript.text
+    assert 'form.append("preset", "minimal")' in javascript.text
+    assert 'form.append("include_facets", "true")' in javascript.text
+    assert 'form.append("mode", "color_strip")' in javascript.text
+    assert 'rinka_reference' not in javascript.text
+    assert 'rinkaPreset' not in javascript.text
     assert 'form.append("color_similarity", elements.colorSimilarity.value)' in javascript.text
     assert 'form.append("color_selection_mode", elements.stripSelectionMode.value)' in javascript.text
     assert 'selectionMode === "characteristic"' in javascript.text
-    assert "凛夏手本版 Phase 16" in javascript.text
-    assert "凛夏手本版 Phase 7" not in javascript.text
     assert 'form.append("color_size_mode", elements.stripSizeMode.value)' in javascript.text
     assert 'form.append("color_order", elements.stripOrder.value)' in javascript.text
     assert 'form.append("color_orientation", elements.stripOrientation.value)' in javascript.text
     assert ".mode-switch" in css.text
-
-
 def test_service_info_reports_web_engine_and_limits():
     response = client.get("/api/info")
     assert response.status_code == 200
