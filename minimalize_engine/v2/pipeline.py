@@ -465,6 +465,52 @@ def _quantize_person_part_polygons(
     return replace(result, scene=replace(result.scene, shapes=shapes, facet_overlays=()))
 
 
+def _consolidate_semantic_planes(
+    result: PresetPipelineResult,
+    *,
+    color_distance: float = 54.0,
+) -> PresetPipelineResult:
+    """Hide smaller near-color planes when a larger plane can carry the same visual role."""
+    shapes = list(result.scene.shapes)
+    if len(shapes) < 2:
+        return result
+    palette_rgb = {entry.palette_id: np.asarray(entry.rgb, dtype=np.float32) for entry in result.scene.palette}
+
+    def area(shape: SceneShape) -> float:
+        geometry = shape.geometry
+        if geometry.kind == "polygon":
+            return float(sum(abs(cv2.contourArea(loop.astype(np.float32))) for loop in geometry.loops))
+        if geometry.points is not None:
+            return float(abs(cv2.contourArea(geometry.points.astype(np.float32))))
+        if geometry.kind == "ellipse" and geometry.axes is not None:
+            return float(np.pi * geometry.axes[0] * geometry.axes[1])
+        if geometry.kind == "capsule" and geometry.radius is not None and geometry.segment_start is not None and geometry.segment_end is not None:
+            length = float(np.linalg.norm(np.asarray(geometry.segment_end) - np.asarray(geometry.segment_start)))
+            return float(2.0 * geometry.radius * length + np.pi * geometry.radius ** 2)
+        return 0.0
+
+    visible = [i for i, shape in enumerate(shapes) if shape.visible]
+    visible.sort(key=lambda i: area(shapes[i]), reverse=True)
+    kept: list[int] = []
+    for index in visible:
+        shape = shapes[index]
+        rgb = palette_rgb.get(shape.palette_id)
+        redundant = False
+        if rgb is not None:
+            for prior in kept:
+                prior_rgb = palette_rgb.get(shapes[prior].palette_id)
+                if prior_rgb is None:
+                    continue
+                if float(np.linalg.norm(rgb - prior_rgb)) <= color_distance and area(shape) <= area(shapes[prior]) * 0.42:
+                    redundant = True
+                    break
+        if redundant:
+            shapes[index] = replace(shape, visible=False)
+        else:
+            kept.append(index)
+    return replace(result, scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()))
+
+
 def _semantic_part_shape_limit(part_name: str, preset: str) -> int:
     limits = {
         "head": {"detailed": 10, "balanced": 7, "minimal": 5, "ultra_minimal": 3},
@@ -558,11 +604,13 @@ def _minimalize_person_parts(
         )
         if config.layered_person.semantic_shape_budget:
             results[name] = {
-                preset: _quantize_person_part_polygons(
-                    _apply_semantic_shape_budget(
-                        preset_result, part_name=name, part_mask=mask
-                    ),
-                    max_vertices=6,
+                preset: _consolidate_semantic_planes(
+                    _quantize_person_part_polygons(
+                        _apply_semantic_shape_budget(
+                            preset_result, part_name=name, part_mask=mask
+                        ),
+                        max_vertices=6,
+                    )
                 )
                 for preset, preset_result in part_result.presets.items()
             }

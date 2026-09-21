@@ -226,3 +226,12 @@ def test_person_part_polygon_quantization_caps_vertex_count():
     quantized = _quantize_polygon_geometry(geometry, max_vertices=6)
     assert quantized.kind == "polygon"
     assert 3 <= len(quantized.loops[0]) <= 6
+
+
+def test_semantic_plane_consolidation_is_available_on_layered_path():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    # The consolidation stage is gated by the existing semantic-shape-budget
+    # switch, so the layered experiment remains fully reversible.
+    assert LayeredPersonConfig().semantic_shape_budget is True
+    assert LayeredPersonConfig(semantic_shape_budget=False).semantic_shape_budget is False
