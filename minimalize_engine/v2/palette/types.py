@@ -219,6 +219,9 @@ class PaletteConfig:
     subject_high_threshold: float = 0.80
     subject_low_threshold: float = 0.20
     subject_confidence_threshold: float = 0.80
+    subject_rescue_high_threshold: float = 0.90
+    subject_rescue_confidence_threshold: float = 0.70
+    subject_rescue_color_delta_e: float = 2.0
     ultra_minimal_target: tuple[int, int] = (4, 6)
     minimal_target: tuple[int, int] = (6, 9)
     balanced_target: tuple[int, int] = (8, 12)
@@ -241,6 +244,7 @@ class PaletteConfig:
         positive = (
             self.color_distance_scale, self.anchor_equivalence_delta_e,
             self.anchor_distinct_delta_e, self.contrast_original_delta_e,
+            self.subject_rescue_color_delta_e,
             self.contrast_assigned_delta_e, self.significant_delta_l,
         )
         if any(not np.isfinite(value) or value <= 0.0 for value in positive):
@@ -249,11 +253,16 @@ class PaletteConfig:
             self.anchor_confidence_threshold, self.major_region_area_ratio,
             self.semantic_confidence_threshold, self.subject_high_threshold,
             self.subject_low_threshold, self.subject_confidence_threshold,
+            self.subject_rescue_high_threshold, self.subject_rescue_confidence_threshold,
         )
         if any(not np.isfinite(value) or not 0.0 <= value <= 1.0 for value in bounded):
             raise ValueError("palette bounded thresholds must be within [0, 1]")
         if self.subject_low_threshold > self.subject_high_threshold:
             raise ValueError("subject thresholds are reversed")
+        if self.subject_rescue_high_threshold < self.subject_high_threshold:
+            raise ValueError("subject rescue threshold must be at least subject_high_threshold")
+        if self.subject_rescue_confidence_threshold > self.subject_confidence_threshold:
+            raise ValueError("subject rescue confidence must not exceed standard confidence")
         if self.anchor_equivalence_delta_e >= self.anchor_distinct_delta_e:
             raise ValueError("anchor equivalence must be below distinct threshold")
         for target in (

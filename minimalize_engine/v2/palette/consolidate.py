@@ -180,6 +180,64 @@ def _max_assignment_delta_e(
     )
 
 
+def _standard_subject_class(
+    ratio: float,
+    confidence: float,
+    config: PaletteConfig,
+) -> int:
+    if confidence < config.subject_confidence_threshold:
+        return 0
+    if ratio >= config.subject_high_threshold:
+        return 1
+    if ratio <= config.subject_low_threshold:
+        return -1
+    return 0
+
+
+def _build_subject_classes(
+    bundle: ImageBundle,
+    selection: RegionSelection,
+    samples: dict[RegionId, RegionColorSample],
+    config: PaletteConfig,
+) -> dict[RegionId, int] | None:
+    if bundle.subject_prob is None:
+        return None
+
+    stats: dict[RegionId, tuple[float, float]] = {}
+    classes: dict[RegionId, int] = {}
+    for region_id in sorted(selection.region_ids):
+        mask = selection.labels == region_id
+        ratio = float(np.mean(bundle.subject_prob[mask], dtype=np.float64))
+        confidence = 1.0 if bundle.subject_confidence is None else float(
+            np.mean(bundle.subject_confidence[mask], dtype=np.float64)
+        )
+        stats[region_id] = (ratio, confidence)
+        classes[region_id] = _standard_subject_class(ratio, confidence, config)
+
+    confident_background = [
+        region_id for region_id, value in classes.items() if value == -1
+    ]
+    if not confident_background:
+        return classes
+
+    for region_id in sorted(selection.region_ids):
+        if classes[region_id] != 0:
+            continue
+        ratio, confidence = stats[region_id]
+        if (
+            confidence < config.subject_rescue_confidence_threshold
+            or confidence >= config.subject_confidence_threshold
+            or ratio < config.subject_rescue_high_threshold
+        ):
+            continue
+        closest_background_delta_e = min(
+            float(ciede2000(samples[region_id].lab, samples[background_id].lab))
+            for background_id in confident_background
+        )
+        if closest_background_delta_e <= config.subject_rescue_color_delta_e:
+            classes[region_id] = 1
+    return classes
+
 def consolidate_palette(
     bundle: ImageBundle,
     selection: RegionSelection,
@@ -207,23 +265,12 @@ def consolidate_palette(
         characteristic=characteristic,
         config=config,
     )
-    subject_classes = None
-    if bundle.subject_prob is not None:
-        subject_classes = {}
-        for region_id in sorted(selection.region_ids):
-            mask = selection.labels == region_id
-            ratio = float(np.mean(bundle.subject_prob[mask], dtype=np.float64))
-            confidence = 1.0 if bundle.subject_confidence is None else float(
-                np.mean(bundle.subject_confidence[mask], dtype=np.float64)
-            )
-            if confidence < config.subject_confidence_threshold:
-                subject_classes[region_id] = 0
-            elif ratio >= config.subject_high_threshold:
-                subject_classes[region_id] = 1
-            elif ratio <= config.subject_low_threshold:
-                subject_classes[region_id] = -1
-            else:
-                subject_classes[region_id] = 0
+    subject_classes = _build_subject_classes(
+        bundle,
+        selection,
+        samples,
+        config,
+    )
     hierarchy = build_palette_hierarchy(
         samples,
         relationships,

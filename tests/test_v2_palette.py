@@ -9,6 +9,7 @@ import pytest
 from minimalize_engine.v2.contour import ContourSimplificationConfig, simplify_region_contours
 from minimalize_engine.v2.palette import PaletteConfig, ciede2000, consolidate_palette
 from minimalize_engine.v2.palette.hierarchy import evaluate_palette_merge
+from minimalize_engine.v2.palette.sampling import sample_region_colors
 from minimalize_engine.v2.palette.types import PaletteNode
 from minimalize_engine.v2.preprocessing import build_image_bundle
 from minimalize_engine.v2.primitive import PrimitiveFitConfig, fit_region_primitives
@@ -231,3 +232,43 @@ def test_subject_class_conflict_is_inactive_without_guidance():
     )
     assert result.metrics.palette_count == 1
     assert result.region_to_palette[0] == result.region_to_palette[1]
+
+
+def test_subject_rescue_protects_strong_subject_with_mid_confidence():
+    labels, image = _vertical_fixture([(120, 120, 120), (121, 121, 121)], stripe=6)
+    bundle, selection, contours, primitives = _pipeline_fixture(labels, image)
+    bundle = replace(
+        bundle,
+        subject_prob=np.where(labels == 0, 0.95, 0.05).astype(np.float32),
+        subject_confidence=np.where(labels == 0, 0.75, 0.95).astype(np.float32),
+    )
+    result = consolidate_palette(
+        bundle,
+        selection,
+        contours,
+        primitives,
+        config=PaletteConfig(mode="fixed", fixed_palette_size=1),
+    )
+    assert result.metrics.palette_count == 2
+    assert result.region_to_palette[0] != result.region_to_palette[1]
+
+
+def test_subject_rescue_requires_near_background_color_collision():
+    from minimalize_engine.v2.palette.consolidate import _build_subject_classes
+
+    labels, image = _vertical_fixture([(120, 120, 120), (220, 40, 40)], stripe=6)
+    bundle, selection, contours, primitives = _pipeline_fixture(labels, image)
+    bundle = replace(
+        bundle,
+        subject_prob=np.where(labels == 0, 0.95, 0.05).astype(np.float32),
+        subject_confidence=np.where(labels == 0, 0.75, 0.95).astype(np.float32),
+    )
+    samples = sample_region_colors(
+        bundle,
+        selection,
+        contours,
+        characteristic=None,
+        config=PaletteConfig(),
+    )
+    classes = _build_subject_classes(bundle, selection, samples, PaletteConfig())
+    assert classes == {0: 0, 1: -1}
