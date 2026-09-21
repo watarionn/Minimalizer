@@ -358,12 +358,12 @@ def _person_part_cut_policies(part_name: str) -> dict[str, CutPolicy]:
     # Per-part budgets keep the layered result coarse instead of multiplying
     # the whole-person 40-shape Minimal ceiling by six.
     budgets = {
-        "head": (30, 22, 14, 8),
-        "torso": (28, 20, 12, 7),
-        "left_arm": (20, 14, 8, 5),
-        "right_arm": (20, 14, 8, 5),
-        "left_leg": (20, 14, 8, 5),
-        "right_leg": (20, 14, 8, 5),
+        "head": (18, 10, 6, 4),
+        "torso": (16, 9, 5, 3),
+        "left_arm": (10, 6, 3, 2),
+        "right_arm": (10, 6, 3, 2),
+        "left_leg": (10, 6, 3, 2),
+        "right_leg": (10, 6, 3, 2),
     }
     detailed, balanced, minimal, ultra = budgets.get(part_name, (24, 18, 10, 6))
     targets = {

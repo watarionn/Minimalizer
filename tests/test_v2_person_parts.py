@@ -167,3 +167,18 @@ def test_layered_person_can_disable_coarse_part_primitive_policy():
 
     assert LayeredPersonConfig().coarse_part_primitives is True
     assert LayeredPersonConfig(coarse_part_primitives=False).coarse_part_primitives is False
+
+
+def test_person_part_minimal_cut_budgets_are_bold():
+    from minimalize_engine.v2.pipeline import _person_part_cut_policies
+
+    expected_max = {
+        "head": 6,
+        "torso": 5,
+        "left_arm": 3,
+        "right_arm": 3,
+        "left_leg": 3,
+        "right_leg": 3,
+    }
+    for name, ceiling in expected_max.items():
+        assert _person_part_cut_policies(name)["minimal"].target_max == ceiling
