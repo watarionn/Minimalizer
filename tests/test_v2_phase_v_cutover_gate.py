@@ -38,7 +38,7 @@ def test_phase_v_default_candidate_preserves_compatibility_routing():
     assert resolve_browser_route(**(base | {"mode": "color_strip"})) == "legacy"
 
 
-def test_phase_v_browser_bundle_has_not_cut_over_early():
+def test_phase_v_browser_bundle_is_cut_over_to_v2_default():
     source = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
-    assert 'fetch("/api/minimalize"' in source
-    assert 'fetch("/api/v2/minimalize"' not in source
+    assert 'colorStrip ? "/api/minimalize" : "/api/v2/minimalize"' in source
+    assert 'form.append("preset", "minimal")' in source

@@ -69,7 +69,8 @@ def test_browser_route_composes_output_and_alpha_contracts():
     ) == "legacy"
 
 
-def test_current_browser_bundle_remains_legacy_routed():
+def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     source = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
-    assert 'fetch("/api/minimalize"' in source
-    assert 'fetch("/api/v2/minimalize"' not in source
+    assert 'colorStrip ? "/api/minimalize" : "/api/v2/minimalize"' in source
+    assert 'form.append("preset", "minimal")' in source
+    assert 'form.append("include_facets", "true")' in source

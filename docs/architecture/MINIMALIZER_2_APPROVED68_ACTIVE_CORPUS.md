@@ -77,3 +77,41 @@ Production-container smoke:
 - repeated sample outputs were byte-identical (same SHA-256) across cold/warm requests.
 - with the production one-slot setting, an overlapping second V2 request returned HTTP 429 in about 0.06 s while the accepted request completed with HTTP 200.
 - `/api/info` reports `max_concurrent_jobs=1`; `/api/v2/info` reports `hosted_default_analysis_max_side=400`.
+
+
+## Structure Track: background-color collision rescue (2026-09-21)
+
+A representative failure was confirmed on Otonose Kanade: a large hair region remained present through Region Merge but was absorbed into a background-colored palette group because its subject ratio was high (0.908) while subject confidence was only 0.714. The hair sample color was effectively identical to a confident background sample (Delta E 0.0).
+
+A broad confidence-threshold reduction from 0.80 to 0.70 improved mean silhouette but caused avoidable color regressions, including Houshou Marine. That global relaxation was rejected.
+
+The accepted calibration candidate is deliberately narrow:
+
+- keep the normal subject/background classification at confidence >= 0.80
+- only consider rescue for uncertain regions with subject ratio >= 0.90 and confidence in [0.70, 0.80)
+- require a confident background region whose sampled color is nearly identical (Delta E <= 2.0)
+- rescue only the subject side; do not symmetrically relax background classification
+
+Approved-68 production-model A/B, u2netp guidance, Minimal 40-region cut:
+
+- baseline: color 0.933428373, edge IoU 0.082518442, silhouette IoU 0.745788874
+- collision rescue: color 0.933414182, edge IoU 0.082536358, silhouette IoU 0.745892808
+- delta: color -0.000014191, edge +0.000017916, silhouette +0.000103934
+
+Only two of 68 cases changed under the existing comparison metrics:
+
+- Otonose Kanade: color -0.001072700; edge unchanged; legacy silhouette metric unchanged
+- Shirakami Fubuki: color +0.000107709; edge +0.001218260; silhouette +0.007067536
+- the other 66 cases were metric-identical
+
+The legacy silhouette metric is not reliable for the Kanade failure because the light beige background is counted as foreground by the simple RGB threshold. A case-specific border-connected background diagnostic was therefore used as an additional visibility check:
+
+- old visible non-background area: 54.9135%
+- rescue visible non-background area: 60.8564%
+- visible-area gain: +5.9429 percentage points
+- newly visible pixels: 6,870
+- newly background pixels: 0
+
+This diagnostic is not a replacement for the corpus metric. It is evidence that the targeted palette collision was actually removed in the representative failure case.
+
+Decision: ACCEPT as a Structure Track adoption candidate. Repository-wide regression completed with 572 passed, 2 failed, 1 warning; the two failures are the pre-existing missing fixture tests for tests/assets/false_face_phase85.png. No new Structure Track regression was introduced. The rule is intentionally collision-specific so it does not turn into a general confidence-threshold relaxation.
