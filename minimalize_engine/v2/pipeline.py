@@ -379,6 +379,23 @@ def _person_part_cut_policies(part_name: str) -> dict[str, CutPolicy]:
     }
 
 
+def _person_part_contour_config(base: ContourSimplificationConfig) -> ContourSimplificationConfig:
+    # Semantic body-part masks tolerate much stronger contour abstraction than
+    # a whole scene. Keep the silhouette angular and low-vertex.
+    return replace(
+        base,
+        detailed_epsilon_ratio=max(base.detailed_epsilon_ratio, 0.018),
+        balanced_epsilon_ratio=max(base.balanced_epsilon_ratio, 0.030),
+        minimal_epsilon_ratio=max(base.minimal_epsilon_ratio, 0.050),
+        ultra_minimal_epsilon_ratio=max(base.ultra_minimal_epsilon_ratio, 0.070),
+        epsilon_max_px=max(base.epsilon_max_px, 28.0),
+        max_area_change=max(base.max_area_change, 0.18),
+        min_iou=min(base.min_iou, 0.80),
+        max_centroid_shift_ratio=max(base.max_centroid_shift_ratio, 0.08),
+        max_directional_loss=max(base.max_directional_loss, 0.25),
+    )
+
+
 def _person_part_primitive_config(part_name: str, base: PrimitiveFitConfig) -> PrimitiveFitConfig:
     # Person parts are semantically isolated, so favor bold geometry over contour fidelity.
     common = dict(
@@ -475,6 +492,7 @@ def _minimalize_person_parts(
             config,
             layered_person=replace(config.layered_person, enabled=False),
             cut_policies=_person_part_cut_policies(name),
+            contour=_person_part_contour_config(config.contour),
             primitive=(
                 _person_part_primitive_config(name, config.primitive)
                 if config.layered_person.coarse_part_primitives

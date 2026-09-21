@@ -202,3 +202,15 @@ def test_semantic_part_shape_limits_match_approved_coarse_budget():
     assert _semantic_part_shape_limit("torso", "minimal") == 4
     for name in ("left_arm", "right_arm", "left_leg", "right_leg"):
         assert _semantic_part_shape_limit(name, "minimal") == 3
+
+
+def test_person_part_contours_are_more_aggressively_simplified():
+    from minimalize_engine.v2.contour import ContourSimplificationConfig
+    from minimalize_engine.v2.pipeline import _person_part_contour_config
+
+    base = ContourSimplificationConfig()
+    coarse = _person_part_contour_config(base)
+    assert coarse.minimal_epsilon_ratio > base.minimal_epsilon_ratio
+    assert coarse.ultra_minimal_epsilon_ratio > coarse.minimal_epsilon_ratio
+    assert coarse.min_iou < base.min_iou
+    assert coarse.max_area_change > base.max_area_change
