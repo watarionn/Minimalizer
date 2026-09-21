@@ -182,3 +182,11 @@ def test_person_part_minimal_cut_budgets_are_bold():
     }
     for name, ceiling in expected_max.items():
         assert _person_part_cut_policies(name)["minimal"].target_max == ceiling
+
+
+def test_structural_partition_expands_pose_corridors_across_subject():
+    partition = build_person_part_partition(_guidance(), config=PersonPartConfig(structural_min_part_pixels=4))
+    covered = np.zeros_like(partition.subject_mask)
+    for mask in partition.part_masks.values():
+        covered |= mask
+    assert np.array_equal(covered, partition.subject_mask)

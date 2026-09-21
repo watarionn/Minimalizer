@@ -130,6 +130,27 @@ def _silhouette_fallback_parts(
     parts["right_leg"] = lower & (xx >= center_x)
     return parts
 
+def _expand_structural_parts_to_subject(
+    subject: NDArray[np.bool_],
+    parts: dict[str, NDArray[np.bool_]],
+) -> dict[str, NDArray[np.bool_]]:
+    """Grow pose corridors into a complete semantic partition of the silhouette."""
+    names = tuple(name for name in PERSON_PART_NAMES if np.any(parts.get(name, False)))
+    if not names:
+        return parts
+    distances: list[NDArray[np.float32]] = []
+    for name in names:
+        seed = np.asarray(parts[name] & subject, dtype=np.bool_)
+        # distanceTransform measures distance to zero pixels.
+        field = cv2.distanceTransform((~seed).astype(np.uint8), cv2.DIST_L2, 3)
+        distances.append(field.astype(np.float32))
+    nearest = np.argmin(np.stack(distances, axis=0), axis=0)
+    grown = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    for index, name in enumerate(names):
+        grown[name] = subject & (nearest == index)
+    return grown
+
+
 def _assign_exclusive_parts(
     subject: NDArray[np.bool_],
     raw_parts: dict[str, NDArray[np.bool_]],
@@ -219,6 +240,11 @@ def build_person_part_partition(
                     parts[name] = fallback[name]
     if not has_structural_support:
         parts = fallback
+    else:
+        # Pose channels are thin skeleton corridors, not full body-part masks.
+        # Expand them across the subject silhouette before exclusivity so hair,
+        # clothing, and skin pixels inherit the nearest semantic body part.
+        parts = _expand_structural_parts_to_subject(subject, parts)
     parts = _assign_exclusive_parts(
         subject,
         parts,
