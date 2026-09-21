@@ -1,0 +1,100 @@
+import numpy as np
+
+from minimalize_engine.v2.layered_composition import (
+    LayeredCompositionConfig,
+    render_layered_preview,
+)
+from minimalize_engine.v2.person_parts import PersonPartPartition
+
+
+def test_layered_preview_changes_background_but_preserves_subject_pixels():
+    image = np.zeros((12, 12, 3), dtype=np.uint8)
+    for y in range(12):
+        for x in range(12):
+            image[y, x] = (20 + x * 8, 40 + y * 7, 80 + (x + y) * 3)
+    subject = np.zeros((12, 12), dtype=np.bool_)
+    subject[3:10, 4:9] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={"head": subject & (np.indices(subject.shape)[0] < 6)},
+    )
+
+    rendered = render_layered_preview(
+        image,
+        partition,
+        config=LayeredCompositionConfig(background_color_count=2, background_blur_sigma=1.0),
+    )
+
+    assert np.array_equal(rendered[subject], image[subject])
+    assert not np.array_equal(rendered[~subject], image[~subject])
+    assert len(np.unique(rendered[~subject].reshape(-1, 3), axis=0)) <= 2
+
+
+def test_layered_preview_rejects_mismatched_partition_size():
+    subject = np.zeros((4, 4), dtype=np.bool_)
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={},
+    )
+    import pytest
+    with pytest.raises(ValueError, match="matching dimensions"):
+        render_layered_preview(np.zeros((5, 5, 3), dtype=np.uint8), partition)
+
+
+def test_compositor_respects_person_part_layer_order_and_fallback():
+    from minimalize_engine.v2.layered_composition import compose_layered_rgb
+
+    subject = np.zeros((5, 5), dtype=np.bool_)
+    subject[1:5, 1:4] = True
+    head = np.zeros_like(subject)
+    head[1:3, 1:4] = True
+    torso = np.zeros_like(subject)
+    torso[2:4, 1:4] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={"head": head, "torso": torso},
+    )
+    background = np.full((5, 5, 3), 10, dtype=np.uint8)
+    fallback = np.full((5, 5, 3), 40, dtype=np.uint8)
+    head_rgb = np.full((5, 5, 3), 200, dtype=np.uint8)
+    torso_rgb = np.full((5, 5, 3), 100, dtype=np.uint8)
+    result = compose_layered_rgb(
+        background,
+        partition,
+        part_renders={"head": head_rgb, "torso": torso_rgb},
+        subject_fallback_rgb=fallback,
+    )
+    assert tuple(result[1, 2]) == (200, 200, 200)
+    assert tuple(result[3, 2]) == (100, 100, 100)
+    assert tuple(result[4, 2]) == (40, 40, 40)
+    assert tuple(result[0, 0]) == (10, 10, 10)
+
+
+def test_partitioned_scene_blocks_scene_background_from_overpainting_subject():
+    from minimalize_engine.v2.layered_composition import render_partitioned_scene
+
+    source = np.full((6, 6, 3), 240, dtype=np.uint8)
+    subject = np.zeros((6, 6), dtype=np.bool_)
+    subject[1:5, 2:4] = True
+    source[subject] = (180, 120, 60)
+    scene = np.full_like(source, 20)
+    scene[subject] = (90, 70, 50)
+    head = np.zeros_like(subject)
+    head[1:3, 2:4] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={"head": head},
+    )
+    result = render_partitioned_scene(
+        scene,
+        source,
+        partition,
+        config=LayeredCompositionConfig(background_color_count=1, background_blur_sigma=0.0),
+    )
+    assert tuple(result[1, 2]) == (90, 70, 50)
+    assert tuple(result[4, 2]) == (90, 70, 50)
+    assert tuple(result[0, 0]) == (240, 240, 240)

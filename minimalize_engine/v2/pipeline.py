@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from time import perf_counter
 from types import MappingProxyType
 from typing import Callable, Mapping
@@ -39,6 +39,12 @@ from minimalize_engine.v2.palette import (
     consolidate_palette,
 )
 from minimalize_engine.v2.preprocessing import DEFAULT_ANALYSIS_MAX_SIDE, build_image_bundle
+from minimalize_engine.v2.person_parts import (
+    PersonPartConfig,
+    PersonPartPartition,
+    build_person_part_partition,
+    resize_person_part_partition,
+)
 from minimalize_engine.v2.primitive import (
     PrimitiveFitConfig,
     PrimitiveFittingResult,
@@ -48,12 +54,14 @@ from minimalize_engine.v2.primitive import (
 from minimalize_engine.v2.region_merge.cost import RegionMergeConfig
 from minimalize_engine.v2.region_merge.cut import (
     build_cut_family,
+    default_cut_policies,
     materialize_region_selection,
 )
 from minimalize_engine.v2.region_merge.graph import build_region_graph
 from minimalize_engine.v2.region_merge.hierarchy import run_region_merge_from_graph
 from minimalize_engine.v2.region_merge.segmentation import oversegment
 from minimalize_engine.v2.region_merge.types import (
+    CutPolicy,
     HierarchyCut,
     HierarchyCutFamily,
     RegionMergeResult,
@@ -108,6 +116,13 @@ class SceneModel:
 
 
 @dataclass(frozen=True, slots=True)
+class LayeredPersonConfig:
+    enabled: bool = False
+    independent_parts: bool = True
+    parts: PersonPartConfig = field(default_factory=PersonPartConfig)
+
+
+@dataclass(frozen=True, slots=True)
 class PipelineConfig:
     analysis_max_side: int = DEFAULT_ANALYSIS_MAX_SIDE
     region_merge: RegionMergeConfig = field(default_factory=RegionMergeConfig)
@@ -117,6 +132,10 @@ class PipelineConfig:
     detail_budget: DetailBudgetConfig = field(default_factory=DetailBudgetConfig)
     facet: PlanarFacetConfig = field(default_factory=PlanarFacetConfig)
     facet_gate: PlanarFacetGateConfig = field(default_factory=PlanarFacetGateConfig)
+    layered_person: LayeredPersonConfig = field(default_factory=LayeredPersonConfig)
+    cut_policies: Mapping[str, CutPolicy] | None = None
+
+
 @dataclass(frozen=True, slots=True)
 class PresetPipelineResult:
     preset: str
@@ -154,6 +173,8 @@ class MinimalizerV2Result:
     region_merge: RegionMergeResult
     cut_family: HierarchyCutFamily
     presets: Mapping[str, PresetPipelineResult]
+    person_parts: PersonPartPartition | None = None
+    person_part_presets: Mapping[str, Mapping[str, PresetPipelineResult]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         presets = dict(self.presets)
@@ -165,6 +186,15 @@ class MinimalizerV2Result:
         if any(name != result.preset for name, result in presets.items()):
             raise ValueError("preset mapping keys must match result presets")
         object.__setattr__(self, "presets", MappingProxyType(presets))
+        part_presets = {
+            name: MappingProxyType(dict(items))
+            for name, items in self.person_part_presets.items()
+        }
+        if self.person_parts is None and part_presets:
+            raise ValueError("person_part_presets require person_parts")
+        object.__setattr__(self, "person_part_presets", MappingProxyType(part_presets))
+
+
 def _scene_from_results(
     bundle: ImageBundle,
     primitives: PrimitiveFittingResult,
@@ -322,6 +352,70 @@ def run_preset_pipeline(
         config=config,
         observer=None,
     )
+def _person_part_cut_policies(part_name: str) -> dict[str, CutPolicy]:
+    base = default_cut_policies()
+    # Per-part budgets keep the layered result coarse instead of multiplying
+    # the whole-person 40-shape Minimal ceiling by six.
+    budgets = {
+        "head": (30, 22, 14, 8),
+        "torso": (28, 20, 12, 7),
+        "left_arm": (20, 14, 8, 5),
+        "right_arm": (20, 14, 8, 5),
+        "left_leg": (20, 14, 8, 5),
+        "right_leg": (20, 14, 8, 5),
+    }
+    detailed, balanced, minimal, ultra = budgets.get(part_name, (24, 18, 10, 6))
+    targets = {
+        "detailed": (max(1, detailed - 8), detailed),
+        "balanced": (max(1, balanced - 6), balanced),
+        "minimal": (max(1, minimal - 4), minimal),
+        "ultra_minimal": (max(1, ultra - 3), ultra),
+    }
+    return {
+        name: replace(policy, target_min=targets[name][0], target_max=targets[name][1])
+        for name, policy in base.items()
+    }
+
+
+def _minimalize_person_parts(
+    bundle: ImageBundle,
+    partition: PersonPartPartition,
+    *,
+    presets: tuple[str, ...],
+    config: PipelineConfig,
+) -> dict[str, Mapping[str, PresetPipelineResult]]:
+    results: dict[str, Mapping[str, PresetPipelineResult]] = {}
+    source = bundle.analysis_rgb
+    for name, mask in partition.part_masks.items():
+        if not mask.any():
+            continue
+        isolated = np.full_like(source, 255)
+        isolated[mask] = source[mask]
+        probability = mask.astype(np.float32)
+        confidence = np.ones(mask.shape, dtype=np.float32)
+        part_guidance = AnalysisGuidance(
+            subject_prob=probability,
+            subject_confidence=confidence,
+            subject_provider="minimalizer",
+            subject_model=f"person-part:{name}",
+        )
+        part_config = replace(
+            config,
+            layered_person=replace(config.layered_person, enabled=False),
+            cut_policies=_person_part_cut_policies(name),
+        )
+        part_result = _minimalize_v2_impl(
+            isolated,
+            presets=presets,
+            config=part_config,
+            characteristic=None,
+            observer=None,
+            guidance=part_guidance,
+        )
+        results[name] = part_result.presets
+    return results
+
+
 def _minimalize_v2_impl(
     source_rgb: NDArray[np.uint8],
     *,
@@ -380,6 +474,21 @@ def _minimalize_v2_impl(
         "analysis_guidance",
         project_guidance,
     )
+    person_parts = None
+    if config.layered_person.enabled:
+        if guidance is None:
+            raise ValueError("layered person mode requires analysis guidance")
+        person_parts = _timed(
+            observer,
+            "person_part_partition",
+            lambda: resize_person_part_partition(
+                build_person_part_partition(
+                    guidance,
+                    config=config.layered_person.parts,
+                ),
+                bundle.analysis_rgb.shape[:2],
+            ),
+        )
     annotations = _timed(
         observer,
         "initial_annotations",
@@ -413,7 +522,7 @@ def _minimalize_v2_impl(
     cut_family = _timed(
         observer,
         "hierarchy_cut_family",
-        lambda: build_cut_family(merge_result),
+        lambda: build_cut_family(merge_result, policies=config.cut_policies),
     )
     preset_results: dict[str, PresetPipelineResult] = {}
     for preset in active_presets:
@@ -426,12 +535,29 @@ def _minimalize_v2_impl(
             config=config,
             observer=observer,
         )
+    person_part_presets: dict[str, Mapping[str, PresetPipelineResult]] = {}
+    if (
+        person_parts is not None
+        and config.layered_person.independent_parts
+    ):
+        person_part_presets = _timed(
+            observer,
+            "person_part_pipelines",
+            lambda: _minimalize_person_parts(
+                bundle,
+                person_parts,
+                presets=active_presets,
+                config=config,
+            ),
+        )
     return MinimalizerV2Result(
         bundle=bundle,
         characteristic=characteristic,
         region_merge=merge_result,
         cut_family=cut_family,
         presets=preset_results,
+        person_parts=person_parts,
+        person_part_presets=person_part_presets,
     )
 
 

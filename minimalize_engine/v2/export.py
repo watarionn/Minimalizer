@@ -9,6 +9,7 @@ import numpy as np
 
 from minimalize_engine.v2.pipeline import MinimalizerV2Result
 from minimalize_engine.v2.render import render_scene
+from minimalize_engine.v2.layered_composition import render_partitioned_scene
 
 PNG_CONTRACT_VERSION = "minimalizer-v2-png-v1"
 
@@ -87,6 +88,18 @@ def export_png(
         raise ValueError(f"preset is not present in result: {preset}")
     pipeline = result.presets[preset]
     rgb = render_scene(pipeline.scene, include_facets=include_facets)
+    if result.person_parts is not None:
+        part_renders = {
+            name: render_scene(presets[preset].scene, include_facets=include_facets)
+            for name, presets in result.person_part_presets.items()
+            if preset in presets
+        }
+        rgb = render_partitioned_scene(
+            rgb,
+            result.bundle.analysis_rgb,
+            result.person_parts,
+            part_renders=part_renders or None,
+        )
     content = encode_rgb_png(rgb)
     source_height, source_width = result.bundle.source_rgb.shape[:2]
     metadata = V2PngMetadata(
