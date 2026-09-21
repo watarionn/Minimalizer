@@ -491,6 +491,27 @@ def _consolidate_semantic_planes(
 
     visible = [i for i, shape in enumerate(shapes) if shape.visible]
     visible.sort(key=lambda i: area(shapes[i]), reverse=True)
+    if not visible:
+        return result
+    largest_area = max(area(shapes[i]) for i in visible)
+    # Preserve one small, high-contrast accent plane. Approved references often
+    # retain a ribbon/trim/hair accent even when neighboring near-colors merge.
+    accent_index: int | None = None
+    if largest_area > 0.0:
+        base_rgb = palette_rgb.get(shapes[visible[0]].palette_id)
+        candidates: list[tuple[float, int]] = []
+        if base_rgb is not None:
+            for index in visible[1:]:
+                candidate_area = area(shapes[index])
+                rgb = palette_rgb.get(shapes[index].palette_id)
+                if rgb is None or candidate_area < largest_area * 0.05 or candidate_area > largest_area * 0.42:
+                    continue
+                contrast = float(np.linalg.norm(rgb - base_rgb))
+                if contrast >= color_distance * 1.25:
+                    candidates.append((contrast, index))
+        if candidates:
+            accent_index = max(candidates)[1]
+
     kept: list[int] = []
     for index in visible:
         shape = shapes[index]
@@ -504,7 +525,7 @@ def _consolidate_semantic_planes(
                 if float(np.linalg.norm(rgb - prior_rgb)) <= color_distance and area(shape) <= area(shapes[prior]) * 0.42:
                     redundant = True
                     break
-        if redundant:
+        if redundant and index != accent_index:
             shapes[index] = replace(shape, visible=False)
         else:
             kept.append(index)
