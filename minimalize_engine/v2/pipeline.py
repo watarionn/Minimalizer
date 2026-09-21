@@ -119,6 +119,7 @@ class SceneModel:
 class LayeredPersonConfig:
     enabled: bool = False
     independent_parts: bool = True
+    coarse_part_primitives: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
 
@@ -377,6 +378,22 @@ def _person_part_cut_policies(part_name: str) -> dict[str, CutPolicy]:
     }
 
 
+def _person_part_primitive_config(part_name: str, base: PrimitiveFitConfig) -> PrimitiveFitConfig:
+    # Person parts are semantically isolated, so favor bold geometry over contour fidelity.
+    common = dict(
+        min_iou=0.62, max_undercoverage=0.38, max_overcoverage=0.32,
+        max_centroid_shift_ratio=0.14, max_directional_under_loss=0.42,
+        max_directional_over_loss=0.42, max_boundary_distance=0.18,
+        max_protected_boundary_error=0.18, min_contact_retention=0.35,
+        minimum_complexity_gain=0.12, adoption_margin=0.0, complexity_reward=0.34,
+    )
+    if part_name in {"left_arm", "right_arm", "left_leg", "right_leg"}:
+        common.update(min_iou=0.55, max_undercoverage=0.45, max_overcoverage=0.40)
+    elif part_name == "head":
+        common.update(min_iou=0.68, max_undercoverage=0.32, max_overcoverage=0.28)
+    return replace(base, **common)
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -403,6 +420,11 @@ def _minimalize_person_parts(
             config,
             layered_person=replace(config.layered_person, enabled=False),
             cut_policies=_person_part_cut_policies(name),
+            primitive=(
+                _person_part_primitive_config(name, config.primitive)
+                if config.layered_person.coarse_part_primitives
+                else config.primitive
+            ),
         )
         part_result = _minimalize_v2_impl(
             isolated,

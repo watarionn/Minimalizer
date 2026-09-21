@@ -147,3 +147,23 @@ def test_sparse_pose_support_falls_back_to_complete_silhouette_partition():
 def test_partition_config_rejects_invalid_structural_coverage():
     with pytest.raises(ValueError):
         PersonPartConfig(structural_min_coverage_ratio=0.0)
+
+
+def test_person_part_primitive_config_is_deliberately_coarser_for_limbs():
+    from minimalize_engine.v2.pipeline import _person_part_primitive_config
+    from minimalize_engine.v2.primitive import PrimitiveFitConfig
+
+    base = PrimitiveFitConfig()
+    limb = _person_part_primitive_config("left_arm", base)
+    head = _person_part_primitive_config("head", base)
+    assert limb.min_iou < base.min_iou
+    assert limb.max_overcoverage > base.max_overcoverage
+    assert limb.complexity_reward > base.complexity_reward
+    assert head.min_iou > limb.min_iou
+
+
+def test_layered_person_can_disable_coarse_part_primitive_policy():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    assert LayeredPersonConfig().coarse_part_primitives is True
+    assert LayeredPersonConfig(coarse_part_primitives=False).coarse_part_primitives is False
