@@ -117,3 +117,33 @@ def test_resize_partition_projects_masks_to_analysis_resolution():
     for mask in resized.part_masks.values():
         assert not np.any((occupied > 0) & mask)
         occupied[mask] += 1
+
+
+def test_sparse_pose_support_falls_back_to_complete_silhouette_partition():
+    guidance = _guidance()
+    maps = np.zeros_like(guidance.structural.confidence_maps)
+    # A detector may return one convincing limb while the rest of the pose is unusable.
+    maps[1, 8:12, 3:7] = 0.9
+    sparse = AnalysisGuidance(
+        subject_prob=guidance.subject_prob,
+        subject_confidence=guidance.subject_confidence,
+        structural=StructuralGuide(
+            labels=guidance.structural.labels,
+            confidence_maps=maps,
+            provider="test",
+            model="sparse-pose",
+        ),
+        subject_provider="test",
+        subject_model="mask",
+    )
+    partition = build_person_part_partition(
+        sparse,
+        config=PersonPartConfig(structural_min_part_pixels=4),
+    )
+    for name in PERSON_PART_NAMES:
+        assert partition.part_masks[name].any()
+
+
+def test_partition_config_rejects_invalid_structural_coverage():
+    with pytest.raises(ValueError):
+        PersonPartConfig(structural_min_coverage_ratio=0.0)

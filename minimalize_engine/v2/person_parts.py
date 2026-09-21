@@ -25,6 +25,8 @@ class PersonPartConfig:
     head_height_ratio: float = 0.28
     head_width_ratio: float = 0.58
     minimum_part_pixels: int = 4
+    structural_min_coverage_ratio: float = 0.80
+    structural_min_part_pixels: int = 24
 
     def __post_init__(self) -> None:
         for name in ("subject_threshold", "structural_threshold", "head_height_ratio", "head_width_ratio"):
@@ -33,6 +35,10 @@ class PersonPartConfig:
                 raise ValueError(f"{name} must be finite and within (0, 1]")
         if self.minimum_part_pixels < 1:
             raise ValueError("minimum_part_pixels must be positive")
+        if not np.isfinite(self.structural_min_coverage_ratio) or not 0.0 < self.structural_min_coverage_ratio <= 1.0:
+            raise ValueError("structural_min_coverage_ratio must be finite and within (0, 1]")
+        if self.structural_min_part_pixels < 1:
+            raise ValueError("structural_min_part_pixels must be positive")
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,8 +204,21 @@ def build_person_part_partition(
             candidate = (support >= active.structural_threshold) & subject
             parts[name] = candidate
             has_structural_support = has_structural_support or bool(candidate.any())
+    fallback = _silhouette_fallback_parts(subject, head)
+    if has_structural_support:
+        required = ("torso", "left_arm", "right_arm", "left_leg", "right_leg")
+        supported = sum(int(parts[name].sum()) >= active.structural_min_part_pixels for name in required)
+        coverage = supported / float(len(required))
+        if coverage < active.structural_min_coverage_ratio:
+            has_structural_support = False
+        else:
+            # Keep good pose corridors, but repair an individual missing/tiny
+            # channel from the silhouette instead of dropping the whole pose.
+            for name in required:
+                if int(parts[name].sum()) < active.structural_min_part_pixels:
+                    parts[name] = fallback[name]
     if not has_structural_support:
-        parts = _silhouette_fallback_parts(subject, head)
+        parts = fallback
     parts = _assign_exclusive_parts(
         subject,
         parts,
