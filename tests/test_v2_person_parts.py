@@ -214,3 +214,15 @@ def test_person_part_contours_are_more_aggressively_simplified():
     assert coarse.ultra_minimal_epsilon_ratio > coarse.minimal_epsilon_ratio
     assert coarse.min_iou < base.min_iou
     assert coarse.max_area_change > base.max_area_change
+
+
+def test_person_part_polygon_quantization_caps_vertex_count():
+    from minimalize_engine.v2.pipeline import _quantize_polygon_geometry
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    angles = np.linspace(0.0, 2.0 * np.pi, 20, endpoint=False)
+    loop = np.column_stack((20.0 + 10.0 * np.cos(angles), 20.0 + 7.0 * np.sin(angles))).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
+    quantized = _quantize_polygon_geometry(geometry, max_vertices=6)
+    assert quantized.kind == "polygon"
+    assert 3 <= len(quantized.loops[0]) <= 6

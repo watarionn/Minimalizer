@@ -5,6 +5,7 @@ from time import perf_counter
 from types import MappingProxyType
 from typing import Callable, Mapping
 
+import cv2
 import numpy as np
 from numpy.typing import NDArray
 
@@ -416,6 +417,54 @@ def _person_part_primitive_config(part_name: str, base: PrimitiveFitConfig) -> P
     return replace(base, **common)
 
 
+def _quantize_polygon_geometry(
+    geometry: PrimitiveGeometry,
+    *,
+    max_vertices: int = 6,
+) -> PrimitiveGeometry:
+    if geometry.kind != "polygon" or not geometry.loops:
+        return geometry
+    loops: list[NDArray[np.float32]] = []
+    for loop in geometry.loops:
+        points = np.asarray(loop, dtype=np.float32)
+        if len(points) <= max_vertices:
+            loops.append(points)
+            continue
+        contour = points.reshape((-1, 1, 2))
+        perimeter = float(cv2.arcLength(contour, True))
+        best = points
+        # Deterministic ladder: stop at the first low-vertex contour that still
+        # describes the same angular mass.
+        for ratio in (0.02, 0.03, 0.04, 0.055, 0.075, 0.10, 0.14):
+            approx = cv2.approxPolyDP(contour, max(0.75, perimeter * ratio), True)
+            candidate = approx.reshape((-1, 2)).astype(np.float32)
+            if 3 <= len(candidate) <= max_vertices:
+                best = candidate
+                break
+        if len(best) > max_vertices:
+            hull = cv2.convexHull(contour).reshape((-1, 2)).astype(np.float32)
+            if len(hull) > max_vertices:
+                indices = np.linspace(0, len(hull) - 1, max_vertices, dtype=int)
+                hull = hull[indices]
+            best = hull if len(hull) >= 3 else points
+        loops.append(best)
+    return replace(geometry, loops=tuple(loops))
+
+
+def _quantize_person_part_polygons(
+    result: PresetPipelineResult,
+    *,
+    max_vertices: int = 6,
+) -> PresetPipelineResult:
+    shapes = tuple(
+        replace(shape, geometry=_quantize_polygon_geometry(shape.geometry, max_vertices=max_vertices))
+        if shape.visible and shape.geometry.kind == "polygon"
+        else shape
+        for shape in result.scene.shapes
+    )
+    return replace(result, scene=replace(result.scene, shapes=shapes, facet_overlays=()))
+
+
 def _semantic_part_shape_limit(part_name: str, preset: str) -> int:
     limits = {
         "head": {"detailed": 10, "balanced": 7, "minimal": 5, "ultra_minimal": 3},
@@ -509,8 +558,11 @@ def _minimalize_person_parts(
         )
         if config.layered_person.semantic_shape_budget:
             results[name] = {
-                preset: _apply_semantic_shape_budget(
-                    preset_result, part_name=name, part_mask=mask
+                preset: _quantize_person_part_polygons(
+                    _apply_semantic_shape_budget(
+                        preset_result, part_name=name, part_mask=mask
+                    ),
+                    max_vertices=6,
                 )
                 for preset, preset_result in part_result.presets.items()
             }
