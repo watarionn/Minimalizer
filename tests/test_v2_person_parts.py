@@ -159,6 +159,9 @@ def test_person_part_primitive_config_is_deliberately_coarser_for_limbs():
     assert limb.min_iou < base.min_iou
     assert limb.max_overcoverage > base.max_overcoverage
     assert limb.complexity_reward > base.complexity_reward
+    assert limb.rectangle_complexity < limb.ellipse_complexity
+    assert limb.trapezoid_complexity < limb.capsule_complexity
+    assert head.ellipse_complexity > base.ellipse_complexity
     assert head.min_iou > limb.min_iou
 
 

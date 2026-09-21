@@ -387,6 +387,10 @@ def _person_part_primitive_config(part_name: str, base: PrimitiveFitConfig) -> P
         max_directional_over_loss=0.42, max_boundary_distance=0.18,
         max_protected_boundary_error=0.18, min_contact_retention=0.35,
         minimum_complexity_gain=0.12, adoption_margin=0.0, complexity_reward=0.34,
+        # Approved references favor angular color planes. Rounded primitives
+        # remain possible only when they are substantially better fits.
+        rectangle_complexity=0.78, trapezoid_complexity=0.82,
+        ellipse_complexity=2.20, capsule_complexity=2.60,
     )
     if part_name in {"left_arm", "right_arm", "left_leg", "right_leg"}:
         common.update(min_iou=0.55, max_undercoverage=0.45, max_overcoverage=0.40)
