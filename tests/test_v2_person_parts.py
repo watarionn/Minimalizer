@@ -190,3 +190,12 @@ def test_structural_partition_expands_pose_corridors_across_subject():
     for mask in partition.part_masks.values():
         covered |= mask
     assert np.array_equal(covered, partition.subject_mask)
+
+
+def test_semantic_part_shape_limits_match_approved_coarse_budget():
+    from minimalize_engine.v2.pipeline import _semantic_part_shape_limit
+
+    assert _semantic_part_shape_limit("head", "minimal") == 5
+    assert _semantic_part_shape_limit("torso", "minimal") == 4
+    for name in ("left_arm", "right_arm", "left_leg", "right_leg"):
+        assert _semantic_part_shape_limit(name, "minimal") == 3

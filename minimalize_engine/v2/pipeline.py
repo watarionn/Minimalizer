@@ -120,6 +120,7 @@ class LayeredPersonConfig:
     enabled: bool = False
     independent_parts: bool = True
     coarse_part_primitives: bool = True
+    semantic_shape_budget: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
 
@@ -394,6 +395,56 @@ def _person_part_primitive_config(part_name: str, base: PrimitiveFitConfig) -> P
     return replace(base, **common)
 
 
+def _semantic_part_shape_limit(part_name: str, preset: str) -> int:
+    limits = {
+        "head": {"detailed": 10, "balanced": 7, "minimal": 5, "ultra_minimal": 3},
+        "torso": {"detailed": 8, "balanced": 6, "minimal": 4, "ultra_minimal": 2},
+        "left_arm": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
+        "right_arm": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
+        "left_leg": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
+        "right_leg": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
+    }
+    return limits.get(part_name, {}).get(preset, 6)
+
+
+def _apply_semantic_shape_budget(
+    result: PresetPipelineResult,
+    *,
+    part_name: str,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    """Keep only the dominant painted color planes inside a semantic body part."""
+    limit = _semantic_part_shape_limit(part_name, result.preset)
+    if len(result.scene.shapes) <= limit:
+        return result
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    scored: list[tuple[int, int, SceneShape]] = []
+    for order, shape in enumerate(result.scene.shapes):
+        if not shape.visible:
+            continue
+        geometry_mask = rasterize_geometry(
+            shape.geometry, part_mask.shape, origin=(0, 0), scale=2
+        )
+        support = int(np.count_nonzero(geometry_mask & part_mask))
+        if support:
+            scored.append((support, -order, shape))
+    if len(scored) <= limit:
+        return result
+    keep_ids = {
+        shape.region_id
+        for _, _, shape in sorted(scored, reverse=True)[:limit]
+    }
+    shapes = tuple(
+        replace(shape, visible=shape.visible and shape.region_id in keep_ids)
+        for shape in result.scene.shapes
+    )
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=shapes, facet_overlays=()),
+    )
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -434,7 +485,15 @@ def _minimalize_person_parts(
             observer=None,
             guidance=part_guidance,
         )
-        results[name] = part_result.presets
+        if config.layered_person.semantic_shape_budget:
+            results[name] = {
+                preset: _apply_semantic_shape_budget(
+                    preset_result, part_name=name, part_mask=mask
+                )
+                for preset, preset_result in part_result.presets.items()
+            }
+        else:
+            results[name] = part_result.presets
     return results
 
 
