@@ -199,7 +199,7 @@ def test_semantic_part_shape_limits_match_approved_coarse_budget():
     from minimalize_engine.v2.pipeline import _semantic_part_shape_limit
 
     assert _semantic_part_shape_limit("head", "minimal") == 5
-    assert _semantic_part_shape_limit("torso", "minimal") == 4
+    assert _semantic_part_shape_limit("torso", "minimal") == 3
     for name in ("left_arm", "right_arm", "left_leg", "right_leg"):
         assert _semantic_part_shape_limit(name, "minimal") == 3
 
@@ -314,3 +314,41 @@ def test_semantic_plane_refit_has_independent_layered_toggle():
 
     assert LayeredPersonConfig().semantic_plane_refit is True
     assert LayeredPersonConfig(semantic_plane_refit=False).semantic_plane_refit is False
+
+
+def test_torso_semantic_budget_preserves_small_high_contrast_accent():
+    from minimalize_engine.v2.pipeline import SceneShape, _semantic_budget_keep_ids
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    geometry = PrimitiveGeometry(
+        kind="polygon",
+        loops=(np.array([[0,0],[4,0],[4,4],[0,4]], dtype=np.float32),),
+    )
+    shapes = [
+        SceneShape(region_id=1, geometry=geometry, palette_id=0),
+        SceneShape(region_id=2, geometry=geometry, palette_id=1),
+        SceneShape(region_id=3, geometry=geometry, palette_id=2),
+        SceneShape(region_id=4, geometry=geometry, palette_id=3),
+    ]
+    scored = [
+        (1000, 0, shapes[0]),
+        (500, -1, shapes[1]),
+        (400, -2, shapes[2]),
+        (100, -3, shapes[3]),
+    ]
+    palette = {
+        0: np.array((100,100,100), dtype=np.float32),
+        1: np.array((110,110,110), dtype=np.float32),
+        2: np.array((120,120,120), dtype=np.float32),
+        3: np.array((230,30,30), dtype=np.float32),
+    }
+
+    torso_ids = _semantic_budget_keep_ids(
+        scored, palette, part_name="torso", limit=3
+    )
+    arm_ids = _semantic_budget_keep_ids(
+        scored, palette, part_name="left_arm", limit=3
+    )
+
+    assert torso_ids == {1, 2, 4}
+    assert arm_ids == {1, 2, 3}

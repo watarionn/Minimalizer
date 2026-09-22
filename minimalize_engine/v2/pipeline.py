@@ -735,13 +735,59 @@ def _consolidate_semantic_planes(
 def _semantic_part_shape_limit(part_name: str, preset: str) -> int:
     limits = {
         "head": {"detailed": 10, "balanced": 7, "minimal": 5, "ultra_minimal": 3},
-        "torso": {"detailed": 8, "balanced": 6, "minimal": 4, "ultra_minimal": 2},
+        "torso": {"detailed": 8, "balanced": 6, "minimal": 3, "ultra_minimal": 2},
         "left_arm": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
         "right_arm": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
         "left_leg": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
         "right_leg": {"detailed": 6, "balanced": 4, "minimal": 3, "ultra_minimal": 2},
     }
     return limits.get(part_name, {}).get(preset, 6)
+
+
+def _semantic_budget_keep_ids(
+    scored: list[tuple[int, int, SceneShape]],
+    palette_rgb: Mapping[int, NDArray[np.float32]],
+    *,
+    part_name: str,
+    limit: int,
+) -> set[int]:
+    ranked = sorted(scored, reverse=True)
+    if len(ranked) <= limit:
+        return {shape.region_id for _, _, shape in ranked}
+    if part_name != "torso" or limit < 2:
+        return {
+            shape.region_id
+            for _, _, shape in ranked[:limit]
+        }
+
+    largest_support, _, largest_shape = ranked[0]
+    base_rgb = palette_rgb.get(largest_shape.palette_id)
+    accent: tuple[float, int, int, SceneShape] | None = None
+    if base_rgb is not None and largest_support > 0:
+        for support, neg_order, shape in ranked[1:]:
+            rgb = palette_rgb.get(shape.palette_id)
+            if rgb is None:
+                continue
+            ratio = support / float(largest_support)
+            if ratio < 0.05 or ratio > 0.55:
+                continue
+            contrast = float(np.linalg.norm(rgb - base_rgb))
+            if contrast < 70.0:
+                continue
+            candidate = (contrast, support, neg_order, shape)
+            if accent is None or candidate[:3] > accent[:3]:
+                accent = candidate
+
+    selected: list[SceneShape] = [largest_shape]
+    if accent is not None:
+        selected.append(accent[3])
+    for _, _, shape in ranked[1:]:
+        if len(selected) >= limit:
+            break
+        if any(item.region_id == shape.region_id for item in selected):
+            continue
+        selected.append(shape)
+    return {shape.region_id for shape in selected[:limit]}
 
 
 def _apply_semantic_shape_budget(
@@ -768,10 +814,16 @@ def _apply_semantic_shape_budget(
             scored.append((support, -order, shape))
     if len(scored) <= limit:
         return result
-    keep_ids = {
-        shape.region_id
-        for _, _, shape in sorted(scored, reverse=True)[:limit]
+    palette_rgb = {
+        entry.palette_id: np.asarray(entry.rgb, dtype=np.float32)
+        for entry in result.scene.palette
     }
+    keep_ids = _semantic_budget_keep_ids(
+        scored,
+        palette_rgb,
+        part_name=part_name,
+        limit=limit,
+    )
     shapes = tuple(
         replace(shape, visible=shape.visible and shape.region_id in keep_ids)
         for shape in result.scene.shapes
