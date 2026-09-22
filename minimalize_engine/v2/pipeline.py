@@ -455,6 +455,16 @@ def _quantize_polygon_geometry(
     return replace(geometry, loops=tuple(loops))
 
 
+def _person_part_polygon_budget(part_name: str) -> tuple[int, int]:
+    if part_name in {"left_arm", "right_arm", "left_leg", "right_leg"}:
+        return (4, 1)
+    if part_name == "torso":
+        return (5, 1)
+    if part_name == "head":
+        return (6, 1)
+    return (6, 1)
+
+
 def _quantize_person_part_polygons(
     result: PresetPipelineResult,
     *,
@@ -629,14 +639,15 @@ def _minimalize_person_parts(
             guidance=part_guidance,
         )
         if config.layered_person.semantic_shape_budget:
+            polygon_vertices, polygon_loops = _person_part_polygon_budget(name)
             results[name] = {
                 preset: _consolidate_semantic_planes(
                     _quantize_person_part_polygons(
                         _apply_semantic_shape_budget(
                             preset_result, part_name=name, part_mask=mask
                         ),
-                        max_vertices=4 if name in {"left_arm", "right_arm", "left_leg", "right_leg"} else (5 if name == "torso" else 6),
-                        max_loops=2 if name == "head" else 1,
+                        max_vertices=polygon_vertices,
+                        max_loops=polygon_loops,
                     )
                 )
                 for preset, preset_result in part_result.presets.items()

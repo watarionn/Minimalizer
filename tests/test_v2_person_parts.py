@@ -258,3 +258,11 @@ def test_person_part_polygon_quantization_can_drop_secondary_loops():
     quantized = _quantize_polygon_geometry(geometry, max_vertices=4, max_loops=1)
     assert len(quantized.loops) == 1
     assert len(quantized.loops[0]) <= 4
+
+
+def test_person_part_polygon_budget_keeps_head_angular_but_single_loop():
+    from minimalize_engine.v2.pipeline import _person_part_polygon_budget
+
+    assert _person_part_polygon_budget("head") == (6, 1)
+    assert _person_part_polygon_budget("torso") == (5, 1)
+    assert _person_part_polygon_budget("left_arm") == (4, 1)
