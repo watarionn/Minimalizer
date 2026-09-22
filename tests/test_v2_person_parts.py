@@ -469,3 +469,39 @@ def test_head_two_plane_budget_protects_smaller_color_accent():
 
     assert limb_like == {11, 12}
     assert head_like is None
+
+
+def test_semantic_dead_plane_cleanup_only_flags_negligible_support():
+    from minimalize_engine.v2.pipeline import SceneShape, _semantic_dead_plane_ids
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    anchor = SceneShape(
+        region_id=21,
+        geometry=polygon([[2,2],[18,2],[18,18],[2,18]]),
+        palette_id=0,
+    )
+    outside = SceneShape(
+        region_id=22,
+        geometry=polygon([[30,30],[34,30],[34,34],[30,34]]),
+        palette_id=1,
+    )
+    small_but_real = SceneShape(
+        region_id=23,
+        geometry=polygon([[20,2],[24,2],[24,6],[20,6]]),
+        palette_id=2,
+    )
+    part = np.zeros((28, 28), dtype=bool)
+    part[1:27, 1:27] = True
+
+    dead = _semantic_dead_plane_ids(
+        [anchor, outside, small_but_real],
+        part,
+    )
+
+    assert dead == {22}

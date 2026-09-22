@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from time import perf_counter
 from types import MappingProxyType
-from typing import Callable, Mapping
+from typing import Callable, Mapping, Sequence
 
 import cv2
 import numpy as np
@@ -972,6 +972,73 @@ def _apply_semantic_shape_budget(
     )
 
 
+def _semantic_dead_plane_ids(
+    shapes: Sequence[SceneShape],
+    part_mask: NDArray[np.bool_],
+    *,
+    max_support_pixels: int = 4,
+    max_support_ratio: float = 0.002,
+) -> set[int]:
+    """Find visible planes with effectively no support inside their semantic part."""
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    supported: list[tuple[int, int]] = []
+    part_pixels = max(int(np.count_nonzero(part_mask)), 1)
+    for index, shape in enumerate(shapes):
+        if not shape.visible:
+            continue
+        mask = np.asarray(
+            rasterize_geometry(
+                shape.geometry,
+                part_mask.shape,
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=bool,
+        )
+        support = int(np.count_nonzero(mask & part_mask))
+        supported.append((index, support))
+    if len(supported) <= 1:
+        return set()
+
+    anchor_index, anchor_support = max(
+        supported,
+        key=lambda item: (item[1], -item[0]),
+    )
+    if anchor_support <= 0:
+        return set()
+
+    dead: set[int] = set()
+    for index, support in supported:
+        if index == anchor_index:
+            continue
+        ratio = support / float(part_pixels)
+        if support <= max_support_pixels and ratio <= max_support_ratio:
+            dead.add(shapes[index].region_id)
+    return dead
+
+
+def _remove_semantic_dead_planes(
+    result: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    """Hide final planes that carry no meaningful semantic pixels."""
+    dead_ids = _semantic_dead_plane_ids(result.scene.shapes, part_mask)
+    if not dead_ids:
+        return result
+    shapes = tuple(
+        replace(
+            shape,
+            visible=shape.visible and shape.region_id not in dead_ids,
+        )
+        for shape in result.scene.shapes
+    )
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=shapes, facet_overlays=()),
+    )
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -1038,7 +1105,10 @@ def _minimalize_person_parts(
                         refined,
                         mask,
                     )
-                return refined
+                return _remove_semantic_dead_planes(
+                    refined,
+                    mask,
+                )
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)
