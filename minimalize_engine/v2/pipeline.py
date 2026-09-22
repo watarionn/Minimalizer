@@ -1181,6 +1181,136 @@ def _remove_render_negligible_planes(
     )
 
 
+def _reduce_safe_angular_vertices(
+    result: PresetPipelineResult,
+    *,
+    part_name: str,
+    min_iou: float = 0.95,
+    max_under: float = 0.04,
+    max_over: float = 0.05,
+    max_render_change: float = 0.05,
+) -> PresetPipelineResult:
+    """Drop one redundant polygon corner when the final angular mass is preserved."""
+    if result.preset != "minimal" or part_name not in {"head", "torso"}:
+        return result
+
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    target_vertices = 5 if part_name == "head" else 4
+    scene = result.scene
+    baseline = _render_scene_primitives(scene)
+    foreground_pixels = max(
+        int(np.count_nonzero(np.any(baseline != 255, axis=2))),
+        1,
+    )
+    shapes = list(scene.shapes)
+    changed = False
+
+    for shape_index, shape in enumerate(shapes):
+        if (
+            not shape.visible
+            or shape.geometry.kind != "polygon"
+            or len(shape.geometry.loops) != 1
+        ):
+            continue
+        points = np.asarray(shape.geometry.loops[0], dtype=np.float32)
+        if len(points) != target_vertices + 1:
+            continue
+
+        target_mask = np.asarray(
+            rasterize_geometry(
+                shape.geometry,
+                (scene.height, scene.width),
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=bool,
+        )
+        target_pixels = max(int(np.count_nonzero(target_mask)), 1)
+        best: tuple[float, PrimitiveGeometry] | None = None
+
+        for remove_index in range(len(points)):
+            candidate_points = np.delete(points, remove_index, axis=0)
+            candidate_geometry = PrimitiveGeometry(
+                kind="polygon",
+                loops=(candidate_points,),
+            )
+            candidate_mask = np.asarray(
+                rasterize_geometry(
+                    candidate_geometry,
+                    (scene.height, scene.width),
+                    origin=(0, 0),
+                    scale=2,
+                ),
+                dtype=bool,
+            )
+            intersection = int(np.count_nonzero(target_mask & candidate_mask))
+            union_pixels = int(np.count_nonzero(target_mask | candidate_mask))
+            iou = intersection / max(union_pixels, 1)
+            under = (
+                int(np.count_nonzero(target_mask & ~candidate_mask))
+                / target_pixels
+            )
+            over = (
+                int(np.count_nonzero(candidate_mask & ~target_mask))
+                / target_pixels
+            )
+            if iou < min_iou or under > max_under or over > max_over:
+                continue
+
+            trial_shapes = tuple(
+                replace(item, geometry=candidate_geometry)
+                if item.region_id == shape.region_id
+                else item
+                for item in shapes
+            )
+            trial_scene = replace(
+                scene,
+                shapes=trial_shapes,
+                facet_overlays=(),
+            )
+            trial_render = _render_scene_primitives(trial_scene)
+            render_change = (
+                int(
+                    np.count_nonzero(
+                        np.any(trial_render != baseline, axis=2)
+                    )
+                )
+                / foreground_pixels
+            )
+            if render_change > max_render_change:
+                continue
+
+            score = (
+                iou
+                - 0.55 * render_change
+                - 0.08 * over
+                - 0.06 * under
+            )
+            if best is None or score > best[0]:
+                best = (score, candidate_geometry)
+
+        if best is None:
+            continue
+
+        shapes[shape_index] = replace(shape, geometry=best[1])
+        scene = replace(
+            scene,
+            shapes=tuple(shapes),
+            facet_overlays=(),
+        )
+        baseline = _render_scene_primitives(scene)
+        foreground_pixels = max(
+            int(np.count_nonzero(np.any(baseline != 255, axis=2))),
+            1,
+        )
+        changed = True
+
+    if not changed:
+        return result
+    return replace(result, scene=scene)
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -1250,6 +1380,10 @@ def _minimalize_person_parts(
                 refined = _remove_semantic_dead_planes(
                     refined,
                     mask,
+                )
+                refined = _reduce_safe_angular_vertices(
+                    refined,
+                    part_name=name,
                 )
                 refined = _remove_render_dead_planes(refined)
                 return _remove_render_negligible_planes(refined)

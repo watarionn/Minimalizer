@@ -592,3 +592,51 @@ def test_render_negligible_cleanup_flags_single_pixel_overlay():
     )
 
     assert _render_negligible_plane_ids(scene) == {11}
+
+
+def test_safe_angular_vertex_reduction_drops_redundant_head_corner():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _reduce_safe_angular_vertices,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    geometry = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[12,2],[22,2],[22,18],[2,18],[2,10]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+    shape = SceneShape(region_id=1, geometry=geometry, palette_id=0)
+    entry = PaletteEntry(
+        0,
+        (1,),
+        1,
+        np.asarray([50.0,0.0,0.0]),
+        (120,120,120),
+        (0,0),
+    )
+    result = DummyResult(
+        preset="minimal",
+        scene=SceneModel(30, 24, (shape,), (entry,)),
+    )
+
+    reduced = _reduce_safe_angular_vertices(
+        result,
+        part_name="head",
+    )
+
+    visible = [s for s in reduced.scene.shapes if s.visible]
+    assert len(visible) == 1
+    assert len(visible[0].geometry.loops[0]) == 5
