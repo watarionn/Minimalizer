@@ -505,3 +505,49 @@ def test_semantic_dead_plane_cleanup_only_flags_negligible_support():
     )
 
     assert dead == {22}
+
+
+def test_render_dead_plane_cleanup_flags_only_fully_hidden_plane():
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _render_dead_plane_ids,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    covered = SceneShape(
+        region_id=1,
+        geometry=polygon([[2,2],[12,2],[12,12],[2,12]]),
+        palette_id=0,
+    )
+    covering = SceneShape(
+        region_id=2,
+        geometry=polygon([[2,2],[12,2],[12,12],[2,12]]),
+        palette_id=1,
+    )
+    visible = SceneShape(
+        region_id=3,
+        geometry=polygon([[15,2],[22,2],[22,10],[15,10]]),
+        palette_id=0,
+    )
+    red = PaletteEntry(
+        0, (1,3), 1, np.asarray([50.0,0.0,0.0]), (220,40,40), (0,0)
+    )
+    blue = PaletteEntry(
+        1, (2,), 2, np.asarray([50.0,0.0,0.0]), (40,40,220), (0,0)
+    )
+    scene = SceneModel(
+        30,
+        20,
+        (covered, covering, visible),
+        (red, blue),
+    )
+
+    assert _render_dead_plane_ids(scene) == {1}

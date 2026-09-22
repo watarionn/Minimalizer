@@ -1039,6 +1039,81 @@ def _remove_semantic_dead_planes(
     )
 
 
+def _render_scene_primitives(
+    scene: SceneModel,
+    *,
+    hidden_ids: set[int] | None = None,
+) -> NDArray[np.uint8]:
+    """Render primitive scene shapes without facets for exact visibility checks."""
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    hidden = hidden_ids or set()
+    entries = {entry.palette_id: entry for entry in scene.palette}
+    canvas = np.full((scene.height, scene.width, 3), 255, dtype=np.uint8)
+    for shape in sorted(scene.shapes, key=lambda item: item.region_id):
+        if not shape.visible or shape.region_id in hidden:
+            continue
+        mask = rasterize_geometry(
+            shape.geometry,
+            (scene.height, scene.width),
+            origin=(0, 0),
+            scale=2,
+        )
+        canvas[mask] = entries[shape.palette_id].rgb
+    return canvas
+
+
+def _render_dead_plane_ids(scene: SceneModel) -> set[int]:
+    """Find planes that do not contribute a single pixel to the final render."""
+    hidden_ids: set[int] = set()
+    while True:
+        visible_ids = [
+            shape.region_id
+            for shape in scene.shapes
+            if shape.visible and shape.region_id not in hidden_ids
+        ]
+        if len(visible_ids) <= 1:
+            break
+
+        baseline = _render_scene_primitives(scene, hidden_ids=hidden_ids)
+        removable: int | None = None
+        for region_id in visible_ids:
+            candidate = _render_scene_primitives(
+                scene,
+                hidden_ids=hidden_ids | {region_id},
+            )
+            if np.array_equal(candidate, baseline):
+                removable = region_id
+                break
+        if removable is None:
+            break
+        hidden_ids.add(removable)
+    return hidden_ids
+
+
+def _remove_render_dead_planes(
+    result: PresetPipelineResult,
+) -> PresetPipelineResult:
+    """Hide planes whose removal leaves the final primitive render unchanged."""
+    if result.preset != "minimal":
+        return result
+
+    hidden_ids = _render_dead_plane_ids(result.scene)
+    if not hidden_ids:
+        return result
+    cleaned = tuple(
+        replace(
+            shape,
+            visible=shape.visible and shape.region_id not in hidden_ids,
+        )
+        for shape in result.scene.shapes
+    )
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=cleaned, facet_overlays=()),
+    )
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -1105,10 +1180,11 @@ def _minimalize_person_parts(
                         refined,
                         mask,
                     )
-                return _remove_semantic_dead_planes(
+                refined = _remove_semantic_dead_planes(
                     refined,
                     mask,
                 )
+                return _remove_render_dead_planes(refined)
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)
