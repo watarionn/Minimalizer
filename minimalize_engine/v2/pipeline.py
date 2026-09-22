@@ -1114,6 +1114,73 @@ def _remove_render_dead_planes(
     )
 
 
+def _render_negligible_plane_ids(
+    scene: SceneModel,
+    *,
+    max_changed_pixels: int = 4,
+    max_changed_ratio: float = 0.005,
+) -> set[int]:
+    """Find planes whose visible contribution is only a few output pixels."""
+    hidden_ids: set[int] = set()
+    while True:
+        visible_ids = [
+            shape.region_id
+            for shape in scene.shapes
+            if shape.visible and shape.region_id not in hidden_ids
+        ]
+        if len(visible_ids) <= 1:
+            break
+
+        baseline = _render_scene_primitives(scene, hidden_ids=hidden_ids)
+        foreground_pixels = max(
+            int(np.count_nonzero(np.any(baseline != 255, axis=2))),
+            1,
+        )
+        removable: int | None = None
+        for region_id in visible_ids:
+            candidate = _render_scene_primitives(
+                scene,
+                hidden_ids=hidden_ids | {region_id},
+            )
+            changed_pixels = int(
+                np.count_nonzero(np.any(candidate != baseline, axis=2))
+            )
+            changed_ratio = changed_pixels / float(foreground_pixels)
+            if (
+                changed_pixels <= max_changed_pixels
+                and changed_ratio <= max_changed_ratio
+            ):
+                removable = region_id
+                break
+        if removable is None:
+            break
+        hidden_ids.add(removable)
+    return hidden_ids
+
+
+def _remove_render_negligible_planes(
+    result: PresetPipelineResult,
+) -> PresetPipelineResult:
+    """Hide final planes whose rendered contribution is only micro-pixel noise."""
+    if result.preset != "minimal":
+        return result
+
+    hidden_ids = _render_negligible_plane_ids(result.scene)
+    if not hidden_ids:
+        return result
+    cleaned = tuple(
+        replace(
+            shape,
+            visible=shape.visible and shape.region_id not in hidden_ids,
+        )
+        for shape in result.scene.shapes
+    )
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=cleaned, facet_overlays=()),
+    )
+
+
 def _minimalize_person_parts(
     bundle: ImageBundle,
     partition: PersonPartPartition,
@@ -1184,7 +1251,8 @@ def _minimalize_person_parts(
                     refined,
                     mask,
                 )
-                return _remove_render_dead_planes(refined)
+                refined = _remove_render_dead_planes(refined)
+                return _remove_render_negligible_planes(refined)
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)

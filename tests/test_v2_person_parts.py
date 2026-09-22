@@ -551,3 +551,44 @@ def test_render_dead_plane_cleanup_flags_only_fully_hidden_plane():
     )
 
     assert _render_dead_plane_ids(scene) == {1}
+
+
+def test_render_negligible_cleanup_flags_single_pixel_overlay():
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _render_negligible_plane_ids,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    base = SceneShape(
+        region_id=10,
+        geometry=polygon([[2,2],[27,2],[27,27],[2,27]]),
+        palette_id=0,
+    )
+    pixel = SceneShape(
+        region_id=11,
+        geometry=polygon([[8,8],[9,8],[9,9],[8,9]]),
+        palette_id=1,
+    )
+    red = PaletteEntry(
+        0, (10,), 10, np.asarray([50.0,0.0,0.0]), (220,40,40), (0,0)
+    )
+    white = PaletteEntry(
+        1, (11,), 11, np.asarray([100.0,0.0,0.0]), (255,255,255), (0,0)
+    )
+    scene = SceneModel(
+        40,
+        40,
+        (base, pixel),
+        (red, white),
+    )
+
+    assert _render_negligible_plane_ids(scene) == {11}
