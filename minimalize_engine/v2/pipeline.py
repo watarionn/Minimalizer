@@ -122,6 +122,7 @@ class LayeredPersonConfig:
     independent_parts: bool = True
     coarse_part_primitives: bool = True
     semantic_shape_budget: bool = True
+    semantic_plane_refit: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
 
@@ -480,6 +481,190 @@ def _quantize_person_part_polygons(
     return replace(result, scene=replace(result.scene, shapes=shapes, facet_overlays=()))
 
 
+def _semantic_plane_clusters(
+    masks: list[NDArray[np.bool_]],
+    colors: list[NDArray[np.float32]],
+    *,
+    color_distance: float = 48.0,
+    adjacency_radius: int = 2,
+) -> tuple[tuple[int, ...], ...]:
+    """Group spatially touching near-color planes without merging distant accents."""
+    if len(masks) < 2:
+        return ()
+    radius = max(int(adjacency_radius), 1)
+    kernel = np.ones((2 * radius + 1, 2 * radius + 1), dtype=np.uint8)
+    expanded = [
+        cv2.dilate(mask.astype(np.uint8), kernel, iterations=1) > 0
+        for mask in masks
+    ]
+    parents = list(range(len(masks)))
+
+    def root(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(a: int, b: int) -> None:
+        ra, rb = root(a), root(b)
+        if ra != rb:
+            parents[max(ra, rb)] = min(ra, rb)
+
+    for i in range(len(masks)):
+        if not np.any(masks[i]):
+            continue
+        for j in range(i + 1, len(masks)):
+            if not np.any(masks[j]):
+                continue
+            if float(np.linalg.norm(colors[i] - colors[j])) > float(color_distance):
+                continue
+            if np.any(expanded[i] & masks[j]) or np.any(expanded[j] & masks[i]):
+                union(i, j)
+
+    grouped: dict[int, list[int]] = {}
+    for index in range(len(masks)):
+        grouped.setdefault(root(index), []).append(index)
+    clusters = [
+        tuple(indices)
+        for indices in grouped.values()
+        if len(indices) >= 2
+    ]
+    clusters.sort(key=lambda indices: (-sum(int(np.count_nonzero(masks[i])) for i in indices), indices))
+    return tuple(clusters)
+
+
+def _fit_semantic_plane_polygon(
+    cluster_mask: NDArray[np.bool_],
+    part_mask: NDArray[np.bool_],
+    *,
+    max_vertices: int,
+) -> NDArray[np.float32] | None:
+    """Refit one cluster as a bold low-vertex polygon, guarded by semantic support."""
+    target = np.asarray(cluster_mask, dtype=bool) & np.asarray(part_mask, dtype=bool)
+    target_pixels = int(np.count_nonzero(target))
+    if target_pixels < 8:
+        return None
+
+    bridge = cv2.morphologyEx(
+        target.astype(np.uint8),
+        cv2.MORPH_CLOSE,
+        np.ones((3, 3), dtype=np.uint8),
+    )
+    bridge &= part_mask.astype(np.uint8)
+    contours, _ = cv2.findContours(bridge, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    contour = max(contours, key=cv2.contourArea)
+    if float(cv2.contourArea(contour)) < 4.0:
+        return None
+
+    perimeter = max(float(cv2.arcLength(contour, True)), 1.0)
+    candidates: list[NDArray[np.float32]] = []
+    for ratio in (0.010, 0.016, 0.024, 0.034, 0.048, 0.066, 0.090, 0.120, 0.160):
+        approx = cv2.approxPolyDP(contour, max(0.65, perimeter * ratio), True)
+        polygon = approx.reshape((-1, 2)).astype(np.float32)
+        if 3 <= len(polygon) <= max_vertices:
+            candidates.append(polygon)
+    if max_vertices >= 4:
+        rectangle = cv2.boxPoints(cv2.minAreaRect(contour)).astype(np.float32)
+        candidates.append(rectangle)
+    if not candidates:
+        return None
+
+    best: tuple[float, NDArray[np.float32]] | None = None
+    for polygon in candidates:
+        candidate = np.zeros(target.shape, dtype=np.uint8)
+        cv2.fillPoly(candidate, [np.rint(polygon).astype(np.int32)], 1)
+        candidate_bool = candidate > 0
+        candidate_pixels = int(np.count_nonzero(candidate_bool))
+        if candidate_pixels == 0:
+            continue
+        intersection = int(np.count_nonzero(candidate_bool & target))
+        union_pixels = int(np.count_nonzero(candidate_bool | target))
+        iou = intersection / max(union_pixels, 1)
+        under = int(np.count_nonzero(target & ~candidate_bool)) / target_pixels
+        over = int(np.count_nonzero(candidate_bool & ~target)) / target_pixels
+        outside = int(np.count_nonzero(candidate_bool & ~part_mask)) / candidate_pixels
+        if iou < 0.68 or under > 0.30 or over > 0.36 or outside > 0.12:
+            continue
+        score = iou - 0.08 * over - 0.16 * outside + 0.008 * (max_vertices - len(polygon))
+        if best is None or score > best[0]:
+            best = (score, polygon)
+    return None if best is None else best[1]
+
+
+def _refit_semantic_planes(
+    result: PresetPipelineResult,
+    *,
+    part_name: str,
+    part_mask: NDArray[np.bool_],
+    color_distance: float = 48.0,
+    adjacency_radius: int = 2,
+) -> PresetPipelineResult:
+    """Rebuild adjacent near-color fragments as one semantic plane."""
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    shapes = list(result.scene.shapes)
+    visible_indices = [index for index, shape in enumerate(shapes) if shape.visible]
+    if len(visible_indices) < 2:
+        return result
+    palette_rgb = {
+        entry.palette_id: np.asarray(entry.rgb, dtype=np.float32)
+        for entry in result.scene.palette
+    }
+    masks: list[NDArray[np.bool_]] = []
+    colors: list[NDArray[np.float32]] = []
+    for index in visible_indices:
+        shape = shapes[index]
+        mask = rasterize_geometry(shape.geometry, part_mask.shape, origin=(0, 0), scale=2)
+        masks.append(np.asarray(mask, dtype=bool) & part_mask)
+        colors.append(palette_rgb[shape.palette_id])
+
+    clusters = _semantic_plane_clusters(
+        masks,
+        colors,
+        color_distance=color_distance,
+        adjacency_radius=adjacency_radius,
+    )
+    if not clusters:
+        return result
+    max_vertices, _ = _person_part_polygon_budget(part_name)
+    for cluster in clusters:
+        active = [local for local in cluster if shapes[visible_indices[local]].visible]
+        if len(active) < 2:
+            continue
+        union_mask = np.zeros(part_mask.shape, dtype=bool)
+        for local in active:
+            union_mask |= masks[local]
+        polygon = _fit_semantic_plane_polygon(
+            union_mask,
+            part_mask,
+            max_vertices=max_vertices,
+        )
+        if polygon is None:
+            continue
+        anchor_local = max(active, key=lambda local: int(np.count_nonzero(masks[local])))
+        anchor_index = visible_indices[anchor_local]
+        palette_support: dict[int, int] = {}
+        for local in active:
+            shape = shapes[visible_indices[local]]
+            palette_support[shape.palette_id] = (
+                palette_support.get(shape.palette_id, 0)
+                + int(np.count_nonzero(masks[local]))
+            )
+        dominant_palette = max(palette_support, key=lambda palette_id: (palette_support[palette_id], -palette_id))
+        shapes[anchor_index] = replace(
+            shapes[anchor_index],
+            geometry=PrimitiveGeometry(kind="polygon", loops=(polygon,)),
+            palette_id=dominant_palette,
+        )
+        for local in active:
+            index = visible_indices[local]
+            if index != anchor_index:
+                shapes[index] = replace(shapes[index], visible=False)
+    return replace(result, scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()))
+
+
 def _consolidate_semantic_planes(
     result: PresetPipelineResult,
     *,
@@ -640,16 +825,27 @@ def _minimalize_person_parts(
         )
         if config.layered_person.semantic_shape_budget:
             polygon_vertices, polygon_loops = _person_part_polygon_budget(name)
-            results[name] = {
-                preset: _consolidate_semantic_planes(
-                    _quantize_person_part_polygons(
-                        _apply_semantic_shape_budget(
-                            preset_result, part_name=name, part_mask=mask
-                        ),
-                        max_vertices=polygon_vertices,
-                        max_loops=polygon_loops,
-                    )
+
+            def finalize_semantic_part(
+                preset_result: PresetPipelineResult,
+            ) -> PresetPipelineResult:
+                refined = _quantize_person_part_polygons(
+                    _apply_semantic_shape_budget(
+                        preset_result, part_name=name, part_mask=mask
+                    ),
+                    max_vertices=polygon_vertices,
+                    max_loops=polygon_loops,
                 )
+                if config.layered_person.semantic_plane_refit:
+                    refined = _refit_semantic_planes(
+                        refined,
+                        part_name=name,
+                        part_mask=mask,
+                    )
+                return _consolidate_semantic_planes(refined)
+
+            results[name] = {
+                preset: finalize_semantic_part(preset_result)
                 for preset, preset_result in part_result.presets.items()
             }
         else:

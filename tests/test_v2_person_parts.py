@@ -266,3 +266,51 @@ def test_person_part_polygon_budget_keeps_head_angular_but_single_loop():
     assert _person_part_polygon_budget("head") == (6, 1)
     assert _person_part_polygon_budget("torso") == (5, 1)
     assert _person_part_polygon_budget("left_arm") == (4, 1)
+
+
+def test_semantic_plane_refit_clusters_only_adjacent_near_colors():
+    from minimalize_engine.v2.pipeline import _semantic_plane_clusters
+
+    masks = [np.zeros((24, 24), dtype=bool) for _ in range(4)]
+    masks[0][4:10, 3:8] = True
+    masks[1][4:10, 8:13] = True
+    masks[2][16:20, 16:20] = True
+    masks[3][4:10, 13:18] = True
+    colors = [
+        np.array((100, 90, 80), dtype=np.float32),
+        np.array((112, 96, 84), dtype=np.float32),
+        np.array((105, 92, 82), dtype=np.float32),
+        np.array((220, 40, 40), dtype=np.float32),
+    ]
+    clusters = _semantic_plane_clusters(
+        masks, colors, color_distance=32.0, adjacency_radius=1
+    )
+    assert clusters == ((0, 1),)
+
+
+def test_semantic_plane_refit_rebuilds_adjacent_mass_as_low_vertex_polygon():
+    import cv2
+    from minimalize_engine.v2.pipeline import _fit_semantic_plane_polygon
+
+    part = np.zeros((30, 30), dtype=bool)
+    part[4:24, 4:24] = True
+    target = np.zeros_like(part)
+    target[8:16, 6:12] = True
+    target[8:16, 12:20] = True
+
+    polygon = _fit_semantic_plane_polygon(target, part, max_vertices=4)
+    assert polygon is not None
+    assert 3 <= len(polygon) <= 4
+
+    rendered = np.zeros_like(part, dtype=np.uint8)
+    cv2.fillPoly(rendered, [np.rint(polygon).astype(np.int32)], 1)
+    candidate = rendered > 0
+    iou = np.count_nonzero(candidate & target) / np.count_nonzero(candidate | target)
+    assert iou >= 0.85
+
+
+def test_semantic_plane_refit_has_independent_layered_toggle():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    assert LayeredPersonConfig().semantic_plane_refit is True
+    assert LayeredPersonConfig(semantic_plane_refit=False).semantic_plane_refit is False
