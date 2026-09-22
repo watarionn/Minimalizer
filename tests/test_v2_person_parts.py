@@ -352,3 +352,52 @@ def test_torso_semantic_budget_preserves_small_high_contrast_accent():
 
     assert torso_ids == {1, 2, 4}
     assert arm_ids == {1, 2, 3}
+
+
+def test_safe_limb_two_plane_budget_rejects_meaningful_color_accent():
+    from minimalize_engine.v2.pipeline import (
+        SceneShape,
+        _safe_limb_two_plane_keep_ids,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    main = SceneShape(
+        region_id=1,
+        geometry=polygon([[2,5],[24,5],[24,20],[2,20]]),
+        palette_id=0,
+    )
+    secondary = SceneShape(
+        region_id=2,
+        geometry=polygon([[24,5],[42,5],[42,20],[24,20]]),
+        palette_id=1,
+    )
+    overlay = SceneShape(
+        region_id=3,
+        geometry=polygon([[8,8],[13,8],[13,16],[8,16]]),
+        palette_id=2,
+    )
+    scored = [(400, 0, main), (300, -1, secondary), (60, -2, overlay)]
+    part = np.ones((30, 50), dtype=bool)
+
+    neutral_palette = {
+        0: np.array((100,100,100), dtype=np.float32),
+        1: np.array((110,110,110), dtype=np.float32),
+        2: np.array((115,115,115), dtype=np.float32),
+    }
+    accent_palette = {
+        **neutral_palette,
+        2: np.array((230,30,30), dtype=np.float32),
+    }
+
+    assert _safe_limb_two_plane_keep_ids(
+        scored, neutral_palette, part
+    ) == {1, 2}
+    assert _safe_limb_two_plane_keep_ids(
+        scored, accent_palette, part
+    ) is None

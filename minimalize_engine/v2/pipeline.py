@@ -790,6 +790,80 @@ def _semantic_budget_keep_ids(
     return {shape.region_id for shape in selected[:limit]}
 
 
+def _safe_limb_two_plane_keep_ids(
+    scored: list[tuple[int, int, SceneShape]],
+    palette_rgb: Mapping[int, NDArray[np.float32]],
+    part_mask: NDArray[np.bool_],
+    *,
+    min_coverage: float = 0.94,
+    accent_support_ratio: float = 0.05,
+    accent_contrast: float = 70.0,
+) -> set[int] | None:
+    """Return two limb planes only when they preserve silhouette and color accents."""
+    if len(scored) <= 2:
+        return {shape.region_id for _, _, shape in scored}
+
+    from itertools import combinations
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    items: list[tuple[SceneShape, NDArray[np.bool_], int, NDArray[np.float32]]] = []
+    full = np.zeros(part_mask.shape, dtype=bool)
+    for support, _, shape in scored:
+        mask = np.asarray(
+            rasterize_geometry(
+                shape.geometry,
+                part_mask.shape,
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=bool,
+        ) & part_mask
+        if not np.any(mask):
+            continue
+        rgb = palette_rgb.get(shape.palette_id)
+        if rgb is None:
+            continue
+        items.append((shape, mask, support, rgb))
+        full |= mask
+    if len(items) <= 2:
+        return {item[0].region_id for item in items}
+
+    full_pixels = max(int(np.count_nonzero(full)), 1)
+    best: tuple[float, float, set[int]] | None = None
+    for left, right in combinations(range(len(items)), 2):
+        kept = (items[left], items[right])
+        pair_mask = kept[0][1] | kept[1][1]
+        coverage = int(np.count_nonzero(pair_mask & full)) / full_pixels
+        if coverage < min_coverage:
+            continue
+
+        kept_colors = (kept[0][3], kept[1][3])
+        loses_accent = False
+        for index, item in enumerate(items):
+            if index in (left, right):
+                continue
+            support_ratio = item[2] / float(full_pixels)
+            contrast = min(
+                float(np.linalg.norm(item[3] - color))
+                for color in kept_colors
+            )
+            if (
+                support_ratio >= accent_support_ratio
+                and contrast >= accent_contrast
+            ):
+                loses_accent = True
+                break
+        if loses_accent:
+            continue
+
+        pair_contrast = float(np.linalg.norm(kept[0][3] - kept[1][3]))
+        keep_ids = {kept[0][0].region_id, kept[1][0].region_id}
+        candidate = (coverage, pair_contrast, keep_ids)
+        if best is None or candidate[:2] > best[:2]:
+            best = candidate
+    return None if best is None else best[2]
+
+
 def _apply_semantic_shape_budget(
     result: PresetPipelineResult,
     *,
@@ -798,8 +872,6 @@ def _apply_semantic_shape_budget(
 ) -> PresetPipelineResult:
     """Keep only the dominant painted color planes inside a semantic body part."""
     limit = _semantic_part_shape_limit(part_name, result.preset)
-    if len(result.scene.shapes) <= limit:
-        return result
     from minimalize_engine.v2.primitive.scoring import rasterize_geometry
 
     scored: list[tuple[int, int, SceneShape]] = []
@@ -812,18 +884,33 @@ def _apply_semantic_shape_budget(
         support = int(np.count_nonzero(geometry_mask & part_mask))
         if support:
             scored.append((support, -order, shape))
-    if len(scored) <= limit:
-        return result
     palette_rgb = {
         entry.palette_id: np.asarray(entry.rgb, dtype=np.float32)
         for entry in result.scene.palette
     }
-    keep_ids = _semantic_budget_keep_ids(
-        scored,
-        palette_rgb,
-        part_name=part_name,
-        limit=limit,
-    )
+    limb_names = {"left_arm", "right_arm", "left_leg", "right_leg"}
+    limb_keep_ids: set[int] | None = None
+    if (
+        result.preset == "minimal"
+        and part_name in limb_names
+        and len(scored) > 2
+    ):
+        limb_keep_ids = _safe_limb_two_plane_keep_ids(
+            scored,
+            palette_rgb,
+            part_mask,
+        )
+    if limb_keep_ids is not None:
+        keep_ids = limb_keep_ids
+    else:
+        if len(scored) <= limit:
+            return result
+        keep_ids = _semantic_budget_keep_ids(
+            scored,
+            palette_rgb,
+            part_name=part_name,
+            limit=limit,
+        )
     shapes = tuple(
         replace(shape, visible=shape.visible and shape.region_id in keep_ids)
         for shape in result.scene.shapes
