@@ -357,7 +357,7 @@ def test_torso_semantic_budget_preserves_small_high_contrast_accent():
 def test_safe_limb_two_plane_budget_rejects_meaningful_color_accent():
     from minimalize_engine.v2.pipeline import (
         SceneShape,
-        _safe_limb_two_plane_keep_ids,
+        _safe_semantic_two_plane_keep_ids,
     )
     from minimalize_engine.v2.primitive import PrimitiveGeometry
 
@@ -395,9 +395,77 @@ def test_safe_limb_two_plane_budget_rejects_meaningful_color_accent():
         2: np.array((230,30,30), dtype=np.float32),
     }
 
-    assert _safe_limb_two_plane_keep_ids(
+    assert _safe_semantic_two_plane_keep_ids(
         scored, neutral_palette, part
     ) == {1, 2}
-    assert _safe_limb_two_plane_keep_ids(
+    assert _safe_semantic_two_plane_keep_ids(
         scored, accent_palette, part
     ) is None
+
+
+def test_head_two_plane_budget_protects_smaller_color_accent():
+    from minimalize_engine.v2.pipeline import (
+        SceneShape,
+        _safe_semantic_two_plane_keep_ids,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    main = SceneShape(
+        region_id=11,
+        geometry=polygon([[2,5],[24,5],[24,20],[2,20]]),
+        palette_id=0,
+    )
+    secondary = SceneShape(
+        region_id=12,
+        geometry=polygon([[24,5],[42,5],[42,20],[24,20]]),
+        palette_id=1,
+    )
+    small_accent = SceneShape(
+        region_id=13,
+        geometry=polygon([[8,8],[12,8],[12,13],[8,13]]),
+        palette_id=2,
+    )
+    part = np.ones((30, 50), dtype=bool)
+    main_mask = np.asarray(
+        rasterize_geometry(main.geometry, part.shape, origin=(0, 0), scale=2),
+        dtype=bool,
+    )
+    secondary_mask = np.asarray(
+        rasterize_geometry(secondary.geometry, part.shape, origin=(0, 0), scale=2),
+        dtype=bool,
+    )
+    full_pixels = int(np.count_nonzero((main_mask | secondary_mask) & part))
+    accent_support = max(1, int(round(full_pixels * 0.045)))
+    scored = [
+        (400, 0, main),
+        (300, -1, secondary),
+        (accent_support, -2, small_accent),
+    ]
+    palette = {
+        0: np.array((100,100,100), dtype=np.float32),
+        1: np.array((110,110,110), dtype=np.float32),
+        2: np.array((230,30,30), dtype=np.float32),
+    }
+
+    limb_like = _safe_semantic_two_plane_keep_ids(
+        scored,
+        palette,
+        part,
+        accent_support_ratio=0.05,
+    )
+    head_like = _safe_semantic_two_plane_keep_ids(
+        scored,
+        palette,
+        part,
+        accent_support_ratio=0.04,
+    )
+
+    assert limb_like == {11, 12}
+    assert head_like is None

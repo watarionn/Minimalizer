@@ -790,7 +790,7 @@ def _semantic_budget_keep_ids(
     return {shape.region_id for shape in selected[:limit]}
 
 
-def _safe_limb_two_plane_keep_ids(
+def _safe_semantic_two_plane_keep_ids(
     scored: list[tuple[int, int, SceneShape]],
     palette_rgb: Mapping[int, NDArray[np.float32]],
     part_mask: NDArray[np.bool_],
@@ -799,7 +799,7 @@ def _safe_limb_two_plane_keep_ids(
     accent_support_ratio: float = 0.05,
     accent_contrast: float = 70.0,
 ) -> set[int] | None:
-    """Return two limb planes only when they preserve silhouette and color accents."""
+    """Return two semantic planes only when silhouette and color accents survive."""
     if len(scored) <= 2:
         return {shape.region_id for _, _, shape in scored}
 
@@ -864,6 +864,57 @@ def _safe_limb_two_plane_keep_ids(
     return None if best is None else best[2]
 
 
+def _reduce_safe_head_to_two_planes(
+    result: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    """Reduce a finalized minimal head to two planes only when detail is redundant."""
+    if result.preset != "minimal":
+        return result
+
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    scored: list[tuple[int, int, SceneShape]] = []
+    for order, shape in enumerate(result.scene.shapes):
+        if not shape.visible:
+            continue
+        geometry_mask = rasterize_geometry(
+            shape.geometry,
+            part_mask.shape,
+            origin=(0, 0),
+            scale=2,
+        )
+        support = int(np.count_nonzero(geometry_mask & part_mask))
+        if support:
+            scored.append((support, -order, shape))
+    if len(scored) <= 2:
+        return result
+
+    palette_rgb = {
+        entry.palette_id: np.asarray(entry.rgb, dtype=np.float32)
+        for entry in result.scene.palette
+    }
+    keep_ids = _safe_semantic_two_plane_keep_ids(
+        scored,
+        palette_rgb,
+        part_mask,
+        min_coverage=0.94,
+        accent_support_ratio=0.04,
+        accent_contrast=70.0,
+    )
+    if keep_ids is None:
+        return result
+
+    shapes = tuple(
+        replace(shape, visible=shape.visible and shape.region_id in keep_ids)
+        for shape in result.scene.shapes
+    )
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=shapes, facet_overlays=()),
+    )
+
+
 def _apply_semantic_shape_budget(
     result: PresetPipelineResult,
     *,
@@ -895,7 +946,7 @@ def _apply_semantic_shape_budget(
         and part_name in limb_names
         and len(scored) > 2
     ):
-        limb_keep_ids = _safe_limb_two_plane_keep_ids(
+        limb_keep_ids = _safe_semantic_two_plane_keep_ids(
             scored,
             palette_rgb,
             part_mask,
@@ -981,7 +1032,13 @@ def _minimalize_person_parts(
                         part_name=name,
                         part_mask=mask,
                     )
-                return _consolidate_semantic_planes(refined)
+                refined = _consolidate_semantic_planes(refined)
+                if name == "head":
+                    refined = _reduce_safe_head_to_two_planes(
+                        refined,
+                        mask,
+                    )
+                return refined
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)
