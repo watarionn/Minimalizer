@@ -235,3 +235,14 @@ def test_semantic_plane_consolidation_is_available_on_layered_path():
     # switch, so the layered experiment remains fully reversible.
     assert LayeredPersonConfig().semantic_shape_budget is True
     assert LayeredPersonConfig(semantic_shape_budget=False).semantic_shape_budget is False
+
+
+def test_person_part_polygon_quantization_supports_quadrilateral_limbs():
+    from minimalize_engine.v2.pipeline import _quantize_polygon_geometry
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    angles = np.linspace(0.0, 2.0 * np.pi, 16, endpoint=False)
+    loop = np.column_stack((24.0 + 12.0 * np.cos(angles), 30.0 + 5.0 * np.sin(angles))).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
+    quantized = _quantize_polygon_geometry(geometry, max_vertices=4)
+    assert 3 <= len(quantized.loops[0]) <= 4

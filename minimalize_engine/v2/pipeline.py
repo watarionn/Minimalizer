@@ -630,7 +630,7 @@ def _minimalize_person_parts(
                         _apply_semantic_shape_budget(
                             preset_result, part_name=name, part_mask=mask
                         ),
-                        max_vertices=6,
+                        max_vertices=4 if name in {"left_arm", "right_arm", "left_leg", "right_leg"} else (5 if name == "torso" else 6),
                     )
                 )
                 for preset, preset_result in part_result.presets.items()
