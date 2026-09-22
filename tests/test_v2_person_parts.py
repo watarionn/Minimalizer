@@ -246,3 +246,15 @@ def test_person_part_polygon_quantization_supports_quadrilateral_limbs():
     geometry = PrimitiveGeometry(kind="polygon", loops=(loop,))
     quantized = _quantize_polygon_geometry(geometry, max_vertices=4)
     assert 3 <= len(quantized.loops[0]) <= 4
+
+
+def test_person_part_polygon_quantization_can_drop_secondary_loops():
+    from minimalize_engine.v2.pipeline import _quantize_polygon_geometry
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    outer = np.array([[0,0],[20,0],[20,20],[0,20]], dtype=np.float32)
+    inner = np.array([[7,7],[13,7],[13,13],[7,13]], dtype=np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(outer, inner))
+    quantized = _quantize_polygon_geometry(geometry, max_vertices=4, max_loops=1)
+    assert len(quantized.loops) == 1
+    assert len(quantized.loops[0]) <= 4

@@ -421,6 +421,7 @@ def _quantize_polygon_geometry(
     geometry: PrimitiveGeometry,
     *,
     max_vertices: int = 6,
+    max_loops: int | None = None,
 ) -> PrimitiveGeometry:
     if geometry.kind != "polygon" or not geometry.loops:
         return geometry
@@ -448,6 +449,9 @@ def _quantize_polygon_geometry(
                 hull = hull[indices]
             best = hull if len(hull) >= 3 else points
         loops.append(best)
+    if max_loops is not None and len(loops) > max_loops:
+        loops.sort(key=lambda loop: abs(cv2.contourArea(loop.astype(np.float32))), reverse=True)
+        loops = loops[:max_loops]
     return replace(geometry, loops=tuple(loops))
 
 
@@ -455,9 +459,10 @@ def _quantize_person_part_polygons(
     result: PresetPipelineResult,
     *,
     max_vertices: int = 6,
+    max_loops: int | None = None,
 ) -> PresetPipelineResult:
     shapes = tuple(
-        replace(shape, geometry=_quantize_polygon_geometry(shape.geometry, max_vertices=max_vertices))
+        replace(shape, geometry=_quantize_polygon_geometry(shape.geometry, max_vertices=max_vertices, max_loops=max_loops))
         if shape.visible and shape.geometry.kind == "polygon"
         else shape
         for shape in result.scene.shapes
@@ -631,6 +636,7 @@ def _minimalize_person_parts(
                             preset_result, part_name=name, part_mask=mask
                         ),
                         max_vertices=4 if name in {"left_arm", "right_arm", "left_leg", "right_leg"} else (5 if name == "torso" else 6),
+                        max_loops=2 if name == "head" else 1,
                     )
                 )
                 for preset, preset_result in part_result.presets.items()
