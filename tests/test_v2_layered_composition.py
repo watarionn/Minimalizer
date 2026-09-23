@@ -98,3 +98,51 @@ def test_partitioned_scene_blocks_scene_background_from_overpainting_subject():
     assert tuple(result[1, 2]) == (90, 70, 50)
     assert tuple(result[4, 2]) == (90, 70, 50)
     assert tuple(result[0, 0]) == (240, 240, 240)
+
+
+def test_compositor_uses_whole_person_fallback_only_for_uncovered_seam_pixels():
+    from minimalize_engine.v2.layered_composition import compose_layered_rgb
+
+    subject = np.zeros((7, 7), dtype=np.bool_)
+    subject[1:5, 2:5] = True
+    head = np.zeros_like(subject)
+    head[1:3, 2:5] = True
+    torso = np.zeros_like(subject)
+    torso[3:5, 2:5] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={"head": head, "torso": torso},
+    )
+
+    background = np.full((7, 7, 3), 10, dtype=np.uint8)
+    fallback = np.full((7, 7, 3), 40, dtype=np.uint8)
+    head_rgb = np.full((7, 7, 3), 200, dtype=np.uint8)
+    torso_rgb = np.full((7, 7, 3), 100, dtype=np.uint8)
+
+    head_coverage = np.zeros_like(subject)
+    head_coverage[1, 2:5] = True
+    torso_coverage = np.zeros_like(subject)
+    torso_coverage[4, 2:5] = True
+    fallback_coverage = np.zeros_like(subject)
+    fallback_coverage[2:4, 3] = True
+
+    result = compose_layered_rgb(
+        background,
+        partition,
+        part_renders={"head": head_rgb, "torso": torso_rgb},
+        part_coverage_masks={
+            "head": head_coverage,
+            "torso": torso_coverage,
+        },
+        subject_fallback_rgb=fallback,
+        subject_fallback_coverage=fallback_coverage,
+        seam_fallback_radius=1,
+    )
+
+    assert tuple(result[1, 3]) == (200, 200, 200)
+    assert tuple(result[4, 3]) == (100, 100, 100)
+    assert tuple(result[2, 3]) == (40, 40, 40)
+    assert tuple(result[3, 3]) == (40, 40, 40)
+    assert tuple(result[2, 2]) == (200, 200, 200)
+    assert tuple(result[0, 0]) == (10, 10, 10)

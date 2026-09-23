@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass
 import numpy as np
 
 from minimalize_engine.v2.pipeline import MinimalizerV2Result
-from minimalize_engine.v2.render import render_scene
+from minimalize_engine.v2.render import render_scene, render_scene_coverage
 from minimalize_engine.v2.layered_composition import render_partitioned_scene
 
 PNG_CONTRACT_VERSION = "minimalizer-v2-png-v1"
@@ -94,11 +94,18 @@ def export_png(
             for name, presets in result.person_part_presets.items()
             if preset in presets
         }
+        part_coverage_masks = {
+            name: render_scene_coverage(presets[preset].scene)
+            for name, presets in result.person_part_presets.items()
+            if preset in presets
+        }
         rgb = render_partitioned_scene(
             rgb,
             result.bundle.analysis_rgb,
             result.person_parts,
             part_renders=part_renders or None,
+            part_coverage_masks=part_coverage_masks or None,
+            scene_coverage_mask=render_scene_coverage(pipeline.scene),
         )
     content = encode_rgb_png(rgb)
     source_height, source_width = result.bundle.source_rgb.shape[:2]

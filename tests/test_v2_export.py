@@ -88,3 +88,33 @@ def test_file_adapter_preserves_v2_png_contract(tmp_path):
     direct = export_png(minimalize_v2(_image(), presets=("minimal",)))
     adapted = minimalize_file_png(source_path)
     assert adapted == direct
+
+
+def test_layered_png_export_is_byte_deterministic_with_seam_fallback():
+    from minimalize_engine.v2.analysis_guidance import AnalysisGuidance
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig, PipelineConfig
+
+    image = _image()
+    subject = np.zeros(image.shape[:2], dtype=np.float32)
+    subject[4:50, 8:52] = 0.95
+    guidance = AnalysisGuidance(
+        subject_prob=subject,
+        subject_confidence=np.ones_like(subject),
+        subject_provider="test",
+        subject_model="mask",
+    )
+    result = minimalize_v2(
+        image,
+        presets=("minimal",),
+        config=PipelineConfig(
+            analysis_max_side=60,
+            layered_person=LayeredPersonConfig(enabled=True),
+        ),
+        guidance=guidance,
+    )
+
+    assert result.person_parts is not None
+    assert result.person_part_presets
+    first = export_png(result, preset="minimal", include_facets=False)
+    second = export_png(result, preset="minimal", include_facets=False)
+    assert first == second

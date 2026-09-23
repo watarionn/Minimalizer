@@ -29,6 +29,25 @@ def render_geometry_scene(
     return canvas
 
 
+
+def render_scene_coverage(scene: SceneModel) -> np.ndarray:
+    """Return the union of visible primitive geometry in a scene."""
+    coverage = np.zeros((scene.height, scene.width), dtype=np.bool_)
+    for shape in scene.shapes:
+        if not shape.visible:
+            continue
+        coverage |= np.asarray(
+            rasterize_geometry(
+                shape.geometry,
+                (scene.height, scene.width),
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=np.bool_,
+        )
+    return coverage
+
+
 def render_scene(
     scene: SceneModel, *, include_facets: bool = True
 ) -> np.ndarray:

@@ -13,12 +13,15 @@ from minimalize_engine.v2.person_parts import PersonPartPartition
 class LayeredCompositionConfig:
     background_color_count: int = 3
     background_blur_sigma: float = 5.0
+    seam_fallback_radius: int = 1
 
     def __post_init__(self) -> None:
         if self.background_color_count < 1:
             raise ValueError("background_color_count must be positive")
         if not np.isfinite(self.background_blur_sigma) or self.background_blur_sigma < 0.0:
             raise ValueError("background_blur_sigma must be finite and non-negative")
+        if self.seam_fallback_radius < 0:
+            raise ValueError("seam_fallback_radius must be non-negative")
 
 
 def _quantize_background(
@@ -66,12 +69,74 @@ PART_LAYER_ORDER = (
 )
 
 
+PART_SEAM_PAIRS = (
+    ("head", "torso"),
+    ("torso", "left_arm"),
+    ("torso", "right_arm"),
+    ("torso", "left_leg"),
+    ("torso", "right_leg"),
+)
+
+
+def _seam_fallback_mask(
+    partition: PersonPartPartition,
+    part_coverage_masks: dict[str, NDArray[np.bool_]],
+    fallback_coverage: NDArray[np.bool_],
+    *,
+    radius: int,
+) -> NDArray[np.bool_]:
+    """Find uncovered semantic seam pixels backed by the whole-person scene."""
+    result = np.zeros_like(partition.subject_mask)
+    if radius <= 0:
+        return result
+    kernel = np.ones((radius * 2 + 1, radius * 2 + 1), dtype=np.uint8)
+    for first, second in PART_SEAM_PAIRS:
+        first_mask = partition.part_masks.get(first)
+        second_mask = partition.part_masks.get(second)
+        if (
+            first_mask is None
+            or second_mask is None
+            or not np.any(first_mask)
+            or not np.any(second_mask)
+        ):
+            continue
+        first_coverage = np.asarray(
+            part_coverage_masks.get(first, np.zeros_like(first_mask)),
+            dtype=np.bool_,
+        )
+        second_coverage = np.asarray(
+            part_coverage_masks.get(second, np.zeros_like(second_mask)),
+            dtype=np.bool_,
+        )
+        if (
+            first_coverage.shape != partition.subject_mask.shape
+            or second_coverage.shape != partition.subject_mask.shape
+        ):
+            raise ValueError("part coverage masks must match partition dimensions")
+        near_second = cv2.dilate(
+            second_mask.astype(np.uint8), kernel, iterations=1
+        ).astype(np.bool_)
+        near_first = cv2.dilate(
+            first_mask.astype(np.uint8), kernel, iterations=1
+        ).astype(np.bool_)
+        result |= first_mask & near_second & ~first_coverage
+        result |= second_mask & near_first & ~second_coverage
+
+    fallback = np.asarray(fallback_coverage, dtype=np.bool_)
+    if fallback.shape != partition.subject_mask.shape:
+        raise ValueError("fallback coverage must match partition dimensions")
+    return result & partition.subject_mask & fallback
+
+
 def compose_layered_rgb(
     background_rgb: NDArray[np.uint8],
     partition: PersonPartPartition,
     *,
     part_renders: dict[str, NDArray[np.uint8]],
+    part_coverage_masks: dict[str, NDArray[np.bool_]] | None = None,
     subject_fallback_rgb: NDArray[np.uint8] | None = None,
+    subject_fallback_coverage: NDArray[np.bool_] | None = None,
+    seam_fallback_radius: int = 0,
 ) -> NDArray[np.uint8]:
     background = np.asarray(background_rgb, dtype=np.uint8)
     if background.ndim != 3 or background.shape[2] != 3:
@@ -91,11 +156,27 @@ def compose_layered_rgb(
         canvas[mask] = image[mask]
         painted |= mask
     remainder = partition.subject_mask & ~painted
-    if remainder.any() and subject_fallback_rgb is not None:
+    fallback = None
+    if subject_fallback_rgb is not None:
         fallback = np.asarray(subject_fallback_rgb, dtype=np.uint8)
         if fallback.shape != background.shape:
             raise ValueError("subject fallback must match background shape")
-        canvas[remainder] = fallback[remainder]
+        if remainder.any():
+            canvas[remainder] = fallback[remainder]
+
+    if (
+        fallback is not None
+        and part_coverage_masks is not None
+        and subject_fallback_coverage is not None
+        and seam_fallback_radius > 0
+    ):
+        seam_mask = _seam_fallback_mask(
+            partition,
+            part_coverage_masks,
+            subject_fallback_coverage,
+            radius=seam_fallback_radius,
+        )
+        canvas[seam_mask] = fallback[seam_mask]
     return canvas
 
 
@@ -106,6 +187,8 @@ def render_partitioned_scene(
     partition: PersonPartPartition,
     *,
     part_renders: dict[str, NDArray[np.uint8]] | None = None,
+    part_coverage_masks: dict[str, NDArray[np.bool_]] | None = None,
+    scene_coverage_mask: NDArray[np.bool_] | None = None,
     config: LayeredCompositionConfig | None = None,
 ) -> NDArray[np.uint8]:
     """Compose one V2 primitive render through explicit background/person layers.
@@ -131,7 +214,10 @@ def render_partitioned_scene(
         background,
         partition,
         part_renders=active_part_renders,
+        part_coverage_masks=part_coverage_masks,
         subject_fallback_rgb=scene,
+        subject_fallback_coverage=scene_coverage_mask,
+        seam_fallback_radius=active.seam_fallback_radius,
     )
 
 def render_layered_preview(
