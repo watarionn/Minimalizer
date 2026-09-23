@@ -247,7 +247,7 @@ def _repair_bilateral_structural_arms(
             if core_pixels < int(min_seed_pixels):
                 continue
             head_overlap = int(np.count_nonzero(core & head_seed))
-            if head_overlap / float(head_pixels) <= float(max_head_core_ratio):
+            if head_overlap / float(core_pixels) <= float(max_head_core_ratio):
                 selected = np.asarray(core, dtype=np.bool_)
                 break
         if selected is None:

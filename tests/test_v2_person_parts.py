@@ -788,16 +788,16 @@ def test_bilateral_structural_arm_repair_restores_high_confidence_cores():
 
     subject = np.ones((100, 100), dtype=bool)
     assigned = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
-    assigned["head"][0:40, 25:75] = True
+    assigned["head"][0:20, 25:75] = True
     assigned["torso"][40:70, 30:70] = True
     assigned["left_leg"][70:, 30:50] = True
     assigned["right_leg"][70:, 50:70] = True
 
     seed_parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
-    seed_parts["head"][0:40, 25:75] = True
+    seed_parts["head"][0:20, 25:75] = True
     seed_parts["torso"][35:70, 35:65] = True
-    seed_parts["left_arm"][20:30, 28:34] = True
-    seed_parts["right_arm"][20:30, 66:72] = True
+    seed_parts["left_arm"][24:34, 18:24] = True
+    seed_parts["right_arm"][24:34, 76:82] = True
     seed_parts["left_leg"][65:95, 35:45] = True
     seed_parts["right_leg"][65:95, 55:65] = True
 
@@ -839,6 +839,43 @@ def test_bilateral_structural_arm_repair_ignores_unilateral_collapse():
 
     seed_parts = {name: mask.copy() for name, mask in assigned.items()}
     seed_parts["left_arm"][20:30, 28:34] = True
+    left_support = np.zeros(subject.shape, dtype=np.float32)
+    right_support = np.zeros(subject.shape, dtype=np.float32)
+    left_support[20:30, 28:34] = 0.8
+    right_support[20:30, 66:72] = 0.8
+
+    repaired = _repair_bilateral_structural_arms(
+        subject,
+        assigned,
+        seed_parts,
+        {"left_arm": left_support, "right_arm": right_support},
+        collapse_subject_ratio=0.002,
+        min_core_confidence=0.4,
+        max_head_core_ratio=0.08,
+        min_seed_pixels=4,
+        minimum_part_pixels=1,
+    )
+
+    assert np.array_equal(repaired["left_arm"], assigned["left_arm"])
+    assert np.array_equal(repaired["right_arm"], assigned["right_arm"])
+
+
+def test_bilateral_structural_arm_repair_rejects_head_overlapping_cores():
+    from minimalize_engine.v2.person_parts import (
+        PERSON_PART_NAMES,
+        _repair_bilateral_structural_arms,
+    )
+
+    subject = np.ones((100, 100), dtype=bool)
+    assigned = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    assigned["head"][0:40, 25:75] = True
+    assigned["torso"][40:70, 30:70] = True
+
+    seed_parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    seed_parts["head"][0:40, 25:75] = True
+    seed_parts["left_arm"][20:30, 28:34] = True
+    seed_parts["right_arm"][20:30, 66:72] = True
+
     left_support = np.zeros(subject.shape, dtype=np.float32)
     right_support = np.zeros(subject.shape, dtype=np.float32)
     left_support[20:30, 28:34] = 0.8
