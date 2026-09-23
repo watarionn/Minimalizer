@@ -30,6 +30,9 @@ class PersonPartConfig:
     leg_min_subject_ratio: float = 0.02
     leg_severe_subject_ratio: float = 0.004
     leg_repair_lower_start_ratio: float = 0.72
+    arm_bilateral_collapse_ratio: float = 0.002
+    arm_core_min_confidence: float = 0.40
+    arm_core_max_head_ratio: float = 0.08
 
     def __post_init__(self) -> None:
         for name in ("subject_threshold", "structural_threshold", "head_height_ratio", "head_width_ratio"):
@@ -52,6 +55,18 @@ class PersonPartConfig:
         if not np.isfinite(self.leg_repair_lower_start_ratio) or not 0.0 < self.leg_repair_lower_start_ratio < 1.0:
             raise ValueError(
                 "leg_repair_lower_start_ratio must be finite and within (0, 1)"
+            )
+        if not np.isfinite(self.arm_bilateral_collapse_ratio) or not 0.0 < self.arm_bilateral_collapse_ratio <= 1.0:
+            raise ValueError(
+                "arm_bilateral_collapse_ratio must be finite and within (0, 1]"
+            )
+        if not np.isfinite(self.arm_core_min_confidence) or not 0.0 < self.arm_core_min_confidence <= 1.0:
+            raise ValueError(
+                "arm_core_min_confidence must be finite and within (0, 1]"
+            )
+        if not np.isfinite(self.arm_core_max_head_ratio) or not 0.0 < self.arm_core_max_head_ratio <= 1.0:
+            raise ValueError(
+                "arm_core_max_head_ratio must be finite and within (0, 1]"
             )
 
 
@@ -186,6 +201,86 @@ def _assign_exclusive_parts(
 
 
 
+
+def _repair_bilateral_structural_arms(
+    subject: NDArray[np.bool_],
+    assigned_parts: dict[str, NDArray[np.bool_]],
+    seed_parts: dict[str, NDArray[np.bool_]],
+    structural_supports: dict[str, NDArray[np.float32] | None],
+    *,
+    collapse_subject_ratio: float,
+    min_core_confidence: float,
+    max_head_core_ratio: float,
+    min_seed_pixels: int,
+    minimum_part_pixels: int,
+) -> dict[str, NDArray[np.bool_]]:
+    """Rebuild only the rare case where both structural arms collapse together."""
+    subject_pixels = max(int(np.count_nonzero(subject)), 1)
+    arm_names = ("left_arm", "right_arm")
+    if any(
+        int(np.count_nonzero(assigned_parts[name])) / float(subject_pixels)
+        >= float(collapse_subject_ratio)
+        for name in arm_names
+    ):
+        return assigned_parts
+    if any(
+        int(np.count_nonzero(seed_parts[name])) < int(min_seed_pixels)
+        for name in arm_names
+    ):
+        return assigned_parts
+
+    head_seed = np.asarray(seed_parts["head"], dtype=np.bool_)
+    head_pixels = max(int(np.count_nonzero(head_seed)), 1)
+    cores: dict[str, NDArray[np.bool_]] = {}
+    thresholds = [
+        min(0.95, float(min_core_confidence) + 0.10 * step)
+        for step in range(6)
+    ]
+    for name in arm_names:
+        support = structural_supports.get(name)
+        if support is None:
+            return assigned_parts
+        selected: NDArray[np.bool_] | None = None
+        for threshold in thresholds:
+            core = (support >= threshold) & subject
+            core_pixels = int(np.count_nonzero(core))
+            if core_pixels < int(min_seed_pixels):
+                continue
+            head_overlap = int(np.count_nonzero(core & head_seed))
+            if head_overlap / float(head_pixels) <= float(max_head_core_ratio):
+                selected = np.asarray(core, dtype=np.bool_)
+                break
+        if selected is None:
+            return assigned_parts
+        cores[name] = selected
+
+    if np.any(cores["left_arm"] & cores["right_arm"]):
+        return assigned_parts
+
+    repaired_seeds = {
+        name: np.asarray(mask, dtype=np.bool_).copy()
+        for name, mask in seed_parts.items()
+    }
+    for arm_name in arm_names:
+        core = cores[arm_name]
+        for other_name in PERSON_PART_NAMES:
+            if other_name != arm_name:
+                repaired_seeds[other_name] &= ~core
+        repaired_seeds[arm_name] |= core
+
+    expanded = _expand_structural_parts_to_subject(subject, repaired_seeds)
+    repaired = _assign_exclusive_parts(
+        subject,
+        expanded,
+        minimum_part_pixels=minimum_part_pixels,
+    )
+    if any(
+        int(np.count_nonzero(repaired[name])) < int(minimum_part_pixels)
+        for name in arm_names
+    ):
+        return assigned_parts
+    return repaired
+
 def _repair_tiny_structural_legs(
     subject: NDArray[np.bool_],
     parts: dict[str, NDArray[np.bool_]],
@@ -310,8 +405,10 @@ def build_person_part_partition(
     }
     has_structural_support = False
     structural_seed_pixels: dict[str, int] = {}
+    structural_supports: dict[str, NDArray[np.float32] | None] = {}
     for name, channels in groups.items():
         support = _union_structural_channels(guidance, channels)
+        structural_supports[name] = support
         if support is None:
             parts[name] = np.zeros_like(subject)
             structural_seed_pixels[name] = 0
@@ -333,9 +430,14 @@ def build_person_part_partition(
             for name in required:
                 if int(parts[name].sum()) < active.structural_min_part_pixels:
                     parts[name] = fallback[name]
+    seed_parts: dict[str, NDArray[np.bool_]] | None = None
     if not has_structural_support:
         parts = fallback
     else:
+        seed_parts = {
+            name: np.asarray(mask, dtype=np.bool_).copy()
+            for name, mask in parts.items()
+        }
         # Pose channels are thin skeleton corridors, not full body-part masks.
         # Expand them across the subject silhouette before exclusivity so hair,
         # clothing, and skin pixels inherit the nearest semantic body part.
@@ -345,6 +447,18 @@ def build_person_part_partition(
         parts,
         minimum_part_pixels=active.minimum_part_pixels,
     )
+    if seed_parts is not None:
+        parts = _repair_bilateral_structural_arms(
+            subject,
+            parts,
+            seed_parts,
+            structural_supports,
+            collapse_subject_ratio=active.arm_bilateral_collapse_ratio,
+            min_core_confidence=active.arm_core_min_confidence,
+            max_head_core_ratio=active.arm_core_max_head_ratio,
+            min_seed_pixels=active.structural_min_part_pixels,
+            minimum_part_pixels=active.minimum_part_pixels,
+        )
     parts = _repair_tiny_structural_legs(
         subject,
         parts,
