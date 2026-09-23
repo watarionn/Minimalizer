@@ -640,3 +640,141 @@ def test_safe_angular_vertex_reduction_drops_redundant_head_corner():
     visible = [s for s in reduced.scene.shapes if s.visible]
     assert len(visible) == 1
     assert len(visible[0].geometry.loops[0]) == 5
+
+
+def test_tiny_structural_leg_repair_restores_bilateral_fallback_without_overlap():
+    from minimalize_engine.v2.person_parts import (
+        PERSON_PART_NAMES,
+        _repair_tiny_structural_legs,
+    )
+
+    subject = np.ones((20, 20), dtype=bool)
+    parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    parts["torso"][:] = True
+    parts["left_leg"][19, 0] = True
+    parts["right_leg"][19, 19] = True
+    parts["torso"][19, 0] = False
+    parts["torso"][19, 19] = False
+
+    fallback = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    fallback["left_leg"][12:, :10] = True
+    fallback["right_leg"][12:, 10:] = True
+
+    repaired = _repair_tiny_structural_legs(
+        subject,
+        parts,
+        fallback,
+        {"left_leg": 40, "right_leg": 40},
+        min_subject_ratio=0.02,
+        severe_subject_ratio=0.004,
+        lower_start_ratio=0.72,
+        min_seed_pixels=24,
+    )
+
+    assert int(repaired["left_leg"].sum()) >= 60
+    assert int(repaired["right_leg"].sum()) >= 60
+    assert not np.any(repaired["left_leg"] & repaired["right_leg"])
+    assert not np.any(repaired["left_leg"] & repaired["torso"])
+    assert not np.any(repaired["right_leg"] & repaired["torso"])
+    assert np.logical_or.reduce(list(repaired.values())).all()
+
+
+def test_tiny_structural_leg_repair_ignores_unilateral_degeneracy():
+    from minimalize_engine.v2.person_parts import (
+        PERSON_PART_NAMES,
+        _repair_tiny_structural_legs,
+    )
+
+    subject = np.ones((20, 20), dtype=bool)
+    parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    parts["torso"][:] = True
+    parts["left_leg"][19, 0] = True
+    parts["torso"][19, 0] = False
+    parts["right_leg"][12:, 10:] = True
+    parts["torso"][12:, 10:] = False
+
+    fallback = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    fallback["left_leg"][12:, :10] = True
+    fallback["right_leg"][12:, 10:] = True
+
+    repaired = _repair_tiny_structural_legs(
+        subject,
+        parts,
+        fallback,
+        {"left_leg": 40, "right_leg": 40},
+        min_subject_ratio=0.02,
+        severe_subject_ratio=0.004,
+        lower_start_ratio=0.72,
+        min_seed_pixels=24,
+    )
+
+    assert int(repaired["left_leg"].sum()) == 1
+    assert np.array_equal(repaired["right_leg"], parts["right_leg"])
+
+
+def test_tiny_structural_leg_repair_ignores_weak_pose_seed():
+    from minimalize_engine.v2.person_parts import (
+        PERSON_PART_NAMES,
+        _repair_tiny_structural_legs,
+    )
+
+    subject = np.ones((20, 20), dtype=bool)
+    parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    parts["torso"][:] = True
+    parts["left_leg"][19, 0] = True
+    parts["right_leg"][19, 19] = True
+    parts["torso"][19, 0] = False
+    parts["torso"][19, 19] = False
+
+    fallback = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    fallback["left_leg"][12:, :10] = True
+    fallback["right_leg"][12:, 10:] = True
+
+    repaired = _repair_tiny_structural_legs(
+        subject,
+        parts,
+        fallback,
+        {"left_leg": 40, "right_leg": 8},
+        min_subject_ratio=0.02,
+        severe_subject_ratio=0.004,
+        lower_start_ratio=0.72,
+        min_seed_pixels=24,
+    )
+
+    assert int(repaired["left_leg"].sum()) == 1
+    assert int(repaired["right_leg"].sum()) == 1
+
+
+def test_tiny_structural_leg_repair_only_expands_severe_leg():
+    from minimalize_engine.v2.person_parts import (
+        PERSON_PART_NAMES,
+        _repair_tiny_structural_legs,
+    )
+
+    subject = np.ones((20, 20), dtype=bool)
+    parts = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    parts["torso"][:] = True
+    parts["left_leg"][19, 0] = True
+    parts["right_leg"][19, 18:20] = True
+    parts["torso"][19, 0] = False
+    parts["torso"][19, 18:20] = False
+
+    fallback = {name: np.zeros_like(subject) for name in PERSON_PART_NAMES}
+    fallback["left_leg"][12:, :10] = True
+    fallback["right_leg"][12:, 10:] = True
+
+    repaired = _repair_tiny_structural_legs(
+        subject,
+        parts,
+        fallback,
+        {"left_leg": 40, "right_leg": 40},
+        min_subject_ratio=0.02,
+        severe_subject_ratio=0.004,
+        lower_start_ratio=0.72,
+        min_seed_pixels=24,
+    )
+
+    assert int(repaired["left_leg"].sum()) >= 60
+    assert int(repaired["right_leg"].sum()) == 2
+    assert np.array_equal(repaired["right_leg"], parts["right_leg"])
+    assert not np.any(repaired["left_leg"] & repaired["torso"])

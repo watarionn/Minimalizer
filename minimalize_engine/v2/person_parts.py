@@ -27,6 +27,9 @@ class PersonPartConfig:
     minimum_part_pixels: int = 4
     structural_min_coverage_ratio: float = 0.80
     structural_min_part_pixels: int = 24
+    leg_min_subject_ratio: float = 0.02
+    leg_severe_subject_ratio: float = 0.004
+    leg_repair_lower_start_ratio: float = 0.72
 
     def __post_init__(self) -> None:
         for name in ("subject_threshold", "structural_threshold", "head_height_ratio", "head_width_ratio"):
@@ -39,6 +42,17 @@ class PersonPartConfig:
             raise ValueError("structural_min_coverage_ratio must be finite and within (0, 1]")
         if self.structural_min_part_pixels < 1:
             raise ValueError("structural_min_part_pixels must be positive")
+        if not np.isfinite(self.leg_min_subject_ratio) or not 0.0 < self.leg_min_subject_ratio <= 1.0:
+            raise ValueError("leg_min_subject_ratio must be finite and within (0, 1]")
+        if not np.isfinite(self.leg_severe_subject_ratio) or not 0.0 < self.leg_severe_subject_ratio <= self.leg_min_subject_ratio:
+            raise ValueError(
+                "leg_severe_subject_ratio must be finite and within "
+                "(0, leg_min_subject_ratio]"
+            )
+        if not np.isfinite(self.leg_repair_lower_start_ratio) or not 0.0 < self.leg_repair_lower_start_ratio < 1.0:
+            raise ValueError(
+                "leg_repair_lower_start_ratio must be finite and within (0, 1)"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -172,6 +186,84 @@ def _assign_exclusive_parts(
 
 
 
+def _repair_tiny_structural_legs(
+    subject: NDArray[np.bool_],
+    parts: dict[str, NDArray[np.bool_]],
+    fallback: dict[str, NDArray[np.bool_]],
+    structural_seed_pixels: dict[str, int],
+    *,
+    min_subject_ratio: float,
+    severe_subject_ratio: float,
+    lower_start_ratio: float,
+    min_seed_pixels: int,
+) -> dict[str, NDArray[np.bool_]]:
+    """Repair only severe legs when both structural legs have collapsed."""
+    subject_pixels = max(int(np.count_nonzero(subject)), 1)
+    leg_names = ("left_leg", "right_leg")
+    leg_ratios = {
+        name: int(np.count_nonzero(parts[name])) / float(subject_pixels)
+        for name in leg_names
+    }
+    bilateral_degeneracy = all(
+        leg_ratios[name] < float(min_subject_ratio)
+        for name in leg_names
+    )
+    bilateral_structural_support = all(
+        int(structural_seed_pixels.get(name, 0)) >= int(min_seed_pixels)
+        for name in leg_names
+    )
+    if not (bilateral_degeneracy and bilateral_structural_support):
+        return parts
+
+    repair_names = [
+        name
+        for name in leg_names
+        if leg_ratios[name] < float(severe_subject_ratio)
+    ]
+    if not repair_names:
+        return parts
+
+    ys, _ = np.nonzero(subject)
+    if len(ys) == 0:
+        return parts
+    y0, y1 = int(ys.min()), int(ys.max()) + 1
+    lower_start = y0 + int(round((y1 - y0) * float(lower_start_ratio)))
+    yy = np.indices(subject.shape)[0]
+    lower_band = yy >= lower_start
+
+    repaired = {
+        name: np.asarray(mask, dtype=np.bool_).copy()
+        for name, mask in parts.items()
+    }
+    targets: dict[str, NDArray[np.bool_]] = {}
+    claimed = np.zeros_like(subject)
+    torso_owned = np.asarray(parts["torso"], dtype=np.bool_)
+    for name in repair_names:
+        current = np.asarray(parts[name], dtype=np.bool_)
+        target = (
+            current
+            | (
+                np.asarray(fallback[name], dtype=np.bool_)
+                & torso_owned
+                & lower_band
+            )
+        ) & subject & ~claimed
+        if not np.any(target):
+            continue
+        targets[name] = target
+        claimed |= target
+    if not targets:
+        return parts
+
+    for name in PERSON_PART_NAMES:
+        if name not in targets:
+            repaired[name] &= ~claimed
+    for name, target in targets.items():
+        repaired[name] = target
+
+    return repaired
+
+
 def resize_person_part_partition(
     partition: PersonPartPartition,
     target_shape: tuple[int, int],
@@ -217,13 +309,16 @@ def build_person_part_partition(
         "right_leg": ("right_thigh", "right_shin"),
     }
     has_structural_support = False
+    structural_seed_pixels: dict[str, int] = {}
     for name, channels in groups.items():
         support = _union_structural_channels(guidance, channels)
         if support is None:
             parts[name] = np.zeros_like(subject)
+            structural_seed_pixels[name] = 0
         else:
             candidate = (support >= active.structural_threshold) & subject
             parts[name] = candidate
+            structural_seed_pixels[name] = int(np.count_nonzero(candidate))
             has_structural_support = has_structural_support or bool(candidate.any())
     fallback = _silhouette_fallback_parts(subject, head)
     if has_structural_support:
@@ -249,6 +344,16 @@ def build_person_part_partition(
         subject,
         parts,
         minimum_part_pixels=active.minimum_part_pixels,
+    )
+    parts = _repair_tiny_structural_legs(
+        subject,
+        parts,
+        fallback,
+        structural_seed_pixels,
+        min_subject_ratio=active.leg_min_subject_ratio,
+        severe_subject_ratio=active.leg_severe_subject_ratio,
+        lower_start_ratio=active.leg_repair_lower_start_ratio,
+        min_seed_pixels=active.structural_min_part_pixels,
     )
     return PersonPartPartition(
         subject_mask=subject,
