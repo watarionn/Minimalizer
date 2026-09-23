@@ -30,3 +30,17 @@ The core product goal is intentionally simple: **input image -> minimalize**. Im
 - 8K-class input durability improvements
 
 See `RELEASE_NOTES_v0.3.0.md` for release detail and `REPOSITORY_LAYOUT.md` for repository organization.
+
+
+### Optional Jev Semantic Advisor (development QA)
+
+The layered-person development path includes an opt-in semantic QA exporter at
+`tools/export_jev_semantic_candidates.py`.
+
+It probes hidden planes deterministically and exports only planes whose
+restoration actually changes rendered pixels. An external Jev sidecar may label
+those numeric candidates for QA review. The advisor does not modify output,
+visibility, masks, merges, pruning, or primitive geometry, and Jev receives no
+image bytes.
+
+See `docs/JEV_SEMANTIC_ADVISOR.md`.
