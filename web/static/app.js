@@ -1,5 +1,19 @@
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const LOCAL_WORKER_BASE = "http://127.0.0.1:28765";
+const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 1200;
+const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
+
+const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
+if (localWorkerParam === "1") {
+  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+} else if (localWorkerParam === "0") {
+  window.localStorage.removeItem(LOCAL_WORKER_STORAGE_KEY);
+}
+
+function localWorkerEnabled() {
+  return window.localStorage.getItem(LOCAL_WORKER_STORAGE_KEY) === "1";
+}
 
 const elements = {
   dropZone: document.querySelector("#drop-zone"),
@@ -203,6 +217,56 @@ function buildColorStripFormData(outputFormat) {
   return form;
 }
 
+async function fetchLoopback(path, options = {}, timeoutMs = 0) {
+  const controller = new AbortController();
+  const timer = timeoutMs > 0
+    ? window.setTimeout(() => controller.abort(), timeoutMs)
+    : null;
+  try {
+    const request = new Request(`${LOCAL_WORKER_BASE}${path}`, {
+      ...options,
+      mode: "cors",
+      signal: controller.signal,
+      targetAddressSpace: "loopback",
+    });
+    return await fetch(request);
+  } finally {
+    if (timer !== null) window.clearTimeout(timer);
+  }
+}
+
+async function localWorkerReady() {
+  try {
+    const response = await fetchLoopback("/health", { method: "GET" }, LOCAL_WORKER_HEALTH_TIMEOUT_MS);
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return payload?.worker === "local-compute-v1" && payload?.ready === true;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function requestStandardV2() {
+  if (localWorkerEnabled() && await localWorkerReady()) {
+    try {
+      const response = await fetchLoopback("/api/v2/minimalize", {
+        method: "POST",
+        body: buildV2FormData(),
+      });
+      if (response.ok || response.status === 400 || response.status === 415) {
+        return { response, compute: "local-worker" };
+      }
+    } catch (_) {
+      // Fall through to Railway when the local worker disappears mid-request.
+    }
+  }
+  const response = await fetch("/api/v2/minimalize", {
+    method: "POST",
+    body: buildV2FormData(),
+  });
+  return { response, compute: "railway" };
+}
+
 async function responseError(response) {
   try {
     const payload = await response.json();
@@ -255,10 +319,18 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
   }
 
   try {
-    const response = await fetch(colorStrip ? "/api/minimalize" : "/api/v2/minimalize", {
-      method: "POST",
-      body: colorStrip ? buildColorStripFormData(outputFormat) : buildV2FormData(),
-    });
+    let response;
+    let computeRoute = colorStrip ? "railway" : "railway";
+    if (colorStrip) {
+      response = await fetch("/api/minimalize", {
+        method: "POST",
+        body: buildColorStripFormData(outputFormat),
+      });
+    } else {
+      const result = await requestStandardV2();
+      response = result.response;
+      computeRoute = result.compute;
+    }
     if (!response.ok) throw new Error(await responseError(response));
 
     const blob = await response.blob();
@@ -284,15 +356,17 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = v2Contract
-        ? "Minimalizer 2.0"
+        ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
         : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
 
       const colorOptionLabel = responseMode === "color_strip"
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
         : "";
 
+      const computeLabel = computeRoute === "local-worker" ? "Local Worker" : "";
       elements.resultMeta.textContent = [
         modeLabel,
+        computeLabel,
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
         colorOptionLabel,
         size || "",
@@ -303,7 +377,11 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
     if (download) {
       setStatus(`${label}を保存しました。`);
     } else {
-      setStatus(colorStrip ? "Color Stripが完成しました。" : "ミニマル化が完了しました。");
+      setStatus(colorStrip
+        ? "Color Stripが完成しました。"
+        : computeRoute === "local-worker"
+          ? "ローカル高精度Workerでミニマル化が完了しました。"
+          : "ミニマル化が完了しました。");
     }
   } catch (error) {
     if (preview && !state.resultBlob) {
