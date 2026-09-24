@@ -466,19 +466,230 @@ def _person_part_polygon_budget(part_name: str) -> tuple[int, int]:
     return (6, 1)
 
 
+def _quantized_geometry_metrics(
+    original: PrimitiveGeometry,
+    candidate: PrimitiveGeometry,
+    *,
+    canvas_shape: tuple[int, int],
+) -> tuple[float, float, float]:
+    """Return IoU, undercoverage and overcoverage for one geometry candidate."""
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    original_mask = np.asarray(
+        rasterize_geometry(original, canvas_shape, origin=(0, 0), scale=2),
+        dtype=np.bool_,
+    )
+    candidate_mask = np.asarray(
+        rasterize_geometry(candidate, canvas_shape, origin=(0, 0), scale=2),
+        dtype=np.bool_,
+    )
+    original_pixels = max(int(np.count_nonzero(original_mask)), 1)
+    intersection = int(np.count_nonzero(original_mask & candidate_mask))
+    union_pixels = int(np.count_nonzero(original_mask | candidate_mask))
+    iou = intersection / max(union_pixels, 1)
+    under = int(np.count_nonzero(original_mask & ~candidate_mask)) / float(original_pixels)
+    over = int(np.count_nonzero(candidate_mask & ~original_mask)) / float(original_pixels)
+    return (float(iou), float(under), float(over))
+
+
+def _quantized_geometry_is_safe(
+    original: PrimitiveGeometry,
+    candidate: PrimitiveGeometry,
+    *,
+    canvas_shape: tuple[int, int],
+    min_iou: float = 0.75,
+    max_undercoverage: float = 0.15,
+    max_overcoverage: float = 0.20,
+) -> bool:
+    """Guard low-vertex quantization against destructive silhouette loss."""
+    iou, under, over = _quantized_geometry_metrics(
+        original,
+        candidate,
+        canvas_shape=canvas_shape,
+    )
+    return (
+        iou >= float(min_iou)
+        and under <= float(max_undercoverage)
+        and over <= float(max_overcoverage)
+    )
+
+
+def _polygon_angularity_score(geometry: PrimitiveGeometry) -> float:
+    """Reward clear corners and penalize nearly collinear low-vertex contours."""
+    strengths: list[float] = []
+    for loop in geometry.loops:
+        points = np.asarray(loop, dtype=np.float32)
+        if len(points) < 3:
+            continue
+        for index in range(len(points)):
+            prev = points[index - 1] - points[index]
+            nxt = points[(index + 1) % len(points)] - points[index]
+            prev_norm = float(np.linalg.norm(prev))
+            next_norm = float(np.linalg.norm(nxt))
+            if prev_norm <= 1e-6 or next_norm <= 1e-6:
+                continue
+            cosine = float(
+                np.clip(np.dot(prev, nxt) / (prev_norm * next_norm), -1.0, 1.0)
+            )
+            interior = float(np.arccos(cosine))
+            strength = min(abs(np.pi - interior) / (np.pi / 2.0), 1.0)
+            strengths.append(float(strength))
+    return float(np.mean(strengths)) if strengths else 0.0
+
+
+def _quantize_polygon_geometry_candidates(
+    geometry: PrimitiveGeometry,
+    *,
+    max_vertices: int,
+    max_loops: int | None,
+) -> tuple[PrimitiveGeometry, ...]:
+    """Enumerate deterministic low-vertex epsilon candidates without early exit."""
+    if geometry.kind != "polygon" or not geometry.loops:
+        return ()
+
+    source_loops = [np.asarray(loop, dtype=np.float32) for loop in geometry.loops]
+    if max_loops is not None and len(source_loops) > max_loops:
+        source_loops.sort(
+            key=lambda loop: abs(cv2.contourArea(loop.astype(np.float32))),
+            reverse=True,
+        )
+        source_loops = source_loops[:max_loops]
+
+    ratios = (
+        0.004, 0.006, 0.008, 0.010, 0.012, 0.016,
+        0.020, 0.030, 0.040, 0.055, 0.075, 0.10, 0.14,
+    )
+    candidates: list[PrimitiveGeometry] = []
+    signatures: set[tuple[bytes, ...]] = set()
+    for ratio in ratios:
+        loops: list[NDArray[np.float32]] = []
+        for points in source_loops:
+            if len(points) <= max_vertices:
+                candidate = points
+            else:
+                contour = points.reshape((-1, 1, 2))
+                perimeter = float(cv2.arcLength(contour, True))
+                approx = cv2.approxPolyDP(
+                    contour,
+                    max(0.75, perimeter * ratio),
+                    True,
+                )
+                candidate = approx.reshape((-1, 2)).astype(np.float32)
+            if not 3 <= len(candidate) <= max_vertices:
+                loops = []
+                break
+            loops.append(candidate)
+        if not loops:
+            continue
+        signature = tuple(np.round(loop, 4).astype(np.float32).tobytes() for loop in loops)
+        if signature in signatures:
+            continue
+        signatures.add(signature)
+        candidates.append(replace(geometry, loops=tuple(loops)))
+    return tuple(candidates)
+
+
+def _select_quantized_geometry_candidate(
+    original: PrimitiveGeometry,
+    candidates: tuple[PrimitiveGeometry, ...],
+    *,
+    canvas_shape: tuple[int, int],
+    min_iou: float = 0.75,
+    max_undercoverage: float = 0.15,
+    max_overcoverage: float = 0.20,
+) -> PrimitiveGeometry:
+    """Choose the simplest safe candidate, then the strongest geometric fit."""
+    original_vertices = max(sum(len(loop) for loop in original.loops), 1)
+    ranked: list[tuple[int, float, int, PrimitiveGeometry]] = []
+    for order, candidate in enumerate(candidates):
+        iou, under, over = _quantized_geometry_metrics(
+            original,
+            candidate,
+            canvas_shape=canvas_shape,
+        )
+        if (
+            iou < float(min_iou)
+            or under > float(max_undercoverage)
+            or over > float(max_overcoverage)
+        ):
+            continue
+        vertices = sum(len(loop) for loop in candidate.loops)
+        simplicity = max(0.0, 1.0 - (vertices / float(original_vertices)))
+        angularity = _polygon_angularity_score(candidate)
+        score = (
+            iou
+            - 1.35 * under
+            - 0.55 * over
+            + 0.08 * angularity
+            + 0.06 * simplicity
+        )
+        ranked.append((vertices, -float(score), order, candidate))
+    if not ranked:
+        return original
+    ranked.sort(key=lambda item: (item[0], item[1], item[2]))
+    return ranked[0][3]
+
+
+def _quantize_person_part_geometry(
+    geometry: PrimitiveGeometry,
+    *,
+    canvas_shape: tuple[int, int],
+    max_vertices: int,
+    max_loops: int | None,
+) -> PrimitiveGeometry:
+    """Use strict low-vertex candidates first, then a bounded safe fallback."""
+    candidates = _quantize_polygon_geometry_candidates(
+        geometry,
+        max_vertices=max_vertices,
+        max_loops=max_loops,
+    )
+    selected = _select_quantized_geometry_candidate(
+        geometry,
+        candidates,
+        canvas_shape=canvas_shape,
+    )
+    if selected is not geometry:
+        return selected
+
+    soft_max_vertices = max(max_vertices, min(12, max_vertices * 3))
+    if soft_max_vertices <= max_vertices:
+        return geometry
+    soft_candidates = _quantize_polygon_geometry_candidates(
+        geometry,
+        max_vertices=soft_max_vertices,
+        max_loops=max_loops,
+    )
+    return _select_quantized_geometry_candidate(
+        geometry,
+        soft_candidates,
+        canvas_shape=canvas_shape,
+        max_undercoverage=0.08,
+    )
+
+
 def _quantize_person_part_polygons(
     result: PresetPipelineResult,
     *,
     max_vertices: int = 6,
     max_loops: int | None = None,
 ) -> PresetPipelineResult:
-    shapes = tuple(
-        replace(shape, geometry=_quantize_polygon_geometry(shape.geometry, max_vertices=max_vertices, max_loops=max_loops))
-        if shape.visible and shape.geometry.kind == "polygon"
-        else shape
-        for shape in result.scene.shapes
+    canvas_shape = (result.scene.height, result.scene.width)
+    shapes: list[SceneShape] = []
+    for shape in result.scene.shapes:
+        if not shape.visible or shape.geometry.kind != "polygon":
+            shapes.append(shape)
+            continue
+        selected = _quantize_person_part_geometry(
+            shape.geometry,
+            canvas_shape=canvas_shape,
+            max_vertices=max_vertices,
+            max_loops=max_loops,
+        )
+        shapes.append(replace(shape, geometry=selected))
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()),
     )
-    return replace(result, scene=replace(result.scene, shapes=shapes, facet_overlays=()))
 
 
 def _semantic_plane_clusters(

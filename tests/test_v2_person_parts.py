@@ -895,3 +895,123 @@ def test_bilateral_structural_arm_repair_rejects_head_overlapping_cores():
 
     assert np.array_equal(repaired["left_arm"], assigned["left_arm"])
     assert np.array_equal(repaired["right_arm"], assigned["right_arm"])
+
+
+def test_quantized_geometry_safety_rejects_large_undercoverage():
+    from minimalize_engine.v2.pipeline import _quantized_geometry_is_safe
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    original = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[18,2],[18,18],[2,18]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+    candidate = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[18,2],[2,18]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+
+    assert not _quantized_geometry_is_safe(
+        original,
+        candidate,
+        canvas_shape=(24,24),
+    )
+
+
+def test_quantized_geometry_safety_accepts_redundant_corner_cleanup():
+    from minimalize_engine.v2.pipeline import _quantized_geometry_is_safe
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    original = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[10,2],[18,2],[18,10],[18,18],[10,18],[2,18],[2,10]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+    candidate = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[18,2],[18,18],[2,18]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+
+    assert _quantized_geometry_is_safe(
+        original,
+        candidate,
+        canvas_shape=(24,24),
+    )
+
+
+def test_quantized_candidate_selection_prefers_simplest_safe_geometry():
+    from minimalize_engine.v2.pipeline import _select_quantized_geometry_candidate
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    original = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[10,2],[18,2],[18,10],[18,18],[10,18],[2,18],[2,10]],
+        dtype=np.float32,
+    ),))
+    five = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[18,2],[18,18],[10,18],[2,18]], dtype=np.float32,
+    ),))
+    four = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[18,2],[18,18],[2,18]], dtype=np.float32,
+    ),))
+
+    selected = _select_quantized_geometry_candidate(
+        original, (five, four), canvas_shape=(24,24)
+    )
+    assert len(selected.loops[0]) == 4
+
+
+def test_quantized_candidate_selection_keeps_original_when_all_are_destructive():
+    from minimalize_engine.v2.pipeline import _select_quantized_geometry_candidate
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    original = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[18,2],[18,18],[2,18]], dtype=np.float32,
+    ),))
+    triangle = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[18,2],[2,18]], dtype=np.float32,
+    ),))
+
+    selected = _select_quantized_geometry_candidate(
+        original, (triangle,), canvas_shape=(24,24)
+    )
+    assert selected is original
+
+
+def test_person_part_quantization_uses_bounded_safe_soft_fallback():
+    from minimalize_engine.v2.pipeline import (
+        _quantize_person_part_geometry,
+        _quantized_geometry_metrics,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    original = PrimitiveGeometry(kind="polygon", loops=(np.asarray(
+        [[2,2],[18,2],[18,8],[8,8],[8,18],[2,18]], dtype=np.float32,
+    ),))
+    selected = _quantize_person_part_geometry(
+        original, canvas_shape=(24,24), max_vertices=4, max_loops=1
+    )
+    iou, under, over = _quantized_geometry_metrics(
+        original, selected, canvas_shape=(24,24)
+    )
+    assert 4 < len(selected.loops[0]) <= 12
+    assert iou >= 0.75
+    assert under <= 0.15
+    assert over <= 0.20
