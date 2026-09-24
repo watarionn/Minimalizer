@@ -76,6 +76,23 @@ def create_rembg_session(
     return rembg.new_session(active.model, sess_opts=sess_opts)
 
 
+def build_rembg_guidance_from_mask(
+    mask: Any,
+    source_shape: tuple[int, int],
+    *,
+    config: RembgGuidanceConfig | None = None,
+) -> AnalysisGuidance:
+    active = config or RembgGuidanceConfig()
+    probability = _mask_to_probability(mask, source_shape)
+    confidence = subject_confidence_from_probability(probability, power=active.confidence_power)
+    return AnalysisGuidance(
+        subject_prob=probability,
+        subject_confidence=confidence,
+        subject_provider="rembg",
+        subject_model=active.model,
+    )
+
+
 def build_rembg_guidance(
     source_rgb: NDArray[np.uint8],
     *,
@@ -89,11 +106,8 @@ def build_rembg_guidance(
     rembg = _load_rembg()
     active_session = session if session is not None else rembg.new_session(active.model)
     mask = rembg.remove(Image.fromarray(source, mode="RGB"), session=active_session, only_mask=True)
-    probability = _mask_to_probability(mask, source.shape[:2])
-    confidence = subject_confidence_from_probability(probability, power=active.confidence_power)
-    return AnalysisGuidance(
-        subject_prob=probability,
-        subject_confidence=confidence,
-        subject_provider="rembg",
-        subject_model=active.model,
+    return build_rembg_guidance_from_mask(
+        mask,
+        source.shape[:2],
+        config=active,
     )
