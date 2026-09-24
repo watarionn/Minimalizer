@@ -1,3 +1,4 @@
+﻿import cv2
 import numpy as np
 import pytest
 
@@ -1148,3 +1149,146 @@ def test_semantic_part_paint_coverage_ignores_pure_white_background_but_keeps_ne
 
     assert _semantic_part_paint_coverage(result_for((255,255,255)), part) == 0.0
     assert _semantic_part_paint_coverage(result_for((254,254,254)), part) > 0.85
+
+
+def test_semantic_geometric_mass_toggle_is_opt_in():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    assert LayeredPersonConfig().semantic_geometric_mass is False
+    assert LayeredPersonConfig(semantic_geometric_mass=True).semantic_geometric_mass is True
+
+
+def test_semantic_geometric_mass_builds_bold_torso_and_keeps_accent():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _build_semantic_geometric_mass,
+        _semantic_part_paint_coverage,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    palette = (
+        PaletteEntry(
+            0, (1,), 1, np.asarray([45.0,0.0,0.0]), (110,110,110), (0,0)
+        ),
+        PaletteEntry(
+            1, (2,), 2, np.asarray([55.0,65.0,45.0]), (220,40,70), (0,0)
+        ),
+    )
+    baseline = DummyResult(
+        preset="minimal",
+        scene=SceneModel(
+            30,
+            30,
+            (
+                SceneShape(
+                    region_id=1,
+                    geometry=polygon([[5,5],[8,5],[11,5],[14,5],[14,10],[14,15],[14,20],[14,24],[11,24],[8,24],[5,24],[5,15]]),
+                    palette_id=0,
+                ),
+                SceneShape(
+                    region_id=2,
+                    geometry=polygon([[14,5],[20,5],[20,24],[14,24]]),
+                    palette_id=0,
+                ),
+                SceneShape(
+                    region_id=3,
+                    geometry=polygon([[16,8],[20,8],[20,15],[16,15]]),
+                    palette_id=1,
+                ),
+            ),
+            palette,
+        ),
+    )
+    part = np.zeros((30,30), dtype=bool)
+    part[5:25,5:21] = True
+
+    candidate = _build_semantic_geometric_mass(
+        baseline,
+        part_name="torso",
+        part_mask=part,
+    )
+    visible = [shape for shape in candidate.scene.shapes if shape.visible]
+
+    assert len(visible) == 3
+    assert visible[0].palette_id == 0
+    assert visible[0].geometry.kind == "polygon"
+    assert len(visible[0].geometry.loops[0]) <= 5
+    assert any(shape.palette_id == 1 for shape in visible)
+    assert _semantic_part_paint_coverage(candidate, part) > 0.80
+
+
+def test_semantic_geometric_mass_uses_four_vertex_limb_budget():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import SceneModel, SceneShape, _build_semantic_geometric_mass
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    entry = PaletteEntry(
+        0, (1,), 1, np.asarray([45.0,0.0,0.0]), (90,120,150), (0,0)
+    )
+    geom = PrimitiveGeometry(
+        kind="polygon",
+        loops=(np.asarray([[6,3],[9,3],[12,3],[12,8],[12,14],[12,20],[12,25],[10,25],[8,25],[6,25],[6,18],[6,10]], dtype=np.float32),),
+    )
+    baseline = DummyResult(
+        preset="minimal",
+        scene=SceneModel(
+            30,
+            30,
+            (SceneShape(region_id=1, geometry=geom, palette_id=0),),
+            (entry,),
+        ),
+    )
+    part = np.zeros((30,30), dtype=bool)
+    cv2.fillPoly(
+        part.view(np.uint8),
+        [np.asarray([[6,3],[9,3],[12,3],[12,8],[12,14],[12,20],[12,25],[10,25],[8,25],[6,25],[6,18],[6,10]], dtype=np.int32)],
+        1,
+    )
+
+    candidate = _build_semantic_geometric_mass(
+        baseline,
+        part_name="left_arm",
+        part_mask=part,
+    )
+    visible = [shape for shape in candidate.scene.shapes if shape.visible]
+    assert len(visible) == 1
+    assert visible[0].geometry.kind == "polygon"
+    assert len(visible[0].geometry.loops[0]) <= 4
+
+
+
+def test_semantic_geometric_mass_guard_is_stricter_than_general_coverage_guard():
+    from minimalize_engine.v2.pipeline import _semantic_geometric_mass_is_safe
+
+    assert _semantic_geometric_mass_is_safe(0.80, 0.76)
+    assert _semantic_geometric_mass_is_safe(0.785, 0.738)
+    assert not _semantic_geometric_mass_is_safe(0.59, 0.54)
+    assert not _semantic_geometric_mass_is_safe(0.23, 0.18)
+
+
+def test_semantic_mass_cutout_fill_guard_separates_small_cleanup_from_large_cutout_loss():
+    from minimalize_engine.v2.pipeline import _semantic_mass_cutout_fill_is_safe
+
+    assert _semantic_mass_cutout_fill_is_safe(1745, 33)
+    assert not _semantic_mass_cutout_fill_is_safe(1924, 131)
+    assert _semantic_mass_cutout_fill_is_safe(100, 3)
