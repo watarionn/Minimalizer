@@ -34,51 +34,58 @@ from minimalize_engine.color_strip import (
 from minimalize_engine.io.image_exporter import render_scene
 from minimalize_engine.io.svg_exporter import scene_to_svg
 from minimalize_engine.v2 import PipelineConfig, V2PngExport, minimalize_file_png
-from minimalize_engine.io.image_loader import load_image
 from minimalize_engine.v2.rembg_guidance import (
     RembgGuidanceConfig,
-    build_rembg_guidance,
-    create_rembg_session,
+    build_rembg_guidance_from_mask,
 )
 
 logger = logging.getLogger(__name__)
 
-_REMBG_SESSION = None
-_REMBG_LOCK = Lock()
 _REMBG_FAILURE_LOGGED = False
 _PRODUCTION_REMBG_MODEL = "u2netp"
-
-
-def _production_rembg_session_options():
-    import onnxruntime as ort
-
-    options = ort.SessionOptions()
-    options.enable_cpu_mem_arena = False
-    options.enable_mem_pattern = False
-    options.intra_op_num_threads = 1
-    options.inter_op_num_threads = 1
-    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
-    return options
+_REMBG_WORKER_TIMEOUT_SECONDS = 120
 
 
 def _production_v2_guidance(input_path: str | Path):
-    global _REMBG_SESSION, _REMBG_FAILURE_LOGGED
+    global _REMBG_FAILURE_LOGGED
     try:
         config = RembgGuidanceConfig(model=_PRODUCTION_REMBG_MODEL)
-        with _REMBG_LOCK:
-            if _REMBG_SESSION is None:
-                _REMBG_SESSION = create_rembg_session(
-                    config,
-                    sess_opts=_production_rembg_session_options(),
-                )
-            return build_rembg_guidance(
-                load_image(input_path),
-                config=config,
-                session=_REMBG_SESSION,
+        input_path = Path(input_path)
+        with TemporaryDirectory(prefix="minimalizer-rembg-worker-") as temp_dir:
+            mask_path = Path(temp_dir) / "subject-mask.png"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "web.rembg_worker",
+                    "--input",
+                    str(input_path),
+                    "--output",
+                    str(mask_path),
+                    "--model",
+                    config.model,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=_REMBG_WORKER_TIMEOUT_SECONDS,
             )
+            if not mask_path.is_file():
+                raise RuntimeError("rembg worker did not produce a mask")
+            with Image.open(input_path) as source_image:
+                source_shape = (source_image.height, source_image.width)
+            with Image.open(mask_path) as mask:
+                return build_rembg_guidance_from_mask(
+                    mask.copy(),
+                    source_shape,
+                    config=config,
+                )
     except Exception:
         if not _REMBG_FAILURE_LOGGED:
-            logger.warning("Production V2 rembg guidance unavailable; falling back to unguided V2.", exc_info=True)
+            logger.warning(
+                "Production V2 rembg worker unavailable; falling back to unguided V2.",
+                exc_info=True,
+            )
             _REMBG_FAILURE_LOGGED = True
         return None
 
