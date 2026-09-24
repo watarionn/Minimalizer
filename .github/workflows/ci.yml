@@ -52,7 +52,7 @@ jobs:
             tests/test_v020_bundle.py::test_corpus_manifest_contains_uploaded_images
 
       - name: Run Web API and UI tests
-        run: python -m pytest -q tests/test_web_api.py tests/test_color_strip.py tests/test_v2_default_migration.py
+        run: python -m pytest -q tests/test_web_api.py tests/test_color_strip.py tests/test_v2_default_migration.py tests/test_v2_performance_budget.py
 
       - name: Run real-server Web smoke
         shell: bash
