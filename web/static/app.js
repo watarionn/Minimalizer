@@ -2,6 +2,18 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const LOCAL_WORKER_BASE = "http://127.0.0.1:28765";
 const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 1200;
+const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
+
+const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
+if (localWorkerParam === "1") {
+  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+} else if (localWorkerParam === "0") {
+  window.localStorage.removeItem(LOCAL_WORKER_STORAGE_KEY);
+}
+
+function localWorkerEnabled() {
+  return window.localStorage.getItem(LOCAL_WORKER_STORAGE_KEY) === "1";
+}
 
 const elements = {
   dropZone: document.querySelector("#drop-zone"),
@@ -235,7 +247,7 @@ async function localWorkerReady() {
 }
 
 async function requestStandardV2() {
-  if (await localWorkerReady()) {
+  if (localWorkerEnabled() && await localWorkerReady()) {
     try {
       const response = await fetchLoopback("/api/v2/minimalize", {
         method: "POST",

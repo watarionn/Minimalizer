@@ -52,6 +52,16 @@ def test_local_worker_rejects_untrusted_browser_origin():
             data={"preset": "minimal", "include_facets": "true"},
         )
     assert response.status_code == 403
+
+
+def test_local_worker_allows_production_origin_cors():
+    origin = "https://minimalizer-web-production-a2bc.up.railway.app"
+    with TestClient(worker.app) as client:
+        response = client.get("/health", headers={"Origin": origin})
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
+
+
 def test_local_worker_returns_high_quality_headers(monkeypatch):
     def fake_run(*args, **kwargs):
         return _fake_export(), SimpleNamespace(score=1.0)

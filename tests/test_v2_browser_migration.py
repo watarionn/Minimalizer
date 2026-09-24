@@ -72,6 +72,9 @@ def test_browser_route_composes_output_and_alpha_contracts():
 def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     source = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
     assert 'const LOCAL_WORKER_BASE = "http://127.0.0.1:28765"' in source
+    assert 'const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled"' in source
+    assert 'new URLSearchParams(window.location.search).get("localWorker")' in source
+    assert "localWorkerEnabled() && await localWorkerReady()" in source
     assert "await requestStandardV2()" in source
     assert 'fetch("/api/v2/minimalize"' in source
     assert 'form.append("preset", "minimal")' in source
