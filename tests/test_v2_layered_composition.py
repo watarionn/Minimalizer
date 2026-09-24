@@ -176,3 +176,50 @@ def test_compositor_respects_source_alpha_when_painting_parts():
 
     assert tuple(result[1, 1]) == (220, 220, 220)
     assert tuple(result[2, 2]) == (25, 25, 25)
+
+
+
+def test_layered_background_quantization_is_byte_deterministic():
+    image = np.zeros((32, 32, 3), dtype=np.uint8)
+    yy, xx = np.indices((32, 32))
+    image[..., 0] = 20 + (xx * 5 + yy * 2) % 220
+    image[..., 1] = 30 + (yy * 6 + xx) % 210
+    image[..., 2] = 40 + (xx * 3 + yy * 4) % 200
+    subject = np.zeros((32, 32), dtype=np.bool_)
+    subject[9:24, 11:22] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={},
+    )
+    config = LayeredCompositionConfig(
+        background_color_count=3,
+        background_blur_sigma=1.5,
+    )
+
+    outputs = [
+        render_layered_preview(image, partition, config=config)
+        for _ in range(5)
+    ]
+    assert all(np.array_equal(outputs[0], output) for output in outputs[1:])
+
+
+def test_deterministic_kmeans_labels_cover_each_requested_cluster():
+    from minimalize_engine.v2.layered_composition import _deterministic_kmeans_labels
+
+    pixels = np.asarray(
+        [
+            [0, 0, 0],
+            [2, 2, 2],
+            [120, 100, 90],
+            [125, 105, 95],
+            [245, 245, 240],
+            [250, 250, 250],
+        ],
+        dtype=np.float32,
+    )
+    first = _deterministic_kmeans_labels(pixels, 3)
+    second = _deterministic_kmeans_labels(pixels, 3)
+
+    assert np.array_equal(first, second)
+    assert set(first[:, 0].tolist()) == {0, 1, 2}

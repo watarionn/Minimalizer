@@ -24,6 +24,42 @@ class LayeredCompositionConfig:
             raise ValueError("seam_fallback_radius must be non-negative")
 
 
+def _deterministic_kmeans_labels(
+    pixels: NDArray[np.float32],
+    cluster_count: int,
+) -> NDArray[np.int32]:
+    """Build deterministic farthest-point initial labels for OpenCV k-means."""
+    data = np.asarray(pixels, dtype=np.float32)
+    count = max(1, min(int(cluster_count), len(data)))
+    if count == 1:
+        return np.zeros((len(data), 1), dtype=np.int32)
+
+    order = np.lexsort((data[:, 2], data[:, 1], data[:, 0]))
+    seed_indices = [int(order[0])]
+    min_distance = np.sum(
+        (data - data[seed_indices[0]]) ** 2,
+        axis=1,
+        dtype=np.float32,
+    )
+    for _ in range(1, count):
+        next_index = int(np.argmax(min_distance))
+        seed_indices.append(next_index)
+        distance = np.sum(
+            (data - data[next_index]) ** 2,
+            axis=1,
+            dtype=np.float32,
+        )
+        min_distance = np.minimum(min_distance, distance)
+
+    centers = data[np.asarray(seed_indices, dtype=np.int32)]
+    distances = np.sum(
+        (data[:, None, :] - centers[None, :, :]) ** 2,
+        axis=2,
+        dtype=np.float32,
+    )
+    return np.argmin(distances, axis=1).astype(np.int32).reshape((-1, 1))
+
+
 def _quantize_background(
     source_rgb: NDArray[np.uint8],
     background_mask: NDArray[np.bool_],
@@ -43,14 +79,23 @@ def _quantize_background(
     if len(pixels) <= config.background_color_count:
         result[background_mask] = np.rint(pixels).astype(np.uint8)
         return result
+    rounded = np.clip(np.rint(pixels), 0, 255).astype(np.uint8)
+    if len(np.unique(rounded, axis=0)) <= config.background_color_count:
+        result[background_mask] = rounded
+        return result
+
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 20, 0.5)
+    initial_labels = _deterministic_kmeans_labels(
+        pixels,
+        config.background_color_count,
+    )
     _compactness, labels, centers = cv2.kmeans(
         pixels,
         config.background_color_count,
-        None,
+        initial_labels,
         criteria,
-        3,
-        cv2.KMEANS_PP_CENTERS,
+        1,
+        cv2.KMEANS_USE_INITIAL_LABELS,
     )
     quantized = np.clip(np.rint(centers[labels[:, 0]]), 0, 255).astype(np.uint8)
     result[background_mask] = quantized
