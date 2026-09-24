@@ -94,53 +94,59 @@ def test_performance_budget_rejects_resource_envelope_increase():
     assert checks["max_concurrent_jobs"] is False
 
 
-def test_production_v2_guidance_reuses_rembg_session(monkeypatch):
+def test_production_v2_guidance_uses_ephemeral_worker_per_call(monkeypatch, tmp_path):
+    import subprocess
+    from pathlib import Path
+
     import numpy as np
+    from PIL import Image
     import web.service as web_service
 
-    web_service._REMBG_SESSION = None
-    session = object()
-    session_options = object()
-    guidance = object()
-    sessions = []
-    builds = []
+    source_path = tmp_path / "source.png"
+    Image.new("RGB", (2, 2), (120, 80, 40)).save(source_path)
 
-    monkeypatch.setattr(
-        web_service,
-        "create_rembg_session",
-        lambda config, **kwargs: sessions.append((config.model, kwargs.get("sess_opts"))) or session,
-    )
-    monkeypatch.setattr(web_service, "_production_rembg_session_options", lambda: session_options)
-    monkeypatch.setattr(
-        web_service,
-        "load_image",
-        lambda path: np.zeros((2, 2, 3), dtype=np.uint8),
-    )
-    monkeypatch.setattr(
-        web_service,
-        "build_rembg_guidance",
-        lambda source, *, config, session: builds.append((config.model, session)) or guidance,
-    )
+    calls = []
 
-    assert web_service._production_v2_guidance("first.png") is guidance
-    assert web_service._production_v2_guidance("second.png") is guidance
-    assert sessions == [("u2netp", session_options)]
-    assert builds == [("u2netp", session), ("u2netp", session)]
+    def fake_run(command, **kwargs):
+        calls.append((list(command), dict(kwargs)))
+        output_path = Path(command[command.index("--output") + 1])
+        Image.new("L", (2, 2), 128).save(output_path)
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr(web_service.subprocess, "run", fake_run)
+
+    first = web_service._production_v2_guidance(source_path)
+    second = web_service._production_v2_guidance(source_path)
+
+    assert len(calls) == 2
+    for command, kwargs in calls:
+        assert command[:3] == [web_service.sys.executable, "-m", "web.rembg_worker"]
+        assert command[command.index("--model") + 1] == "u2netp"
+        assert kwargs["check"] is True
+        assert kwargs["timeout"] == 120
+    assert first.subject_provider == "rembg"
+    assert first.subject_model == "u2netp"
+    assert first.subject_prob.shape == (2, 2)
+    assert np.allclose(first.subject_prob, 128 / 255.0)
+    assert np.array_equal(first.subject_prob, second.subject_prob)
+    assert not hasattr(web_service, "_REMBG_SESSION")
 
 
-def test_production_v2_guidance_falls_back_to_none(monkeypatch):
+def test_production_v2_guidance_falls_back_to_none(monkeypatch, tmp_path):
+    import subprocess
+
+    from PIL import Image
     import web.service as web_service
 
-    web_service._REMBG_SESSION = None
+    source_path = tmp_path / "source.png"
+    Image.new("RGB", (2, 2), (120, 80, 40)).save(source_path)
     web_service._REMBG_FAILURE_LOGGED = False
 
-    monkeypatch.setattr(web_service, "_production_rembg_session_options", lambda: object())
+    def fail_worker(command, **kwargs):
+        raise subprocess.TimeoutExpired(command, kwargs["timeout"])
 
-    def fail_session(config, **kwargs):
-        raise RuntimeError("rembg unavailable")
-
-    monkeypatch.setattr(web_service, "create_rembg_session", fail_session)
-    assert web_service._production_v2_guidance("ignored.png") is None
+    monkeypatch.setattr(web_service.subprocess, "run", fail_worker)
+    assert web_service._production_v2_guidance(source_path) is None
 
 
 def test_minimalize_v2_path_passes_production_guidance(monkeypatch):
