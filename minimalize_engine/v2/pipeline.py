@@ -123,6 +123,7 @@ class LayeredPersonConfig:
     coarse_part_primitives: bool = True
     semantic_shape_budget: bool = True
     semantic_plane_refit: bool = True
+    semantic_coverage_guard: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
 
@@ -690,6 +691,60 @@ def _quantize_person_part_polygons(
         result,
         scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()),
     )
+
+
+def _semantic_part_paint_coverage(
+    result: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> float:
+    """Return visible non-background paint retained inside one semantic part."""
+    target = np.asarray(part_mask, dtype=bool)
+    target_pixels = int(np.count_nonzero(target))
+    if target_pixels <= 0:
+        return 0.0
+    if target.shape != (result.scene.height, result.scene.width):
+        raise ValueError("part mask shape must match scene dimensions")
+
+    rendered = _render_scene_primitives(result.scene)
+    painted = np.any(rendered != 255, axis=2)
+    return float(np.count_nonzero(painted & target) / target_pixels)
+
+
+def _semantic_part_coverage_is_safe(
+    baseline_coverage: float,
+    candidate_coverage: float,
+    *,
+    min_retention: float = 0.72,
+    max_absolute_loss: float = 0.14,
+    zero_floor: float = 0.01,
+    meaningful_baseline: float = 0.08,
+) -> bool:
+    """Reject only destructive semantic-paint loss, not ordinary simplification."""
+    baseline = max(0.0, min(1.0, float(baseline_coverage)))
+    candidate = max(0.0, min(1.0, float(candidate_coverage)))
+    if candidate >= baseline:
+        return True
+    if baseline >= meaningful_baseline and candidate <= zero_floor:
+        return False
+    loss = baseline - candidate
+    retention = candidate / max(baseline, 1e-9)
+    return not (
+        loss > float(max_absolute_loss)
+        and retention < float(min_retention)
+    )
+
+
+def _guard_semantic_part_coverage(
+    baseline: PresetPipelineResult,
+    candidate: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    """Rollback a semantic refinement stage if it erases too much of the part."""
+    before = _semantic_part_paint_coverage(baseline, part_mask)
+    after = _semantic_part_paint_coverage(candidate, part_mask)
+    if _semantic_part_coverage_is_safe(before, after):
+        return candidate
+    return baseline
 
 
 def _semantic_plane_clusters(
@@ -1569,35 +1624,68 @@ def _minimalize_person_parts(
             def finalize_semantic_part(
                 preset_result: PresetPipelineResult,
             ) -> PresetPipelineResult:
-                refined = _quantize_person_part_polygons(
-                    _apply_semantic_shape_budget(
-                        preset_result, part_name=name, part_mask=mask
-                    ),
+                def guarded(
+                    baseline: PresetPipelineResult,
+                    candidate: PresetPipelineResult,
+                ) -> PresetPipelineResult:
+                    if not config.layered_person.semantic_coverage_guard:
+                        return candidate
+                    return _guard_semantic_part_coverage(
+                        baseline,
+                        candidate,
+                        mask,
+                    )
+
+                refined = preset_result
+                candidate = _apply_semantic_shape_budget(
+                    refined,
+                    part_name=name,
+                    part_mask=mask,
+                )
+                refined = guarded(refined, candidate)
+
+                candidate = _quantize_person_part_polygons(
+                    refined,
                     max_vertices=polygon_vertices,
                     max_loops=polygon_loops,
                 )
+                refined = guarded(refined, candidate)
+
                 if config.layered_person.semantic_plane_refit:
-                    refined = _refit_semantic_planes(
+                    candidate = _refit_semantic_planes(
                         refined,
                         part_name=name,
                         part_mask=mask,
                     )
-                refined = _consolidate_semantic_planes(refined)
+                    refined = guarded(refined, candidate)
+
+                candidate = _consolidate_semantic_planes(refined)
+                refined = guarded(refined, candidate)
+
                 if name == "head":
-                    refined = _reduce_safe_head_to_two_planes(
+                    candidate = _reduce_safe_head_to_two_planes(
                         refined,
                         mask,
                     )
-                refined = _remove_semantic_dead_planes(
+                    refined = guarded(refined, candidate)
+
+                candidate = _remove_semantic_dead_planes(
                     refined,
                     mask,
                 )
-                refined = _reduce_safe_angular_vertices(
+                refined = guarded(refined, candidate)
+
+                candidate = _reduce_safe_angular_vertices(
                     refined,
                     part_name=name,
                 )
-                refined = _remove_render_dead_planes(refined)
-                return _remove_render_negligible_planes(refined)
+                refined = guarded(refined, candidate)
+
+                candidate = _remove_render_dead_planes(refined)
+                refined = guarded(refined, candidate)
+
+                candidate = _remove_render_negligible_planes(refined)
+                return guarded(refined, candidate)
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)

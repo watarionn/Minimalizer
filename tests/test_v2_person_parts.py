@@ -1015,3 +1015,136 @@ def test_person_part_quantization_uses_bounded_safe_soft_fallback():
     assert iou >= 0.75
     assert under <= 0.15
     assert over <= 0.20
+
+
+def test_semantic_part_coverage_guard_rejects_catastrophic_loss():
+    from minimalize_engine.v2.pipeline import _semantic_part_coverage_is_safe
+
+    assert _semantic_part_coverage_is_safe(0.82, 0.72)
+    assert not _semantic_part_coverage_is_safe(0.62, 0.19)
+    assert not _semantic_part_coverage_is_safe(0.60, 0.00)
+    # Tiny absolute changes should not be rejected just because the ratio is noisy.
+    assert _semantic_part_coverage_is_safe(0.10, 0.06)
+
+
+def test_semantic_part_coverage_guard_rolls_back_destructive_geometry():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _guard_semantic_part_coverage,
+        _semantic_part_paint_coverage,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    def polygon(points):
+        return PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+
+    entry = PaletteEntry(
+        0,
+        (1,),
+        1,
+        np.asarray([50.0, 0.0, 0.0]),
+        (220, 80, 120),
+        (0, 0),
+    )
+    baseline = DummyResult(
+        preset="minimal",
+        scene=SceneModel(
+            30,
+            30,
+            (
+                SceneShape(
+                    region_id=1,
+                    geometry=polygon([[3,3],[23,3],[23,23],[3,23]]),
+                    palette_id=0,
+                ),
+            ),
+            (entry,),
+        ),
+    )
+    collapsed = DummyResult(
+        preset="minimal",
+        scene=SceneModel(
+            30,
+            30,
+            (
+                SceneShape(
+                    region_id=1,
+                    geometry=polygon([[3,3],[8,3],[8,8],[3,8]]),
+                    palette_id=0,
+                ),
+            ),
+            (entry,),
+        ),
+    )
+    part = np.zeros((30, 30), dtype=bool)
+    part[3:24, 3:24] = True
+
+    before = _semantic_part_paint_coverage(baseline, part)
+    after = _semantic_part_paint_coverage(collapsed, part)
+    assert before > 0.90
+    assert after < 0.10
+    assert _guard_semantic_part_coverage(baseline, collapsed, part) is baseline
+
+
+def test_semantic_coverage_guard_has_independent_layered_toggle():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    assert LayeredPersonConfig().semantic_coverage_guard is True
+    assert LayeredPersonConfig(semantic_coverage_guard=False).semantic_coverage_guard is False
+
+
+def test_semantic_part_paint_coverage_ignores_pure_white_background_but_keeps_near_white():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _semantic_part_paint_coverage,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    geometry = PrimitiveGeometry(
+        kind="polygon",
+        loops=(
+            np.asarray(
+                [[2,2],[17,2],[17,17],[2,17]],
+                dtype=np.float32,
+            ),
+        ),
+    )
+    part = np.zeros((20,20), dtype=bool)
+    part[2:18,2:18] = True
+
+    def result_for(rgb):
+        entry = PaletteEntry(
+            0,
+            (1,),
+            1,
+            np.asarray([100.0,0.0,0.0]),
+            rgb,
+            (0,0),
+        )
+        shape = SceneShape(region_id=1, geometry=geometry, palette_id=0)
+        return DummyResult(
+            preset="minimal",
+            scene=SceneModel(20,20,(shape,),(entry,)),
+        )
+
+    assert _semantic_part_paint_coverage(result_for((255,255,255)), part) == 0.0
+    assert _semantic_part_paint_coverage(result_for((254,254,254)), part) > 0.85
