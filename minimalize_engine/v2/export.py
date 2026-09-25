@@ -30,6 +30,9 @@ class V2PngMetadata:
     pixel_sha256: str
     png_sha256: str
     preserves_source_alpha: bool = False
+    shading_flatten_evaluated: bool = False
+    shading_flatten_accepted: bool = False
+    shading_flatten_reasons: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -165,6 +168,17 @@ def export_png(
         pixel_sha256=hashlib.sha256(pixel_bytes).hexdigest(),
         png_sha256=hashlib.sha256(content).hexdigest(),
         preserves_source_alpha=preserves_alpha,
+        shading_flatten_evaluated=result.shading_flatten_decision is not None,
+        shading_flatten_accepted=(
+            bool(result.shading_flatten_decision.accepted)
+            if result.shading_flatten_decision is not None
+            else False
+        ),
+        shading_flatten_reasons=(
+            result.shading_flatten_decision.reasons
+            if result.shading_flatten_decision is not None
+            else ()
+        ),
     )
     return V2PngExport(
         content=content,

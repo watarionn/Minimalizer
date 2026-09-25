@@ -45,6 +45,9 @@ def test_health_reports_cold_runtime_without_eager_warmup():
     assert response.json()["worker"] == "local-compute-v1"
     assert response.json()["status"] == "cold"
     assert response.json()["ready"] is False
+    assert response.json()["shading_flatten_candidate"] is True
+    assert response.json()["shading_flatten_sr"] == 45
+    assert response.json()["shading_flatten_guard"] is True
 
 
 def test_local_worker_rejects_untrusted_browser_origin():
@@ -86,6 +89,11 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.headers["x-minimalizer-compute"] == "local-worker"
     assert response.headers["x-minimalizer-analysis"] == "rembg+rtmlib"
     assert response.headers["x-minimalizer-layered-person"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-candidate"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-guard"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-evaluated"] == "false"
+    assert response.headers["x-minimalizer-shading-flatten-sr"] == "45"
     assert response.headers["x-minimalizer-rtmlib-selected"] == "true"
     assert response.headers["x-minimalizer-v2-png-sha256"] == "b" * 64
     assert response.headers["x-minimalizer-preserves-source-alpha"] == "false"

@@ -44,10 +44,13 @@ from .migration import (
     MigrationReadinessReport,
     build_migration_readiness,
 )
+from .preprocessing import ShadingFlattenConfig
 from .pipeline import (
     MinimalizerV2Result,
     PipelineConfig,
     PresetPipelineResult,
+    ShadingFlattenDecision,
+    ShadingFlattenGuardConfig,
     SceneModel,
     SceneShape,
     minimalize_v2,
@@ -100,6 +103,7 @@ __all__ = [
     "attach_rtmlib_structure", "build_rtmlib_structural_guide",
     "build_structural_guide_from_pose", "create_rtmlib_wholebody",
     "select_primary_skeleton",
+    "ShadingFlattenConfig", "ShadingFlattenGuardConfig", "ShadingFlattenDecision",
     "MinimalizerV2Result", "PipelineConfig", "PresetPipelineResult",
     "SceneModel", "SceneShape", "minimalize_v2", "run_preset_pipeline",
     "render_scene", "PNG_CONTRACT_VERSION", "V2PngExport", "V2PngMetadata",

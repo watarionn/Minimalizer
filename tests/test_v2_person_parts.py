@@ -104,6 +104,80 @@ def test_pipeline_exposes_partition_only_when_layered_mode_is_enabled():
     assert baseline.person_parts is None
 
 
+def test_layered_person_hierarchical_shading_flatten_runs_scene_and_parts(monkeypatch):
+    import minimalize_engine.v2.preprocessing as preprocessing
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig, PipelineConfig, minimalize_v2
+    from minimalize_engine.v2.preprocessing import ShadingFlattenConfig
+
+    calls = 0
+    original = preprocessing.flatten_shading_rgb
+
+    def observed(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(preprocessing, "flatten_shading_rgb", observed)
+
+    guidance = _guidance()
+    image = np.full((20, 16, 3), 240, dtype=np.uint8)
+    image[2:19, 3:13] = (120, 80, 60)
+    result = minimalize_v2(
+        image,
+        config=PipelineConfig(
+            analysis_max_side=20,
+            shading_flatten=ShadingFlattenConfig(
+                enabled=True,
+                sr=45,
+                hierarchical_parts=True,
+            ),
+            layered_person=LayeredPersonConfig(enabled=True),
+        ),
+        guidance=guidance,
+    )
+
+    assert result.person_parts is not None
+    expected = 1 + sum(
+        int(mask.any()) for mask in result.person_parts.part_masks.values()
+    )
+    assert calls == expected
+
+
+def test_layered_person_can_disable_hierarchical_part_flatten(monkeypatch):
+    import minimalize_engine.v2.preprocessing as preprocessing
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig, PipelineConfig, minimalize_v2
+    from minimalize_engine.v2.preprocessing import ShadingFlattenConfig
+
+    calls = 0
+    original = preprocessing.flatten_shading_rgb
+
+    def observed(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(preprocessing, "flatten_shading_rgb", observed)
+
+    guidance = _guidance()
+    image = np.full((20, 16, 3), 240, dtype=np.uint8)
+    image[2:19, 3:13] = (120, 80, 60)
+    minimalize_v2(
+        image,
+        config=PipelineConfig(
+            analysis_max_side=20,
+            shading_flatten=ShadingFlattenConfig(
+                enabled=True,
+                sr=45,
+                hierarchical_parts=False,
+            ),
+            layered_person=LayeredPersonConfig(enabled=True),
+        ),
+        guidance=guidance,
+    )
+
+    assert calls == 1
+
+
 def test_resize_partition_projects_masks_to_analysis_resolution():
     from minimalize_engine.v2.person_parts import resize_person_part_partition
 
