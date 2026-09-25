@@ -71,7 +71,15 @@ def test_browser_route_composes_output_and_alpha_contracts():
 
 def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     source = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
-    assert 'const LOCAL_WORKER_BASE = "http://127.0.0.1:28765"' in source
+    assert 'const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28765"' in source
+    assert 'const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765"' in source
+    assert 'const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode"' in source
+    assert 'localWorkerParam === "tailscale"' in source
+    assert 'function localWorkerBase()' in source
+    assert 'function localWorkerDisplayName()' in source
+    assert '"Tailscale Local Worker"' in source
+    assert 'async function fetchLocalWorker' in source
+    assert 'localWorkerMode() === "loopback"' in source
     assert 'const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled"' in source
     assert 'new URLSearchParams(window.location.search).get("localWorker")' in source
     assert "const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000" in source
