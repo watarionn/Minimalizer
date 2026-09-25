@@ -19,6 +19,7 @@ from minimalize_engine.v2 import (
     PipelineConfig,
     RembgGuidanceConfig,
     ShadingFlattenConfig,
+    ShadingFlattenGuardConfig,
     RtmlibStructuralConfig,
     attach_rtmlib_structure,
     build_rembg_guidance,
@@ -39,7 +40,10 @@ RTMLIB_DEVICE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_DEVICE", "cpu")
 SHADING_FLATTEN_ENABLED = os.getenv(
     "MINIMALIZER_LOCAL_SHADING_FLATTEN", "1"
 ).strip().lower() not in {"0", "false", "no", "off"}
-SHADING_FLATTEN_SR = int(os.getenv("MINIMALIZER_LOCAL_SHADING_FLATTEN_SR", "55"))
+SHADING_FLATTEN_SR = int(os.getenv("MINIMALIZER_LOCAL_SHADING_FLATTEN_SR", "45"))
+SHADING_FLATTEN_GUARD = os.getenv(
+    "MINIMALIZER_LOCAL_SHADING_FLATTEN_GUARD", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
 
 DEFAULT_ORIGINS = (
     "https://minimalizer-web-production-a2bc.up.railway.app",
@@ -138,6 +142,10 @@ def _run_high_quality(
         shading_flatten=ShadingFlattenConfig(
             enabled=SHADING_FLATTEN_ENABLED,
             sr=SHADING_FLATTEN_SR,
+            hierarchical_parts=True,
+        ),
+        shading_flatten_guard=ShadingFlattenGuardConfig(
+            enabled=SHADING_FLATTEN_GUARD,
         ),
         layered_person=LayeredPersonConfig(enabled=True),
     )
@@ -197,6 +205,9 @@ def health():
         "rtmlib_mode": RTMLIB_MODE,
         "rtmlib_device": RTMLIB_DEVICE,
         "layered_person": True,
+        "shading_flatten_candidate": SHADING_FLATTEN_ENABLED,
+        "shading_flatten_sr": SHADING_FLATTEN_SR,
+        "shading_flatten_guard": SHADING_FLATTEN_GUARD,
         "runtime_error": _runtime_error,
     }
 
@@ -258,6 +269,11 @@ async def minimalize_local(
         _process_lock.release()
         await file.close()
     metadata = result.metadata
+    actual_shading_flatten = (
+        metadata.shading_flatten_accepted
+        if metadata.shading_flatten_evaluated
+        else SHADING_FLATTEN_ENABLED
+    )
     elapsed_ms = (perf_counter() - started) * 1000.0
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
@@ -265,8 +281,20 @@ async def minimalize_local(
         "X-Minimalizer-Compute": "local-worker",
         "X-Minimalizer-Analysis": "rembg+rtmlib",
         "X-Minimalizer-Layered-Person": "true",
-        "X-Minimalizer-Shading-Flatten": str(SHADING_FLATTEN_ENABLED).lower(),
+        "X-Minimalizer-Shading-Flatten": str(actual_shading_flatten).lower(),
+        "X-Minimalizer-Shading-Flatten-Candidate": str(
+            SHADING_FLATTEN_ENABLED
+        ).lower(),
+        "X-Minimalizer-Shading-Flatten-Guard": str(
+            SHADING_FLATTEN_GUARD
+        ).lower(),
+        "X-Minimalizer-Shading-Flatten-Evaluated": str(
+            metadata.shading_flatten_evaluated
+        ).lower(),
         "X-Minimalizer-Shading-Flatten-SR": str(SHADING_FLATTEN_SR),
+        "X-Minimalizer-Shading-Flatten-Reasons": ",".join(
+            metadata.shading_flatten_reasons
+        ),
         "X-Minimalizer-RTMLib-Selected": "true" if selection is not None else "false",
         "X-Minimalizer-V2-Contract-Version": metadata.contract_version,
         "X-Minimalizer-V2-Preset": metadata.preset,

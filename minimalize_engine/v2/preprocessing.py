@@ -23,6 +23,7 @@ class ShadingFlattenConfig:
     sp_min: int = 3
     sp_max: int = 60
     preserve_alpha_edges: bool = True
+    hierarchical_parts: bool = True
 
     def __post_init__(self) -> None:
         if self.sr <= 0:
