@@ -18,6 +18,7 @@ from minimalize_engine.io.image_loader import load_image_bundle
 from minimalize_engine.v2 import (
     PipelineConfig,
     RembgGuidanceConfig,
+    ShadingFlattenConfig,
     RtmlibStructuralConfig,
     attach_rtmlib_structure,
     build_rembg_guidance,
@@ -35,6 +36,10 @@ ANALYSIS_MAX_SIDE = int(os.getenv("MINIMALIZER_LOCAL_ANALYSIS_MAX_SIDE", "400"))
 REMBG_MODEL = os.getenv("MINIMALIZER_LOCAL_REMBG_MODEL", "u2netp")
 RTMLIB_MODE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_MODE", "balanced")
 RTMLIB_DEVICE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_DEVICE", "cpu")
+SHADING_FLATTEN_ENABLED = os.getenv(
+    "MINIMALIZER_LOCAL_SHADING_FLATTEN", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
+SHADING_FLATTEN_SR = int(os.getenv("MINIMALIZER_LOCAL_SHADING_FLATTEN_SR", "55"))
 
 DEFAULT_ORIGINS = (
     "https://minimalizer-web-production-a2bc.up.railway.app",
@@ -130,6 +135,10 @@ def _run_high_quality(
     source_rgb, guidance, selection = _build_guidance(input_path)
     config = PipelineConfig(
         analysis_max_side=ANALYSIS_MAX_SIDE,
+        shading_flatten=ShadingFlattenConfig(
+            enabled=SHADING_FLATTEN_ENABLED,
+            sr=SHADING_FLATTEN_SR,
+        ),
         layered_person=LayeredPersonConfig(enabled=True),
     )
     result = minimalize_v2(
@@ -256,6 +265,8 @@ async def minimalize_local(
         "X-Minimalizer-Compute": "local-worker",
         "X-Minimalizer-Analysis": "rembg+rtmlib",
         "X-Minimalizer-Layered-Person": "true",
+        "X-Minimalizer-Shading-Flatten": str(SHADING_FLATTEN_ENABLED).lower(),
+        "X-Minimalizer-Shading-Flatten-SR": str(SHADING_FLATTEN_SR),
         "X-Minimalizer-RTMLib-Selected": "true" if selection is not None else "false",
         "X-Minimalizer-V2-Contract-Version": metadata.contract_version,
         "X-Minimalizer-V2-Preset": metadata.preset,

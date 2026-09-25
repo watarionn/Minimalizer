@@ -86,6 +86,8 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.headers["x-minimalizer-compute"] == "local-worker"
     assert response.headers["x-minimalizer-analysis"] == "rembg+rtmlib"
     assert response.headers["x-minimalizer-layered-person"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-sr"] == "55"
     assert response.headers["x-minimalizer-rtmlib-selected"] == "true"
     assert response.headers["x-minimalizer-v2-png-sha256"] == "b" * 64
     assert response.headers["x-minimalizer-preserves-source-alpha"] == "false"

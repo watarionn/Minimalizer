@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import cv2
 import numpy as np
 from numpy.typing import NDArray
@@ -10,6 +12,93 @@ DEFAULT_ANALYSIS_MAX_SIDE = 768
 DEFAULT_L0_LAMBDA = 0.010
 DEFAULT_L0_KAPPA = 2.0
 DEFAULT_EDGE_PERCENTILE = 99.0
+
+
+@dataclass(frozen=True, slots=True)
+class ShadingFlattenConfig:
+    enabled: bool = False
+    sr: int = 55
+    max_level: int = 1
+    sp_ratio: float = 0.015
+    sp_min: int = 3
+    sp_max: int = 60
+    preserve_alpha_edges: bool = True
+
+    def __post_init__(self) -> None:
+        if self.sr <= 0:
+            raise ValueError("shading flatten sr must be positive")
+        if self.max_level < 0:
+            raise ValueError("shading flatten max_level must be non-negative")
+        if not np.isfinite(self.sp_ratio) or self.sp_ratio <= 0.0:
+            raise ValueError("shading flatten sp_ratio must be finite and positive")
+        if self.sp_min <= 0 or self.sp_max < self.sp_min:
+            raise ValueError("shading flatten sp bounds must be positive and ordered")
+
+
+def compute_shading_flatten_sp(
+    height: int,
+    width: int,
+    *,
+    sp_ratio: float = 0.015,
+    sp_min: int = 3,
+    sp_max: int = 60,
+) -> int:
+    if height <= 0 or width <= 0:
+        raise ValueError("image dimensions must be positive")
+    if not np.isfinite(sp_ratio) or sp_ratio <= 0.0:
+        raise ValueError("sp_ratio must be finite and positive")
+    if sp_min <= 0 or sp_max < sp_min:
+        raise ValueError("sp bounds must be positive and ordered")
+    short_side = min(int(height), int(width))
+    value = int(round(short_side * float(sp_ratio)))
+    return max(int(sp_min), min(int(sp_max), value))
+
+
+def flatten_shading_rgb(
+    rgb: NDArray[np.uint8],
+    *,
+    alpha: NDArray[np.floating] | None = None,
+    config: ShadingFlattenConfig | None = None,
+) -> NDArray[np.uint8]:
+    image = _validate_rgb(rgb)
+    active = config or ShadingFlattenConfig(enabled=True)
+    if not active.enabled:
+        return image.copy()
+
+    work = np.ascontiguousarray(image[:, :, ::-1])
+    transparent: NDArray[np.bool_] | None = None
+    if alpha is not None:
+        alpha_map = np.asarray(alpha, dtype=np.float32)
+        if alpha_map.shape != image.shape[:2]:
+            raise ValueError("shading flatten alpha must match image dimensions")
+        if not np.all(np.isfinite(alpha_map)):
+            raise ValueError("shading flatten alpha must be finite")
+        alpha_map = np.clip(alpha_map, 0.0, 1.0)
+        transparent = alpha_map <= 0.0
+        if active.preserve_alpha_edges and transparent.any() and not transparent.all():
+            mask = transparent.astype(np.uint8) * 255
+            work = cv2.inpaint(work, mask, 3, cv2.INPAINT_TELEA)
+
+    sp = compute_shading_flatten_sp(
+        image.shape[0],
+        image.shape[1],
+        sp_ratio=active.sp_ratio,
+        sp_min=active.sp_min,
+        sp_max=active.sp_max,
+    )
+    shifted = cv2.pyrMeanShiftFiltering(
+        np.ascontiguousarray(work),
+        sp=sp,
+        sr=int(active.sr),
+        maxLevel=int(active.max_level),
+    )
+    flattened = np.ascontiguousarray(shifted[:, :, ::-1])
+    if transparent is not None and transparent.any():
+        # Inpainting exists only to keep transparent pixels from polluting the
+        # Mean Shift boundary. Those synthetic colors must never become V2
+        # analysis regions, so restore the original hidden RGB afterwards.
+        flattened[transparent] = image[transparent]
+    return flattened
 
 
 def _validate_rgb(image: NDArray[np.uint8]) -> NDArray[np.uint8]:
@@ -157,6 +246,7 @@ def build_image_bundle(
     subject_confidence: NDArray[np.floating] | None = None,
     alpha: NDArray[np.floating] | None = None,
     analysis_max_side: int = DEFAULT_ANALYSIS_MAX_SIDE,
+    shading_flatten: ShadingFlattenConfig | None = None,
     l0_lambda: float = DEFAULT_L0_LAMBDA,
     l0_kappa: float = DEFAULT_L0_KAPPA,
 ) -> ImageBundle:
@@ -165,6 +255,15 @@ def build_image_bundle(
         source,
         max_side=analysis_max_side,
     )
+    source_shape = source.shape[:2]
+    analysis_shape = analysis_rgb.shape[:2]
+    analysis_alpha = _resize_optional_map(alpha, source_shape, analysis_shape)
+    if shading_flatten is not None and shading_flatten.enabled:
+        analysis_rgb = flatten_shading_rgb(
+            analysis_rgb,
+            alpha=analysis_alpha,
+            config=shading_flatten,
+        )
     structural_rgb = l0_gradient_smooth(
         analysis_rgb,
         lambda_=l0_lambda,
@@ -174,8 +273,6 @@ def build_image_bundle(
     structural_lab = rgb_to_canonical_lab(structural_rgb)
     edge_raw = lab_edge_map(analysis_lab)
     edge_structural = lab_edge_map(structural_lab)
-    source_shape = source.shape[:2]
-    analysis_shape = analysis_rgb.shape[:2]
     return ImageBundle(
         source_rgb=source.copy(),
         analysis_rgb=analysis_rgb,
@@ -190,7 +287,7 @@ def build_image_bundle(
             source_shape,
             analysis_shape,
         ),
-        alpha=_resize_optional_map(alpha, source_shape, analysis_shape),
+        alpha=analysis_alpha,
         scale_x=scale_x,
         scale_y=scale_y,
     )

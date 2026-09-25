@@ -2,7 +2,10 @@ import numpy as np
 import pytest
 
 from minimalize_engine.v2.preprocessing import (
+    ShadingFlattenConfig,
     build_image_bundle,
+    compute_shading_flatten_sp,
+    flatten_shading_rgb,
     l0_gradient_smooth,
     lab_edge_map,
     resize_for_analysis,
@@ -21,6 +24,67 @@ def test_analysis_resize_never_enlarges_and_tracks_source_scale():
     assert resized.shape == (40, 80, 3)
     assert sx == pytest.approx(2.5)
     assert sy == pytest.approx(2.5)
+
+
+def test_shading_flatten_auto_sp_scales_with_short_side():
+    assert compute_shading_flatten_sp(340, 340) == 5
+    assert compute_shading_flatten_sp(2000, 2000) == 30
+    assert compute_shading_flatten_sp(10000, 4000) == 60
+
+
+def test_shading_flatten_reduces_gradient_variation_but_keeps_major_color_split():
+    image = np.zeros((80, 120, 3), dtype=np.uint8)
+    x = np.linspace(-18, 18, 60, dtype=np.float32)
+    left = np.clip(90 + x, 0, 255).astype(np.uint8)
+    right = np.clip(190 + x, 0, 255).astype(np.uint8)
+    image[:, :60] = left[None, :, None]
+    image[:, 60:] = right[None, :, None]
+
+    flattened = flatten_shading_rgb(
+        image,
+        config=ShadingFlattenConfig(enabled=True, sr=55),
+    )
+
+    assert float(flattened[:, :58, 0].std()) < float(image[:, :58, 0].std())
+    assert float(flattened[:, 70:118, 0].std()) < float(image[:, 70:118, 0].std())
+    left_mean = float(flattened[:, :55, 0].mean())
+    right_mean = float(flattened[:, 65:, 0].mean())
+    assert right_mean - left_mean > 70.0
+
+
+def test_shading_flatten_uses_alpha_to_avoid_transparent_white_bleed():
+    image = np.full((48, 48, 3), 255, dtype=np.uint8)
+    alpha = np.zeros((48, 48), dtype=np.float32)
+    alpha[8:40, 8:40] = 1.0
+    image[8:40, 8:40] = (80, 110, 140)
+    image[16:32, 16:32] = (95, 125, 155)
+
+    flattened = flatten_shading_rgb(
+        image,
+        alpha=alpha,
+        config=ShadingFlattenConfig(enabled=True, sr=55),
+    )
+
+    boundary = flattened[9:39, 9:39].reshape(-1, 3)
+    assert float(boundary.mean()) < 180.0
+    assert np.array_equal(flattened[alpha == 0.0], image[alpha == 0.0])
+
+
+def test_bundle_shading_flatten_changes_analysis_plane_but_not_source_rgb():
+    image = np.zeros((48, 64, 3), dtype=np.uint8)
+    ramp = np.linspace(60, 120, 32, dtype=np.uint8)
+    image[:, :32] = ramp[None, :, None]
+    image[:, 32:] = (210, 70, 70)
+
+    plain = build_image_bundle(image, analysis_max_side=64)
+    flattened = build_image_bundle(
+        image,
+        analysis_max_side=64,
+        shading_flatten=ShadingFlattenConfig(enabled=True, sr=55),
+    )
+
+    assert np.array_equal(flattened.source_rgb, image)
+    assert not np.array_equal(flattened.analysis_rgb, plain.analysis_rgb)
 
 
 def test_canonical_lab_is_float_cielab_not_opencv_uint8_encoding():

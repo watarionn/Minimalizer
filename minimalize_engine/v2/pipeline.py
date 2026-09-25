@@ -39,7 +39,11 @@ from minimalize_engine.v2.palette import (
     PaletteEntry,
     consolidate_palette,
 )
-from minimalize_engine.v2.preprocessing import DEFAULT_ANALYSIS_MAX_SIDE, build_image_bundle
+from minimalize_engine.v2.preprocessing import (
+    DEFAULT_ANALYSIS_MAX_SIDE,
+    ShadingFlattenConfig,
+    build_image_bundle,
+)
 from minimalize_engine.v2.person_parts import (
     PersonPartConfig,
     PersonPartPartition,
@@ -130,6 +134,7 @@ class LayeredPersonConfig:
 @dataclass(frozen=True, slots=True)
 class PipelineConfig:
     analysis_max_side: int = DEFAULT_ANALYSIS_MAX_SIDE
+    shading_flatten: ShadingFlattenConfig = field(default_factory=ShadingFlattenConfig)
     region_merge: RegionMergeConfig = field(default_factory=RegionMergeConfig)
     contour: ContourSimplificationConfig = field(default_factory=ContourSimplificationConfig)
     primitive: PrimitiveFitConfig = field(default_factory=PrimitiveFitConfig)
@@ -1718,6 +1723,7 @@ def _minimalize_v2_impl(
             subject_confidence=guidance.subject_confidence if guidance is not None else None,
             alpha=guidance.alpha if guidance is not None else None,
             analysis_max_side=config.analysis_max_side,
+            shading_flatten=config.shading_flatten,
         ),
     )
     segmentation = _timed(
