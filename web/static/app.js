@@ -1,18 +1,43 @@
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
-const LOCAL_WORKER_BASE = "http://127.0.0.1:28765";
+const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28765";
+const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
 const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
 const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
+const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
 
 const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
 if (localWorkerParam === "1") {
   window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "loopback");
+} else if (localWorkerParam === "tailscale") {
+  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "tailscale");
 } else if (localWorkerParam === "0") {
   window.localStorage.removeItem(LOCAL_WORKER_STORAGE_KEY);
+  window.localStorage.removeItem(LOCAL_WORKER_MODE_STORAGE_KEY);
 }
 
 function localWorkerEnabled() {
   return window.localStorage.getItem(LOCAL_WORKER_STORAGE_KEY) === "1";
+}
+
+function localWorkerMode() {
+  return window.localStorage.getItem(LOCAL_WORKER_MODE_STORAGE_KEY) === "tailscale"
+    ? "tailscale"
+    : "loopback";
+}
+
+function localWorkerBase() {
+  return localWorkerMode() === "tailscale"
+    ? LOCAL_WORKER_TAILSCALE_BASE
+    : LOCAL_WORKER_LOOPBACK_BASE;
+}
+
+function localWorkerDisplayName() {
+  return localWorkerMode() === "tailscale"
+    ? "Tailscale Local Worker"
+    : "Local Worker";
 }
 
 const elements = {
@@ -78,24 +103,28 @@ function refreshEngineBadge() {
   const parts = [];
   if (state.engineVersion) parts.push(`Engine v${state.engineVersion}`);
   if (localWorkerEnabled()) {
+    const workerName = localWorkerDisplayName();
     const labels = {
-      enabled: "Local Worker優先",
-      checking: "Local Worker接続確認中",
-      ready: "Local Worker接続済み",
+      enabled: `${workerName}優先`,
+      checking: `${workerName}接続確認中`,
+      ready: `${workerName}接続済み`,
       fallback: "Railway fallback",
     };
-    parts.push(labels[state.localWorkerStatus] || "Local Worker優先");
+    parts.push(labels[state.localWorkerStatus] || `${workerName}優先`);
   }
   if (parts.length > 0) elements.engineBadge.textContent = parts.join(" · ");
 }
 
 function localWorkerFallbackMessage(reason = "") {
+  const tailscale = localWorkerMode() === "tailscale";
   const suffix = reason === "timeout"
     ? "接続確認がタイムアウトしました。"
     : reason === "not-ready"
       ? "Local Workerは起動していますが準備完了ではありません。"
-      : "ブラウザのローカルネットワーク権限、またはLocal Workerの起動状態を確認してください。";
-  return `Local Workerに接続できなかったためRailway fallbackを使用します。 ${suffix}`;
+      : tailscale
+        ? "携帯のTailscale接続とPC側のTailscale Serve / Local Workerを確認してください。"
+        : "ブラウザのローカルネットワーク権限、またはLocal Workerの起動状態を確認してください。";
+  return `${localWorkerDisplayName()}に接続できなかったためRailway fallbackを使用します。 ${suffix}`;
 }
 
 function currentMode() {
@@ -244,18 +273,21 @@ function buildColorStripFormData(outputFormat) {
   return form;
 }
 
-async function fetchLoopback(path, options = {}, timeoutMs = 0) {
+async function fetchLocalWorker(path, options = {}, timeoutMs = 0) {
   const controller = new AbortController();
   const timer = timeoutMs > 0
     ? window.setTimeout(() => controller.abort(), timeoutMs)
     : null;
   try {
-    const request = new Request(`${LOCAL_WORKER_BASE}${path}`, {
+    const requestOptions = {
       ...options,
       mode: "cors",
       signal: controller.signal,
-      targetAddressSpace: "loopback",
-    });
+    };
+    if (localWorkerMode() === "loopback") {
+      requestOptions.targetAddressSpace = "loopback";
+    }
+    const request = new Request(`${localWorkerBase()}${path}`, requestOptions);
     return await fetch(request);
   } finally {
     if (timer !== null) window.clearTimeout(timer);
@@ -267,9 +299,13 @@ async function probeLocalWorker() {
   state.localWorkerStatus = "checking";
   state.localWorkerFallbackReason = "";
   refreshEngineBadge();
-  setStatus("Local Workerへ接続しています。初回はブラウザのローカルネットワークアクセスを許可してください。");
+  setStatus(
+    localWorkerMode() === "tailscale"
+      ? "Tailscale経由で自宅PCのLocal Workerへ接続しています。"
+      : "Local Workerへ接続しています。初回はブラウザのローカルネットワークアクセスを許可してください。",
+  );
   try {
-    const response = await fetchLoopback(
+    const response = await fetchLocalWorker(
       "/health",
       { method: "GET" },
       LOCAL_WORKER_HEALTH_TIMEOUT_MS,
@@ -298,7 +334,7 @@ async function requestStandardV2() {
     const probe = await probeLocalWorker();
     if (probe.ready) {
       try {
-        const response = await fetchLoopback("/api/v2/minimalize", {
+        const response = await fetchLocalWorker("/api/v2/minimalize", {
           method: "POST",
           body: buildV2FormData(),
         });
@@ -427,8 +463,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : "";
 
       const analysis = response.headers.get("x-minimalizer-analysis");
+      const workerLabel = localWorkerDisplayName();
       const computeLabel = computeRoute === "local-worker"
-        ? analysis ? `Local Worker · ${analysis}` : "Local Worker"
+        ? analysis ? `${workerLabel} · ${analysis}` : workerLabel
         : fallbackReason ? "Railway fallback" : "Railway";
       elements.resultMeta.textContent = [
         modeLabel,
@@ -453,7 +490,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const completionMessage = colorStrip
         ? "Color Stripが完成しました。"
         : computeRoute === "local-worker"
-          ? "ローカル高精度Workerでミニマル化が完了しました。"
+          ? localWorkerMode() === "tailscale"
+            ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
+            : "ローカル高精度Workerでミニマル化が完了しました。"
           : fallbackReason
             ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
             : "Railwayでミニマル化が完了しました。";
@@ -557,7 +596,9 @@ updateModeUi();
 refreshEngineBadge();
 if (localWorkerEnabled()) {
   setStatus(
-    "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
+    localWorkerMode() === "tailscale"
+      ? "Tailscale Local Worker優先モードです。携帯のTailscaleを接続した状態でミニマル化してください。"
+      : "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
   );
 }
 
