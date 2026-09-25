@@ -1366,3 +1366,87 @@ def test_semantic_mass_cutout_fill_guard_separates_small_cleanup_from_large_cuto
     assert _semantic_mass_cutout_fill_is_safe(1745, 33)
     assert not _semantic_mass_cutout_fill_is_safe(1924, 131)
     assert _semantic_mass_cutout_fill_is_safe(100, 3)
+
+
+def test_semantic_geometric_mass_final_guard_requires_real_vertex_savings():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel, SceneShape, _semantic_geometric_mass_final_is_simpler,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        scene: SceneModel
+
+    entry = PaletteEntry(
+        0, (1,), 1, np.asarray([45.0,0.0,0.0]), (120,120,120), (0,0)
+    )
+
+    def result(points):
+        geometry = PrimitiveGeometry(
+            kind="polygon",
+            loops=(np.asarray(points, dtype=np.float32),),
+        )
+        return DummyResult(
+            SceneModel(
+                30, 30,
+                (SceneShape(region_id=1, geometry=geometry, palette_id=0),),
+                (entry,),
+            )
+        )
+
+    baseline = result([[2,2],[5,2],[8,2],[11,2],[14,2],[14,8],[14,14],[11,14],[8,14],[5,14],[2,14],[2,8]])
+    candidate = result([[2,2],[14,2],[14,14],[2,14]])
+    weak = result([[2,2],[8,2],[14,2],[14,14],[8,14],[2,14],[2,8]])
+
+    assert _semantic_geometric_mass_final_is_simpler(baseline, candidate)
+    assert not _semantic_geometric_mass_final_is_simpler(baseline, weak)
+
+
+def test_semantic_geometric_mass_final_guard_rejects_extra_visible_shape():
+    from dataclasses import dataclass, replace
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel, SceneShape, _semantic_geometric_mass_final_is_simpler,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        scene: SceneModel
+
+    entry = PaletteEntry(
+        0, (1,), 1, np.asarray([45.0,0.0,0.0]), (120,120,120), (0,0)
+    )
+
+    def poly(region_id, points):
+        return SceneShape(
+            region_id=region_id,
+            geometry=PrimitiveGeometry(
+                kind="polygon",
+                loops=(np.asarray(points, dtype=np.float32),),
+            ),
+            palette_id=0,
+        )
+
+    baseline = DummyResult(
+        SceneModel(
+            30, 30,
+            (poly(1, [[2,2],[6,2],[10,2],[14,2],[14,14],[10,14],[6,14],[2,14],[2,8]]),),
+            (entry,),
+        )
+    )
+    candidate = DummyResult(
+        SceneModel(
+            30, 30,
+            (
+                poly(1, [[2,2],[14,2],[14,14],[2,14]]),
+                poly(2, [[16,4],[20,4],[20,8],[16,8]]),
+            ),
+            (entry,),
+        )
+    )
+
+    assert not _semantic_geometric_mass_final_is_simpler(baseline, candidate)

@@ -834,6 +834,36 @@ def _guard_semantic_part_coverage(
     return baseline
 
 
+def _semantic_scene_complexity(
+    result: PresetPipelineResult,
+) -> tuple[int, int]:
+    """Return visible-shape and polygon-vertex counts for one semantic scene."""
+    visible_shapes = 0
+    polygon_vertices = 0
+    for shape in result.scene.shapes:
+        if not shape.visible:
+            continue
+        visible_shapes += 1
+        if shape.geometry.kind == "polygon":
+            polygon_vertices += sum(len(loop) for loop in shape.geometry.loops)
+    return visible_shapes, polygon_vertices
+
+
+def _semantic_geometric_mass_final_is_simpler(
+    baseline: PresetPipelineResult,
+    candidate: PresetPipelineResult,
+    *,
+    min_vertex_savings: int = 6,
+) -> bool:
+    """Accept a mass refit only when final cleanup is strictly simpler."""
+    baseline_shapes, baseline_vertices = _semantic_scene_complexity(baseline)
+    candidate_shapes, candidate_vertices = _semantic_scene_complexity(candidate)
+    return (
+        candidate_shapes <= baseline_shapes
+        and baseline_vertices - candidate_vertices >= max(int(min_vertex_savings), 1)
+    )
+
+
 def _semantic_geometric_mass_is_safe(
     baseline_coverage: float,
     candidate_coverage: float,
@@ -1995,43 +2025,64 @@ def _minimalize_person_parts(
                 candidate = _consolidate_semantic_planes(refined)
                 refined = guarded(refined, candidate)
 
+                def finish_semantic_tail(
+                    tail_result: PresetPipelineResult,
+                ) -> PresetPipelineResult:
+                    tail = tail_result
+                    if name == "head":
+                        candidate = _reduce_safe_head_to_two_planes(
+                            tail,
+                            mask,
+                        )
+                        tail = guarded(tail, candidate)
+
+                    candidate = _remove_semantic_dead_planes(
+                        tail,
+                        mask,
+                    )
+                    tail = guarded(tail, candidate)
+
+                    candidate = _reduce_safe_angular_vertices(
+                        tail,
+                        part_name=name,
+                    )
+                    tail = guarded(tail, candidate)
+
+                    candidate = _remove_render_dead_planes(tail)
+                    tail = guarded(tail, candidate)
+
+                    candidate = _remove_render_negligible_planes(tail)
+                    return guarded(tail, candidate)
+
                 if config.layered_person.semantic_geometric_mass:
-                    candidate = _build_semantic_geometric_mass(
-                        refined,
+                    baseline_before_mass = refined
+                    mass_candidate = _build_semantic_geometric_mass(
+                        baseline_before_mass,
                         part_name=name,
                         part_mask=mask,
                     )
-                    candidate = _guard_semantic_geometric_mass(
-                        refined,
-                        candidate,
+                    mass_candidate = _guard_semantic_geometric_mass(
+                        baseline_before_mass,
+                        mass_candidate,
                         mask,
                     )
-                    refined = guarded(refined, candidate)
-
-                if name == "head":
-                    candidate = _reduce_safe_head_to_two_planes(
-                        refined,
-                        mask,
+                    mass_candidate = guarded(
+                        baseline_before_mass,
+                        mass_candidate,
                     )
-                    refined = guarded(refined, candidate)
+                    if mass_candidate is not baseline_before_mass:
+                        baseline_final = finish_semantic_tail(
+                            baseline_before_mass
+                        )
+                        mass_final = finish_semantic_tail(mass_candidate)
+                        if _semantic_geometric_mass_final_is_simpler(
+                            baseline_final,
+                            mass_final,
+                        ):
+                            return mass_final
+                        return baseline_final
 
-                candidate = _remove_semantic_dead_planes(
-                    refined,
-                    mask,
-                )
-                refined = guarded(refined, candidate)
-
-                candidate = _reduce_safe_angular_vertices(
-                    refined,
-                    part_name=name,
-                )
-                refined = guarded(refined, candidate)
-
-                candidate = _remove_render_dead_planes(refined)
-                refined = guarded(refined, candidate)
-
-                candidate = _remove_render_negligible_planes(refined)
-                return guarded(refined, candidate)
+                return finish_semantic_tail(refined)
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)
