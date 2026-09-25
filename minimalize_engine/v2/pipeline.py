@@ -1938,13 +1938,24 @@ def _minimalize_v2_impl(
     )
 
 
+def _shading_preset_complexity(
+    preset_result: PresetPipelineResult,
+) -> tuple[int, int]:
+    visible = [shape for shape in preset_result.scene.shapes if shape.visible]
+    polygon_vertices = 0
+    for shape in visible:
+        if shape.geometry.kind == "polygon":
+            polygon_vertices += sum(len(loop) for loop in shape.geometry.loops)
+    return len(visible), polygon_vertices
+
+
 def _shading_result_complexity(
     result: MinimalizerV2Result,
 ) -> tuple[int, int]:
     polygon_vertices = 0
     visible_shapes = 0
     for preset_result in result.presets.values():
-        shapes, vertices = _semantic_scene_complexity(preset_result)
+        shapes, vertices = _shading_preset_complexity(preset_result)
         visible_shapes += shapes
         polygon_vertices += vertices
     return visible_shapes, polygon_vertices
@@ -1957,7 +1968,7 @@ def _shading_part_complexity(
     visible_shapes = 0
     for presets in result.person_part_presets.values():
         for preset_result in presets.values():
-            shapes, vertices = _semantic_scene_complexity(preset_result)
+            shapes, vertices = _shading_preset_complexity(preset_result)
             visible_shapes += shapes
             polygon_vertices += vertices
     return visible_shapes, polygon_vertices
