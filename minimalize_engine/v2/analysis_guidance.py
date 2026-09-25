@@ -104,10 +104,11 @@ class AnalysisGuidance:
     line: LineGuide | None = None
     subject_provider: str | None = None
     subject_model: str | None = None
+    alpha: NDArray[np.float32] | None = None
 
     def __post_init__(self) -> None:
         maps: list[NDArray[np.float32]] = []
-        for name in ("subject_prob", "subject_confidence"):
+        for name in ("subject_prob", "subject_confidence", "alpha"):
             value = getattr(self, name)
             if value is not None:
                 _validate_probability_map(name, value)
@@ -133,6 +134,8 @@ class AnalysisGuidance:
             raise ValueError(f"subject guidance must have source shape {source_shape}")
         if self.subject_confidence is not None and self.subject_confidence.shape != source_shape:
             raise ValueError(f"subject guidance must have source shape {source_shape}")
+        if self.alpha is not None and self.alpha.shape != source_shape:
+            raise ValueError(f"alpha guidance must have source shape {source_shape}")
         if self.semantic is not None and self.semantic.source_shape != source_shape:
             raise ValueError(f"semantic guidance must have source shape {source_shape}")
         if self.structural is not None and self.structural.source_shape != source_shape:

@@ -136,6 +136,7 @@ def compose_layered_rgb(
     part_coverage_masks: dict[str, NDArray[np.bool_]] | None = None,
     subject_fallback_rgb: NDArray[np.uint8] | None = None,
     subject_fallback_coverage: NDArray[np.bool_] | None = None,
+    source_alpha: NDArray[np.float32] | None = None,
     seam_fallback_radius: int = 0,
 ) -> NDArray[np.uint8]:
     background = np.asarray(background_rgb, dtype=np.uint8)
@@ -145,6 +146,12 @@ def compose_layered_rgb(
         raise ValueError("background and partition must have matching dimensions")
     canvas = background.copy()
     painted = np.zeros(partition.subject_mask.shape, dtype=np.bool_)
+    alpha_mask = np.ones(partition.subject_mask.shape, dtype=np.bool_)
+    if source_alpha is not None:
+        alpha = np.asarray(source_alpha, dtype=np.float32)
+        if alpha.shape != partition.subject_mask.shape:
+            raise ValueError("source alpha must match partition dimensions")
+        alpha_mask = alpha > 0.0
     for name in PART_LAYER_ORDER:
         mask = partition.part_masks.get(name)
         rendered = part_renders.get(name)
@@ -153,16 +160,34 @@ def compose_layered_rgb(
         image = np.asarray(rendered, dtype=np.uint8)
         if image.shape != background.shape:
             raise ValueError(f"{name} render must match background shape")
-        canvas[mask] = image[mask]
-        painted |= mask
-    remainder = partition.subject_mask & ~painted
+        paint_mask = np.asarray(mask, dtype=np.bool_) & alpha_mask
+        if part_coverage_masks is not None:
+            coverage = np.asarray(
+                part_coverage_masks.get(name, np.zeros_like(mask)),
+                dtype=np.bool_,
+            )
+            if coverage.shape != partition.subject_mask.shape:
+                raise ValueError("part coverage masks must match partition dimensions")
+            paint_mask &= coverage
+        canvas[paint_mask] = image[paint_mask]
+        painted |= paint_mask
+    remainder = partition.subject_mask & alpha_mask & ~painted
     fallback = None
     if subject_fallback_rgb is not None:
         fallback = np.asarray(subject_fallback_rgb, dtype=np.uint8)
         if fallback.shape != background.shape:
             raise ValueError("subject fallback must match background shape")
-        if remainder.any():
-            canvas[remainder] = fallback[remainder]
+        fallback_mask = remainder
+        if subject_fallback_coverage is not None:
+            fallback_coverage = np.asarray(
+                subject_fallback_coverage,
+                dtype=np.bool_,
+            )
+            if fallback_coverage.shape != partition.subject_mask.shape:
+                raise ValueError("subject fallback coverage must match partition dimensions")
+            fallback_mask &= fallback_coverage
+        if fallback_mask.any():
+            canvas[fallback_mask] = fallback[fallback_mask]
 
     if (
         fallback is not None
@@ -189,6 +214,7 @@ def render_partitioned_scene(
     part_renders: dict[str, NDArray[np.uint8]] | None = None,
     part_coverage_masks: dict[str, NDArray[np.bool_]] | None = None,
     scene_coverage_mask: NDArray[np.bool_] | None = None,
+    source_alpha: NDArray[np.float32] | None = None,
     config: LayeredCompositionConfig | None = None,
 ) -> NDArray[np.uint8]:
     """Compose one V2 primitive render through explicit background/person layers.
@@ -217,6 +243,7 @@ def render_partitioned_scene(
         part_coverage_masks=part_coverage_masks,
         subject_fallback_rgb=scene,
         subject_fallback_coverage=scene_coverage_mask,
+        source_alpha=source_alpha,
         seam_fallback_radius=active.seam_fallback_radius,
     )
 
