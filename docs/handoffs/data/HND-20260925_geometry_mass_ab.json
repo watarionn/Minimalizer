@@ -1,0 +1,95 @@
+[
+  {
+    "order": 9,
+    "character": "Otonose-Kanade",
+    "baseline": {
+      "metrics": {
+        "color": 0.9077979028224945,
+        "edge": 0.06109324758842444,
+        "silhouette": 0.8964927288280582
+      },
+      "complexity": {
+        "visible_part_shapes": 6,
+        "polygon_vertices": 38
+      }
+    },
+    "mass": {
+      "metrics": {
+        "color": 0.9077979028224945,
+        "edge": 0.06109324758842444,
+        "silhouette": 0.8964927288280582
+      },
+      "complexity": {
+        "visible_part_shapes": 6,
+        "polygon_vertices": 38
+      }
+    },
+    "delta_mass_minus_baseline": {
+      "color": 0.0,
+      "edge": 0.0,
+      "silhouette": 0.0
+    }
+  },
+  {
+    "order": 34,
+    "character": "Omaru-Polka",
+    "baseline": {
+      "metrics": {
+        "color": 0.9386029429733753,
+        "edge": 0.08316430020283976,
+        "silhouette": 0.44561793589030946
+      },
+      "complexity": {
+        "visible_part_shapes": 8,
+        "polygon_vertices": 441
+      }
+    },
+    "mass": {
+      "metrics": {
+        "color": 0.9386029429733753,
+        "edge": 0.08316430020283976,
+        "silhouette": 0.44561793589030946
+      },
+      "complexity": {
+        "visible_part_shapes": 8,
+        "polygon_vertices": 441
+      }
+    },
+    "delta_mass_minus_baseline": {
+      "color": 0.0,
+      "edge": 0.0,
+      "silhouette": 0.0
+    }
+  },
+  {
+    "order": 39,
+    "character": "Sakura-Miko",
+    "baseline": {
+      "metrics": {
+        "color": 0.9677626676857471,
+        "edge": 0.11608040201005025,
+        "silhouette": 0.6222122099571976
+      },
+      "complexity": {
+        "visible_part_shapes": 8,
+        "polygon_vertices": 643
+      }
+    },
+    "mass": {
+      "metrics": {
+        "color": 0.9677086509764194,
+        "edge": 0.12092323130958355,
+        "silhouette": 0.621786197564276
+      },
+      "complexity": {
+        "visible_part_shapes": 8,
+        "polygon_vertices": 514
+      }
+    },
+    "delta_mass_minus_baseline": {
+      "color": -5.4016709327697754e-05,
+      "edge": 0.004842829299533294,
+      "silhouette": -0.0004260123929216153
+    }
+  }
+]

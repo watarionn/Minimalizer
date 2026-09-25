@@ -1,0 +1,119 @@
+{
+  "batch": "approved68-batch1",
+  "cases": 12,
+  "changed_cases": 3,
+  "total_vertex_savings": 1027,
+  "rows": [
+    {
+      "order": 1,
+      "character": "Kikirara-Vivi",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 2,
+      "character": "Isaki-Riona",
+      "changed": true,
+      "total_vertex_savings": 508,
+      "parts": [
+        {
+          "order": 2,
+          "character": "Isaki-Riona",
+          "part": "torso",
+          "before_vertices": 522,
+          "after_vertices": 14,
+          "savings": 508
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "character": "Koganei-Niko",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 4,
+      "character": "Vestia-Zeta",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 5,
+      "character": "Todoroki-Hajime",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 6,
+      "character": "Shishiro-Botan",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 7,
+      "character": "Shiori-Novella",
+      "changed": true,
+      "total_vertex_savings": 341,
+      "parts": [
+        {
+          "order": 7,
+          "character": "Shiori-Novella",
+          "part": "right_arm",
+          "before_vertices": 356,
+          "after_vertices": 15,
+          "savings": 341
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "character": "Natsuiro-Matsuri",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 9,
+      "character": "Otonose-Kanade",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 10,
+      "character": "Mori-Calliope",
+      "changed": true,
+      "total_vertex_savings": 178,
+      "parts": [
+        {
+          "order": 10,
+          "character": "Mori-Calliope",
+          "part": "right_arm",
+          "before_vertices": 744,
+          "after_vertices": 566,
+          "savings": 178
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "character": "Momosuzu-Nene",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    },
+    {
+      "order": 12,
+      "character": "Koseki-Bijou",
+      "changed": false,
+      "total_vertex_savings": 0,
+      "parts": []
+    }
+  ]
+}

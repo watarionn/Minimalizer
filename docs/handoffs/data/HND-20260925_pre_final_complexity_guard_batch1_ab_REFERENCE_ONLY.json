@@ -1,0 +1,117 @@
+{
+  "summary": {
+    "cases": 4,
+    "total_vertex_savings": -204,
+    "mean_delta": {
+      "color": -0.00012718141078948975,
+      "edge": -0.0005425235167017296,
+      "silhouette": -3.0517578125e-05
+    }
+  },
+  "rows": [
+    {
+      "order": 2,
+      "character": "Isaki-Riona",
+      "baseline": {
+        "metrics": {
+          "color": 0.855582520365715,
+          "edge": 0.07264833574529667,
+          "silhouette": 0.9626168224299065
+        },
+        "vertices": 558
+      },
+      "mass": {
+        "metrics": {
+          "color": 0.855582520365715,
+          "edge": 0.07264833574529667,
+          "silhouette": 0.9626168224299065
+        },
+        "vertices": 558
+      },
+      "delta_mass_minus_baseline": {
+        "color": 0.0,
+        "edge": 0.0,
+        "silhouette": 0.0
+      },
+      "vertex_savings": 0
+    },
+    {
+      "order": 7,
+      "character": "Shiori-Novella",
+      "baseline": {
+        "metrics": {
+          "color": 0.846082016825676,
+          "edge": 0.0672052882849798,
+          "silhouette": 0.9644775390625
+        },
+        "vertices": 382
+      },
+      "mass": {
+        "metrics": {
+          "color": 0.846082016825676,
+          "edge": 0.0672052882849798,
+          "silhouette": 0.9644775390625
+        },
+        "vertices": 382
+      },
+      "delta_mass_minus_baseline": {
+        "color": 0.0,
+        "edge": 0.0,
+        "silhouette": 0.0
+      },
+      "vertex_savings": 0
+    },
+    {
+      "order": 10,
+      "character": "Mori-Calliope",
+      "baseline": {
+        "metrics": {
+          "color": 0.8562951683998108,
+          "edge": 0.10254462590201291,
+          "silhouette": 0.97515869140625
+        },
+        "vertices": 391
+      },
+      "mass": {
+        "metrics": {
+          "color": 0.8557864427566528,
+          "edge": 0.10037453183520599,
+          "silhouette": 0.97503662109375
+        },
+        "vertices": 595
+      },
+      "delta_mass_minus_baseline": {
+        "color": -0.000508725643157959,
+        "edge": -0.0021700940668069185,
+        "silhouette": -0.0001220703125
+      },
+      "vertex_savings": -204
+    },
+    {
+      "order": 25,
+      "character": "Mori-Calliope",
+      "baseline": {
+        "metrics": {
+          "color": 0.8735765665769577,
+          "edge": 0.07971014492753623,
+          "silhouette": 0.553763440860215
+        },
+        "vertices": 474
+      },
+      "mass": {
+        "metrics": {
+          "color": 0.8735765665769577,
+          "edge": 0.07971014492753623,
+          "silhouette": 0.553763440860215
+        },
+        "vertices": 474
+      },
+      "delta_mass_minus_baseline": {
+        "color": 0.0,
+        "edge": 0.0,
+        "silhouette": 0.0
+      },
+      "vertex_savings": 0
+    }
+  ]
+}
