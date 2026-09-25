@@ -1,7 +1,7 @@
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const LOCAL_WORKER_BASE = "http://127.0.0.1:28765";
-const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 1200;
+const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
 const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
 
 const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
@@ -58,6 +58,9 @@ const state = {
   resultBlob: null,
   resultFilename: "minimalized.png",
   busy: false,
+  engineVersion: "",
+  localWorkerStatus: localWorkerEnabled() ? "enabled" : "disabled",
+  localWorkerFallbackReason: "",
 };
 
 function formatBytes(bytes) {
@@ -69,6 +72,30 @@ function formatBytes(bytes) {
 function setStatus(message = "", isError = false) {
   elements.status.textContent = message;
   elements.status.classList.toggle("is-error", isError);
+}
+
+function refreshEngineBadge() {
+  const parts = [];
+  if (state.engineVersion) parts.push(`Engine v${state.engineVersion}`);
+  if (localWorkerEnabled()) {
+    const labels = {
+      enabled: "Local Worker優先",
+      checking: "Local Worker接続確認中",
+      ready: "Local Worker接続済み",
+      fallback: "Railway fallback",
+    };
+    parts.push(labels[state.localWorkerStatus] || "Local Worker優先");
+  }
+  if (parts.length > 0) elements.engineBadge.textContent = parts.join(" · ");
+}
+
+function localWorkerFallbackMessage(reason = "") {
+  const suffix = reason === "timeout"
+    ? "接続確認がタイムアウトしました。"
+    : reason === "not-ready"
+      ? "Local Workerは起動していますが準備完了ではありません。"
+      : "ブラウザのローカルネットワーク権限、またはLocal Workerの起動状態を確認してください。";
+  return `Local Workerに接続できなかったためRailway fallbackを使用します。 ${suffix}`;
 }
 
 function currentMode() {
@@ -235,36 +262,70 @@ async function fetchLoopback(path, options = {}, timeoutMs = 0) {
   }
 }
 
-async function localWorkerReady() {
+async function probeLocalWorker() {
+  if (!localWorkerEnabled()) return { ready: false, reason: "disabled" };
+  state.localWorkerStatus = "checking";
+  state.localWorkerFallbackReason = "";
+  refreshEngineBadge();
+  setStatus("Local Workerへ接続しています。初回はブラウザのローカルネットワークアクセスを許可してください。");
   try {
-    const response = await fetchLoopback("/health", { method: "GET" }, LOCAL_WORKER_HEALTH_TIMEOUT_MS);
-    if (!response.ok) return false;
+    const response = await fetchLoopback(
+      "/health",
+      { method: "GET" },
+      LOCAL_WORKER_HEALTH_TIMEOUT_MS,
+    );
+    if (!response.ok) return { ready: false, reason: `health-${response.status}` };
     const payload = await response.json();
-    return payload?.worker === "local-compute-v1" && payload?.ready === true;
-  } catch (_) {
-    return false;
+    if (payload?.worker !== "local-compute-v1" || payload?.ready !== true) {
+      return { ready: false, reason: "not-ready" };
+    }
+    state.localWorkerStatus = "ready";
+    refreshEngineBadge();
+    return { ready: true, reason: "" };
+  } catch (error) {
+    return {
+      ready: false,
+      reason: error instanceof DOMException && error.name === "AbortError"
+        ? "timeout"
+        : "permission-or-offline",
+    };
   }
 }
 
 async function requestStandardV2() {
-  if (localWorkerEnabled() && await localWorkerReady()) {
-    try {
-      const response = await fetchLoopback("/api/v2/minimalize", {
-        method: "POST",
-        body: buildV2FormData(),
-      });
-      if (response.ok || response.status === 400 || response.status === 415) {
-        return { response, compute: "local-worker" };
+  let fallbackReason = "";
+  if (localWorkerEnabled()) {
+    const probe = await probeLocalWorker();
+    if (probe.ready) {
+      try {
+        const response = await fetchLoopback("/api/v2/minimalize", {
+          method: "POST",
+          body: buildV2FormData(),
+        });
+        if (response.ok || response.status === 400 || response.status === 415) {
+          state.localWorkerStatus = "ready";
+          refreshEngineBadge();
+          return { response, compute: "local-worker", fallbackReason: "" };
+        }
+        fallbackReason = `worker-${response.status}`;
+      } catch (error) {
+        fallbackReason = error instanceof DOMException && error.name === "AbortError"
+          ? "timeout"
+          : "permission-or-offline";
       }
-    } catch (_) {
-      // Fall through to Railway when the local worker disappears mid-request.
+    } else {
+      fallbackReason = probe.reason;
     }
+    state.localWorkerStatus = "fallback";
+    state.localWorkerFallbackReason = fallbackReason;
+    refreshEngineBadge();
+    setStatus(localWorkerFallbackMessage(fallbackReason), true);
   }
   const response = await fetch("/api/v2/minimalize", {
     method: "POST",
     body: buildV2FormData(),
   });
-  return { response, compute: "railway" };
+  return { response, compute: "railway", fallbackReason };
 }
 
 async function responseError(response) {
@@ -320,7 +381,8 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 
   try {
     let response;
-    let computeRoute = colorStrip ? "railway" : "railway";
+    let computeRoute = "railway";
+    let fallbackReason = "";
     if (colorStrip) {
       response = await fetch("/api/minimalize", {
         method: "POST",
@@ -330,6 +392,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const result = await requestStandardV2();
       response = result.response;
       computeRoute = result.compute;
+      fallbackReason = result.fallbackReason || "";
     }
     if (!response.ok) throw new Error(await responseError(response));
 
@@ -363,7 +426,10 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
         : "";
 
-      const computeLabel = computeRoute === "local-worker" ? "Local Worker" : "";
+      const analysis = response.headers.get("x-minimalizer-analysis");
+      const computeLabel = computeRoute === "local-worker"
+        ? analysis ? `Local Worker · ${analysis}` : "Local Worker"
+        : fallbackReason ? "Railway fallback" : "Railway";
       elements.resultMeta.textContent = [
         modeLabel,
         computeLabel,
@@ -375,13 +441,23 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 
     if (download) downloadBlob(blob, filename);
     if (download) {
-      setStatus(`${label}を保存しました。`);
+      if (fallbackReason) {
+        setStatus(
+          `${label}をRailway fallbackで保存しました。 ${localWorkerFallbackMessage(fallbackReason)}`,
+          true,
+        );
+      } else {
+        setStatus(`${label}を保存しました。`);
+      }
     } else {
-      setStatus(colorStrip
+      const completionMessage = colorStrip
         ? "Color Stripが完成しました。"
         : computeRoute === "local-worker"
           ? "ローカル高精度Workerでミニマル化が完了しました。"
-          : "ミニマル化が完了しました。");
+          : fallbackReason
+            ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
+            : "Railwayでミニマル化が完了しました。";
+      setStatus(completionMessage, Boolean(fallbackReason));
     }
   } catch (error) {
     if (preview && !state.resultBlob) {
@@ -478,6 +554,12 @@ for (const input of elements.modeInputs) {
 }
 
 updateModeUi();
+refreshEngineBadge();
+if (localWorkerEnabled()) {
+  setStatus(
+    "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
+  );
+}
 
 window.addEventListener("beforeunload", () => {
   if (state.sourceUrl) URL.revokeObjectURL(state.sourceUrl);
@@ -487,6 +569,9 @@ window.addEventListener("beforeunload", () => {
 fetch("/health")
   .then((response) => response.ok ? response.json() : null)
   .then((payload) => {
-    if (payload?.engine_version) elements.engineBadge.textContent = `Engine v${payload.engine_version}`;
+    if (payload?.engine_version) {
+      state.engineVersion = payload.engine_version;
+      refreshEngineBadge();
+    }
   })
   .catch(() => {});
