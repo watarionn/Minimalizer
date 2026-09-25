@@ -69,9 +69,55 @@ https://minimalizer-web-production-a2bc.up.railway.app/?localWorker=0
 
 Color Strip remains on Railway.
 
+## Mobile / remote access over Tailscale
+
+The worker itself remains bound to `127.0.0.1:28765`. Remote access is provided by Tailscale Serve, so the worker is not opened on the home LAN or the public internet.
+
+On the Windows PC:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\install_tailscale_mobile_worker.ps1
+```
+
+This adds a tailnet-only HTTPS proxy:
+
+```
+https://ywshtmr.tail8fd68c.ts.net:28765
+  -> http://127.0.0.1:28765
+```
+
+Tailscale Funnel is not enabled for this Minimalizer port.
+
+On the phone:
+
+1. Open the Tailscale app and make sure it is connected to the same tailnet as the PC.
+2. Open Chrome.
+3. Open the production Minimalizer site once with:
+
+```
+https://minimalizer-web-production-a2bc.up.railway.app/?localWorker=tailscale
+```
+
+4. Choose an image and run Minimalizer normally.
+5. Confirm the result metadata says `Minimalizer 2.0 Local · Tailscale Local Worker · rembg+rtmlib`.
+
+The `tailscale` mode is stored in localStorage for that browser, so later visits can use the normal production URL while Tailscale remains connected.
+
+If the phone is offline from Tailscale, the PC is offline, Tailscale Serve is unavailable, or the Local Worker is not ready, Minimalizer falls back to Railway and explicitly labels the result `Railway fallback`.
+
+Remove only the Minimalizer Tailscale route with:
+
+```powershell
+.\scripts\uninstall_tailscale_mobile_worker.ps1
+```
+
 ## Security boundary
 
-- Bound to loopback only, not LAN/WAN.
+- The Local Worker process stays bound to loopback only.
+- PC-browser access uses `127.0.0.1:28765`.
+- Mobile / remote access uses a Tailscale Serve HTTPS route that is tailnet-only.
+- Minimalizer does not enable Tailscale Funnel for port `28765`.
 - Browser Origin allowlist accepts the production Minimalizer origin and local development origins only.
 - Unknown browser origins receive 403.
 - One processing job at a time.
