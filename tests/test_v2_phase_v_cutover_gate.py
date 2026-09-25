@@ -43,7 +43,10 @@ def test_phase_v_browser_bundle_is_cut_over_to_v2_default():
     assert 'const LOCAL_WORKER_BASE = "http://127.0.0.1:28765"' in source
     assert 'const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled"' in source
     assert 'new URLSearchParams(window.location.search).get("localWorker")' in source
-    assert "localWorkerEnabled() && await localWorkerReady()" in source
+    assert "const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000" in source
+    assert "const probe = await probeLocalWorker()" in source
+    assert '"Railway fallback"' in source
+    assert "ローカルネットワークアクセスを許可してください" in source
     assert "await requestStandardV2()" in source
     assert 'fetch("/api/v2/minimalize"' in source
     assert 'form.append("preset", "minimal")' in source

@@ -50,13 +50,16 @@ https://minimalizer-web-production-a2bc.up.railway.app/?localWorker=1
 
 This stores the local-worker opt-in in localStorage for that browser.
 
-Chrome may ask for permission to access the loopback/local network. Allow it for the Minimalizer production origin. Chrome gates public-site to loopback requests behind Local Network Access permission.
+Chrome may ask for permission to access the loopback/local network. Allow it for the Minimalizer production origin. Chrome gates public-site to loopback requests behind Local Network Access permission. The browser waits long enough for this first-run permission interaction instead of immediately abandoning the loopback probe.
 
 After opt-in:
 
-1. Standard Minimalizer checks the local worker.
+1. Standard Minimalizer checks the local worker when the user starts minimalization.
 2. If ready, the image is processed on the PC using rembg + RTMLib + Layered Person.
-3. If the worker is unavailable or the browser denies local access, the request falls back to Railway.
+3. A successful local result is labeled `Minimalizer 2.0 Local · Local Worker · rembg+rtmlib`.
+4. If the worker is unavailable or the browser denies local access, the request falls back to Railway and the UI explicitly labels the result `Railway fallback` with a permission/startup warning.
+
+Do not infer that `?localWorker=1` alone proves local computation. The result metadata is the source of truth for the route actually used.
 
 Disable local-worker routing for that browser with:
 
