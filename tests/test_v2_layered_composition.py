@@ -144,7 +144,8 @@ def test_compositor_uses_whole_person_fallback_only_for_uncovered_seam_pixels():
     assert tuple(result[4, 3]) == (100, 100, 100)
     assert tuple(result[2, 3]) == (40, 40, 40)
     assert tuple(result[3, 3]) == (40, 40, 40)
-    assert tuple(result[2, 2]) == (200, 200, 200)
+    # Coverage-gated composition must not paste a part render's blank canvas.
+    assert tuple(result[2, 2]) == (10, 10, 10)
     assert tuple(result[0, 0]) == (10, 10, 10)
 
 
@@ -192,3 +193,31 @@ def test_deterministic_kmeans_labels_cover_each_requested_cluster():
 
     assert np.array_equal(first, second)
     assert set(first[:, 0].tolist()) == {0, 1, 2}
+
+
+def test_compositor_respects_source_alpha_when_painting_parts():
+    from minimalize_engine.v2.layered_composition import compose_layered_rgb
+
+    subject = np.zeros((5, 5), dtype=np.bool_)
+    subject[1:4, 1:4] = True
+    partition = PersonPartPartition(
+        subject_mask=subject,
+        background_mask=~subject,
+        part_masks={"head": subject.copy()},
+    )
+    background = np.full((5, 5, 3), 25, dtype=np.uint8)
+    part = np.full((5, 5, 3), 220, dtype=np.uint8)
+    coverage = subject.copy()
+    alpha = np.ones((5, 5), dtype=np.float32)
+    alpha[2, 2] = 0.0
+
+    result = compose_layered_rgb(
+        background,
+        partition,
+        part_renders={"head": part},
+        part_coverage_masks={"head": coverage},
+        source_alpha=alpha,
+    )
+
+    assert tuple(result[1, 1]) == (220, 220, 220)
+    assert tuple(result[2, 2]) == (25, 25, 25)

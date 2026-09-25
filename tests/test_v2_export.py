@@ -118,3 +118,33 @@ def test_layered_png_export_is_byte_deterministic_with_seam_fallback():
     first = export_png(result, preset="minimal", include_facets=False)
     second = export_png(result, preset="minimal", include_facets=False)
     assert first == second
+
+
+def test_png_export_can_preserve_source_alpha():
+    from minimalize_engine.v2.analysis_guidance import AnalysisGuidance
+
+    image = _image()
+    alpha = np.ones(image.shape[:2], dtype=np.float32)
+    alpha[:6, :] = 0.0
+    alpha[:, :4] = 0.0
+    guidance = AnalysisGuidance(alpha=alpha)
+    result = minimalize_v2(
+        image,
+        presets=("minimal",),
+        guidance=guidance,
+    )
+
+    exported = export_png(
+        result,
+        preset="minimal",
+        preserve_source_alpha=True,
+    )
+    decoded = cv2.imdecode(
+        np.frombuffer(exported.content, dtype=np.uint8),
+        cv2.IMREAD_UNCHANGED,
+    )
+
+    assert decoded.ndim == 3 and decoded.shape[2] == 4
+    expected_alpha = np.rint(result.bundle.alpha * 255.0).astype(np.uint8)
+    assert np.array_equal(decoded[..., 3], expected_alpha)
+    assert exported.metadata.preserves_source_alpha is True

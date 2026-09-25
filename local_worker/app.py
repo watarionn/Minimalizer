@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Lock
@@ -8,14 +9,17 @@ from time import perf_counter
 import logging
 import os
 
+import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
-from minimalize_engine.io.image_loader import load_image
+from minimalize_engine.io.image_loader import load_image_bundle
 from minimalize_engine.v2 import (
     PipelineConfig,
     RembgGuidanceConfig,
+    ShadingFlattenConfig,
+    ShadingFlattenGuardConfig,
     RtmlibStructuralConfig,
     attach_rtmlib_structure,
     build_rembg_guidance,
@@ -33,6 +37,13 @@ ANALYSIS_MAX_SIDE = int(os.getenv("MINIMALIZER_LOCAL_ANALYSIS_MAX_SIDE", "400"))
 REMBG_MODEL = os.getenv("MINIMALIZER_LOCAL_REMBG_MODEL", "u2netp")
 RTMLIB_MODE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_MODE", "balanced")
 RTMLIB_DEVICE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_DEVICE", "cpu")
+SHADING_FLATTEN_ENABLED = os.getenv(
+    "MINIMALIZER_LOCAL_SHADING_FLATTEN", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
+SHADING_FLATTEN_SR = int(os.getenv("MINIMALIZER_LOCAL_SHADING_FLATTEN_SR", "45"))
+SHADING_FLATTEN_GUARD = os.getenv(
+    "MINIMALIZER_LOCAL_SHADING_FLATTEN_GUARD", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
 
 DEFAULT_ORIGINS = (
     "https://minimalizer-web-production-a2bc.up.railway.app",
@@ -86,13 +97,26 @@ def _ensure_runtime() -> tuple[object, object]:
             raise
 def _build_guidance(input_path: Path):
     rembg_session, rtmlib_model = _ensure_runtime()
-    source_rgb = load_image(input_path)
+    loaded = load_image_bundle(input_path)
+    source_rgb = loaded.rgb
     rembg_config = RembgGuidanceConfig(model=REMBG_MODEL)
     base = build_rembg_guidance(
         source_rgb,
         config=rembg_config,
         session=rembg_session,
     )
+    if loaded.has_transparency:
+        source_alpha = loaded.alpha.astype(np.float32) / 255.0
+        constrained_subject = np.where(
+            source_alpha > 0.0,
+            np.maximum(base.subject_prob, source_alpha),
+            0.0,
+        ).astype(np.float32)
+        base = replace(
+            base,
+            subject_prob=constrained_subject,
+            alpha=source_alpha,
+        )
     structural_config = RtmlibStructuralConfig(
         mode=RTMLIB_MODE,
         device=RTMLIB_DEVICE,
@@ -115,6 +139,14 @@ def _run_high_quality(
     source_rgb, guidance, selection = _build_guidance(input_path)
     config = PipelineConfig(
         analysis_max_side=ANALYSIS_MAX_SIDE,
+        shading_flatten=ShadingFlattenConfig(
+            enabled=SHADING_FLATTEN_ENABLED,
+            sr=SHADING_FLATTEN_SR,
+            hierarchical_parts=True,
+        ),
+        shading_flatten_guard=ShadingFlattenGuardConfig(
+            enabled=SHADING_FLATTEN_GUARD,
+        ),
         layered_person=LayeredPersonConfig(enabled=True),
     )
     result = minimalize_v2(
@@ -123,7 +155,12 @@ def _run_high_quality(
         config=config,
         guidance=guidance,
     )
-    return export_png(result, preset=preset, include_facets=include_facets), selection
+    return export_png(
+        result,
+        preset=preset,
+        include_facets=include_facets,
+        preserve_source_alpha=True,
+    ), selection
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     if os.getenv("MINIMALIZER_LOCAL_WORKER_EAGER", "1") != "0":
@@ -168,6 +205,9 @@ def health():
         "rtmlib_mode": RTMLIB_MODE,
         "rtmlib_device": RTMLIB_DEVICE,
         "layered_person": True,
+        "shading_flatten_candidate": SHADING_FLATTEN_ENABLED,
+        "shading_flatten_sr": SHADING_FLATTEN_SR,
+        "shading_flatten_guard": SHADING_FLATTEN_GUARD,
         "runtime_error": _runtime_error,
     }
 
@@ -229,6 +269,11 @@ async def minimalize_local(
         _process_lock.release()
         await file.close()
     metadata = result.metadata
+    actual_shading_flatten = (
+        metadata.shading_flatten_accepted
+        if metadata.shading_flatten_evaluated
+        else SHADING_FLATTEN_ENABLED
+    )
     elapsed_ms = (perf_counter() - started) * 1000.0
     headers = {
         "Content-Disposition": f'attachment; filename="{result.filename}"',
@@ -236,12 +281,29 @@ async def minimalize_local(
         "X-Minimalizer-Compute": "local-worker",
         "X-Minimalizer-Analysis": "rembg+rtmlib",
         "X-Minimalizer-Layered-Person": "true",
+        "X-Minimalizer-Shading-Flatten": str(actual_shading_flatten).lower(),
+        "X-Minimalizer-Shading-Flatten-Candidate": str(
+            SHADING_FLATTEN_ENABLED
+        ).lower(),
+        "X-Minimalizer-Shading-Flatten-Guard": str(
+            SHADING_FLATTEN_GUARD
+        ).lower(),
+        "X-Minimalizer-Shading-Flatten-Evaluated": str(
+            metadata.shading_flatten_evaluated
+        ).lower(),
+        "X-Minimalizer-Shading-Flatten-SR": str(SHADING_FLATTEN_SR),
+        "X-Minimalizer-Shading-Flatten-Reasons": ",".join(
+            metadata.shading_flatten_reasons
+        ),
         "X-Minimalizer-RTMLib-Selected": "true" if selection is not None else "false",
         "X-Minimalizer-V2-Contract-Version": metadata.contract_version,
         "X-Minimalizer-V2-Preset": metadata.preset,
         "X-Minimalizer-V2-Include-Facets": str(metadata.include_facets).lower(),
         "X-Minimalizer-V2-Pixel-SHA256": metadata.pixel_sha256,
         "X-Minimalizer-V2-PNG-SHA256": metadata.png_sha256,
+        "X-Minimalizer-Preserves-Source-Alpha": str(
+            metadata.preserves_source_alpha
+        ).lower(),
         "X-Minimalizer-Shape-Count": str(metadata.visible_shape_count),
         "X-Minimalizer-Analysis-Size": f"{metadata.width}x{metadata.height}",
         "X-Minimalizer-Source-Size": f"{metadata.source_width}x{metadata.source_height}",

@@ -1,11 +1,15 @@
 import os
 from types import SimpleNamespace
 
+import numpy as np
+from PIL import Image
+
 os.environ["MINIMALIZER_LOCAL_WORKER_EAGER"] = "0"
 
 from fastapi.testclient import TestClient
 
 import local_worker.app as worker
+from minimalize_engine.v2.analysis_guidance import AnalysisGuidance
 from minimalize_engine.v2.export import V2PngExport, V2PngMetadata
 
 
@@ -41,6 +45,9 @@ def test_health_reports_cold_runtime_without_eager_warmup():
     assert response.json()["worker"] == "local-compute-v1"
     assert response.json()["status"] == "cold"
     assert response.json()["ready"] is False
+    assert response.json()["shading_flatten_candidate"] is True
+    assert response.json()["shading_flatten_sr"] == 45
+    assert response.json()["shading_flatten_guard"] is True
 
 
 def test_local_worker_rejects_untrusted_browser_origin():
@@ -82,5 +89,46 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.headers["x-minimalizer-compute"] == "local-worker"
     assert response.headers["x-minimalizer-analysis"] == "rembg+rtmlib"
     assert response.headers["x-minimalizer-layered-person"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-candidate"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-guard"] == "true"
+    assert response.headers["x-minimalizer-shading-flatten-evaluated"] == "false"
+    assert response.headers["x-minimalizer-shading-flatten-sr"] == "45"
     assert response.headers["x-minimalizer-rtmlib-selected"] == "true"
     assert response.headers["x-minimalizer-v2-png-sha256"] == "b" * 64
+    assert response.headers["x-minimalizer-preserves-source-alpha"] == "false"
+
+
+def test_build_guidance_keeps_transparent_source_alpha(tmp_path, monkeypatch):
+    rgba = np.zeros((6, 8, 4), dtype=np.uint8)
+    rgba[..., :3] = (120, 80, 60)
+    rgba[1:5, 2:7, 3] = 255
+    path = tmp_path / "transparent.png"
+    Image.fromarray(rgba, "RGBA").save(path)
+
+    def fake_runtime():
+        return object(), object()
+
+    def fake_rembg(source_rgb, **_kwargs):
+        shape = source_rgb.shape[:2]
+        return AnalysisGuidance(
+            subject_prob=np.full(shape, 0.25, dtype=np.float32),
+            subject_confidence=np.ones(shape, dtype=np.float32),
+            subject_provider="test",
+            subject_model="test",
+        )
+
+    def fake_attach(source_rgb, *, base_guidance, **_kwargs):
+        return base_guidance, None
+
+    monkeypatch.setattr(worker, "_ensure_runtime", fake_runtime)
+    monkeypatch.setattr(worker, "build_rembg_guidance", fake_rembg)
+    monkeypatch.setattr(worker, "attach_rtmlib_structure", fake_attach)
+
+    _source_rgb, guidance, _selection = worker._build_guidance(path)
+
+    assert guidance.alpha is not None
+    assert guidance.alpha[0, 0] == 0.0
+    assert guidance.alpha[2, 3] == 1.0
+    assert guidance.subject_prob[0, 0] == 0.0
+    assert guidance.subject_prob[2, 3] == 1.0

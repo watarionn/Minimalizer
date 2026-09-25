@@ -432,6 +432,7 @@ def attach_rtmlib_structure(
         AnalysisGuidance(
             subject_prob=base.subject_prob,
             subject_confidence=base.subject_confidence,
+            alpha=base.alpha,
             semantic=base.semantic,
             structural=structural,
             line=base.line,

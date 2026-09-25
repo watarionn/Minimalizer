@@ -39,7 +39,11 @@ from minimalize_engine.v2.palette import (
     PaletteEntry,
     consolidate_palette,
 )
-from minimalize_engine.v2.preprocessing import DEFAULT_ANALYSIS_MAX_SIDE, build_image_bundle
+from minimalize_engine.v2.preprocessing import (
+    DEFAULT_ANALYSIS_MAX_SIDE,
+    ShadingFlattenConfig,
+    build_image_bundle,
+)
 from minimalize_engine.v2.person_parts import (
     PersonPartConfig,
     PersonPartPartition,
@@ -129,8 +133,89 @@ class LayeredPersonConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class ShadingFlattenGuardConfig:
+    enabled: bool = False
+    max_polygon_vertex_ratio: float = 1.05
+    max_part_polygon_vertex_ratio: float = 1.20
+    max_initial_region_ratio: float = 1.10
+    max_global_palette_delta: int = 1
+    max_total_part_palette_ratio: float = 1.20
+    max_single_part_palette_increase: int = 2
+    max_relaxed_single_part_palette_increase: int = 4
+    palette_growth_relax_part_reduction_ratio: float = 0.25
+    min_edge_energy_retention: float = 0.65
+    max_subject_color_mae: float = 0.08
+    max_subject_color_p95: float = 0.22
+    min_region_reduction_ratio: float = 0.02
+    min_polygon_reduction_ratio: float = 0.02
+    min_part_polygon_reduction_ratio: float = 0.08
+
+    def __post_init__(self) -> None:
+        for name in (
+            "max_polygon_vertex_ratio",
+            "max_part_polygon_vertex_ratio",
+            "max_initial_region_ratio",
+            "max_total_part_palette_ratio",
+            "min_edge_energy_retention",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{name} must be finite and positive")
+        for name in (
+            "max_subject_color_mae",
+            "max_subject_color_p95",
+            "palette_growth_relax_part_reduction_ratio",
+            "min_region_reduction_ratio",
+            "min_polygon_reduction_ratio",
+            "min_part_polygon_reduction_ratio",
+        ):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value < 0.0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        for name in (
+            "max_global_palette_delta",
+            "max_single_part_palette_increase",
+            "max_relaxed_single_part_palette_increase",
+        ):
+            if int(getattr(self, name)) < 0:
+                raise ValueError(f"{name} must be non-negative")
+        if (
+            self.max_relaxed_single_part_palette_increase
+            < self.max_single_part_palette_increase
+        ):
+            raise ValueError(
+                "relaxed single-part palette increase must not be stricter"
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class ShadingFlattenDecision:
+    accepted: bool
+    reasons: tuple[str, ...]
+    baseline_initial_regions: int
+    candidate_initial_regions: int
+    baseline_polygon_vertices: int
+    candidate_polygon_vertices: int
+    baseline_part_polygon_vertices: int
+    candidate_part_polygon_vertices: int
+    global_palette_delta: int
+    total_part_palette_ratio: float
+    max_part_palette_increase: int
+    part_palette_growth_relaxed: bool
+    edge_energy_retention: float
+    subject_color_mae: float
+    subject_color_p95: float
+    alpha_preserved: bool
+    silhouette_preserved: bool
+
+
+@dataclass(frozen=True, slots=True)
 class PipelineConfig:
     analysis_max_side: int = DEFAULT_ANALYSIS_MAX_SIDE
+    shading_flatten: ShadingFlattenConfig = field(default_factory=ShadingFlattenConfig)
+    shading_flatten_guard: ShadingFlattenGuardConfig = field(
+        default_factory=ShadingFlattenGuardConfig
+    )
     region_merge: RegionMergeConfig = field(default_factory=RegionMergeConfig)
     contour: ContourSimplificationConfig = field(default_factory=ContourSimplificationConfig)
     primitive: PrimitiveFitConfig = field(default_factory=PrimitiveFitConfig)
@@ -181,6 +266,7 @@ class MinimalizerV2Result:
     presets: Mapping[str, PresetPipelineResult]
     person_parts: PersonPartPartition | None = None
     person_part_presets: Mapping[str, Mapping[str, PresetPipelineResult]] = field(default_factory=dict)
+    shading_flatten_decision: ShadingFlattenDecision | None = None
 
     def __post_init__(self) -> None:
         presets = dict(self.presets)
@@ -1864,11 +1950,20 @@ def _minimalize_person_parts(
         part_guidance = AnalysisGuidance(
             subject_prob=probability,
             subject_confidence=confidence,
+            alpha=probability,
             subject_provider="minimalizer",
             subject_model=f"person-part:{name}",
         )
         part_config = replace(
             config,
+            # A second, alpha-bounded pass is intentional for hierarchical
+            # person-part processing: scene shading is flattened first, then
+            # each isolated semantic part gets one local consolidation pass.
+            shading_flatten=(
+                config.shading_flatten
+                if config.shading_flatten.hierarchical_parts
+                else replace(config.shading_flatten, enabled=False)
+            ),
             layered_person=replace(config.layered_person, enabled=False),
             cut_policies=_person_part_cut_policies(name),
             contour=_person_part_contour_config(config.contour),
@@ -2017,7 +2112,9 @@ def _minimalize_v2_impl(
             source_rgb,
             subject_prob=guidance.subject_prob if guidance is not None else None,
             subject_confidence=guidance.subject_confidence if guidance is not None else None,
+            alpha=guidance.alpha if guidance is not None else None,
             analysis_max_side=config.analysis_max_side,
+            shading_flatten=config.shading_flatten,
         ),
     )
     segmentation = _timed(
@@ -2143,6 +2240,280 @@ def _minimalize_v2_impl(
     )
 
 
+def _shading_preset_complexity(
+    preset_result: PresetPipelineResult,
+) -> tuple[int, int]:
+    visible = [shape for shape in preset_result.scene.shapes if shape.visible]
+    polygon_vertices = 0
+    for shape in visible:
+        if shape.geometry.kind == "polygon":
+            polygon_vertices += sum(len(loop) for loop in shape.geometry.loops)
+    return len(visible), polygon_vertices
+
+
+def _shading_result_complexity(
+    result: MinimalizerV2Result,
+) -> tuple[int, int]:
+    polygon_vertices = 0
+    visible_shapes = 0
+    for preset_result in result.presets.values():
+        shapes, vertices = _shading_preset_complexity(preset_result)
+        visible_shapes += shapes
+        polygon_vertices += vertices
+    return visible_shapes, polygon_vertices
+
+
+def _shading_part_complexity(
+    result: MinimalizerV2Result,
+) -> tuple[int, int]:
+    polygon_vertices = 0
+    visible_shapes = 0
+    for presets in result.person_part_presets.values():
+        for preset_result in presets.values():
+            shapes, vertices = _shading_preset_complexity(preset_result)
+            visible_shapes += shapes
+            polygon_vertices += vertices
+    return visible_shapes, polygon_vertices
+
+
+def _shading_palette_stats(
+    baseline: MinimalizerV2Result,
+    candidate: MinimalizerV2Result,
+) -> tuple[int, float, int]:
+    global_deltas: list[int] = []
+    for name in set(baseline.presets) | set(candidate.presets):
+        before = baseline.presets.get(name)
+        after = candidate.presets.get(name)
+        if before is None or after is None:
+            return 10**9, float("inf"), 10**9
+        global_deltas.append(
+            abs(len(after.scene.palette) - len(before.scene.palette))
+        )
+
+    baseline_part_total = 0
+    candidate_part_total = 0
+    max_part_increase = 0
+    part_names = set(baseline.person_part_presets) | set(
+        candidate.person_part_presets
+    )
+    for part_name in part_names:
+        before_presets = baseline.person_part_presets.get(part_name)
+        after_presets = candidate.person_part_presets.get(part_name)
+        if before_presets is None or after_presets is None:
+            return 10**9, float("inf"), 10**9
+        for name in set(before_presets) | set(after_presets):
+            before = before_presets.get(name)
+            after = after_presets.get(name)
+            if before is None or after is None:
+                return 10**9, float("inf"), 10**9
+            before_count = len(before.scene.palette)
+            after_count = len(after.scene.palette)
+            baseline_part_total += before_count
+            candidate_part_total += after_count
+            max_part_increase = max(
+                max_part_increase,
+                after_count - before_count,
+            )
+
+    if baseline_part_total <= 0:
+        total_part_ratio = 1.0 if candidate_part_total <= 0 else float("inf")
+    else:
+        total_part_ratio = candidate_part_total / float(baseline_part_total)
+
+    return (
+        max(global_deltas, default=0),
+        total_part_ratio,
+        max(0, max_part_increase),
+    )
+
+
+def _shading_part_palette_growth_is_safe(
+    *,
+    total_part_palette_ratio: float,
+    max_part_palette_increase: int,
+    part_polygon_reduction: float,
+    config: ShadingFlattenGuardConfig,
+) -> tuple[bool, bool]:
+    if total_part_palette_ratio > config.max_total_part_palette_ratio:
+        return False, False
+    if max_part_palette_increase <= config.max_single_part_palette_increase:
+        return True, False
+
+    relaxed = (
+        part_polygon_reduction
+        >= config.palette_growth_relax_part_reduction_ratio
+        and max_part_palette_increase
+        <= config.max_relaxed_single_part_palette_increase
+    )
+    return relaxed, relaxed
+
+
+def _shading_color_drift(
+    baseline: MinimalizerV2Result,
+    candidate: MinimalizerV2Result,
+) -> tuple[float, float]:
+    before = baseline.bundle.analysis_rgb.astype(np.float32)
+    after = candidate.bundle.analysis_rgb.astype(np.float32)
+    if before.shape != after.shape:
+        return float("inf"), float("inf")
+
+    mask: NDArray[np.bool_]
+    if baseline.bundle.alpha is not None:
+        mask = baseline.bundle.alpha > 0.01
+    elif baseline.bundle.subject_prob is not None:
+        mask = baseline.bundle.subject_prob > 0.20
+    else:
+        mask = np.ones(before.shape[:2], dtype=np.bool_)
+    if not mask.any():
+        mask = np.ones(before.shape[:2], dtype=np.bool_)
+
+    pixel_mae = np.mean(np.abs(after - before), axis=2) / 255.0
+    values = pixel_mae[mask]
+    return float(values.mean()), float(np.percentile(values, 95.0))
+
+
+def _shading_alpha_preserved(
+    baseline: MinimalizerV2Result,
+    candidate: MinimalizerV2Result,
+) -> bool:
+    before = baseline.bundle.alpha
+    after = candidate.bundle.alpha
+    if before is None or after is None:
+        return before is None and after is None
+    return bool(np.array_equal(before, after))
+
+
+def _shading_silhouette_preserved(
+    baseline: MinimalizerV2Result,
+    candidate: MinimalizerV2Result,
+) -> bool:
+    before = baseline.person_parts
+    after = candidate.person_parts
+    if before is None or after is None:
+        return before is None and after is None
+    return (
+        np.array_equal(before.subject_mask, after.subject_mask)
+        and set(before.part_masks) == set(after.part_masks)
+        and all(
+            np.array_equal(before.part_masks[name], after.part_masks[name])
+            for name in before.part_masks
+        )
+    )
+
+
+def _safe_complexity_ratio(candidate: int, baseline: int) -> float:
+    if baseline <= 0:
+        return 1.0 if candidate <= 0 else float("inf")
+    return candidate / float(baseline)
+
+
+def _reduction_ratio(candidate: int, baseline: int) -> float:
+    if baseline <= 0:
+        return 0.0
+    return (baseline - candidate) / float(baseline)
+
+
+def _evaluate_shading_flatten_guard(
+    baseline: MinimalizerV2Result,
+    candidate: MinimalizerV2Result,
+    *,
+    config: ShadingFlattenGuardConfig,
+) -> ShadingFlattenDecision:
+    _baseline_shapes, baseline_vertices = _shading_result_complexity(baseline)
+    _candidate_shapes, candidate_vertices = _shading_result_complexity(candidate)
+    _baseline_part_shapes, baseline_part_vertices = _shading_part_complexity(baseline)
+    _candidate_part_shapes, candidate_part_vertices = _shading_part_complexity(candidate)
+
+    baseline_regions = int(baseline.region_merge.initial_region_count)
+    candidate_regions = int(candidate.region_merge.initial_region_count)
+    (
+        global_palette_delta,
+        total_part_palette_ratio,
+        max_part_palette_increase,
+    ) = _shading_palette_stats(baseline, candidate)
+
+    before_edge = float(np.mean(baseline.bundle.edge_raw))
+    after_edge = float(np.mean(candidate.bundle.edge_raw))
+    edge_retention = (
+        1.0 if before_edge <= 1.0e-9 else after_edge / before_edge
+    )
+    color_mae, color_p95 = _shading_color_drift(baseline, candidate)
+    alpha_preserved = _shading_alpha_preserved(baseline, candidate)
+    silhouette_preserved = _shading_silhouette_preserved(baseline, candidate)
+
+    part_polygon_reduction = _reduction_ratio(
+        candidate_part_vertices,
+        baseline_part_vertices,
+    )
+    (
+        part_palette_growth_safe,
+        palette_growth_relaxed,
+    ) = _shading_part_palette_growth_is_safe(
+        total_part_palette_ratio=total_part_palette_ratio,
+        max_part_palette_increase=max_part_palette_increase,
+        part_polygon_reduction=part_polygon_reduction,
+        config=config,
+    )
+
+    reasons: list[str] = []
+    if _safe_complexity_ratio(candidate_vertices, baseline_vertices) > config.max_polygon_vertex_ratio:
+        reasons.append("polygon_vertices")
+    if (
+        _safe_complexity_ratio(candidate_part_vertices, baseline_part_vertices)
+        > config.max_part_polygon_vertex_ratio
+    ):
+        reasons.append("part_polygon_vertices")
+    if _safe_complexity_ratio(candidate_regions, baseline_regions) > config.max_initial_region_ratio:
+        reasons.append("initial_regions")
+    if global_palette_delta > config.max_global_palette_delta:
+        reasons.append("global_palette_delta")
+    if total_part_palette_ratio > config.max_total_part_palette_ratio:
+        reasons.append("part_palette_total")
+    elif not part_palette_growth_safe:
+        reasons.append("part_palette_growth")
+    if edge_retention < config.min_edge_energy_retention:
+        reasons.append("edge_retention")
+    if color_mae > config.max_subject_color_mae:
+        reasons.append("subject_color_mae")
+    if color_p95 > config.max_subject_color_p95:
+        reasons.append("subject_color_p95")
+    if not alpha_preserved:
+        reasons.append("alpha")
+    if not silhouette_preserved:
+        reasons.append("silhouette")
+
+    meaningful = (
+        _reduction_ratio(candidate_regions, baseline_regions)
+        >= config.min_region_reduction_ratio
+        or _reduction_ratio(candidate_vertices, baseline_vertices)
+        >= config.min_polygon_reduction_ratio
+        or _reduction_ratio(candidate_part_vertices, baseline_part_vertices)
+        >= config.min_part_polygon_reduction_ratio
+    )
+    if not meaningful:
+        reasons.append("no_meaningful_simplification")
+
+    return ShadingFlattenDecision(
+        accepted=not reasons,
+        reasons=tuple(reasons),
+        baseline_initial_regions=baseline_regions,
+        candidate_initial_regions=candidate_regions,
+        baseline_polygon_vertices=baseline_vertices,
+        candidate_polygon_vertices=candidate_vertices,
+        baseline_part_polygon_vertices=baseline_part_vertices,
+        candidate_part_polygon_vertices=candidate_part_vertices,
+        global_palette_delta=global_palette_delta,
+        total_part_palette_ratio=total_part_palette_ratio,
+        max_part_palette_increase=max_part_palette_increase,
+        part_palette_growth_relaxed=palette_growth_relaxed,
+        edge_energy_retention=edge_retention,
+        subject_color_mae=color_mae,
+        subject_color_p95=color_p95,
+        alpha_preserved=alpha_preserved,
+        silhouette_preserved=silhouette_preserved,
+    )
+
+
 def minimalize_v2(
     source_rgb: NDArray[np.uint8],
     *,
@@ -2151,6 +2522,41 @@ def minimalize_v2(
     guidance: AnalysisGuidance | None = None,
 ) -> MinimalizerV2Result:
     active_config = config or PipelineConfig()
+    guard = active_config.shading_flatten_guard
+    if active_config.shading_flatten.enabled and guard.enabled:
+        baseline_config = replace(
+            active_config,
+            shading_flatten=replace(active_config.shading_flatten, enabled=False),
+            shading_flatten_guard=replace(guard, enabled=False),
+        )
+        candidate_config = replace(
+            active_config,
+            shading_flatten_guard=replace(guard, enabled=False),
+        )
+        baseline = _minimalize_v2_impl(
+            source_rgb,
+            presets=presets,
+            config=baseline_config,
+            characteristic=None,
+            observer=None,
+            guidance=guidance,
+        )
+        candidate = _minimalize_v2_impl(
+            source_rgb,
+            presets=presets,
+            config=candidate_config,
+            characteristic=None,
+            observer=None,
+            guidance=guidance,
+        )
+        decision = _evaluate_shading_flatten_guard(
+            baseline,
+            candidate,
+            config=guard,
+        )
+        selected = candidate if decision.accepted else baseline
+        return replace(selected, shading_flatten_decision=decision)
+
     return _minimalize_v2_impl(
         source_rgb,
         presets=presets,
