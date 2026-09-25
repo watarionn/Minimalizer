@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Lock
@@ -8,11 +9,12 @@ from time import perf_counter
 import logging
 import os
 
+import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
-from minimalize_engine.io.image_loader import load_image
+from minimalize_engine.io.image_loader import load_image_bundle
 from minimalize_engine.v2 import (
     PipelineConfig,
     RembgGuidanceConfig,
@@ -86,13 +88,26 @@ def _ensure_runtime() -> tuple[object, object]:
             raise
 def _build_guidance(input_path: Path):
     rembg_session, rtmlib_model = _ensure_runtime()
-    source_rgb = load_image(input_path)
+    loaded = load_image_bundle(input_path)
+    source_rgb = loaded.rgb
     rembg_config = RembgGuidanceConfig(model=REMBG_MODEL)
     base = build_rembg_guidance(
         source_rgb,
         config=rembg_config,
         session=rembg_session,
     )
+    if loaded.has_transparency:
+        source_alpha = loaded.alpha.astype(np.float32) / 255.0
+        constrained_subject = np.where(
+            source_alpha > 0.0,
+            np.maximum(base.subject_prob, source_alpha),
+            0.0,
+        ).astype(np.float32)
+        base = replace(
+            base,
+            subject_prob=constrained_subject,
+            alpha=source_alpha,
+        )
     structural_config = RtmlibStructuralConfig(
         mode=RTMLIB_MODE,
         device=RTMLIB_DEVICE,
@@ -123,7 +138,12 @@ def _run_high_quality(
         config=config,
         guidance=guidance,
     )
-    return export_png(result, preset=preset, include_facets=include_facets), selection
+    return export_png(
+        result,
+        preset=preset,
+        include_facets=include_facets,
+        preserve_source_alpha=True,
+    ), selection
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     if os.getenv("MINIMALIZER_LOCAL_WORKER_EAGER", "1") != "0":
@@ -242,6 +262,9 @@ async def minimalize_local(
         "X-Minimalizer-V2-Include-Facets": str(metadata.include_facets).lower(),
         "X-Minimalizer-V2-Pixel-SHA256": metadata.pixel_sha256,
         "X-Minimalizer-V2-PNG-SHA256": metadata.png_sha256,
+        "X-Minimalizer-Preserves-Source-Alpha": str(
+            metadata.preserves_source_alpha
+        ).lower(),
         "X-Minimalizer-Shape-Count": str(metadata.visible_shape_count),
         "X-Minimalizer-Analysis-Size": f"{metadata.width}x{metadata.height}",
         "X-Minimalizer-Source-Size": f"{metadata.source_width}x{metadata.source_height}",

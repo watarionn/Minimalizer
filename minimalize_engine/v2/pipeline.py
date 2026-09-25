@@ -1864,6 +1864,7 @@ def _minimalize_person_parts(
         part_guidance = AnalysisGuidance(
             subject_prob=probability,
             subject_confidence=confidence,
+            alpha=probability,
             subject_provider="minimalizer",
             subject_model=f"person-part:{name}",
         )
@@ -2017,6 +2018,7 @@ def _minimalize_v2_impl(
             source_rgb,
             subject_prob=guidance.subject_prob if guidance is not None else None,
             subject_confidence=guidance.subject_confidence if guidance is not None else None,
+            alpha=guidance.alpha if guidance is not None else None,
             analysis_max_side=config.analysis_max_side,
         ),
     )
