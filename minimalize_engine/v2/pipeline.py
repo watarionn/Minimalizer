@@ -127,6 +127,7 @@ class LayeredPersonConfig:
     coarse_part_primitives: bool = True
     semantic_shape_budget: bool = True
     semantic_plane_refit: bool = True
+    semantic_geometric_mass: bool = False
     semantic_coverage_guard: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
@@ -833,6 +834,65 @@ def _guard_semantic_part_coverage(
     return baseline
 
 
+def _semantic_scene_complexity(
+    result: PresetPipelineResult,
+) -> tuple[int, int]:
+    """Return visible-shape and polygon-vertex counts for one semantic scene."""
+    visible_shapes = 0
+    polygon_vertices = 0
+    for shape in result.scene.shapes:
+        if not shape.visible:
+            continue
+        visible_shapes += 1
+        if shape.geometry.kind == "polygon":
+            polygon_vertices += sum(len(loop) for loop in shape.geometry.loops)
+    return visible_shapes, polygon_vertices
+
+
+def _semantic_geometric_mass_final_is_simpler(
+    baseline: PresetPipelineResult,
+    candidate: PresetPipelineResult,
+    *,
+    min_vertex_savings: int = 6,
+) -> bool:
+    """Accept a mass refit only when final cleanup is strictly simpler."""
+    baseline_shapes, baseline_vertices = _semantic_scene_complexity(baseline)
+    candidate_shapes, candidate_vertices = _semantic_scene_complexity(candidate)
+    return (
+        candidate_shapes <= baseline_shapes
+        and baseline_vertices - candidate_vertices >= max(int(min_vertex_savings), 1)
+    )
+
+
+def _semantic_geometric_mass_is_safe(
+    baseline_coverage: float,
+    candidate_coverage: float,
+    *,
+    min_retention: float = 0.93,
+    max_absolute_loss: float = 0.06,
+) -> bool:
+    """Use a stricter paint guard for deliberate geometric-mass refits."""
+    baseline = max(0.0, min(1.0, float(baseline_coverage)))
+    candidate = max(0.0, min(1.0, float(candidate_coverage)))
+    if candidate >= baseline:
+        return True
+    loss = baseline - candidate
+    retention = candidate / max(baseline, 1e-9)
+    return retention >= float(min_retention) and loss <= float(max_absolute_loss)
+
+
+def _guard_semantic_geometric_mass(
+    baseline: PresetPipelineResult,
+    candidate: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    before = _semantic_part_paint_coverage(baseline, part_mask)
+    after = _semantic_part_paint_coverage(candidate, part_mask)
+    if _semantic_geometric_mass_is_safe(before, after):
+        return candidate
+    return baseline
+
+
 def _semantic_plane_clusters(
     masks: list[NDArray[np.bool_]],
     colors: list[NDArray[np.float32]],
@@ -1324,6 +1384,214 @@ def _apply_semantic_shape_budget(
     )
 
 
+def _fit_semantic_mass_polygon(
+    support_mask: NDArray[np.bool_],
+    part_mask: NDArray[np.bool_],
+    *,
+    max_vertices: int,
+    min_vertices: int = 4,
+    min_iou: float = 0.80,
+    max_undercoverage: float = 0.14,
+    max_overcoverage: float = 0.18,
+    max_outside: float = 0.08,
+) -> NDArray[np.float32] | None:
+    """Fit the simplest safe angular polygon to one semantic paint mass."""
+    target = np.asarray(support_mask, dtype=bool) & np.asarray(part_mask, dtype=bool)
+    target_pixels = int(np.count_nonzero(target))
+    if target_pixels < 8:
+        return None
+
+    bridge = cv2.morphologyEx(
+        target.astype(np.uint8),
+        cv2.MORPH_CLOSE,
+        np.ones((3, 3), dtype=np.uint8),
+    )
+    bridge &= np.asarray(part_mask, dtype=np.uint8)
+    contours, _ = cv2.findContours(
+        bridge,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
+    if not contours:
+        return None
+    contour = max(contours, key=cv2.contourArea)
+    if float(cv2.contourArea(contour)) < 4.0:
+        return None
+
+    perimeter = max(float(cv2.arcLength(contour, True)), 1.0)
+    candidates: list[NDArray[np.float32]] = []
+    signatures: set[tuple[tuple[int, int], ...]] = set()
+    for ratio in (
+        0.004, 0.006, 0.008, 0.010, 0.014, 0.015, 0.016, 0.017, 0.018, 0.024,
+        0.032, 0.042, 0.055, 0.072, 0.095, 0.125,
+    ):
+        approx = cv2.approxPolyDP(
+            contour,
+            max(0.55, perimeter * ratio),
+            True,
+        )
+        polygon = approx.reshape((-1, 2)).astype(np.float32)
+        if not (min_vertices <= len(polygon) <= max_vertices):
+            continue
+        signature = tuple(
+            (int(round(x)), int(round(y)))
+            for x, y in polygon
+        )
+        if signature in signatures:
+            continue
+        signatures.add(signature)
+        candidates.append(polygon)
+
+    if min_vertices <= 4 <= max_vertices:
+        rectangle = cv2.boxPoints(cv2.minAreaRect(contour)).astype(np.float32)
+        signature = tuple(
+            (int(round(x)), int(round(y)))
+            for x, y in rectangle
+        )
+        if signature not in signatures:
+            candidates.append(rectangle)
+
+    ranked: list[tuple[int, float, NDArray[np.float32]]] = []
+    part = np.asarray(part_mask, dtype=bool)
+    for polygon in candidates:
+        raster = np.zeros(target.shape, dtype=np.uint8)
+        cv2.fillPoly(
+            raster,
+            [np.rint(polygon).astype(np.int32)],
+            1,
+        )
+        candidate = raster > 0
+        candidate_pixels = int(np.count_nonzero(candidate))
+        if candidate_pixels <= 0:
+            continue
+        intersection = int(np.count_nonzero(candidate & target))
+        union = int(np.count_nonzero(candidate | target))
+        iou = intersection / max(union, 1)
+        under = int(np.count_nonzero(target & ~candidate)) / target_pixels
+        over = int(np.count_nonzero(candidate & ~target)) / target_pixels
+        outside = int(np.count_nonzero(candidate & ~part)) / candidate_pixels
+        if (
+            iou < min_iou
+            or under > max_undercoverage
+            or over > max_overcoverage
+            or outside > max_outside
+        ):
+            continue
+        score = iou - 0.30 * under - 0.18 * over - 0.18 * outside
+        ranked.append((len(polygon), -score, polygon))
+
+    if not ranked:
+        return None
+    ranked.sort(key=lambda item: (item[0], item[1]))
+    return ranked[0][2]
+
+
+def _semantic_mass_cutout_fill_is_safe(
+    original_pixels: int,
+    nearwhite_added_pixels: int,
+    *,
+    max_ratio: float = 0.04,
+    min_pixels: int = 12,
+) -> bool:
+    """Reject mass refits that fill a meaningful amount of visible white cutout."""
+    original = max(int(original_pixels), 1)
+    added = max(int(nearwhite_added_pixels), 0)
+    if added < max(int(min_pixels), 1):
+        return True
+    return added / float(original) <= float(max_ratio)
+
+
+def _build_semantic_geometric_mass(
+    result: PresetPipelineResult,
+    *,
+    part_name: str,
+    part_mask: NDArray[np.bool_],
+    min_vertex_savings: int = 6,
+) -> PresetPipelineResult:
+    """Refit only meaningfully jagged semantic planes into safe angular masses."""
+    if result.preset != "minimal":
+        return result
+    if part_name not in {"torso", "left_arm", "right_arm", "left_leg", "right_leg"}:
+        return result
+
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    target = np.asarray(part_mask, dtype=bool)
+    if int(np.count_nonzero(target)) < 12:
+        return result
+
+    max_vertices = 9 if part_name == "torso" else 8
+    shapes = list(result.scene.shapes)
+    baseline_render = _render_scene_primitives(result.scene)
+    baseline_nearwhite = np.all(baseline_render >= 245, axis=2)
+    changed = False
+
+    for index, shape in enumerate(shapes):
+        if not shape.visible or shape.geometry.kind != "polygon":
+            continue
+        geometry_mask = np.asarray(
+            rasterize_geometry(
+                shape.geometry,
+                target.shape,
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=bool,
+        )
+        support_mask = geometry_mask & target
+        if int(np.count_nonzero(support_mask)) < 8:
+            continue
+
+        old_vertices = (
+            sum(len(loop) for loop in shape.geometry.loops)
+            if shape.geometry.kind == "polygon"
+            else 99
+        )
+        polygon = _fit_semantic_mass_polygon(
+            support_mask,
+            target,
+            max_vertices=max_vertices,
+            max_undercoverage=0.15 if old_vertices >= 24 else 0.14,
+        )
+        if polygon is None:
+            continue
+        if old_vertices - len(polygon) < max(int(min_vertex_savings), 1):
+            continue
+
+        candidate_geometry = PrimitiveGeometry(
+            kind="polygon",
+            loops=(polygon.astype(np.float32),),
+        )
+        candidate_mask = np.asarray(
+            rasterize_geometry(
+                candidate_geometry,
+                target.shape,
+                origin=(0, 0),
+                scale=2,
+            ),
+            dtype=bool,
+        )
+        added_inside_part = candidate_mask & ~geometry_mask & target
+        nearwhite_added = int(
+            np.count_nonzero(added_inside_part & baseline_nearwhite)
+        )
+        if not _semantic_mass_cutout_fill_is_safe(
+            int(np.count_nonzero(support_mask)),
+            nearwhite_added,
+        ):
+            continue
+
+        shapes[index] = replace(shape, geometry=candidate_geometry)
+        changed = True
+
+    if not changed:
+        return result
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()),
+    )
+
+
 def _semantic_dead_plane_ids(
     shapes: Sequence[SceneShape],
     part_mask: NDArray[np.bool_],
@@ -1757,30 +2025,64 @@ def _minimalize_person_parts(
                 candidate = _consolidate_semantic_planes(refined)
                 refined = guarded(refined, candidate)
 
-                if name == "head":
-                    candidate = _reduce_safe_head_to_two_planes(
-                        refined,
+                def finish_semantic_tail(
+                    tail_result: PresetPipelineResult,
+                ) -> PresetPipelineResult:
+                    tail = tail_result
+                    if name == "head":
+                        candidate = _reduce_safe_head_to_two_planes(
+                            tail,
+                            mask,
+                        )
+                        tail = guarded(tail, candidate)
+
+                    candidate = _remove_semantic_dead_planes(
+                        tail,
                         mask,
                     )
-                    refined = guarded(refined, candidate)
+                    tail = guarded(tail, candidate)
 
-                candidate = _remove_semantic_dead_planes(
-                    refined,
-                    mask,
-                )
-                refined = guarded(refined, candidate)
+                    candidate = _reduce_safe_angular_vertices(
+                        tail,
+                        part_name=name,
+                    )
+                    tail = guarded(tail, candidate)
 
-                candidate = _reduce_safe_angular_vertices(
-                    refined,
-                    part_name=name,
-                )
-                refined = guarded(refined, candidate)
+                    candidate = _remove_render_dead_planes(tail)
+                    tail = guarded(tail, candidate)
 
-                candidate = _remove_render_dead_planes(refined)
-                refined = guarded(refined, candidate)
+                    candidate = _remove_render_negligible_planes(tail)
+                    return guarded(tail, candidate)
 
-                candidate = _remove_render_negligible_planes(refined)
-                return guarded(refined, candidate)
+                if config.layered_person.semantic_geometric_mass:
+                    baseline_before_mass = refined
+                    mass_candidate = _build_semantic_geometric_mass(
+                        baseline_before_mass,
+                        part_name=name,
+                        part_mask=mask,
+                    )
+                    mass_candidate = _guard_semantic_geometric_mass(
+                        baseline_before_mass,
+                        mass_candidate,
+                        mask,
+                    )
+                    mass_candidate = guarded(
+                        baseline_before_mass,
+                        mass_candidate,
+                    )
+                    if mass_candidate is not baseline_before_mass:
+                        baseline_final = finish_semantic_tail(
+                            baseline_before_mass
+                        )
+                        mass_final = finish_semantic_tail(mass_candidate)
+                        if _semantic_geometric_mass_final_is_simpler(
+                            baseline_final,
+                            mass_final,
+                        ):
+                            return mass_final
+                        return baseline_final
+
+                return finish_semantic_tail(refined)
 
             results[name] = {
                 preset: finalize_semantic_part(preset_result)

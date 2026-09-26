@@ -1,0 +1,128 @@
+{
+  "schema": "geometry-mass-integrated-approved68-summary-v1",
+  "expected_cases": 68,
+  "actual_cases": 68,
+  "missing_orders": [],
+  "extra_orders": [],
+  "duplicate_orders_seen_during_merge": {},
+  "error_cases": [],
+  "changed_cases": 3,
+  "changed": [
+    {
+      "order": 12,
+      "character": "Koseki-Bijou",
+      "global_vertex_savings": 0,
+      "part_vertex_savings": 24,
+      "shading_decision_changed": false,
+      "part_deltas": {
+        "torso": {
+          "shape_delta": 0,
+          "vertex_delta": -24,
+          "vertex_savings": 24
+        }
+      },
+      "accepted_events": [
+        {
+          "part": "torso",
+          "accepted": true,
+          "before_shapes": 5,
+          "after_shapes": 5,
+          "before_vertices": 56,
+          "after_vertices": 32,
+          "vertex_savings": 24
+        }
+      ]
+    },
+    {
+      "order": 27,
+      "character": "Hakos-Baelz",
+      "global_vertex_savings": 0,
+      "part_vertex_savings": 7,
+      "shading_decision_changed": false,
+      "part_deltas": {
+        "torso": {
+          "shape_delta": 0,
+          "vertex_delta": -7,
+          "vertex_savings": 7
+        }
+      },
+      "accepted_events": [
+        {
+          "part": "torso",
+          "accepted": true,
+          "before_shapes": 2,
+          "after_shapes": 2,
+          "before_vertices": 18,
+          "after_vertices": 11,
+          "vertex_savings": 7
+        }
+      ]
+    },
+    {
+      "order": 47,
+      "character": "Pavolia-Reine",
+      "global_vertex_savings": 0,
+      "part_vertex_savings": 6,
+      "shading_decision_changed": true,
+      "part_deltas": {
+        "right_leg": {
+          "shape_delta": 0,
+          "vertex_delta": -6,
+          "vertex_savings": 6
+        }
+      },
+      "accepted_events": [
+        {
+          "part": "right_leg",
+          "accepted": true,
+          "before_shapes": 2,
+          "after_shapes": 2,
+          "before_vertices": 16,
+          "after_vertices": 10,
+          "vertex_savings": 6
+        }
+      ]
+    }
+  ],
+  "total_global_vertex_savings": 0,
+  "total_part_vertex_savings": 37,
+  "shading_decision_changed_cases": [
+    {
+      "order": 13,
+      "character": "Kobo-Kanaeru",
+      "changed": false
+    },
+    {
+      "order": 47,
+      "character": "Pavolia-Reine",
+      "changed": true
+    }
+  ],
+  "accepted_event_cases": [
+    {
+      "order": 12,
+      "character": "Koseki-Bijou",
+      "changed": true
+    },
+    {
+      "order": 13,
+      "character": "Kobo-Kanaeru",
+      "changed": false
+    },
+    {
+      "order": 24,
+      "character": "Nakiri-Ayame",
+      "changed": false
+    },
+    {
+      "order": 27,
+      "character": "Hakos-Baelz",
+      "changed": true
+    },
+    {
+      "order": 47,
+      "character": "Pavolia-Reine",
+      "changed": true
+    }
+  ]
+}

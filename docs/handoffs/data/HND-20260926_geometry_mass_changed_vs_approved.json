@@ -1,0 +1,86 @@
+[
+  {
+    "order": 12,
+    "character": "Koseki-Bijou",
+    "baseline": {
+      "color_similarity": 0.8784170970320702,
+      "edge_iou": 0.0597119775201967,
+      "edge_density_delta": 0.07928466796875
+    },
+    "geometry_mass": {
+      "color_similarity": 0.8786202222108841,
+      "edge_iou": 0.05457746478873239,
+      "edge_density_delta": 0.08062744140625
+    },
+    "delta_mass_minus_baseline": {
+      "color_similarity": 0.00020312517881393433,
+      "edge_iou": -0.005134512731464307,
+      "edge_density_delta": 0.0013427734375
+    },
+    "changed_pixels": 1142,
+    "changed_fraction": 0.009878892733564014,
+    "diff_bbox": [
+      113,
+      168,
+      236,
+      255
+    ],
+    "mean_abs_rgba_delta_changed": 31.559325744308232
+  },
+  {
+    "order": 27,
+    "character": "Hakos-Baelz",
+    "baseline": {
+      "color_similarity": 0.8863188698887825,
+      "edge_iou": 0.0754414125200642,
+      "edge_density_delta": 0.021484375
+    },
+    "geometry_mass": {
+      "color_similarity": 0.8863275647163391,
+      "edge_iou": 0.0754414125200642,
+      "edge_density_delta": 0.021484375
+    },
+    "delta_mass_minus_baseline": {
+      "color_similarity": 8.694827556610107e-06,
+      "edge_iou": 0.0,
+      "edge_density_delta": 0.0
+    },
+    "changed_pixels": 3,
+    "changed_fraction": 3.218884120171674e-05,
+    "diff_bbox": [
+      78,
+      130,
+      78,
+      132
+    ],
+    "mean_abs_rgba_delta_changed": 84.25
+  },
+  {
+    "order": 47,
+    "character": "Pavolia-Reine",
+    "baseline": {
+      "color_similarity": 0.9394824877381325,
+      "edge_iou": 0.0537371763556424,
+      "edge_density_delta": 0.04180908203125
+    },
+    "geometry_mass": {
+      "color_similarity": 0.9398960061371326,
+      "edge_iou": 0.053816046966731895,
+      "edge_density_delta": 0.0419921875
+    },
+    "delta_mass_minus_baseline": {
+      "color_similarity": 0.00041351839900016785,
+      "edge_iou": 7.887061108949323e-05,
+      "edge_density_delta": 0.00018310546875
+    },
+    "changed_pixels": 328,
+    "changed_fraction": 0.0030711610486891384,
+    "diff_bbox": [
+      63,
+      183,
+      126,
+      286
+    ],
+    "mean_abs_rgba_delta_changed": 58.98094512195122
+  }
+]

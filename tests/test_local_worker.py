@@ -48,6 +48,7 @@ def test_health_reports_cold_runtime_without_eager_warmup():
     assert response.json()["shading_flatten_candidate"] is True
     assert response.json()["shading_flatten_sr"] == 45
     assert response.json()["shading_flatten_guard"] is True
+    assert response.json()["semantic_geometric_mass"] is True
 
 
 def test_local_worker_rejects_untrusted_browser_origin():
@@ -89,6 +90,7 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.headers["x-minimalizer-compute"] == "local-worker"
     assert response.headers["x-minimalizer-analysis"] == "rembg+rtmlib"
     assert response.headers["x-minimalizer-layered-person"] == "true"
+    assert response.headers["x-minimalizer-geometry-mass"] == "true"
     assert response.headers["x-minimalizer-shading-flatten"] == "true"
     assert response.headers["x-minimalizer-shading-flatten-candidate"] == "true"
     assert response.headers["x-minimalizer-shading-flatten-guard"] == "true"
@@ -97,6 +99,38 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.headers["x-minimalizer-rtmlib-selected"] == "true"
     assert response.headers["x-minimalizer-v2-png-sha256"] == "b" * 64
     assert response.headers["x-minimalizer-preserves-source-alpha"] == "false"
+
+
+def test_high_quality_enables_guarded_geometry_mass(tmp_path, monkeypatch):
+    input_path = tmp_path / "input.png"
+    input_path.write_bytes(b"x")
+    captured = {}
+
+    monkeypatch.setattr(
+        worker,
+        "_build_guidance",
+        lambda _path: (
+            np.zeros((8, 8, 3), dtype=np.uint8),
+            AnalysisGuidance(),
+            None,
+        ),
+    )
+
+    def fake_minimalize(source_rgb, *, presets, config, guidance):
+        captured["config"] = config
+        return object()
+
+    monkeypatch.setattr(worker, "minimalize_v2", fake_minimalize)
+    monkeypatch.setattr(worker, "export_png", lambda *_args, **_kwargs: _fake_export())
+
+    worker._run_high_quality(
+        input_path,
+        preset="minimal",
+        include_facets=True,
+    )
+
+    assert captured["config"].layered_person.enabled is True
+    assert captured["config"].layered_person.semantic_geometric_mass is True
 
 
 def test_build_guidance_keeps_transparent_source_alpha(tmp_path, monkeypatch):
