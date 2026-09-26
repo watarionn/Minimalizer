@@ -44,6 +44,9 @@ SHADING_FLATTEN_SR = int(os.getenv("MINIMALIZER_LOCAL_SHADING_FLATTEN_SR", "45")
 SHADING_FLATTEN_GUARD = os.getenv(
     "MINIMALIZER_LOCAL_SHADING_FLATTEN_GUARD", "1"
 ).strip().lower() not in {"0", "false", "no", "off"}
+GEOMETRIC_MASS_ENABLED = os.getenv(
+    "MINIMALIZER_LOCAL_GEOMETRIC_MASS", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
 
 DEFAULT_ORIGINS = (
     "https://minimalizer-web-production-a2bc.up.railway.app",
@@ -147,7 +150,10 @@ def _run_high_quality(
         shading_flatten_guard=ShadingFlattenGuardConfig(
             enabled=SHADING_FLATTEN_GUARD,
         ),
-        layered_person=LayeredPersonConfig(enabled=True),
+        layered_person=LayeredPersonConfig(
+            enabled=True,
+            semantic_geometric_mass=GEOMETRIC_MASS_ENABLED,
+        ),
     )
     result = minimalize_v2(
         source_rgb,
@@ -208,6 +214,7 @@ def health():
         "shading_flatten_candidate": SHADING_FLATTEN_ENABLED,
         "shading_flatten_sr": SHADING_FLATTEN_SR,
         "shading_flatten_guard": SHADING_FLATTEN_GUARD,
+        "semantic_geometric_mass": GEOMETRIC_MASS_ENABLED,
         "runtime_error": _runtime_error,
     }
 
@@ -281,6 +288,9 @@ async def minimalize_local(
         "X-Minimalizer-Compute": "local-worker",
         "X-Minimalizer-Analysis": "rembg+rtmlib",
         "X-Minimalizer-Layered-Person": "true",
+        "X-Minimalizer-Geometry-Mass": str(
+            GEOMETRIC_MASS_ENABLED
+        ).lower(),
         "X-Minimalizer-Shading-Flatten": str(actual_shading_flatten).lower(),
         "X-Minimalizer-Shading-Flatten-Candidate": str(
             SHADING_FLATTEN_ENABLED
