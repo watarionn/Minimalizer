@@ -275,3 +275,57 @@ def minimalize_v2_path(
         config=config,
         guidance=_production_v2_guidance(input_path),
     )
+
+
+def _zerobase_rgba(input_path: str | Path):
+    import numpy as np
+    from PIL import Image
+    with Image.open(input_path) as image:
+        rgba = np.asarray(image.convert("RGBA"), dtype=np.uint8).copy()
+    if int(rgba[:, :, 3].min()) < 250:
+        return rgba, "source-alpha"
+    guidance = _production_v2_guidance(input_path)
+    if guidance is None:
+        raise ValueError("ZeroBase requires source alpha or production subject evidence")
+    rgba[:, :, 3] = np.where(guidance.subject_prob >= 0.5, 255, 0).astype(np.uint8)
+    return rgba, f"{guidance.subject_provider}:{guidance.subject_model}"
+
+
+def _render_zerobase_png(vector) -> bytes:
+    from PIL import Image, ImageDraw
+    image = Image.new("RGBA", (vector.width, vector.height), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(image)
+    for primitive in sorted(vector.primitives, key=lambda x: (x.z_order, x.primitive_id)):
+        fill = primitive.fill_ref or "#808080"
+        x, y, width, height = [int(round(v)) for v in primitive.parameters["bbox"]]
+        box = (x, y, x + max(0, width - 1), y + max(0, height - 1))
+        if primitive.primitive_type == "rectangle":
+            draw.rectangle(box, fill=fill)
+        elif primitive.primitive_type == "capsule":
+            radius = int(round(primitive.parameters.get("radius", min(width, height) / 2)))
+            draw.rounded_rectangle(box, radius=max(1, radius), fill=fill)
+        else:
+            raise ValueError(f"Unsupported ZeroBase primitive: {primitive.primitive_type}")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def minimalize_zerobase_path(input_path: str | Path) -> RenderedResult:
+    from minimalizer_zerobase.analyzers.slic_regions import SLICRegionAdapter
+    from minimalizer_zerobase.core.coordinates import CoordinateSpace
+    from minimalizer_zerobase.production import ProductionPipeline
+    rgba, foreground_source = _zerobase_rgba(input_path)
+    space = CoordinateSpace(rgba.shape[1], rgba.shape[0])
+    foreground_ratio = 0.5 if foreground_source == "source-alpha" else 0.05
+    evidence = SLICRegionAdapter(min_foreground_ratio=foreground_ratio).analyze(rgba, space)
+    if not evidence:
+        raise ValueError("ZeroBase foreground evidence produced no drawable regions")
+    result = ProductionPipeline().run(evidence)
+    content = _render_zerobase_png(result.vector_scene)
+    return RenderedResult(
+        content=content, media_type="image/png", filename="minimalized.png",
+        shape_count=len(result.vector_scene.primitives),
+        analysis_size=f"{result.vector_scene.width}x{result.vector_scene.height}",
+        source_size=f"{rgba.shape[1]}x{rgba.shape[0]}", rinka_preset=foreground_source,
+    )

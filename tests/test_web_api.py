@@ -75,7 +75,7 @@ def test_phase2_static_assets_are_served():
     assert ".drop-zone" in css.text
     assert "[hidden] { display: none !important; }" in css.text
     assert ".color-strip-controls" in color_strip_css.text
-    assert '"/api/v2/minimalize"' in javascript.text
+    assert '"/api/zerobase/minimalize"' in javascript.text
     assert '"/api/minimalize"' in javascript.text
     assert 'buildV2FormData()' in javascript.text
     assert 'form.append("preset", "minimal")' in javascript.text

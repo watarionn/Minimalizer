@@ -329,39 +329,13 @@ async function probeLocalWorker() {
 }
 
 async function requestStandardV2() {
-  let fallbackReason = "";
-  if (localWorkerEnabled()) {
-    const probe = await probeLocalWorker();
-    if (probe.ready) {
-      try {
-        const response = await fetchLocalWorker("/api/v2/minimalize", {
-          method: "POST",
-          body: buildV2FormData(),
-        });
-        if (response.ok || response.status === 400 || response.status === 415) {
-          state.localWorkerStatus = "ready";
-          refreshEngineBadge();
-          return { response, compute: "local-worker", fallbackReason: "" };
-        }
-        fallbackReason = `worker-${response.status}`;
-      } catch (error) {
-        fallbackReason = error instanceof DOMException && error.name === "AbortError"
-          ? "timeout"
-          : "permission-or-offline";
-      }
-    } else {
-      fallbackReason = probe.reason;
-    }
-    state.localWorkerStatus = "fallback";
-    state.localWorkerFallbackReason = fallbackReason;
-    refreshEngineBadge();
-    setStatus(localWorkerFallbackMessage(fallbackReason), true);
-  }
-  const response = await fetch("/api/v2/minimalize", {
+  const form = new FormData();
+  form.append("file", state.file, state.file.name || "image");
+  const response = await fetch("/api/zerobase/minimalize", {
     method: "POST",
-    body: buildV2FormData(),
+    body: form,
   });
-  return { response, compute: "railway", fallbackReason };
+  return { response, compute: "zerobase", fallbackReason: "" };
 }
 
 async function responseError(response) {

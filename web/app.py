@@ -47,6 +47,7 @@ from .service import (
     minimalize_path,
     minimalize_rinka_path,
     minimalize_v2_path,
+    minimalize_zerobase_path,
 )
 
 APP_VERSION = "0.13.0"
@@ -231,6 +232,62 @@ def _validate_image_file(path: Path) -> tuple[int, int, str, bool]:
             detail=f"Image exceeds {MAX_IMAGE_PIXELS:,} pixel limit.",
         )
     return width, height, image_format, has_material_transparency
+
+
+@app.post("/api/zerobase/minimalize")
+async def minimalize_image_zerobase(
+    request: Request,
+    file: Annotated[UploadFile, File(description="Source image")],
+) -> Response:
+    request_id = request.state.request_id
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
+    try:
+        with TemporaryDirectory(prefix="minimalizer-web-zerobase-") as temp_dir:
+            input_path = Path(temp_dir) / "input.upload"
+            size = await _save_upload(file, input_path)
+            if size == 0:
+                raise HTTPException(status_code=400, detail="Uploaded image is empty.")
+            source_width, source_height, source_format, _ = _validate_image_file(input_path)
+            if not _PROCESS_SLOTS.acquire(blocking=False):
+                raise HTTPException(status_code=429, detail="Minimalizer is busy. Please retry shortly.", headers={"Retry-After": "2"})
+            processing_started = perf_counter()
+            try:
+                try:
+                    result = await run_in_threadpool(minimalize_zerobase_path, input_path)
+                    active_route = "zerobase"
+                except ValueError:
+                    logger.info("zerobase_evidence_fallback request_id=%s", request_id)
+                    result = await run_in_threadpool(
+                        minimalize_v2_path, input_path, preset="minimal",
+                        include_facets=True, analysis_max_side_cap=V2_DEFAULT_ANALYSIS_MAX_SIDE,
+                    )
+                    active_route = "v2-safety-fallback"
+                except OSError as exc:
+                    raise HTTPException(status_code=400, detail="Could not minimalize the uploaded image.") from exc
+            finally:
+                processing_ms = (perf_counter() - processing_started) * 1000.0
+                _PROCESS_SLOTS.release()
+    finally:
+        await file.close()
+    if active_route == "zerobase":
+        shape_count = result.shape_count
+        foreground = result.rinka_preset or "unknown"
+        content, media_type = result.content, result.media_type
+    else:
+        shape_count = result.metadata.visible_shape_count
+        foreground = "v2-production-guidance"
+        content, media_type = result.content, result.media_type
+    logger.info("minimalize_cutover_success request_id=%s route=%s format=%s width=%s height=%s processing_ms=%.1f shapes=%s", request_id, active_route, source_format, source_width, source_height, processing_ms, shape_count)
+    headers = {
+        "Content-Disposition": 'attachment; filename="minimalized.png"',
+        "X-Minimalizer-Mode": "zerobase",
+        "X-Minimalizer-Route": active_route,
+        "X-Minimalizer-Shape-Count": str(shape_count),
+        "X-Minimalizer-Foreground-Evidence": foreground,
+        "X-Minimalizer-Processing-Ms": f"{processing_ms:.1f}",
+    }
+    return Response(content=content, media_type=media_type, headers=headers)
 
 
 @app.post("/api/v2/minimalize")

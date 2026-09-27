@@ -21,6 +21,7 @@ RUN python -c "from rembg.sessions.u2netp import U2netpSession; print(U2netpSess
 
 COPY VERSION ./VERSION
 COPY minimalize_engine ./minimalize_engine
+COPY minimalizer_zerobase ./minimalizer_zerobase
 COPY web ./web
 
 RUN useradd --create-home --uid 10001 minimalizer \
