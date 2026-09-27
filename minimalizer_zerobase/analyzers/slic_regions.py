@@ -22,6 +22,10 @@ class SLICRegionAdapter(AnalyzerAdapter):
             ys, xs = np.where(labels == label)
             x0, x1, y0, y1 = int(xs.min()), int(xs.max()), int(ys.min()), int(ys.max())
             geometry = {"bbox":[x0,y0,x1-x0+1,y1-y0+1], "centroid":[float(xs.mean()),float(ys.mean())], "pixel_count":int(xs.size)}
+            normalization = {"ordering":"label_ascending","n_segments":self.n_segments,"compactness":self.compactness}
+            if arr.ndim == 3 and arr.shape[2] >= 3:
+                mean = arr[ys, xs, :3].astype(np.float64).mean(axis=0)
+                normalization["base_color"] = [int(round(float(v))) for v in mean]
             out.append(Evidence(f"slic-{label:04d}", "region", coordinate_space, provenance,
-                geometry=geometry, normalization={"ordering":"label_ascending","n_segments":self.n_segments,"compactness":self.compactness}))
+                geometry=geometry, normalization=normalization))
         return out
