@@ -1225,11 +1225,234 @@ def test_semantic_part_paint_coverage_ignores_pure_white_background_but_keeps_ne
     assert _semantic_part_paint_coverage(result_for((254,254,254)), part) > 0.85
 
 
+def test_pathological_polygon_decimator_reduces_dense_loop_safely():
+    from minimalize_engine.v2.pipeline import (
+        _decimate_pathological_polygon_geometry,
+        _quantized_geometry_metrics,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    angles = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
+    radius = 24.0 + 0.7 * np.sin(angles * 9.0)
+    points = np.column_stack(
+        [
+            40.0 + radius * np.cos(angles),
+            40.0 + radius * np.sin(angles),
+        ]
+    ).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(points,))
+
+    candidate = _decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(80, 80),
+        max_vertices=32,
+    )
+
+    assert candidate is not geometry
+    assert len(candidate.loops) == 1
+    assert 3 <= len(candidate.loops[0]) <= 32
+    assert len(candidate.loops[0]) < len(points)
+
+    iou, under, over = _quantized_geometry_metrics(
+        geometry,
+        candidate,
+        canvas_shape=(80, 80),
+    )
+    assert iou >= 0.965
+    assert under <= 0.025
+    assert over <= 0.035
+
+
+def test_pathological_polygon_decimator_preserves_multiloop_hole_topology():
+    from minimalize_engine.v2.pipeline import (
+        _decimate_pathological_polygon_geometry,
+        _geometry_topology_signature,
+        _quantized_geometry_metrics,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    outer_angles = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
+    inner_angles = np.linspace(0.0, 2.0 * np.pi, 96, endpoint=False)
+    outer = np.column_stack(
+        [40.0 + 30.0 * np.cos(outer_angles), 40.0 + 30.0 * np.sin(outer_angles)]
+    ).astype(np.float32)
+    inner = np.column_stack(
+        [40.0 + 8.0 * np.cos(inner_angles), 40.0 + 8.0 * np.sin(inner_angles)]
+    ).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(outer, inner))
+
+    candidate = _decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(80, 80),
+        max_vertices=32,
+    )
+
+    assert candidate is not geometry
+    assert len(candidate.loops) == 2
+    assert sum(map(len, candidate.loops)) < sum(map(len, geometry.loops))
+    assert _geometry_topology_signature(
+        geometry, canvas_shape=(80, 80)
+    ) == (1, 1)
+    assert _geometry_topology_signature(
+        candidate, canvas_shape=(80, 80)
+    ) == (1, 1)
+    iou, under, over = _quantized_geometry_metrics(
+        geometry, candidate, canvas_shape=(80, 80)
+    )
+    assert iou >= 0.965
+    assert under <= 0.025
+    assert over <= 0.035
+
+
+def test_pathological_polygon_decimator_rejects_topology_change(monkeypatch):
+    import minimalize_engine.v2.pipeline as pipeline
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    outer_angles = np.linspace(0.0, 2.0 * np.pi, 80, endpoint=False)
+    inner_angles = np.linspace(0.0, 2.0 * np.pi, 80, endpoint=False)
+    outer = np.column_stack(
+        [40.0 + 30.0 * np.cos(outer_angles), 40.0 + 30.0 * np.sin(outer_angles)]
+    ).astype(np.float32)
+    inner = np.column_stack(
+        [40.0 + 8.0 * np.cos(inner_angles), 40.0 + 8.0 * np.sin(inner_angles)]
+    ).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(outer, inner))
+
+    calls = {"index": 0}
+    def fake_candidates(points, **_kwargs):
+        calls["index"] += 1
+        if calls["index"] > 1:
+            return ()
+        sampled = np.asarray(points, dtype=np.float32)[::2].copy()
+        sampled[:, 0] += 55.0
+        return (sampled,)
+
+    monkeypatch.setattr(
+        pipeline,
+        "_polygon_loop_decimation_candidates",
+        fake_candidates,
+    )
+    candidate = pipeline._decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(100, 120),
+        max_vertices=32,
+    )
+
+    assert candidate is geometry
+
+def test_pathological_polygon_decimator_backs_off_to_topology_safe_candidate(monkeypatch):
+    import minimalize_engine.v2.pipeline as pipeline
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    outer_angles = np.linspace(0.0, 2.0 * np.pi, 100, endpoint=False)
+    inner_angles = np.linspace(0.0, 2.0 * np.pi, 20, endpoint=False)
+    outer = np.column_stack(
+        [50.0 + 34.0 * np.cos(outer_angles), 50.0 + 34.0 * np.sin(outer_angles)]
+    ).astype(np.float32)
+    inner = np.column_stack(
+        [50.0 + 8.0 * np.cos(inner_angles), 50.0 + 8.0 * np.sin(inner_angles)]
+    ).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(outer, inner))
+
+    aggressive = outer[::2].copy()
+    aggressive[:, 0] += 60.0
+    safe = outer[::2].copy()
+
+    def fake_candidates(points, **_kwargs):
+        if len(points) == len(outer):
+            return (aggressive, safe)
+        return ()
+
+    monkeypatch.setattr(
+        pipeline,
+        "_polygon_loop_decimation_candidates",
+        fake_candidates,
+    )
+    candidate = pipeline._decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(110, 150),
+        max_vertices=32,
+    )
+
+    assert candidate is not geometry
+    assert len(candidate.loops) == 2
+    assert len(candidate.loops[0]) == 50
+    assert np.allclose(candidate.loops[0], safe)
+    assert pipeline._geometry_topology_signature(
+        candidate, canvas_shape=(110, 150)
+    ) == pipeline._geometry_topology_signature(
+        geometry, canvas_shape=(110, 150)
+    )
+
+def test_pathological_polygon_decimator_accepts_safe_intermediate_target(monkeypatch):
+    import minimalize_engine.v2.pipeline as pipeline
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    angles = np.linspace(0.0, 2.0 * np.pi, 100, endpoint=False)
+    points = np.column_stack(
+        [40.0 + 24.0 * np.cos(angles), 40.0 + 24.0 * np.sin(angles)]
+    ).astype(np.float32)
+    geometry = PrimitiveGeometry(kind="polygon", loops=(points,))
+
+    intermediate = points[::2].reshape((-1, 1, 2)).astype(np.float32)
+    monkeypatch.setattr(
+        pipeline.cv2,
+        "approxPolyDP",
+        lambda *_args, **_kwargs: intermediate.copy(),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_quantized_geometry_metrics",
+        lambda *_args, **_kwargs: (0.98, 0.01, 0.01),
+    )
+
+    candidate = pipeline._decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(80, 80),
+        max_vertices=24,
+    )
+
+    assert candidate is not geometry
+    assert len(candidate.loops[0]) == 50
+    assert len(candidate.loops[0]) > 24
+
+
+def test_pathological_polygon_decimator_ignores_normal_polygon():
+    from minimalize_engine.v2.pipeline import _decimate_pathological_polygon_geometry
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    points = np.asarray(
+        [[10, 10], [30, 10], [34, 24], [22, 36], [8, 28]],
+        dtype=np.float32,
+    )
+    geometry = PrimitiveGeometry(kind="polygon", loops=(points,))
+
+    candidate = _decimate_pathological_polygon_geometry(
+        geometry,
+        canvas_shape=(48, 48),
+        max_vertices=24,
+    )
+
+    assert candidate is geometry
+
+
 def test_semantic_geometric_mass_toggle_is_opt_in():
     from minimalize_engine.v2.pipeline import LayeredPersonConfig
 
     assert LayeredPersonConfig().semantic_geometric_mass is False
     assert LayeredPersonConfig(semantic_geometric_mass=True).semantic_geometric_mass is True
+
+
+def test_pathological_polygon_decimation_is_opt_in():
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    assert LayeredPersonConfig().pathological_polygon_decimation is False
+    assert (
+        LayeredPersonConfig(
+            pathological_polygon_decimation=True
+        ).pathological_polygon_decimation
+        is True
+    )
 
 
 def test_semantic_geometric_mass_builds_bold_torso_and_keeps_accent():
