@@ -128,6 +128,7 @@ class LayeredPersonConfig:
     semantic_shape_budget: bool = True
     semantic_plane_refit: bool = True
     semantic_geometric_mass: bool = False
+    pathological_polygon_decimation: bool = False
     semantic_coverage_guard: bool = True
     parts: PersonPartConfig = field(default_factory=PersonPartConfig)
 
@@ -778,6 +779,338 @@ def _quantize_person_part_polygons(
         result,
         scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()),
     )
+
+
+def _geometry_topology_signature(
+    geometry: PrimitiveGeometry,
+    *,
+    canvas_shape: tuple[int, int],
+) -> tuple[int, int]:
+    """Return connected-component and hole counts for a polygon geometry."""
+    from minimalize_engine.v2.primitive.scoring import rasterize_geometry
+
+    mask = np.asarray(
+        rasterize_geometry(
+            geometry,
+            canvas_shape,
+            origin=(0, 0),
+            scale=2,
+        ),
+        dtype=np.bool_,
+    )
+    binary = mask.astype(np.uint8)
+    count, _ = cv2.connectedComponents(binary, connectivity=4)
+    components = max(0, int(count) - 1)
+    contours, hierarchy = cv2.findContours(
+        binary * 255,
+        cv2.RETR_CCOMP,
+        cv2.CHAIN_APPROX_SIMPLE,
+    )
+    holes = 0
+    if hierarchy is not None:
+        holes = sum(1 for item in hierarchy[0] if int(item[3]) >= 0)
+    return components, holes
+
+
+def _decimate_single_polygon_loop(
+    points: NDArray[np.float32],
+    *,
+    canvas_shape: tuple[int, int],
+    max_vertices: int,
+    min_source_vertices: int,
+    min_iou: float,
+    max_undercoverage: float,
+    max_overcoverage: float,
+    min_vertex_savings: int,
+    min_relative_savings: float,
+) -> NDArray[np.float32]:
+    """Return the simplest safe approximation for one polygon loop."""
+    source = np.asarray(points, dtype=np.float32)
+    source_vertices = len(source)
+    if source_vertices < max(int(min_source_vertices), max_vertices + 1):
+        return source
+
+    required_savings = max(
+        int(min_vertex_savings),
+        int(np.ceil(source_vertices * float(min_relative_savings))),
+    )
+    contour = source.reshape((-1, 1, 2))
+    perimeter = max(float(cv2.arcLength(contour, True)), 1.0)
+    original = PrimitiveGeometry(kind="polygon", loops=(source,))
+    ranked: list[tuple[int, int, float, int, NDArray[np.float32]]] = []
+    signatures: set[bytes] = set()
+
+    for order, ratio in enumerate(
+        (
+            0.0004, 0.0006, 0.0008, 0.0010, 0.00125, 0.0015,
+            0.0018, 0.0022, 0.0028, 0.0035, 0.0045, 0.0060,
+            0.0080, 0.0100, 0.0140,
+        )
+    ):
+        approx = cv2.approxPolyDP(
+            contour,
+            max(0.35, perimeter * ratio),
+            True,
+        )
+        candidate_points = approx.reshape((-1, 2)).astype(np.float32)
+        candidate_vertices = len(candidate_points)
+        if not (3 <= candidate_vertices < source_vertices):
+            continue
+        if source_vertices - candidate_vertices < required_savings:
+            continue
+        signature = np.round(candidate_points, 4).astype(np.float32).tobytes()
+        if signature in signatures:
+            continue
+        signatures.add(signature)
+        candidate = PrimitiveGeometry(
+            kind="polygon",
+            loops=(candidate_points,),
+        )
+        iou, under, over = _quantized_geometry_metrics(
+            original,
+            candidate,
+            canvas_shape=canvas_shape,
+        )
+        if (
+            iou < float(min_iou)
+            or under > float(max_undercoverage)
+            or over > float(max_overcoverage)
+        ):
+            continue
+        fidelity = iou - 1.75 * under - 0.65 * over
+        target_penalty = 0 if candidate_vertices <= max_vertices else 1
+        ranked.append(
+            (
+                target_penalty,
+                candidate_vertices,
+                -float(fidelity),
+                order,
+                candidate_points,
+            )
+        )
+
+    if not ranked:
+        return source
+    ranked.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
+    return ranked[0][4]
+
+
+def _polygon_loop_decimation_candidates(
+    points: NDArray[np.float32],
+    *,
+    canvas_shape: tuple[int, int],
+    max_vertices: int,
+    min_source_vertices: int,
+    min_iou: float,
+    max_undercoverage: float,
+    max_overcoverage: float,
+    min_vertex_savings: int,
+    min_relative_savings: float,
+) -> tuple[NDArray[np.float32], ...]:
+    """Return safe loop candidates ordered from simplest to most conservative."""
+    source = np.asarray(points, dtype=np.float32)
+    source_vertices = len(source)
+    if source_vertices < max(int(min_source_vertices), max_vertices + 1):
+        return ()
+
+    required_savings = max(
+        int(min_vertex_savings),
+        int(np.ceil(source_vertices * float(min_relative_savings))),
+    )
+    contour = source.reshape((-1, 1, 2))
+    perimeter = max(float(cv2.arcLength(contour, True)), 1.0)
+    original = PrimitiveGeometry(kind="polygon", loops=(source,))
+    ranked: list[tuple[int, int, float, int, NDArray[np.float32]]] = []
+    signatures: set[bytes] = set()
+
+    for order, ratio in enumerate(
+        (
+            0.0004, 0.0006, 0.0008, 0.0010, 0.00125, 0.0015,
+            0.0018, 0.0022, 0.0028, 0.0035, 0.0045, 0.0060,
+            0.0080, 0.0100, 0.0140,
+        )
+    ):
+        approx = cv2.approxPolyDP(
+            contour,
+            max(0.35, perimeter * ratio),
+            True,
+        )
+        candidate_points = approx.reshape((-1, 2)).astype(np.float32)
+        candidate_vertices = len(candidate_points)
+        if not (3 <= candidate_vertices < source_vertices):
+            continue
+        if source_vertices - candidate_vertices < required_savings:
+            continue
+        signature = np.round(candidate_points, 4).astype(np.float32).tobytes()
+        if signature in signatures:
+            continue
+        signatures.add(signature)
+        candidate = PrimitiveGeometry(kind="polygon", loops=(candidate_points,))
+        iou, under, over = _quantized_geometry_metrics(
+            original,
+            candidate,
+            canvas_shape=canvas_shape,
+        )
+        if (
+            iou < float(min_iou)
+            or under > float(max_undercoverage)
+            or over > float(max_overcoverage)
+        ):
+            continue
+        fidelity = iou - 1.75 * under - 0.65 * over
+        target_penalty = 0 if candidate_vertices <= max_vertices else 1
+        ranked.append(
+            (target_penalty, candidate_vertices, -float(fidelity), order, candidate_points)
+        )
+
+    ranked.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
+    return tuple(item[4] for item in ranked)
+
+def _decimate_pathological_polygon_geometry(
+    geometry: PrimitiveGeometry,
+    *,
+    canvas_shape: tuple[int, int],
+    max_vertices: int,
+    min_source_vertices: int = 64,
+    min_iou: float = 0.965,
+    max_undercoverage: float = 0.025,
+    max_overcoverage: float = 0.035,
+    min_vertex_savings: int = 12,
+    min_relative_savings: float = 0.15,
+) -> PrimitiveGeometry:
+    """Compress pathological polygon loops while preserving mask topology.
+
+    max_vertices is an ideal per-loop target, not a hard ceiling. Large
+    loops are simplified independently, while loop count and XOR topology are
+    preserved by a final whole-geometry guard.
+    """
+    if geometry.kind != "polygon":
+        return geometry
+    if not any(
+        len(loop) >= max(int(min_source_vertices), max_vertices + 1)
+        for loop in geometry.loops
+    ):
+        return geometry
+
+    if len(geometry.loops) == 1:
+        source = np.asarray(geometry.loops[0], dtype=np.float32)
+        selected = _decimate_single_polygon_loop(
+            source,
+            canvas_shape=canvas_shape,
+            max_vertices=max_vertices,
+            min_source_vertices=min_source_vertices,
+            min_iou=min_iou,
+            max_undercoverage=max_undercoverage,
+            max_overcoverage=max_overcoverage,
+            min_vertex_savings=min_vertex_savings,
+            min_relative_savings=min_relative_savings,
+        )
+        if len(selected) == len(source) and np.array_equal(selected, source):
+            return geometry
+        candidate = replace(geometry, loops=(selected,))
+        iou, under, over = _quantized_geometry_metrics(
+            geometry,
+            candidate,
+            canvas_shape=canvas_shape,
+        )
+        if (
+            iou < float(min_iou)
+            or under > float(max_undercoverage)
+            or over > float(max_overcoverage)
+        ):
+            return geometry
+        return candidate
+
+    original_topology = _geometry_topology_signature(
+        geometry,
+        canvas_shape=canvas_shape,
+    )
+    selected_loops = [
+        np.asarray(loop, dtype=np.float32)
+        for loop in geometry.loops
+    ]
+    changed = False
+
+    for index, source in enumerate(tuple(selected_loops)):
+        ladder = _polygon_loop_decimation_candidates(
+            source,
+            canvas_shape=canvas_shape,
+            max_vertices=max_vertices,
+            min_source_vertices=min_source_vertices,
+            min_iou=min_iou,
+            max_undercoverage=max_undercoverage,
+            max_overcoverage=max_overcoverage,
+            min_vertex_savings=min_vertex_savings,
+            min_relative_savings=min_relative_savings,
+        )
+        for selected in ladder:
+            trial_loops = list(selected_loops)
+            trial_loops[index] = selected
+            trial = replace(geometry, loops=tuple(trial_loops))
+            if _geometry_topology_signature(
+                trial,
+                canvas_shape=canvas_shape,
+            ) != original_topology:
+                continue
+            iou, under, over = _quantized_geometry_metrics(
+                geometry,
+                trial,
+                canvas_shape=canvas_shape,
+            )
+            if (
+                iou < float(min_iou)
+                or under > float(max_undercoverage)
+                or over > float(max_overcoverage)
+            ):
+                continue
+            selected_loops[index] = selected
+            changed = True
+            break
+
+    if not changed:
+        return geometry
+    return replace(geometry, loops=tuple(selected_loops))
+
+
+def _decimate_person_part_polygons(
+    result: PresetPipelineResult,
+    *,
+    part_name: str,
+) -> PresetPipelineResult:
+    """Reduce only pathological contour density before later semantic refinements."""
+    if result.preset != "minimal":
+        return result
+
+    if part_name == "head":
+        max_vertices = 32
+    elif part_name in {"left_arm", "right_arm", "left_leg", "right_leg", "torso"}:
+        max_vertices = 24
+    else:
+        return result
+
+    canvas_shape = (result.scene.height, result.scene.width)
+    shapes: list[SceneShape] = []
+    changed = False
+    for shape in result.scene.shapes:
+        if not shape.visible or shape.geometry.kind != "polygon":
+            shapes.append(shape)
+            continue
+        selected = _decimate_pathological_polygon_geometry(
+            shape.geometry,
+            canvas_shape=canvas_shape,
+            max_vertices=max_vertices,
+        )
+        if selected is not shape.geometry:
+            changed = True
+        shapes.append(replace(shape, geometry=selected))
+
+    if not changed:
+        return result
+    return replace(
+        result,
+        scene=replace(result.scene, shapes=tuple(shapes), facet_overlays=()),
+    )
+
 
 
 def _semantic_part_paint_coverage(
@@ -2514,6 +2847,50 @@ def _evaluate_shading_flatten_guard(
     )
 
 
+def _apply_post_shading_polygon_decimation(
+    result: MinimalizerV2Result,
+    *,
+    config: PipelineConfig,
+) -> MinimalizerV2Result:
+    """Decimate pathological person-part contours after shading selection."""
+    layered = config.layered_person
+    if (
+        not layered.enabled
+        or not layered.pathological_polygon_decimation
+        or result.person_parts is None
+        or not result.person_part_presets
+    ):
+        return result
+
+    updated: dict[str, dict[str, PresetPipelineResult]] = {}
+    changed = False
+    for name, presets in result.person_part_presets.items():
+        mask = result.person_parts.part_masks.get(name)
+        part_results: dict[str, PresetPipelineResult] = {}
+        for preset, preset_result in presets.items():
+            candidate = _decimate_person_part_polygons(
+                preset_result,
+                part_name=name,
+            )
+            if (
+                candidate is not preset_result
+                and layered.semantic_coverage_guard
+                and mask is not None
+            ):
+                candidate = _guard_semantic_part_coverage(
+                    preset_result,
+                    candidate,
+                    mask,
+                )
+            if candidate is not preset_result:
+                changed = True
+            part_results[preset] = candidate
+        updated[name] = part_results
+
+    if not changed:
+        return result
+    return replace(result, person_part_presets=updated)
+
 def minimalize_v2(
     source_rgb: NDArray[np.uint8],
     *,
@@ -2555,13 +2932,21 @@ def minimalize_v2(
             config=guard,
         )
         selected = candidate if decision.accepted else baseline
-        return replace(selected, shading_flatten_decision=decision)
+        selected = replace(selected, shading_flatten_decision=decision)
+        return _apply_post_shading_polygon_decimation(
+            selected,
+            config=active_config,
+        )
 
-    return _minimalize_v2_impl(
+    result = _minimalize_v2_impl(
         source_rgb,
         presets=presets,
         config=active_config,
         characteristic=None,
         observer=None,
         guidance=guidance,
+    )
+    return _apply_post_shading_polygon_decimation(
+        result,
+        config=active_config,
     )

@@ -89,6 +89,55 @@ def test_shading_flatten_guard_rejects_color_drift_when_threshold_is_zero():
     assert decision.subject_color_mae > 0.0
 
 
+def test_polygon_decimation_postprocess_runs_after_shading_decision(monkeypatch):
+    import minimalize_engine.v2.pipeline as pipeline
+    from minimalize_engine.v2.pipeline import LayeredPersonConfig
+
+    observed = []
+
+    def observed_postprocess(result, *, config):
+        observed.append(result.shading_flatten_decision)
+        assert config.layered_person.pathological_polygon_decimation is True
+        return result
+
+    monkeypatch.setattr(
+        pipeline,
+        "_apply_post_shading_polygon_decimation",
+        observed_postprocess,
+    )
+
+    result = minimalize_v2(
+        _gradient_image(),
+        config=PipelineConfig(
+            analysis_max_side=96,
+            shading_flatten=ShadingFlattenConfig(enabled=True, sr=45),
+            shading_flatten_guard=ShadingFlattenGuardConfig(
+                enabled=True,
+                max_polygon_vertex_ratio=10.0,
+                max_part_polygon_vertex_ratio=10.0,
+                max_initial_region_ratio=10.0,
+                max_global_palette_delta=10,
+                max_total_part_palette_ratio=10.0,
+                max_single_part_palette_increase=10,
+                max_relaxed_single_part_palette_increase=10,
+                min_edge_energy_retention=0.01,
+                max_subject_color_mae=1.0,
+                max_subject_color_p95=1.0,
+                min_region_reduction_ratio=0.0,
+                min_polygon_reduction_ratio=0.0,
+                min_part_polygon_reduction_ratio=0.0,
+            ),
+            layered_person=LayeredPersonConfig(
+                pathological_polygon_decimation=True,
+            ),
+        ),
+    )
+
+    assert len(observed) == 1
+    assert observed[0] is not None
+    assert observed[0] == result.shading_flatten_decision
+
+
 def test_palette_growth_can_relax_when_parts_simplify_strongly():
     from minimalize_engine.v2.pipeline import _shading_part_palette_growth_is_safe
 
