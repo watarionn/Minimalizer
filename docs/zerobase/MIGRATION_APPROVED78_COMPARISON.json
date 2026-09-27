@@ -1,0 +1,1501 @@
+{
+  "schema_version": 1,
+  "case_count": 78,
+  "all_reference_sha256_verified": true,
+  "comparison": "ZeroBase deterministic SLIC baseline vs current stored Minimalizer 2.0 baseline, each against Approved-78 reference",
+  "aggregate": {
+    "zerobase_mean_silhouette_iou": 0.395515,
+    "legacy2_mean_silhouette_iou": 0.411292,
+    "zerobase_silhouette_wins": 16,
+    "legacy2_silhouette_wins": 52,
+    "zerobase_mean_foreground_ratio_error": 0.541351,
+    "legacy2_mean_foreground_ratio_error": 0.4628,
+    "zerobase_foreground_ratio_wins": 4,
+    "legacy2_foreground_ratio_wins": 64,
+    "zerobase_mean_primitive_count": 34.551282
+  },
+  "cases": [
+    {
+      "index": 1,
+      "character": "Kikirara-Vivi",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.01641,
+        "edge_density_error": 0.037292
+      },
+      "legacy2": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.040069,
+        "edge_density_error": 0.013633
+      },
+      "zerobase_primitive_count": 19
+    },
+    {
+      "index": 2,
+      "character": "Isaki-Riona",
+      "zerobase": {
+        "silhouette_iou": 0.98077,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.01923,
+        "edge_density": 0.013555,
+        "edge_density_error": 0.043036
+      },
+      "legacy2": {
+        "silhouette_iou": 0.980761,
+        "foreground_ratio": 0.999991,
+        "foreground_ratio_error": 0.019221,
+        "edge_density": 0.029585,
+        "edge_density_error": 0.027007
+      },
+      "zerobase_primitive_count": 18
+    },
+    {
+      "index": 3,
+      "character": "Koganei-Niko",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.026704,
+        "edge_density_error": 0.024057
+      },
+      "legacy2": {
+        "silhouette_iou": 0.999689,
+        "foreground_ratio": 0.999689,
+        "foreground_ratio_error": 0.000311,
+        "edge_density": 0.03801,
+        "edge_density_error": 0.012751
+      },
+      "zerobase_primitive_count": 26
+    },
+    {
+      "index": 4,
+      "character": "Vestia-Zeta",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.016946,
+        "edge_density_error": 0.051012
+      },
+      "legacy2": {
+        "silhouette_iou": 0.999836,
+        "foreground_ratio": 0.999836,
+        "foreground_ratio_error": 0.000164,
+        "edge_density": 0.033209,
+        "edge_density_error": 0.034749
+      },
+      "zerobase_primitive_count": 20
+    },
+    {
+      "index": 5,
+      "character": "Todoroki-Hajime",
+      "zerobase": {
+        "silhouette_iou": 0.827465,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.172535,
+        "edge_density": 0.018062,
+        "edge_density_error": 0.023625
+      },
+      "legacy2": {
+        "silhouette_iou": 0.827465,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.172535,
+        "edge_density": 0.016773,
+        "edge_density_error": 0.024913
+      },
+      "zerobase_primitive_count": 35
+    },
+    {
+      "index": 6,
+      "character": "Shishiro-Botan",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.027751,
+        "edge_density_error": 0.017379
+      },
+      "legacy2": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.029533,
+        "edge_density_error": 0.015597
+      },
+      "zerobase_primitive_count": 40
+    },
+    {
+      "index": 7,
+      "character": "Shiori-Novella",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.015424,
+        "edge_density_error": 0.029178
+      },
+      "legacy2": {
+        "silhouette_iou": 0.999922,
+        "foreground_ratio": 0.999922,
+        "foreground_ratio_error": 7.8e-05,
+        "edge_density": 0.039818,
+        "edge_density_error": 0.004784
+      },
+      "zerobase_primitive_count": 22
+    },
+    {
+      "index": 8,
+      "character": "Natsuiro-Matsuri",
+      "zerobase": {
+        "silhouette_iou": 0.969542,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.030458,
+        "edge_density": 0.018616,
+        "edge_density_error": 0.022517
+      },
+      "legacy2": {
+        "silhouette_iou": 0.969542,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.030458,
+        "edge_density": 0.030242,
+        "edge_density_error": 0.010891
+      },
+      "zerobase_primitive_count": 34
+    },
+    {
+      "index": 9,
+      "character": "Otonose-Kanade",
+      "zerobase": {
+        "silhouette_iou": 0.970502,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.029498,
+        "edge_density": 0.014048,
+        "edge_density_error": 0.030069
+      },
+      "legacy2": {
+        "silhouette_iou": 0.970484,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.029481,
+        "edge_density": 0.024818,
+        "edge_density_error": 0.019299
+      },
+      "zerobase_primitive_count": 26
+    },
+    {
+      "index": 10,
+      "character": "Mori-Calliope",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.021176,
+        "edge_density_error": 0.024031
+      },
+      "legacy2": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.037284,
+        "edge_density_error": 0.007924
+      },
+      "zerobase_primitive_count": 29
+    },
+    {
+      "index": 11,
+      "character": "Momosuzu-Nene",
+      "zerobase": {
+        "silhouette_iou": 0.951531,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.048469,
+        "edge_density": 0.008261,
+        "edge_density_error": 0.04859
+      },
+      "legacy2": {
+        "silhouette_iou": 0.951522,
+        "foreground_ratio": 0.999991,
+        "foreground_ratio_error": 0.04846,
+        "edge_density": 0.034412,
+        "edge_density_error": 0.022439
+      },
+      "zerobase_primitive_count": 10
+    },
+    {
+      "index": 12,
+      "character": "Koseki-Bijou",
+      "zerobase": {
+        "silhouette_iou": 0.91224,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.08776,
+        "edge_density": 0.017067,
+        "edge_density_error": 0.04455
+      },
+      "legacy2": {
+        "silhouette_iou": 0.91224,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.08776,
+        "edge_density": 0.033486,
+        "edge_density_error": 0.028131
+      },
+      "zerobase_primitive_count": 27
+    },
+    {
+      "index": 13,
+      "character": "Kobo-Kanaeru",
+      "zerobase": {
+        "silhouette_iou": 0.895891,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.104109,
+        "edge_density": 0.022699,
+        "edge_density_error": 0.042275
+      },
+      "legacy2": {
+        "silhouette_iou": 0.895891,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.104109,
+        "edge_density": 0.039611,
+        "edge_density_error": 0.025363
+      },
+      "zerobase_primitive_count": 26
+    },
+    {
+      "index": 14,
+      "character": "Houshou-Marine",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.010043,
+        "edge_density_error": 0.047552
+      },
+      "legacy2": {
+        "silhouette_iou": 0.999913,
+        "foreground_ratio": 0.999913,
+        "foreground_ratio_error": 8.7e-05,
+        "edge_density": 0.036324,
+        "edge_density_error": 0.021272
+      },
+      "zerobase_primitive_count": 21
+    },
+    {
+      "index": 15,
+      "character": "Hakos-Baelz",
+      "zerobase": {
+        "silhouette_iou": 0.999083,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.000917,
+        "edge_density": 0.00769,
+        "edge_density_error": 0.057102
+      },
+      "legacy2": {
+        "silhouette_iou": 0.999083,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.000917,
+        "edge_density": 0.041254,
+        "edge_density_error": 0.023538
+      },
+      "zerobase_primitive_count": 12
+    },
+    {
+      "index": 16,
+      "character": "Gigi-Murin",
+      "zerobase": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.01583,
+        "edge_density_error": 0.034671
+      },
+      "legacy2": {
+        "silhouette_iou": 1.0,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.0,
+        "edge_density": 0.033997,
+        "edge_density_error": 0.016505
+      },
+      "zerobase_primitive_count": 24
+    },
+    {
+      "index": 17,
+      "character": "Aki-Rosenthal",
+      "zerobase": {
+        "silhouette_iou": 0.992742,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.007258,
+        "edge_density": 0.018166,
+        "edge_density_error": 0.030709
+      },
+      "legacy2": {
+        "silhouette_iou": 0.992742,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.007258,
+        "edge_density": 0.033408,
+        "edge_density_error": 0.015467
+      },
+      "zerobase_primitive_count": 23
+    },
+    {
+      "index": 18,
+      "character": "Raora-Panthera",
+      "zerobase": {
+        "silhouette_iou": 0.896704,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.103296,
+        "edge_density": 0.019654,
+        "edge_density_error": 0.042483
+      },
+      "legacy2": {
+        "silhouette_iou": 0.896703,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.103279,
+        "edge_density": 0.037093,
+        "edge_density_error": 0.025043
+      },
+      "zerobase_primitive_count": 28
+    },
+    {
+      "index": 19,
+      "character": "Usada-Pekora",
+      "zerobase": {
+        "silhouette_iou": 0.220921,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.779079,
+        "edge_density": 0.001887,
+        "edge_density_error": 0.003332
+      },
+      "legacy2": {
+        "silhouette_iou": 0.224167,
+        "foreground_ratio": 0.999879,
+        "foreground_ratio_error": 0.775623,
+        "edge_density": 0.015303,
+        "edge_density_error": 0.012439
+      },
+      "zerobase_primitive_count": 39
+    },
+    {
+      "index": 20,
+      "character": "Houshou-Marine",
+      "zerobase": {
+        "silhouette_iou": 0.524601,
+        "foreground_ratio": 0.606785,
+        "foreground_ratio_error": 0.267357,
+        "edge_density": 0.003394,
+        "edge_density_error": 0.01185
+      },
+      "legacy2": {
+        "silhouette_iou": 0.703665,
+        "foreground_ratio": 0.352593,
+        "foreground_ratio_error": 0.006826,
+        "edge_density": 0.030147,
+        "edge_density_error": 0.019644
+      },
+      "zerobase_primitive_count": 32
+    },
+    {
+      "index": 21,
+      "character": "Shirogane-Noel",
+      "zerobase": {
+        "silhouette_iou": 0.350421,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.649579,
+        "edge_density": 0.0,
+        "edge_density_error": 0.009848
+      },
+      "legacy2": {
+        "silhouette_iou": 0.355441,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.644559,
+        "edge_density": 0.020657,
+        "edge_density_error": 0.033175
+      },
+      "zerobase_primitive_count": 21
+    },
+    {
+      "index": 22,
+      "character": "Oozora-Subaru",
+      "zerobase": {
+        "silhouette_iou": 0.213873,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.786127,
+        "edge_density": 0.001979,
+        "edge_density_error": 0.003722
+      },
+      "legacy2": {
+        "silhouette_iou": 0.218573,
+        "foreground_ratio": 0.999888,
+        "foreground_ratio_error": 0.781202,
+        "edge_density": 0.017016,
+        "edge_density_error": 0.014533
+      },
+      "zerobase_primitive_count": 45
+    },
+    {
+      "index": 23,
+      "character": "Tsunomaki-Watame",
+      "zerobase": {
+        "silhouette_iou": 0.264872,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.735128,
+        "edge_density": 0.002015,
+        "edge_density_error": 0.002127
+      },
+      "legacy2": {
+        "silhouette_iou": 0.203637,
+        "foreground_ratio": 0.876955,
+        "foreground_ratio_error": 0.610017,
+        "edge_density": 0.01814,
+        "edge_density_error": 0.005381
+      },
+      "zerobase_primitive_count": 48
+    },
+    {
+      "index": 24,
+      "character": "Nakiri-Ayame",
+      "zerobase": {
+        "silhouette_iou": 0.254626,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.745375,
+        "edge_density": 0.001601,
+        "edge_density_error": 0.005292
+      },
+      "legacy2": {
+        "silhouette_iou": 0.258625,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.741341,
+        "edge_density": 0.020926,
+        "edge_density_error": 0.014836
+      },
+      "zerobase_primitive_count": 43
+    },
+    {
+      "index": 25,
+      "character": "Mori-Calliope",
+      "zerobase": {
+        "silhouette_iou": 0.35771,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.642289,
+        "edge_density": 0.002395,
+        "edge_density_error": 0.006096
+      },
+      "legacy2": {
+        "silhouette_iou": 0.365006,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.634983,
+        "edge_density": 0.019057,
+        "edge_density_error": 0.026851
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 26,
+      "character": "Ninomae-Inanis",
+      "zerobase": {
+        "silhouette_iou": 0.465568,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.534432,
+        "edge_density": 0.000292,
+        "edge_density_error": 0.01045
+      },
+      "legacy2": {
+        "silhouette_iou": 0.473339,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.526661,
+        "edge_density": 0.029325,
+        "edge_density_error": 0.028919
+      },
+      "zerobase_primitive_count": 25
+    },
+    {
+      "index": 27,
+      "character": "Hakos-Baelz",
+      "zerobase": {
+        "silhouette_iou": 0.338851,
+        "foreground_ratio": 0.93819,
+        "foreground_ratio_error": 0.620283,
+        "edge_density": 0.003086,
+        "edge_density_error": 0.012069
+      },
+      "legacy2": {
+        "silhouette_iou": 0.316976,
+        "foreground_ratio": 0.689245,
+        "foreground_ratio_error": 0.362314,
+        "edge_density": 0.052852,
+        "edge_density_error": 5.9e-05
+      },
+      "zerobase_primitive_count": 14
+    },
+    {
+      "index": 28,
+      "character": "Fuwawa-Abyssgard",
+      "zerobase": {
+        "silhouette_iou": 0.255642,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.744358,
+        "edge_density": 0.001465,
+        "edge_density_error": 0.003577
+      },
+      "legacy2": {
+        "silhouette_iou": 0.261834,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.738166,
+        "edge_density": 0.019611,
+        "edge_density_error": 0.01577
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 29,
+      "character": "La-Darknesss",
+      "zerobase": {
+        "silhouette_iou": 0.408345,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.591655,
+        "edge_density": 0.001958,
+        "edge_density_error": 0.006803
+      },
+      "legacy2": {
+        "silhouette_iou": 0.413071,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.586929,
+        "edge_density": 0.018408,
+        "edge_density_error": 0.03231
+      },
+      "zerobase_primitive_count": 50
+    },
+    {
+      "index": 30,
+      "character": "Shirakami-Fubuki",
+      "zerobase": {
+        "silhouette_iou": 0.212797,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.787203,
+        "edge_density": 0.001567,
+        "edge_density_error": 0.003226
+      },
+      "legacy2": {
+        "silhouette_iou": 0.217777,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.782223,
+        "edge_density": 0.013685,
+        "edge_density_error": 0.013763
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 31,
+      "character": "Inugami-Korone",
+      "zerobase": {
+        "silhouette_iou": 0.400371,
+        "foreground_ratio": 0.508385,
+        "foreground_ratio_error": 0.218184,
+        "edge_density": 0.007954,
+        "edge_density_error": 0.002743
+      },
+      "legacy2": {
+        "silhouette_iou": 0.47236,
+        "foreground_ratio": 0.201853,
+        "foreground_ratio_error": 0.094623,
+        "edge_density": 0.02559,
+        "edge_density_error": 0.007735
+      },
+      "zerobase_primitive_count": 44
+    },
+    {
+      "index": 32,
+      "character": "Tokoyami-Towa",
+      "zerobase": {
+        "silhouette_iou": 0.181423,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.818577,
+        "edge_density": 0.00159,
+        "edge_density_error": 0.005265
+      },
+      "legacy2": {
+        "silhouette_iou": 0.187785,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.812215,
+        "edge_density": 0.01776,
+        "edge_density_error": 0.016453
+      },
+      "zerobase_primitive_count": 36
+    },
+    {
+      "index": 33,
+      "character": "Yukihana-Lamy",
+      "zerobase": {
+        "silhouette_iou": 0.267144,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.732856,
+        "edge_density": 0.0,
+        "edge_density_error": 0.00603
+      },
+      "legacy2": {
+        "silhouette_iou": 0.271209,
+        "foreground_ratio": 0.999939,
+        "foreground_ratio_error": 0.728702,
+        "edge_density": 0.016652,
+        "edge_density_error": 0.016912
+      },
+      "zerobase_primitive_count": 37
+    },
+    {
+      "index": 34,
+      "character": "Omaru-Polka",
+      "zerobase": {
+        "silhouette_iou": 0.261387,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.738614,
+        "edge_density": 0.0,
+        "edge_density_error": 0.008202
+      },
+      "legacy2": {
+        "silhouette_iou": 0.268547,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.731453,
+        "edge_density": 0.01955,
+        "edge_density_error": 0.020856
+      },
+      "zerobase_primitive_count": 35
+    },
+    {
+      "index": 35,
+      "character": "Takanashi-Kiara",
+      "zerobase": {
+        "silhouette_iou": 0.306641,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.693359,
+        "edge_density": 0.000955,
+        "edge_density_error": 0.005552
+      },
+      "legacy2": {
+        "silhouette_iou": 0.310926,
+        "foreground_ratio": 0.999991,
+        "foreground_ratio_error": 0.689057,
+        "edge_density": 0.014732,
+        "edge_density_error": 0.022284
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 36,
+      "character": "Ouro-Kronii",
+      "zerobase": {
+        "silhouette_iou": 0.199728,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.800272,
+        "edge_density": 0.000916,
+        "edge_density_error": 0.004885
+      },
+      "legacy2": {
+        "silhouette_iou": 0.203901,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.796064,
+        "edge_density": 0.016903,
+        "edge_density_error": 0.014585
+      },
+      "zerobase_primitive_count": 36
+    },
+    {
+      "index": 37,
+      "character": "Kureiji-Ollie",
+      "zerobase": {
+        "silhouette_iou": 0.338265,
+        "foreground_ratio": 0.814515,
+        "foreground_ratio_error": 0.530537,
+        "edge_density": 0.00327,
+        "edge_density_error": 0.012482
+      },
+      "legacy2": {
+        "silhouette_iou": 0.456791,
+        "foreground_ratio": 0.551019,
+        "foreground_ratio_error": 0.261499,
+        "edge_density": 0.035708,
+        "edge_density_error": 0.018751
+      },
+      "zerobase_primitive_count": 13
+    },
+    {
+      "index": 38,
+      "character": "Kaela-Kovalskia",
+      "zerobase": {
+        "silhouette_iou": 0.325436,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.674564,
+        "edge_density": 0.002369,
+        "edge_density_error": 0.00779
+      },
+      "legacy2": {
+        "silhouette_iou": 0.33051,
+        "foreground_ratio": 0.999931,
+        "foreground_ratio_error": 0.669351,
+        "edge_density": 0.011557,
+        "edge_density_error": 0.041946
+      },
+      "zerobase_primitive_count": 55
+    },
+    {
+      "index": 39,
+      "character": "Sakura-Miko",
+      "zerobase": {
+        "silhouette_iou": 0.180998,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.819002,
+        "edge_density": 0.000462,
+        "edge_density_error": 0.006964
+      },
+      "legacy2": {
+        "silhouette_iou": 0.187206,
+        "foreground_ratio": 0.999939,
+        "foreground_ratio_error": 0.812673,
+        "edge_density": 0.025796,
+        "edge_density_error": 0.01237
+      },
+      "zerobase_primitive_count": 38
+    },
+    {
+      "index": 40,
+      "character": "Hoshimachi-Suisei",
+      "zerobase": {
+        "silhouette_iou": 0.263673,
+        "foreground_ratio": 0.732741,
+        "foreground_ratio_error": 0.539529,
+        "edge_density": 0.006972,
+        "edge_density_error": 0.005098
+      },
+      "legacy2": {
+        "silhouette_iou": 0.445016,
+        "foreground_ratio": 0.358007,
+        "foreground_ratio_error": 0.158772,
+        "edge_density": 0.04014,
+        "edge_density_error": 0.00403
+      },
+      "zerobase_primitive_count": 32
+    },
+    {
+      "index": 41,
+      "character": "Robocosan",
+      "zerobase": {
+        "silhouette_iou": 0.146548,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.853452,
+        "edge_density": 0.000319,
+        "edge_density_error": 0.006673
+      },
+      "legacy2": {
+        "silhouette_iou": 0.15158,
+        "foreground_ratio": 0.999957,
+        "foreground_ratio_error": 0.848374,
+        "edge_density": 0.016644,
+        "edge_density_error": 0.015147
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 42,
+      "character": "Himemori-Luna",
+      "zerobase": {
+        "silhouette_iou": 0.172632,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.827368,
+        "edge_density": 0.0,
+        "edge_density_error": 0.00696
+      },
+      "legacy2": {
+        "silhouette_iou": 0.177067,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.822933,
+        "edge_density": 0.016064,
+        "edge_density_error": 0.020597
+      },
+      "zerobase_primitive_count": 33
+    },
+    {
+      "index": 43,
+      "character": "Kazama-Iroha",
+      "zerobase": {
+        "silhouette_iou": 0.327959,
+        "foreground_ratio": 0.600077,
+        "foreground_ratio_error": 0.376918,
+        "edge_density": 0.005784,
+        "edge_density_error": 0.00909
+      },
+      "legacy2": {
+        "silhouette_iou": 0.404453,
+        "foreground_ratio": 0.170925,
+        "foreground_ratio_error": 0.056958,
+        "edge_density": 0.024799,
+        "edge_density_error": 0.021534
+      },
+      "zerobase_primitive_count": 29
+    },
+    {
+      "index": 44,
+      "character": "Juufuutei-Raden",
+      "zerobase": {
+        "silhouette_iou": 0.261528,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.738471,
+        "edge_density": 0.002092,
+        "edge_density_error": 0.003433
+      },
+      "legacy2": {
+        "silhouette_iou": 0.265744,
+        "foreground_ratio": 0.999965,
+        "foreground_ratio_error": 0.734187,
+        "edge_density": 0.014265,
+        "edge_density_error": 0.015865
+      },
+      "zerobase_primitive_count": 51
+    },
+    {
+      "index": 45,
+      "character": "Cecilia-Immergreen",
+      "zerobase": {
+        "silhouette_iou": 0.35015,
+        "foreground_ratio": 0.56289,
+        "foreground_ratio_error": 0.350752,
+        "edge_density": 0.005475,
+        "edge_density_error": 0.008139
+      },
+      "legacy2": {
+        "silhouette_iou": 0.488829,
+        "foreground_ratio": 0.249731,
+        "foreground_ratio_error": 0.033709,
+        "edge_density": 0.030927,
+        "edge_density_error": 0.010738
+      },
+      "zerobase_primitive_count": 36
+    },
+    {
+      "index": 46,
+      "character": "Nerissa-Ravencroft",
+      "zerobase": {
+        "silhouette_iou": 0.219872,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.780128,
+        "edge_density": 0.000279,
+        "edge_density_error": 0.008489
+      },
+      "legacy2": {
+        "silhouette_iou": 0.229291,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.770709,
+        "edge_density": 0.012119,
+        "edge_density_error": 0.032318
+      },
+      "zerobase_primitive_count": 40
+    },
+    {
+      "index": 47,
+      "character": "Pavolia-Reine",
+      "zerobase": {
+        "silhouette_iou": 0.411745,
+        "foreground_ratio": 0.648403,
+        "foreground_ratio_error": 0.353099,
+        "edge_density": 0.005025,
+        "edge_density_error": 0.014393
+      },
+      "legacy2": {
+        "silhouette_iou": 0.382088,
+        "foreground_ratio": 0.328893,
+        "foreground_ratio_error": 0.026769,
+        "edge_density": 0.041008,
+        "edge_density_error": 0.012762
+      },
+      "zerobase_primitive_count": 28
+    },
+    {
+      "index": 48,
+      "character": "Elizabeth-Rose-Bloodflame",
+      "zerobase": {
+        "silhouette_iou": 0.349906,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.650094,
+        "edge_density": 0.004411,
+        "edge_density_error": 0.010943
+      },
+      "legacy2": {
+        "silhouette_iou": 0.36003,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.63997,
+        "edge_density": 0.038149,
+        "edge_density_error": 0.016589
+      },
+      "zerobase_primitive_count": 32
+    },
+    {
+      "index": 49,
+      "character": "Tokino-Sora",
+      "zerobase": {
+        "silhouette_iou": 0.196018,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.803982,
+        "edge_density": 0.001926,
+        "edge_density_error": 0.00409
+      },
+      "legacy2": {
+        "silhouette_iou": 0.201263,
+        "foreground_ratio": 0.999991,
+        "foreground_ratio_error": 0.79872,
+        "edge_density": 0.013953,
+        "edge_density_error": 0.016739
+      },
+      "zerobase_primitive_count": 49
+    },
+    {
+      "index": 50,
+      "character": "Ookami-Mio",
+      "zerobase": {
+        "silhouette_iou": 0.154708,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.845292,
+        "edge_density": 0.002585,
+        "edge_density_error": 0.003911
+      },
+      "legacy2": {
+        "silhouette_iou": 0.159066,
+        "foreground_ratio": 0.999991,
+        "foreground_ratio_error": 0.840917,
+        "edge_density": 0.014732,
+        "edge_density_error": 0.016159
+      },
+      "zerobase_primitive_count": 50
+    },
+    {
+      "index": 51,
+      "character": "Nekomata-Okayu",
+      "zerobase": {
+        "silhouette_iou": 0.210877,
+        "foreground_ratio": 0.634069,
+        "foreground_ratio_error": 0.468919,
+        "edge_density": 0.005769,
+        "edge_density_error": 0.007194
+      },
+      "legacy2": {
+        "silhouette_iou": 0.349058,
+        "foreground_ratio": 0.417882,
+        "foreground_ratio_error": 0.244605,
+        "edge_density": 0.043563,
+        "edge_density_error": 0.003563
+      },
+      "zerobase_primitive_count": 29
+    },
+    {
+      "index": 52,
+      "character": "AZKi",
+      "zerobase": {
+        "silhouette_iou": 0.21128,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.78872,
+        "edge_density": 0.001237,
+        "edge_density_error": 0.004867
+      },
+      "legacy2": {
+        "silhouette_iou": 0.215943,
+        "foreground_ratio": 0.999723,
+        "foreground_ratio_error": 0.783503,
+        "edge_density": 0.019472,
+        "edge_density_error": 0.013521
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 53,
+      "character": "Hakui-Koyori",
+      "zerobase": {
+        "silhouette_iou": 0.200269,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.799731,
+        "edge_density": 0.001983,
+        "edge_density_error": 0.005656
+      },
+      "legacy2": {
+        "silhouette_iou": 0.205649,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.794351,
+        "edge_density": 0.01891,
+        "edge_density_error": 0.022578
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 54,
+      "character": "Takane-Lui",
+      "zerobase": {
+        "silhouette_iou": 0.255727,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.744273,
+        "edge_density": 0.000617,
+        "edge_density_error": 0.00738
+      },
+      "legacy2": {
+        "silhouette_iou": 0.240314,
+        "foreground_ratio": 0.979256,
+        "foreground_ratio_error": 0.718927,
+        "edge_density": 0.013737,
+        "edge_density_error": 0.026116
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 55,
+      "character": "Moona-Hoshinova",
+      "zerobase": {
+        "silhouette_iou": 0.170297,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.829703,
+        "edge_density": 0.000749,
+        "edge_density_error": 0.00643
+      },
+      "legacy2": {
+        "silhouette_iou": 0.176298,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.823702,
+        "edge_density": 0.012292,
+        "edge_density_error": 0.023365
+      },
+      "zerobase_primitive_count": 46
+    },
+    {
+      "index": 56,
+      "character": "Airani-Iofifteen",
+      "zerobase": {
+        "silhouette_iou": 0.144552,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.855448,
+        "edge_density": 0.000946,
+        "edge_density_error": 0.004183
+      },
+      "legacy2": {
+        "silhouette_iou": 0.146998,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.853002,
+        "edge_density": 0.014671,
+        "edge_density_error": 0.008953
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 57,
+      "character": "Mococo-Abyssgard",
+      "zerobase": {
+        "silhouette_iou": 0.20078,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.79922,
+        "edge_density": 0.001576,
+        "edge_density_error": 0.005705
+      },
+      "legacy2": {
+        "silhouette_iou": 0.206436,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.793564,
+        "edge_density": 0.016574,
+        "edge_density_error": 0.019792
+      },
+      "zerobase_primitive_count": 46
+    },
+    {
+      "index": 58,
+      "character": "IRyS",
+      "zerobase": {
+        "silhouette_iou": 0.163521,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.836479,
+        "edge_density": 0.001448,
+        "edge_density_error": 0.005389
+      },
+      "legacy2": {
+        "silhouette_iou": 0.169585,
+        "foreground_ratio": 0.999974,
+        "foreground_ratio_error": 0.830363,
+        "edge_density": 0.017967,
+        "edge_density_error": 0.016834
+      },
+      "zerobase_primitive_count": 48
+    },
+    {
+      "index": 59,
+      "character": "Akai-Haato",
+      "zerobase": {
+        "silhouette_iou": 0.030578,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.969422,
+        "edge_density": 0.00125,
+        "edge_density_error": 0.000739
+      },
+      "legacy2": {
+        "silhouette_iou": 0.032016,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.967984,
+        "edge_density": 0.017076,
+        "edge_density_error": 0.007587
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 60,
+      "character": "Yuzuki-Choco",
+      "zerobase": {
+        "silhouette_iou": 0.028515,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.971484,
+        "edge_density": 0.002482,
+        "edge_density_error": 0.00054
+      },
+      "legacy2": {
+        "silhouette_iou": 0.027791,
+        "foreground_ratio": 0.93808,
+        "foreground_ratio_error": 0.908382,
+        "edge_density": 0.015545,
+        "edge_density_error": 0.006782
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 61,
+      "character": "Shiranui-Flare",
+      "zerobase": {
+        "silhouette_iou": 0.041062,
+        "foreground_ratio": 0.632814,
+        "foreground_ratio_error": 0.606829,
+        "edge_density": 0.005264,
+        "edge_density_error": 0.001015
+      },
+      "legacy2": {
+        "silhouette_iou": 0.013474,
+        "foreground_ratio": 0.225913,
+        "foreground_ratio_error": 0.198445,
+        "edge_density": 0.036499,
+        "edge_density_error": 0.026134
+      },
+      "zerobase_primitive_count": 33
+    },
+    {
+      "index": 62,
+      "character": "Anya-Melfissa",
+      "zerobase": {
+        "silhouette_iou": 0.056241,
+        "foreground_ratio": 0.862009,
+        "foreground_ratio_error": 0.813528,
+        "edge_density": 0.004679,
+        "edge_density_error": 0.001487
+      },
+      "legacy2": {
+        "silhouette_iou": 0.066222,
+        "foreground_ratio": 0.675187,
+        "foreground_ratio_error": 0.624726,
+        "edge_density": 0.05173,
+        "edge_density_error": 0.035799
+      },
+      "zerobase_primitive_count": 18
+    },
+    {
+      "index": 63,
+      "character": "Ayunda-Risu",
+      "zerobase": {
+        "silhouette_iou": 0.034291,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.965709,
+        "edge_density": 0.001483,
+        "edge_density_error": 0.000488
+      },
+      "legacy2": {
+        "silhouette_iou": 0.035268,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.964732,
+        "edge_density": 0.016021,
+        "edge_density_error": 0.006696
+      },
+      "zerobase_primitive_count": 43
+    },
+    {
+      "index": 64,
+      "character": "Ichijou-Ririka",
+      "zerobase": {
+        "silhouette_iou": 0.037331,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.962669,
+        "edge_density": 0.000343,
+        "edge_density_error": 0.001557
+      },
+      "legacy2": {
+        "silhouette_iou": 0.037984,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.962016,
+        "edge_density": 0.013988,
+        "edge_density_error": 0.006012
+      },
+      "zerobase_primitive_count": 44
+    },
+    {
+      "index": 65,
+      "character": "Mizumiya-Su",
+      "zerobase": {
+        "silhouette_iou": 0.045189,
+        "foreground_ratio": 0.779893,
+        "foreground_ratio_error": 0.74465,
+        "edge_density": 0.005927,
+        "edge_density_error": 0.000646
+      },
+      "legacy2": {
+        "silhouette_iou": 0.083501,
+        "foreground_ratio": 0.374307,
+        "foreground_ratio_error": 0.337885,
+        "edge_density": 0.048614,
+        "edge_density_error": 0.036486
+      },
+      "zerobase_primitive_count": 23
+    },
+    {
+      "index": 66,
+      "character": "Rindo-Chihaya",
+      "zerobase": {
+        "silhouette_iou": 0.057564,
+        "foreground_ratio": 0.538841,
+        "foreground_ratio_error": 0.507823,
+        "edge_density": 0.005957,
+        "edge_density_error": 0.001605
+      },
+      "legacy2": {
+        "silhouette_iou": 0.117025,
+        "foreground_ratio": 0.27156,
+        "foreground_ratio_error": 0.239129,
+        "edge_density": 0.027805,
+        "edge_density_error": 0.017349
+      },
+      "zerobase_primitive_count": 45
+    },
+    {
+      "index": 67,
+      "character": "Hanazono-Sayaka",
+      "zerobase": {
+        "silhouette_iou": 0.076666,
+        "foreground_ratio": 0.568349,
+        "foreground_ratio_error": 0.524776,
+        "edge_density": 0.005515,
+        "edge_density_error": 0.00063
+      },
+      "legacy2": {
+        "silhouette_iou": 0.169684,
+        "foreground_ratio": 0.16332,
+        "foreground_ratio_error": 0.118178,
+        "edge_density": 0.024074,
+        "edge_density_error": 0.011208
+      },
+      "zerobase_primitive_count": 34
+    },
+    {
+      "index": 68,
+      "character": "Kazeshiro-Yuki",
+      "zerobase": {
+        "silhouette_iou": 0.082725,
+        "foreground_ratio": 0.457491,
+        "foreground_ratio_error": 0.415923,
+        "edge_density": 0.006284,
+        "edge_density_error": 0.000662
+      },
+      "legacy2": {
+        "silhouette_iou": 0.154991,
+        "foreground_ratio": 0.177378,
+        "foreground_ratio_error": 0.134517,
+        "edge_density": 0.023866,
+        "edge_density_error": 0.01056
+      },
+      "zerobase_primitive_count": 42
+    },
+    {
+      "index": 69,
+      "character": "Izuki-Michiru",
+      "zerobase": {
+        "silhouette_iou": 0.293081,
+        "foreground_ratio": 0.511189,
+        "foreground_ratio_error": 0.361369,
+        "edge_density": 0.007843,
+        "edge_density_error": 0.000176
+      },
+      "legacy2": {
+        "silhouette_iou": 0.262958,
+        "foreground_ratio": 0.16937,
+        "foreground_ratio_error": 0.015768,
+        "edge_density": 0.026717,
+        "edge_density_error": 0.003459
+      },
+      "zerobase_primitive_count": 44
+    },
+    {
+      "index": 70,
+      "character": "Sorashina-Sopia",
+      "zerobase": {
+        "silhouette_iou": 0.112096,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.887904,
+        "edge_density": 0.001231,
+        "edge_density_error": 0.002514
+      },
+      "legacy2": {
+        "silhouette_iou": 0.116056,
+        "foreground_ratio": 0.999948,
+        "foreground_ratio_error": 0.883849,
+        "edge_density": 0.015424,
+        "edge_density_error": 0.005069
+      },
+      "zerobase_primitive_count": 39
+    },
+    {
+      "index": 71,
+      "character": "Achichi-Mela",
+      "zerobase": {
+        "silhouette_iou": 0.185033,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.814967,
+        "edge_density": 0.001231,
+        "edge_density_error": 0.003904
+      },
+      "legacy2": {
+        "silhouette_iou": 0.18814,
+        "foreground_ratio": 0.999896,
+        "foreground_ratio_error": 0.811652,
+        "edge_density": 0.018763,
+        "edge_density_error": 0.009429
+      },
+      "zerobase_primitive_count": 44
+    },
+    {
+      "index": 72,
+      "character": "Hyakuto-Kyoko",
+      "zerobase": {
+        "silhouette_iou": 0.165926,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.834075,
+        "edge_density": 0.002349,
+        "edge_density_error": 0.002916
+      },
+      "legacy2": {
+        "silhouette_iou": 0.171825,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.828175,
+        "edge_density": 0.018555,
+        "edge_density_error": 0.010649
+      },
+      "zerobase_primitive_count": 47
+    },
+    {
+      "index": 73,
+      "character": "Suzuna-Tsuzuri",
+      "zerobase": {
+        "silhouette_iou": 0.151346,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.848654,
+        "edge_density": 0.0,
+        "edge_density_error": 0.004678
+      },
+      "legacy2": {
+        "silhouette_iou": 0.155138,
+        "foreground_ratio": 0.999983,
+        "foreground_ratio_error": 0.844827,
+        "edge_density": 0.01667,
+        "edge_density_error": 0.007431
+      },
+      "zerobase_primitive_count": 36
+    },
+    {
+      "index": 74,
+      "character": "Gawr-Gura",
+      "zerobase": {
+        "silhouette_iou": 0.265088,
+        "foreground_ratio": 0.732073,
+        "foreground_ratio_error": 0.527055,
+        "edge_density": 0.006064,
+        "edge_density_error": 0.004698
+      },
+      "legacy2": {
+        "silhouette_iou": 0.178466,
+        "foreground_ratio": 0.542394,
+        "foreground_ratio_error": 0.332314,
+        "edge_density": 0.039725,
+        "edge_density_error": 0.004055
+      },
+      "zerobase_primitive_count": 29
+    },
+    {
+      "index": 75,
+      "character": "Ceres-Fauna",
+      "zerobase": {
+        "silhouette_iou": 0.275217,
+        "foreground_ratio": 0.989571,
+        "foreground_ratio_error": 0.717071,
+        "edge_density": 0.000397,
+        "edge_density_error": 0.015088
+      },
+      "legacy2": {
+        "silhouette_iou": 0.339669,
+        "foreground_ratio": 0.812811,
+        "foreground_ratio_error": 0.536326,
+        "edge_density": 0.048148,
+        "edge_density_error": 0.001329
+      },
+      "zerobase_primitive_count": 2
+    },
+    {
+      "index": 76,
+      "character": "Nanashi-Mumei",
+      "zerobase": {
+        "silhouette_iou": 0.267308,
+        "foreground_ratio": 0.979696,
+        "foreground_ratio_error": 0.717815,
+        "edge_density": 0.005239,
+        "edge_density_error": 0.008659
+      },
+      "legacy2": {
+        "silhouette_iou": 0.282321,
+        "foreground_ratio": 0.828978,
+        "foreground_ratio_error": 0.560545,
+        "edge_density": 0.045988,
+        "edge_density_error": 0.001057
+      },
+      "zerobase_primitive_count": 22
+    },
+    {
+      "index": 77,
+      "character": "Tsukumo-Sana",
+      "zerobase": {
+        "silhouette_iou": 0.265253,
+        "foreground_ratio": 1.0,
+        "foreground_ratio_error": 0.734747,
+        "edge_density": 0.005986,
+        "edge_density_error": 0.006221
+      },
+      "legacy2": {
+        "silhouette_iou": 0.273782,
+        "foreground_ratio": 0.999973,
+        "foreground_ratio_error": 0.726198,
+        "edge_density": 0.036179,
+        "edge_density_error": 0.016149
+      },
+      "zerobase_primitive_count": 38
+    },
+    {
+      "index": 78,
+      "character": "Murasaki-Shion",
+      "zerobase": {
+        "silhouette_iou": 0.241506,
+        "foreground_ratio": 0.718446,
+        "foreground_ratio_error": 0.544937,
+        "edge_density": 0.003372,
+        "edge_density_error": 0.008808
+      },
+      "legacy2": {
+        "silhouette_iou": 0.302592,
+        "foreground_ratio": 0.317466,
+        "foreground_ratio_error": 0.13808,
+        "edge_density": 0.040334,
+        "edge_density_error": 0.003213
+      },
+      "zerobase_primitive_count": 20
+    }
+  ]
+}

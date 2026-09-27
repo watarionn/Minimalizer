@@ -17,7 +17,7 @@ def capture(tmp_path):
 def test_final_gate_foundation_passes_but_migration_fails_closed_without_approved78(tmp_path):
     root, original, replay = capture(tmp_path)
     result = FinalQualityGate().evaluate(
-        repo_root=ROOT, artifact_root=root, approved78_manifest=MANIFEST,
+        repo_root=tmp_path, artifact_root=root, approved78_manifest=MANIFEST,
         production_boundary_clean=True,
         renderer_deterministic=original.svg == replay.svg,
         replay_deterministic=original.vector_scene.to_json() == replay.vector_scene.to_json(),

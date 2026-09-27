@@ -8,6 +8,7 @@ from .calibration import (
     Approved78CalibrationHarness,
     load_approved78_binding,
 )
+from .migration_gate import MigrationGate, MigrationGateResult
 
 __all__ = [
     "ApprovedReference",
@@ -18,4 +19,6 @@ __all__ = [
     "CalibrationResult",
     "Approved78CalibrationHarness",
     "load_approved78_binding",
+    "MigrationGate",
+    "MigrationGateResult",
 ]

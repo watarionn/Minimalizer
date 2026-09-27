@@ -1,0 +1,793 @@
+{
+  "schema_version": 1,
+  "corpus": "Minimalizer Approved-78 Full Regression Corpus",
+  "case_count": 78,
+  "source_rule": {
+    "1-18": "original list_thumb regression source",
+    "19-78": "pr-img_01 source used for expansion references"
+  },
+  "all_source_sha256_verified": true,
+  "all_replay_deterministic": true,
+  "cases": [
+    {
+      "index": 1,
+      "character": "Kikirara-Vivi",
+      "source_file": "Kikirara-Vivi_list_thumb.png",
+      "source_sha256": "25f7ab0dc7636b92011fb45aa3c069ba2969c462184868f4cd363c15a5560214",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 35,
+      "primitive_count": 19,
+      "svg_sha256": "453f74afc9ed07e0a1aad7e4fcebd1c27f3c023f45951a8cee5b1f0381e5fc81"
+    },
+    {
+      "index": 2,
+      "character": "Isaki-Riona",
+      "source_file": "Isaki-Riona_list_thumb.png",
+      "source_sha256": "0315a85ed59d536144dd459c2fcdc0530151a003ff7cae13eeded56aeaa16a9e",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 36,
+      "primitive_count": 18,
+      "svg_sha256": "0a5e1c56829e6434bba3063d07c76e0517d1f25e8e4194d3759d8c2d2f7242c2"
+    },
+    {
+      "index": 3,
+      "character": "Koganei-Niko",
+      "source_file": "Koganei-Niko_list_thumb.png",
+      "source_sha256": "8e0cd5c4481db5c9633b5808b21a54cb556d0db908a60704d0f4af4e98ea5552",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 38,
+      "primitive_count": 26,
+      "svg_sha256": "8091d66ffb2b66b04879c01784d948673074d5846d3f3807374275f97d111d90"
+    },
+    {
+      "index": 4,
+      "character": "Vestia-Zeta",
+      "source_file": "Vestia-Zeta_list_thumb.png",
+      "source_sha256": "5922eba47f5a550914add363a0d556009a3ff70198073a59f8b93e43b639e065",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 38,
+      "primitive_count": 20,
+      "svg_sha256": "2a31c64ded02224f84277b5f96c8e32dd3bb3be11f0069368d7afd57ffaa6ace"
+    },
+    {
+      "index": 5,
+      "character": "Todoroki-Hajime",
+      "source_file": "Todoroki-Hajime_list_thumb.png",
+      "source_sha256": "d180a3170f9032c5cdf725d9754fc6dc10cc1f16583a250e070649ad7656d887",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 52,
+      "primitive_count": 35,
+      "svg_sha256": "40fadffdb2b26a7e1b1fa6660133438850d9d9a69795f1ed77a2e468c86e43e7"
+    },
+    {
+      "index": 6,
+      "character": "Shishiro-Botan",
+      "source_file": "Shishiro-Botan_list_thumb.png",
+      "source_sha256": "58e5608e9b7110c17f00c6a2cdf1e042a76f5122208a2203f57858a734ca27cc",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 45,
+      "primitive_count": 40,
+      "svg_sha256": "d286504255a4011973e8104389466a82d399818e97461d65247848df784a38e5"
+    },
+    {
+      "index": 7,
+      "character": "Shiori-Novella",
+      "source_file": "Shiori-Novella_list_thumb.png",
+      "source_sha256": "ac20fc38486cc60913f31548af7b8b8728254b39e5748208ea6356724fe50df1",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 38,
+      "primitive_count": 22,
+      "svg_sha256": "e4b1b6974a85b0d38be2776a1116318e7f86d873e997eeebe76762bfc153f59e"
+    },
+    {
+      "index": 8,
+      "character": "Natsuiro-Matsuri",
+      "source_file": "Natsuiro-Matsuri_list_thumb.png",
+      "source_sha256": "1a0e49ebecca6eb729854bc4b24508c4773d8707e471eae446a87e63e94ca905",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 42,
+      "primitive_count": 34,
+      "svg_sha256": "c8cba8759595e381b8ae9c8c69200781083a13babbe0e15d700d28774f4ae3e7"
+    },
+    {
+      "index": 9,
+      "character": "Otonose-Kanade",
+      "source_file": "Otonose-Kanade_list_thumb.png",
+      "source_sha256": "87e0c5995b0f6ca8d9efa863545279d49e36322c849c52b0e0d2661a5767b2d3",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 43,
+      "primitive_count": 26,
+      "svg_sha256": "b782d10647d6c3f8953b23bb26db6d743576161d56829870d1dbc8d9b70769c0"
+    },
+    {
+      "index": 10,
+      "character": "Mori-Calliope",
+      "source_file": "Mori-Calliope_list_thumb.png",
+      "source_sha256": "2eb93ef83c0fb4ac136586170b2bd5f8c43cf6884b4e9632c2d6f4218a0e8fb0",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 46,
+      "primitive_count": 29,
+      "svg_sha256": "23a074e359e81b982a8a2a75ee57a511ff2506a82dc23f5e7c6f4aeda8e42fc0"
+    },
+    {
+      "index": 11,
+      "character": "Momosuzu-Nene",
+      "source_file": "Momosuzu-Nene_list_thumb.png",
+      "source_sha256": "2fbd77da0ba4c2be94e44eede84ad9a4e6aa3735d95a6b81ac3930cf7452f3aa",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 36,
+      "primitive_count": 10,
+      "svg_sha256": "9728fd26169e44dd6b3740748274086a68d2846c893bdbcf45461c344a0b15ca"
+    },
+    {
+      "index": 12,
+      "character": "Koseki-Bijou",
+      "source_file": "Koseki-Bijou_list_thumb.png",
+      "source_sha256": "1c7de78603de1bcf871c70a186dd40413a655e0339e3abf4ac414a1bde1e9f54",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 39,
+      "primitive_count": 27,
+      "svg_sha256": "6aa6e9a319e9fb456babbc6d4b4df20a76cc9ad140453a6c0efcdee171491ac5"
+    },
+    {
+      "index": 13,
+      "character": "Kobo-Kanaeru",
+      "source_file": "Kobo-Kanaeru_list_thumb.png",
+      "source_sha256": "7eea4c2284bd73dc98bc30f0b3e3a468faacc7d23e47a38b5774cfd2a91b982f",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 40,
+      "primitive_count": 26,
+      "svg_sha256": "82e5410d2df93cf5a84b8037734e88ec4bb079819e037569f93cd89cb9732223"
+    },
+    {
+      "index": 14,
+      "character": "Houshou-Marine",
+      "source_file": "Houshou-Marine_list_thumb.png",
+      "source_sha256": "926b4df3bb8a2bc492dc1fb27c1c86d398784c72a6942d91096ebf08277807ad",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 42,
+      "primitive_count": 21,
+      "svg_sha256": "9499e2e0c3f8e319a1e55aaebf8355cc1caa4951e7e5b624d417229c476227fd"
+    },
+    {
+      "index": 15,
+      "character": "Hakos-Baelz",
+      "source_file": "Hakos-Baelz_list_thumb.png",
+      "source_sha256": "a283cb34a1df4b7a67cbdeff19a9d459a41d7f9c7c91c03af012d3d9cc988862",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 31,
+      "primitive_count": 12,
+      "svg_sha256": "1ad0288a0c20b9ec5e0c469f14cf44c3c8340fc4377bc778e2ffe940125ecb4c"
+    },
+    {
+      "index": 16,
+      "character": "Gigi-Murin",
+      "source_file": "Gigi-Murin_list_thumb.png",
+      "source_sha256": "4b4d2e5a11f39fdfe64352284a0a813ae11247581a6d24392ff08e94b8c97d0a",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 44,
+      "primitive_count": 24,
+      "svg_sha256": "a106063718265c25732a2d8f1b45b78229612e130a6877f057d15409b78c78d6"
+    },
+    {
+      "index": 17,
+      "character": "Aki-Rosenthal",
+      "source_file": "Aki-Rosenthal_list_thumb.png",
+      "source_sha256": "c803ae6d827b932bbe58c68db005a27fd6b9858d5c4a82e5cc0297ecb4d37687",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 40,
+      "primitive_count": 23,
+      "svg_sha256": "253b35def1a8c02a3f08a5ed623b1fe937a6e9b597e8f866cfcdae752a33f3ff"
+    },
+    {
+      "index": 18,
+      "character": "Raora-Panthera",
+      "source_file": "Raora-Panthera_list_thumb.png",
+      "source_sha256": "66fc5f14c1a3be1de787e5b864639343bd437e497b9ca8d51eda9117024b750f",
+      "source_rule": "original list_thumb regression source",
+      "evidence_count": 44,
+      "primitive_count": 28,
+      "svg_sha256": "19bcc733ee95793ea0b2d39aef87bec02a0fea1e7fefedc030474825d7ad97bf"
+    },
+    {
+      "index": 19,
+      "character": "Usada-Pekora",
+      "source_file": "Usada-Pekora_pr-img_01.webp",
+      "source_sha256": "412abf8c956553815dfb147e67947d781d589fce748b2fb9914384143b61f21e",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 44,
+      "primitive_count": 39,
+      "svg_sha256": "2675b3d2e8163716cd29e4fc37b7c85203862a231a42db294f5398db96343189"
+    },
+    {
+      "index": 20,
+      "character": "Houshou-Marine",
+      "source_file": "Houshou-Marine_pr-img_01.png",
+      "source_sha256": "d6dcc3f5ddbd537014fb8452b71932c0a6744d8dd7ee54ea2c797219e790a8ea",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 43,
+      "primitive_count": 32,
+      "svg_sha256": "7cf17c125c3c1c54e3dace40d1e482eecd2816dc2a56a5b6e89584d2050d3ccf"
+    },
+    {
+      "index": 21,
+      "character": "Shirogane-Noel",
+      "source_file": "Shirogane-Noel_pr-img_01.webp",
+      "source_sha256": "45ac2ffdaecbc85ab279f6ed5c1532d0ea5e1b07f50026b25c5d34c6acfdf339",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 46,
+      "primitive_count": 21,
+      "svg_sha256": "03c56848c155a98eec82e4d06bd86994213b26619555ec4db1422675bd6505a8"
+    },
+    {
+      "index": 22,
+      "character": "Oozora-Subaru",
+      "source_file": "Oozora-Subaru_pr-img_01.webp",
+      "source_sha256": "6f224753352f07e4323265b1742087bb140ea532052f912385b151efabf6f415",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 48,
+      "primitive_count": 45,
+      "svg_sha256": "746ac140310d7922a2508dc4e6f7b243b03d8106e907d7d78d3424220bff0c05"
+    },
+    {
+      "index": 23,
+      "character": "Tsunomaki-Watame",
+      "source_file": "Tsunomaki-Watame_pr-img_01.webp",
+      "source_sha256": "20bc168d74ed69e1cd1366373f8cc9d87513ebd8a01a740dbd58cd651cb64b5b",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 51,
+      "primitive_count": 48,
+      "svg_sha256": "d6f90b213d5e4dfa63fdb56af45d38bda72f170f55611fbc7a5f765850843072"
+    },
+    {
+      "index": 24,
+      "character": "Nakiri-Ayame",
+      "source_file": "Nakiri-Ayame_pr-img_01.webp",
+      "source_sha256": "9ce4ab645711dced9cfef306b9c83cb8f8e7a6d27e36cebc00d7703631405eaa",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 49,
+      "primitive_count": 43,
+      "svg_sha256": "d80c4e7c92fba720549e4965852ae307e1644a25c9aaca8139f7c947f4245e2f"
+    },
+    {
+      "index": 25,
+      "character": "Mori-Calliope",
+      "source_file": "Mori-Calliope_pr-img_01.webp",
+      "source_sha256": "36e2246fefea101df5de5f00a207038df58571264bf6117b2542619f8f66856d",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 42,
+      "svg_sha256": "e453642fc7cbb5ed468d5a5d8ad879e58362953b3366916e6ea5a9bbf970ec70"
+    },
+    {
+      "index": 26,
+      "character": "Ninomae-Inanis",
+      "source_file": "Ninomae-Inanis_pr-img_01.webp",
+      "source_sha256": "6bc478c1f42d08b1d0f940a02db9a0185fdbc781b1c4d748deffc0f397e0427f",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 44,
+      "primitive_count": 25,
+      "svg_sha256": "664b20fed6965deee453021b1bca9b44f66c5cdb64afbfd3bbf924d9e21a8ca1"
+    },
+    {
+      "index": 27,
+      "character": "Hakos-Baelz",
+      "source_file": "Hakos-Baelz_pr-img_01.png",
+      "source_sha256": "c34bddedace270a82eb641f36d86015f62bab5413e7ee1ac18b7bb8c9c62e776",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 36,
+      "primitive_count": 14,
+      "svg_sha256": "e4ada5886e0e2197f5af1d0c3e156339893b709cb2cfc053e4ef4cfe3cfcc4bf"
+    },
+    {
+      "index": 28,
+      "character": "Fuwawa-Abyssgard",
+      "source_file": "Fuwawa-Abyssgard_pr-img_01.webp",
+      "source_sha256": "a1e63b978c183a99872ea6ffb744d7be772d1d720ac014740f57ec333dbcf9e6",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 49,
+      "primitive_count": 42,
+      "svg_sha256": "2e4742976c462a8b97e046d5807617f64ee024a3571849ff6213ebd35d8aba3f"
+    },
+    {
+      "index": 29,
+      "character": "La-Darknesss",
+      "source_file": "La-Darknesss_pr-img_01.webp",
+      "source_sha256": "ddaafa7f8b7116f14e5ed956d29a36a8f6dc2480dd26fa9becc50413dd0342af",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 55,
+      "primitive_count": 50,
+      "svg_sha256": "82d1ef69706466e1a13955227ba39053a651a65073b1a8417b1dae265014b57b"
+    },
+    {
+      "index": 30,
+      "character": "Shirakami-Fubuki",
+      "source_file": "Shirakami-Fubuki_pr-img_01.webp",
+      "source_sha256": "59daa6792c7a4ba21c61cce71a2afc741bfbebe0d3f6f0454c22e2efb7110993",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 47,
+      "svg_sha256": "a9844deb64747e21516688048ed492810479e96f342755b124c7a8896c0a6e0d"
+    },
+    {
+      "index": 31,
+      "character": "Inugami-Korone",
+      "source_file": "Inugami-Korone_pr-img_01.png",
+      "source_sha256": "01b0aaded5402dda4af8bd1e1a73ca2827687531d3807ddc8040d88b5ae98333",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 44,
+      "svg_sha256": "5bb0817723c9e3ea11b25368184b5fb13c17df123ab9ffabd6002a39c2540846"
+    },
+    {
+      "index": 32,
+      "character": "Tokoyami-Towa",
+      "source_file": "Tokoyami-Towa_pr-img_01.webp",
+      "source_sha256": "c8029a4b7a3a4cbeb862dbbc558368b29124843a3166c87e3bc838eb467a3081",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 49,
+      "primitive_count": 36,
+      "svg_sha256": "fa23df01f91a8df5fd70638a5d311fe51cdcb4dd0f2fc2019fbbac0d90d725a8"
+    },
+    {
+      "index": 33,
+      "character": "Yukihana-Lamy",
+      "source_file": "Yukihana-Lamy_pr-img_01.webp",
+      "source_sha256": "c61bd7a6f78c8e237f22d3cdb701fb39f35ea623e0d15f55aa98e953e6c6152f",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 47,
+      "primitive_count": 37,
+      "svg_sha256": "276bb31bb09722de65321d7e99b8e1b4866c605d2e797ac498bbb49a251591e2"
+    },
+    {
+      "index": 34,
+      "character": "Omaru-Polka",
+      "source_file": "Omaru-Polka_pr-img_01.webp",
+      "source_sha256": "7b57dbe509e08a8cc894d2f3c2a0892fca8858cd9ce80f49fdf78189be463a80",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 46,
+      "primitive_count": 35,
+      "svg_sha256": "9e0e321f1c303342ac95e786a88b10542e4cd46e37c650fa252d13936d3dd8e2"
+    },
+    {
+      "index": 35,
+      "character": "Takanashi-Kiara",
+      "source_file": "Takanashi-Kiara_pr-img_01.webp",
+      "source_sha256": "7d4dd5540818e1f6bda239160aa3996a6e765b4fcac5d4b420f3c56d330926d7",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 47,
+      "svg_sha256": "72d1adf6c68f3d36081fd99f0fe7355c9f58643b6882338b9525306073168bcf"
+    },
+    {
+      "index": 36,
+      "character": "Ouro-Kronii",
+      "source_file": "Ouro-Kronii_pr-img_01.webp",
+      "source_sha256": "fffe8ff0379e6e2e9b0ad90279049bfc1e3e49061ee2d746d1e6f8422f756dee",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 51,
+      "primitive_count": 36,
+      "svg_sha256": "051b5176bdfa6fff64d394be6d3b48f7a511dfd4a0542c85b39ca1e7aae12aa9"
+    },
+    {
+      "index": 37,
+      "character": "Kureiji-Ollie",
+      "source_file": "Kureiji-Ollie_pr-img_01.png",
+      "source_sha256": "b84e14c0cc82a70bf0a43bcd99e56d309173e032ac42e4b5a1531f666b902427",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 34,
+      "primitive_count": 13,
+      "svg_sha256": "0cfd76ddf5e7364b00b06c89577a6569f17145f7271754a9ea79b58afadd5a88"
+    },
+    {
+      "index": 38,
+      "character": "Kaela-Kovalskia",
+      "source_file": "Kaela-Kovalskia_pr-img_01.webp",
+      "source_sha256": "e84df7cd5fcae2eecf5e661645dd8e71cf2278a5324aa1f3faa0bf5fde98acee",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 58,
+      "primitive_count": 55,
+      "svg_sha256": "40bbda31ef57e8ee56a875426f7c7ab9a3314b390788953bbdc2bf5242b587c0"
+    },
+    {
+      "index": 39,
+      "character": "Sakura-Miko",
+      "source_file": "Sakura-Miko_pr-img_01.webp",
+      "source_sha256": "382b700ed39d51dd59b23bd59d02d839a304150e2ce619b33778a827c216bad2",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 47,
+      "primitive_count": 38,
+      "svg_sha256": "5ce7d7f462b33b58dc1be7615c0c66c5d2692a3432e87e2dc6ea1aff9889ee09"
+    },
+    {
+      "index": 40,
+      "character": "Hoshimachi-Suisei",
+      "source_file": "Hoshimachi-Suisei_pr-img_01.png",
+      "source_sha256": "ca144a905ce1859a0919014379fabff3fb8b594110ea304d5ec9e9843a585527",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 42,
+      "primitive_count": 32,
+      "svg_sha256": "3039bb72026e8221ce37d9810446c5e7468166fe5037ac349b4a2dbe5a4e8951"
+    },
+    {
+      "index": 41,
+      "character": "Robocosan",
+      "source_file": "Robocosan_pr-img_01.webp",
+      "source_sha256": "1339f22bbc9016500f1c029c31e2e2f63b1b0a6e55df9d039fb6cc1f773f755f",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 47,
+      "svg_sha256": "2b2fb2b4f6779e9a1d1681df163ec46292e13e2c5afdb8daaa2063c899eed61f"
+    },
+    {
+      "index": 42,
+      "character": "Himemori-Luna",
+      "source_file": "Himemori-Luna_pr-img_01.webp",
+      "source_sha256": "1bbec26eccaadfa10a17b99cecd0c1a9ab08b7210a0750cfab4324367d3013bf",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 33,
+      "svg_sha256": "2f0d3521260a806537ecf5af21d56687392ad835ff7ce826fc1f006a8df5c763"
+    },
+    {
+      "index": 43,
+      "character": "Kazama-Iroha",
+      "source_file": "Kazama-Iroha_pr-img_01.png",
+      "source_sha256": "eb7d28418989637c61ea7881f70408d814d025224db9f3c212c3d4408c22b0be",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 29,
+      "svg_sha256": "190b5d3a35b868028f24fb86a4a53b0f8ef523f8420efebcfb08c343cee4fcc3"
+    },
+    {
+      "index": 44,
+      "character": "Juufuutei-Raden",
+      "source_file": "Juufuutei-Raden_pr-img_01_a.webp",
+      "source_sha256": "5bd5a54acabfc79525c875db2e4790484120770e845f52e93a31fcea77ff1f65",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 55,
+      "primitive_count": 51,
+      "svg_sha256": "cade17134436c89085bce9a3b8406cce6fbf5a7c1fc6ead5e274d51db7d4563c"
+    },
+    {
+      "index": 45,
+      "character": "Cecilia-Immergreen",
+      "source_file": "Cecilia-Immergreen_pr-img_01.png",
+      "source_sha256": "c6072c9634080f17ffe334027ffb6180c000751cb1ca185a7df63edc385c1f74",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 45,
+      "primitive_count": 36,
+      "svg_sha256": "1164a46e838a8b8150059bdc475836233dd93c7a7dfb83feb281d26c2e47e690"
+    },
+    {
+      "index": 46,
+      "character": "Nerissa-Ravencroft",
+      "source_file": "Nerissa-Ravencroft_pr-img_01.webp",
+      "source_sha256": "45bd59aeed3a9aa62eeef9d6abb01020d267327192ec30792ab0e3502c4ca747",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 51,
+      "primitive_count": 40,
+      "svg_sha256": "4b4331172c61b05697d4b620565c1ab06cd17caff5097746f60f10a9122e2495"
+    },
+    {
+      "index": 47,
+      "character": "Pavolia-Reine",
+      "source_file": "Pavolia-Reine_pr-img_01.png",
+      "source_sha256": "91b4b9c70afb9041864064639698675e5297c7da8e86fd8618e3ebdc8afa8050",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 48,
+      "primitive_count": 28,
+      "svg_sha256": "8e254f2c7f88a96861f764a05cdd379b0e62a3ffd642df1aa874bc831cd407b8"
+    },
+    {
+      "index": 48,
+      "character": "Elizabeth-Rose-Bloodflame",
+      "source_file": "Elizabeth-Rose-Bloodflame_pr-img_01.webp",
+      "source_sha256": "9937145b7fd56ecebaf1ff3bbd7ba1273f2122f8bcf04a345e46ce3d998a437f",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 32,
+      "svg_sha256": "8a8c979d50019234cbeef091c5b32aebc4474bd1c7489ff5b0bdeeb4ef2475c5"
+    },
+    {
+      "index": 49,
+      "character": "Tokino-Sora",
+      "source_file": "Tokino-Sora_pr-img_01.webp",
+      "source_sha256": "b6d685e20e46eaea2a79f427aeebdd5a1c3d97388e62a761d2ca1a363014ed64",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 54,
+      "primitive_count": 49,
+      "svg_sha256": "9f1a73458b13eb847e26389c5a9d7a4b130fee79b22030f478960f90da4d5ca1"
+    },
+    {
+      "index": 50,
+      "character": "Ookami-Mio",
+      "source_file": "Ookami-Mio_pr-img_01.webp",
+      "source_sha256": "e18809813e5d23bf53e329dfa33f813fb80d58fe77b1a7eb6debcbc1cd436dd5",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 50,
+      "svg_sha256": "626fbe6d054efcaf68a2fead39ebaa098622e6ca4eed548d183d02f1b1c8ba68"
+    },
+    {
+      "index": 51,
+      "character": "Nekomata-Okayu",
+      "source_file": "Nekomata-Okayu_pr-img_01.png",
+      "source_sha256": "7481b97da12b642b99e24661eddd9fc3c98d4fe5416a078df047df9606c5cdf4",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 45,
+      "primitive_count": 29,
+      "svg_sha256": "5d989bc1ca949aeddd0e8c0225272352858121225ae43aea9333a170b3e0a688"
+    },
+    {
+      "index": 52,
+      "character": "AZKi",
+      "source_file": "AZKi_pr-img_01.webp",
+      "source_sha256": "d65d8c75dc4a10fa8612b1cdebd8e88caa63b85eda90b74f1769599f7fd653a4",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 42,
+      "svg_sha256": "834baa7120c9b5c5d9944d0c388941274216f531d212908a83c463cbeb1f1d53"
+    },
+    {
+      "index": 53,
+      "character": "Hakui-Koyori",
+      "source_file": "Hakui-Koyori_pr-img_01.webp",
+      "source_sha256": "c2cbde71df93a749bd9cb076729b30d8007f7b74bb3375fa10746765a3c30e9f",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 48,
+      "primitive_count": 42,
+      "svg_sha256": "e33dd4b0db6e5b3d88978e04d8eff967a977627694c568d35b9230a53c061244"
+    },
+    {
+      "index": 54,
+      "character": "Takane-Lui",
+      "source_file": "Takane-Lui_pr-img_01.webp",
+      "source_sha256": "366b4caf25b4b1846c633e05fe2982fe4b1f1978b1e39e884a8cdf6a785b2de7",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 48,
+      "primitive_count": 42,
+      "svg_sha256": "201015c9d2cad144dbc0fd08ce90c8caafb27b022dbc925539f149fb9f734308"
+    },
+    {
+      "index": 55,
+      "character": "Moona-Hoshinova",
+      "source_file": "Moona-Hoshinova_pr-img_01.webp",
+      "source_sha256": "beb28d9496dbb679c4779fefe445351fb2eec062b6b30c97b5e312a6fc429f85",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 46,
+      "svg_sha256": "f173d04c7b4258e6e96e861c8fa48c9d58d0cbeb2d7fb6701aead877fe6f90ba"
+    },
+    {
+      "index": 56,
+      "character": "Airani-Iofifteen",
+      "source_file": "Airani-Iofifteen_pr-img_01.webp",
+      "source_sha256": "69554af0b2239fda254b17f6a23034cc57375e24692bb2838884355dca994614",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 50,
+      "primitive_count": 47,
+      "svg_sha256": "7fbe4bcd77be1f75b48ec8e17fc5250023bde8d15ac2519d08abd2882b7f41a7"
+    },
+    {
+      "index": 57,
+      "character": "Mococo-Abyssgard",
+      "source_file": "Mococo-Abyssgard_pr-img_01.webp",
+      "source_sha256": "5519cdf6acc5b766f9db315bfe40075d40936bfc0ece2bcbc3e456348a54d449",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 51,
+      "primitive_count": 46,
+      "svg_sha256": "b6939402144dac6cd50244ba4b0d760fac9a58e871e53040a00b8dd973b78541"
+    },
+    {
+      "index": 58,
+      "character": "IRyS",
+      "source_file": "IRyS_pr-img_01.webp",
+      "source_sha256": "cd35fafde0a3fc06f491a8cb7e429cf5e4407fee855ae90da339adceeae1340d",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 48,
+      "svg_sha256": "99309d1480909cbd5b032f2e74bbe8ac80c6820c9cb63511b34fdb3e7ec055e1"
+    },
+    {
+      "index": 59,
+      "character": "Akai-Haato",
+      "source_file": "Akai-Haato_pr-img_01.webp",
+      "source_sha256": "9bec1a463668191c3854dc982d4786cbb084e769f93586a330202c5ff60548c3",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 55,
+      "primitive_count": 47,
+      "svg_sha256": "94ea62b6016329d505f3d406737745a4b6e45c7fe0ec3b78b5bfd0c9b8ab2f8f"
+    },
+    {
+      "index": 60,
+      "character": "Yuzuki-Choco",
+      "source_file": "Yuzuki-Choco_pr-img_01.webp",
+      "source_sha256": "028b10eca77b84fcc32496cb119452544ef3f471a5e213d3e4998e33f6730718",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 47,
+      "svg_sha256": "55ba8bfcca36400c8b90b1a082dffb102480e7d51e003df5d5dc17934d0e93f2"
+    },
+    {
+      "index": 61,
+      "character": "Shiranui-Flare",
+      "source_file": "Shiranui-Flare_pr-img_01.png",
+      "source_sha256": "5238a9fe9f75f600b8e2a1f284bd2c2bde013ab0177acbc23dea3f2acbb71348",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 50,
+      "primitive_count": 33,
+      "svg_sha256": "b2d7ecfab5565cde5a61c876ea8b852b7c0ba59d314a6c92779f0a8774e324ef"
+    },
+    {
+      "index": 62,
+      "character": "Anya-Melfissa",
+      "source_file": "Anya-Melfissa_pr-img_01.png",
+      "source_sha256": "6bedc036bc9135cb661871d1f8346c3515140a7ce12a4ad3b0ac828e74294d96",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 36,
+      "primitive_count": 18,
+      "svg_sha256": "3a331d08f9b839e93679689c212b9155c700900ddeacc1b1ae57d81a88bd25f9"
+    },
+    {
+      "index": 63,
+      "character": "Ayunda-Risu",
+      "source_file": "Ayunda-Risu_pr-img_01.webp",
+      "source_sha256": "6e35a255e8415fe2d66a0c45e5856e65739e16f5496691b4f820939b34aad816",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 50,
+      "primitive_count": 43,
+      "svg_sha256": "9f6398e058becc19ffd20b5c977c85eb3d657741b6a6aa7ad1e2775ffd6f1484"
+    },
+    {
+      "index": 64,
+      "character": "Ichijou-Ririka",
+      "source_file": "Ichijou-Ririka_pr-img_01_a.webp",
+      "source_sha256": "efac8dcc0076d952966f64a3f2943ec7c13fa9e7ca339f90359235b6a5585d13",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 44,
+      "svg_sha256": "fb43fd6c174c67b7117598e7ce8af99b1f51fb2e94595cb6ca4d2196f441e21e"
+    },
+    {
+      "index": 65,
+      "character": "Mizumiya-Su",
+      "source_file": "Mizumiya-Su_pr-img_01_a.png",
+      "source_sha256": "1769f635405c57192206aac42e162ae6a29b94cf2cb0936ceab34f8d0454a813",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 41,
+      "primitive_count": 23,
+      "svg_sha256": "c8ab4e591337f7911b0901fb2b3e3ddfd6b4c4915434e2d5e53f86c5e52b8b71"
+    },
+    {
+      "index": 66,
+      "character": "Rindo-Chihaya",
+      "source_file": "Rindo-Chihaya_pr-img_01_a.png",
+      "source_sha256": "45672648df955e311b01ff801764805d53a8dc51a247c87c963f17e7caf77038",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 45,
+      "svg_sha256": "ea15332b5d6a61009aa8e093bfb877049df1185d0bad45357a40d9f08e9630e4"
+    },
+    {
+      "index": 67,
+      "character": "Hanazono-Sayaka",
+      "source_file": "Hanazono-Sayaka_pr-img_01.png",
+      "source_sha256": "31a2a0c334ddd68b9d229c3333ab2733335f2ee1eca7f3f40a5b20613d7184d9",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 51,
+      "primitive_count": 34,
+      "svg_sha256": "1e0cc85045a22d0acca3b7fb5136c8a8bdce3b204a20900cdd4c3fbeaa14ac8e"
+    },
+    {
+      "index": 68,
+      "character": "Kazeshiro-Yuki",
+      "source_file": "Kazeshiro-Yuki_pr-img_01.png",
+      "source_sha256": "db928f892f13076191e03f1a023941bc3c1e06dec94e381bc92f0b7d60a7dc22",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 53,
+      "primitive_count": 42,
+      "svg_sha256": "336fbaaeb358ab9c475472a38fa6b9386aa062fb088bc8a11823c5f371702750"
+    },
+    {
+      "index": 69,
+      "character": "Izuki-Michiru",
+      "source_file": "Izuki-Michiru_pr-img_01.png",
+      "source_sha256": "2ec6f46144200d82a34e8a0db33e847deed3fddb0e4539f6e11708032a028be1",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 44,
+      "svg_sha256": "a7214a017148cd85be5d9f32f96fdfff74fc0f7c72ec74a99935fe679146685f"
+    },
+    {
+      "index": 70,
+      "character": "Sorashina-Sopia",
+      "source_file": "Sorashina-Sopia_pr-img_01.webp",
+      "source_sha256": "a7aee514c72491a5bcd1715ce0790460eb3af13d702b81d8c11960852e207790",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 46,
+      "primitive_count": 39,
+      "svg_sha256": "114dcfdab3ce456f093018cc296a26a067fd2fded8a43124c5db247fa620ae7d"
+    },
+    {
+      "index": 71,
+      "character": "Achichi-Mela",
+      "source_file": "Achichi-Mela_pr-img_01.webp",
+      "source_sha256": "1ad5ad19a12b76d836f9753da9663ee043ba62c3093c5115c8f8c0e4e58b77df",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 50,
+      "primitive_count": 44,
+      "svg_sha256": "121ccfb80bddbd3e28ef93b3d6694ca3f79298b82ddfb62cbccc8088bad14186"
+    },
+    {
+      "index": 72,
+      "character": "Hyakuto-Kyoko",
+      "source_file": "Hyakuto-Kyoko_pr-img_01.webp",
+      "source_sha256": "7300bf4f9b2baf4dd5452448bb9ec460004e82763a22a2eeecba4057d7b1c1a5",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 52,
+      "primitive_count": 47,
+      "svg_sha256": "2d3a6622ace0a4c8be0a8fb0c109cde61caf25c9b577a0c5efa57053f9d00b09"
+    },
+    {
+      "index": 73,
+      "character": "Suzuna-Tsuzuri",
+      "source_file": "Suzuna-Tsuzuri_pr-img_01.webp",
+      "source_sha256": "196446b8b074c5dfbee781eadbdc61d6c08fdb7778270182c3915246225cc1c2",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 49,
+      "primitive_count": 36,
+      "svg_sha256": "f0e3bc6f497cf9b9982a519250859043017baa6b2c8145bca7f79e1f84c22a81"
+    },
+    {
+      "index": 74,
+      "character": "Gawr-Gura",
+      "source_file": "Gawr-Gura_pr-img_01.png",
+      "source_sha256": "ab6021ccb415629a1df2fd25c96f6c522d899b36c94b3f6a5d446bd5bbafbbfa",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 49,
+      "primitive_count": 29,
+      "svg_sha256": "2616417b1f42d318083f2fa89a6e2799e1d82053ea4a2be488cdc5623effe4f2"
+    },
+    {
+      "index": 75,
+      "character": "Ceres-Fauna",
+      "source_file": "Ceres-Fauna_pr-img_01.png",
+      "source_sha256": "6b4772cd5c98516537d72883beb3a674ec01d9b1b9a2eff6b7ae53516192910a",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 36,
+      "primitive_count": 2,
+      "svg_sha256": "c40be08e82393053c190625bdb3a3f0c888df3b46dae9661fe9391da16823c8a"
+    },
+    {
+      "index": 76,
+      "character": "Nanashi-Mumei",
+      "source_file": "Nanashi-Mumei_pr-img_01.png",
+      "source_sha256": "ca2ee36c165def2509c20f4134e03acd0e48dc50f0d5245c21ec8f67ebeb162a",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 46,
+      "primitive_count": 22,
+      "svg_sha256": "af07c0257fdb1062428cde2ac23046d308384e86dfb81e018d751116ac1068ee"
+    },
+    {
+      "index": 77,
+      "character": "Tsukumo-Sana",
+      "source_file": "Tsukumo-Sana_pr-img_01.png",
+      "source_sha256": "b2bdcad0b6f59ce3d6df2e9cfcaca040ba0fff4cd4f9ec10d74feddba85dd251",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 43,
+      "primitive_count": 38,
+      "svg_sha256": "2c35e7c90f5c0e576620d5841e7df6c9322af254a63b1f56afff1f696faa6b31"
+    },
+    {
+      "index": 78,
+      "character": "Murasaki-Shion",
+      "source_file": "Murasaki-Shion_pr-img_01.png",
+      "source_sha256": "cecdc77735de4a24477df905af3c70cd0859445f1393561c67425d4171038a8b",
+      "source_rule": "pr-img_01 source used for expansion references",
+      "evidence_count": 46,
+      "primitive_count": 20,
+      "svg_sha256": "de3b637b40bb22371ed94625d9d284e8bd2c88f8a50eda075cfad2ae6be9642b"
+    }
+  ]
+}
