@@ -1,0 +1,43 @@
+{
+  "approved78_replayable_cases": 0,
+  "checks": [
+    {
+      "detail": "complete deterministic stage capture",
+      "name": "stage_artifact_integrity",
+      "passed": true,
+      "release_critical": true
+    },
+    {
+      "detail": "saved Evidence replay equality",
+      "name": "deterministic_replay",
+      "passed": true,
+      "release_critical": true
+    },
+    {
+      "detail": "canonical SVG equality",
+      "name": "renderer_determinism",
+      "passed": true,
+      "release_critical": true
+    },
+    {
+      "detail": "no ZeroBase imports in current production entry points",
+      "name": "production_boundary_isolation",
+      "passed": true,
+      "release_critical": true
+    },
+    {
+      "detail": "ZeroBase third-party code/model notice policy recorded",
+      "name": "release_license_notices",
+      "passed": true,
+      "release_critical": true
+    },
+    {
+      "detail": "0/78 replayable cases present",
+      "name": "approved78_replay_evidence",
+      "passed": false,
+      "release_critical": false
+    }
+  ],
+  "foundation_ready": true,
+  "migration_ready": false
+}
