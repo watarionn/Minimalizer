@@ -6,6 +6,7 @@ import pytest
 from minimalize_engine.v2.contour import (
     BoundaryChain, BoundaryGraph, BoundaryVertex, OrientedChainRef,
     ContourSimplificationConfig,
+    ContourSimplificationMetrics,
     build_boundary_graph,
     simplify_region_contours,
 )
@@ -15,7 +16,10 @@ from minimalize_engine.v2.contour.validation import (
     loops_have_self_intersection,
 )
 from minimalize_engine.v2.preprocessing import build_image_bundle
-from minimalize_engine.v2.contour.simplify import _planar_line_candidate
+from minimalize_engine.v2.contour.simplify import (
+    _adaptive_planar_metrics_are_safe,
+    _planar_line_candidate,
+)
 from minimalize_engine.v2.region_merge.graph import (
     build_initial_merge_tree,
     build_region_graph_from_arrays,
@@ -230,3 +234,62 @@ def test_minimal_preset_treats_raw_strong_corners_as_soft_line_fit_candidates():
     assert config.strong_corner_split_enabled_for("balanced") is True
     assert config.planar_line_fit_enabled_for("minimal") is True
     assert config.planar_line_fit_enabled_for("balanced") is False
+
+
+def test_adaptive_planar_defaults_off_and_uses_conservative_candidate():
+    config = ContourSimplificationConfig()
+    assert config.adaptive_planar_refit_enabled is False
+    assert config.adaptive_planar_max_deviation_diagonal_ratio == pytest.approx(0.007)
+    assert config.adaptive_planar_min_efficiency == pytest.approx(0.90)
+    assert config.adaptive_planar_min_span_diagonal_ratio == pytest.approx(0.02)
+    assert config.adaptive_planar_max_iou_loss == pytest.approx(0.006)
+    assert config.adaptive_planar_max_directional_loss_increase == pytest.approx(0.02)
+    assert config.adaptive_planar_max_directional_loss_increase_when_iou_preserved == pytest.approx(0.05)
+
+
+def test_adaptive_planar_thresholds_reject_invalid_values():
+    with pytest.raises(ValueError):
+        ContourSimplificationConfig(adaptive_planar_max_iou_loss=1.01)
+    with pytest.raises(ValueError):
+        ContourSimplificationConfig(adaptive_planar_max_directional_loss_increase=-0.01)
+    with pytest.raises(ValueError):
+        ContourSimplificationConfig(
+            adaptive_planar_max_directional_loss_increase_when_iou_preserved=1.01
+        )
+
+
+def _adaptive_metrics(*, vertices: int, iou: float, directional: float) -> ContourSimplificationMetrics:
+    return ContourSimplificationMetrics(
+        original_vertex_count=2000,
+        simplified_vertex_count=vertices,
+        protected_chain_count=0,
+        fallback_chain_count=0,
+        rejected_candidate_count=0,
+        min_region_iou=iou,
+        max_area_change=0.05,
+        max_centroid_shift_ratio=0.01,
+        max_directional_loss=directional,
+    )
+
+
+def test_adaptive_planar_guard_allows_extra_directional_loss_when_iou_is_preserved():
+    config = ContourSimplificationConfig(adaptive_planar_refit_enabled=True)
+    before = _adaptive_metrics(vertices=915, iou=0.9018, directional=0.0709)
+    after = _adaptive_metrics(vertices=855, iou=0.9018, directional=0.1138)
+    assert _adaptive_planar_metrics_are_safe(before, after, config)
+
+
+def test_adaptive_planar_guard_keeps_strict_directional_limit_when_iou_drops():
+    config = ContourSimplificationConfig(adaptive_planar_refit_enabled=True)
+    before = _adaptive_metrics(vertices=956, iou=0.9137, directional=0.0755)
+    after = _adaptive_metrics(vertices=900, iou=0.9100, directional=0.1000)
+    assert not _adaptive_planar_metrics_are_safe(before, after, config)
+
+
+def test_adaptive_planar_guard_rejects_excess_iou_loss_and_no_vertex_savings():
+    config = ContourSimplificationConfig(adaptive_planar_refit_enabled=True)
+    before = _adaptive_metrics(vertices=1000, iou=0.9100, directional=0.08)
+    iou_loss = _adaptive_metrics(vertices=900, iou=0.9039, directional=0.08)
+    no_savings = _adaptive_metrics(vertices=1000, iou=0.9100, directional=0.07)
+    assert not _adaptive_planar_metrics_are_safe(before, iou_loss, config)
+    assert not _adaptive_planar_metrics_are_safe(before, no_savings, config)
