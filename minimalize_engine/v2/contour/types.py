@@ -161,6 +161,13 @@ class ContourSimplificationConfig:
     planar_line_fit_min_span_diagonal_ratio: float = 0.03
     planar_line_fit_max_deviation_diagonal_ratio: float = 0.004
     planar_line_fit_min_efficiency: float = 0.94
+    adaptive_planar_refit_enabled: bool = False
+    adaptive_planar_max_deviation_diagonal_ratio: float = 0.007
+    adaptive_planar_min_efficiency: float = 0.90
+    adaptive_planar_min_span_diagonal_ratio: float = 0.02
+    adaptive_planar_max_iou_loss: float = 0.006
+    adaptive_planar_max_directional_loss_increase: float = 0.02
+    adaptive_planar_max_directional_loss_increase_when_iou_preserved: float = 0.05
 
     def __post_init__(self) -> None:
         ratios = (
@@ -209,7 +216,17 @@ class ContourSimplificationConfig:
             raise ValueError("unknown planar line-fit preset")
         if self.planar_line_fit_min_points < 3:
             raise ValueError("planar line-fit min points must be at least 3")
-        for name in ("planar_line_fit_min_span_diagonal_ratio", "planar_line_fit_max_deviation_diagonal_ratio", "planar_line_fit_min_efficiency"):
+        for name in (
+            "planar_line_fit_min_span_diagonal_ratio",
+            "planar_line_fit_max_deviation_diagonal_ratio",
+            "planar_line_fit_min_efficiency",
+            "adaptive_planar_max_deviation_diagonal_ratio",
+            "adaptive_planar_min_efficiency",
+            "adaptive_planar_min_span_diagonal_ratio",
+            "adaptive_planar_max_iou_loss",
+            "adaptive_planar_max_directional_loss_increase",
+            "adaptive_planar_max_directional_loss_increase_when_iou_preserved",
+        ):
             value = float(getattr(self, name))
             if not np.isfinite(value) or not 0.0 <= value <= 1.0:
                 raise ValueError(f"{name} must be finite and within [0, 1]")

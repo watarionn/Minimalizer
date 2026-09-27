@@ -347,6 +347,38 @@ def simplify_boundary_graph(
     )
 
 
+def _adaptive_planar_metrics_are_safe(
+    before: ContourSimplificationMetrics,
+    after: ContourSimplificationMetrics,
+    config: ContourSimplificationConfig,
+) -> bool:
+    if after.simplified_vertex_count >= before.simplified_vertex_count:
+        return False
+    if after.min_region_iou < before.min_region_iou - config.adaptive_planar_max_iou_loss:
+        return False
+    directional_allowance = config.adaptive_planar_max_directional_loss_increase
+    if after.min_region_iou >= before.min_region_iou:
+        directional_allowance = (
+            config.adaptive_planar_max_directional_loss_increase_when_iou_preserved
+        )
+    if (
+        after.max_directional_loss
+        > before.max_directional_loss + directional_allowance
+    ):
+        return False
+    return True
+
+
+def _adaptive_planar_candidate_is_safe(
+    baseline: ContourSimplificationResult,
+    candidate: ContourSimplificationResult,
+    config: ContourSimplificationConfig,
+) -> bool:
+    return _adaptive_planar_metrics_are_safe(
+        baseline.metrics, candidate.metrics, config
+    )
+
+
 def simplify_region_contours(
     bundle: ImageBundle,
     merge_result: RegionMergeResult,
@@ -359,6 +391,26 @@ def simplify_region_contours(
     graph = build_boundary_graph(
         bundle, merge_result, selection, config=config
     )
-    return simplify_boundary_graph(
+    baseline = simplify_boundary_graph(
         graph, merge_result, selection, config=config
     )
+    if not config.adaptive_planar_refit_enabled:
+        return baseline
+
+    candidate_config = replace(
+        config,
+        adaptive_planar_refit_enabled=False,
+        planar_line_fit_max_deviation_diagonal_ratio=(
+            config.adaptive_planar_max_deviation_diagonal_ratio
+        ),
+        planar_line_fit_min_efficiency=config.adaptive_planar_min_efficiency,
+        planar_line_fit_min_span_diagonal_ratio=(
+            config.adaptive_planar_min_span_diagonal_ratio
+        ),
+    )
+    candidate = simplify_boundary_graph(
+        graph, merge_result, selection, config=candidate_config
+    )
+    if _adaptive_planar_candidate_is_safe(baseline, candidate, config):
+        return candidate
+    return baseline
