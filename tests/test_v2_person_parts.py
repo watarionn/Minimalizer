@@ -1092,6 +1092,86 @@ def test_person_part_quantization_uses_bounded_safe_soft_fallback():
     assert over <= 0.20
 
 
+def test_semantic_part_dominance_guard_targets_sudden_takeover_not_existing_simplicity():
+    from minimalize_engine.v2.pipeline import _semantic_part_dominance_is_safe
+
+    assert not _semantic_part_dominance_is_safe(0.35, 0.82)
+    assert _semantic_part_dominance_is_safe(0.78, 0.94)
+    assert _semantic_part_dominance_is_safe(0.42, 0.63)
+    assert _semantic_part_dominance_is_safe(0.80, 0.72)
+
+
+def test_semantic_takeover_guard_preserves_vivi_like_two_color_refit():
+    from minimalize_engine.v2.pipeline import _semantic_part_takeover_is_safe
+
+    assert _semantic_part_takeover_is_safe(
+        [0.4321, 0.2971, 0.1680, 0.0149],
+        [0.8709, 0.0843],
+    )
+
+
+def test_semantic_takeover_guard_rejects_regression_like_orange_plane_collapse():
+    from minimalize_engine.v2.pipeline import _semantic_part_takeover_is_safe
+
+    # Regression 2026-09-27: multiple meaningful person colors were absorbed
+    # into one dominant orange plane. The exact source image remains external;
+    # this fixture locks the semantic failure mode rather than image bytes.
+    assert not _semantic_part_takeover_is_safe(
+        [0.43, 0.29, 0.17, 0.06],
+        [0.91, 0.03, 0.02],
+    )
+
+
+def test_semantic_dominance_guard_is_limited_to_plane_refit():
+    from dataclasses import dataclass
+    from minimalize_engine.v2.palette import PaletteEntry
+    from minimalize_engine.v2.pipeline import (
+        SceneModel,
+        SceneShape,
+        _guard_semantic_part_coverage,
+        _guard_semantic_plane_refit,
+    )
+    from minimalize_engine.v2.primitive import PrimitiveGeometry
+
+    @dataclass(frozen=True)
+    class DummyResult:
+        preset: str
+        scene: SceneModel
+
+    def polygon(points):
+        return PrimitiveGeometry(kind="polygon", loops=(np.asarray(points, dtype=np.float32),))
+
+    def entry(index, rgb):
+        return PaletteEntry(index, (index + 1,), index + 1, np.asarray([50.0, 0.0, 0.0]), rgb, (0, 0))
+
+    part = np.zeros((30, 30), dtype=bool)
+    part[2:28, 2:28] = True
+    baseline = DummyResult("minimal", SceneModel(
+        30, 30,
+        (
+            SceneShape(1, polygon([[2,2],[10,2],[10,27],[2,27]]), 0),
+            SceneShape(2, polygon([[11,2],[19,2],[19,27],[11,27]]), 1),
+            SceneShape(3, polygon([[20,2],[27,2],[27,27],[20,27]]), 2),
+        ),
+        (
+            entry(0, (220,80,120)),
+            entry(1, (80,120,220)),
+            entry(2, (120,220,80)),
+        ),
+    ))
+    takeover = DummyResult("minimal", SceneModel(
+        30, 30,
+        (SceneShape(1, polygon([[2,2],[27,2],[27,27],[2,27]]), 0),),
+        (entry(0, (220,80,120)),),
+    ))
+    assert _guard_semantic_plane_refit(
+        baseline, takeover, part
+    ) is baseline
+    assert _guard_semantic_part_coverage(
+        baseline, takeover, part
+    ) is takeover
+
+
 def test_semantic_part_coverage_guard_rejects_catastrophic_loss():
     from minimalize_engine.v2.pipeline import _semantic_part_coverage_is_safe
 

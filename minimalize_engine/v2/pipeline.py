@@ -1130,6 +1130,73 @@ def _semantic_part_paint_coverage(
     return float(np.count_nonzero(painted & target) / target_pixels)
 
 
+def _semantic_part_color_support(
+    result: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> list[float]:
+    """Return descending rendered color shares inside a semantic part."""
+    target = np.asarray(part_mask, dtype=bool)
+    target_pixels = int(np.count_nonzero(target))
+    if target_pixels <= 0:
+        return []
+    rendered = _render_scene_primitives(result.scene)
+    pixels = rendered[target]
+    painted = np.any(pixels != 255, axis=1)
+    pixels = pixels[painted]
+    if len(pixels) <= 0:
+        return []
+    _colors, counts = np.unique(pixels, axis=0, return_counts=True)
+    return sorted(
+        (float(count) / target_pixels for count in counts),
+        reverse=True,
+    )
+
+
+def _semantic_part_significant_color_count(
+    support: list[float],
+    *,
+    minimum_share: float = 0.05,
+) -> int:
+    return sum(float(share) >= float(minimum_share) for share in support)
+
+
+def _semantic_part_takeover_is_safe(
+    baseline_support: list[float],
+    candidate_support: list[float],
+) -> bool:
+    """Protect multi-color semantic parts from collapsing to one dominant plane."""
+    if not baseline_support or not candidate_support:
+        return True
+    baseline_dominance = float(baseline_support[0])
+    candidate_dominance = float(candidate_support[0])
+    if _semantic_part_dominance_is_safe(
+        baseline_dominance,
+        candidate_dominance,
+    ):
+        return True
+    baseline_colors = _semantic_part_significant_color_count(baseline_support)
+    candidate_colors = _semantic_part_significant_color_count(candidate_support)
+    return not (baseline_colors >= 3 and candidate_colors <= 1)
+
+
+def _semantic_part_dominance_is_safe(
+    baseline_ratio: float,
+    candidate_ratio: float,
+    *,
+    max_absolute_increase: float = 0.28,
+    takeover_floor: float = 0.72,
+) -> bool:
+    """Reject a refinement only when one paint plane suddenly takes over a part."""
+    baseline = max(0.0, min(1.0, float(baseline_ratio)))
+    candidate = max(0.0, min(1.0, float(candidate_ratio)))
+    if candidate <= baseline:
+        return True
+    return not (
+        candidate >= float(takeover_floor)
+        and candidate - baseline > float(max_absolute_increase)
+    )
+
+
 def _semantic_part_coverage_is_safe(
     baseline_coverage: float,
     candidate_coverage: float,
@@ -1163,6 +1230,22 @@ def _guard_semantic_part_coverage(
     before = _semantic_part_paint_coverage(baseline, part_mask)
     after = _semantic_part_paint_coverage(candidate, part_mask)
     if _semantic_part_coverage_is_safe(before, after):
+        return candidate
+    return baseline
+
+
+def _guard_semantic_plane_refit(
+    baseline: PresetPipelineResult,
+    candidate: PresetPipelineResult,
+    part_mask: NDArray[np.bool_],
+) -> PresetPipelineResult:
+    """Reject plane refits that erase coverage or collapse meaningful colors."""
+    candidate = _guard_semantic_part_coverage(baseline, candidate, part_mask)
+    if candidate is baseline:
+        return baseline
+    baseline_support = _semantic_part_color_support(baseline, part_mask)
+    candidate_support = _semantic_part_color_support(candidate, part_mask)
+    if _semantic_part_takeover_is_safe(baseline_support, candidate_support):
         return candidate
     return baseline
 
@@ -2353,7 +2436,14 @@ def _minimalize_person_parts(
                         part_name=name,
                         part_mask=mask,
                     )
-                    refined = guarded(refined, candidate)
+                    if config.layered_person.semantic_coverage_guard:
+                        refined = _guard_semantic_plane_refit(
+                            refined,
+                            candidate,
+                            mask,
+                        )
+                    else:
+                        refined = candidate
 
                 candidate = _consolidate_semantic_planes(refined)
                 refined = guarded(refined, candidate)
