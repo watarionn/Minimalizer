@@ -24,7 +24,6 @@ def main() -> int:
     manifest = json.loads((CORPUS / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("case_count") != 78 or len(manifest.get("cases", [])) != 78:
         raise RuntimeError("Approved-78 full corpus must contain exactly 78 cases")
-    adapter = SLICRegionAdapter()
     pipeline = ProductionPipeline()
     audit = []
     for case in manifest["cases"]:
@@ -34,12 +33,14 @@ def main() -> int:
             raise FileNotFoundError(source)
         if sha256(source) != case["input_sha256"]:
             raise RuntimeError(f"source SHA mismatch: {index:02d}")
-        bgr = cv2.imread(str(source), cv2.IMREAD_COLOR)
-        if bgr is None:
+        raw = cv2.imread(str(source), cv2.IMREAD_UNCHANGED)
+        if raw is None:
             raise RuntimeError(f"failed to read source: {source}")
-        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
-        space = CoordinateSpace(rgb.shape[1], rgb.shape[0])
-        evidence = adapter.analyze(rgb, space)
+        if raw.ndim != 3 or raw.shape[2] != 4:
+            raise RuntimeError(f"migration corpus source lacks canonical alpha: {index:02d}")
+        rgba = cv2.cvtColor(raw, cv2.COLOR_BGRA2RGBA)
+        space = CoordinateSpace(rgba.shape[1], rgba.shape[0])
+        evidence = SLICRegionAdapter(min_foreground_ratio=0.5).analyze(rgba, space)
         case_dir = OUT / f"{index:02d}"
         pipeline.run(evidence, case_dir)
         shutil.copyfile(case_dir / "05_palette_scene.json", case_dir / "scene.json")

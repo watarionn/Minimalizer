@@ -27,7 +27,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 36,
       "primitive_count": 18,
-      "svg_sha256": "0a5e1c56829e6434bba3063d07c76e0517d1f25e8e4194d3759d8c2d2f7242c2"
+      "svg_sha256": "01cbd8832c3b596595ac3bcfc00159e8a31733bacce294103515c25928180024"
     },
     {
       "index": 3,
@@ -37,7 +37,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 38,
       "primitive_count": 26,
-      "svg_sha256": "8091d66ffb2b66b04879c01784d948673074d5846d3f3807374275f97d111d90"
+      "svg_sha256": "8a8baa67a558b04da5d18c816076c86088890301c62d316d4e463e4c1f668616"
     },
     {
       "index": 4,
@@ -47,7 +47,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 38,
       "primitive_count": 20,
-      "svg_sha256": "2a31c64ded02224f84277b5f96c8e32dd3bb3be11f0069368d7afd57ffaa6ace"
+      "svg_sha256": "a70c9028d4ea8c898fa73ae5ba6ec4478683b359c56d93b1b74afbb4187df9cb"
     },
     {
       "index": 5,
@@ -57,7 +57,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 52,
       "primitive_count": 35,
-      "svg_sha256": "40fadffdb2b26a7e1b1fa6660133438850d9d9a69795f1ed77a2e468c86e43e7"
+      "svg_sha256": "33630a91d059abebc1ef30a79ff7aa3c4379de98e1755e1f107ec0f6ffdeb1eb"
     },
     {
       "index": 6,
@@ -77,7 +77,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 38,
       "primitive_count": 22,
-      "svg_sha256": "e4b1b6974a85b0d38be2776a1116318e7f86d873e997eeebe76762bfc153f59e"
+      "svg_sha256": "a6bcb74c9a0f4363473b59877a474e065d0d28f043cbcdb1ab0e977c6c2a53f2"
     },
     {
       "index": 8,
@@ -87,7 +87,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 42,
       "primitive_count": 34,
-      "svg_sha256": "c8cba8759595e381b8ae9c8c69200781083a13babbe0e15d700d28774f4ae3e7"
+      "svg_sha256": "7244142681d9b133db8b9f1d4e68c5e049e8401cf6e1281c596d2482b1c7c6c7"
     },
     {
       "index": 9,
@@ -127,7 +127,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 39,
       "primitive_count": 27,
-      "svg_sha256": "6aa6e9a319e9fb456babbc6d4b4df20a76cc9ad140453a6c0efcdee171491ac5"
+      "svg_sha256": "332f5a393757d1a9c2a412267903251ababe9300e43cd20ef48136ef8610ea55"
     },
     {
       "index": 13,
@@ -147,7 +147,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 42,
       "primitive_count": 21,
-      "svg_sha256": "9499e2e0c3f8e319a1e55aaebf8355cc1caa4951e7e5b624d417229c476227fd"
+      "svg_sha256": "7d9a6ae800c72c8f5413cc529d1c98053c7561334509c44921a002f1ab34faec"
     },
     {
       "index": 15,
@@ -187,7 +187,7 @@
       "source_rule": "original list_thumb regression source",
       "evidence_count": 44,
       "primitive_count": 28,
-      "svg_sha256": "19bcc733ee95793ea0b2d39aef87bec02a0fea1e7fefedc030474825d7ad97bf"
+      "svg_sha256": "e8e516c61dc1066dd420c95270410b8dc23fe09c232402090553e6ad86cc637d"
     },
     {
       "index": 19,
@@ -195,9 +195,9 @@
       "source_file": "Usada-Pekora_pr-img_01.webp",
       "source_sha256": "412abf8c956553815dfb147e67947d781d589fce748b2fb9914384143b61f21e",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 44,
-      "primitive_count": 39,
-      "svg_sha256": "2675b3d2e8163716cd29e4fc37b7c85203862a231a42db294f5398db96343189"
+      "evidence_count": 2,
+      "primitive_count": 2,
+      "svg_sha256": "1dca68c91bfada08b5d8a5edcc7c5b354b36653428ea56fe98e9b9f73208d192"
     },
     {
       "index": 20,
@@ -205,9 +205,9 @@
       "source_file": "Houshou-Marine_pr-img_01.png",
       "source_sha256": "d6dcc3f5ddbd537014fb8452b71932c0a6744d8dd7ee54ea2c797219e790a8ea",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 43,
-      "primitive_count": 32,
-      "svg_sha256": "7cf17c125c3c1c54e3dace40d1e482eecd2816dc2a56a5b6e89584d2050d3ccf"
+      "evidence_count": 6,
+      "primitive_count": 5,
+      "svg_sha256": "84c73767d6ff6456f201f6ba877d14e0099c3a75fcf2ba907427bfdd0b6afe2c"
     },
     {
       "index": 21,
@@ -215,9 +215,9 @@
       "source_file": "Shirogane-Noel_pr-img_01.webp",
       "source_sha256": "45ac2ffdaecbc85ab279f6ed5c1532d0ea5e1b07f50026b25c5d34c6acfdf339",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 46,
-      "primitive_count": 21,
-      "svg_sha256": "03c56848c155a98eec82e4d06bd86994213b26619555ec4db1422675bd6505a8"
+      "evidence_count": 7,
+      "primitive_count": 2,
+      "svg_sha256": "6d4fe631010842499bdb4dd034101215e0d648ec281de5f8524d3b08699d0b3d"
     },
     {
       "index": 22,
@@ -225,9 +225,9 @@
       "source_file": "Oozora-Subaru_pr-img_01.webp",
       "source_sha256": "6f224753352f07e4323265b1742087bb140ea532052f912385b151efabf6f415",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 48,
-      "primitive_count": 45,
-      "svg_sha256": "746ac140310d7922a2508dc4e6f7b243b03d8106e907d7d78d3424220bff0c05"
+      "evidence_count": 4,
+      "primitive_count": 3,
+      "svg_sha256": "1ee9806b5451487936e4206842e49d2889c3cef70701bb7353724611b1bd66db"
     },
     {
       "index": 23,
@@ -235,9 +235,9 @@
       "source_file": "Tsunomaki-Watame_pr-img_01.webp",
       "source_sha256": "20bc168d74ed69e1cd1366373f8cc9d87513ebd8a01a740dbd58cd651cb64b5b",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 51,
-      "primitive_count": 48,
-      "svg_sha256": "d6f90b213d5e4dfa63fdb56af45d38bda72f170f55611fbc7a5f765850843072"
+      "evidence_count": 7,
+      "primitive_count": 6,
+      "svg_sha256": "8b69657103276726888b5c5ff5de2cba638dce1297e5af5cd60605e4180b71d4"
     },
     {
       "index": 24,
@@ -245,9 +245,9 @@
       "source_file": "Nakiri-Ayame_pr-img_01.webp",
       "source_sha256": "9ce4ab645711dced9cfef306b9c83cb8f8e7a6d27e36cebc00d7703631405eaa",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 49,
-      "primitive_count": 43,
-      "svg_sha256": "d80c4e7c92fba720549e4965852ae307e1644a25c9aaca8139f7c947f4245e2f"
+      "evidence_count": 2,
+      "primitive_count": 2,
+      "svg_sha256": "5b058169b64deb2eaaf3676c0d78158a78d9218d4d332c171a3a8db951cf5858"
     },
     {
       "index": 25,
@@ -255,9 +255,9 @@
       "source_file": "Mori-Calliope_pr-img_01.webp",
       "source_sha256": "36e2246fefea101df5de5f00a207038df58571264bf6117b2542619f8f66856d",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 42,
-      "svg_sha256": "e453642fc7cbb5ed468d5a5d8ad879e58362953b3366916e6ea5a9bbf970ec70"
+      "evidence_count": 13,
+      "primitive_count": 9,
+      "svg_sha256": "723c132fac529e1f8ef24b0251ffcff757daf0d4b55678b7b2bd59a91f980c56"
     },
     {
       "index": 26,
@@ -265,9 +265,9 @@
       "source_file": "Ninomae-Inanis_pr-img_01.webp",
       "source_sha256": "6bc478c1f42d08b1d0f940a02db9a0185fdbc781b1c4d748deffc0f397e0427f",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 44,
-      "primitive_count": 25,
-      "svg_sha256": "664b20fed6965deee453021b1bca9b44f66c5cdb64afbfd3bbf924d9e21a8ca1"
+      "evidence_count": 11,
+      "primitive_count": 2,
+      "svg_sha256": "0244fd5554796dfe49ac19e920430799c094a0147b4864fcec02a6c62c3d8bbd"
     },
     {
       "index": 27,
@@ -275,9 +275,9 @@
       "source_file": "Hakos-Baelz_pr-img_01.png",
       "source_sha256": "c34bddedace270a82eb641f36d86015f62bab5413e7ee1ac18b7bb8c9c62e776",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 36,
-      "primitive_count": 14,
-      "svg_sha256": "e4ada5886e0e2197f5af1d0c3e156339893b709cb2cfc053e4ef4cfe3cfcc4bf"
+      "evidence_count": 7,
+      "primitive_count": 5,
+      "svg_sha256": "1a43f9a6285e19411ccf2274ed265a89b59158451bf247649501220d97595df7"
     },
     {
       "index": 28,
@@ -285,9 +285,9 @@
       "source_file": "Fuwawa-Abyssgard_pr-img_01.webp",
       "source_sha256": "a1e63b978c183a99872ea6ffb744d7be772d1d720ac014740f57ec333dbcf9e6",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 49,
-      "primitive_count": 42,
-      "svg_sha256": "2e4742976c462a8b97e046d5807617f64ee024a3571849ff6213ebd35d8aba3f"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "e3ecca353966efbf3783ac3c655f808c4ace01f1eb3005a061da9a63365366d0"
     },
     {
       "index": 29,
@@ -295,9 +295,9 @@
       "source_file": "La-Darknesss_pr-img_01.webp",
       "source_sha256": "ddaafa7f8b7116f14e5ed956d29a36a8f6dc2480dd26fa9becc50413dd0342af",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 55,
-      "primitive_count": 50,
-      "svg_sha256": "82d1ef69706466e1a13955227ba39053a651a65073b1a8417b1dae265014b57b"
+      "evidence_count": 10,
+      "primitive_count": 7,
+      "svg_sha256": "f5317754db15c364d9145e60ae9a73e29948c5b8ba81ceb92777e0e3815d7012"
     },
     {
       "index": 30,
@@ -305,9 +305,9 @@
       "source_file": "Shirakami-Fubuki_pr-img_01.webp",
       "source_sha256": "59daa6792c7a4ba21c61cce71a2afc741bfbebe0d3f6f0454c22e2efb7110993",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 47,
-      "svg_sha256": "a9844deb64747e21516688048ed492810479e96f342755b124c7a8896c0a6e0d"
+      "evidence_count": 6,
+      "primitive_count": 6,
+      "svg_sha256": "18f710c0b30c44c35faf6e840943aed6f36dc76c022acc8cd90049d08f075288"
     },
     {
       "index": 31,
@@ -315,9 +315,9 @@
       "source_file": "Inugami-Korone_pr-img_01.png",
       "source_sha256": "01b0aaded5402dda4af8bd1e1a73ca2827687531d3807ddc8040d88b5ae98333",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 44,
-      "svg_sha256": "5bb0817723c9e3ea11b25368184b5fb13c17df123ab9ffabd6002a39c2540846"
+      "evidence_count": 10,
+      "primitive_count": 6,
+      "svg_sha256": "9cb58fe98f4c0867fe378c465fc25ee6cdfdffbe6e80505f8178bda63e7d904b"
     },
     {
       "index": 32,
@@ -325,9 +325,9 @@
       "source_file": "Tokoyami-Towa_pr-img_01.webp",
       "source_sha256": "c8029a4b7a3a4cbeb862dbbc558368b29124843a3166c87e3bc838eb467a3081",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 49,
-      "primitive_count": 36,
-      "svg_sha256": "fa23df01f91a8df5fd70638a5d311fe51cdcb4dd0f2fc2019fbbac0d90d725a8"
+      "evidence_count": 3,
+      "primitive_count": 3,
+      "svg_sha256": "0e1131bc8c4166f9417636c4463c7a6cbb26934619dee7cdaa9a0e38543b1184"
     },
     {
       "index": 33,
@@ -335,9 +335,9 @@
       "source_file": "Yukihana-Lamy_pr-img_01.webp",
       "source_sha256": "c61bd7a6f78c8e237f22d3cdb701fb39f35ea623e0d15f55aa98e953e6c6152f",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 47,
-      "primitive_count": 37,
-      "svg_sha256": "276bb31bb09722de65321d7e99b8e1b4866c605d2e797ac498bbb49a251591e2"
+      "evidence_count": 3,
+      "primitive_count": 1,
+      "svg_sha256": "6815ce10844e4b2a2ffb67ce5612732fe29c2514d44f10cee39b8aa85f917cc3"
     },
     {
       "index": 34,
@@ -345,9 +345,9 @@
       "source_file": "Omaru-Polka_pr-img_01.webp",
       "source_sha256": "7b57dbe509e08a8cc894d2f3c2a0892fca8858cd9ce80f49fdf78189be463a80",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 46,
-      "primitive_count": 35,
-      "svg_sha256": "9e0e321f1c303342ac95e786a88b10542e4cd46e37c650fa252d13936d3dd8e2"
+      "evidence_count": 3,
+      "primitive_count": 3,
+      "svg_sha256": "91483ac812df8eeef94467c820089815dd69dbca39ee5ddc861f697a389d446c"
     },
     {
       "index": 35,
@@ -355,9 +355,9 @@
       "source_file": "Takanashi-Kiara_pr-img_01.webp",
       "source_sha256": "7d4dd5540818e1f6bda239160aa3996a6e765b4fcac5d4b420f3c56d330926d7",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 47,
-      "svg_sha256": "72d1adf6c68f3d36081fd99f0fe7355c9f58643b6882338b9525306073168bcf"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "9c6ab58978bd5631fec057b335f807dff15e797052d5bc1c8c46d6492037332d"
     },
     {
       "index": 36,
@@ -365,9 +365,9 @@
       "source_file": "Ouro-Kronii_pr-img_01.webp",
       "source_sha256": "fffe8ff0379e6e2e9b0ad90279049bfc1e3e49061ee2d746d1e6f8422f756dee",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 51,
-      "primitive_count": 36,
-      "svg_sha256": "051b5176bdfa6fff64d394be6d3b48f7a511dfd4a0542c85b39ca1e7aae12aa9"
+      "evidence_count": 6,
+      "primitive_count": 4,
+      "svg_sha256": "c2f19f369e77798a31c6a15557f4319cab2c0d532f572d2c71ee2f263877d474"
     },
     {
       "index": 37,
@@ -375,9 +375,9 @@
       "source_file": "Kureiji-Ollie_pr-img_01.png",
       "source_sha256": "b84e14c0cc82a70bf0a43bcd99e56d309173e032ac42e4b5a1531f666b902427",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 34,
-      "primitive_count": 13,
-      "svg_sha256": "0cfd76ddf5e7364b00b06c89577a6569f17145f7271754a9ea79b58afadd5a88"
+      "evidence_count": 3,
+      "primitive_count": 2,
+      "svg_sha256": "6fda49878451bf69cc62b60af7a45a3b7352211d3d001fbbe1fbbaeebbac95e9"
     },
     {
       "index": 38,
@@ -385,9 +385,9 @@
       "source_file": "Kaela-Kovalskia_pr-img_01.webp",
       "source_sha256": "e84df7cd5fcae2eecf5e661645dd8e71cf2278a5324aa1f3faa0bf5fde98acee",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 58,
-      "primitive_count": 55,
-      "svg_sha256": "40bbda31ef57e8ee56a875426f7c7ab9a3314b390788953bbdc2bf5242b587c0"
+      "evidence_count": 8,
+      "primitive_count": 6,
+      "svg_sha256": "8270d6bdb799f284f716f70aec0362fdba950a933f3cb67b0fc76eb8d03b9d28"
     },
     {
       "index": 39,
@@ -395,9 +395,9 @@
       "source_file": "Sakura-Miko_pr-img_01.webp",
       "source_sha256": "382b700ed39d51dd59b23bd59d02d839a304150e2ce619b33778a827c216bad2",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 47,
-      "primitive_count": 38,
-      "svg_sha256": "5ce7d7f462b33b58dc1be7615c0c66c5d2692a3432e87e2dc6ea1aff9889ee09"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "798f7356f074696d36d0b6593e437287920a4f8af37e098979801fa88c746097"
     },
     {
       "index": 40,
@@ -405,9 +405,9 @@
       "source_file": "Hoshimachi-Suisei_pr-img_01.png",
       "source_sha256": "ca144a905ce1859a0919014379fabff3fb8b594110ea304d5ec9e9843a585527",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 42,
-      "primitive_count": 32,
-      "svg_sha256": "3039bb72026e8221ce37d9810446c5e7468166fe5037ac349b4a2dbe5a4e8951"
+      "evidence_count": 6,
+      "primitive_count": 3,
+      "svg_sha256": "53d5fcfd1bfd99ba340284cc2a034f666913217413f01a1c10363981aa8ddcea"
     },
     {
       "index": 41,
@@ -415,9 +415,9 @@
       "source_file": "Robocosan_pr-img_01.webp",
       "source_sha256": "1339f22bbc9016500f1c029c31e2e2f63b1b0a6e55df9d039fb6cc1f773f755f",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 47,
-      "svg_sha256": "2b2fb2b4f6779e9a1d1681df163ec46292e13e2c5afdb8daaa2063c899eed61f"
+      "evidence_count": 3,
+      "primitive_count": 3,
+      "svg_sha256": "3e7f59a70e720e3d1ca236222e05e8b44725d421a17a4a0a21073afa5cdc8849"
     },
     {
       "index": 42,
@@ -425,9 +425,9 @@
       "source_file": "Himemori-Luna_pr-img_01.webp",
       "source_sha256": "1bbec26eccaadfa10a17b99cecd0c1a9ab08b7210a0750cfab4324367d3013bf",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 33,
-      "svg_sha256": "2f0d3521260a806537ecf5af21d56687392ad835ff7ce826fc1f006a8df5c763"
+      "evidence_count": 3,
+      "primitive_count": 2,
+      "svg_sha256": "63c3c24933e27507c8adc69b2111c1a49a20e1f54543986d8318baf061bde3a7"
     },
     {
       "index": 43,
@@ -435,9 +435,9 @@
       "source_file": "Kazama-Iroha_pr-img_01.png",
       "source_sha256": "eb7d28418989637c61ea7881f70408d814d025224db9f3c212c3d4408c22b0be",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 29,
-      "svg_sha256": "190b5d3a35b868028f24fb86a4a53b0f8ef523f8420efebcfb08c343cee4fcc3"
+      "evidence_count": 8,
+      "primitive_count": 2,
+      "svg_sha256": "ea3dfc4352e4e15dd11d88bd335cc6016d9cb2d436b9c3ca10cfdf5d8c7552f1"
     },
     {
       "index": 44,
@@ -445,9 +445,9 @@
       "source_file": "Juufuutei-Raden_pr-img_01_a.webp",
       "source_sha256": "5bd5a54acabfc79525c875db2e4790484120770e845f52e93a31fcea77ff1f65",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 55,
-      "primitive_count": 51,
-      "svg_sha256": "cade17134436c89085bce9a3b8406cce6fbf5a7c1fc6ead5e274d51db7d4563c"
+      "evidence_count": 9,
+      "primitive_count": 9,
+      "svg_sha256": "a9ce640e22a38f0768dd8b5c22c5310f0801f667bfbf856d032e57906acbd9a9"
     },
     {
       "index": 45,
@@ -455,9 +455,9 @@
       "source_file": "Cecilia-Immergreen_pr-img_01.png",
       "source_sha256": "c6072c9634080f17ffe334027ffb6180c000751cb1ca185a7df63edc385c1f74",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 45,
-      "primitive_count": 36,
-      "svg_sha256": "1164a46e838a8b8150059bdc475836233dd93c7a7dfb83feb281d26c2e47e690"
+      "evidence_count": 4,
+      "primitive_count": 2,
+      "svg_sha256": "8dd9c555e890c84fe86aa431e7920db9580d1beca20d5f712eb6618409fc1549"
     },
     {
       "index": 46,
@@ -465,9 +465,9 @@
       "source_file": "Nerissa-Ravencroft_pr-img_01.webp",
       "source_sha256": "45bd59aeed3a9aa62eeef9d6abb01020d267327192ec30792ab0e3502c4ca747",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 51,
-      "primitive_count": 40,
-      "svg_sha256": "4b4331172c61b05697d4b620565c1ab06cd17caff5097746f60f10a9122e2495"
+      "evidence_count": 4,
+      "primitive_count": 4,
+      "svg_sha256": "ba37afdfc89afd825a0285634c283db1aa022aa00d1c3a33cb445dea61905000"
     },
     {
       "index": 47,
@@ -475,9 +475,9 @@
       "source_file": "Pavolia-Reine_pr-img_01.png",
       "source_sha256": "91b4b9c70afb9041864064639698675e5297c7da8e86fd8618e3ebdc8afa8050",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 48,
-      "primitive_count": 28,
-      "svg_sha256": "8e254f2c7f88a96861f764a05cdd379b0e62a3ffd642df1aa874bc831cd407b8"
+      "evidence_count": 11,
+      "primitive_count": 4,
+      "svg_sha256": "6ea23f0f0f307732a1d74b1b022cf1f81d201fe703dcde92a58804ecffb8c35e"
     },
     {
       "index": 48,
@@ -485,9 +485,9 @@
       "source_file": "Elizabeth-Rose-Bloodflame_pr-img_01.webp",
       "source_sha256": "9937145b7fd56ecebaf1ff3bbd7ba1273f2122f8bcf04a345e46ce3d998a437f",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 32,
-      "svg_sha256": "8a8c979d50019234cbeef091c5b32aebc4474bd1c7489ff5b0bdeeb4ef2475c5"
+      "evidence_count": 20,
+      "primitive_count": 11,
+      "svg_sha256": "2d5dd43c95ff990ddbd86a4439a4382354eb204218404f5cb8381df395dba980"
     },
     {
       "index": 49,
@@ -495,9 +495,9 @@
       "source_file": "Tokino-Sora_pr-img_01.webp",
       "source_sha256": "b6d685e20e46eaea2a79f427aeebdd5a1c3d97388e62a761d2ca1a363014ed64",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 54,
-      "primitive_count": 49,
-      "svg_sha256": "9f1a73458b13eb847e26389c5a9d7a4b130fee79b22030f478960f90da4d5ca1"
+      "evidence_count": 5,
+      "primitive_count": 5,
+      "svg_sha256": "2fa3e1a3ac9c000d03509a2acf5e5695d7ed71a1a5faed6cfb17c3eccad85a14"
     },
     {
       "index": 50,
@@ -505,9 +505,9 @@
       "source_file": "Ookami-Mio_pr-img_01.webp",
       "source_sha256": "e18809813e5d23bf53e329dfa33f813fb80d58fe77b1a7eb6debcbc1cd436dd5",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 50,
-      "svg_sha256": "626fbe6d054efcaf68a2fead39ebaa098622e6ca4eed548d183d02f1b1c8ba68"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "8002c5a68d658a4bea63dce2eb91b4ef2747c29b98de1cee3e6a7a9d8c2b8c84"
     },
     {
       "index": 51,
@@ -515,9 +515,9 @@
       "source_file": "Nekomata-Okayu_pr-img_01.png",
       "source_sha256": "7481b97da12b642b99e24661eddd9fc3c98d4fe5416a078df047df9606c5cdf4",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 45,
-      "primitive_count": 29,
-      "svg_sha256": "5d989bc1ca949aeddd0e8c0225272352858121225ae43aea9333a170b3e0a688"
+      "evidence_count": 12,
+      "primitive_count": 6,
+      "svg_sha256": "bbbdc79760679f0e3f9cb4edc6ec9fc852ea9f4c34bac98bcb583d5fefc39bc9"
     },
     {
       "index": 52,
@@ -525,9 +525,9 @@
       "source_file": "AZKi_pr-img_01.webp",
       "source_sha256": "d65d8c75dc4a10fa8612b1cdebd8e88caa63b85eda90b74f1769599f7fd653a4",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 42,
-      "svg_sha256": "834baa7120c9b5c5d9944d0c388941274216f531d212908a83c463cbeb1f1d53"
+      "evidence_count": 7,
+      "primitive_count": 4,
+      "svg_sha256": "35a4c3550d283c9a877010e841fbf72916ba953baddb309a1939ea9044652cf9"
     },
     {
       "index": 53,
@@ -535,9 +535,9 @@
       "source_file": "Hakui-Koyori_pr-img_01.webp",
       "source_sha256": "c2cbde71df93a749bd9cb076729b30d8007f7b74bb3375fa10746765a3c30e9f",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 48,
-      "primitive_count": 42,
-      "svg_sha256": "e33dd4b0db6e5b3d88978e04d8eff967a977627694c568d35b9230a53c061244"
+      "evidence_count": 9,
+      "primitive_count": 6,
+      "svg_sha256": "deb251828928018cee638992942159f6fa30797698c218ea5f763654fb519726"
     },
     {
       "index": 54,
@@ -545,9 +545,9 @@
       "source_file": "Takane-Lui_pr-img_01.webp",
       "source_sha256": "366b4caf25b4b1846c633e05fe2982fe4b1f1978b1e39e884a8cdf6a785b2de7",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 48,
-      "primitive_count": 42,
-      "svg_sha256": "201015c9d2cad144dbc0fd08ce90c8caafb27b022dbc925539f149fb9f734308"
+      "evidence_count": 4,
+      "primitive_count": 2,
+      "svg_sha256": "9c8b0d0eeb910c60b0c0dccdc3822f22ef93e3f819444626252db0d572249e2e"
     },
     {
       "index": 55,
@@ -555,9 +555,9 @@
       "source_file": "Moona-Hoshinova_pr-img_01.webp",
       "source_sha256": "beb28d9496dbb679c4779fefe445351fb2eec062b6b30c97b5e312a6fc429f85",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 46,
-      "svg_sha256": "f173d04c7b4258e6e96e861c8fa48c9d58d0cbeb2d7fb6701aead877fe6f90ba"
+      "evidence_count": 4,
+      "primitive_count": 3,
+      "svg_sha256": "858f169313bec19983162ee9d28f4f73c1b9c5b0d0c0fa62ca46c6cb0bc92d86"
     },
     {
       "index": 56,
@@ -565,9 +565,9 @@
       "source_file": "Airani-Iofifteen_pr-img_01.webp",
       "source_sha256": "69554af0b2239fda254b17f6a23034cc57375e24692bb2838884355dca994614",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 50,
-      "primitive_count": 47,
-      "svg_sha256": "7fbe4bcd77be1f75b48ec8e17fc5250023bde8d15ac2519d08abd2882b7f41a7"
+      "evidence_count": 3,
+      "primitive_count": 3,
+      "svg_sha256": "e5a5be9b1b375225e9ae3a5618c5a3f3c68d6f27407baa7581c118ca6f39d2c9"
     },
     {
       "index": 57,
@@ -575,9 +575,9 @@
       "source_file": "Mococo-Abyssgard_pr-img_01.webp",
       "source_sha256": "5519cdf6acc5b766f9db315bfe40075d40936bfc0ece2bcbc3e456348a54d449",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 51,
-      "primitive_count": 46,
-      "svg_sha256": "b6939402144dac6cd50244ba4b0d760fac9a58e871e53040a00b8dd973b78541"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "1f458bb524527205e5cf55235a22f83bc0d9cd6f64c8f81f3fc8eec14c53c5b2"
     },
     {
       "index": 58,
@@ -585,9 +585,9 @@
       "source_file": "IRyS_pr-img_01.webp",
       "source_sha256": "cd35fafde0a3fc06f491a8cb7e429cf5e4407fee855ae90da339adceeae1340d",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 48,
-      "svg_sha256": "99309d1480909cbd5b032f2e74bbe8ac80c6820c9cb63511b34fdb3e7ec055e1"
+      "evidence_count": 4,
+      "primitive_count": 4,
+      "svg_sha256": "b8d303ded76a354069fee20b0c59ae9c0b02db38aada3e2937588bafaf807d71"
     },
     {
       "index": 59,
@@ -595,9 +595,9 @@
       "source_file": "Akai-Haato_pr-img_01.webp",
       "source_sha256": "9bec1a463668191c3854dc982d4786cbb084e769f93586a330202c5ff60548c3",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 55,
-      "primitive_count": 47,
-      "svg_sha256": "94ea62b6016329d505f3d406737745a4b6e45c7fe0ec3b78b5bfd0c9b8ab2f8f"
+      "evidence_count": 4,
+      "primitive_count": 4,
+      "svg_sha256": "7cd03b31e3a79c6b211dda784225f12bfbe122ac7332ace72aded748722dfe5e"
     },
     {
       "index": 60,
@@ -605,9 +605,9 @@
       "source_file": "Yuzuki-Choco_pr-img_01.webp",
       "source_sha256": "028b10eca77b84fcc32496cb119452544ef3f471a5e213d3e4998e33f6730718",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 47,
-      "svg_sha256": "55ba8bfcca36400c8b90b1a082dffb102480e7d51e003df5d5dc17934d0e93f2"
+      "evidence_count": 6,
+      "primitive_count": 5,
+      "svg_sha256": "6ca067bc69492d0b45bdf5d1c03e5dd5a34194b1e890303b1583bb5dbbad1df3"
     },
     {
       "index": 61,
@@ -615,9 +615,9 @@
       "source_file": "Shiranui-Flare_pr-img_01.png",
       "source_sha256": "5238a9fe9f75f600b8e2a1f284bd2c2bde013ab0177acbc23dea3f2acbb71348",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 50,
-      "primitive_count": 33,
-      "svg_sha256": "b2d7ecfab5565cde5a61c876ea8b852b7c0ba59d314a6c92779f0a8774e324ef"
+      "evidence_count": 7,
+      "primitive_count": 4,
+      "svg_sha256": "f23e2430015b58662f0e56218afc4409155006acf53f28f1f460b60e74cae48a"
     },
     {
       "index": 62,
@@ -625,9 +625,9 @@
       "source_file": "Anya-Melfissa_pr-img_01.png",
       "source_sha256": "6bedc036bc9135cb661871d1f8346c3515140a7ce12a4ad3b0ac828e74294d96",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 36,
-      "primitive_count": 18,
-      "svg_sha256": "3a331d08f9b839e93679689c212b9155c700900ddeacc1b1ae57d81a88bd25f9"
+      "evidence_count": 10,
+      "primitive_count": 4,
+      "svg_sha256": "45081cbe29206cd868c807722386d6984de6dc76e65262aaf43b02b22a451d4a"
     },
     {
       "index": 63,
@@ -635,9 +635,9 @@
       "source_file": "Ayunda-Risu_pr-img_01.webp",
       "source_sha256": "6e35a255e8415fe2d66a0c45e5856e65739e16f5496691b4f820939b34aad816",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 50,
-      "primitive_count": 43,
-      "svg_sha256": "9f6398e058becc19ffd20b5c977c85eb3d657741b6a6aa7ad1e2775ffd6f1484"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "aa9fa64e259a0de8b3a277ad6524ada5ded2f714e455116dc6223a870e56fc04"
     },
     {
       "index": 64,
@@ -645,9 +645,9 @@
       "source_file": "Ichijou-Ririka_pr-img_01_a.webp",
       "source_sha256": "efac8dcc0076d952966f64a3f2943ec7c13fa9e7ca339f90359235b6a5585d13",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 44,
-      "svg_sha256": "fb43fd6c174c67b7117598e7ce8af99b1f51fb2e94595cb6ca4d2196f441e21e"
+      "evidence_count": 7,
+      "primitive_count": 6,
+      "svg_sha256": "6341ef0ca9520082d1df8875571a22ce247c2498b1a41ebc357107079f9149a2"
     },
     {
       "index": 65,
@@ -655,9 +655,9 @@
       "source_file": "Mizumiya-Su_pr-img_01_a.png",
       "source_sha256": "1769f635405c57192206aac42e162ae6a29b94cf2cb0936ceab34f8d0454a813",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 41,
-      "primitive_count": 23,
-      "svg_sha256": "c8ab4e591337f7911b0901fb2b3e3ddfd6b4c4915434e2d5e53f86c5e52b8b71"
+      "evidence_count": 4,
+      "primitive_count": 1,
+      "svg_sha256": "65fc163bc447ef73d5e755cf8ee8299f4426b1edaa8aa424fa7d9bda8e795fc0"
     },
     {
       "index": 66,
@@ -665,9 +665,9 @@
       "source_file": "Rindo-Chihaya_pr-img_01_a.png",
       "source_sha256": "45672648df955e311b01ff801764805d53a8dc51a247c87c963f17e7caf77038",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 45,
-      "svg_sha256": "ea15332b5d6a61009aa8e093bfb877049df1185d0bad45357a40d9f08e9630e4"
+      "evidence_count": 7,
+      "primitive_count": 4,
+      "svg_sha256": "a7b8f40afc0cb6897c0391c7806cca4d117a22990f4921cdaa2beafd53f89cf9"
     },
     {
       "index": 67,
@@ -675,9 +675,9 @@
       "source_file": "Hanazono-Sayaka_pr-img_01.png",
       "source_sha256": "31a2a0c334ddd68b9d229c3333ab2733335f2ee1eca7f3f40a5b20613d7184d9",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 51,
-      "primitive_count": 34,
-      "svg_sha256": "1e0cc85045a22d0acca3b7fb5136c8a8bdce3b204a20900cdd4c3fbeaa14ac8e"
+      "evidence_count": 4,
+      "primitive_count": 4,
+      "svg_sha256": "99b9b6c239d30059b241f43cdd3cc235f948b9a251a6cf00d3e38ac1cf2cc374"
     },
     {
       "index": 68,
@@ -685,9 +685,9 @@
       "source_file": "Kazeshiro-Yuki_pr-img_01.png",
       "source_sha256": "db928f892f13076191e03f1a023941bc3c1e06dec94e381bc92f0b7d60a7dc22",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 53,
-      "primitive_count": 42,
-      "svg_sha256": "336fbaaeb358ab9c475472a38fa6b9386aa062fb088bc8a11823c5f371702750"
+      "evidence_count": 7,
+      "primitive_count": 4,
+      "svg_sha256": "aaa615bffbba769f6b478318699376cfaaa2e9d382fe86c9ec3d3e5b0cd59310"
     },
     {
       "index": 69,
@@ -695,9 +695,9 @@
       "source_file": "Izuki-Michiru_pr-img_01.png",
       "source_sha256": "2ec6f46144200d82a34e8a0db33e847deed3fddb0e4539f6e11708032a028be1",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 44,
-      "svg_sha256": "a7214a017148cd85be5d9f32f96fdfff74fc0f7c72ec74a99935fe679146685f"
+      "evidence_count": 6,
+      "primitive_count": 5,
+      "svg_sha256": "532af3d66742378b5793cf433519204262ff50beadde32ef9d31a45069779dcc"
     },
     {
       "index": 70,
@@ -705,9 +705,9 @@
       "source_file": "Sorashina-Sopia_pr-img_01.webp",
       "source_sha256": "a7aee514c72491a5bcd1715ce0790460eb3af13d702b81d8c11960852e207790",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 46,
-      "primitive_count": 39,
-      "svg_sha256": "114dcfdab3ce456f093018cc296a26a067fd2fded8a43124c5db247fa620ae7d"
+      "evidence_count": 2,
+      "primitive_count": 2,
+      "svg_sha256": "2718992113b788b9c48d34b2d4a1e03bb3f92636325dbf8d89293b7ae60f5a6d"
     },
     {
       "index": 71,
@@ -715,9 +715,9 @@
       "source_file": "Achichi-Mela_pr-img_01.webp",
       "source_sha256": "1ad5ad19a12b76d836f9753da9663ee043ba62c3093c5115c8f8c0e4e58b77df",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 50,
-      "primitive_count": 44,
-      "svg_sha256": "121ccfb80bddbd3e28ef93b3d6694ca3f79298b82ddfb62cbccc8088bad14186"
+      "evidence_count": 4,
+      "primitive_count": 3,
+      "svg_sha256": "4195ebeea20d03377b65bd41db538454e1bd04bcbf388e522a185fa87a51aa72"
     },
     {
       "index": 72,
@@ -725,9 +725,9 @@
       "source_file": "Hyakuto-Kyoko_pr-img_01.webp",
       "source_sha256": "7300bf4f9b2baf4dd5452448bb9ec460004e82763a22a2eeecba4057d7b1c1a5",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 52,
-      "primitive_count": 47,
-      "svg_sha256": "2d3a6622ace0a4c8be0a8fb0c109cde61caf25c9b577a0c5efa57053f9d00b09"
+      "evidence_count": 5,
+      "primitive_count": 4,
+      "svg_sha256": "8a49d532d4172c9b4923104d7b0ff0a4cbd513aa00112e608d3532670da138f9"
     },
     {
       "index": 73,
@@ -735,9 +735,9 @@
       "source_file": "Suzuna-Tsuzuri_pr-img_01.webp",
       "source_sha256": "196446b8b074c5dfbee781eadbdc61d6c08fdb7778270182c3915246225cc1c2",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 49,
-      "primitive_count": 36,
-      "svg_sha256": "f0e3bc6f497cf9b9982a519250859043017baa6b2c8145bca7f79e1f84c22a81"
+      "evidence_count": 4,
+      "primitive_count": 2,
+      "svg_sha256": "ee63175417d0df070fa618ded7f95d9811349e66a33f09fd5f31bf45f18c1385"
     },
     {
       "index": 74,
@@ -745,9 +745,9 @@
       "source_file": "Gawr-Gura_pr-img_01.png",
       "source_sha256": "ab6021ccb415629a1df2fd25c96f6c522d899b36c94b3f6a5d446bd5bbafbbfa",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 49,
-      "primitive_count": 29,
-      "svg_sha256": "2616417b1f42d318083f2fa89a6e2799e1d82053ea4a2be488cdc5623effe4f2"
+      "evidence_count": 7,
+      "primitive_count": 3,
+      "svg_sha256": "354a18efa26a395e720b191f9374903639ba9df8f2e284c674d4bfc404df2b71"
     },
     {
       "index": 75,
@@ -755,9 +755,9 @@
       "source_file": "Ceres-Fauna_pr-img_01.png",
       "source_sha256": "6b4772cd5c98516537d72883beb3a674ec01d9b1b9a2eff6b7ae53516192910a",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 36,
-      "primitive_count": 2,
-      "svg_sha256": "c40be08e82393053c190625bdb3a3f0c888df3b46dae9661fe9391da16823c8a"
+      "evidence_count": 10,
+      "primitive_count": 8,
+      "svg_sha256": "d5ec6dc5e6f73fab8ef91b70c706cc1711db4bbf21dcdf93bf1e3277125bad71"
     },
     {
       "index": 76,
@@ -765,9 +765,9 @@
       "source_file": "Nanashi-Mumei_pr-img_01.png",
       "source_sha256": "ca2ee36c165def2509c20f4134e03acd0e48dc50f0d5245c21ec8f67ebeb162a",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 46,
-      "primitive_count": 22,
-      "svg_sha256": "af07c0257fdb1062428cde2ac23046d308384e86dfb81e018d751116ac1068ee"
+      "evidence_count": 17,
+      "primitive_count": 11,
+      "svg_sha256": "cede312ce87fe13ffe8cbb0f5891fc33f04dd05cdcba1bb4588503f27d99c390"
     },
     {
       "index": 77,
@@ -775,9 +775,9 @@
       "source_file": "Tsukumo-Sana_pr-img_01.png",
       "source_sha256": "b2bdcad0b6f59ce3d6df2e9cfcaca040ba0fff4cd4f9ec10d74feddba85dd251",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 43,
-      "primitive_count": 38,
-      "svg_sha256": "2c35e7c90f5c0e576620d5841e7df6c9322af254a63b1f56afff1f696faa6b31"
+      "evidence_count": 12,
+      "primitive_count": 8,
+      "svg_sha256": "4565132c7c831a1ec421a23788f73847cb85d8339400649b16cbe36882a2f38d"
     },
     {
       "index": 78,
@@ -785,9 +785,9 @@
       "source_file": "Murasaki-Shion_pr-img_01.png",
       "source_sha256": "cecdc77735de4a24477df905af3c70cd0859445f1393561c67425d4171038a8b",
       "source_rule": "pr-img_01 source used for expansion references",
-      "evidence_count": 46,
-      "primitive_count": 20,
-      "svg_sha256": "de3b637b40bb22371ed94625d9d284e8bd2c88f8a50eda075cfad2ae6be9642b"
+      "evidence_count": 6,
+      "primitive_count": 2,
+      "svg_sha256": "39cce5d00143d2ae4dae672827431deddef6ec3354fd6abf941fcf4686eff438"
     }
   ]
 }

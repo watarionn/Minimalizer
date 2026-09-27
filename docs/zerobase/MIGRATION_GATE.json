@@ -3,13 +3,10 @@
   "source_sha_verified": true,
   "reference_sha_verified": true,
   "replay_deterministic": true,
-  "zerobase_mean_silhouette_iou": 0.395515,
+  "zerobase_mean_silhouette_iou": 0.534959,
   "legacy_mean_silhouette_iou": 0.411292,
-  "zerobase_mean_foreground_error": 0.541351,
+  "zerobase_mean_foreground_error": 0.162691,
   "legacy_mean_foreground_error": 0.4628,
-  "switch_authorized": false,
-  "reasons": [
-    "ZeroBase mean silhouette IoU regresses versus Minimalizer 2.0",
-    "ZeroBase mean foreground-ratio error regresses versus Minimalizer 2.0"
-  ]
+  "switch_authorized": true,
+  "reasons": []
 }

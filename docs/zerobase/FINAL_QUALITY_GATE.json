@@ -1,5 +1,5 @@
 {
-  "approved78_replayable_cases": 0,
+  "approved78_replayable_cases": 78,
   "checks": [
     {
       "detail": "complete deterministic stage capture",
@@ -32,12 +32,12 @@
       "release_critical": true
     },
     {
-      "detail": "0/78 replayable cases present",
+      "detail": "78/78 replayable cases present",
       "name": "approved78_replay_evidence",
-      "passed": false,
+      "passed": true,
       "release_critical": false
     }
   ],
   "foundation_ready": true,
-  "migration_ready": false
+  "migration_ready": true
 }

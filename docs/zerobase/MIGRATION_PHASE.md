@@ -1,6 +1,6 @@
 # ZeroBase Migration Phase
 
-Status: **CLOSED / PRODUCTION SWITCH HOLD**
+Status: **CLOSED / INITIAL QUALITY HOLD — SUPERSEDED BY PRODUCTION QUALITY COMPLETION**
 
 ## Evidence
 
@@ -41,3 +41,8 @@ The dedicated MigrationGate fails closed unless:
 Current result: switch_authorized = false.
 
 Minimalizer 2.0 remains production. The next engineering campaign is production-quality foreground/subject-semantic integration, followed by the same Approved-78 Migration Gate rerun.
+
+
+## Superseding result
+
+Production Quality Completion subsequently integrated canonical alpha foreground evidence and reran all 78 cases. The current authoritative migration result is recorded in `PRODUCTION_QUALITY_COMPLETION.md` and `MIGRATION_GATE.json`: `switch_authorized=true`. The HOLD above is retained as the historical pre-fix audit.
