@@ -1,0 +1,476 @@
+{
+  "corpus_id": "Approved-78",
+  "revision": "2026-09-18",
+  "reference_source": "Google Drive canonical Approved geometric references folder",
+  "references": [
+    {
+      "index": 1,
+      "reference_filename": "01_Kikirara-Vivi_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/01/scene.json",
+      "candidate_artifact": "artifacts/approved78/01/candidates.json"
+    },
+    {
+      "index": 2,
+      "reference_filename": "02_Isaki-Riona_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/02/scene.json",
+      "candidate_artifact": "artifacts/approved78/02/candidates.json"
+    },
+    {
+      "index": 3,
+      "reference_filename": "03_Koganei-Niko_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/03/scene.json",
+      "candidate_artifact": "artifacts/approved78/03/candidates.json"
+    },
+    {
+      "index": 4,
+      "reference_filename": "04_Vestia-Zeta_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/04/scene.json",
+      "candidate_artifact": "artifacts/approved78/04/candidates.json"
+    },
+    {
+      "index": 5,
+      "reference_filename": "05_Todoroki-Hajime_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/05/scene.json",
+      "candidate_artifact": "artifacts/approved78/05/candidates.json"
+    },
+    {
+      "index": 6,
+      "reference_filename": "06_Shishiro-Botan_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/06/scene.json",
+      "candidate_artifact": "artifacts/approved78/06/candidates.json"
+    },
+    {
+      "index": 7,
+      "reference_filename": "07_Shiori-Novella_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/07/scene.json",
+      "candidate_artifact": "artifacts/approved78/07/candidates.json"
+    },
+    {
+      "index": 8,
+      "reference_filename": "08_Natsuiro-Matsuri_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/08/scene.json",
+      "candidate_artifact": "artifacts/approved78/08/candidates.json"
+    },
+    {
+      "index": 9,
+      "reference_filename": "09_Otonose-Kanade_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/09/scene.json",
+      "candidate_artifact": "artifacts/approved78/09/candidates.json"
+    },
+    {
+      "index": 10,
+      "reference_filename": "10_Mori-Calliope_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/10/scene.json",
+      "candidate_artifact": "artifacts/approved78/10/candidates.json"
+    },
+    {
+      "index": 11,
+      "reference_filename": "11_Momosuzu-Nene_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/11/scene.json",
+      "candidate_artifact": "artifacts/approved78/11/candidates.json"
+    },
+    {
+      "index": 12,
+      "reference_filename": "12_Koseki-Bijou_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/12/scene.json",
+      "candidate_artifact": "artifacts/approved78/12/candidates.json"
+    },
+    {
+      "index": 13,
+      "reference_filename": "13_Kobo-Kanaeru_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/13/scene.json",
+      "candidate_artifact": "artifacts/approved78/13/candidates.json"
+    },
+    {
+      "index": 14,
+      "reference_filename": "14_Houshou-Marine_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/14/scene.json",
+      "candidate_artifact": "artifacts/approved78/14/candidates.json"
+    },
+    {
+      "index": 15,
+      "reference_filename": "15_Hakos-Baelz_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/15/scene.json",
+      "candidate_artifact": "artifacts/approved78/15/candidates.json"
+    },
+    {
+      "index": 16,
+      "reference_filename": "16_Gigi-Murin_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/16/scene.json",
+      "candidate_artifact": "artifacts/approved78/16/candidates.json"
+    },
+    {
+      "index": 17,
+      "reference_filename": "17_Aki-Rosenthal_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/17/scene.json",
+      "candidate_artifact": "artifacts/approved78/17/candidates.json"
+    },
+    {
+      "index": 18,
+      "reference_filename": "18_Raora-Panthera_APPROVED_GEOMETRIC_REFERENCE.png",
+      "scene_artifact": "artifacts/approved78/18/scene.json",
+      "candidate_artifact": "artifacts/approved78/18/candidates.json"
+    },
+    {
+      "index": 19,
+      "reference_filename": "19_Usada-Pekora_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/19/scene.json",
+      "candidate_artifact": "artifacts/approved78/19/candidates.json"
+    },
+    {
+      "index": 20,
+      "reference_filename": "20_Houshou-Marine_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/20/scene.json",
+      "candidate_artifact": "artifacts/approved78/20/candidates.json"
+    },
+    {
+      "index": 21,
+      "reference_filename": "21_Shirogane-Noel_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/21/scene.json",
+      "candidate_artifact": "artifacts/approved78/21/candidates.json"
+    },
+    {
+      "index": 22,
+      "reference_filename": "22_Oozora-Subaru_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/22/scene.json",
+      "candidate_artifact": "artifacts/approved78/22/candidates.json"
+    },
+    {
+      "index": 23,
+      "reference_filename": "23_Tsunomaki-Watame_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/23/scene.json",
+      "candidate_artifact": "artifacts/approved78/23/candidates.json"
+    },
+    {
+      "index": 24,
+      "reference_filename": "24_Nakiri-Ayame_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/24/scene.json",
+      "candidate_artifact": "artifacts/approved78/24/candidates.json"
+    },
+    {
+      "index": 25,
+      "reference_filename": "25_Mori-Calliope_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/25/scene.json",
+      "candidate_artifact": "artifacts/approved78/25/candidates.json"
+    },
+    {
+      "index": 26,
+      "reference_filename": "26_Ninomae-Inanis_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/26/scene.json",
+      "candidate_artifact": "artifacts/approved78/26/candidates.json"
+    },
+    {
+      "index": 27,
+      "reference_filename": "27_Hakos-Baelz_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/27/scene.json",
+      "candidate_artifact": "artifacts/approved78/27/candidates.json"
+    },
+    {
+      "index": 28,
+      "reference_filename": "28_Fuwawa-Abyssgard_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/28/scene.json",
+      "candidate_artifact": "artifacts/approved78/28/candidates.json"
+    },
+    {
+      "index": 29,
+      "reference_filename": "29_La-Darknesss_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/29/scene.json",
+      "candidate_artifact": "artifacts/approved78/29/candidates.json"
+    },
+    {
+      "index": 30,
+      "reference_filename": "30_Shirakami-Fubuki_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/30/scene.json",
+      "candidate_artifact": "artifacts/approved78/30/candidates.json"
+    },
+    {
+      "index": 31,
+      "reference_filename": "31_Inugami-Korone_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/31/scene.json",
+      "candidate_artifact": "artifacts/approved78/31/candidates.json"
+    },
+    {
+      "index": 32,
+      "reference_filename": "32_Tokoyami-Towa_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/32/scene.json",
+      "candidate_artifact": "artifacts/approved78/32/candidates.json"
+    },
+    {
+      "index": 33,
+      "reference_filename": "33_Yukihana-Lamy_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/33/scene.json",
+      "candidate_artifact": "artifacts/approved78/33/candidates.json"
+    },
+    {
+      "index": 34,
+      "reference_filename": "34_Omaru-Polka_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/34/scene.json",
+      "candidate_artifact": "artifacts/approved78/34/candidates.json"
+    },
+    {
+      "index": 35,
+      "reference_filename": "35_Takanashi-Kiara_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/35/scene.json",
+      "candidate_artifact": "artifacts/approved78/35/candidates.json"
+    },
+    {
+      "index": 36,
+      "reference_filename": "36_Ouro-Kronii_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/36/scene.json",
+      "candidate_artifact": "artifacts/approved78/36/candidates.json"
+    },
+    {
+      "index": 37,
+      "reference_filename": "37_Kureiji-Ollie_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/37/scene.json",
+      "candidate_artifact": "artifacts/approved78/37/candidates.json"
+    },
+    {
+      "index": 38,
+      "reference_filename": "38_Kaela-Kovalskia_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/38/scene.json",
+      "candidate_artifact": "artifacts/approved78/38/candidates.json"
+    },
+    {
+      "index": 39,
+      "reference_filename": "39_Sakura-Miko_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/39/scene.json",
+      "candidate_artifact": "artifacts/approved78/39/candidates.json"
+    },
+    {
+      "index": 40,
+      "reference_filename": "40_Hoshimachi-Suisei_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/40/scene.json",
+      "candidate_artifact": "artifacts/approved78/40/candidates.json"
+    },
+    {
+      "index": 41,
+      "reference_filename": "41_Robocosan_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/41/scene.json",
+      "candidate_artifact": "artifacts/approved78/41/candidates.json"
+    },
+    {
+      "index": 42,
+      "reference_filename": "42_Himemori-Luna_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/42/scene.json",
+      "candidate_artifact": "artifacts/approved78/42/candidates.json"
+    },
+    {
+      "index": 43,
+      "reference_filename": "43_Kazama-Iroha_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/43/scene.json",
+      "candidate_artifact": "artifacts/approved78/43/candidates.json"
+    },
+    {
+      "index": 44,
+      "reference_filename": "44_Juufuutei-Raden_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/44/scene.json",
+      "candidate_artifact": "artifacts/approved78/44/candidates.json"
+    },
+    {
+      "index": 45,
+      "reference_filename": "45_Cecilia-Immergreen_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/45/scene.json",
+      "candidate_artifact": "artifacts/approved78/45/candidates.json"
+    },
+    {
+      "index": 46,
+      "reference_filename": "46_Nerissa-Ravencroft_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/46/scene.json",
+      "candidate_artifact": "artifacts/approved78/46/candidates.json"
+    },
+    {
+      "index": 47,
+      "reference_filename": "47_Pavolia-Reine_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/47/scene.json",
+      "candidate_artifact": "artifacts/approved78/47/candidates.json"
+    },
+    {
+      "index": 48,
+      "reference_filename": "48_Elizabeth-Rose-Bloodflame_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/48/scene.json",
+      "candidate_artifact": "artifacts/approved78/48/candidates.json"
+    },
+    {
+      "index": 49,
+      "reference_filename": "49_Tokino-Sora_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/49/scene.json",
+      "candidate_artifact": "artifacts/approved78/49/candidates.json"
+    },
+    {
+      "index": 50,
+      "reference_filename": "50_Ookami-Mio_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/50/scene.json",
+      "candidate_artifact": "artifacts/approved78/50/candidates.json"
+    },
+    {
+      "index": 51,
+      "reference_filename": "51_Nekomata-Okayu_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/51/scene.json",
+      "candidate_artifact": "artifacts/approved78/51/candidates.json"
+    },
+    {
+      "index": 52,
+      "reference_filename": "52_AZKi_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/52/scene.json",
+      "candidate_artifact": "artifacts/approved78/52/candidates.json"
+    },
+    {
+      "index": 53,
+      "reference_filename": "53_Hakui-Koyori_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/53/scene.json",
+      "candidate_artifact": "artifacts/approved78/53/candidates.json"
+    },
+    {
+      "index": 54,
+      "reference_filename": "54_Takane-Lui_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/54/scene.json",
+      "candidate_artifact": "artifacts/approved78/54/candidates.json"
+    },
+    {
+      "index": 55,
+      "reference_filename": "55_Moona-Hoshinova_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/55/scene.json",
+      "candidate_artifact": "artifacts/approved78/55/candidates.json"
+    },
+    {
+      "index": 56,
+      "reference_filename": "56_Airani-Iofifteen_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/56/scene.json",
+      "candidate_artifact": "artifacts/approved78/56/candidates.json"
+    },
+    {
+      "index": 57,
+      "reference_filename": "57_Mococo-Abyssgard_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/57/scene.json",
+      "candidate_artifact": "artifacts/approved78/57/candidates.json"
+    },
+    {
+      "index": 58,
+      "reference_filename": "58_IRyS_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/58/scene.json",
+      "candidate_artifact": "artifacts/approved78/58/candidates.json"
+    },
+    {
+      "index": 59,
+      "reference_filename": "59_Akai-Haato_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/59/scene.json",
+      "candidate_artifact": "artifacts/approved78/59/candidates.json"
+    },
+    {
+      "index": 60,
+      "reference_filename": "60_Yuzuki-Choco_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/60/scene.json",
+      "candidate_artifact": "artifacts/approved78/60/candidates.json"
+    },
+    {
+      "index": 61,
+      "reference_filename": "61_Shiranui-Flare_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/61/scene.json",
+      "candidate_artifact": "artifacts/approved78/61/candidates.json"
+    },
+    {
+      "index": 62,
+      "reference_filename": "62_Anya-Melfissa_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/62/scene.json",
+      "candidate_artifact": "artifacts/approved78/62/candidates.json"
+    },
+    {
+      "index": 63,
+      "reference_filename": "63_Ayunda-Risu_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/63/scene.json",
+      "candidate_artifact": "artifacts/approved78/63/candidates.json"
+    },
+    {
+      "index": 64,
+      "reference_filename": "64_Ichijou-Ririka_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/64/scene.json",
+      "candidate_artifact": "artifacts/approved78/64/candidates.json"
+    },
+    {
+      "index": 65,
+      "reference_filename": "65_Mizumiya-Su_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/65/scene.json",
+      "candidate_artifact": "artifacts/approved78/65/candidates.json"
+    },
+    {
+      "index": 66,
+      "reference_filename": "66_Rindo-Chihaya_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/66/scene.json",
+      "candidate_artifact": "artifacts/approved78/66/candidates.json"
+    },
+    {
+      "index": 67,
+      "reference_filename": "67_Hanazono-Sayaka_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/67/scene.json",
+      "candidate_artifact": "artifacts/approved78/67/candidates.json"
+    },
+    {
+      "index": 68,
+      "reference_filename": "68_Kazeshiro-Yuki_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/68/scene.json",
+      "candidate_artifact": "artifacts/approved78/68/candidates.json"
+    },
+    {
+      "index": 69,
+      "reference_filename": "69_Izuki-Michiru_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/69/scene.json",
+      "candidate_artifact": "artifacts/approved78/69/candidates.json"
+    },
+    {
+      "index": 70,
+      "reference_filename": "70_Sorashina-Sopia_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/70/scene.json",
+      "candidate_artifact": "artifacts/approved78/70/candidates.json"
+    },
+    {
+      "index": 71,
+      "reference_filename": "71_Achichi-Mela_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/71/scene.json",
+      "candidate_artifact": "artifacts/approved78/71/candidates.json"
+    },
+    {
+      "index": 72,
+      "reference_filename": "72_Hyakuto-Kyoko_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/72/scene.json",
+      "candidate_artifact": "artifacts/approved78/72/candidates.json"
+    },
+    {
+      "index": 73,
+      "reference_filename": "73_Suzuna-Tsuzuri_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/73/scene.json",
+      "candidate_artifact": "artifacts/approved78/73/candidates.json"
+    },
+    {
+      "index": 74,
+      "reference_filename": "74_Gawr-Gura_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/74/scene.json",
+      "candidate_artifact": "artifacts/approved78/74/candidates.json"
+    },
+    {
+      "index": 75,
+      "reference_filename": "75_Ceres-Fauna_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/75/scene.json",
+      "candidate_artifact": "artifacts/approved78/75/candidates.json"
+    },
+    {
+      "index": 76,
+      "reference_filename": "76_Nanashi-Mumei_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/76/scene.json",
+      "candidate_artifact": "artifacts/approved78/76/candidates.json"
+    },
+    {
+      "index": 77,
+      "reference_filename": "77_Tsukumo-Sana_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/77/scene.json",
+      "candidate_artifact": "artifacts/approved78/77/candidates.json"
+    },
+    {
+      "index": 78,
+      "reference_filename": "78_Murasaki-Shion_APPROVED_GEOMETRIC_REFERENCE_20260918.png",
+      "scene_artifact": "artifacts/approved78/78/scene.json",
+      "candidate_artifact": "artifacts/approved78/78/candidates.json"
+    }
+  ]
+}
+
