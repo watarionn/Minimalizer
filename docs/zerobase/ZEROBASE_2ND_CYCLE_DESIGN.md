@@ -50,7 +50,9 @@ preview.pngは同一caseでcanvas sizeとorientationを固定する。overlay系
 
 各Phaseは自身のpreviewを生成できなければCLOSEDにできない。データ構造だけ実装して画像化を後回しにすることは禁止する。
 
-Artifact Contract Foundation Phase 1では、この既存Stage Artifact Contractをrun/artifact単位のprovenanceへ形式化する共通schemaを追加した。`ArtifactOrigin`、SHA-bound parent refs、typed part absence、observed-only provenance gate、deterministic `run.json` / `artifacts.json` persistenceを提供する。既存Phase 3〜6およびproduction render pathにはまだ接続せず、visible outputは不変とする。詳細は `ARTIFACT_CONTRACT_FOUNDATION_PHASE1.md`。
+Artifact Contract Foundation Phase 1では、この既存Stage Artifact Contractをrun/artifact単位のprovenanceへ形式化する共通schemaを追加した。`ArtifactOrigin`、SHA-bound parent refs、typed part absence、observed-only provenance gate、deterministic `run.json` / `artifacts.json` persistenceを提供する。詳細は `ARTIFACT_CONTRACT_FOUNDATION_PHASE1.md`。
+
+Stage Contract Bridge Phase 2では、既存Phase 3〜6の`stage.json`と実ファイルSHAをread-onlyで再検証し、共通ArtifactRecord DAGへ変換するadapterを追加した。source本体SHA/寸法、config SHA、upstream input SHA、declared output SHAをfail-closedで照合し、`artifacts/zerobase2/<case_id>/artifact_contract/`へ`run.json`、`artifacts.json`、`provenance_gate.json`を出力する。Phase 3〜6のartifact bytesとvisible outputは変更しない。詳細は `STAGE_CONTRACT_BRIDGE_PHASE2.md`。
 
 ## 4. Phase Map
 

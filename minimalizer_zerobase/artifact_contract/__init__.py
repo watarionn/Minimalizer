@@ -14,12 +14,19 @@ from .policy import (
     ProvenanceViolation,
 )
 from .persistence import ContractBundleWriteResult, write_contract_bundle
+from .bridge import (
+    BRIDGE_VERSION,
+    StageContractBridgeError,
+    StageContractBridgeResult,
+    bridge_stage_contracts,
+)
 
 __all__ = (
     "ArtifactManifest",
     "ArtifactOrigin",
     "ArtifactParentRef",
     "ArtifactRecord",
+    "BRIDGE_VERSION",
     "ContractBundleWriteResult",
     "PartState",
     "ProvenanceGateResult",
@@ -28,5 +35,8 @@ __all__ = (
     "RunManifest",
     "RunPolicy",
     "SemanticPartState",
+    "StageContractBridgeError",
+    "StageContractBridgeResult",
+    "bridge_stage_contracts",
     "write_contract_bundle",
 )
