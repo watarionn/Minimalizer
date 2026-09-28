@@ -74,7 +74,7 @@ PASS: 同一入力・同一configからcanonical JSONが完全一致し、schema
 
 PASS: analyzerがground truth扱いされず、image bytesを最終renderへ直接流用せず、provenanceが欠落しないこと。
 
-### Phase 3. Canonical Subject Extraction [REDESIGN]
+### Phase 3. Canonical Subject Extraction [CLOSED / PASS]
 
 目的: 背景とsubjectを分離し、人物本体のcanonical mask、bbox、center、scaleを確定する。
 
@@ -87,6 +87,8 @@ PASS: analyzerがground truth扱いされず、image bytesを最終renderへ直�
 PASS: Kyoko/Radenで髪・腕・持ち物を含む主体輪郭が大きく欠落せず、背景がsubjectへ大量混入しないこと。
 
 失敗時の戻り先: Phase 2 Evidence fusion。下流でmaskを補正しない。
+
+Closure: Diagnostic-2のKyoko/Radenでalphaが約99.68%全面不透明であることを検出し、non-informative alphaを棄却してrembg isnet-animeへ切替。`03_subject_mask.png` / `03_subject_overlay.png` を生成しVisual QA PASS。mask/overlayは再実行SHA一致。Phase 3 tests 4 passed、ZeroBase suite 71 passed。詳細は `PHASE3_2ND_CYCLE_CANONICAL_SUBJECT.md`。
 
 ### Phase 4. Semantic Part Decomposition [NEW CORE]
 

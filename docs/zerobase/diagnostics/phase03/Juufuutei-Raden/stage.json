@@ -1,0 +1,49 @@
+{
+  "config": {
+    "alpha_policy": "use_only_when_foreground_ratio_is_informative",
+    "fallback_model": "isnet-anime",
+    "fallback_provider": "rembg",
+    "mask_threshold": 0.5,
+    "max_alpha_foreground_ratio": 0.97,
+    "minimum_component_area_ratio": 0.0002
+  },
+  "config_sha256": "0984eed6a1967847a60b32365c193ab75c6014ebafab6211b4a2424f4996c05e",
+  "metadata": {
+    "alpha_foreground_ratio": 0.9968166089965398,
+    "alpha_informative": false,
+    "alpha_present": true,
+    "bbox_xywh": [
+      0,
+      18,
+      340,
+      322
+    ],
+    "evidence_provenance": {
+      "model_id": "isnet-anime",
+      "model_version": null,
+      "producer": "rembg",
+      "producer_version": "2.0.84"
+    },
+    "evidence_source": "rembg",
+    "foreground_ratio": 0.6008131487889273,
+    "height": 340,
+    "mask_threshold": 0.5,
+    "width": 340
+  },
+  "outputs": {
+    "03_subject_mask.png": "33f0b665a89ad9cf279813dad43eb77008d63d1e1a93cc5d1fe06072433dbc0a",
+    "03_subject_overlay.png": "84077f5ddce8fef683c383f8999448873dd0e3977e0b791df6b8d2619dfa975a",
+    "metrics.json": "606d437abcf84abdd9c4d008d3dbc82fd2c39dc4f44146caefc1108c5970637f",
+    "preview.png": "84077f5ddce8fef683c383f8999448873dd0e3977e0b791df6b8d2619dfa975a"
+  },
+  "phase": 3,
+  "producer": "minimalizer-zerobase2-phase3",
+  "producer_version": "1.0",
+  "source": {
+    "height": 340,
+    "path": "Juufuutei-Raden_list_thumb.png",
+    "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "width": 340
+  },
+  "stage": "canonical_subject_extraction"
+}

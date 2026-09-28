@@ -1,0 +1,13 @@
+{
+  "alpha_foreground_ratio": 0.9968166089965398,
+  "alpha_informative": false,
+  "alpha_present": true,
+  "bbox_xywh": [
+    0,
+    0,
+    323,
+    340
+  ],
+  "evidence_source": "rembg",
+  "foreground_ratio": 0.4710207612456747
+}

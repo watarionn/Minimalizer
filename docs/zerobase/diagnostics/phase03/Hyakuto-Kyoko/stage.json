@@ -1,0 +1,49 @@
+{
+  "config": {
+    "alpha_policy": "use_only_when_foreground_ratio_is_informative",
+    "fallback_model": "isnet-anime",
+    "fallback_provider": "rembg",
+    "mask_threshold": 0.5,
+    "max_alpha_foreground_ratio": 0.97,
+    "minimum_component_area_ratio": 0.0002
+  },
+  "config_sha256": "0984eed6a1967847a60b32365c193ab75c6014ebafab6211b4a2424f4996c05e",
+  "metadata": {
+    "alpha_foreground_ratio": 0.9968166089965398,
+    "alpha_informative": false,
+    "alpha_present": true,
+    "bbox_xywh": [
+      0,
+      0,
+      323,
+      340
+    ],
+    "evidence_provenance": {
+      "model_id": "isnet-anime",
+      "model_version": null,
+      "producer": "rembg",
+      "producer_version": "2.0.84"
+    },
+    "evidence_source": "rembg",
+    "foreground_ratio": 0.4710207612456747,
+    "height": 340,
+    "mask_threshold": 0.5,
+    "width": 340
+  },
+  "outputs": {
+    "03_subject_mask.png": "cfb27caa99ea651cfff8d0bfb161c808ab40485bc6d64c409952e9520ef03cc6",
+    "03_subject_overlay.png": "54597466554ff894f7e3c7942940220bf1d1c661e358d9c847d7bc53f6b2615e",
+    "metrics.json": "ae46a12ce7a860492167fdaf4808f1b8caa8d21e6f0dbeaf211153ab0eba8514",
+    "preview.png": "54597466554ff894f7e3c7942940220bf1d1c661e358d9c847d7bc53f6b2615e"
+  },
+  "phase": 3,
+  "producer": "minimalizer-zerobase2-phase3",
+  "producer_version": "1.0",
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "canonical_subject_extraction"
+}
