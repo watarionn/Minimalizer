@@ -122,7 +122,7 @@ PASS: 人物の主要骨格関係がgraphとして成立し、孤立major part�
 
 Closure: Phase 4のpart maskをSHA照合付きread-only入力として、centroid/nearest-boundary anchor、attachment/spatial/containment/overlap/surrounding relationと、Evidenceが十分な箇所のみfront-behind relationを構築した。Diagnostic-2はいずれも10 parts / 24 anchors / 15 relations、孤立major part 0、arm/accessory attachment欠落0、core relation欠落0、front/behind cycle 0。Radenのheld-linear accessoryはvisual QAでdistance-onlyのhead attachmentを棄却し、Phase 4 accessory evidenceに基づいてright armへ接続した。whole-hair/face depthの断定もvisual reviewで撤回し、front hair/rear hairへ分割されるまで未確定とした。Kyoko/Radenともcanonical source上でoverlayを再生成し、mandatory artifactsは再実行SHA一致、focused 8 passed、ZeroBase 85 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。詳細は `PHASE5_2ND_CYCLE_STRUCTURAL_LAYOUT_GRAPH.md`。
 
-### Phase 6. Region-to-Part Binding [REDESIGN]
+### Phase 6. Region-to-Part Binding [CLOSED / PASS]
 
 目的: superpixel/regionをsemantic partへ帰属させ、色が似ているだけの背景・別部位統合を防ぐ。
 
@@ -135,6 +135,8 @@ Closure: Phase 4のpart maskをSHA照合付きread-only入力として、centroi
 PASS: 顔色regionが背景へ、髪色regionが服へ等のcross-part誤結合がmajor areaで発生しないこと。
 
 失敗時の戻り先: Phase 4〜5。
+
+Revision 1.1: 初回独立レビューで、semantic-boundary split後の100% fragment overlapがPhase 4 display ownerを実質truth化していたためHOLDとなった。修正版はparent SLICのpre-split overlap/margin/ambiguityをchildへ継承し、parent ambiguousまたはparent winner不一致の場合はPhase 5 graph supportとboundary/geometry corroborationを必須とする。source colorは非権威的score supportに限定し、canonical pathでもunboundを保持する。Diagnostic-2はKyoko 446 bound / 30 unbound、Raden 296 bound / 38 unbound、hair/clothing forced binding 0、display-priority-only binding 0。Raden held-linear accessoryは3 regionを保持。focused 13 passed、ZeroBase 98 passed、deterministic 14/14 SHA match、local merge readiness PASS。Rinka独立再レビューでcode/tests/Diagnostic-2実画像/deterministic rerun/merge-readinessを再確認しCLOSED / PASS。Phase 7はcanonical merge後に開始する。
 
 ### Phase 7. Major Mass Reconstruction [REDESIGN]
 
