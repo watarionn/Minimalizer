@@ -550,23 +550,6 @@
         "target_part": "head"
       },
       {
-        "confidence": 0.769997,
-        "evidence_refs": [
-          "phase04:part_masks/hair.png",
-          "phase04:part_masks/face.png",
-          "phase04:display-priority/face-over-hair"
-        ],
-        "measurements": {
-          "surround_score": 0.939021
-        },
-        "relation_id": "relation:hair:behind:face",
-        "relation_kind": "behind",
-        "source_anchor_id": "anchor:hair:centroid",
-        "source_part": "hair",
-        "target_anchor_id": "anchor:face:centroid",
-        "target_part": "face"
-      },
-      {
         "confidence": 0.531412,
         "evidence_refs": [
           "phase04:part_masks/hair.png",
@@ -776,6 +759,7 @@
       "isolated_major_parts": [],
       "missing_accessory_attachment": false,
       "missing_arm_attachments": [],
+      "missing_core_relations": [],
       "occlusion_cycle_count": 0,
       "pass": true
     }
@@ -807,6 +791,7 @@
     "isolated_major_parts": [],
     "missing_accessory_attachment": false,
     "missing_arm_attachments": [],
+    "missing_core_relations": [],
     "occlusion_cycle_count": 0,
     "part_count": 10,
     "pass": true,
@@ -822,11 +807,10 @@
       "major_clothing",
       "accessory_or_held_object"
     ],
-    "relation_count": 16,
+    "relation_count": 15,
     "relation_counts": {
       "above": 1,
       "attached_to": 7,
-      "behind": 1,
       "in_front_of": 2,
       "inside": 1,
       "left_of": 1,
@@ -836,10 +820,10 @@
     }
   },
   "outputs": {
-    "05_structure_graph.json": "c6b76f299e0df8a8835d87c39e0fb9c6a6345498276f5b48324a03242e4f3962",
-    "05_structure_graph_overlay.png": "318e17e977a16935d29c53705c0812239959be44a661d9075d5780f7af15a17a",
-    "metrics.json": "1f7301d66cad3c79afa206999c8f97501554b88d3b4100fa09044cce2796c8e1",
-    "preview.png": "318e17e977a16935d29c53705c0812239959be44a661d9075d5780f7af15a17a"
+    "05_structure_graph.json": "2fd327b826ad4838bcbaac25ea1e412fe641872b7d6267659c9c36cbffa63efe",
+    "05_structure_graph_overlay.png": "47fb717755be9efa8231112495679dc55982eb4d1db9f8e2eb888d0a6c766ddb",
+    "metrics.json": "a7f7c357710d48acd798b1dc738ca77dc0c04dcdc4f6afd1f74b7c3f7e37d5ea",
+    "preview.png": "47fb717755be9efa8231112495679dc55982eb4d1db9f8e2eb888d0a6c766ddb"
   },
   "phase": 5,
   "producer": "minimalizer-zerobase2-phase5",

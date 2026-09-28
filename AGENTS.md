@@ -98,7 +98,7 @@ alpha、rembg、RTMLib、MediaPipe、segmentation、pose、edge、color heuristi
 
 Phase 4の確定仕様にはRTMLib WholeBody 133点保持、face68、source-color fallback、optional MediaPipe hair guardが含まれる。これらを旧設計へ戻してはならない。
 
-Phase 5の確定仕様はPhase 4 maskをSHA照合付きread-only入力として扱い、anchor、attachment/spatial/containment/overlap/surrounding/front-behind relationを構築する。Radenの`held-linear` accessoryはarm candidateを優先する。Phase 5でmaskを描き換えて関係失敗を隠してはならない。
+Phase 5の確定仕様はPhase 4 maskをSHA照合付きread-only入力として扱い、anchor、attachment/spatial/containment/overlap/surrounding relationと、十分なEvidenceがある場合のみfront-behind relationを構築する。髪全体と顔の前後は、前髪/後髪massへ分割されるまでは未確定のまま保持する。Radenの`held-linear` accessoryはarm candidateを優先する。Phase 5でmaskを描き換えて関係失敗を隠してはならない。
 
 ## 5. Stage-visibleは必須
 

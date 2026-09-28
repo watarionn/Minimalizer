@@ -97,8 +97,10 @@ part間の関係を明示する。
 - hair around head / overlaps face
 - left/right arm attached to torso
 - accessory attached to head/torso/hand candidate
-- front / behind
+- front / behind when supported by evidence
 - contains / adjacent / attached
+
+重要: 髪全体と顔の前後をPhase 4 display priorityだけで断定しない。前髪/後髪massへ分割されるまではhair/face depthは未確定を許容する。
 
 Output:
 
@@ -118,7 +120,9 @@ PASS:
 
 - major partが孤立しない
 - attachmentが人物構造として妥当
+- face-inside-head、neck-face、neck-torso、lower-body-torso等のcore relationが欠落しない
 - front/behindに循環がない
+- unsupportedなfront/behind relationを無理に作らない
 - Kyoko/Radenを元画像上のoverlayで人間が読める
 
 FAILならPhase 4へ戻る。Phase 5でpart maskを描き直してPhase 4失敗を隠さない。

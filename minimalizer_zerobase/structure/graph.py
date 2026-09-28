@@ -242,6 +242,22 @@ def graph_validation(graph: StructuralLayoutGraph) -> dict:
     for relation in graph.relations:
         connected.setdefault(relation.source_part, set()).add(relation.target_part)
         connected.setdefault(relation.target_part, set()).add(relation.source_part)
+
+    def has_relation(
+        source: str,
+        kind: str,
+        target: str,
+        *,
+        minimum_confidence: float = 0.0,
+    ) -> bool:
+        return any(
+            relation.source_part == source
+            and relation.target_part == target
+            and relation.relation_kind == kind
+            and relation.confidence > minimum_confidence
+            for relation in graph.relations
+        )
+
     isolated = [
         part
         for part in MAJOR_PARTS
@@ -251,31 +267,60 @@ def graph_validation(graph: StructuralLayoutGraph) -> dict:
         arm
         for arm in ("left_arm", "right_arm")
         if arm in connected
-        and not any(
-            relation.source_part == arm
-            and relation.target_part == "torso"
-            and relation.relation_kind == "attached_to"
-            for relation in graph.relations
-        )
+        and not has_relation(arm, "attached_to", "torso")
     ]
     missing_accessory_attachment = (
         "accessory_or_held_object" in connected
         and not any(
             relation.source_part == "accessory_or_held_object"
             and relation.relation_kind == "attached_to"
+            and relation.confidence > 0.0
             for relation in graph.relations
         )
     )
+
+    missing_core_relations: list[str] = []
+    present = set(graph.present_parts)
+    required_relations = (
+        ("head", "above", "torso", "head-above-torso"),
+        ("face", "inside", "head", "face-inside-head"),
+        ("neck", "attached_to", "face", "neck-attached-to-face"),
+        ("neck", "attached_to", "torso", "neck-attached-to-torso"),
+        ("lower_body", "attached_to", "torso", "lower-body-attached-to-torso"),
+    )
+    for source, kind, target, label in required_relations:
+        if source in present and target in present and not has_relation(
+            source,
+            kind,
+            target,
+        ):
+            missing_core_relations.append(label)
+
+    if "hair" in present:
+        hair_supported = any(
+            (
+                relation.source_part == "hair"
+                and relation.target_part in {"head", "face"}
+                and relation.relation_kind in {"overlaps", "surrounds"}
+                and relation.confidence > 0.0
+            )
+            for relation in graph.relations
+        )
+        if not hair_supported:
+            missing_core_relations.append("hair-related-to-head-or-face")
+
     occlusion_cycle = _has_directed_cycle(_occlusion_edges(graph.relations))
     return {
         "isolated_major_parts": isolated,
         "missing_arm_attachments": missing_arm_attachments,
         "missing_accessory_attachment": missing_accessory_attachment,
+        "missing_core_relations": missing_core_relations,
         "occlusion_cycle_count": 1 if occlusion_cycle else 0,
         "pass": (
             not isolated
             and not missing_arm_attachments
             and not missing_accessory_attachment
+            and not missing_core_relations
             and not occlusion_cycle
         ),
     }
@@ -464,18 +509,11 @@ def build_structural_layout_graph(
                 (_mask_ref("hair"), _mask_ref("face"), "derived:face-neighborhood"),
                 measurements={"surround_score": surround_score},
             )
-            add_relation(
-                "hair",
-                "face",
-                "behind",
-                min(0.82, surround_score * 0.82),
-                (
-                    _mask_ref("hair"),
-                    _mask_ref("face"),
-                    "phase04:display-priority/face-over-hair",
-                ),
-                measurements={"surround_score": surround_score},
-            )
+            # Do not infer front/behind for the whole hair mask here.
+            # Bangs and rear hair can legitimately occupy opposite depth roles.
+            # Phase 5 keeps only the supported surrounds/overlap topology and
+            # leaves hair/face occlusion unresolved until later semantic masses
+            # provide enough evidence.
 
     add_attachment(
         "neck",

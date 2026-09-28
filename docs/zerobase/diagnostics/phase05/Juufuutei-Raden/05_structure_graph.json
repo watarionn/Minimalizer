@@ -524,23 +524,6 @@
       "target_part": "head"
     },
     {
-      "confidence": 0.769997,
-      "evidence_refs": [
-        "phase04:part_masks/hair.png",
-        "phase04:part_masks/face.png",
-        "phase04:display-priority/face-over-hair"
-      ],
-      "measurements": {
-        "surround_score": 0.939021
-      },
-      "relation_id": "relation:hair:behind:face",
-      "relation_kind": "behind",
-      "source_anchor_id": "anchor:hair:centroid",
-      "source_part": "hair",
-      "target_anchor_id": "anchor:face:centroid",
-      "target_part": "face"
-    },
-    {
       "confidence": 0.531412,
       "evidence_refs": [
         "phase04:part_masks/hair.png",
@@ -750,6 +733,7 @@
     "isolated_major_parts": [],
     "missing_accessory_attachment": false,
     "missing_arm_attachments": [],
+    "missing_core_relations": [],
     "occlusion_cycle_count": 0,
     "pass": true
   }

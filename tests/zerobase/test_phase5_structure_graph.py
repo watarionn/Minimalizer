@@ -8,7 +8,11 @@ from PIL import Image, ImageDraw
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.artifacts import write_phase5_artifacts
-from minimalizer_zerobase.structure.graph import build_structural_layout_graph
+from minimalizer_zerobase.structure.graph import (
+    StructuralLayoutGraph,
+    build_structural_layout_graph,
+    graph_validation,
+)
 from minimalizer_zerobase.subject.artifacts import sha256_file
 
 
@@ -20,7 +24,7 @@ def _synthetic_masks() -> dict[str, np.ndarray]:
     masks["hair"][12:29, 38:82] = True
     masks["hair"][29:58, 38:48] = True
     masks["hair"][29:58, 72:82] = True
-    masks["neck"][58:68, 54:66] = True
+    masks["neck"][52:68, 54:66] = True
     masks["torso"][68:126, 38:82] = True
     masks["left_arm"][72:124, 82:103] = True
     masks["right_arm"][72:124, 17:38] = True
@@ -188,3 +192,36 @@ def test_missing_or_mismatched_phase4_masks_fail_local():
         assert "share one shape" in str(exc)
     else:
         raise AssertionError("mismatched Phase 4 mask must fail")
+
+
+def test_hair_face_depth_is_left_unresolved_for_whole_hair_mask():
+    graph = build_structural_layout_graph(_synthetic_masks())
+    relations = _relation_keys(graph)
+
+    assert ("hair", "surrounds", "face") in relations
+    assert ("hair", "behind", "face") not in relations
+    assert ("hair", "in_front_of", "face") not in relations
+
+
+def test_missing_face_inside_head_is_a_core_gate_failure():
+    graph = build_structural_layout_graph(_synthetic_masks())
+    filtered = tuple(
+        relation
+        for relation in graph.relations
+        if not (
+            relation.source_part == "face"
+            and relation.relation_kind == "inside"
+            and relation.target_part == "head"
+        )
+    )
+    broken = StructuralLayoutGraph(
+        width=graph.width,
+        height=graph.height,
+        present_parts=graph.present_parts,
+        anchors=graph.anchors,
+        relations=filtered,
+    )
+
+    validation = graph_validation(broken)
+    assert "face-inside-head" in validation["missing_core_relations"]
+    assert validation["pass"] is False

@@ -3,6 +3,7 @@
   "isolated_major_parts": [],
   "missing_accessory_attachment": false,
   "missing_arm_attachments": [],
+  "missing_core_relations": [],
   "occlusion_cycle_count": 0,
   "part_count": 10,
   "pass": true,
@@ -18,11 +19,10 @@
     "major_clothing",
     "accessory_or_held_object"
   ],
-  "relation_count": 16,
+  "relation_count": 15,
   "relation_counts": {
     "above": 1,
     "attached_to": 7,
-    "behind": 1,
     "in_front_of": 2,
     "inside": 1,
     "left_of": 1,

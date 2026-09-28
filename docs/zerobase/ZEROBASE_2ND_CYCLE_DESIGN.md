@@ -120,7 +120,7 @@ PASS: 人物の主要骨格関係がgraphとして成立し、孤立major part�
 
 失敗時の戻り先: Phase 4。
 
-Closure: Phase 4のpart maskをSHA照合付きread-only入力として、centroid/nearest-boundary anchor、attachment/spatial/containment/overlap/surrounding/front-behind relationを構築した。Diagnostic-2はいずれも10 parts / 24 anchors / 16 relations、孤立major part 0、arm/accessory attachment欠落0、front/behind cycle 0。Radenのheld-linear accessoryはvisual QAでdistance-onlyのhead attachmentを棄却し、Phase 4 accessory evidenceに基づいてright armへ接続した。mandatory artifactsは再実行SHA一致、focused 6 passed、ZeroBase 83 passed。詳細は `PHASE5_2ND_CYCLE_STRUCTURAL_LAYOUT_GRAPH.md`。
+Closure: Phase 4のpart maskをSHA照合付きread-only入力として、centroid/nearest-boundary anchor、attachment/spatial/containment/overlap/surrounding relationと、Evidenceが十分な箇所のみfront-behind relationを構築した。Diagnostic-2はいずれも10 parts / 24 anchors / 15 relations、孤立major part 0、arm/accessory attachment欠落0、core relation欠落0、front/behind cycle 0。Radenのheld-linear accessoryはvisual QAでdistance-onlyのhead attachmentを棄却し、Phase 4 accessory evidenceに基づいてright armへ接続した。whole-hair/face depthの断定もvisual reviewで撤回し、front hair/rear hairへ分割されるまで未確定とした。Kyoko/Radenともcanonical source上でoverlayを再生成し、mandatory artifactsは再実行SHA一致、focused 8 passed、ZeroBase 85 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。詳細は `PHASE5_2ND_CYCLE_STRUCTURAL_LAYOUT_GRAPH.md`。
 
 ### Phase 6. Region-to-Part Binding [REDESIGN]
 
