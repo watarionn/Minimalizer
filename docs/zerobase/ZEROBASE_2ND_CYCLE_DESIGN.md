@@ -142,7 +142,7 @@ PASS: 顔色regionが背景へ、髪色regionが服へ等のcross-part誤結合�
 
 Revision 1.1: 初回独立レビューで、semantic-boundary split後の100% fragment overlapがPhase 4 display ownerを実質truth化していたためHOLDとなった。修正版はparent SLICのpre-split overlap/margin/ambiguityをchildへ継承し、parent ambiguousまたはparent winner不一致の場合はPhase 5 graph supportとboundary/geometry corroborationを必須とする。source colorは非権威的score supportに限定し、canonical pathでもunboundを保持する。Diagnostic-2はKyoko 446 bound / 30 unbound、Raden 296 bound / 38 unbound、hair/clothing forced binding 0、display-priority-only binding 0。Raden held-linear accessoryは3 regionを保持。focused 13 passed、ZeroBase 98 passed、deterministic 14/14 SHA match、local merge readiness PASS。Rinka独立再レビューでcode/tests/Diagnostic-2実画像/deterministic rerun/merge-readinessを再確認しCLOSED / PASS。Phase 7はcanonical merge後に開始する。
 
-### Phase 7. Major Mass Reconstruction [REDESIGN]
+### Phase 7. Major Mass Reconstruction [CLOSED / PASS]
 
 目的: 細かいregionを意味を保ったmajor massへ統合する。
 
@@ -155,6 +155,8 @@ Revision 1.1: 初回独立レビューで、semantic-boundary split後の100% fr
 PASS: この段階の塗りつぶしだけで人物のポーズと主要特徴が読めること。ここで人物性が読めなければPhase 8以降へ進めない。
 
 失敗時の戻り先: Phase 6。
+
+Closure: Phase 6のbound regionをsame-part adjacency connected componentとしてmajor massへ統合し、cross-part mergeとunbound absorptionはv1で明示禁止した。`07_masses.json` / `07_mass_labels.png` / `07_mass_silhouette.png` / `07_mass_blocks.png` / `07_mass_outline_overlay.png`を生成し、Diagnostic-2はKyoko 476→201 masses、Raden 334→93 masses、両caseともsubject pixel coverage 1.0、cross-part merge 0、unbound absorption 0。塗りつぶしmassだけで主要ポーズ・頭髪・顔位置・胴体/腕・Kyokoの緑タイ・Radenのロッド/長髪が読めることをvisual QAで確認した。既存unboundはmagentaのまま保持し下流で修復しない。Phase 7を含むprovenance bridgeは各case 42 artifactsでPASS、最終rerunは8/8 + 8/8 SHA一致。focused 34 passed、ZeroBase 132 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE7_2ND_CYCLE_MAJOR_MASS.md`。
 
 ### Phase 8. Importance / Omission Policy [REDESIGN]
 

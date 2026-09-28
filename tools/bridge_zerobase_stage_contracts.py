@@ -14,11 +14,12 @@ from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Bridge ZeroBase Phase 3-6 stage contracts into the common artifact graph."
+        description="Bridge ZeroBase Phase 3-6/7 stage contracts into the common artifact graph."
     )
     parser.add_argument("--case-dir", required=True, type=Path)
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--max-phase", type=int, choices=(6, 7), default=6)
     return parser.parse_args()
 
 
@@ -28,6 +29,7 @@ def main() -> int:
         args.case_dir,
         args.source,
         output_dir=args.output_dir,
+        max_phase=args.max_phase,
     )
     payload = {
         "run_id": result.run_manifest.run_id,

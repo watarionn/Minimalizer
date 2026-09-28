@@ -154,3 +154,16 @@ No generated, inpainted, or hidden-region-completed pixels are introduced.
 Phase 7 Major Mass artifacts can now be attached to a verified Phase 3-6 provenance chain instead of starting a new unbound lineage.
 
 The next integration should extend the common bridge contract to Phase 7 outputs without changing the Phase 7 mass algorithm itself.
+
+
+## Subsequent Phase 7 extension
+
+Phase 7 closure extended the same bridge without changing the Phase 3-6 default contract.
+
+- default `max_phase=6` remains backward compatible
+- `max_phase=7` verifies and appends `phase_07/stage.json` and declared outputs
+- Phase 7 semantic mass JSON is typed as `semantic-mass-data`
+- Phase 7 mass labels, silhouette, preview, and diagnostic images remain non-final analytical artifacts
+- the common observed-only `ProvenancePolicyGate` remains unchanged
+
+See `PHASE7_2ND_CYCLE_MAJOR_MASS.md` for the Phase 7 closure evidence.

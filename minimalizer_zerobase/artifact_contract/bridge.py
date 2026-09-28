@@ -19,7 +19,7 @@ from .contracts import (
 from .persistence import ContractBundleWriteResult, write_contract_bundle
 from .policy import ProvenanceGateResult, ProvenancePolicyGate
 
-SUPPORTED_PHASES = (3, 4, 5, 6)
+SUPPORTED_PHASES = (3, 4, 5, 6, 7)
 BRIDGE_VERSION = "stage-contract-bridge-v1"
 
 
@@ -198,6 +198,14 @@ def _output_type(relative_path: str) -> str:
         return "stage-metrics"
     if name == "preview.png":
         return "stage-preview"
+    if "masses" in name and name.endswith(".json"):
+        return "semantic-mass-data"
+    if "mass_labels" in name:
+        return "mass-label-map"
+    if "mass_blocks" in name:
+        return "mass-preview"
+    if "mass_silhouette" in name:
+        return "mass-silhouette"
     if "mask" in name:
         return "analysis-mask"
     if "overlay" in name:
@@ -408,6 +416,7 @@ def bridge_stage_contracts(
     source_path: str | Path,
     *,
     output_dir: str | Path | None = None,
+    max_phase: int = 6,
 ) -> StageContractBridgeResult:
     case_dir = Path(case_dir)
     source_path = Path(source_path)
@@ -416,9 +425,16 @@ def bridge_stage_contracts(
             f"case directory does not exist: {case_dir}"
         )
 
+    if max_phase not in SUPPORTED_PHASES or max_phase < 6:
+        raise StageContractBridgeError(
+            f"unsupported max_phase={max_phase}; expected 6 or 7"
+        )
+    selected_phases = tuple(
+        phase for phase in SUPPORTED_PHASES if phase <= max_phase
+    )
     loaded: dict[int, tuple[Path, dict[str, Any]]] = {
         phase: _load_stage(case_dir, phase)
-        for phase in SUPPORTED_PHASES
+        for phase in selected_phases
     }
     stages = {phase: stage for phase, (_, stage) in loaded.items()}
     source_contract = _validate_source_contract(stages, source_path)
@@ -445,7 +461,7 @@ def bridge_stage_contracts(
     stage_records: list[ArtifactRecord] = []
     phase_config_shas: dict[str, str] = {}
 
-    for phase in SUPPORTED_PHASES:
+    for phase in selected_phases:
         phase_dir, stage = loaded[phase]
         parent_refs = _resolve_stage_inputs(
             phase,
@@ -470,7 +486,7 @@ def bridge_stage_contracts(
         phase_config_shas[f"phase{phase:02d}"] = stage["config_sha256"]
 
     run_manifest = RunManifest(
-        run_id=f"{case_dir.name}:phase03-06",
+        run_id=f"{case_dir.name}:phase03-{max_phase:02d}",
         source_path=str(source_contract["path"]),
         source_sha256=source_record.sha256,
         source_width=int(source_contract["width"]),

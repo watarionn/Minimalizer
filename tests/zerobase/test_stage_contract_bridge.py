@@ -316,3 +316,77 @@ def test_bridge_rejects_unsafe_declared_output_path(
         match="unsafe stage artifact path",
     ):
         bridge_stage_contracts(case_dir, source_path)
+
+
+def _add_phase7(case_dir: Path, source_path: Path) -> None:
+    phase6 = case_dir / "phase_06"
+    phase7 = case_dir / "phase_07"
+    phase7.mkdir()
+    source = _load_stage(case_dir, 6)["source"]
+    binding_sha = _sha256_file(phase6 / "06_region_bindings.json")
+    stage6_sha = _sha256_file(phase6 / "stage.json")
+    masses_sha = _write_output(
+        phase7 / "07_masses.json",
+        b'{"masses":"ok"}\n',
+    )
+    labels_sha = _write_output(
+        phase7 / "07_mass_labels.png",
+        b"phase7-labels",
+    )
+    stage7 = _base_stage(
+        phase=7,
+        stage_name="major_mass_reconstruction",
+        source=source,
+        config={"minimum_shared_boundary_pixels": 1},
+        inputs={
+            "phase6": {
+                "06_region_bindings.json": binding_sha,
+                "stage.json": stage6_sha,
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "07_masses.json": masses_sha,
+            "07_mass_labels.png": labels_sha,
+        },
+    )
+    _write_stage(phase7 / "stage.json", stage7)
+
+
+def test_bridge_can_extend_verified_chain_through_phase7(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase7",
+        max_phase=7,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-07"
+    assert len(result.run_manifest.stage_manifest_refs) == 5
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    masses = by_id["phase07:07_masses.json"]
+    assert masses.artifact_type == "semantic-mass-data"
+    assert {parent.artifact_id for parent in masses.parents} == {
+        "phase06:06_region_bindings.json",
+        "phase06:stage.json",
+        "source",
+    }
+
+
+def test_bridge_phase7_fails_closed_when_phase7_stage_is_missing(
+    tmp_path: Path,
+) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    with pytest.raises(StageContractBridgeError, match="missing Phase 7"):
+        bridge_stage_contracts(
+            case_dir,
+            source_path,
+            max_phase=7,
+        )
