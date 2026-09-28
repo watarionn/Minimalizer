@@ -14,7 +14,7 @@ Status: DESIGN v1 / implementation-ready
 
 ### Step 0. Production Safety Rollback（工程外・最優先） [CLOSED]
 
-Status: CLOSED。本番標準ルートをMinimalizer 2.0へ復帰済み。標準ブラウザ経路は `/api/v2/minimalize`、`?localWorker=1` はLocal Workerの `/api/v2/minimalize` を試行する。ZeroBase専用 `/api/zerobase/minimalize` は開発・比較用として保持する。main SHA `d0a88ccf45704ebbf0a98bf639e4a699aaf5f94d`、Railway production deployment `092d34c3-7807-4bcf-9ced-b74306c74d7e`。focused web/cutover tests 31 passed、production health PASS、Kyoko production V2 smoke HTTP 200 / 40 shapes。2nd CycleがPhase 15をPASSするまでZeroBaseを標準ルートへ再切替しない。
+Status: CLOSED。本番標準ルートをMinimalizer 2.0へ復帰済み。標準ブラウザ経路は `/api/v2/minimalize`、`?localWorker=1` はLocal Workerの `/api/v2/minimalize` を試行する。ZeroBase専用 `/api/zerobase/minimalize` は開発・比較用として保持する。production rollback code SHA `d0a88ccf45704ebbf0a98bf639e4a699aaf5f94d`、Railway production deployment `092d34c3-7807-4bcf-9ced-b74306c74d7e`。focused web/cutover tests 31 passed、production health PASS、Kyoko production V2 smoke HTTP 200 / 40 shapes。2nd CycleがPhase 15をPASSするまでZeroBaseを標準ルートへ再切替しない。
 
 ## 1. 設計原則
 
