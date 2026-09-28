@@ -36,14 +36,14 @@
     "part_coverage": {
       "accessory_or_held_object": 0.0033115443314999855,
       "face": 0.03025023756731074,
-      "hair": 0.30090419558268783,
+      "hair": 0.2908255823998618,
       "head": 0.20914562156247302,
-      "left_arm": 0.1460966970944798,
+      "left_arm": 0.15001295821694935,
       "lower_body": 0.025873239842197714,
-      "major_clothing": 0.03644138566533245,
+      "major_clothing": 0.03796757566158897,
       "neck": 0.0008350850922913007,
       "right_arm": 0.1442249546462407,
-      "torso": 0.2959800731419357,
+      "torso": 0.30061623520603564,
       "unknown": 0.016082587036023843
     },
     "parts_detected": [
@@ -62,21 +62,21 @@
     "unknown_ratio": 0.016082587036023843
   },
   "outputs": {
-    "04_part_map.png": "127b411384e0a737678e7c2d14c0d8671cb05322bcb7b65aa15a12112681e310",
-    "04_part_overlay.png": "6f10974dda3b50f46f694d2b38bfe65e36e07fdf8500c49f85a93c6430bbde19",
-    "metrics.json": "4e339991058cf1f20254bf276d17acad5767c2586e24350ac822990286d66875",
+    "04_part_map.png": "dda6e51e4f854f5f955ada8b7b19eadf40d02051c06f7fdef952ecf09013838d",
+    "04_part_overlay.png": "8ece94edb2b87d4ddf29a74dd76cf25893846048bc44569066974f3523036ff7",
+    "metrics.json": "dc4f2f7226c90dcfc462bdeb600a8dc3c2e4f400e2a4ed6459f659043bbc4246",
     "part_masks/accessory_or_held_object.png": "76eeea8c83b3b6f771aa08cf87833561e137d8ce5d3f6d9c11b20d9f037aaf55",
     "part_masks/face.png": "59c48f40e36036bea39e013531640504446a75d253d999b015d967ee31ba0286",
-    "part_masks/hair.png": "d1f158d007dbdf2746bb769d3fed4faa355e60c6e70259761a198aa29b36dc5b",
+    "part_masks/hair.png": "388e8ccda26a9333f79edb41a5a54e3d488e13201e747b7f2ad15073f249d782",
     "part_masks/head.png": "539c8f4aa67e20907095a4a661518607a65e04936b533cc033a29a1d60877f99",
-    "part_masks/left_arm.png": "6d500a52dde679b91a1a5e5de38673336b3dd0d812c1fa6b2b96d91f964cb0f1",
+    "part_masks/left_arm.png": "9368680cb975fac842d16b09a06ec7106e0f9c088e325b10f214ffca080e34b9",
     "part_masks/lower_body.png": "2a159a55f8a8ad7324330bba29995f3973f0d60d1c6ea45d1f6b6ef21437fe3a",
-    "part_masks/major_clothing.png": "722fb55004a0cc0565ab97a0aaa640235e0bf0703c8a032c7209aa5954532650",
+    "part_masks/major_clothing.png": "2e18e1fd81483102cc8ef0f8e1bcf468c3743b27d5aa86a6264ca8ab94957f48",
     "part_masks/neck.png": "2e8e49a49c094b5e889a8bc594bac96bb8ff4fe5975e79c8dd35bca10d1d3594",
     "part_masks/right_arm.png": "e94ea828ce4b8fafca95b3d009d84abb12cd82489cc22c22d8082e9ab353a0bf",
-    "part_masks/torso.png": "56809c4b5755458e8e3788bc0f04fc21a84eedae34eb7c6a9687e819c391b448",
+    "part_masks/torso.png": "ada7b6a75776c616797bd2aee183d4befeb6ee59050c538f5817ea0e2bbdaa34",
     "part_masks/unknown.png": "9f786e04f8c9bc9da0beefe06190dd20dac63a247469cbae2b16b1e676f7a5e9",
-    "preview.png": "6f10974dda3b50f46f694d2b38bfe65e36e07fdf8500c49f85a93c6430bbde19"
+    "preview.png": "8ece94edb2b87d4ddf29a74dd76cf25893846048bc44569066974f3523036ff7"
   },
   "phase": 4,
   "producer": "minimalizer-zerobase2-phase4",

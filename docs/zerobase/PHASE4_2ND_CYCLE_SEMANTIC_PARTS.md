@@ -92,13 +92,13 @@ The initial source-color hair growth incorrectly consumed large portions of the 
 
 Part coverage:
 
-- hair: `0.30090419558268783`
+- hair: `0.2908255823998618`
 - face: `0.03025023756731074`
-- torso: `0.2959800731419357`
-- left_arm: `0.1460966970944798`
+- torso: `0.30061623520603564`
+- left_arm: `0.15001295821694935`
 - right_arm: `0.1442249546462407`
 - lower_body: `0.025873239842197714`
-- major_clothing: `0.03644138566533245`
+- major_clothing: `0.03796757566158897`
 - accessory_or_held_object: `0.0033115443314999855`
 
 ## Mandatory stage artifacts
@@ -131,13 +131,13 @@ Kyoko:
 
 Raden:
 
-- part map: `127b411384e0a737678e7c2d14c0d8671cb05322bcb7b65aa15a12112681e310`
-- overlay: `6f10974dda3b50f46f694d2b38bfe65e36e07fdf8500c49f85a93c6430bbde19`
+- part map: `dda6e51e4f854f5f955ada8b7b19eadf40d02051c06f7fdef952ecf09013838d`
+- overlay: `8ece94edb2b87d4ddf29a74dd76cf25893846048bc44569066974f3523036ff7`
 
 ## Regression
 
-- New Phase 4 tests: **4 passed**
-- Full ZeroBase suite: **75 passed**
+- New Phase 4 tests: **5 passed**
+- Full ZeroBase suite: **76 passed**
 - Local merge stable regression/Web set: **131 passed**
 - Phase 16 corpus local gate: **PASS**
 - Real-server local smoke: **PASS**

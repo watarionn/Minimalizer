@@ -196,6 +196,30 @@ def _grow_hair(
             kept |= comp
     kept |= seed
     kept &= subject & ~face
+
+    if hair_hint is not None:
+        hint = np.asarray(hair_hint)
+        if hint.shape != subject.shape:
+            raise ValueError("hair_hint must match subject shape")
+        if hint.dtype != np.float32:
+            hint = hint.astype(np.float32)
+        high = (hint >= 0.50) & subject & ~face
+        high_ratio = float(np.count_nonzero(high)) / max(float(np.count_nonzero(subject)), 1.0)
+        if high_ratio >= 0.02:
+            face_box = _bbox(face)
+            upper = np.zeros_like(subject)
+            if face_box is not None:
+                _, fy0, _, fy1 = face_box
+                fh = max(fy1 - fy0, 1)
+                upper[: min(subject.shape[0], int(round(fy1 + fh * 0.48))), :] = True
+            support = cv2.dilate(
+                high.astype(np.uint8),
+                cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19)),
+            ).astype(bool)
+            # Keep the source-derived head seed unconditionally. Below the
+            # head/face band, require proximity to reliable semantic hair evidence.
+            kept = seed | (kept & (upper | support)) | high
+            kept &= subject & ~face
     return kept, int(len(prototypes))
 
 

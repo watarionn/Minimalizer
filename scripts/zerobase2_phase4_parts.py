@@ -206,7 +206,10 @@ def main() -> int:
         )
 
     if semantic_segmenter is not None:
-        semantic_segmenter.close()
+        try:
+            semantic_segmenter.close()
+        except Exception:
+            pass
     print(json.dumps(summaries, ensure_ascii=False, indent=2))
     return 0
 

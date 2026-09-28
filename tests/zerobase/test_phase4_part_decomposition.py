@@ -118,3 +118,24 @@ def test_phase4_artifacts_include_maps_masks_metrics_and_binding(tmp_path):
     assert persisted["source"]["sha256"] == stage["source"]["sha256"]
     assert persisted["outputs"]["04_part_map.png"]
     assert persisted["metrics"]["parts_detected"]
+
+
+def test_high_confidence_hair_hint_prevents_deep_same_color_spill():
+    image, rgb, subject, structural = _synthetic_case()
+    modified = rgb.copy()
+    # Make the torso deliberately hair-colored so color growth alone would be ambiguous.
+    modified[62:126, 40:81] = (235, 120, 45)
+    hint = np.zeros(subject.shape, dtype=np.float32)
+    hint[10:66, 35:86] = 0.95
+
+    result = decompose_semantic_parts(
+        modified,
+        subject,
+        structural,
+        semantic_hints={"hair": hint},
+    )
+
+    face_bottom = 60
+    deep_center = result.part_masks["hair"][face_bottom + 25 :, 45:76]
+    assert int(deep_center.sum()) < 120
+    assert int(result.part_masks["hair"][10:66, 35:86].sum()) > 200
