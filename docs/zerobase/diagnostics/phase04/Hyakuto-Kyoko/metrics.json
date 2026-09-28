@@ -1,0 +1,39 @@
+{
+  "accessory_kind": "vivid-accent",
+  "accessory_score": 0.7894138679493761,
+  "face_bbox_xywh": [
+    142,
+    105,
+    58,
+    61
+  ],
+  "face_score": 4.302988773664984,
+  "hair_prototype_count": 8,
+  "part_coverage": {
+    "accessory_or_held_object": 0.003985307621671258,
+    "face": 0.03851239669421488,
+    "hair": 0.3196510560146924,
+    "head": 0.31674931129476586,
+    "left_arm": 0.0498989898989899,
+    "lower_body": 0.23074380165289257,
+    "major_clothing": 0.042277318640955006,
+    "neck": 0.0136455463728191,
+    "right_arm": 0.10877869605142332,
+    "torso": 0.15399449035812673,
+    "unknown": 0.03851239669421488
+  },
+  "parts_detected": [
+    "head",
+    "hair",
+    "face",
+    "neck",
+    "torso",
+    "left_arm",
+    "right_arm",
+    "lower_body",
+    "major_clothing",
+    "accessory_or_held_object"
+  ],
+  "structural_quality": 0.7377348120641755,
+  "unknown_ratio": 0.03851239669421488
+}

@@ -1,0 +1,193 @@
+{
+  "config": {
+    "accessory_detection": "peripheral-linear-or-vivid-accent-v1",
+    "face_locator": "structure-face-locator-v1",
+    "hair_growth": "seed-color-connected-v2-with-optional-mediapipe-guard",
+    "mediapipe_version": "1.0.1",
+    "overlap_policy": "appearance-over-structural-for-display",
+    "rtmlib_device": "cpu",
+    "rtmlib_mode": "balanced",
+    "semantic_hint_model": "selfie_multiclass_256x256",
+    "semantic_hint_model_sha256": "c6748b1253a99067ef71f7e26ca71096cd449baefa8f101900ea23016507e0e0",
+    "semantic_hint_provider": "mediapipe",
+    "structural_model": "wholebody-balanced",
+    "structural_provider": "rtmlib",
+    "subject_source": "phase03-canonical-mask"
+  },
+  "config_sha256": "8e55d98e75ff1f393dcb4b1525a93d94a369a0445e2f75d004326a1cce504ea2",
+  "inputs": {
+    "phase3": {
+      "03_subject_mask.png": "cfb27caa99ea651cfff8d0bfb161c808ab40485bc6d64c409952e9520ef03cc6",
+      "03_subject_overlay.png": "54597466554ff894f7e3c7942940220bf1d1c661e358d9c847d7bc53f6b2615e",
+      "stage.json": "d9e1c68fb8da5770fe5f52c89c6e269d1037c69cc9c1d002e76c6468ba904bdd"
+    }
+  },
+  "metrics": {
+    "accessory_kind": "vivid-accent",
+    "accessory_score": 0.7894138679493761,
+    "face_bbox_xywh": [
+      142,
+      105,
+      58,
+      61
+    ],
+    "face_score": 4.302988773664984,
+    "hair_prototype_count": 8,
+    "part_coverage": {
+      "accessory_or_held_object": 0.003985307621671258,
+      "face": 0.03851239669421488,
+      "hair": 0.3196510560146924,
+      "head": 0.31674931129476586,
+      "left_arm": 0.0498989898989899,
+      "lower_body": 0.23074380165289257,
+      "major_clothing": 0.042277318640955006,
+      "neck": 0.0136455463728191,
+      "right_arm": 0.10877869605142332,
+      "torso": 0.15399449035812673,
+      "unknown": 0.03851239669421488
+    },
+    "parts_detected": [
+      "head",
+      "hair",
+      "face",
+      "neck",
+      "torso",
+      "left_arm",
+      "right_arm",
+      "lower_body",
+      "major_clothing",
+      "accessory_or_held_object"
+    ],
+    "structural_quality": 0.7377348120641755,
+    "unknown_ratio": 0.03851239669421488
+  },
+  "outputs": {
+    "04_part_map.png": "73776934f33c1c9a54f08645167ad470812afca7c90b9ffb3133fb7e2baa1c87",
+    "04_part_overlay.png": "19424aea895e04a332c11443c92f49593c9f531db7346b18e9ca916f8d1a1e3d",
+    "metrics.json": "326438cada4b59b7e11826911232d43f2e61e391d4a239833236057932c7ec6c",
+    "part_masks/accessory_or_held_object.png": "4ed039aec890a746fa225ac87af4ef47bfceda053c697574334c157449f714f5",
+    "part_masks/face.png": "98673c623f057d176944f873b9f1a3a257d706910dca6bfaf144ca79d91d2f02",
+    "part_masks/hair.png": "ee84d777ee1b71f144e91f3ededb222a7ae4502bd138176512ad8d1b742d295f",
+    "part_masks/head.png": "25d4ef6f169a2395114cc58ba82854e02706a036c3e3ff813205a105e9c12bc0",
+    "part_masks/left_arm.png": "91baa8c88802fb5bc8e6415f8e9b11e3fe00bda448495dafdddc23fef444f293",
+    "part_masks/lower_body.png": "fbfc4ed6d3bb4149e9d63e28df4498cf1df4b9aaf36102457f8b014e8309f300",
+    "part_masks/major_clothing.png": "904f24653346f5a2bb6a433f684cf804236493c1691c7ddc3c571ccfd7a7e9f5",
+    "part_masks/neck.png": "f46edae577e16cae179b3162bf1f18e190fd07e25fa6489ce8ae125ffe5975b6",
+    "part_masks/right_arm.png": "bf761410ffa78b07abace32cddb8ee351d5c3bd8720fd08d9d77063f454b9643",
+    "part_masks/torso.png": "2b9e30b44693cc206e502f80234fc08bd65036fd63c1cf5da287c0d2a8d96de0",
+    "part_masks/unknown.png": "555917b636902745cd1e0b368c411b840d4044be10cd47b959bf9c4e9724beae",
+    "preview.png": "19424aea895e04a332c11443c92f49593c9f531db7346b18e9ca916f8d1a1e3d"
+  },
+  "phase": 4,
+  "producer": "minimalizer-zerobase2-phase4",
+  "producer_version": "1.0",
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "semantic_part_decomposition",
+  "structural": {
+    "duplicate_indices": [],
+    "keypoints_body17": [
+      [
+        170.23109436035156,
+        142.42320251464844
+      ],
+      [
+        194.05490112304688,
+        125.74649810791016
+      ],
+      [
+        145.6132049560547,
+        127.33480072021484
+      ],
+      [
+        212.31979370117188,
+        135.2760009765625
+      ],
+      [
+        128.9365997314453,
+        136.07020568847656
+      ],
+      [
+        227.408203125,
+        214.6885986328125
+      ],
+      [
+        105.90699768066406,
+        224.2180938720703
+      ],
+      [
+        250.43780517578125,
+        329.8367919921875
+      ],
+      [
+        87.64209747314453,
+        329.8367919921875
+      ],
+      [
+        251.23190307617188,
+        337.77801513671875
+      ],
+      [
+        84.4655990600586,
+        334.60150146484375
+      ],
+      [
+        207.55499267578125,
+        337.77801513671875
+      ],
+      [
+        130.52479553222656,
+        337.77801513671875
+      ],
+      [
+        236.93760681152344,
+        329.8367919921875
+      ],
+      [
+        96.37740325927734,
+        329.0426940917969
+      ],
+      [
+        236.93760681152344,
+        332.2192077636719
+      ],
+      [
+        101.9363021850586,
+        329.0426940917969
+      ]
+    ],
+    "model": "wholebody-balanced",
+    "person_index": 0,
+    "provider": "rtmlib",
+    "quality": 0.7377348120641755,
+    "scores_body17": [
+      0.8771790266036987,
+      0.9697840213775635,
+      0.9288470149040222,
+      0.8102369904518127,
+      0.735185980796814,
+      0.6684780120849609,
+      0.7203940153121948,
+      0.7657679915428162,
+      0.8295630216598511,
+      0.4838719964027405,
+      0.45057201385498047,
+      0.6495760083198547,
+      0.6863809823989868,
+      0.33205801248550415,
+      0.33382898569107056,
+      0.36271199584007263,
+      0.3161279857158661
+    ],
+    "selection_present": true,
+    "semantic_hint": {
+      "hair_high_confidence_ratio": 0.0,
+      "model": "selfie_multiclass_256x256",
+      "provider": "mediapipe"
+    }
+  }
+}

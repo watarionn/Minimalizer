@@ -90,7 +90,7 @@ PASS: Kyoko/Radenで髪・腕・持ち物を含む主体輪郭が大きく欠落
 
 Closure: Diagnostic-2のKyoko/Radenでalphaが約99.68%全面不透明であることを検出し、non-informative alphaを棄却してrembg isnet-animeへ切替。`03_subject_mask.png` / `03_subject_overlay.png` を生成しVisual QA PASS。mask/overlayは再実行SHA一致。Phase 3 tests 4 passed、ZeroBase suite 71 passed。詳細は `PHASE3_2ND_CYCLE_CANONICAL_SUBJECT.md`。
 
-### Phase 4. Semantic Part Decomposition [NEW CORE]
+### Phase 4. Semantic Part Decomposition [CLOSED / PASS]
 
 目的: subjectを意味部位へ分解する。最低part setは head、hair、face、neck、torso、left_arm、right_arm、lower_body、major_clothing、accessory/held_object。
 
@@ -103,6 +103,8 @@ Closure: Diagnostic-2のKyoko/Radenでalphaが約99.68%全面不透明である�
 PASS: 顔・髪・胴体・腕・主要アクセサリが少なくとも別の意味領域として読めること。Kyokoのゴーグル/ネクタイ、Radenのロッド/長髪等のmajor identity featureがunknown一塊に吸収されないこと。
 
 失敗時の戻り先: Phase 2またはPhase 3。
+
+Closure: Diagnostic-2でRTMLib WholeBody構造、source-color face/hair解析、optional MediaPipe hair guardを統合。Kyokoは髪・顔・首・胴体・左右腕・緑ネクタイを分離、Radenは長髪・顔・胴体・大袖/左右腕・ロッドを分離。Radenで発生した黒髪→黒袖への過剰拡張はPhase 4内で修正した。`04_part_map.png` / `04_part_overlay.png` は再実行SHA一致。Phase 4 tests 4 passed、ZeroBase suite 75 passed。詳細は `PHASE4_2ND_CYCLE_SEMANTIC_PARTS.md`。
 
 ### Phase 5. Structural Layout Graph [NEW CORE]
 
