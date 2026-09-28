@@ -1,0 +1,129 @@
+{
+  "analyzer_provenance": {
+    "phase4_config_sha256": "8e55d98e75ff1f393dcb4b1525a93d94a369a0445e2f75d004326a1cce504ea2",
+    "phase5_config_sha256": "f93b3941341287446217a32c8a8abdd954ed5e064e04c5539a5915ddbbbcfaf6",
+    "region_provider": "skimage.segmentation.slic",
+    "region_provider_role": "evidence-only",
+    "region_provider_version": "0.26.0"
+  },
+  "binding_data": {
+    "path": "06_region_bindings.json",
+    "region_count": 334,
+    "sha256": "38e6b005b3eb2cd0cefe645a3dc7dd9f88d02676310951db9da5e9d9d443ee87"
+  },
+  "config": {
+    "ambiguity_overlap": 0.2,
+    "binding_authority": "phase04-exclusive-mask-overlap",
+    "color_policy": "retained-as-evidence-never-sole-binding-authority",
+    "compactness": 12.0,
+    "graph_context_policy": "retained-as-evidence-no-cross-part-relabel",
+    "input_contract": "phase04-masks-plus-phase05-graph-read-only",
+    "low_confidence_policy": "unbound",
+    "minimum_part_overlap": 0.55,
+    "minimum_winner_margin": 0.15,
+    "n_segments": 180,
+    "region_provider": "skimage.segmentation.slic",
+    "region_provider_role": "evidence-only",
+    "region_provider_version": "0.26.0",
+    "semantic_boundary_policy": "split-at-phase04-exclusive-boundaries-v1",
+    "upstream_mutation": "forbidden"
+  },
+  "config_sha256": "a09b1967d991c3f74aa1b115d2b051b6101e367960649d0bbd857e8fda38cdbc",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "seedless-slic-plus-pure-mask-binding-v1",
+  "inputs": {
+    "phase4": {
+      "metrics.json": "4dbc2d40cc1618f6e7b6dd830ec6917141736c9c040780b21f010e3730c9d71a",
+      "part_masks/accessory_or_held_object.png": "18f7a307d7435894508ae3e39109d7c44c7a2e45a4cd514712c83052d41dcc0b",
+      "part_masks/face.png": "d4e02dba6b046b80903f0987c336e7e391c80d4a16402bc86cd301886c4c7c44",
+      "part_masks/hair.png": "d3ffd55d4a53454e413cacfefe99c51f03b1a14e87480432edab94a7289d7f8f",
+      "part_masks/head.png": "539c8f4aa67e20907095a4a661518607a65e04936b533cc033a29a1d60877f99",
+      "part_masks/left_arm.png": "9368680cb975fac842d16b09a06ec7106e0f9c088e325b10f214ffca080e34b9",
+      "part_masks/lower_body.png": "2a159a55f8a8ad7324330bba29995f3973f0d60d1c6ea45d1f6b6ef21437fe3a",
+      "part_masks/major_clothing.png": "159b9fe19dd244b4752b082cfd90d27086ad886178c0af998a9c7c1dd25794f2",
+      "part_masks/neck.png": "913e8e6243d8f3546ca4d6cd45e393ec60c4d234e10305fa5ecfe98fa805aa3a",
+      "part_masks/right_arm.png": "21ca6304da193976b0af5ce71ebf440cc232992c4ff6f3ba418840de2159dfbd",
+      "part_masks/torso.png": "5b41889a686a17fa416b38e778b533fb1bc89d03b3400b3309d9088cf760482e",
+      "part_masks/unknown.png": "cd974b5c1fca008eded08c81efc05d77bbe100540659048e5847ff384bd0886a",
+      "stage.json": "10ca718219689370d1dfdef4ca48ddafdd481e33fda41fd6a856c3ac0b0aa7fe"
+    },
+    "phase5": {
+      "05_structure_graph.json": "2fd327b826ad4838bcbaac25ea1e412fe641872b7d6267659c9c36cbffa63efe",
+      "metrics.json": "a7f7c357710d48acd798b1dc738ca77dc0c04dcdc4f6afd1f74b7c3f7e37d5ea",
+      "stage.json": "a2a7080e668da3bb6e68e47a188263aa3548c6a57d653c855ba33b75ab801ced"
+    },
+    "source": {
+      "path": "Juufuutei-Raden_list_thumb.png",
+      "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00"
+    }
+  },
+  "metrics": {
+    "bound_pixel_ratio": 1.0,
+    "bound_region_count": 334,
+    "color_only_binding_count": 0,
+    "forced_low_confidence_regions": [],
+    "hair_clothing_crossing_unbound_regions": [],
+    "hair_clothing_forced_binding_regions": [],
+    "mean_bound_confidence": 1.0,
+    "outside_subject_claim_count": 0,
+    "part_pixel_counts": {
+      "accessory_or_held_object": 340,
+      "face": 4052,
+      "hair": 19467,
+      "head": 445,
+      "left_arm": 10419,
+      "lower_body": 1797,
+      "major_clothing": 3771,
+      "neck": 130,
+      "right_arm": 9870,
+      "torso": 19163,
+      "unknown": 0
+    },
+    "part_region_counts": {
+      "accessory_or_held_object": 3,
+      "face": 19,
+      "hair": 99,
+      "head": 8,
+      "left_arm": 33,
+      "lower_body": 10,
+      "major_clothing": 45,
+      "neck": 7,
+      "right_arm": 33,
+      "torso": 77,
+      "unknown": 0
+    },
+    "pass": true,
+    "region_count": 334,
+    "region_pixel_count": 69454,
+    "subject_pixel_count": 69454,
+    "subject_pixel_coverage": 1.0,
+    "unbound_pixel_count": 0,
+    "unbound_region_count": 0
+  },
+  "outputs": {
+    "06_region_binding.png": "c32c18f0cd78fd2e4e87d580289e1565c89831c2c272d88f192e6fe171ba0153",
+    "06_region_bindings.json": "38e6b005b3eb2cd0cefe645a3dc7dd9f88d02676310951db9da5e9d9d443ee87",
+    "06_region_labels.png": "7bc70ccf672f19ff6bf87a86eff7f88595bf3ed5d038ce7c9b06c360dde95322",
+    "06_unbound_overlay.png": "9c962830c17264e417ace229385ac74a064a4a7160b5e497f3950583b627d370",
+    "metrics.json": "0e320ce5a5c4aa5da79332c586d583635f8cf8fb32c97e064c1ba4db5c813228",
+    "preview.png": "c32c18f0cd78fd2e4e87d580289e1565c89831c2c272d88f192e6fe171ba0153"
+  },
+  "phase": 6,
+  "producer": "minimalizer-zerobase2-phase6",
+  "producer_version": "1.0",
+  "source": {
+    "height": 340,
+    "path": "Juufuutei-Raden_list_thumb.png",
+    "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "width": 340
+  },
+  "stage": "region_to_part_binding"
+}

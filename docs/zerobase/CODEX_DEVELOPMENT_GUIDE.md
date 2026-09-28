@@ -42,7 +42,8 @@ Codexが以下を壊さずにMinimalizerを継続開発できることを目的�
 - Phase 3: CLOSED / PASS
 - Phase 4: CLOSED / PASS
 - Phase 5: CLOSED / PASS
-- 次: Phase 6 Region-to-Part Binding
+- Phase 6: IMPLEMENTED / READY FOR RINKA REVIEW
+- 次: Phase 6 independent review（Phase 7へは進まない）
 
 Phase 4ではRadenの2種類の失敗を人間のvisual QAで検出し、Phase 4内で修正済み。
 

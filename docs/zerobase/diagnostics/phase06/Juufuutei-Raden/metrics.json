@@ -1,0 +1,43 @@
+{
+  "bound_pixel_ratio": 1.0,
+  "bound_region_count": 334,
+  "color_only_binding_count": 0,
+  "forced_low_confidence_regions": [],
+  "hair_clothing_crossing_unbound_regions": [],
+  "hair_clothing_forced_binding_regions": [],
+  "mean_bound_confidence": 1.0,
+  "outside_subject_claim_count": 0,
+  "part_pixel_counts": {
+    "accessory_or_held_object": 340,
+    "face": 4052,
+    "hair": 19467,
+    "head": 445,
+    "left_arm": 10419,
+    "lower_body": 1797,
+    "major_clothing": 3771,
+    "neck": 130,
+    "right_arm": 9870,
+    "torso": 19163,
+    "unknown": 0
+  },
+  "part_region_counts": {
+    "accessory_or_held_object": 3,
+    "face": 19,
+    "hair": 99,
+    "head": 8,
+    "left_arm": 33,
+    "lower_body": 10,
+    "major_clothing": 45,
+    "neck": 7,
+    "right_arm": 33,
+    "torso": 77,
+    "unknown": 0
+  },
+  "pass": true,
+  "region_count": 334,
+  "region_pixel_count": 69454,
+  "subject_pixel_count": 69454,
+  "subject_pixel_coverage": 1.0,
+  "unbound_pixel_count": 0,
+  "unbound_region_count": 0
+}
