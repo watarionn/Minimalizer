@@ -27,7 +27,7 @@ class PaletteConsolidationPolicy:
     critical_contrast_distance: float = 28.0
     allow_cross_part_merge: bool = False
     reinterpret_unbound: bool = False
-    representative_strategy: str = "source-pixel-mode"
+    representative_strategy: str = "source-pixel-nearest-mass-mean"
 
     def __post_init__(self) -> None:
         if self.near_color_distance < 0 or self.critical_near_color_distance < 0:
@@ -42,7 +42,7 @@ class PaletteConsolidationPolicy:
             raise ValueError("Phase 9 forbids cross-part palette merge")
         if self.reinterpret_unbound:
             raise ValueError("Phase 9 forbids unbound reinterpretation")
-        if self.representative_strategy != "source-pixel-mode":
+        if self.representative_strategy != "source-pixel-nearest-mass-mean":
             raise ValueError(
                 "Phase 9 representatives must be observed source pixels"
             )
@@ -333,6 +333,35 @@ def consolidate_palette(
             continue
         by_part.setdefault(str(record["semantic_part_id"]), []).append(record)
 
+    protected_critical = [
+        record
+        for record in records
+        if record["action"] == "protect"
+        and record["semantic_part_id"] in CRITICAL_PARTS
+    ]
+
+    def preserves_critical_contrast(
+        record: dict[str, Any],
+        candidate_color: tuple[int, int, int],
+    ) -> bool:
+        if record["semantic_part_id"] not in CRITICAL_PARTS:
+            return True
+        for reference in protected_critical:
+            if reference["semantic_part_id"] == record["semantic_part_id"]:
+                continue
+            source_distance = _distance(
+                record["source_color"], reference["source_color"]
+            )
+            candidate_distance = _distance(
+                candidate_color, reference["source_color"]
+            )
+            if (
+                source_distance >= policy.critical_contrast_distance
+                and candidate_distance < policy.critical_contrast_distance
+            ):
+                return False
+        return True
+
     for part_id, part_records in sorted(by_part.items()):
         ordered = sorted(
             part_records,
@@ -349,8 +378,15 @@ def consolidate_palette(
         )
         part_groups: list[dict[str, Any]] = []
         for record in ordered:
+            eligible_groups = [
+                group
+                for group in part_groups
+                if _distance(record["source_color"], group["color"])
+                <= threshold
+                and preserves_critical_contrast(record, group["color"])
+            ]
             nearest = min(
-                part_groups,
+                eligible_groups,
                 key=lambda group: (
                     _distance(record["source_color"], group["color"]),
                     group["source_mass_id"],
@@ -473,15 +509,23 @@ def consolidate_palette(
         ):
             source_derived_violation_count += 1
 
-    critical_contrast_violation_count = sum(
-        1
-        for item in assignments
-        if item.semantic_part_id in CRITICAL_PARTS
-        and item.palette_color_rgb is not None
-        and item.assignment_kind == "same-part-near-color"
-        and _distance(item.source_color_rgb, item.palette_color_rgb)
-        >= policy.critical_contrast_distance
-    )
+    critical_contrast_violation_count = 0
+    for item in assignments:
+        if (
+            item.semantic_part_id not in CRITICAL_PARTS
+            or item.palette_color_rgb is None
+        ):
+            continue
+        for reference in protected_critical:
+            if reference["semantic_part_id"] == item.semantic_part_id:
+                continue
+            if (
+                _distance(item.source_color_rgb, reference["source_color"])
+                >= policy.critical_contrast_distance
+                and _distance(item.palette_color_rgb, reference["source_color"])
+                < policy.critical_contrast_distance
+            ):
+                critical_contrast_violation_count += 1
     prune_resurrection_count = sum(
         1
         for item in assignments

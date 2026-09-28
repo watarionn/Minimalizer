@@ -175,6 +175,24 @@ def test_phase9_protects_face_accessory_and_critical_contrast_anchors() -> None:
     assert result.validation["critical_anchor_violation_count"] == 0
 
 
+def test_phase9_rejects_merge_that_collapses_foreign_critical_contrast() -> None:
+    source, phase7, phase8, labels = _fixture()
+    colors = {
+        0: (80, 80, 80),
+        1: (90, 90, 90),
+        3: (64, 64, 64),
+    }
+    for index, color in colors.items():
+        source[labels == index] = np.asarray(color, dtype=np.uint8)
+        phase7["masses"][index]["mean_rgb"] = [float(value) for value in color]
+
+    result = consolidate_palette(source, phase7, phase8, labels)
+    by_mass = _by_mass(result)
+
+    assert by_mass["mass-0000"].palette_id != by_mass["mass-0001"].palette_id
+    assert result.validation["critical_contrast_violation_count"] == 0
+
+
 def test_phase9_does_not_merge_or_reinterpret_unbound() -> None:
     source, phase7, phase8, labels = _fixture()
     result = consolidate_palette(source, phase7, phase8, labels)

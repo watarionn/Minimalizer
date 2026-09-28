@@ -11,9 +11,9 @@
     ],
     "near_color_distance": 30.0,
     "reinterpret_unbound": false,
-    "representative_strategy": "source-pixel-mode"
+    "representative_strategy": "source-pixel-nearest-mass-mean"
   },
-  "config_sha256": "83601070deec2cf655cfdb365c2c8ce01dc72dee85ea6ffd414a505fb254529b",
+  "config_sha256": "cdec2e061c5a7b77f10357588f7b16446a2136b255669f6aa0e6219c00067f1f",
   "coordinate_space": {
     "normalized_origin": "top-left",
     "normalized_range": [
@@ -63,30 +63,30 @@
     "cross_part_merge_count": 0,
     "geometry_change_count": 0,
     "mass_count": 93,
-    "palette_entry_count": 64,
-    "palette_reduction_ratio": 0.135135,
+    "palette_entry_count": 65,
+    "palette_reduction_ratio": 0.121622,
     "pass": true,
     "prune_resurrection_count": 0,
     "pruned_mass_count": 19,
-    "representative_strategy": "source-pixel-mode",
-    "same_part_merge_count": 10,
+    "representative_strategy": "source-pixel-nearest-mass-mean",
+    "same_part_merge_count": 9,
     "semantic_owner_change_count": 0,
     "source_derived_representative_violation_count": 0,
     "unbound_merge_count": 0,
     "unbound_reinterpretation_count": 0,
-    "unique_palette_rgb_count": 62
+    "unique_palette_rgb_count": 63
   },
   "outputs": {
-    "09_palette.json": "1e1bc80899b418e9a56644fbca63c4c5ee448e42b5a58406ea5028ccbb4e7d0c",
-    "09_palette_preview.png": "ce485ebd7b1c756286b72bae322467e6b9ec6f2b6fc29ea75caeb44681df4bf7",
-    "09_palette_strip.png": "a10164e76f6ee924a578c4a9b37c2ae22e6af68706d0fb4d33612009fc7bf4ec",
-    "metrics.json": "960f76afecda0a732ad6390f8ba179d63673b389be8b8d717694f6d9427eb9ac",
-    "preview.png": "ce485ebd7b1c756286b72bae322467e6b9ec6f2b6fc29ea75caeb44681df4bf7"
+    "09_palette.json": "e16d3539122364dc32dc48ba43081442a82638e32109bb7aa12978a1ae61d7dd",
+    "09_palette_preview.png": "ff183be4211f86b4bf8d5a544d6782de7ddc2cce75dc4fe3ad991bbff596b2ef",
+    "09_palette_strip.png": "335c04bfaa07c8bc5800ac6e25ca0746079d705618b7e0ae2d5bd7116d172903",
+    "metrics.json": "f73a9e4af9219c692c2afa04f2612e1ccc2551b6b0da1e73a4f3d0d368495582",
+    "preview.png": "ff183be4211f86b4bf8d5a544d6782de7ddc2cce75dc4fe3ad991bbff596b2ef"
   },
   "palette_data": {
-    "palette_color_count": 64,
+    "palette_color_count": 65,
     "path": "09_palette.json",
-    "sha256": "1e1bc80899b418e9a56644fbca63c4c5ee448e42b5a58406ea5028ccbb4e7d0c"
+    "sha256": "e16d3539122364dc32dc48ba43081442a82638e32109bb7aa12978a1ae61d7dd"
   },
   "phase": 9,
   "producer": "minimalizer-zerobase2-phase9",
@@ -107,7 +107,7 @@
   "render_authority": "deterministic-source-derived-palette-only",
   "representative_color_policy": {
     "observed_source_coordinate_required": true,
-    "strategy": "source-pixel-mode",
+    "strategy": "source-pixel-nearest-mass-mean",
     "synthetic_average_color": "forbidden"
   },
   "source": {

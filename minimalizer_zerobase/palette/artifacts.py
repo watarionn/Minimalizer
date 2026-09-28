@@ -210,7 +210,7 @@ def write_phase9_artifacts(
         },
         "render_authority": "deterministic-source-derived-palette-only",
         "representative_color_policy": {
-            "strategy": "source-pixel-mode",
+            "strategy": "source-pixel-nearest-mass-mean",
             "synthetic_average_color": "forbidden",
             "observed_source_coordinate_required": True,
         },

@@ -1,6 +1,6 @@
 # Phase 9 — Palette Consolidation
 
-Status: CLOSED / PASS
+Status: **IMPLEMENTED / READY FOR RINKA REVIEW**
 
 Date: 2026-09-29
 
@@ -17,7 +17,7 @@ Phase 9 consumes the SHA-bound Phase 7 masses and Phase 8 omission metadata. It 
 - `protect` masses are ordered before `keep` masses and therefore become representative anchors;
 - every unbound mass remains ownerless and receives an isolated palette entry;
 - every `prune` mass remains omitted and receives no palette entry;
-- representative RGB is an actual observed source pixel selected nearest to the Phase 7 source-derived mass mean;
+- representative RGB is the observed source-pixel mode, with ties resolved nearest to the Phase 7 source-derived mass mean;
 - synthetic average color, semantic reinterpretation, geometry changes, generated pixels, inpainting, and hidden completion are forbidden.
 
 ## Outputs
@@ -50,9 +50,9 @@ Synthetic tests fail closed for:
 - masses: 201
 - active after Phase 8: 158
 - Phase 8 prune preserved: 43
-- palette entries: 72
-- same-part near-color merges: 86
-- palette reduction ratio: 0.544304
+- palette entries: 76
+- same-part near-color merges: 82
+- palette reduction ratio: 0.518987
 - cross-part / unbound / prune-resurrection violations: 0 / 0 / 0
 - critical anchor / contrast violations: 0 / 0
 - source-derived representative violations: 0
@@ -66,9 +66,9 @@ Visual QA: PASS. Orange hair, skin, clothing masses, goggles, and green tie rema
 - masses: 93
 - active after Phase 8: 74
 - Phase 8 prune preserved: 19
-- palette entries: 64
-- same-part near-color merges: 10
-- palette reduction ratio: 0.135135
+- palette entries: 65
+- same-part near-color merges: 9
+- palette reduction ratio: 0.121622
 - cross-part / unbound / prune-resurrection violations: 0 / 0 / 0
 - critical anchor / contrast violations: 0 / 0
 - source-derived representative violations: 0
@@ -86,20 +86,20 @@ Final provenance hashes:
 
 Hyakuto-Kyoko:
 
-- `run.json`: `7fe7bc61950629292bc2aedbe15844b3d58007677274bb6883bf3acf1e823534`
-- `artifacts.json`: `2bb4837667f5aeed89da70a6ff09b135939d4b5489b7e9ce9f5e6bfb9de0b791`
+- `run.json`: `f56e5499282b22e776a169fa447357e82668a585478f80b4d4b3512359ca5b21`
+- `artifacts.json`: `864c19e25f89e8f1e065cc0bec9fad45692cd709db926a0374e8a50b5428c239`
 - `provenance_gate.json`: `340ccdaa5f444f076f797c11f41471969bedbd938d9e5177f9829fd2682e9af1`
 
 Juufuutei-Raden:
 
-- `run.json`: `cfe850e553688377bd8b1780a0a539e7964152d5cf81d2594d96fb5ef0c1c1f4`
-- `artifacts.json`: `10ccc2384adf8ce2c3ee43aca7284acfe774a854bc552701df5031c605d355d0`
+- `run.json`: `e2991bf14de70c50448c0861162591ccaa2054104355dd9f84f9dfae226a4dda`
+- `artifacts.json`: `13acf39139d630f25621454de044b83f96cb72c2363c25c0a0cb1701ca2c0e7e`
 - `provenance_gate.json`: `340ccdaa5f444f076f797c11f41471969bedbd938d9e5177f9829fd2682e9af1`
 
 ## Validation
 
-- focused Phase 9 / Stage Contract Bridge: 22 passed
-- full ZeroBase suite: 152 passed
+- focused Phase 9 / Stage Contract Bridge: 23 passed
+- full ZeroBase suite: 153 passed
 - stable/Web regressions: 131 passed
 - Phase 16 corpus gate: PASS
 - real-server smoke: PASS
@@ -116,6 +116,6 @@ Unchanged:
 - semantic owner and geometry authority;
 - generative/inpainting prohibition.
 
-## Next phase
+## Review boundary
 
-Phase 10 Part-Aware Geometrization may consume the Phase 9 material assignment while keeping mass IDs, semantic owners, Phase 8 actions, and palette references explicit. It must not use palette similarity as authority to merge geometry across semantic parts.
+Phase 9 is not CLOSED until Rinka independently reviews the code, negative fixtures, Diagnostic-2 visual artifacts, deterministic rerun, and Stage Contract Bridge chain. Phase 10 remains blocked until that review closes Phase 9.

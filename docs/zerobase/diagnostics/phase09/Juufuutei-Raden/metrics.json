@@ -6,16 +6,16 @@
   "cross_part_merge_count": 0,
   "geometry_change_count": 0,
   "mass_count": 93,
-  "palette_entry_count": 64,
-  "palette_reduction_ratio": 0.135135,
+  "palette_entry_count": 65,
+  "palette_reduction_ratio": 0.121622,
   "pass": true,
   "prune_resurrection_count": 0,
   "pruned_mass_count": 19,
-  "representative_strategy": "source-pixel-mode",
-  "same_part_merge_count": 10,
+  "representative_strategy": "source-pixel-nearest-mass-mean",
+  "same_part_merge_count": 9,
   "semantic_owner_change_count": 0,
   "source_derived_representative_violation_count": 0,
   "unbound_merge_count": 0,
   "unbound_reinterpretation_count": 0,
-  "unique_palette_rgb_count": 62
+  "unique_palette_rgb_count": 63
 }
