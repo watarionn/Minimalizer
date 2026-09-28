@@ -2,53 +2,102 @@
 
 Status: **IMPLEMENTED / READY FOR RINKA REVIEW**
 
-## Objective
+## Objective and review history
 
-Phase 6 is the first stage that formally connects image regions to the semantic structure established by Phase 4 and Phase 5. Phase 4 masks and the Phase 5 graph remain immutable, SHA-bound inputs. Production remains Minimalizer 2.0.
+Phase 6 connects image regions to the semantic structure established by Phase 4 and Phase 5. Phase 4 masks and the Phase 5 graph remain immutable, SHA-bound inputs. Production remains Minimalizer 2.0.
 
-## Implementation
+The first independent review was `HOLD / CHANGES REQUESTED` because semantic-boundary splitting removed the ambiguity of the original parent SLIC and effectively promoted the Phase 4 display owner to truth. Revision 1.1 corrects that architectural problem instead of tuning Diagnostic-2 thresholds.
 
-The implementation is split into pure binding logic, artifact persistence, and CLI orchestration.
+## Revision 1.1 implementation
 
-- `minimalizer_zerobase/binding/region_binding.py`
-  - generates deterministic SLIC region evidence inside the Phase 4 subject
-  - splits SLIC regions at the immutable Phase 4 exclusive semantic boundaries
-  - preserves the parent SLIC label for every resulting region fragment
-  - binds only from Phase 4 mask overlap and winner margin
-  - retains Phase 5 graph relations, source color statistics, geometry, row-run pixel support, and region adjacency as evidence
-  - never uses color as the sole binding authority
-  - leaves externally supplied ambiguous regions `unbound` rather than forcing a part
-- `minimalizer_zerobase/binding/artifacts.py`
-  - writes canonical binding data, a 16-bit region-label map, mandatory visual artifacts, metrics, and a bound stage manifest
-- `scripts/zerobase2_phase6_binding.py`
-  - verifies the canonical source SHA
-  - verifies all Phase 4 mask SHAs
-  - verifies the Phase 5 graph SHA and all Phase 4 hashes recorded by Phase 5
-  - reads Phase 4/5 only and writes exclusively to `phase_06`
+- Generate deterministic SLIC evidence inside the Phase 4 subject.
+- Preserve the original parent SLIC map and compute its pre-split overlap, winner, margin, and ambiguity reasons.
+- Split regions at Phase 4 exclusive semantic boundaries only for spatial representation; a child fragment inherits its parent's uncertainty.
+- Score candidates from child overlap, parent overlap, Phase 5 graph support, boundary support, part-centroid geometry, and source-color support.
+- Require Phase 5 graph support plus boundary or geometry corroboration when the parent is ambiguous or the child owner differs from the parent winner.
+- Keep source color non-authoritative: it contributes to a score but can never resolve a parent ambiguity by itself.
+- Fail closed for hair/clothing candidates whose parent SLIC crosses both semantic families.
+- Preserve valid accessory evidence independently. Raden's held-linear object remains three bound regions because its Phase 5 relation and spatial evidence support it.
+- Allow `unbound` through the canonical `build_region_bindings()` path.
 
-The semantic-boundary split is deliberate. A global SLIC region may cross hair and clothing even when their colors are similar. Phase 6 intersects such evidence with the already-established Phase 4 ownership boundary before binding, while preserving the original SLIC label as provenance. This keeps thin identity features such as Raden's held object from disappearing into a larger region and prevents dark hair from acquiring dark-clothing ownership.
+Phase 4/5 inputs are read-only and verified by SHA before Phase 6 runs. The runner writes only `phase_06`.
 
 ## Binding record
 
-Each canonical region record retains:
+Each region retains:
 
-- deterministic region ID and parent SLIC label
-- semantic part ID or `unbound`
-- binding confidence, basis, and reasons
-- pixel count, bounding box, centroid, and row-run pixel support
-- mean and standard deviation RGB evidence
-- Phase 4 raw and exclusive overlap evidence for candidate parts
-- boundary contact and neighboring region evidence
-- relevant Phase 5 relation IDs
+- child and parent region labels
+- parent pixel count, winner, overlap ratio, margin, ambiguity flag, and reasons
+- child and parent overlap values for every candidate
+- graph relation IDs and graph support
+- boundary and geometry support
+- source RGB statistics, color distance, and non-authoritative color support
+- weighted decision score, confidence, decision basis, and decision reasons
+- geometry, row-run pixel support, and adjacency
 - upstream evidence references
 
-`unbound` remains a valid result in the pure binding API when overlap or winner margin is insufficient. The canonical Diagnostic-2 run produced no unbound fragments because every semantic-boundary fragment was fully supported by an immutable Phase 4 owner; the mandatory unbound overlay is still emitted and was checked to show no hidden swallowed regions.
+The binding JSON schema is `1.1`. Artifact producer version is `1.1`.
 
-## Artifact contract
+## Synthetic acceptance coverage
 
-Runtime artifacts:
+Focused tests verify that:
+
+- a parent SLIC crossing hair/clothing remains ambiguous after semantic splitting
+- color match without graph support cannot resolve a parent tie
+- graph relation plus boundary/geometry support can resolve a tie
+- Phase 4 display-priority overlap alone does not produce confidence 1.0
+- the canonical builder can emit real `unbound` regions
+- upstream Phase 4 masks and the Phase 5 graph remain unchanged
+- dark hair and dark clothing are not cross-bound by color
+- artifacts remain SHA-bound to their inputs
+
+## Diagnostic-2
+
+### Hyakuto Kyoko
+
+- regions: 476
+- bound / unbound: 446 / 30
+- unbound pixels: 2,194
+- bound pixel ratio: 0.959706
+- mean bound confidence: 0.798162
+- parent-ambiguous child regions: 99
+- hair/clothing crossing unbound regions: 30
+- hair/clothing forced bindings: 0
+- display-priority-only bindings: 0
+- color-only bindings: 0
+- accessory regions: 5
+- visual QA: **PASS (Codex review)**
+
+Face, hair, clothing, and green accent remain readable. Unbound highlighting is limited to uncertain hair/clothing boundary fragments and does not hide a major identity feature.
+
+### Juufuutei Raden
+
+- regions: 334
+- bound / unbound: 296 / 38
+- unbound pixels: 6,232
+- bound pixel ratio: 0.910272
+- mean bound confidence: 0.847216
+- parent-ambiguous child regions: 84
+- hair/clothing crossing unbound regions: 38
+- hair/clothing forced bindings: 0
+- display-priority-only bindings: 0
+- color-only bindings: 0
+- accessory regions: 3
+- visual QA: **PASS (Codex review)**
+
+Dark hair and black clothing remain separated without forced cross-binding. The face remains aligned, sleeves remain distinct, and the held-linear object remains bound and visible. The unbound overlay exposes uncertainty along hair/clothing crossings rather than concealing it.
+
+## Artifacts
+
+Runtime:
 
 `artifacts/zerobase2/<case_id>/phase_06/`
+
+Persistent diagnostics:
+
+`docs/zerobase/diagnostics/phase06/<case_id>/`
+
+Each case contains:
 
 - `06_region_bindings.json`
 - `06_region_labels.png`
@@ -58,70 +107,38 @@ Runtime artifacts:
 - `metrics.json`
 - `stage.json`
 
-Persistent diagnostic snapshots:
-
-`docs/zerobase/diagnostics/phase06/<case_id>/`
-
-## Diagnostic-2
-
-### Hyakuto Kyoko
-
-- Regions: 476
-- Bound regions: 476
-- Unbound regions: 0
-- Subject pixel coverage: 1.0
-- Hair/clothing forced bindings: 0
-- Color-only bindings: 0
-- Accessory regions: 5
-- Visual QA: **PASS (Codex review)**
-
-The face remains aligned to the reviewed Phase 4 face, hair and clothing ownership remain distinct, and the green tie/accent remains separately readable.
-
-### Juufuutei Raden
-
-- Regions: 334
-- Bound regions: 334
-- Unbound regions: 0
-- Subject pixel coverage: 1.0
-- Hair/clothing forced bindings: 0
-- Color-only bindings: 0
-- Accessory regions: 3
-- Visual QA: **PASS (Codex review)**
-
-The corrected face remains aligned, dark hair does not leak into the dark outfit, the sleeves remain arm/clothing structure rather than hair, and the thin held-object evidence remains distinct where Phase 4 supports it.
-
 ## Determinism
 
-All seven Phase 6 artifacts were generated twice with the identical command and matched byte-for-byte for both Diagnostic-2 cases: **14/14 SHA MATCH**.
+All seven artifacts were regenerated and matched byte-for-byte for both cases: **14/14 SHA MATCH**.
 
 Kyoko:
 
-- binding data: `0153b1153361d67534e6436094d128955b06eb781706423042b4614484cd9683`
+- binding data: `c4db5b636efd68619bd31ac63d1188b2b98138e9a153b50ed5fe0d6edf5acc8e`
 - region labels: `0d9c21edfe8c832c28959ba6391119b23289ba0a5de9693add826476545d860f`
-- binding overlay / preview: `5c26c99a8ea885e2c6e210dfa20cea1fa90d2a17bd52839d3567f6d9b5088502`
-- unbound overlay: `c08587c44485d8cedb401484b03f5afce9bd8dfd6bca71a623c9f281ee6ddc67`
-- metrics: `2147921c4f7e0839a8f63a966c2c435dbbce97f99ebbf506eaeef918e702a906`
-- stage: `9f8fda866fd3a368026155e83cbf57d174897774818def955337277ca907a554`
+- binding overlay / preview: `ed4fd447a9c2cd88d8232faaa998cf0b7848cf89703a09c91ceab587291fe2e2`
+- unbound overlay: `8481c51d759e9f62eb5ed54a3a4f133f11034406c0f1db88e89e0dc1676eccbc`
+- metrics: `5b1a3d5f80afb074b41f754afbca3c22ebc279adf0e237b8ddfc87df72c182b5`
+- stage: `4cd9358e289bfe30800c9f49795a779915cd268ab5cc110599d884e74c146f4c`
 
 Raden:
 
-- binding data: `38e6b005b3eb2cd0cefe645a3dc7dd9f88d02676310951db9da5e9d9d443ee87`
+- binding data: `1e67848cc5c6b8468ad47f7fa9b4f566723c9c50ef6885ef87e9833f1416fcf9`
 - region labels: `7bc70ccf672f19ff6bf87a86eff7f88595bf3ed5d038ce7c9b06c360dde95322`
-- binding overlay / preview: `c32c18f0cd78fd2e4e87d580289e1565c89831c2c272d88f192e6fe171ba0153`
-- unbound overlay: `9c962830c17264e417ace229385ac74a064a4a7160b5e497f3950583b627d370`
-- metrics: `0e320ce5a5c4aa5da79332c586d583635f8cf8fb32c97e064c1ba4db5c813228`
-- stage: `13157bcdc028717263d7d0c78ed071d014ae79a52212d82823c7abff2ca42368`
+- binding overlay / preview: `3665325dc16c80816c21d54c872de3e96ee1cd3663bd42f88faeff1232e32b2e`
+- unbound overlay: `4dbd6aad063273391982367bf6c50050bde9cd6b9f71992bca1a5c28797aadec`
+- metrics: `1bd0bf3c3c9ce9e38ba0ccbd9cfe5eb96b05592d1ae320296beb2219b6e083dc`
+- stage: `b43b0774c7eefcc9adcc18ce4399e2c2c0bf62a0889d07a5b0218c97757e0322`
 
 ## Tests and review boundary
 
-- Phase 6 focused tests: **8 passed**
-- Full ZeroBase suite: **93 passed**
+- Phase 6 focused tests: **13 passed**
+- Full ZeroBase suite: **98 passed**
 - Diagnostic-2 visual QA: **2/2 PASS (Codex review)**
 - Deterministic artifact rerun: **14/14 SHA MATCH**
-- Stable regression/Web set: **131 passed** (one pre-existing Starlette deprecation warning)
+- Stable regression/Web set: **131 passed** (one pre-existing Starlette/httpx deprecation warning)
 - Phase 16 corpus local gate: **PASS**
 - Real-server local smoke: **PASS**
-- `LOCAL_MERGE_VALIDATION_PASS`
+- Local merge readiness: **LOCAL_MERGE_VALIDATION_PASS**
 - `git diff --check`: **PASS**
 
-Final merge-readiness results, commit SHA, Drive status, and any HOLD items are reported in the Discussion #177 handoff. Rinka retains independent review authority and decides whether Phase 6 may be marked `CLOSED / PASS`.
+Rinka retains independent review authority. Phase 6 is not `CLOSED / PASS`, and Phase 7 must not begin until the re-review accepts this revision.

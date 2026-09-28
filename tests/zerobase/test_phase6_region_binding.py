@@ -33,6 +33,7 @@ def _graph() -> dict:
                 "source_part": "hair",
                 "target_part": "major_clothing",
                 "relation_kind": "adjacent",
+                "confidence": 0.8,
             }
         ],
         "validation": {"pass": True},
@@ -65,7 +66,11 @@ def test_phase4_overlap_binds_regions_without_mutating_upstream_inputs():
         "hair",
         "major_clothing",
     ]
-    assert all(region.decision_basis == "phase04-mask-overlap" for region in result.regions)
+    assert all(
+        region.decision_basis == "multi-evidence-region-binding"
+        for region in result.regions
+    )
+    assert all(region.binding_confidence < 1.0 for region in result.regions)
     assert result.validation["pass"] is True
     assert graph == before_graph
     for name in PART_NAMES:
@@ -97,7 +102,7 @@ def test_cross_part_region_is_left_unbound_when_overlap_is_ambiguous():
 
     assert region.binding_status == "unbound"
     assert region.semantic_part_id is None
-    assert "winner-margin-below-threshold" in region.decision_reasons
+    assert "multi-evidence-margin-below-threshold" in region.decision_reasons
     assert result.validation["hair_clothing_crossing_unbound_regions"] == [
         "region-0000"
     ]
@@ -117,7 +122,7 @@ def test_hair_clothing_crossing_is_unbound_even_with_a_numeric_winner():
     result = bind_labeled_regions(image, labels, masks, _graph())
 
     assert result.regions[0].semantic_part_id is None
-    assert "crosses-hair-clothing-semantic-boundary" in (
+    assert "parent-crosses-hair-clothing-semantic-boundary" in (
         result.regions[0].decision_reasons
     )
     assert result.validation["hair_clothing_forced_binding_regions"] == []
@@ -148,6 +153,126 @@ def test_slic_region_generation_is_deterministic_and_mask_bounded():
     subject = np.logical_or.reduce(list(_masks().values()))
     assert np.all(first.region_labels[~subject] == -1)
     assert first.validation["pass"] is True
+
+
+def test_parent_slic_ambiguity_survives_semantic_boundary_split(monkeypatch):
+    parent = np.full((48, 36), -1, dtype=np.int32)
+    parent[6:42, 4:32] = 17
+    monkeypatch.setattr(
+        "minimalizer_zerobase.binding.region_binding.slic",
+        lambda *args, **kwargs: parent.copy(),
+    )
+
+    result = build_region_bindings(_source(), _masks(), _graph())
+
+    assert len(result.regions) == 2
+    assert {region.parent_region_label for region in result.regions} == {17}
+    assert all(region.parent_ambiguous for region in result.regions)
+    assert all(region.parent_winner_overlap_ratio == 0.5 for region in result.regions)
+    assert all(region.parent_winner_margin == 0.0 for region in result.regions)
+    assert all(region.binding_status == "unbound" for region in result.regions)
+    assert result.validation["hair_clothing_forced_binding_regions"] == []
+
+
+def _two_part_fixture(*, with_graph: bool) -> tuple[np.ndarray, dict, dict]:
+    shape = (24, 24)
+    image = np.full((*shape, 3), 30, dtype=np.uint8)
+    masks = {name: np.zeros(shape, dtype=bool) for name in PART_NAMES}
+    masks["head"][4:20, 4:12] = True
+    masks["face"][4:20, 12:20] = True
+    graph = {
+        "present_parts": ["face", "head"],
+        "relations": (
+            [
+                {
+                    "relation_id": "relation:face:inside:head",
+                    "source_part": "face",
+                    "target_part": "head",
+                    "relation_kind": "inside",
+                    "confidence": 0.9,
+                }
+            ]
+            if with_graph
+            else []
+        ),
+        "validation": {"pass": True},
+    }
+    return image, masks, graph
+
+
+def test_color_match_without_graph_support_cannot_resolve_parent_tie(monkeypatch):
+    image, masks, graph = _two_part_fixture(with_graph=False)
+    parent = np.full(image.shape[:2], -1, dtype=np.int32)
+    parent[4:20, 4:20] = 3
+    monkeypatch.setattr(
+        "minimalizer_zerobase.binding.region_binding.slic",
+        lambda *args, **kwargs: parent.copy(),
+    )
+
+    result = build_region_bindings(image, masks, graph)
+
+    assert all(region.binding_status == "unbound" for region in result.regions)
+    assert all(
+        "parent-ambiguity-lacks-graph-support" in region.decision_reasons
+        for region in result.regions
+    )
+    assert result.validation["color_only_binding_count"] == 0
+
+
+def test_graph_plus_spatial_support_resolves_parent_tie(monkeypatch):
+    image, masks, graph = _two_part_fixture(with_graph=True)
+    parent = np.full(image.shape[:2], -1, dtype=np.int32)
+    parent[4:20, 4:20] = 3
+    monkeypatch.setattr(
+        "minimalizer_zerobase.binding.region_binding.slic",
+        lambda *args, **kwargs: parent.copy(),
+    )
+
+    result = build_region_bindings(image, masks, graph)
+
+    assert [region.semantic_part_id for region in result.regions] == ["head", "face"]
+    assert all(region.binding_status == "bound" for region in result.regions)
+    assert all(region.parent_ambiguous for region in result.regions)
+    assert all(region.candidates[0].graph_support == 0.9 for region in result.regions)
+    assert all(
+        max(region.candidates[0].boundary_support, region.candidates[0].geometry_support)
+        >= result.policy.minimum_spatial_support
+        for region in result.regions
+    )
+
+
+def test_display_priority_overlap_alone_does_not_create_full_confidence():
+    shape = (20, 20)
+    image = np.full((*shape, 3), 70, dtype=np.uint8)
+    masks = {name: np.zeros(shape, dtype=bool) for name in PART_NAMES}
+    masks["head"][3:17, 3:17] = True
+    masks["face"][3:17, 3:17] = True
+    labels = np.full(shape, -1, dtype=np.int32)
+    labels[3:17, 3:17] = 4
+    graph = {"present_parts": ["face", "head"], "relations": []}
+
+    result = bind_labeled_regions(image, labels, masks, graph)
+    region = result.regions[0]
+
+    assert region.semantic_part_id == "face"
+    assert region.binding_confidence < 1.0
+    assert region.candidates[0].region_overlap_ratio == 1.0
+    assert region.candidates[0].graph_support == 0.0
+
+
+def test_canonical_builder_can_emit_unbound_regions(monkeypatch):
+    image, masks, graph = _two_part_fixture(with_graph=False)
+    parent = np.full(image.shape[:2], -1, dtype=np.int32)
+    parent[4:20, 4:20] = 8
+    monkeypatch.setattr(
+        "minimalizer_zerobase.binding.region_binding.slic",
+        lambda *args, **kwargs: parent.copy(),
+    )
+
+    result = build_region_bindings(image, masks, graph)
+
+    assert result.validation["parent_ambiguous_unbound_regions"]
+    assert any(region.binding_status == "unbound" for region in result.regions)
 
 
 def test_region_labels_fail_closed_when_they_claim_background():

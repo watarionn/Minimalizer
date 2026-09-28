@@ -185,7 +185,7 @@ def write_phase6_artifacts(
         "phase": 6,
         "stage": "region_to_part_binding",
         "producer": "minimalizer-zerobase2-phase6",
-        "producer_version": "1.0",
+        "producer_version": "1.1",
         "source": phase4_stage.get("source"),
         "inputs": {
             "phase4": phase4_inputs,
@@ -205,7 +205,7 @@ def write_phase6_artifacts(
             "phase5_config_sha256": phase5_stage.get("config_sha256"),
         },
         "coordinate_space": result.to_dict()["coordinate_space"],
-        "determinism_policy": "seedless-slic-plus-pure-mask-binding-v1",
+        "determinism_policy": "seedless-slic-plus-parent-aware-evidence-binding-v2",
         "binding_data": {
             "path": data_path.name,
             "sha256": outputs[data_path.name],
