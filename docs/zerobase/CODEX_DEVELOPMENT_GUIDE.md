@@ -41,7 +41,8 @@ Codexが以下を壊さずにMinimalizerを継続開発できることを目的�
 - ZeroBase production standard switch: 禁止、Phase 15まで待つ
 - Phase 3: CLOSED / PASS
 - Phase 4: CLOSED / PASS
-- 次: Phase 5 Structural Layout Graph
+- Phase 5: CLOSED / PASS
+- 次: Phase 6 Region-to-Part Binding
 
 Phase 4ではRadenの2種類の失敗を人間のvisual QAで検出し、Phase 4内で修正済み。
 

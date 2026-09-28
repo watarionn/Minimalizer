@@ -106,7 +106,7 @@ PASS: 顔・髪・胴体・腕・主要アクセサリが少なくとも別の�
 
 Closure: Diagnostic-2でRTMLib WholeBody構造、face68ランドマーク、source-color face/hair解析、optional MediaPipe hair guardを統合。WholeBodyの133点を保持し、顔68点が十分高信頼な場合はそのconvex hullを顔geometryの主Evidenceに採用し、source-color face locatorをfallback/diagnosticへ下げた。Kyokoは髪・顔・首・胴体・左右腕・緑ネクタイを分離、Radenは長髪・正しく整列した顔・胴体・大袖/左右腕・ロッドを分離。Radenで発生した黒髪→黒袖への過剰拡張と、顔の小ささ/左ズレをPhase 4内で修正した。`04_part_map.png` / `04_part_overlay.png` は再実行SHA一致。Phase 4 tests 6 passed、RTMLib guidance 9 passed、ZeroBase suite 77 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。詳細は `PHASE4_2ND_CYCLE_SEMANTIC_PARTS.md`。
 
-### Phase 5. Structural Layout Graph [NEW CORE]
+### Phase 5. Structural Layout Graph [CLOSED / PASS]
 
 目的: semantic partsを人物構造として接続し、位置・接続・前後・包含関係を定義する。
 
@@ -119,6 +119,8 @@ Closure: Diagnostic-2でRTMLib WholeBody構造、face68ランドマーク、sour
 PASS: 人物の主要骨格関係がgraphとして成立し、孤立major partや循環したocclusion relationがないこと。
 
 失敗時の戻り先: Phase 4。
+
+Closure: Phase 4のpart maskをSHA照合付きread-only入力として、centroid/nearest-boundary anchor、attachment/spatial/containment/overlap/surrounding/front-behind relationを構築した。Diagnostic-2はいずれも10 parts / 24 anchors / 16 relations、孤立major part 0、arm/accessory attachment欠落0、front/behind cycle 0。Radenのheld-linear accessoryはvisual QAでdistance-onlyのhead attachmentを棄却し、Phase 4 accessory evidenceに基づいてright armへ接続した。mandatory artifactsは再実行SHA一致、focused 6 passed、ZeroBase 83 passed。詳細は `PHASE5_2ND_CYCLE_STRUCTURAL_LAYOUT_GRAPH.md`。
 
 ### Phase 6. Region-to-Part Binding [REDESIGN]
 
@@ -304,5 +306,4 @@ Phase 14で初めてApproved-78全件の正式Calibrationを行い、Phase 15で
 
 ## 10. 直近の次工程
 
-Step 0として本番標準をMinimalizer 2.0へ安全に戻す。その後Phase 3 Canonical Subject Extractionの2nd Cycle実装を開始し、Kyoko/Radenの03_subject_mask / 03_subject_overlayを最初の可視化チェックポイントとする。
-
+Phase 5 Structural Layout GraphはCLOSED / PASS。次はPhase 6 Region-to-Part Bindingとして、Phase 4 semantic masksとPhase 5 graph relationへregion/superpixelをbindし、`06_region_binding.png` / `06_unbound_overlay.png`をDiagnostic-2で確認する。Phase 15の正式Gateまではproduction standardをMinimalizer 2.0から切り替えない。

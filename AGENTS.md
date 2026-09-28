@@ -93,9 +93,12 @@ alpha、rembg、RTMLib、MediaPipe、segmentation、pose、edge、color heuristi
 - Phase 2: KEEP / contract hardening
 - Phase 3 Canonical Subject Extraction: **CLOSED / PASS**
 - Phase 4 Semantic Part Decomposition: **CLOSED / PASS**
-- 次のcanonical step: **Phase 5 Structural Layout Graph**
+- Phase 5 Structural Layout Graph: **CLOSED / PASS**
+- 次のcanonical step: **Phase 6 Region-to-Part Binding**
 
 Phase 4の確定仕様にはRTMLib WholeBody 133点保持、face68、source-color fallback、optional MediaPipe hair guardが含まれる。これらを旧設計へ戻してはならない。
+
+Phase 5の確定仕様はPhase 4 maskをSHA照合付きread-only入力として扱い、anchor、attachment/spatial/containment/overlap/surrounding/front-behind relationを構築する。Radenの`held-linear` accessoryはarm candidateを優先する。Phase 5でmaskを描き換えて関係失敗を隠してはならない。
 
 ## 5. Stage-visibleは必須
 

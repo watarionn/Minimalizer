@@ -1,0 +1,756 @@
+{
+  "anchors": [
+    {
+      "anchor_id": "anchor:accessory_or_held_object:attachment-to-right_arm",
+      "confidence": 0.676507,
+      "evidence_refs": [
+        "phase04:part_masks/accessory_or_held_object.png",
+        "phase04:part_masks/right_arm.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-right_arm",
+      "part_id": "accessory_or_held_object",
+      "xy_normalized": [
+        0.079646,
+        0.259587
+      ],
+      "xy_pixel": [
+        27.0,
+        88.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:accessory_or_held_object:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/accessory_or_held_object.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "accessory_or_held_object",
+      "xy_normalized": [
+        0.154954,
+        0.232978
+      ],
+      "xy_pixel": [
+        52.529412,
+        78.979412
+      ]
+    },
+    {
+      "anchor_id": "anchor:face:attachment-from-neck",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/face.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-neck",
+      "part_id": "face",
+      "xy_normalized": [
+        0.542773,
+        0.457227
+      ],
+      "xy_pixel": [
+        184.0,
+        155.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:face:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/face.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "face",
+      "xy_normalized": [
+        0.510192,
+        0.356428
+      ],
+      "xy_pixel": [
+        172.955084,
+        120.828973
+      ]
+    },
+    {
+      "anchor_id": "anchor:hair:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/hair.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "hair",
+      "xy_normalized": [
+        0.464536,
+        0.343933
+      ],
+      "xy_pixel": [
+        157.477577,
+        116.593363
+      ]
+    },
+    {
+      "anchor_id": "anchor:head:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/head.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "head",
+      "xy_normalized": [
+        0.499563,
+        0.257724
+      ],
+      "xy_pixel": [
+        169.351852,
+        87.368512
+      ]
+    },
+    {
+      "anchor_id": "anchor:left_arm:attachment-to-torso",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/left_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-torso",
+      "part_id": "left_arm",
+      "xy_normalized": [
+        0.79941,
+        0.530973
+      ],
+      "xy_pixel": [
+        271.0,
+        180.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:left_arm:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/left_arm.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "left_arm",
+      "xy_normalized": [
+        0.86748,
+        0.754087
+      ],
+      "xy_pixel": [
+        294.075631,
+        255.63557
+      ]
+    },
+    {
+      "anchor_id": "anchor:lower_body:attachment-to-torso",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/lower_body.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-torso",
+      "part_id": "lower_body",
+      "xy_normalized": [
+        0.749263,
+        0.893805
+      ],
+      "xy_pixel": [
+        254.0,
+        303.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:lower_body:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/lower_body.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "lower_body",
+      "xy_normalized": [
+        0.519194,
+        0.957597
+      ],
+      "xy_pixel": [
+        176.006678,
+        324.625487
+      ]
+    },
+    {
+      "anchor_id": "anchor:major_clothing:attachment-to-torso",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/major_clothing.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-torso",
+      "part_id": "major_clothing",
+      "xy_normalized": [
+        0.374631,
+        0.439528
+      ],
+      "xy_pixel": [
+        127.0,
+        149.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:major_clothing:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/major_clothing.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "major_clothing",
+      "xy_normalized": [
+        0.486054,
+        0.731502
+      ],
+      "xy_pixel": [
+        164.772474,
+        247.979316
+      ]
+    },
+    {
+      "anchor_id": "anchor:neck:attachment-to-face",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/face.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-face",
+      "part_id": "neck",
+      "xy_normalized": [
+        0.542773,
+        0.460177
+      ],
+      "xy_pixel": [
+        184.0,
+        156.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:neck:attachment-to-torso",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-torso",
+      "part_id": "neck",
+      "xy_normalized": [
+        0.489676,
+        0.469027
+      ],
+      "xy_pixel": [
+        166.0,
+        159.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:neck:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "neck",
+      "xy_normalized": [
+        0.522873,
+        0.477763
+      ],
+      "xy_pixel": [
+        177.253846,
+        161.961538
+      ]
+    },
+    {
+      "anchor_id": "anchor:right_arm:attachment-from-accessory_or_held_object",
+      "confidence": 0.676507,
+      "evidence_refs": [
+        "phase04:part_masks/accessory_or_held_object.png",
+        "phase04:part_masks/right_arm.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-accessory_or_held_object",
+      "part_id": "right_arm",
+      "xy_normalized": [
+        0.073746,
+        0.371681
+      ],
+      "xy_pixel": [
+        25.0,
+        126.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:right_arm:attachment-to-torso",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/right_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-to-torso",
+      "part_id": "right_arm",
+      "xy_normalized": [
+        0.294985,
+        0.528024
+      ],
+      "xy_pixel": [
+        100.0,
+        179.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:right_arm:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/right_arm.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "right_arm",
+      "xy_normalized": [
+        0.13471,
+        0.615339
+      ],
+      "xy_pixel": [
+        45.666565,
+        208.599899
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:attachment-from-left_arm",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/left_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-left_arm",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.781711,
+        0.513274
+      ],
+      "xy_pixel": [
+        265.0,
+        174.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:attachment-from-lower_body",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/lower_body.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-lower_body",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.725664,
+        0.884956
+      ],
+      "xy_pixel": [
+        246.0,
+        300.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:attachment-from-major_clothing",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/major_clothing.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-major_clothing",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.374631,
+        0.442478
+      ],
+      "xy_pixel": [
+        127.0,
+        150.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:attachment-from-neck",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-neck",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.486726,
+        0.469027
+      ],
+      "xy_pixel": [
+        165.0,
+        159.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:attachment-from-right_arm",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/right_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:nearest-boundary-pair"
+      ],
+      "kind": "attachment-from-right_arm",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.312684,
+        0.510324
+      ],
+      "xy_pixel": [
+        106.0,
+        173.0
+      ]
+    },
+    {
+      "anchor_id": "anchor:torso:centroid",
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/torso.png",
+        "derived:mask-centroid"
+      ],
+      "kind": "centroid",
+      "part_id": "torso",
+      "xy_normalized": [
+        0.500381,
+        0.74043
+      ],
+      "xy_pixel": [
+        169.629025,
+        251.005897
+      ]
+    }
+  ],
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "present_parts": [
+    "head",
+    "hair",
+    "face",
+    "neck",
+    "torso",
+    "left_arm",
+    "right_arm",
+    "lower_body",
+    "major_clothing",
+    "accessory_or_held_object"
+  ],
+  "relations": [
+    {
+      "confidence": 0.626935,
+      "evidence_refs": [
+        "phase04:part_masks/accessory_or_held_object.png",
+        "phase04:part_masks/right_arm.png",
+        "phase04:metrics/accessory_kind",
+        "phase04:metrics/accessory_score"
+      ],
+      "measurements": {
+        "attachment_limit_px": 68.0,
+        "boundary_distance_px": 38.052595
+      },
+      "relation_id": "relation:accessory_or_held_object:attached_to:right_arm",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:accessory_or_held_object:attachment-to-right_arm",
+      "source_part": "accessory_or_held_object",
+      "target_anchor_id": "anchor:right_arm:attachment-from-accessory_or_held_object",
+      "target_part": "right_arm"
+    },
+    {
+      "confidence": 0.676507,
+      "evidence_refs": [
+        "phase04:part_masks/accessory_or_held_object.png",
+        "phase04:part_masks/right_arm.png",
+        "phase04:display-priority/accessory-over-parts"
+      ],
+      "measurements": {
+        "accessory_kind": "held-linear",
+        "boundary_distance_px": 38.052595
+      },
+      "relation_id": "relation:accessory_or_held_object:in_front_of:right_arm",
+      "relation_kind": "in_front_of",
+      "source_anchor_id": "anchor:accessory_or_held_object:centroid",
+      "source_part": "accessory_or_held_object",
+      "target_anchor_id": "anchor:right_arm:centroid",
+      "target_part": "right_arm"
+    },
+    {
+      "confidence": 0.866486,
+      "evidence_refs": [
+        "phase04:part_masks/face.png",
+        "phase04:part_masks/head.png",
+        "derived:mask-overlap"
+      ],
+      "measurements": {
+        "source_overlap_ratio": 0.866486
+      },
+      "relation_id": "relation:face:inside:head",
+      "relation_kind": "inside",
+      "source_anchor_id": "anchor:face:centroid",
+      "source_part": "face",
+      "target_anchor_id": "anchor:head:centroid",
+      "target_part": "head"
+    },
+    {
+      "confidence": 0.769997,
+      "evidence_refs": [
+        "phase04:part_masks/hair.png",
+        "phase04:part_masks/face.png",
+        "phase04:display-priority/face-over-hair"
+      ],
+      "measurements": {
+        "surround_score": 0.939021
+      },
+      "relation_id": "relation:hair:behind:face",
+      "relation_kind": "behind",
+      "source_anchor_id": "anchor:hair:centroid",
+      "source_part": "hair",
+      "target_anchor_id": "anchor:face:centroid",
+      "target_part": "face"
+    },
+    {
+      "confidence": 0.531412,
+      "evidence_refs": [
+        "phase04:part_masks/hair.png",
+        "phase04:part_masks/head.png",
+        "derived:mask-overlap"
+      ],
+      "measurements": {
+        "source_overlap_ratio": 0.531412
+      },
+      "relation_id": "relation:hair:overlaps:head",
+      "relation_kind": "overlaps",
+      "source_anchor_id": "anchor:hair:centroid",
+      "source_part": "hair",
+      "target_anchor_id": "anchor:head:centroid",
+      "target_part": "head"
+    },
+    {
+      "confidence": 0.939021,
+      "evidence_refs": [
+        "phase04:part_masks/hair.png",
+        "phase04:part_masks/face.png",
+        "derived:face-neighborhood"
+      ],
+      "measurements": {
+        "surround_score": 0.939021
+      },
+      "relation_id": "relation:hair:surrounds:face",
+      "relation_kind": "surrounds",
+      "source_anchor_id": "anchor:hair:centroid",
+      "source_part": "hair",
+      "target_anchor_id": "anchor:face:centroid",
+      "target_part": "face"
+    },
+    {
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/head.png",
+        "phase04:part_masks/torso.png",
+        "derived:mask-centroids"
+      ],
+      "measurements": {
+        "centroid_vertical_gap_px": 163.637385
+      },
+      "relation_id": "relation:head:above:torso",
+      "relation_kind": "above",
+      "source_anchor_id": "anchor:head:centroid",
+      "source_part": "head",
+      "target_anchor_id": "anchor:torso:centroid",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.722703,
+      "evidence_refs": [
+        "phase04:part_masks/left_arm.png",
+        "phase04:part_masks/torso.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 8.485281
+      },
+      "relation_id": "relation:left_arm:attached_to:torso",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:left_arm:attachment-to-torso",
+      "source_part": "left_arm",
+      "target_anchor_id": "anchor:torso:attachment-from-left_arm",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/left_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:mask-centroids"
+      ],
+      "measurements": {
+        "centroid_horizontal_gap_px": 124.446606
+      },
+      "relation_id": "relation:left_arm:right_of:torso",
+      "relation_kind": "right_of",
+      "source_anchor_id": "anchor:left_arm:centroid",
+      "source_part": "left_arm",
+      "target_anchor_id": "anchor:torso:centroid",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.720784,
+      "evidence_refs": [
+        "phase04:part_masks/lower_body.png",
+        "phase04:part_masks/torso.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 8.544004
+      },
+      "relation_id": "relation:lower_body:attached_to:torso",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:lower_body:attachment-to-torso",
+      "source_part": "lower_body",
+      "target_anchor_id": "anchor:torso:attachment-from-lower_body",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.96732,
+      "evidence_refs": [
+        "phase04:part_masks/major_clothing.png",
+        "phase04:part_masks/torso.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 1.0
+      },
+      "relation_id": "relation:major_clothing:attached_to:torso",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:major_clothing:attachment-to-torso",
+      "source_part": "major_clothing",
+      "target_anchor_id": "anchor:torso:attachment-from-major_clothing",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.86,
+      "evidence_refs": [
+        "phase04:part_masks/major_clothing.png",
+        "phase04:part_masks/torso.png",
+        "phase04:display-priority/major-clothing-over-torso"
+      ],
+      "measurements": {
+        "boundary_distance_px": 1.0
+      },
+      "relation_id": "relation:major_clothing:in_front_of:torso",
+      "relation_kind": "in_front_of",
+      "source_anchor_id": "anchor:major_clothing:centroid",
+      "source_part": "major_clothing",
+      "target_anchor_id": "anchor:torso:centroid",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.96732,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/face.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 1.0
+      },
+      "relation_id": "relation:neck:attached_to:face",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:neck:attachment-to-face",
+      "source_part": "neck",
+      "target_anchor_id": "anchor:face:attachment-from-neck",
+      "target_part": "face"
+    },
+    {
+      "confidence": 0.96732,
+      "evidence_refs": [
+        "phase04:part_masks/neck.png",
+        "phase04:part_masks/torso.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 1.0
+      },
+      "relation_id": "relation:neck:attached_to:torso",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:neck:attachment-to-torso",
+      "source_part": "neck",
+      "target_anchor_id": "anchor:torso:attachment-from-neck",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 0.722703,
+      "evidence_refs": [
+        "phase04:part_masks/right_arm.png",
+        "phase04:part_masks/torso.png"
+      ],
+      "measurements": {
+        "attachment_limit_px": 20.4,
+        "boundary_distance_px": 8.485281
+      },
+      "relation_id": "relation:right_arm:attached_to:torso",
+      "relation_kind": "attached_to",
+      "source_anchor_id": "anchor:right_arm:attachment-to-torso",
+      "source_part": "right_arm",
+      "target_anchor_id": "anchor:torso:attachment-from-right_arm",
+      "target_part": "torso"
+    },
+    {
+      "confidence": 1.0,
+      "evidence_refs": [
+        "phase04:part_masks/right_arm.png",
+        "phase04:part_masks/torso.png",
+        "derived:mask-centroids"
+      ],
+      "measurements": {
+        "centroid_horizontal_gap_px": 123.962459
+      },
+      "relation_id": "relation:right_arm:left_of:torso",
+      "relation_kind": "left_of",
+      "source_anchor_id": "anchor:right_arm:centroid",
+      "source_part": "right_arm",
+      "target_anchor_id": "anchor:torso:centroid",
+      "target_part": "torso"
+    }
+  ],
+  "schema_version": "1.0",
+  "validation": {
+    "isolated_major_parts": [],
+    "missing_accessory_attachment": false,
+    "missing_arm_attachments": [],
+    "occlusion_cycle_count": 0,
+    "pass": true
+  }
+}
