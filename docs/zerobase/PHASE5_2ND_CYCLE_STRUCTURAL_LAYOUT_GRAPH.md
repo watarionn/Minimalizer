@@ -155,6 +155,11 @@ Raden:
 - `LOCAL_MERGE_VALIDATION_PASS`
 - `git diff --check`: **PASS**
 
+## Canonical implementation
+
+- Codex base implementation: `45dc90c816faaaa0ab7b395580297a543cc3e122`
+- Review hardening implementation: `ba6654f3b8109c837d8d8822395a7100645aa706`
+
 ## Gate decision
 
 Phase 5 is **CLOSED / PASS**.
