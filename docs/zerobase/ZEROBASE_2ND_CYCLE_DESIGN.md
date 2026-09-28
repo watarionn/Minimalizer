@@ -174,7 +174,7 @@ PASS: major silhouette、顔/髪の分離、特徴アクセサリ、主要色塊
 
 Closure: Phase 7 semantic massをsilhouette contribution / part role / identity contribution / visual salience / redundancyの5軸で独立評価し、canonical actionを`protect / keep / prune`へ固定した。pruneは同一partのより大きいmassを明示参照するredundancy evidenceと複数の低重要度根拠が同時成立する場合だけ許可する。unbound、face、`accessory_or_held_object`、各present bound partの最大massはhard protect。Diagnostic-2はKyoko 201 masses = protect 141 / keep 17 / prune 43、Raden 93 masses = protect 64 / keep 10 / prune 19。prune pixel ratioは0.005032 / 0.001166、silhouette boundary retentionは両case 1.0、identity/unbound prune violation 0、invalid prune evidence 0。Kyoko緑タイとRadenロッドはprotectされvisual QA PASS。Phase 8 provenanceは各case 49 artifactsでPASS、deterministic 7/7 + 7/7、focused 30 passed、ZeroBase 141 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE8_2ND_CYCLE_IMPORTANCE_OMISSION.md`。
 
-### Phase 9. Palette Consolidation [REUSE + REDESIGN]
+### Phase 9. Palette Consolidation [CLOSED / PASS]
 
 目的: semantic part間の識別性を壊さず色数を削減する。
 
@@ -187,6 +187,8 @@ Closure: Phase 7 semantic massをsilhouette contribution / part role / identity 
 PASS: 元画像の主要色関係とpart識別が保たれ、shading色が独立primitiveを増殖させないこと。
 
 失敗時の戻り先: palette ruleまたはPhase 8 protect情報。
+
+Closure: Phase 7 mass geometry/semantic ownerとPhase 8 `protect / keep / prune`をSHA照合付きread-only入力として、同一semantic part内だけでsource-derived近似色を統合した。`protect`を代表色anchorとして優先し、face/hair/major clothing/accessoryは厳しい近似色閾値とcritical contrast guardを適用。unboundは各massを隔離し、pruneはpalette assignmentを持たせず復活を禁止した。代表色はPhase 7 source-derived meanに最も近い実在source pixelを採用し、synthetic color、cross-part merge、semantic reinterpretation、geometry変更、生成/inpainting/hidden completionを禁止した。Diagnostic-2はKyoko 158 active masses → 72 palette entries、Raden 74 → 64、cross-part/unbound/prune-resurrection/critical contrast/source provenance violationはいずれも0。`09_palette.json` / `09_palette_preview.png` / `09_palette_strip.png`を生成しvisual QA PASS。Phase 9 provenanceは各case 55 artifactsでPASS、再実行6/6 + 6/6 SHA一致。focused 22 passed、ZeroBase 152 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE9_2ND_CYCLE_PALETTE_CONSOLIDATION.md`。
 
 ### Phase 10. Part-Aware Geometrization [MAJOR REDESIGN]
 

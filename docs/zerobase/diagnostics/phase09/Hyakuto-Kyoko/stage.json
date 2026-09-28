@@ -1,0 +1,120 @@
+{
+  "config": {
+    "allow_cross_part_merge": false,
+    "critical_contrast_distance": 28.0,
+    "critical_near_color_distance": 18.0,
+    "critical_parts": [
+      "accessory_or_held_object",
+      "face",
+      "hair",
+      "major_clothing"
+    ],
+    "near_color_distance": 30.0,
+    "reinterpret_unbound": false,
+    "representative_strategy": "source-pixel-mode"
+  },
+  "config_sha256": "83601070deec2cf655cfdb365c2c8ce01dc72dee85ea6ffd414a505fb254529b",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "semantic-part-palette-consolidation-v1",
+  "inputs": {
+    "phase7": {
+      "07_mass_blocks.png": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "07_mass_labels.png": "8368b20ff29162eab0033ab43dc6dcfe2b0fa3eee540e0dce535e06c3851ed58",
+      "07_mass_outline_overlay.png": "9e252fd15e5731bfb35d32a34df52edd595f4a90a68f5dfaf8b728f211cec088",
+      "07_mass_silhouette.png": "cfb27caa99ea651cfff8d0bfb161c808ab40485bc6d64c409952e9520ef03cc6",
+      "07_masses.json": "39d53b53197ff8314147c374e565ad10ad70cceeb0e6b0ed2c799e4216337f17",
+      "metrics.json": "22156df0be2cb6be0bc036b1e786c92898e012316b782c8e9016180a693642f8",
+      "preview.png": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "stage.json": "aee8d505b0b5da429c4acdf7df72fa5a0468659498d6a7f25456fb0089ff489d"
+    },
+    "phase8": {
+      "08_importance.json": "d1721791a0bc5d8b4045f678d1b2bcfb72f8acd724b72ed88b8b69ef5a4d0d5a",
+      "08_importance_heatmap.png": "1b1c90800ed7401cb95cb08a1713a5088760e790cf68f6cf1133a70bead21e3d",
+      "08_pruned_masses.png": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "08_removed_overlay.png": "37bd918fa271ff197a0106fb9e39f235903da3060a973223780724213d58981d",
+      "metrics.json": "944489496bab2965858d9d27eb28a2f446b52dfed43d14668ef8ec415fede6db",
+      "preview.png": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "stage.json": "a07f3b00c179f1c8e322f72ea3c19ab9e729a32d1184b2d900d8bd073c805915"
+    },
+    "source": {
+      "path": "Hyakuto-Kyoko_list_thumb.png",
+      "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+    }
+  },
+  "merge_policy": {
+    "cross_part_merge": "forbidden",
+    "protected_mass": "anchor-priority-with-critical-contrast-guard",
+    "prune": "excluded-no-resurrection",
+    "unbound": "isolated-no-merge-no-reinterpretation"
+  },
+  "metrics": {
+    "action_change_count": 0,
+    "active_mass_count": 158,
+    "critical_anchor_violation_count": 0,
+    "critical_contrast_violation_count": 0,
+    "cross_part_merge_count": 0,
+    "geometry_change_count": 0,
+    "mass_count": 201,
+    "palette_entry_count": 72,
+    "palette_reduction_ratio": 0.544304,
+    "pass": true,
+    "prune_resurrection_count": 0,
+    "pruned_mass_count": 43,
+    "representative_strategy": "source-pixel-mode",
+    "same_part_merge_count": 86,
+    "semantic_owner_change_count": 0,
+    "source_derived_representative_violation_count": 0,
+    "unbound_merge_count": 0,
+    "unbound_reinterpretation_count": 0,
+    "unique_palette_rgb_count": 72
+  },
+  "outputs": {
+    "09_palette.json": "66ccd48ea0598e732ed5412c012d1278ebc9a9b4163745bb9c8af6b8687f7b94",
+    "09_palette_preview.png": "8726fed70b6d08cc8aec35a785b4d8ca8313ed78f8d1b3ee1b52b9aa56ffc517",
+    "09_palette_strip.png": "7a1a5a3fafd333ed74c944bd2a256c2e17bade2e012b5d2239b67dea1778a9fb",
+    "metrics.json": "44ab827b680c8b38a7dadb9ccdbe2cf4b5743ed64aa906f9fb6ac44398ba4bb2",
+    "preview.png": "8726fed70b6d08cc8aec35a785b4d8ca8313ed78f8d1b3ee1b52b9aa56ffc517"
+  },
+  "palette_data": {
+    "palette_color_count": 72,
+    "path": "09_palette.json",
+    "sha256": "66ccd48ea0598e732ed5412c012d1278ebc9a9b4163745bb9c8af6b8687f7b94"
+  },
+  "phase": 9,
+  "producer": "minimalizer-zerobase2-phase9",
+  "producer_version": "1.0",
+  "provenance_policy": {
+    "cross_part_merge": "forbidden",
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden",
+    "phase7_geometry": "read-only",
+    "phase7_semantic_ownership": "read-only",
+    "phase8_action_metadata": "read-only",
+    "prune_resurrection": "forbidden",
+    "synthetic_color": "forbidden",
+    "unbound_reinterpretation": "forbidden",
+    "visible_output": "observed-source-colors-and-fixed-background-only"
+  },
+  "render_authority": "deterministic-source-derived-palette-only",
+  "representative_color_policy": {
+    "observed_source_coordinate_required": true,
+    "strategy": "source-pixel-mode",
+    "synthetic_average_color": "forbidden"
+  },
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "palette_consolidation"
+}

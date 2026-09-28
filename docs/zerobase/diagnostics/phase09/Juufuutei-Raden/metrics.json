@@ -1,0 +1,21 @@
+{
+  "action_change_count": 0,
+  "active_mass_count": 74,
+  "critical_anchor_violation_count": 0,
+  "critical_contrast_violation_count": 0,
+  "cross_part_merge_count": 0,
+  "geometry_change_count": 0,
+  "mass_count": 93,
+  "palette_entry_count": 64,
+  "palette_reduction_ratio": 0.135135,
+  "pass": true,
+  "prune_resurrection_count": 0,
+  "pruned_mass_count": 19,
+  "representative_strategy": "source-pixel-mode",
+  "same_part_merge_count": 10,
+  "semantic_owner_change_count": 0,
+  "source_derived_representative_violation_count": 0,
+  "unbound_merge_count": 0,
+  "unbound_reinterpretation_count": 0,
+  "unique_palette_rgb_count": 62
+}

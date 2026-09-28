@@ -1,0 +1,120 @@
+{
+  "config": {
+    "allow_cross_part_merge": false,
+    "critical_contrast_distance": 28.0,
+    "critical_near_color_distance": 18.0,
+    "critical_parts": [
+      "accessory_or_held_object",
+      "face",
+      "hair",
+      "major_clothing"
+    ],
+    "near_color_distance": 30.0,
+    "reinterpret_unbound": false,
+    "representative_strategy": "source-pixel-mode"
+  },
+  "config_sha256": "83601070deec2cf655cfdb365c2c8ce01dc72dee85ea6ffd414a505fb254529b",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "semantic-part-palette-consolidation-v1",
+  "inputs": {
+    "phase7": {
+      "07_mass_blocks.png": "25e2fed6dc8574e324a2ca750df90103b6b277ee57aee16b1f671209f07663ca",
+      "07_mass_labels.png": "84936d5549c30433b1deb3ff09aa689fc9b54943a15ac6511f268e41ddd38741",
+      "07_mass_outline_overlay.png": "8ed25d59571a8e30780fafb2139e7676826f3a858e1c0066019566ce2eba6d0c",
+      "07_mass_silhouette.png": "33f0b665a89ad9cf279813dad43eb77008d63d1e1a93cc5d1fe06072433dbc0a",
+      "07_masses.json": "db2524ff7113fa4a740f567bd72e3f6ce7af2c9bf0d2eb89ece36dc614d331f0",
+      "metrics.json": "5316e75a523dae5062330c0bfd327aacdea8123131cc75535d03921879a553d1",
+      "preview.png": "25e2fed6dc8574e324a2ca750df90103b6b277ee57aee16b1f671209f07663ca",
+      "stage.json": "45eb2480fd9fec42be1e6db1fc4c040fe7114447a862fc7f18165886b23c2827"
+    },
+    "phase8": {
+      "08_importance.json": "487bb26b1bce01d05b7b58991ed31e544bdcd9df31ab15d1c09beeaa854aa9b2",
+      "08_importance_heatmap.png": "a1645974d34e47775e1582b22cf1eb05c7eefb3f3a3a9b1c805dc4ac60a98722",
+      "08_pruned_masses.png": "d767a3606ce60c75e1304d7d30a942e9f853c8ff08bfa27ab7b906cd65596049",
+      "08_removed_overlay.png": "1070546ea2cb173d4998cf6de8518ba589f4400275ecbe5973bf5be6f1910e1b",
+      "metrics.json": "3804d7335a18ff8aa697e1ffef99c02c586fe9c461143095ba57c1dfdae14d85",
+      "preview.png": "d767a3606ce60c75e1304d7d30a942e9f853c8ff08bfa27ab7b906cd65596049",
+      "stage.json": "d731e5bb5a0b901fa6995a363af94fe5a429c36be3c5924f912145d262e8c3ab"
+    },
+    "source": {
+      "path": "Juufuutei-Raden_list_thumb.png",
+      "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00"
+    }
+  },
+  "merge_policy": {
+    "cross_part_merge": "forbidden",
+    "protected_mass": "anchor-priority-with-critical-contrast-guard",
+    "prune": "excluded-no-resurrection",
+    "unbound": "isolated-no-merge-no-reinterpretation"
+  },
+  "metrics": {
+    "action_change_count": 0,
+    "active_mass_count": 74,
+    "critical_anchor_violation_count": 0,
+    "critical_contrast_violation_count": 0,
+    "cross_part_merge_count": 0,
+    "geometry_change_count": 0,
+    "mass_count": 93,
+    "palette_entry_count": 64,
+    "palette_reduction_ratio": 0.135135,
+    "pass": true,
+    "prune_resurrection_count": 0,
+    "pruned_mass_count": 19,
+    "representative_strategy": "source-pixel-mode",
+    "same_part_merge_count": 10,
+    "semantic_owner_change_count": 0,
+    "source_derived_representative_violation_count": 0,
+    "unbound_merge_count": 0,
+    "unbound_reinterpretation_count": 0,
+    "unique_palette_rgb_count": 62
+  },
+  "outputs": {
+    "09_palette.json": "1e1bc80899b418e9a56644fbca63c4c5ee448e42b5a58406ea5028ccbb4e7d0c",
+    "09_palette_preview.png": "ce485ebd7b1c756286b72bae322467e6b9ec6f2b6fc29ea75caeb44681df4bf7",
+    "09_palette_strip.png": "a10164e76f6ee924a578c4a9b37c2ae22e6af68706d0fb4d33612009fc7bf4ec",
+    "metrics.json": "960f76afecda0a732ad6390f8ba179d63673b389be8b8d717694f6d9427eb9ac",
+    "preview.png": "ce485ebd7b1c756286b72bae322467e6b9ec6f2b6fc29ea75caeb44681df4bf7"
+  },
+  "palette_data": {
+    "palette_color_count": 64,
+    "path": "09_palette.json",
+    "sha256": "1e1bc80899b418e9a56644fbca63c4c5ee448e42b5a58406ea5028ccbb4e7d0c"
+  },
+  "phase": 9,
+  "producer": "minimalizer-zerobase2-phase9",
+  "producer_version": "1.0",
+  "provenance_policy": {
+    "cross_part_merge": "forbidden",
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden",
+    "phase7_geometry": "read-only",
+    "phase7_semantic_ownership": "read-only",
+    "phase8_action_metadata": "read-only",
+    "prune_resurrection": "forbidden",
+    "synthetic_color": "forbidden",
+    "unbound_reinterpretation": "forbidden",
+    "visible_output": "observed-source-colors-and-fixed-background-only"
+  },
+  "render_authority": "deterministic-source-derived-palette-only",
+  "representative_color_policy": {
+    "observed_source_coordinate_required": true,
+    "strategy": "source-pixel-mode",
+    "synthetic_average_color": "forbidden"
+  },
+  "source": {
+    "height": 340,
+    "path": "Juufuutei-Raden_list_thumb.png",
+    "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "width": 340
+  },
+  "stage": "palette_consolidation"
+}

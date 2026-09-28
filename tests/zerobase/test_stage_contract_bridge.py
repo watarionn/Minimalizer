@@ -461,3 +461,94 @@ def test_bridge_can_extend_verified_chain_through_phase8(tmp_path: Path) -> None
         "phase07:stage.json",
         "source",
     }
+
+
+def _add_phase9(case_dir: Path, source_path: Path) -> None:
+    phase7 = case_dir / "phase_07"
+    phase8 = case_dir / "phase_08"
+    phase9 = case_dir / "phase_09"
+    phase9.mkdir()
+    source = _load_stage(case_dir, 8)["source"]
+    stage7 = _load_stage(case_dir, 7)
+    stage8 = _load_stage(case_dir, 8)
+    palette_sha = _write_output(
+        phase9 / "09_palette.json",
+        b'{"palette":"ok"}\n',
+    )
+    preview_sha = _write_output(
+        phase9 / "09_palette_preview.png",
+        b"phase9-preview",
+    )
+    strip_sha = _write_output(
+        phase9 / "09_palette_strip.png",
+        b"phase9-strip",
+    )
+    stage9 = _base_stage(
+        phase=9,
+        stage_name="palette_consolidation",
+        source=source,
+        config={"palette": "test"},
+        inputs={
+            "phase7": {
+                "07_masses.json": stage7["outputs"]["07_masses.json"],
+                "07_mass_labels.png": stage7["outputs"]["07_mass_labels.png"],
+                "stage.json": _sha256_file(phase7 / "stage.json"),
+            },
+            "phase8": {
+                "08_importance.json": stage8["outputs"]["08_importance.json"],
+                "08_importance_heatmap.png": stage8["outputs"]["08_importance_heatmap.png"],
+                "stage.json": _sha256_file(phase8 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "09_palette.json": palette_sha,
+            "09_palette_preview.png": preview_sha,
+            "09_palette_strip.png": strip_sha,
+        },
+    )
+    _write_stage(phase9 / "stage.json", stage9)
+
+
+def test_bridge_can_extend_verified_chain_through_phase9(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase9",
+        max_phase=9,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-09"
+    assert len(result.run_manifest.stage_manifest_refs) == 7
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    palette = by_id["phase09:09_palette.json"]
+    assert palette.artifact_type == "palette-consolidation-data"
+    assert by_id["phase09:09_palette_strip.png"].artifact_type == "palette-strip"
+    assert {parent.artifact_id for parent in palette.parents} == {
+        "phase07:07_masses.json",
+        "phase07:07_mass_labels.png",
+        "phase07:stage.json",
+        "phase08:08_importance.json",
+        "phase08:08_importance_heatmap.png",
+        "phase08:stage.json",
+        "source",
+    }
+
+
+def test_bridge_phase9_fails_closed_when_phase9_stage_is_missing(
+    tmp_path: Path,
+) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    with pytest.raises(StageContractBridgeError, match="missing Phase 9"):
+        bridge_stage_contracts(case_dir, source_path, max_phase=9)
