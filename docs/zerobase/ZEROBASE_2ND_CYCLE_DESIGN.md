@@ -158,7 +158,7 @@ PASS: この段階の塗りつぶしだけで人物のポーズと主要特徴�
 
 Closure: Phase 6のbound regionをsame-part adjacency connected componentとしてmajor massへ統合し、cross-part mergeとunbound absorptionはv1で明示禁止した。`07_masses.json` / `07_mass_labels.png` / `07_mass_silhouette.png` / `07_mass_blocks.png` / `07_mass_outline_overlay.png`を生成し、Diagnostic-2はKyoko 476→201 masses、Raden 334→93 masses、両caseともsubject pixel coverage 1.0、cross-part merge 0、unbound absorption 0。塗りつぶしmassだけで主要ポーズ・頭髪・顔位置・胴体/腕・Kyokoの緑タイ・Radenのロッド/長髪が読めることをvisual QAで確認した。既存unboundはmagentaのまま保持し下流で修復しない。Phase 7を含むprovenance bridgeは各case 42 artifactsでPASS、最終rerunは8/8 + 8/8 SHA一致。focused 34 passed、ZeroBase 132 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE7_2ND_CYCLE_MAJOR_MASS.md`。
 
-### Phase 8. Importance / Omission Policy [REDESIGN]
+### Phase 8. Importance / Omission Policy [CLOSED / PASS]
 
 目的: 何を残し何を捨てるかをsemantic importanceとして決定する。
 
@@ -171,6 +171,8 @@ Closure: Phase 6のbound regionをsame-part adjacency connected componentとし�
 PASS: major silhouette、顔/髪の分離、特徴アクセサリ、主要色塊がprotectされ、削除対象が主に冗長fragmentへ集中すること。
 
 失敗時の戻り先: Phase 7またはimportance rule。
+
+Closure: Phase 7 semantic massをsilhouette contribution / part role / identity contribution / visual salience / redundancyの5軸で独立評価し、canonical actionを`protect / keep / prune`へ固定した。pruneは同一partのより大きいmassを明示参照するredundancy evidenceと複数の低重要度根拠が同時成立する場合だけ許可する。unbound、face、`accessory_or_held_object`、各present bound partの最大massはhard protect。Diagnostic-2はKyoko 201 masses = protect 141 / keep 17 / prune 43、Raden 93 masses = protect 64 / keep 10 / prune 19。prune pixel ratioは0.005032 / 0.001166、silhouette boundary retentionは両case 1.0、identity/unbound prune violation 0、invalid prune evidence 0。Kyoko緑タイとRadenロッドはprotectされvisual QA PASS。Phase 8 provenanceは各case 49 artifactsでPASS、deterministic 7/7 + 7/7、focused 30 passed、ZeroBase 141 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE8_2ND_CYCLE_IMPORTANCE_OMISSION.md`。
 
 ### Phase 9. Palette Consolidation [REUSE + REDESIGN]
 

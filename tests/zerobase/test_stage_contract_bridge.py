@@ -6,7 +6,8 @@ import shutil
 from pathlib import Path
 
 import pytest
-from PIL import Image
+import cv2
+import numpy as np
 
 from minimalizer_zerobase.artifact_contract import (
     ArtifactOrigin,
@@ -69,7 +70,10 @@ def _base_stage(
 
 def _make_case(tmp_path: Path) -> tuple[Path, Path]:
     source_path = tmp_path / "source.png"
-    Image.new("RGB", (8, 6), (120, 80, 40)).save(source_path)
+    assert cv2.imwrite(
+        str(source_path),
+        np.full((6, 8, 3), (40, 80, 120), dtype=np.uint8),
+    )
     source = {
         "path": source_path.name,
         "sha256": _sha256_file(source_path),
@@ -277,7 +281,10 @@ def test_bridge_rejects_upstream_input_hash_mismatch(tmp_path: Path) -> None:
 
 def test_bridge_rejects_source_replacement(tmp_path: Path) -> None:
     case_dir, source_path = _make_case(tmp_path)
-    Image.new("RGB", (8, 6), (0, 0, 0)).save(source_path)
+    assert cv2.imwrite(
+        str(source_path),
+        np.zeros((6, 8, 3), dtype=np.uint8),
+    )
     with pytest.raises(
         StageContractBridgeError,
         match="source file SHA does not match",
@@ -390,3 +397,67 @@ def test_bridge_phase7_fails_closed_when_phase7_stage_is_missing(
             source_path,
             max_phase=7,
         )
+
+
+def _add_phase8(case_dir: Path, source_path: Path) -> None:
+    phase7 = case_dir / "phase_07"
+    phase8 = case_dir / "phase_08"
+    phase8.mkdir()
+    source = _load_stage(case_dir, 7)["source"]
+    stage7 = _load_stage(case_dir, 7)
+    importance_sha = _write_output(
+        phase8 / "08_importance.json",
+        b'{"decisions":"ok"}\n',
+    )
+    heatmap_sha = _write_output(
+        phase8 / "08_importance_heatmap.png",
+        b"phase8-heatmap",
+    )
+    stage8 = _base_stage(
+        phase=8,
+        stage_name="importance_omission_policy",
+        source=source,
+        config={"policy": "test"},
+        inputs={
+            "phase7": {
+                "07_masses.json": stage7["outputs"]["07_masses.json"],
+                "07_mass_labels.png": stage7["outputs"]["07_mass_labels.png"],
+                "stage.json": _sha256_file(phase7 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "08_importance.json": importance_sha,
+            "08_importance_heatmap.png": heatmap_sha,
+        },
+    )
+    _write_stage(phase8 / "stage.json", stage8)
+
+
+def test_bridge_can_extend_verified_chain_through_phase8(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase8",
+        max_phase=8,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-08"
+    assert len(result.run_manifest.stage_manifest_refs) == 6
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    importance = by_id["phase08:08_importance.json"]
+    assert importance.artifact_type == "importance-omission-data"
+    assert {parent.artifact_id for parent in importance.parents} == {
+        "phase07:07_masses.json",
+        "phase07:07_mass_labels.png",
+        "phase07:stage.json",
+        "source",
+    }

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from PIL import Image
+import cv2
 
 from minimalizer_zerobase.core.serialization import CanonicalModel
 
@@ -19,7 +19,7 @@ from .contracts import (
 from .persistence import ContractBundleWriteResult, write_contract_bundle
 from .policy import ProvenanceGateResult, ProvenancePolicyGate
 
-SUPPORTED_PHASES = (3, 4, 5, 6, 7)
+SUPPORTED_PHASES = (3, 4, 5, 6, 7, 8)
 BRIDGE_VERSION = "stage-contract-bridge-v1"
 
 
@@ -175,8 +175,12 @@ def _validate_source_contract(
         raise StageContractBridgeError(
             "source file SHA does not match the canonical stage source"
         )
-    with Image.open(source_path) as source_image:
-        actual_width, actual_height = source_image.size
+    source_image = cv2.imread(str(source_path), cv2.IMREAD_UNCHANGED)
+    if source_image is None:
+        raise StageContractBridgeError(
+            "source file cannot be decoded as an image"
+        )
+    actual_height, actual_width = source_image.shape[:2]
     if (actual_width, actual_height) != (canonical_width, canonical_height):
         raise StageContractBridgeError(
             "source file dimensions do not match the canonical stage source"
@@ -200,6 +204,14 @@ def _output_type(relative_path: str) -> str:
         return "stage-preview"
     if "masses" in name and name.endswith(".json"):
         return "semantic-mass-data"
+    if "importance" in name and name.endswith(".json"):
+        return "importance-omission-data"
+    if "importance_heatmap" in name:
+        return "importance-heatmap"
+    if "pruned_masses" in name:
+        return "pruned-mass-preview"
+    if "removed_overlay" in name:
+        return "omission-overlay"
     if "mass_labels" in name:
         return "mass-label-map"
     if "mass_blocks" in name:
@@ -427,7 +439,7 @@ def bridge_stage_contracts(
 
     if max_phase not in SUPPORTED_PHASES or max_phase < 6:
         raise StageContractBridgeError(
-            f"unsupported max_phase={max_phase}; expected 6 or 7"
+            f"unsupported max_phase={max_phase}; expected 6, 7, or 8"
         )
     selected_phases = tuple(
         phase for phase in SUPPORTED_PHASES if phase <= max_phase
