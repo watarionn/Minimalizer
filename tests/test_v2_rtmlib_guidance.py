@@ -176,3 +176,30 @@ def test_config_rejects_invalid_duplicate_and_corridor_parameters():
         RtmlibStructuralConfig(duplicate_min_common_joints=1)
     with pytest.raises(ValueError):
         RtmlibStructuralConfig(min_corridor_radius_px=5.0, max_corridor_radius_px=4.0)
+
+
+def test_wholebody_selection_preserves_face_and_hand_keypoints_while_body17_drives_structure():
+    wholebody = np.zeros((1, 133, 2), dtype=np.float32)
+    wholebody[0, :17] = _body17()
+    wholebody[0, 23:91, 0] = np.linspace(35.0, 65.0, 68)
+    wholebody[0, 23:91, 1] = np.linspace(15.0, 45.0, 68)
+    scores = np.full((1, 133), 0.9, dtype=np.float32)
+
+    guide_full, selection_full = build_structural_guide_from_pose(
+        wholebody,
+        scores,
+        source_shape=(100, 100),
+    )
+    guide_body, _ = build_structural_guide_from_pose(
+        wholebody[:, :17],
+        scores[:, :17],
+        source_shape=(100, 100),
+    )
+
+    assert selection_full is not None
+    assert selection_full.keypoints.shape == (133, 2)
+    assert selection_full.scores.shape == (133,)
+    assert np.array_equal(
+        guide_full.confidence_maps,
+        guide_body.confidence_maps,
+    )

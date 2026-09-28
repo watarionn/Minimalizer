@@ -104,7 +104,7 @@ PASS: 顔・髪・胴体・腕・主要アクセサリが少なくとも別の�
 
 失敗時の戻り先: Phase 2またはPhase 3。
 
-Closure: Diagnostic-2でRTMLib WholeBody構造、source-color face/hair解析、optional MediaPipe hair guardを統合。Kyokoは髪・顔・首・胴体・左右腕・緑ネクタイを分離、Radenは長髪・顔・胴体・大袖/左右腕・ロッドを分離。Radenで発生した黒髪→黒袖への過剰拡張はPhase 4内で修正した。`04_part_map.png` / `04_part_overlay.png` は再実行SHA一致。Phase 4 tests 5 passed、ZeroBase suite 76 passed。詳細は `PHASE4_2ND_CYCLE_SEMANTIC_PARTS.md`。
+Closure: Diagnostic-2でRTMLib WholeBody構造、face68ランドマーク、source-color face/hair解析、optional MediaPipe hair guardを統合。WholeBodyの133点を保持し、顔68点が十分高信頼な場合はそのconvex hullを顔geometryの主Evidenceに採用し、source-color face locatorをfallback/diagnosticへ下げた。Kyokoは髪・顔・首・胴体・左右腕・緑ネクタイを分離、Radenは長髪・正しく整列した顔・胴体・大袖/左右腕・ロッドを分離。Radenで発生した黒髪→黒袖への過剰拡張と、顔の小ささ/左ズレをPhase 4内で修正した。`04_part_map.png` / `04_part_overlay.png` は再実行SHA一致。Phase 4 tests 6 passed、RTMLib guidance 9 passed、ZeroBase suite 77 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。詳細は `PHASE4_2ND_CYCLE_SEMANTIC_PARTS.md`。
 
 ### Phase 5. Structural Layout Graph [NEW CORE]
 

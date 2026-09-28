@@ -141,13 +141,13 @@ def _normalize_people(
         raise ValueError("rtmlib pose arrays must have shapes (P, K, 2+) and (P, K)")
     if k.shape[:2] != s.shape or k.shape[1] < 17:
         raise ValueError("rtmlib pose arrays must align and contain at least BODY17 keypoints")
-    body_k = np.array(k[:, :17, :2], dtype=np.float32, copy=True)
-    body_s = np.array(s[:, :17], dtype=np.float32, copy=True)
-    invalid_xy = ~np.all(np.isfinite(body_k), axis=2)
-    body_s[~np.isfinite(body_s) | invalid_xy] = 0.0
-    np.clip(body_s, 0.0, 1.0, out=body_s)
-    body_k[~np.isfinite(body_k)] = 0.0
-    return body_k, body_s
+    all_k = np.array(k[:, :, :2], dtype=np.float32, copy=True)
+    all_s = np.array(s, dtype=np.float32, copy=True)
+    invalid_xy = ~np.all(np.isfinite(all_k), axis=2)
+    all_s[~np.isfinite(all_s) | invalid_xy] = 0.0
+    np.clip(all_s, 0.0, 1.0, out=all_s)
+    all_k[~np.isfinite(all_k)] = 0.0
+    return all_k, all_s
 
 
 def _bbox_area_ratio(
@@ -254,9 +254,11 @@ def select_primary_skeleton(
 
     ranked: list[tuple[float, float, float, int]] = []
     for index in range(people_k.shape[0]):
+        body_k = people_k[index, :17]
+        body_s = people_s[index, :17]
         quality, confidence, area = _person_quality(
-            people_k[index],
-            people_s[index],
+            body_k,
+            body_s,
             source_shape=source_shape,
             subject_prob=subject,
             config=cfg,
@@ -269,10 +271,10 @@ def select_primary_skeleton(
     for _, _, _, index in ranked:
         if any(
             _are_near_duplicate_skeletons(
-                people_k[index],
-                people_s[index],
-                people_k[other],
-                people_s[other],
+                people_k[index, :17],
+                people_s[index, :17],
+                people_k[other, :17],
+                people_s[other, :17],
                 source_shape=source_shape,
                 config=cfg,
             )

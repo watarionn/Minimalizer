@@ -95,6 +95,8 @@ def write_phase4_artifacts(
         ],
         "face_bbox_xywh": list(result.face_bbox_xywh) if result.face_bbox_xywh else None,
         "face_score": result.face_score,
+        "face_source": result.face_source,
+        "face_landmark_confidence": result.face_landmark_confidence,
         "structural_quality": result.structural_quality,
         "accessory_kind": result.accessory_kind,
         "accessory_score": result.accessory_score,

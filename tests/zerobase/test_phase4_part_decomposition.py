@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import numpy as np
+import pytest
 from PIL import Image, ImageDraw
 
 from minimalizer_zerobase.parts.artifacts import write_phase4_artifacts
@@ -139,3 +140,32 @@ def test_high_confidence_hair_hint_prevents_deep_same_color_spill():
     deep_center = result.part_masks["hair"][face_bottom + 25 :, 45:76]
     assert int(deep_center.sum()) < 120
     assert int(result.part_masks["hair"][10:66, 35:86].sum()) > 200
+
+
+def test_face68_landmarks_override_shifted_color_locator_geometry():
+    _, rgb, subject, structural = _synthetic_case()
+    angles = np.linspace(0.0, 2.0 * np.pi, 68, endpoint=False)
+    face_landmarks = np.column_stack(
+        (
+            67.0 + 16.0 * np.cos(angles),
+            42.0 + 19.0 * np.sin(angles),
+        )
+    ).astype(np.float32)
+    face_scores = np.full(68, 0.95, dtype=np.float32)
+
+    result = decompose_semantic_parts(
+        rgb,
+        subject,
+        structural,
+        face_landmarks=face_landmarks,
+        face_landmark_scores=face_scores,
+    )
+
+    assert result.face_source == "rtmlib-wholebody-face68"
+    assert result.face_landmark_confidence == pytest.approx(0.95)
+    assert result.face_bbox_xywh is not None
+    x, y, w, h = result.face_bbox_xywh
+    assert abs((x + w / 2.0) - 67.0) <= 2.0
+    assert abs((y + h / 2.0) - 42.0) <= 2.0
+    assert w >= 32
+    assert h >= 38

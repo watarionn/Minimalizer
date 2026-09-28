@@ -43,6 +43,8 @@ class PartDecomposition:
     part_masks: dict[str, np.ndarray]
     face_bbox_xywh: tuple[int, int, int, int] | None
     face_score: float
+    face_source: str
+    face_landmark_confidence: float
     structural_quality: float
     accessory_kind: str
     accessory_score: float
@@ -221,6 +223,54 @@ def _grow_hair(
             kept = seed | (kept & (upper | support)) | high
             kept &= subject & ~face
     return kept, int(len(prototypes))
+
+
+def _face_from_landmarks(
+    subject: np.ndarray,
+    points: np.ndarray | None,
+    scores: np.ndarray | None,
+    *,
+    visibility_threshold: float = 0.30,
+    minimum_points: int = 24,
+) -> tuple[np.ndarray, float]:
+    if points is None or scores is None:
+        return np.zeros_like(subject), 0.0
+    pts = np.asarray(points, dtype=np.float32)
+    scr = np.asarray(scores, dtype=np.float32).reshape(-1)
+    if pts.ndim != 2 or pts.shape[1] < 2 or len(pts) != len(scr):
+        raise ValueError("face landmarks must have aligned shapes (N,2+) and (N,)")
+    valid = (
+        np.all(np.isfinite(pts[:, :2]), axis=1)
+        & np.isfinite(scr)
+        & (scr >= visibility_threshold)
+    )
+    if int(valid.sum()) < minimum_points:
+        return np.zeros_like(subject), 0.0
+
+    selected = pts[valid, :2]
+    h, w = subject.shape
+    selected[:, 0] = np.clip(selected[:, 0], 0.0, max(float(w - 1), 0.0))
+    selected[:, 1] = np.clip(selected[:, 1], 0.0, max(float(h - 1), 0.0))
+    hull = cv2.convexHull(np.rint(selected).astype(np.int32))
+    if hull is None or len(hull) < 3:
+        return np.zeros_like(subject), 0.0
+
+    face = np.zeros_like(subject, dtype=np.uint8)
+    cv2.fillConvexPoly(face, hull, 1)
+    x, y, bw, bh = cv2.boundingRect(hull)
+    radius = max(1, int(round(max(bw, bh) * 0.045)))
+    face = cv2.dilate(
+        face,
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (radius * 2 + 1, radius * 2 + 1),
+        ),
+    ).astype(bool)
+    face &= subject
+    if int(face.sum()) < 24:
+        return np.zeros_like(subject), 0.0
+    confidence = float(np.mean(scr[valid]))
+    return face, confidence
 
 
 def _neck_mask(
@@ -457,6 +507,8 @@ def decompose_semantic_parts(
     *,
     structural_quality: float = 0.0,
     semantic_hints: Mapping[str, np.ndarray] | None = None,
+    face_landmarks: np.ndarray | None = None,
+    face_landmark_scores: np.ndarray | None = None,
 ) -> PartDecomposition:
     source = np.asarray(rgb)
     if source.dtype != np.uint8 or source.ndim != 3 or source.shape[2] != 3:
@@ -475,11 +527,21 @@ def decompose_semantic_parts(
     }
 
     face_result = locate_structure_face(source, subject.astype(np.uint8))
-    face = (
-        face_result.mask.astype(bool) & subject
-        if face_result.enabled and face_result.mask is not None
-        else np.zeros_like(subject)
+    landmark_face, landmark_confidence = _face_from_landmarks(
+        subject,
+        face_landmarks,
+        face_landmark_scores,
     )
+    if landmark_confidence >= 0.55 and np.any(landmark_face):
+        face = landmark_face
+        face_source = "rtmlib-wholebody-face68"
+    else:
+        face = (
+            face_result.mask.astype(bool) & subject
+            if face_result.enabled and face_result.mask is not None
+            else np.zeros_like(subject)
+        )
+        face_source = "structure-face-locator" if np.any(face) else "none"
     hair_hint = None
     if semantic_hints is not None and "hair" in semantic_hints:
         hair_hint = np.asarray(semantic_hints["hair"], dtype=np.float32)
@@ -534,14 +596,17 @@ def decompose_semantic_parts(
         "unknown": unknown,
     }
     face_bbox = None
-    if face_result.bbox is not None:
-        x, y, w, h = face_result.bbox
-        face_bbox = (int(x), int(y), int(w), int(h))
+    visible_face_box = _bbox(face)
+    if visible_face_box is not None:
+        x0, y0, x1, y1 = visible_face_box
+        face_bbox = (int(x0), int(y0), int(x1 - x0), int(y1 - y0))
     return PartDecomposition(
         subject_mask=subject,
         part_masks=part_masks,
         face_bbox_xywh=face_bbox,
         face_score=float(face_result.score),
+        face_source=face_source,
+        face_landmark_confidence=float(landmark_confidence),
         structural_quality=float(structural_quality),
         accessory_kind=accessory_kind,
         accessory_score=float(accessory_score),

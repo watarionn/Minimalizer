@@ -156,12 +156,20 @@ def main() -> int:
                 ),
             }
 
+        face_landmarks = None
+        face_landmark_scores = None
+        if selection is not None and len(selection.keypoints) >= 91:
+            face_landmarks = selection.keypoints[23:91]
+            face_landmark_scores = selection.scores[23:91]
+
         result = decompose_semantic_parts(
             rgb,
             subject,
             partition.part_masks,
             structural_quality=quality,
             semantic_hints=semantic_hints,
+            face_landmarks=face_landmarks,
+            face_landmark_scores=face_landmark_scores,
         )
 
         output_dir = args.output_root / cid / "phase_04"
@@ -182,6 +190,16 @@ def main() -> int:
                 if selection is None
                 else np.round(selection.scores[:17], 6).tolist()
             ),
+            "keypoints_face68": (
+                None
+                if selection is None or len(selection.keypoints) < 91
+                else np.round(selection.keypoints[23:91], 4).tolist()
+            ),
+            "scores_face68": (
+                None
+                if selection is None or len(selection.scores) < 91
+                else np.round(selection.scores[23:91], 6).tolist()
+            ),
             "semantic_hint": semantic_summary,
         }
         stage = write_phase4_artifacts(
@@ -198,6 +216,9 @@ def main() -> int:
                 "output_dir": str(output_dir),
                 "structural_quality": quality,
                 "face_score": result.face_score,
+                "face_source": result.face_source,
+                "face_landmark_confidence": result.face_landmark_confidence,
+                "face_bbox_xywh": result.face_bbox_xywh,
                 "accessory_kind": result.accessory_kind,
                 "accessory_score": result.accessory_score,
                 "part_coverage": result.coverage(),

@@ -1,26 +1,28 @@
 {
   "accessory_kind": "held-linear",
-  "accessory_score": 0.7318319885380941,
+  "accessory_score": 0.6765070756343059,
   "face_bbox_xywh": [
-    124,
-    99,
-    61,
-    58
+    132,
+    88,
+    78,
+    71
   ],
+  "face_landmark_confidence": 0.9452449679374695,
   "face_score": 4.3900166495983495,
+  "face_source": "rtmlib-wholebody-face68",
   "hair_prototype_count": 8,
   "part_coverage": {
-    "accessory_or_held_object": 0.0033115443314999855,
-    "face": 0.03025023756731074,
-    "hair": 0.2908255823998618,
+    "accessory_or_held_object": 0.0048953264030869355,
+    "face": 0.05834077230973018,
+    "hair": 0.2802862326143923,
     "head": 0.20914562156247302,
     "left_arm": 0.15001295821694935,
     "lower_body": 0.025873239842197714,
-    "major_clothing": 0.03796757566158897,
-    "neck": 0.0008350850922913007,
-    "right_arm": 0.1442249546462407,
-    "torso": 0.30061623520603564,
-    "unknown": 0.016082587036023843
+    "major_clothing": 0.054294929017767155,
+    "neck": 0.0018717424482391223,
+    "right_arm": 0.1421084458778472,
+    "torso": 0.2759092348892792,
+    "unknown": 0.006407118380510841
   },
   "parts_detected": [
     "head",
@@ -35,5 +37,5 @@
     "accessory_or_held_object"
   ],
   "structural_quality": 0.7565533480229997,
-  "unknown_ratio": 0.016082587036023843
+  "unknown_ratio": 0.006407118380510841
 }

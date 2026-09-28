@@ -26,8 +26,9 @@ Unknown is an allowed outcome. Phase 4 must not force unsupported pixels into a 
 
 Phase 4 uses existing non-generative analysis assets rather than inventing a new all-purpose parser.
 
-- **RTMLib WholeBody** supplies structural evidence and BODY17 keypoints.
-- The existing deterministic **structure face locator** supplies source-color face evidence.
+- **RTMLib WholeBody** supplies BODY17 structure and retains the full 133-point output.
+- WholeBody face points 23–90 (68 facial landmarks) are the primary face geometry evidence when their confidence is sufficient.
+- The deterministic **structure face locator** remains an independent source-color fallback and diagnostic score.
 - Source-image color prototypes grow hair from the structural head region.
 - **MediaPipe selfie_multiclass_256x256** is used only as an optional hair-growth guard when it supplies meaningful hair evidence.
 - Deterministic shape/color rules detect major accessories:
@@ -35,6 +36,20 @@ Phase 4 uses existing non-generative analysis assets rather than inventing a new
   - peripheral thin linear evidence for items such as Raden's rod
 
 No analyzer has final rendering authority. No generated image content, inpainting, img2img, Generative Fill, or missing-part synthesis is used.
+
+## Face alignment correction
+
+The first Phase 4 closure used only the source-color face locator for the final visible face mask. Diagnostic review showed that Raden's face was too small and shifted left.
+
+Measured before correction:
+
+- Raden source-color face bbox: `[124, 99, 61, 58]`
+- WholeBody face68 visible point span: approximately `x=135..206, y=91..155`
+- WholeBody face68 mean confidence: approximately `0.945`
+
+The correction preserves RTMLib's full 133-point output instead of discarding everything after BODY17. When at least 24 face landmarks are visible at confidence >= 0.30 and their mean confidence is >= 0.55, Phase 4 forms a convex-hull face mask from those landmarks with a small deterministic dilation. The source-color face locator remains the fallback when reliable face68 evidence is unavailable.
+
+This is a general evidence-path correction, not a Raden-specific coordinate adjustment.
 
 ## Why MediaPipe is optional only
 
@@ -57,49 +72,53 @@ Canonical semantic model:
 
 - Source SHA-256: `cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2`
 - RTMLib structural quality: `0.7377348120641755`
-- Face bbox: `[142, 105, 58, 61]`
-- Face score: `4.302988773664984`
+- Face source: `rtmlib-wholebody-face68`
+- Face bbox: `[128, 109, 86, 73]`
+- Face landmark confidence: `0.8971750140190125`
+- Source-color face score: `4.302988773664984`
 - Accessory: `vivid-accent`
-- Accessory score: `0.7894138679493761`
-- Unknown ratio: `0.03851239669421488`
+- Accessory score: `0.8063757451968034`
+- Unknown ratio: `0.03687786960514233`
 - Visual QA: **PASS**
 
-The diagnostic view separates the orange hair, face, neck, torso, both arms, lower-body support, clothing masses, and the bright green tie/accent.
+The diagnostic view separates the orange hair, face, neck, torso, both arms, lower-body support, clothing masses, and the bright green tie/accent. The face68 hull remains visually aligned with the source face.
 
 Part coverage:
 
-- hair: `0.3196510560146924`
-- face: `0.03851239669421488`
-- torso: `0.15399449035812673`
+- hair: `0.26912764003673095`
+- face: `0.08830119375573921`
+- torso: `0.10701561065197429`
 - left_arm: `0.0498989898989899`
 - right_arm: `0.10877869605142332`
-- lower_body: `0.23074380165289257`
-- major_clothing: `0.042277318640955006`
+- lower_body: `0.23072543617998165`
+- major_clothing: `0.06863177226813591`
 - accessory_or_held_object: `0.003985307621671258`
 
 ### Juufuutei Raden
 
 - Source SHA-256: `d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00`
 - RTMLib structural quality: `0.7565533480229997`
-- Face bbox: `[124, 99, 61, 58]`
-- Face score: `4.3900166495983495`
+- Face source: `rtmlib-wholebody-face68`
+- Face bbox: `[132, 88, 78, 71]`
+- Face landmark confidence: `0.9452449679374695`
+- Source-color face score: `4.3900166495983495`
 - Accessory: `held-linear`
-- Accessory score: `0.7318319885380941`
-- Unknown ratio: `0.016082587036023843`
+- Accessory score: `0.6765070756343059`
+- Unknown ratio: `0.006407118380510841`
 - Visual QA: **PASS**
 
-The initial source-color hair growth incorrectly consumed large portions of the dark sleeves. The optional MediaPipe hair guard fixed that failure at Phase 4 rather than hiding it downstream. The final diagnostic view separates long hair, face, torso, both large sleeves/arms, lower support, clothing masses, and the held rod.
+The initial source-color hair growth incorrectly consumed large portions of the dark sleeves, and the initial source-color-only face mask was visibly too small and left-shifted. Both failures were repaired inside Phase 4 rather than hidden downstream. The final diagnostic view separates long hair, a correctly aligned face, torso, both large sleeves/arms, lower support, clothing masses, and the held rod.
 
 Part coverage:
 
-- hair: `0.2908255823998618`
-- face: `0.03025023756731074`
-- torso: `0.30061623520603564`
+- hair: `0.2802862326143923`
+- face: `0.05834077230973018`
+- torso: `0.2759092348892792`
 - left_arm: `0.15001295821694935`
-- right_arm: `0.1442249546462407`
+- right_arm: `0.1421084458778472`
 - lower_body: `0.025873239842197714`
-- major_clothing: `0.03796757566158897`
-- accessory_or_held_object: `0.0033115443314999855`
+- major_clothing: `0.054294929017767155`
+- accessory_or_held_object: `0.0048953264030869355`
 
 ## Mandatory stage artifacts
 
@@ -120,24 +139,28 @@ Persistent diagnostic snapshots:
 
 `docs/zerobase/diagnostics/phase04/<case_id>/`
 
+The stage record also persists BODY17 plus face68 keypoints/scores so the face evidence can be audited independently.
+
 ## Determinism
 
 The same Diagnostic-2 inputs/config were executed twice. The mandatory visible artifacts were byte-identical by SHA-256.
 
 Kyoko:
 
-- part map: `73776934f33c1c9a54f08645167ad470812afca7c90b9ffb3133fb7e2baa1c87`
-- overlay: `19424aea895e04a332c11443c92f49593c9f531db7346b18e9ca916f8d1a1e3d`
+- part map: `da7153b8e6ef01ef7043248e93600fb1ef2bf60e6c1a3d5009754508e9646c6a`
+- overlay: `1b4dadd30d6a12fad62414f0e3dde875466b2c188dfefdb7e52355ac2a7fa24d`
 
 Raden:
 
-- part map: `dda6e51e4f854f5f955ada8b7b19eadf40d02051c06f7fdef952ecf09013838d`
-- overlay: `8ece94edb2b87d4ddf29a74dd76cf25893846048bc44569066974f3523036ff7`
+- part map: `1676c7351d149c85bc4e9eacdb3d077ff1253b0a4a3a6472e7e83540e6b9884b`
+- overlay: `c5984f061ee98572b2df97f51b307c3faa2bda27ee55323e50f35c5f0b68ee53`
 
 ## Regression
 
-- New Phase 4 tests: **5 passed**
-- Full ZeroBase suite: **76 passed**
+- Phase 4 tests: **6 passed**
+- RTMLib guidance tests: **9 passed**
+- Focused Phase 4 + RTMLib set: **15 passed**
+- Full ZeroBase suite: **77 passed**
 - Local merge stable regression/Web set: **131 passed**
 - Phase 16 corpus local gate: **PASS**
 - Real-server local smoke: **PASS**
@@ -146,10 +169,10 @@ Raden:
 
 ## Gate decision
 
-Phase 4 is **CLOSED / PASS** for Diagnostic-2.
+Phase 4 remains **CLOSED / PASS** for Diagnostic-2.
 
-The Phase 3 silhouette is now represented as semantic parts sufficiently well to proceed. Crucially, the Raden hair/sleeve failure was detected and repaired inside Phase 4 before closure.
+The Phase 3 silhouette is now represented as semantic parts sufficiently well to proceed. The Raden hair/sleeve failure and the face size/alignment failure were both detected and repaired inside Phase 4 before Phase 5.
 
 The next phase is **Phase 5: Structural Layout Graph**.
 
-Phase 5 must consume these part masks and establish explicit attachment, spatial, containment, and front/behind relationships. It may not reinterpret a broken Phase 4 part map to conceal semantic decomposition errors.
+Phase 5 must consume these corrected part masks and establish explicit attachment, spatial, containment, and front/behind relationships. It may not reinterpret a broken Phase 4 part map to conceal semantic decomposition errors.
