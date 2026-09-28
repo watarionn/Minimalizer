@@ -50,6 +50,8 @@ preview.pngは同一caseでcanvas sizeとorientationを固定する。overlay系
 
 各Phaseは自身のpreviewを生成できなければCLOSEDにできない。データ構造だけ実装して画像化を後回しにすることは禁止する。
 
+Artifact Contract Foundation Phase 1では、この既存Stage Artifact Contractをrun/artifact単位のprovenanceへ形式化する共通schemaを追加した。`ArtifactOrigin`、SHA-bound parent refs、typed part absence、observed-only provenance gate、deterministic `run.json` / `artifacts.json` persistenceを提供する。既存Phase 3〜6およびproduction render pathにはまだ接続せず、visible outputは不変とする。詳細は `ARTIFACT_CONTRACT_FOUNDATION_PHASE1.md`。
+
 ## 4. Phase Map
 
 Phase 1〜2はKEEP。Phase 3〜15を2nd Cycleとして再設計する。Phase 3〜12が画像生成本体、Phase 13が可視化統合、Phase 14が評価再設計、Phase 15が本番統合である。
