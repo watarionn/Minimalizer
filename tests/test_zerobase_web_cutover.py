@@ -25,8 +25,9 @@ def test_zerobase_endpoint_uses_source_alpha_and_returns_png():
     assert int(response.headers["x-minimalizer-shape-count"]) > 0
     assert response.content.startswith(b"\x89PNG")
 
-def test_browser_standard_route_targets_zerobase():
+def test_browser_standard_route_is_rolled_back_to_v2():
     javascript = client.get("/static/app.js").text
-    assert 'fetch("/api/zerobase/minimalize"' in javascript
     standard = javascript.split("async function requestStandardV2()", 1)[1].split("async function responseError", 1)[0]
-    assert 'fetchLocalWorker("/api/v2/minimalize"' not in standard
+    assert 'fetch("/api/v2/minimalize"' in standard
+    assert 'fetchLocalWorker("/api/v2/minimalize"' in standard
+    assert 'fetch("/api/zerobase/minimalize"' not in standard
