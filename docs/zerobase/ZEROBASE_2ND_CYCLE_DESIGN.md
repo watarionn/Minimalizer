@@ -208,7 +208,7 @@ PASS: Kyoko/Radenで巨大矩形・カプセルの連鎖へ崩れず、頭・髪
 
 Closure: Phase 7 semantic mass、Phase 8 `protect / keep / prune`、Phase 9 palette assignmentをSHA照合付きread-only入力として、全active massへsemantic-part-specific familyとcomplexity budgetに基づく複数candidateを生成した。candidateはsource mass / semantic part / Phase 8 action / Phase 9 paletteへbindingし、coverage loss / spill loss / silhouette loss / complexity / part-family priorの決定論的costで1件を選択する。face/head、hair、torso/clothing、arm、accessory/held object、unboundでfamilyを分け、汎用axis-aligned rectangleを禁止した。pruned mass復活、cross-mass candidate、unbound再解釈、semantic owner変更、生成/inpainting/hidden completionは禁止。Diagnostic-2はKyoko 158 active masses → 473 candidates / 158 selected / mean IoU 0.918284、Raden 74 → 202 / 74 / 0.921663。giant rectangle/capsule chain、prune resurrection、owner/action/palette drift、生成pixelはいずれも0。`10_geometry.json` / `10_candidate_grid.png` / `10_selected_primitives.png`を生成しvisual QA PASS。Rinka独立レビューでfocused 27/27、full ZeroBase 167/167、Diagnostic-2 visual PASS、review/rerun mandatory artifacts 6/6 + 6/6 SHA一致を確認しCLOSED / PASS。詳細は `PHASE10_2ND_CYCLE_PART_AWARE_GEOMETRIZATION.md`。
 
-### Phase 11. Semantic Composition [REDESIGN]
+### Phase 11. Semantic Composition [CLOSED / PASS]
 
 目的: selected primitivesを人物として再合成し、z-orderとoverlapをsemantic graphに従わせる。
 
@@ -221,6 +221,8 @@ Closure: Phase 7 semantic mass、Phase 8 `protect / keep / prune`、Phase 9 pale
 PASS: primitive単体では正しくても合成で顔や手が隠れる等の破綻がないこと。
 
 失敗時の戻り先: Phase 5 relationまたはcomposition policy。
+
+Closure: Phase 5とPhase 10をSHA照合付きread-only入力として、selected primitiveを明示的depth graphで合成する実装を追加した。semantic depth edgeはPhase 5の`in_front_of` / `behind`だけに限定し、`inside` / `overlaps` / `surrounds`等の非depth relationはz-orderへ昇格しない。明示depthのないoverlapは`11_composition.json`へ未解決として保持し、previewのみ実primitive maskとPhase 9 palette colorのper-pixel visual raster由来の非semantic tie-breakで決定論的に描画する。region ID / mass ID / semantic part IDは描画権限に使わず、part名はper-pixel raster完全同一時のserialization tieに限る。Diagnostic-2はKyoko 158 primitives / explicit edges 2 / unresolved overlaps 14、Raden 74 / 2 / 16で、implicit / containment / non-explicit depth edge、fully occluded critical part、upstream drift、prune resurrection、生成/inpainting pixelはいずれも0。凛夏独立再レビューでfocused 26/26、full ZeroBase 173/173、両caseのcanonical/separate rerunおよびcanonical/diagnostic mirror mandatory 6/6 SHA一致、Diagnostic-2 visual PASS、修正前とのvisible PNG pixel差分0を確認しCLOSED / PASS。詳細は`PHASE11_2ND_CYCLE_SEMANTIC_COMPOSITION.md`。
 
 ### Phase 12. Style Constraint & Simplification Pass [REDESIGN]
 
@@ -320,4 +322,4 @@ Phase 14で初めてApproved-78全件の正式Calibrationを行い、Phase 15で
 
 ## 10. 直近の次工程
 
-Phase 10 Part-Aware GeometrizationはRinka独立レビュー完了によりCLOSED / PASS。Phase 11は未開始であり、別途開始するまで着手しない。Phase 15の正式Gateまではproduction standardをMinimalizer 2.0から切り替えない。
+Phase 11 Semantic Compositionは凛夏独立再レビュー完了によりCLOSED / PASS。Phase 12は未開始。Phase 15の正式Gateまではproduction standardをMinimalizer 2.0から切り替えない。

@@ -633,3 +633,97 @@ def test_bridge_phase10_fails_closed_when_phase10_stage_is_missing(tmp_path: Pat
     _add_phase9(case_dir, source_path)
     with pytest.raises(StageContractBridgeError, match="missing Phase 10"):
         bridge_stage_contracts(case_dir, source_path, max_phase=10)
+
+
+def _add_phase11(case_dir: Path, source_path: Path) -> None:
+    phase5 = case_dir / "phase_05"
+    phase10 = case_dir / "phase_10"
+    phase11 = case_dir / "phase_11"
+    phase11.mkdir()
+    source = _load_stage(case_dir, 10)["source"]
+    stage5 = _load_stage(case_dir, 5)
+    stage10 = _load_stage(case_dir, 10)
+    composition_sha = _write_output(
+        phase11 / "11_composition.json", b'{"composition":"ok"}\n'
+    )
+    composed_sha = _write_output(
+        phase11 / "11_composed_minimal.png", b"phase11-composed"
+    )
+    overlay_sha = _write_output(
+        phase11 / "11_zorder_overlay.png", b"phase11-overlay"
+    )
+    stage11 = _base_stage(
+        phase=11,
+        stage_name="semantic_composition",
+        source=source,
+        config={"depth_authority": ["in_front_of", "behind"]},
+        inputs={
+            "phase5": {
+                **stage5["outputs"],
+                "stage.json": _sha256_file(phase5 / "stage.json"),
+            },
+            "phase10": {
+                **stage10["outputs"],
+                "stage.json": _sha256_file(phase10 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "11_composition.json": composition_sha,
+            "11_composed_minimal.png": composed_sha,
+            "11_zorder_overlay.png": overlay_sha,
+        },
+    )
+    _write_stage(phase11 / "stage.json", stage11)
+
+
+def test_bridge_can_extend_verified_chain_through_phase11(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    _add_phase10(case_dir, source_path)
+    _add_phase11(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase11",
+        max_phase=11,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-11"
+    assert len(result.run_manifest.stage_manifest_refs) == 9
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    composition = by_id["phase11:11_composition.json"]
+    assert composition.artifact_type == "semantic-composition-scene"
+    assert (
+        by_id["phase11:11_composed_minimal.png"].artifact_type
+        == "semantic-composition-preview"
+    )
+    assert (
+        by_id["phase11:11_zorder_overlay.png"].artifact_type
+        == "semantic-zorder-overlay"
+    )
+    parent_ids = {parent.artifact_id for parent in composition.parents}
+    assert "phase05:05_structure_graph.json" in parent_ids
+    assert "phase05:stage.json" in parent_ids
+    assert "phase10:10_geometry.json" in parent_ids
+    assert "phase10:stage.json" in parent_ids
+    assert "source" in parent_ids
+
+
+def test_bridge_phase11_fails_closed_when_phase11_stage_is_missing(
+    tmp_path: Path,
+) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    _add_phase10(case_dir, source_path)
+    with pytest.raises(StageContractBridgeError, match="missing Phase 11"):
+        bridge_stage_contracts(case_dir, source_path, max_phase=11)

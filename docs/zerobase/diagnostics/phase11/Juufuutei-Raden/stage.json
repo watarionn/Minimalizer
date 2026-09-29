@@ -1,0 +1,138 @@
+{
+  "composition_data": {
+    "applied_graph_edge_count": 2,
+    "path": "11_composition.json",
+    "selected_primitive_count": 74,
+    "sha256": "8a2fc4dcd8b3a2069d093a37dab4bc08a5915b146d36ee7fe6431a160d2b0ce2"
+  },
+  "composition_policy": {
+    "explicit_occlusion_relations": [
+      "in_front_of",
+      "behind"
+    ],
+    "identifier_serialization_tie": "exactly-identical-per-pixel-raster-only",
+    "mass_id_only_order": "forbidden",
+    "non_depth_relations_as_z_order": "forbidden",
+    "raster_tie_break": "per-pixel-phase10-mask-and-phase9-color-raster-v2",
+    "region_id_only_order": "forbidden",
+    "semantic_identifier_visual_authority": "forbidden",
+    "unresolved_depth": "preserved-with-non-semantic-raster-tie-break",
+    "z_order_authority": "phase5-semantic-graph"
+  },
+  "config": {
+    "critical_visible_parts": [
+      "face",
+      "left_arm",
+      "right_arm",
+      "accessory_or_held_object"
+    ],
+    "explicit_depth_relations": [
+      "in_front_of",
+      "behind"
+    ],
+    "id_only_ordering": "forbidden",
+    "identifier_tie_break": "exactly-identical-per-pixel-raster-only",
+    "intra_part_order": "per-pixel-mask-and-palette-color-key",
+    "non_depth_relations_as_z_order": "forbidden",
+    "raster_tie_break": "per-pixel-phase10-mask-and-phase9-color-raster-v2",
+    "unresolved_depth": "preserve-as-unresolved"
+  },
+  "config_sha256": "80b9720efdb8572cf0966c3e9684c02e2dbb121d35fbb3527487f9546dc12a67",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "explicit-depth-graph-then-per-pixel-visual-raster-tiebreak-v2",
+  "inputs": {
+    "phase10": {
+      "10_candidate_grid.png": "a9b1750794275dbe0037f4fd9ae092c202a3c6c08de4e49311952b7b34cd980c",
+      "10_geometry.json": "25769780d1b263647abd024d796faa49c8d3d177d0dab8112944022c6b3db910",
+      "10_selected_primitives.png": "e0e89184a6a55b5ad1d9ec0dca26d62e038a4324c8d8a97fd72dbb31ef13e5f4",
+      "metrics.json": "c7e3821c9bb511a23b987ad36961e97fb84dc8031464f1ec52521cd4c4d76d1b",
+      "preview.png": "e0e89184a6a55b5ad1d9ec0dca26d62e038a4324c8d8a97fd72dbb31ef13e5f4",
+      "stage.json": "d4059523205912ca74b787da393bea27088aad4bc590fb240d5bef7731b62497"
+    },
+    "phase5": {
+      "05_structure_graph.json": "2fd327b826ad4838bcbaac25ea1e412fe641872b7d6267659c9c36cbffa63efe",
+      "05_structure_graph_overlay.png": "47fb717755be9efa8231112495679dc55982eb4d1db9f8e2eb888d0a6c766ddb",
+      "metrics.json": "a7f7c357710d48acd798b1dc738ca77dc0c04dcdc4f6afd1f74b7c3f7e37d5ea",
+      "preview.png": "47fb717755be9efa8231112495679dc55982eb4d1db9f8e2eb888d0a6c766ddb",
+      "stage.json": "a2a7080e668da3bb6e68e47a188263aa3548c6a57d653c855ba33b75ab801ced"
+    },
+    "source": {
+      "path": "Juufuutei-Raden_list_thumb.png",
+      "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00"
+    }
+  },
+  "metrics": {
+    "applied_graph_edge_count": 2,
+    "containment_depth_edge_count": 0,
+    "fully_occluded_critical_parts": [],
+    "generated_or_inpainted_pixel_count": 0,
+    "graph_order_violations": [],
+    "implicit_depth_edge_count": 0,
+    "mass_id_only_ordering": false,
+    "non_explicit_depth_edge_count": 0,
+    "observed_phase10_geometry_only": true,
+    "pass": true,
+    "phase10_selected_primitive_count": 74,
+    "phase8_action_change_count": 0,
+    "phase9_palette_change_count": 0,
+    "primitive_geometry_change_count": 0,
+    "prune_resurrection_count": 0,
+    "region_id_only_ordering": false,
+    "selected_primitive_count": 74,
+    "selected_set_change_count": 0,
+    "semantic_identifier_visual_authority": false,
+    "semantic_owner_change_count": 0,
+    "serialization_tie_requires_identical_part_raster": true,
+    "unresolved_depth_pair_count": 16,
+    "visible_pixels_by_part": {
+      "__unbound__": 6307,
+      "accessory_or_held_object": 337,
+      "face": 4138,
+      "hair": 14327,
+      "head": 417,
+      "left_arm": 7531,
+      "lower_body": 1784,
+      "major_clothing": 3078,
+      "neck": 148,
+      "right_arm": 9280,
+      "torso": 17799
+    }
+  },
+  "outputs": {
+    "11_composed_minimal.png": "588296a6e893018d778dc08cbc26acacd3f7fdccfef7c1822cd78d2675bf2327",
+    "11_composition.json": "8a2fc4dcd8b3a2069d093a37dab4bc08a5915b146d36ee7fe6431a160d2b0ce2",
+    "11_zorder_overlay.png": "6b013925ec7927b66212d58b33e52d7f4bb11a0afc7ac02c839d7fde7241c9df",
+    "metrics.json": "e530f5cf217426b5296a016ce2379f9f44e940c34ebe50d4b91e60d46f2a8528",
+    "preview.png": "588296a6e893018d778dc08cbc26acacd3f7fdccfef7c1822cd78d2675bf2327"
+  },
+  "phase": 11,
+  "producer": "minimalizer-zerobase2-phase11",
+  "producer_version": "1.1",
+  "provenance_policy": {
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden"
+  },
+  "render_authority": "deterministic-phase10-selected-geometry-and-palette-only",
+  "source": {
+    "height": 340,
+    "path": "Juufuutei-Raden_list_thumb.png",
+    "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "width": 340
+  },
+  "stage": "semantic_composition",
+  "upstream_immutability": {
+    "phase10_selected_geometry": "read-only",
+    "phase10_semantic_owner": "read-only",
+    "phase8_prune": "transitively-read-only-via-phase10",
+    "phase9_palette": "transitively-read-only-via-phase10"
+  }
+}

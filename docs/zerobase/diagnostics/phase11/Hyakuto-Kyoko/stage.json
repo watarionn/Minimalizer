@@ -1,0 +1,138 @@
+{
+  "composition_data": {
+    "applied_graph_edge_count": 2,
+    "path": "11_composition.json",
+    "selected_primitive_count": 158,
+    "sha256": "2323e54a1882c2534423308d02dbe84925462ce7f8f44a9bf13b7b8bc7c14743"
+  },
+  "composition_policy": {
+    "explicit_occlusion_relations": [
+      "in_front_of",
+      "behind"
+    ],
+    "identifier_serialization_tie": "exactly-identical-per-pixel-raster-only",
+    "mass_id_only_order": "forbidden",
+    "non_depth_relations_as_z_order": "forbidden",
+    "raster_tie_break": "per-pixel-phase10-mask-and-phase9-color-raster-v2",
+    "region_id_only_order": "forbidden",
+    "semantic_identifier_visual_authority": "forbidden",
+    "unresolved_depth": "preserved-with-non-semantic-raster-tie-break",
+    "z_order_authority": "phase5-semantic-graph"
+  },
+  "config": {
+    "critical_visible_parts": [
+      "face",
+      "left_arm",
+      "right_arm",
+      "accessory_or_held_object"
+    ],
+    "explicit_depth_relations": [
+      "in_front_of",
+      "behind"
+    ],
+    "id_only_ordering": "forbidden",
+    "identifier_tie_break": "exactly-identical-per-pixel-raster-only",
+    "intra_part_order": "per-pixel-mask-and-palette-color-key",
+    "non_depth_relations_as_z_order": "forbidden",
+    "raster_tie_break": "per-pixel-phase10-mask-and-phase9-color-raster-v2",
+    "unresolved_depth": "preserve-as-unresolved"
+  },
+  "config_sha256": "80b9720efdb8572cf0966c3e9684c02e2dbb121d35fbb3527487f9546dc12a67",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "explicit-depth-graph-then-per-pixel-visual-raster-tiebreak-v2",
+  "inputs": {
+    "phase10": {
+      "10_candidate_grid.png": "8f504daf81cc49a8aaadacde96f5e6a73d38e614a80320fea83fdfbcf8cdb068",
+      "10_geometry.json": "f3ef09129e86bcd545bf566a63b19d2e865750f2f9ccc505d2d184cca5ad44cc",
+      "10_selected_primitives.png": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9",
+      "metrics.json": "afa79380df418f1b7031bee3167447010e90e414fd275ff20071965a69d4bc50",
+      "preview.png": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9",
+      "stage.json": "975d46d0579900b7dba9fbf2de097c039ee00923ce5a5c57b1735b21bf956cb7"
+    },
+    "phase5": {
+      "05_structure_graph.json": "1632ecc675e226365fd2b578fd35cf894492b4dcedb50d32a5a1893e831eda25",
+      "05_structure_graph_overlay.png": "fd6b98c405d254fe35f8d1707052fd6855238a5778d3ed4b353453b659a3fc92",
+      "metrics.json": "a7f7c357710d48acd798b1dc738ca77dc0c04dcdc4f6afd1f74b7c3f7e37d5ea",
+      "preview.png": "fd6b98c405d254fe35f8d1707052fd6855238a5778d3ed4b353453b659a3fc92",
+      "stage.json": "15fd29588574410ee5771a2e6bdc11399f3cfb123bd3c2b8203ed337dbe1891f"
+    },
+    "source": {
+      "path": "Hyakuto-Kyoko_list_thumb.png",
+      "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+    }
+  },
+  "metrics": {
+    "applied_graph_edge_count": 2,
+    "containment_depth_edge_count": 0,
+    "fully_occluded_critical_parts": [],
+    "generated_or_inpainted_pixel_count": 0,
+    "graph_order_violations": [],
+    "implicit_depth_edge_count": 0,
+    "mass_id_only_ordering": false,
+    "non_explicit_depth_edge_count": 0,
+    "observed_phase10_geometry_only": true,
+    "pass": true,
+    "phase10_selected_primitive_count": 158,
+    "phase8_action_change_count": 0,
+    "phase9_palette_change_count": 0,
+    "primitive_geometry_change_count": 0,
+    "prune_resurrection_count": 0,
+    "region_id_only_ordering": false,
+    "selected_primitive_count": 158,
+    "selected_set_change_count": 0,
+    "semantic_identifier_visual_authority": false,
+    "semantic_owner_change_count": 0,
+    "serialization_tie_requires_identical_part_raster": true,
+    "unresolved_depth_pair_count": 14,
+    "visible_pixels_by_part": {
+      "__unbound__": 2175,
+      "accessory_or_held_object": 220,
+      "face": 4892,
+      "hair": 12836,
+      "head": 1932,
+      "left_arm": 2151,
+      "lower_body": 12538,
+      "major_clothing": 2882,
+      "neck": 2053,
+      "right_arm": 5664,
+      "torso": 3592
+    }
+  },
+  "outputs": {
+    "11_composed_minimal.png": "c700f23c13fa7feb2835efc0b001bc4580697bbb9d06c5041a2d7ab1671490cc",
+    "11_composition.json": "2323e54a1882c2534423308d02dbe84925462ce7f8f44a9bf13b7b8bc7c14743",
+    "11_zorder_overlay.png": "c642d8bce57ebb8ddb5dd66c8fa8fcc7ddd3788b0d300f79f608e3f79451e290",
+    "metrics.json": "a9f2f2fb3ff6a1b62c71d37f0f7cc8359c19f3e50893c4133258f0a2727b35f0",
+    "preview.png": "c700f23c13fa7feb2835efc0b001bc4580697bbb9d06c5041a2d7ab1671490cc"
+  },
+  "phase": 11,
+  "producer": "minimalizer-zerobase2-phase11",
+  "producer_version": "1.1",
+  "provenance_policy": {
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden"
+  },
+  "render_authority": "deterministic-phase10-selected-geometry-and-palette-only",
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "semantic_composition",
+  "upstream_immutability": {
+    "phase10_selected_geometry": "read-only",
+    "phase10_semantic_owner": "read-only",
+    "phase8_prune": "transitively-read-only-via-phase10",
+    "phase9_palette": "transitively-read-only-via-phase10"
+  }
+}

@@ -99,11 +99,14 @@ alpha、rembg、RTMLib、MediaPipe、segmentation、pose、edge、color heuristi
 - Phase 8 Importance / Omission Policy: **CLOSED / PASS**
 - Phase 9 Palette Consolidation: **CLOSED / PASS**
 - Phase 10 Part-Aware Geometrization: **CLOSED / PASS**
-- 次のcanonical step: **Phase 11（未開始）**
+- Phase 11 Semantic Composition: **CLOSED / PASS**
+- 次のcanonical step: **Phase 12（未開始）**
 
 Phase 4の確定仕様にはRTMLib WholeBody 133点保持、face68、source-color fallback、optional MediaPipe hair guardが含まれる。これらを旧設計へ戻してはならない。
 
 Phase 5の確定仕様はPhase 4 maskをSHA照合付きread-only入力として扱い、anchor、attachment/spatial/containment/overlap/surrounding relationと、十分なEvidenceがある場合のみfront-behind relationを構築する。髪全体と顔の前後は、前髪/後髪massへ分割されるまでは未確定のまま保持する。Radenの`held-linear` accessoryはarm candidateを優先する。Phase 5でmaskを描き換えて関係失敗を隠してはならない。
+
+Phase 11の確定仕様では、z-order authorityはPhase 5の明示的`in_front_of` / `behind`だけである。`inside` / `overlaps` / `surrounds`等をdepthへ昇格せず、未解決overlapは未解決のままartifactへ保持する。preview用の決定論的tie-breakは実primitive maskとPhase 9 palette colorのper-pixel visual rasterだけを使う非semantic処理であり、region ID / mass ID / semantic part IDを描画権限にしてはならない。semantic part名はper-pixel rasterが完全同一で順序交換が可視結果を変えない最終serialization tieに限る。凛夏独立再レビューPASSによりCLOSED / PASS。Phase 12は未開始。
 
 ## 5. Stage-visibleは必須
 
