@@ -97,8 +97,9 @@ alpha、rembg、RTMLib、MediaPipe、segmentation、pose、edge、color heuristi
 - Phase 6 Region-to-Part Binding: **CLOSED / PASS**
 - Phase 7 Major Mass Reconstruction: **CLOSED / PASS**
 - Phase 8 Importance / Omission Policy: **CLOSED / PASS**
-- Phase 9 Palette Consolidation: **IMPLEMENTED / READY FOR RINKA REVIEW**
-- 次のcanonical gate: **Phase 9 independent review by Rinka**
+- Phase 9 Palette Consolidation: **CLOSED / PASS**
+- Phase 10 Part-Aware Geometrization: **CLOSED / PASS**
+- 次のcanonical step: **Phase 11（未開始）**
 
 Phase 4の確定仕様にはRTMLib WholeBody 133点保持、face68、source-color fallback、optional MediaPipe hair guardが含まれる。これらを旧設計へ戻してはならない。
 

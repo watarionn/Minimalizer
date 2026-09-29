@@ -552,3 +552,84 @@ def test_bridge_phase9_fails_closed_when_phase9_stage_is_missing(
     _add_phase8(case_dir, source_path)
     with pytest.raises(StageContractBridgeError, match="missing Phase 9"):
         bridge_stage_contracts(case_dir, source_path, max_phase=9)
+
+
+def _add_phase10(case_dir: Path, source_path: Path) -> None:
+    phase9 = case_dir / "phase_09"
+    phase10 = case_dir / "phase_10"
+    phase10.mkdir()
+    source = _load_stage(case_dir, 9)["source"]
+    stage9 = _load_stage(case_dir, 9)
+    geometry_sha = _write_output(
+        phase10 / "10_geometry.json", b'{"geometry":"ok"}\n'
+    )
+    grid_sha = _write_output(
+        phase10 / "10_candidate_grid.png", b"phase10-grid"
+    )
+    selected_sha = _write_output(
+        phase10 / "10_selected_primitives.png", b"phase10-selected"
+    )
+    stage10 = _base_stage(
+        phase=10,
+        stage_name="part_aware_geometrization",
+        source=source,
+        config={"geometry": "test"},
+        inputs={
+            "phase9": {
+                "09_palette.json": stage9["outputs"]["09_palette.json"],
+                "09_palette_preview.png": stage9["outputs"]["09_palette_preview.png"],
+                "09_palette_strip.png": stage9["outputs"]["09_palette_strip.png"],
+                "stage.json": _sha256_file(phase9 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "10_geometry.json": geometry_sha,
+            "10_candidate_grid.png": grid_sha,
+            "10_selected_primitives.png": selected_sha,
+        },
+    )
+    _write_stage(phase10 / "stage.json", stage10)
+
+
+def test_bridge_can_extend_verified_chain_through_phase10(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    _add_phase10(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase10",
+        max_phase=10,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-10"
+    assert len(result.run_manifest.stage_manifest_refs) == 8
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    geometry = by_id["phase10:10_geometry.json"]
+    assert geometry.artifact_type == "part-aware-geometry-data"
+    assert by_id["phase10:10_candidate_grid.png"].artifact_type == "primitive-candidate-grid"
+    assert by_id["phase10:10_selected_primitives.png"].artifact_type == "selected-primitive-preview"
+    assert {parent.artifact_id for parent in geometry.parents} == {
+        "phase09:09_palette.json",
+        "phase09:09_palette_preview.png",
+        "phase09:09_palette_strip.png",
+        "phase09:stage.json",
+        "source",
+    }
+
+
+def test_bridge_phase10_fails_closed_when_phase10_stage_is_missing(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    with pytest.raises(StageContractBridgeError, match="missing Phase 10"):
+        bridge_stage_contracts(case_dir, source_path, max_phase=10)

@@ -19,7 +19,7 @@ from .contracts import (
 from .persistence import ContractBundleWriteResult, write_contract_bundle
 from .policy import ProvenanceGateResult, ProvenancePolicyGate
 
-SUPPORTED_PHASES = (3, 4, 5, 6, 7, 8, 9)
+SUPPORTED_PHASES = (3, 4, 5, 6, 7, 8, 9, 10)
 BRIDGE_VERSION = "stage-contract-bridge-v1"
 
 
@@ -214,6 +214,12 @@ def _output_type(relative_path: str) -> str:
         return "palette-preview"
     if name == "09_palette_strip.png":
         return "palette-strip"
+    if name == "10_geometry.json":
+        return "part-aware-geometry-data"
+    if name == "10_candidate_grid.png":
+        return "primitive-candidate-grid"
+    if name == "10_selected_primitives.png":
+        return "selected-primitive-preview"
     if "pruned_masses" in name:
         return "pruned-mass-preview"
     if "removed_overlay" in name:
@@ -445,7 +451,7 @@ def bridge_stage_contracts(
 
     if max_phase not in SUPPORTED_PHASES or max_phase < 6:
         raise StageContractBridgeError(
-            f"unsupported max_phase={max_phase}; expected 6, 7, 8, or 9"
+            f"unsupported max_phase={max_phase}; expected 6, 7, 8, 9, or 10"
         )
     selected_phases = tuple(
         phase for phase in SUPPORTED_PHASES if phase <= max_phase

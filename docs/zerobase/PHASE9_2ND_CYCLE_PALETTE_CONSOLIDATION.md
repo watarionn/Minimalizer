@@ -1,6 +1,6 @@
 # Phase 9 — Palette Consolidation
 
-Status: **IMPLEMENTED / READY FOR RINKA REVIEW**
+Status: **CLOSED / PASS**
 
 Date: 2026-09-29
 
@@ -116,6 +116,6 @@ Unchanged:
 - semantic owner and geometry authority;
 - generative/inpainting prohibition.
 
-## Review boundary
+## Closure
 
-Phase 9 is not CLOSED until Rinka independently reviews the code, negative fixtures, Diagnostic-2 visual artifacts, deterministic rerun, and Stage Contract Bridge chain. Phase 10 remains blocked until that review closes Phase 9.
+Rinka independently reviewed the code, negative fixtures, Diagnostic-2 visual artifacts, deterministic rerun, and Stage Contract Bridge chain. Phase 9 is `CLOSED / PASS`.

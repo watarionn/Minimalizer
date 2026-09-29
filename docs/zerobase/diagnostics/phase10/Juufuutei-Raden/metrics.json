@@ -1,0 +1,32 @@
+{
+  "active_mass_count": 74,
+  "axis_aligned_rectangle_candidate_count": 0,
+  "candidate_count": 204,
+  "candidate_family_count": 7,
+  "complexity_budget_violations": [],
+  "cross_mass_candidate_count": 0,
+  "generated_or_inpainted_pixel_count": 0,
+  "giant_box_or_capsule_chain_candidates": [],
+  "mass_count": 93,
+  "mean_candidates_per_active_mass": 2.756757,
+  "mean_selected_iou": 0.933193,
+  "missing_selections": [],
+  "multiple_candidate_violations": [],
+  "observed_geometry_only": true,
+  "orphan_selections": [],
+  "part_family_policy_count": 7,
+  "part_family_violations": [],
+  "pass": true,
+  "phase8_action_change_count": 0,
+  "phase9_palette_change_count": 0,
+  "prune_resurrections": [],
+  "pruned_mass_count": 19,
+  "selected_family_counts": {
+    "ellipse": 1,
+    "polygon": 61,
+    "rounded_polygon": 12
+  },
+  "selected_primitive_count": 74,
+  "selected_to_source_pixel_ratio": 0.990227,
+  "semantic_owner_change_count": 0
+}

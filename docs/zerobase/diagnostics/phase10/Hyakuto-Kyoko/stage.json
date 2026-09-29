@@ -1,0 +1,220 @@
+{
+  "candidate_policy": {
+    "cross_mass_candidate": "forbidden",
+    "generic_region_rectangle_or_capsule": "forbidden",
+    "multiple_candidates_per_active_mass": "required",
+    "semantic_part_family_and_budget": "required"
+  },
+  "composition_boundary": "diagnostic-mass-id-order-only; semantic-z-order-is-phase11-authority",
+  "config": {
+    "allow_axis_aligned_rectangle": false,
+    "allow_cross_mass_candidate": false,
+    "allow_prune_resurrection": false,
+    "cost_weights": {
+      "complexity": 0.1,
+      "coverage": 0.45,
+      "silhouette": 0.2,
+      "spill": 0.25
+    },
+    "family_order": [
+      "polygon",
+      "rounded_polygon",
+      "ellipse",
+      "capsule",
+      "oriented_rectangle",
+      "tapered_strip",
+      "polyline_ribbon"
+    ],
+    "max_candidates_per_mass": 4,
+    "minimum_candidates_per_active_mass": 2,
+    "part_families": {
+      "accessory_or_held_object": [
+        "polyline_ribbon",
+        "tapered_strip",
+        "polygon",
+        "ellipse"
+      ],
+      "face": [
+        "ellipse",
+        "rounded_polygon",
+        "polygon"
+      ],
+      "hair": [
+        "polygon",
+        "rounded_polygon",
+        "polyline_ribbon"
+      ],
+      "head": [
+        "ellipse",
+        "rounded_polygon",
+        "polygon"
+      ],
+      "left_arm": [
+        "capsule",
+        "tapered_strip",
+        "polyline_ribbon",
+        "rounded_polygon"
+      ],
+      "lower_body": [
+        "polygon",
+        "rounded_polygon",
+        "tapered_strip",
+        "oriented_rectangle"
+      ],
+      "major_clothing": [
+        "rounded_polygon",
+        "polygon",
+        "tapered_strip",
+        "oriented_rectangle"
+      ],
+      "neck": [
+        "capsule",
+        "tapered_strip",
+        "rounded_polygon",
+        "polygon"
+      ],
+      "right_arm": [
+        "capsule",
+        "tapered_strip",
+        "polyline_ribbon",
+        "rounded_polygon"
+      ],
+      "torso": [
+        "rounded_polygon",
+        "polygon",
+        "tapered_strip",
+        "oriented_rectangle"
+      ]
+    },
+    "part_vertex_budgets": {
+      "accessory_or_held_object": 14,
+      "face": 10,
+      "hair": 16,
+      "head": 12,
+      "left_arm": 10,
+      "lower_body": 12,
+      "major_clothing": 14,
+      "neck": 8,
+      "right_arm": 10,
+      "torso": 12
+    },
+    "selection": "minimum-total-cost-then-family-order",
+    "unbound_families": [
+      "polygon",
+      "rounded_polygon"
+    ],
+    "unbound_vertex_budget": 12
+  },
+  "config_sha256": "af3d7b4f4f4ee747be483c8f4a82ab0855fda441ff483231b1f89d8ae5811bba",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "part-aware-observed-mass-geometry-v1",
+  "geometry_data": {
+    "candidate_count": 475,
+    "path": "10_geometry.json",
+    "selected_primitive_count": 158,
+    "sha256": "f3ef09129e86bcd545bf566a63b19d2e865750f2f9ccc505d2d184cca5ad44cc"
+  },
+  "inputs": {
+    "phase7": {
+      "07_mass_blocks.png": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "07_mass_labels.png": "8368b20ff29162eab0033ab43dc6dcfe2b0fa3eee540e0dce535e06c3851ed58",
+      "07_mass_outline_overlay.png": "9e252fd15e5731bfb35d32a34df52edd595f4a90a68f5dfaf8b728f211cec088",
+      "07_mass_silhouette.png": "cfb27caa99ea651cfff8d0bfb161c808ab40485bc6d64c409952e9520ef03cc6",
+      "07_masses.json": "39d53b53197ff8314147c374e565ad10ad70cceeb0e6b0ed2c799e4216337f17",
+      "metrics.json": "22156df0be2cb6be0bc036b1e786c92898e012316b782c8e9016180a693642f8",
+      "preview.png": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "stage.json": "aee8d505b0b5da429c4acdf7df72fa5a0468659498d6a7f25456fb0089ff489d"
+    },
+    "phase8": {
+      "08_importance.json": "d1721791a0bc5d8b4045f678d1b2bcfb72f8acd724b72ed88b8b69ef5a4d0d5a",
+      "08_importance_heatmap.png": "1b1c90800ed7401cb95cb08a1713a5088760e790cf68f6cf1133a70bead21e3d",
+      "08_pruned_masses.png": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "08_removed_overlay.png": "37bd918fa271ff197a0106fb9e39f235903da3060a973223780724213d58981d",
+      "metrics.json": "944489496bab2965858d9d27eb28a2f446b52dfed43d14668ef8ec415fede6db",
+      "preview.png": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "stage.json": "a07f3b00c179f1c8e322f72ea3c19ab9e729a32d1184b2d900d8bd073c805915"
+    },
+    "phase9": {
+      "09_palette.json": "20bdfd32db17855c268bd6c176a143a907c090a7289543f2db1b57cc918e7768",
+      "09_palette_preview.png": "2c346967d6c8751e24f0b29cefd0a205844173d51a9518d80e4cda30274e6119",
+      "09_palette_strip.png": "30990063ba5b52157590eccd8e57ccd7b1b2ace5b00396cef11250cd57cc6b70",
+      "metrics.json": "ba8304b1621ee46f5786df19bf9a232fea6281efd4d719ec5f8a8dc4e7404e42",
+      "preview.png": "2c346967d6c8751e24f0b29cefd0a205844173d51a9518d80e4cda30274e6119",
+      "stage.json": "f1ae99584307ef6eda80bcd667adaff5e5ce8a8951ec27751c4a2aaf7488bff4"
+    },
+    "source": {
+      "path": "Hyakuto-Kyoko_list_thumb.png",
+      "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+    }
+  },
+  "metrics": {
+    "active_mass_count": 158,
+    "axis_aligned_rectangle_candidate_count": 0,
+    "candidate_count": 475,
+    "candidate_family_count": 7,
+    "complexity_budget_violations": [],
+    "cross_mass_candidate_count": 0,
+    "generated_or_inpainted_pixel_count": 0,
+    "giant_box_or_capsule_chain_candidates": [],
+    "mass_count": 201,
+    "mean_candidates_per_active_mass": 3.006329,
+    "mean_selected_iou": 0.922168,
+    "missing_selections": [],
+    "multiple_candidate_violations": [],
+    "observed_geometry_only": true,
+    "orphan_selections": [],
+    "part_family_policy_count": 7,
+    "part_family_violations": [],
+    "pass": true,
+    "phase8_action_change_count": 0,
+    "phase9_palette_change_count": 0,
+    "prune_resurrections": [],
+    "pruned_mass_count": 43,
+    "selected_family_counts": {
+      "ellipse": 3,
+      "polygon": 77,
+      "polyline_ribbon": 1,
+      "rounded_polygon": 75,
+      "tapered_strip": 2
+    },
+    "selected_primitive_count": 158,
+    "selected_to_source_pixel_ratio": 0.998136,
+    "semantic_owner_change_count": 0
+  },
+  "outputs": {
+    "10_candidate_grid.png": "8f504daf81cc49a8aaadacde96f5e6a73d38e614a80320fea83fdfbcf8cdb068",
+    "10_geometry.json": "f3ef09129e86bcd545bf566a63b19d2e865750f2f9ccc505d2d184cca5ad44cc",
+    "10_selected_primitives.png": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9",
+    "metrics.json": "afa79380df418f1b7031bee3167447010e90e414fd275ff20071965a69d4bc50",
+    "preview.png": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9"
+  },
+  "phase": 10,
+  "producer": "minimalizer-zerobase2-phase10",
+  "producer_version": "1.0",
+  "provenance_policy": {
+    "candidate_geometry": "deterministic-transform-of-observed-phase7-mass",
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden",
+    "phase7_geometry_and_owner": "read-only",
+    "phase8_actions": "read-only-no-prune-resurrection",
+    "phase9_palette": "read-only"
+  },
+  "render_authority": "deterministic-source-mass-geometry-and-phase9-palette-only",
+  "selection_policy": "minimum-total-cost-then-canonical-family-order",
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "part_aware_geometrization"
+}

@@ -174,7 +174,7 @@ PASS: major silhouette、顔/髪の分離、特徴アクセサリ、主要色塊
 
 Closure: Phase 7 semantic massをsilhouette contribution / part role / identity contribution / visual salience / redundancyの5軸で独立評価し、canonical actionを`protect / keep / prune`へ固定した。pruneは同一partのより大きいmassを明示参照するredundancy evidenceと複数の低重要度根拠が同時成立する場合だけ許可する。unbound、face、`accessory_or_held_object`、各present bound partの最大massはhard protect。Diagnostic-2はKyoko 201 masses = protect 141 / keep 17 / prune 43、Raden 93 masses = protect 64 / keep 10 / prune 19。prune pixel ratioは0.005032 / 0.001166、silhouette boundary retentionは両case 1.0、identity/unbound prune violation 0、invalid prune evidence 0。Kyoko緑タイとRadenロッドはprotectされvisual QA PASS。Phase 8 provenanceは各case 49 artifactsでPASS、deterministic 7/7 + 7/7、focused 30 passed、ZeroBase 141 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS、`LOCAL_MERGE_VALIDATION_PASS`。詳細は `PHASE8_2ND_CYCLE_IMPORTANCE_OMISSION.md`。
 
-### Phase 9. Palette Consolidation [IMPLEMENTED / READY FOR RINKA REVIEW]
+### Phase 9. Palette Consolidation [CLOSED / PASS]
 
 目的: semantic part間の識別性を壊さず色数を削減する。
 
@@ -188,9 +188,9 @@ PASS: 元画像の主要色関係とpart識別が保たれ、shading色が独立
 
 失敗時の戻り先: palette ruleまたはPhase 8 protect情報。
 
-Implementation evidence: Phase 7 mass geometry/semantic ownerとPhase 8 `protect / keep / prune`をSHA照合付きread-only入力として、同一semantic part内だけでsource-derived近似色を統合した。`protect`を代表色anchorとして優先し、face/hair/major clothing/accessoryは厳しい近似色閾値と他critical part anchorに対するcontrast guardを適用。unboundは各massを隔離し、pruneはpalette assignmentを持たせず復活を禁止した。代表色は実在source pixelのmodeをPhase 7 source-derived meanでtie-breakして採用し、synthetic color、cross-part merge、semantic reinterpretation、geometry変更、生成/inpainting/hidden completionを禁止した。Diagnostic-2はKyoko 158 active masses → 76 palette entries、Raden 74 → 65、cross-part/unbound/prune-resurrection/critical contrast/source provenance violationはいずれも0。`09_palette.json` / `09_palette_preview.png` / `09_palette_strip.png`を生成しvisual QA PASS。Phase 9 provenanceは各case 55 artifactsでPASS、再実行6/6 + 6/6 SHA一致。focused 23 passed、ZeroBase 153 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。Rinkaの独立レビューが完了するまでPhase 9はCLOSEDにせず、Phase 10へ進まない。詳細は `PHASE9_2ND_CYCLE_PALETTE_CONSOLIDATION.md`。
+Closure: Phase 7 mass geometry/semantic ownerとPhase 8 `protect / keep / prune`をSHA照合付きread-only入力として、同一semantic part内だけでsource-derived近似色を統合した。`protect`を代表色anchorとして優先し、face/hair/major clothing/accessoryは厳しい近似色閾値と他critical part anchorに対するcontrast guardを適用。unboundは各massを隔離し、pruneはpalette assignmentを持たせず復活を禁止した。代表色は実在source pixelのmodeをPhase 7 source-derived meanでtie-breakして採用し、synthetic color、cross-part merge、semantic reinterpretation、geometry変更、生成/inpainting/hidden completionを禁止した。Diagnostic-2はKyoko 158 active masses → 76 palette entries、Raden 74 → 65、cross-part/unbound/prune-resurrection/critical contrast/source provenance violationはいずれも0。`09_palette.json` / `09_palette_preview.png` / `09_palette_strip.png`を生成しvisual QA PASS。Phase 9 provenanceは各case 55 artifactsでPASS、再実行6/6 + 6/6 SHA一致。focused 23 passed、ZeroBase 153 passed、stable/Web 131 passed、Phase16 corpus gate PASS、real-server smoke PASS。Rinka独立レビュー完了によりCLOSED / PASS。詳細は `PHASE9_2ND_CYCLE_PALETTE_CONSOLIDATION.md`。
 
-### Phase 10. Part-Aware Geometrization [MAJOR REDESIGN]
+### Phase 10. Part-Aware Geometrization [CLOSED / PASS]
 
 目的: semantic part/massごとに適切なprimitive候補を生成し、人物性を保った幾何化を行う。
 
@@ -205,6 +205,8 @@ Implementation evidence: Phase 7 mass geometry/semantic ownerとPhase 8 `protect
 PASS: Kyoko/Radenで巨大矩形・カプセルの連鎖へ崩れず、頭・髪・胴体・腕・特徴物の形状差が残ること。
 
 失敗時の戻り先: Phase 7 mass形状、Phase 8 importance、またはpart-specific candidate generator。
+
+Closure: Phase 7 semantic mass、Phase 8 `protect / keep / prune`、Phase 9 palette assignmentをSHA照合付きread-only入力として、全active massへsemantic-part-specific familyとcomplexity budgetに基づく複数candidateを生成した。candidateはsource mass / semantic part / Phase 8 action / Phase 9 paletteへbindingし、coverage loss / spill loss / silhouette loss / complexity / part-family priorの決定論的costで1件を選択する。face/head、hair、torso/clothing、arm、accessory/held object、unboundでfamilyを分け、汎用axis-aligned rectangleを禁止した。pruned mass復活、cross-mass candidate、unbound再解釈、semantic owner変更、生成/inpainting/hidden completionは禁止。Diagnostic-2はKyoko 158 active masses → 473 candidates / 158 selected / mean IoU 0.918284、Raden 74 → 202 / 74 / 0.921663。giant rectangle/capsule chain、prune resurrection、owner/action/palette drift、生成pixelはいずれも0。`10_geometry.json` / `10_candidate_grid.png` / `10_selected_primitives.png`を生成しvisual QA PASS。Rinka独立レビューでfocused 27/27、full ZeroBase 167/167、Diagnostic-2 visual PASS、review/rerun mandatory artifacts 6/6 + 6/6 SHA一致を確認しCLOSED / PASS。詳細は `PHASE10_2ND_CYCLE_PART_AWARE_GEOMETRIZATION.md`。
 
 ### Phase 11. Semantic Composition [REDESIGN]
 
@@ -318,4 +320,4 @@ Phase 14で初めてApproved-78全件の正式Calibrationを行い、Phase 15で
 
 ## 10. 直近の次工程
 
-Phase 9 Palette ConsolidationはIMPLEMENTED / READY FOR RINKA REVIEW。次のcanonical gateはRinkaによる独立レビューであり、CLOSED / PASS判定まではPhase 10へ進まない。Phase 15の正式Gateまではproduction standardをMinimalizer 2.0から切り替えない。
+Phase 10 Part-Aware GeometrizationはRinka独立レビュー完了によりCLOSED / PASS。Phase 11は未開始であり、別途開始するまで着手しない。Phase 15の正式Gateまではproduction standardをMinimalizer 2.0から切り替えない。
