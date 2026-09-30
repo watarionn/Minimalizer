@@ -185,5 +185,5 @@ process.stdout.write(JSON.stringify({
         text=True,
     )
     payload = json.loads(completed.stdout)
-    assert payload["version"] == "browser-fallback-v10"
+    assert payload["version"] == "browser-fallback-v11"
     assert payload["structuralPreprocess"] == "spectral-exact"
