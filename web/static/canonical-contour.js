@@ -574,6 +574,55 @@
     return inside;
   }
 
+  function topologySignatureFromPixels(pixels, width, bounds) {
+    const localWidth = bounds.maxX - bounds.minX + 1;
+    const localHeight = bounds.maxY - bounds.minY + 1;
+    const binary = new Uint8Array(localWidth * localHeight);
+    for (const index of pixels) {
+      const x = index % width;
+      const y = Math.floor(index / width);
+      const local = (y - bounds.minY) * localWidth + (x - bounds.minX);
+      binary[local] = 1;
+    }
+
+    function componentCount(target, countHoles) {
+      const visited = new Uint8Array(binary.length);
+      let count = 0;
+      for (let start = 0; start < binary.length; start += 1) {
+        if (visited[start] || binary[start] !== target) continue;
+        const queue = [start];
+        visited[start] = 1;
+        let touchesBorder = false;
+        while (queue.length) {
+          const index = queue.pop();
+          const x = index % localWidth;
+          const y = Math.floor(index / localWidth);
+          if (x === 0 || y === 0 || x === localWidth - 1 || y === localHeight - 1) {
+            touchesBorder = true;
+          }
+          const neighbors = [];
+          if (x > 0) neighbors.push(index - 1);
+          if (x + 1 < localWidth) neighbors.push(index + 1);
+          if (y > 0) neighbors.push(index - localWidth);
+          if (y + 1 < localHeight) neighbors.push(index + localWidth);
+          for (const next of neighbors) {
+            if (!visited[next] && binary[next] === target) {
+              visited[next] = 1;
+              queue.push(next);
+            }
+          }
+        }
+        if (!countHoles || !touchesBorder) count += 1;
+      }
+      return count;
+    }
+
+    return {
+      components: componentCount(1, false),
+      holes: componentCount(0, true),
+    };
+  }
+
   function regionStats(labels, width, height, regionCount) {
     const stats = Array.from({ length: regionCount }, () => ({
       area: 0,
@@ -606,6 +655,7 @@
         Math.hypot(item.maxX - item.minX + 1, item.maxY - item.minY + 1),
       );
       item.extents = directionalExtentsForPixels(item.pixels, width, item.centroid);
+      item.topology = topologySignatureFromPixels(item.pixels, width, item);
     }
     return stats;
   }
@@ -695,14 +745,25 @@
         ? config.majorMassDirectionalFactor
         : 1
     );
+    const candidateTopology = topologySignatureFromPixels(
+      candidate.pixels,
+      width,
+      original,
+    );
+    const topologyOk = (
+      candidateTopology.components === original.topology.components
+      && candidateTopology.holes === original.topology.holes
+    );
     return {
       iou,
       areaChange,
       centroidShiftRatio,
       directionalLoss,
       directionalLimit,
+      topologyOk,
       valid: (
-        areaChange <= config.maxAreaChange
+        topologyOk
+        && areaChange <= config.maxAreaChange
         && iou >= config.minIoU
         && centroidShiftRatio <= config.maxCentroidShiftRatio
         && directionalLoss <= directionalLimit
@@ -1004,6 +1065,7 @@
       candidateChainIntersectionFree,
       regionStats,
       regionMetrics,
+      topologySignatureFromPixels,
     }),
   });
 
