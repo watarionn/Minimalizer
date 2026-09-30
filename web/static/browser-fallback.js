@@ -470,13 +470,16 @@
   }
 
   function canvasElement(width, height) {
+    if (typeof document !== "undefined" && typeof document.createElement === "function") {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      return canvas;
+    }
     if (typeof OffscreenCanvas !== "undefined") {
       return new OffscreenCanvas(width, height);
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
+    throw new Error("Canvas is unavailable.");
   }
 
   function context2d(canvas) {
@@ -499,6 +502,31 @@
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+
+  function renderAnalysis(analysis, analysisWidth, analysisHeight, workWidth, workHeight) {
+    const outputCanvas = canvasElement(analysisWidth, analysisHeight);
+    const outputContext = context2d(outputCanvas);
+    outputContext.fillStyle = "rgb(255,255,255)";
+    outputContext.fillRect(0, 0, analysisWidth, analysisHeight);
+
+    const scaleX = analysisWidth / workWidth;
+    const scaleY = analysisHeight / workHeight;
+    const shapes = analysis.shapes
+      .slice()
+      .sort((left, right) => right.count - left.count || left.id - right.id);
+    for (const shape of shapes) {
+      if (shape.polygon.length < 3) continue;
+      outputContext.beginPath();
+      outputContext.moveTo(shape.polygon[0][0] * scaleX, shape.polygon[0][1] * scaleY);
+      for (let i = 1; i < shape.polygon.length; i += 1) {
+        outputContext.lineTo(shape.polygon[i][0] * scaleX, shape.polygon[i][1] * scaleY);
+      }
+      outputContext.closePath();
+      outputContext.fillStyle = "rgb(" + shape.rgb[0] + "," + shape.rgb[1] + "," + shape.rgb[2] + ")";
+      outputContext.fill();
+    }
+    return { canvas: outputCanvas, shapes };
   }
 
   async function canvasToBlob(canvas) {
@@ -536,45 +564,15 @@
       config,
     );
 
-    const outputCanvas = canvasElement(analysisSize.width, analysisSize.height);
-    const outputContext = context2d(outputCanvas);
-    const sourceImage = analysisContext.getImageData(0, 0, analysisSize.width, analysisSize.height);
-    let hasTransparency = false;
-    for (let offset = 3; offset < sourceImage.data.length; offset += 4) {
-      if (sourceImage.data[offset] < 250) {
-        hasTransparency = true;
-        break;
-      }
-    }
-    if (hasTransparency) {
-      outputContext.clearRect(0, 0, analysisSize.width, analysisSize.height);
-    } else {
-      const bg = analysis.background;
-      outputContext.fillStyle = "rgb(" + bg[0] + "," + bg[1] + "," + bg[2] + ")";
-      outputContext.fillRect(0, 0, analysisSize.width, analysisSize.height);
-    }
-
-    const scaleX = analysisSize.width / workSize.width;
-    const scaleY = analysisSize.height / workSize.height;
-    const shapes = analysis.shapes.slice().sort((left, right) => right.count - left.count || left.id - right.id);
-    for (const shape of shapes) {
-      if (shape.polygon.length < 3) continue;
-      outputContext.beginPath();
-      outputContext.moveTo(shape.polygon[0][0] * scaleX, shape.polygon[0][1] * scaleY);
-      for (let i = 1; i < shape.polygon.length; i += 1) {
-        outputContext.lineTo(shape.polygon[i][0] * scaleX, shape.polygon[i][1] * scaleY);
-      }
-      outputContext.closePath();
-      outputContext.fillStyle = "rgb(" + shape.rgb[0] + "," + shape.rgb[1] + "," + shape.rgb[2] + ")";
-      outputContext.fill();
-    }
-
-    if (hasTransparency) {
-      outputContext.globalCompositeOperation = "destination-in";
-      outputContext.drawImage(analysisCanvas, 0, 0);
-      outputContext.globalCompositeOperation = "source-over";
-    }
-
+    const rendered = renderAnalysis(
+      analysis,
+      analysisSize.width,
+      analysisSize.height,
+      workSize.width,
+      workSize.height,
+    );
+    const outputCanvas = rendered.canvas;
+    const shapes = rendered.shapes;
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -617,6 +615,7 @@
       convexHull,
       simplifyClosed,
       analyzeRgba,
+      renderAnalysis,
     }),
   });
 
