@@ -518,32 +518,38 @@
     return { polygon, rings, contourIoU, epsilon };
   }
 
-  function componentNeighborStats(component, built, width, height) {
-    const stats = new Map();
-    for (const index of component.pixels) {
-      const x = index % width;
-      const y = Math.floor(index / width);
-      const neighbors = [];
-      if (x > 0) neighbors.push(index - 1);
-      if (x + 1 < width) neighbors.push(index + 1);
-      if (y > 0) neighbors.push(index - width);
-      if (y + 1 < height) neighbors.push(index + width);
-      for (const neighbor of neighbors) {
-        const id = built.componentIds[neighbor];
-        if (id < 0 || id === component.id) continue;
-        stats.set(id, (stats.get(id) || 0) + 1);
+  function buildComponentAdjacency(built, width, height) {
+    const adjacency = built.components.map(() => new Map());
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const index = y * width + x;
+        const id = built.componentIds[index];
+        if (id < 0) continue;
+        if (x + 1 < width) {
+          const right = built.componentIds[index + 1];
+          if (right >= 0 && right !== id) {
+            adjacency[id].set(right, (adjacency[id].get(right) || 0) + 1);
+            adjacency[right].set(id, (adjacency[right].get(id) || 0) + 1);
+          }
+        }
+        if (y + 1 < height) {
+          const bottom = built.componentIds[index + width];
+          if (bottom >= 0 && bottom !== id) {
+            adjacency[id].set(bottom, (adjacency[id].get(bottom) || 0) + 1);
+            adjacency[bottom].set(id, (adjacency[bottom].get(id) || 0) + 1);
+          }
+        }
       }
     }
-    return stats;
+    return adjacency;
   }
 
-  function chooseMergeTarget(component, built, width, height) {
-    const stats = componentNeighborStats(component, built, width, height);
+  function chooseGroupMergeTarget(source, groups) {
     let winner = null;
-    for (const [targetId, sharedBoundary] of stats.entries()) {
-      const target = built.components[targetId];
-      if (!target) continue;
-      const distance = rgbDistanceSq(component.rgb, target.rgb);
+    for (const [targetId, sharedBoundary] of source.adjacency.entries()) {
+      const target = groups[targetId];
+      if (!target || !target.active || target.id === source.id) continue;
+      const distance = rgbDistanceSq(source.rgb, target.rgb);
       const candidate = { target, sharedBoundary, distance };
       if (
         winner === null
@@ -567,41 +573,126 @@
         winner = candidate;
       }
     }
+    if (winner) return winner.target;
+
+    for (const target of groups) {
+      if (!target.active || target.id === source.id) continue;
+      const distance = rgbDistanceSq(source.rgb, target.rgb);
+      const dx = ((source.minX + source.maxX) - (target.minX + target.maxX)) / 2;
+      const dy = ((source.minY + source.maxY) - (target.minY + target.maxY)) / 2;
+      const spatial = dx * dx + dy * dy;
+      const candidate = { target, distance, spatial };
+      if (
+        winner === null
+        || candidate.distance < winner.distance
+        || (
+          candidate.distance === winner.distance
+          && candidate.spatial < winner.spatial
+        )
+        || (
+          candidate.distance === winner.distance
+          && candidate.spatial === winner.spatial
+          && candidate.target.id < winner.target.id
+        )
+      ) {
+        winner = candidate;
+      }
+    }
     return winner ? winner.target : null;
   }
 
   function reduceComponentsToBudget(labels, rgba, width, height, maxShapes) {
-    let current = labels;
-    let mergeCount = 0;
-    for (let pass = 0; pass < 16; pass += 1) {
-      const built = buildComponents(current, rgba, width, height);
-      if (built.components.length <= maxShapes) {
-        return { labels: current, built, mergeCount };
-      }
-
-      const excess = built.components.length - maxShapes;
-      const ordered = built.components
-        .slice()
-        .sort((a, b) => a.count - b.count || a.borderTouches - b.borderTouches || a.id - b.id);
-      const next = new Int16Array(current);
-      let mergedThisPass = 0;
-
-      for (const component of ordered) {
-        if (mergedThisPass >= excess) break;
-        const target = chooseMergeTarget(component, built, width, height);
-        if (!target) continue;
-        for (const index of component.pixels) next[index] = target.label;
-        mergedThisPass += 1;
-      }
-
-      if (mergedThisPass === 0) return { labels: current, built, mergeCount };
-      mergeCount += mergedThisPass;
-      current = next;
+    const initial = buildComponents(labels, rgba, width, height);
+    if (initial.components.length <= maxShapes) {
+      return { labels, built: initial, mergeCount: 0 };
     }
 
+    const adjacency = buildComponentAdjacency(initial, width, height);
+    const groups = initial.components.map((component) => ({
+      id: component.id,
+      active: true,
+      label: component.label,
+      pixels: component.pixels.slice(),
+      count: component.count,
+      minX: component.minX,
+      minY: component.minY,
+      maxX: component.maxX,
+      maxY: component.maxY,
+      borderTouches: component.borderTouches,
+      rgb: component.rgb.slice(),
+      adjacency: new Map(adjacency[component.id]),
+    }));
+
+    let activeCount = groups.length;
+    let mergeCount = 0;
+    while (activeCount > maxShapes) {
+      const source = groups
+        .filter((group) => group.active)
+        .sort((a, b) => a.count - b.count || a.borderTouches - b.borderTouches || a.id - b.id)[0];
+      if (!source) break;
+      const target = chooseGroupMergeTarget(source, groups);
+      if (!target) break;
+
+      const total = source.count + target.count;
+      target.rgb = [
+        Math.round((target.rgb[0] * target.count + source.rgb[0] * source.count) / total),
+        Math.round((target.rgb[1] * target.count + source.rgb[1] * source.count) / total),
+        Math.round((target.rgb[2] * target.count + source.rgb[2] * source.count) / total),
+      ];
+      target.count = total;
+      target.pixels.push(...source.pixels);
+      target.minX = Math.min(target.minX, source.minX);
+      target.minY = Math.min(target.minY, source.minY);
+      target.maxX = Math.max(target.maxX, source.maxX);
+      target.maxY = Math.max(target.maxY, source.maxY);
+      target.borderTouches += source.borderTouches;
+
+      target.adjacency.delete(source.id);
+      for (const [neighborId, sharedBoundary] of source.adjacency.entries()) {
+        if (neighborId === target.id) continue;
+        const neighbor = groups[neighborId];
+        if (!neighbor || !neighbor.active) continue;
+        const combined = (target.adjacency.get(neighborId) || 0) + sharedBoundary;
+        target.adjacency.set(neighborId, combined);
+        neighbor.adjacency.delete(source.id);
+        neighbor.adjacency.set(target.id, combined);
+      }
+
+      source.active = false;
+      source.adjacency.clear();
+      activeCount -= 1;
+      mergeCount += 1;
+    }
+
+    const active = groups
+      .filter((group) => group.active)
+      .sort((a, b) => a.id - b.id);
+    const componentIds = new Int32Array(width * height);
+    componentIds.fill(-1);
+    const finalLabels = new Int16Array(width * height);
+    finalLabels.fill(-1);
+    const components = active.map((group, index) => {
+      for (const pixel of group.pixels) {
+        componentIds[pixel] = index;
+        finalLabels[pixel] = index;
+      }
+      return {
+        id: index,
+        label: index,
+        pixels: group.pixels,
+        count: group.count,
+        minX: group.minX,
+        minY: group.minY,
+        maxX: group.maxX,
+        maxY: group.maxY,
+        borderTouches: group.borderTouches,
+        rgb: group.rgb,
+      };
+    });
+
     return {
-      labels: current,
-      built: buildComponents(current, rgba, width, height),
+      labels: finalLabels,
+      built: { components, componentIds },
       mergeCount,
     };
   }
