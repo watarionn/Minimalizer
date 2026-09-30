@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v4";
+  const VERSION = "browser-fallback-v5";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -47,6 +47,8 @@
     l0BetaMax: 100.0,
     l0JacobiIterations: 16,
     l0JacobiOmega: 0.80,
+    structuralMode: "l0-lite-jacobi",
+    spectralL0BetaMax: 1.0e5,
   });
 
   function clamp(value, low, high) {
@@ -2563,7 +2565,28 @@
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
-    const structuralRgba = approximateL0StructuralRgba(rgba, width, height, config);
+    let structuralRgba;
+    let structuralPreprocess = "l0-lite-jacobi";
+    if (
+      config.structuralMode === "spectral-exact"
+      && typeof globalThis !== "undefined"
+      && globalThis.MinimalizerSpectralFFT
+      && typeof globalThis.MinimalizerSpectralFFT.exactL0StructuralRgba === "function"
+    ) {
+      structuralRgba = globalThis.MinimalizerSpectralFFT.exactL0StructuralRgba(
+        rgba,
+        width,
+        height,
+        {
+          lambda: config.l0Lambda,
+          kappa: config.l0Kappa,
+          betaMax: config.spectralL0BetaMax,
+        },
+      );
+      structuralPreprocess = "spectral-exact";
+    } else {
+      structuralRgba = approximateL0StructuralRgba(rgba, width, height, config);
+    }
     const structuralLab = rgbaToLab(structuralRgba, width, height);
     const rawEdge = canonicalLabEdgeMap(lab, width, height, 99);
     const structuralEdge = canonicalLabEdgeMap(structuralLab, width, height, 99);
@@ -2774,8 +2797,12 @@
       "X-Minimalizer-Safe-Merges": String(analysis.metrics.safeMergeCount),
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
-      "X-Minimalizer-Structural-Preprocess": "l0-lite-jacobi",
-      "X-Minimalizer-L0-Jacobi-Iterations": String(config.l0JacobiIterations),
+      "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
+      "X-Minimalizer-L0-Jacobi-Iterations": String(
+        analysis.metrics.structuralPreprocess === "l0-lite-jacobi"
+          ? config.l0JacobiIterations
+          : 0
+      ),
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -2803,9 +2830,9 @@
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
         cutMaxHeight: analysis.metrics.cutMaxHeight,
-        structuralPreprocess: "l0-lite-jacobi",
-        l0JacobiIterations: config.l0JacobiIterations,
-        l0BetaMax: config.l0BetaMax,
+        structuralPreprocess,
+        l0JacobiIterations: structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
+        l0BetaMax: structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
       },
     };
   }
