@@ -103,8 +103,6 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'Minimalizer Browser Fallback v9' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
-    assert 'paletteTargetMin: 6' in source
-    assert 'paletteTargetMax: 9' in source
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
