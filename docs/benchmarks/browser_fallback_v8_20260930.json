@@ -1,0 +1,146 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v8",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v8",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "inter_area_unit_parity": {
+    "fixture_count": 5,
+    "exact_fixture_count": 5,
+    "max_abs_channel_error": 0,
+    "mean_abs_channel_error": 0,
+    "exact_channel_fraction": 1
+  },
+  "real_analysis_resize": {
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "method": "opencv-inter-area",
+      "exact": false,
+      "mean_abs": 0.004691577698695136,
+      "max_abs": 1,
+      "pixels_exact": 0.9878291814946619,
+      "channel_equal": 0.9953084223013049,
+      "note": "remaining difference is Browser/OpenCV WebP decode residual"
+    },
+    "Night-River-City_general": {
+      "method": "opencv-inter-area",
+      "exact": true,
+      "mean_abs": 0,
+      "max_abs": 0,
+      "pixels_exact": 1,
+      "channel_equal": 1
+    }
+  },
+  "full_browser_exact_slic": {
+    "Juufuutei-Raden_list_thumb": {
+      "resize": "native",
+      "label_match": true,
+      "browser_regions": 632,
+      "python_regions": 632
+    },
+    "Oozora-Subaru_list_thumb": {
+      "resize": "native",
+      "label_match": true,
+      "browser_regions": 538,
+      "python_regions": 538
+    },
+    "Shirogane-Noel_list_thumb": {
+      "resize": "native",
+      "label_match": true,
+      "browser_regions": 788,
+      "python_regions": 788
+    },
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "resize": "opencv-inter-area",
+      "label_match": false,
+      "browser_regions": 533,
+      "python_regions": 532
+    },
+    "Night-River-City_general": {
+      "resize": "opencv-inter-area",
+      "label_match": true,
+      "browser_regions": 769,
+      "python_regions": 769
+    }
+  },
+  "five_case_summary": {
+    "lite": {
+      "mean_processing_ms": 858.7,
+      "mean_initial_regions": 643.6,
+      "mean_vertices": 1507.6,
+      "mean_proxy_ssim": 0.8513,
+      "mean_proxy_edge_iou": 0.2636,
+      "mean_railway_ssim": 0.8354,
+      "mean_railway_edge_iou": 0.2517,
+      "mean_v7_ssim": 0.9486,
+      "mean_v7_edge_iou": 0.7548
+    },
+    "exact": {
+      "mean_processing_ms": 11454.1,
+      "mean_initial_regions": 652,
+      "mean_vertices": 1546.4,
+      "mean_proxy_ssim": 0.8817,
+      "mean_proxy_edge_iou": 0.3069,
+      "mean_railway_ssim": 0.8533,
+      "mean_railway_edge_iou": 0.2735,
+      "mean_v7_ssim": 0.9445,
+      "mean_v7_edge_iou": 0.7673
+    }
+  },
+  "historical": {
+    "v7_lite": {
+      "proxy_ssim": 0.8453,
+      "proxy_edge_iou": 0.2627
+    },
+    "v7_exact": {
+      "proxy_ssim": 0.8598,
+      "proxy_edge_iou": 0.281
+    },
+    "python_proxy_vs_railway": {
+      "ssim": 0.9067,
+      "edge_iou": 0.5332
+    }
+  },
+  "highlights": {
+    "elizabeth_exact": {
+      "proxy_ssim": 0.9110890138560189,
+      "proxy_edge_iou": 0.37326857348443965
+    },
+    "night_river_exact": {
+      "proxy_ssim": 0.8439269067820865,
+      "proxy_edge_iou": 0.3098934941614269
+    }
+  },
+  "wrapper_smoke": {
+    "source_size": "100x78",
+    "analysis_size": "40x31",
+    "lite": {
+      "mode": "browser-fallback-v8",
+      "resize": "opencv-inter-area",
+      "structural": "l0-lite-jacobi"
+    },
+    "exact": {
+      "mode": "browser-fallback-v8",
+      "resize": "opencv-inter-area",
+      "structural": "spectral-exact"
+    },
+    "status": "pass"
+  },
+  "validation": {
+    "regression": "77 passed",
+    "existing_warning": "Starlette/httpx deprecation",
+    "js_syntax": "pass",
+    "git_diff_check": "pass"
+  },
+  "gate": {
+    "opencv_inter_area_parity": "pass",
+    "real_scaled_resize_parity": "pass_with_decode_residual",
+    "opencv_lab_parity": "pass",
+    "canonical_slic_parity": "pass",
+    "region_merge_parity": "pass",
+    "full_browser_quality": "improved_hold",
+    "railway_replacement": "hold",
+    "next_primary_stage": "palette selection and medoid fidelity",
+    "following_stage": "contour simplification parity",
+    "operational_follow_up": "large-image Browser memory hardening or tiled resize"
+  }
+}
