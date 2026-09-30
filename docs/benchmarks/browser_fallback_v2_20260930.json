@@ -1,0 +1,180 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v2",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v2",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "runtime_profile": {
+    "analysis_max_side": 400,
+    "work_max_side": 400,
+    "slic_iterations": 10,
+    "max_shapes": 40,
+    "palette_target": 8,
+    "contour_fidelity": 0.94,
+    "edge_coverage_threshold": 0.75,
+    "retry_scale": 0.8,
+    "max_retry_target_factor": 2.5
+  },
+  "baselines": {
+    "browser_v0": {
+      "mean_processing_ms": 16.6,
+      "mean_proxy_ssim": 0.721,
+      "mean_proxy_edge_iou": 0.0833
+    },
+    "browser_v1": {
+      "mean_processing_ms": 55.3,
+      "mean_proxy_ssim": 0.7199,
+      "mean_proxy_edge_iou": 0.0973
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    },
+    "python_unguided_structure": {
+      "mean_initial_regions": 670.6,
+      "mean_selected_regions": 40,
+      "mean_visual_groups": 26.6,
+      "mean_palette_count": 7.6,
+      "mean_vertices": 1000.8,
+      "mean_visible_shapes": 40
+    }
+  },
+  "v2_resolution_sweep": {
+    "192x6": {
+      "mean_processing_ms": 76.2,
+      "mean_initial_regions": 447,
+      "mean_edge_coverage": 0.8376,
+      "mean_palette_count": 8,
+      "mean_vertices": 1048.6,
+      "mean_proxy_ssim": 0.7841,
+      "mean_proxy_edge_iou": 0.1266
+    },
+    "256x8": {
+      "mean_processing_ms": 124.1,
+      "mean_initial_regions": 465.6,
+      "mean_edge_coverage": 0.7615,
+      "mean_vertices": 998.2,
+      "mean_proxy_ssim": 0.8027,
+      "mean_proxy_edge_iou": 0.1522
+    }
+  },
+  "final_summary": {
+    "case_count": 5,
+    "mean_processing_ms": 336.5,
+    "mean_initial_regions": 647.2,
+    "mean_initial_regions_before_retry": 542.4,
+    "retry_count": 3,
+    "mean_edge_coverage": 0.7219,
+    "mean_initial_edge_coverage": 0.6851,
+    "mean_shape_count": 40,
+    "mean_palette_count": 8,
+    "mean_vertices": 1058.8,
+    "mean_proxy_ssim": 0.8364,
+    "mean_proxy_edge_iou": 0.2188,
+    "mean_proxy_mae": 15.8365,
+    "mean_railway_ssim": 0.8444,
+    "mean_railway_edge_iou": 0.2256
+  },
+  "cases": [
+    {
+      "case": "Juufuutei-Raden_list_thumb",
+      "processing_ms": 315,
+      "initial_regions": 622,
+      "initial_regions_before_retry": 459,
+      "edge_coverage": 0.6307903683,
+      "initial_edge_coverage": 0.5710334897,
+      "retried": true,
+      "shapes": 40,
+      "palette": 8,
+      "vertices": 935,
+      "region_size": 14,
+      "proxy_ssim": 0.8566664466,
+      "proxy_edge_iou": 0.2006397725,
+      "railway_ssim": 0.8484983527,
+      "railway_edge_iou": 0.1923145987
+    },
+    {
+      "case": "Oozora-Subaru_list_thumb",
+      "processing_ms": 240.3,
+      "initial_regions": 549,
+      "initial_regions_before_retry": 549,
+      "edge_coverage": 0.7990372186,
+      "initial_edge_coverage": 0.7990372186,
+      "retried": false,
+      "shapes": 40,
+      "palette": 8,
+      "vertices": 882,
+      "region_size": 17,
+      "proxy_ssim": 0.8598647272,
+      "proxy_edge_iou": 0.2619360491,
+      "railway_ssim": 0.8748720063,
+      "railway_edge_iou": 0.2369501466
+    },
+    {
+      "case": "Shirogane-Noel_list_thumb",
+      "processing_ms": 372.8,
+      "initial_regions": 773,
+      "initial_regions_before_retry": 663,
+      "edge_coverage": 0.6802730932,
+      "initial_edge_coverage": 0.6436018595,
+      "retried": true,
+      "shapes": 40,
+      "palette": 8,
+      "vertices": 964,
+      "region_size": 14,
+      "proxy_ssim": 0.8499271441,
+      "proxy_edge_iou": 0.1992266618,
+      "railway_ssim": 0.8499333552,
+      "railway_edge_iou": 0.1929197211
+    },
+    {
+      "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+      "processing_ms": 280.4,
+      "initial_regions": 546,
+      "initial_regions_before_retry": 546,
+      "edge_coverage": 0.7941940125,
+      "initial_edge_coverage": 0.7941940125,
+      "retried": false,
+      "shapes": 40,
+      "palette": 8,
+      "vertices": 1160,
+      "region_size": 17,
+      "proxy_ssim": 0.8587639726,
+      "proxy_edge_iou": 0.2607849497,
+      "railway_ssim": 0.8839555043,
+      "railway_edge_iou": 0.3432887058
+    },
+    {
+      "case": "Night-River-City_general",
+      "processing_ms": 474.2,
+      "initial_regions": 746,
+      "initial_regions_before_retry": 495,
+      "edge_coverage": 0.705108791,
+      "initial_edge_coverage": 0.6174752959,
+      "retried": true,
+      "shapes": 40,
+      "palette": 8,
+      "vertices": 1353,
+      "region_size": 14,
+      "proxy_ssim": 0.7565341981,
+      "proxy_edge_iou": 0.1713051823,
+      "railway_ssim": 0.7646328366,
+      "railway_edge_iou": 0.1624877089
+    }
+  ],
+  "gate": {
+    "functional": "pass",
+    "spatial_oversegmentation": "pass",
+    "adaptive_retry": "pass",
+    "geometry": "pass",
+    "runtime_profile": "pass",
+    "railway_replacement_quality": "hold",
+    "next_first_bad_stage": "region merge hierarchy/cost fidelity"
+  },
+  "incident_fixed": {
+    "symptom": "Night River 400px failed before result generation",
+    "cause": "Math.max(...labels) spread exceeded JavaScript argument stack on 124400 labels",
+    "fix": "linear max-label scan",
+    "regression_test": "400x311 large region map"
+  }
+}
