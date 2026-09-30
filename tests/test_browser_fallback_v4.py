@@ -50,7 +50,7 @@ def test_browser_fallback_v4_has_no_network_or_model_runtime_dependency():
     assert 'approximateL0StructuralRgba' in source
     assert 'l0Lambda: 0.010' in source
     assert 'l0BetaMax: 100.0' in source
-    assert 'l0JacobiIterations: 8' in source
+    assert 'l0JacobiIterations: 16' in source
     assert 'buildCanonicalRegionGraph' in source
     assert 'evaluateCanonicalMerge' in source
     assert 'runCanonicalRegionHierarchy' in source
