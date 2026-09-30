@@ -1,0 +1,100 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v1",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v1",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "baseline": {
+    "v0": {
+      "mean_processing_ms": 16.6,
+      "mean_proxy_ssim": 0.721,
+      "mean_proxy_edge_iou": 0.0833
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    }
+  },
+  "settings": {
+    "analysis_max_side": 400,
+    "work_max_side": 192,
+    "max_shapes": 40,
+    "contour_fidelity": 0.94
+  },
+  "summary": {
+    "case_count": 5,
+    "mean_processing_ms": 55.3,
+    "mean_shape_count": 40,
+    "mean_contour_iou": 0.9929,
+    "mean_budget_merges": 540.4,
+    "mean_vertex_count": 1892.8,
+    "mean_proxy_ssim": 0.7199,
+    "mean_proxy_edge_iou": 0.0973,
+    "mean_railway_ssim": 0.7184,
+    "mean_railway_edge_iou": 0.0941,
+    "v0_to_v1_proxy_ssim_delta": -0.0011,
+    "v0_to_v1_proxy_edge_iou_delta": 0.014
+  },
+  "cases": [
+    {
+      "case": "Juufuutei-Raden_list_thumb",
+      "processing_ms": 62.3,
+      "shape_count": 40,
+      "mean_contour_iou": 0.991,
+      "budget_merges": 459,
+      "proxy_ssim": 0.6831,
+      "proxy_edge_iou": 0.0609,
+      "railway_ssim": 0.6841,
+      "railway_edge_iou": 0.0585
+    },
+    {
+      "case": "Oozora-Subaru_list_thumb",
+      "processing_ms": 24.7,
+      "shape_count": 40,
+      "mean_contour_iou": 0.9881,
+      "budget_merges": 108,
+      "proxy_ssim": 0.7701,
+      "proxy_edge_iou": 0.1203,
+      "railway_ssim": 0.7804,
+      "railway_edge_iou": 0.1171
+    },
+    {
+      "case": "Shirogane-Noel_list_thumb",
+      "processing_ms": 136.1,
+      "shape_count": 40,
+      "mean_contour_iou": 0.9954,
+      "budget_merges": 1742,
+      "proxy_ssim": 0.7294,
+      "proxy_edge_iou": 0.0732,
+      "railway_ssim": 0.715,
+      "railway_edge_iou": 0.0673
+    },
+    {
+      "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+      "processing_ms": 22.1,
+      "shape_count": 40,
+      "mean_contour_iou": 0.9959,
+      "budget_merges": 185,
+      "proxy_ssim": 0.759,
+      "proxy_edge_iou": 0.1204,
+      "railway_ssim": 0.7588,
+      "railway_edge_iou": 0.122
+    },
+    {
+      "case": "Night-River-City_general",
+      "processing_ms": 31.3,
+      "shape_count": 40,
+      "mean_contour_iou": 0.9943,
+      "budget_merges": 208,
+      "proxy_ssim": 0.6581,
+      "proxy_edge_iou": 0.1118,
+      "railway_ssim": 0.6538,
+      "railway_edge_iou": 0.1054
+    }
+  ],
+  "gate": {
+    "functional": "pass",
+    "geometry": "pass",
+    "railway_replacement_quality": "hold",
+    "next_first_bad_stage": "pixel palette assignment -> spatial region formation"
+  }
+}
