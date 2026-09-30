@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v3";
+  const VERSION = "browser-fallback-v4";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -42,6 +42,11 @@
     maxHierarchyHeight: 1.00,
     cutComplexityLambda: 1.10,
     cutTargetWeight: 1.10,
+    l0Lambda: 0.010,
+    l0Kappa: 2.0,
+    l0BetaMax: 100.0,
+    l0JacobiIterations: 8,
+    l0JacobiOmega: 0.80,
   });
 
   function clamp(value, low, high) {
@@ -789,6 +794,142 @@
       lab[index * 3 + 2] = converted[2];
     }
     return lab;
+  }
+
+  function approximateL0StructuralRgba(rgba, width, height, options) {
+    const config = Object.assign({}, DEFAULTS, options || {});
+    const count = width * height;
+    const channels = count * 3;
+    const source = new Float32Array(channels);
+    const result = new Float32Array(channels);
+    for (let index = 0; index < count; index += 1) {
+      const ro = index * 4;
+      const so = index * 3;
+      source[so] = rgba[ro] / 255;
+      source[so + 1] = rgba[ro + 1] / 255;
+      source[so + 2] = rgba[ro + 2] / 255;
+      result[so] = source[so];
+      result[so + 1] = source[so + 1];
+      result[so + 2] = source[so + 2];
+    }
+
+    const horizontal = new Float32Array(channels);
+    const vertical = new Float32Array(channels);
+    const divergence = new Float32Array(channels);
+    const rhs = new Float32Array(channels);
+    let current = result;
+    let next = new Float32Array(channels);
+    let beta = 2 * config.l0Lambda;
+
+    while (beta < config.l0BetaMax) {
+      const threshold = config.l0Lambda / beta;
+      for (let y = 0; y < height; y += 1) {
+        const down = y + 1 < height ? y + 1 : 0;
+        for (let x = 0; x < width; x += 1) {
+          const right = x + 1 < width ? x + 1 : 0;
+          const index = y * width + x;
+          const rightIndex = y * width + right;
+          const downIndex = down * width + x;
+          const o = index * 3;
+          const ro = rightIndex * 3;
+          const vo = downIndex * 3;
+          const h0 = current[ro] - current[o];
+          const h1 = current[ro + 1] - current[o + 1];
+          const h2 = current[ro + 2] - current[o + 2];
+          const v0 = current[vo] - current[o];
+          const v1 = current[vo + 1] - current[o + 1];
+          const v2 = current[vo + 2] - current[o + 2];
+          if (
+            h0 * h0 + h1 * h1 + h2 * h2
+            + v0 * v0 + v1 * v1 + v2 * v2
+            < threshold
+          ) {
+            horizontal[o] = 0;
+            horizontal[o + 1] = 0;
+            horizontal[o + 2] = 0;
+            vertical[o] = 0;
+            vertical[o + 1] = 0;
+            vertical[o + 2] = 0;
+          } else {
+            horizontal[o] = h0;
+            horizontal[o + 1] = h1;
+            horizontal[o + 2] = h2;
+            vertical[o] = v0;
+            vertical[o + 1] = v1;
+            vertical[o + 2] = v2;
+          }
+        }
+      }
+
+      for (let y = 0; y < height; y += 1) {
+        const up = y > 0 ? y - 1 : height - 1;
+        for (let x = 0; x < width; x += 1) {
+          const left = x > 0 ? x - 1 : width - 1;
+          const index = y * width + x;
+          const leftIndex = y * width + left;
+          const upIndex = up * width + x;
+          const o = index * 3;
+          const lo = leftIndex * 3;
+          const uo = upIndex * 3;
+          for (let channel = 0; channel < 3; channel += 1) {
+            const div = (
+              horizontal[lo + channel] - horizontal[o + channel]
+              + vertical[uo + channel] - vertical[o + channel]
+            );
+            divergence[o + channel] = div;
+            rhs[o + channel] = source[o + channel] + beta * div;
+          }
+        }
+      }
+
+      const denominator = 1 + 4 * beta;
+      for (let iteration = 0; iteration < config.l0JacobiIterations; iteration += 1) {
+        for (let y = 0; y < height; y += 1) {
+          const up = y > 0 ? y - 1 : height - 1;
+          const down = y + 1 < height ? y + 1 : 0;
+          for (let x = 0; x < width; x += 1) {
+            const left = x > 0 ? x - 1 : width - 1;
+            const right = x + 1 < width ? x + 1 : 0;
+            const index = y * width + x;
+            const o = index * 3;
+            const lo = (y * width + left) * 3;
+            const ro = (y * width + right) * 3;
+            const uo = (up * width + x) * 3;
+            const doff = (down * width + x) * 3;
+            for (let channel = 0; channel < 3; channel += 1) {
+              const candidate = (
+                rhs[o + channel]
+                + beta * (
+                  current[lo + channel]
+                  + current[ro + channel]
+                  + current[uo + channel]
+                  + current[doff + channel]
+                )
+              ) / denominator;
+              next[o + channel] = (
+                current[o + channel]
+                + config.l0JacobiOmega * (candidate - current[o + channel])
+              );
+            }
+          }
+        }
+        const swap = current;
+        current = next;
+        next = swap;
+      }
+      beta *= config.l0Kappa;
+    }
+
+    const output = new Uint8ClampedArray(count * 4);
+    for (let index = 0; index < count; index += 1) {
+      const so = index * 3;
+      const ro = index * 4;
+      output[ro] = Math.round(clamp(current[so], 0, 1) * 255);
+      output[ro + 1] = Math.round(clamp(current[so + 1], 0, 1) * 255);
+      output[ro + 2] = Math.round(clamp(current[so + 2], 0, 1) * 255);
+      output[ro + 3] = rgba[ro + 3];
+    }
+    return output;
   }
 
   function structuralEdgeMap(lab, width, height) {
@@ -2422,12 +2563,13 @@
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
-    const slicEdge = structuralEdgeMap(lab, width, height);
+    const structuralRgba = approximateL0StructuralRgba(rgba, width, height, config);
+    const structuralLab = rgbaToLab(structuralRgba, width, height);
     const rawEdge = canonicalLabEdgeMap(lab, width, height, 99);
-    const structuralEdge = rawEdge;
+    const structuralEdge = canonicalLabEdgeMap(structuralLab, width, height, 99);
     const segmented = oversegmentSpatial(
-      lab,
-      slicEdge,
+      structuralLab,
+      structuralEdge,
       width,
       height,
       config,
@@ -2683,6 +2825,7 @@
       rgbToLab,
       rgbaToLab,
       structuralEdgeMap,
+      approximateL0StructuralRgba,
       canonicalLabEdgeMap,
       targetSuperpixelCount,
       regionSizeForTarget,
