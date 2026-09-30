@@ -133,8 +133,8 @@ const near = {
   count: 100, lab: [50.1,0,0], perimeter: 42,
   hull: [[1,0],[11,0],[11,10],[1,10]], hullArea: 100,
 };
-const hist = new Int32Array(32); hist[0] = 1;
-const edge = {shared: 1, rawHist: hist, structuralHist: hist};
+const hist = new Int32Array(32); hist[0] = 2;
+const edge = {shared: 2, rawHist: hist, structuralHist: hist};
 const evaluation = api._core.evaluateCanonicalMerge(small, near, edge, 1600, config);
 const safe = api._core.canonicalSafeCandidate(small, near, edge, evaluation, 1600, config);
 const far = {...near, lab:[90,70,60]};
