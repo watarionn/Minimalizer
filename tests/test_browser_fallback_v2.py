@@ -285,3 +285,35 @@ process.stdout.write(JSON.stringify({
     assert payload["bounded"] is True
     assert payload["regionCount"] > 0
     assert payload["edgeCoverage"] >= payload["initialEdgeCoverage"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_large_400px_region_map_does_not_use_argument_spread():
+    payload = _node(r"""
+const api = require(process.argv[1]);
+const width = 400;
+const height = 311;
+const count = width * height;
+const labels = new Int32Array(count);
+const rgba = new Uint8ClampedArray(count * 4);
+const lab = new Float32Array(count * 3);
+const edge = new Float32Array(count);
+for (let y = 0; y < height; y += 1) {
+  for (let x = 0; x < width; x += 1) {
+    const i = y * width + x;
+    labels[i] = Math.floor(y / 16) * 25 + Math.floor(x / 16);
+    rgba[i * 4] = 120;
+    rgba[i * 4 + 1] = 100;
+    rgba[i * 4 + 2] = 80;
+    rgba[i * 4 + 3] = 255;
+    lab[i * 3] = 50;
+  }
+}
+const groups = api._core.buildSpatialGroups(labels, rgba, lab, edge, width, height);
+process.stdout.write(JSON.stringify({
+  groups: groups.length,
+  pixels: groups.reduce((sum, group) => sum + group.count, 0),
+}));
+""")
+    assert payload["groups"] > 0
+    assert payload["pixels"] == 400 * 311
