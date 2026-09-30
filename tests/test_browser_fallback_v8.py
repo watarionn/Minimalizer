@@ -36,16 +36,17 @@ def _node(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
-def test_browser_fallback_v7_is_loaded_before_app():
+def test_browser_fallback_v8_is_loaded_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
     assert html.index('/static/opencv-lab-lut.js') < html.index('/static/browser-fallback.js')
+    assert html.index('/static/opencv-area-resize.js') < html.index('/static/browser-fallback.js')
     assert html.index('/static/spectral-fft.js') < html.index('/static/browser-fallback.js')
     assert html.index('/static/browser-fallback.js') < html.index('/static/app.js')
 
 
-def test_browser_fallback_v7_has_no_network_or_model_runtime_dependency():
+def test_browser_fallback_v8_has_no_network_or_model_runtime_dependency():
     source = BROWSER_ENGINE.read_text(encoding="utf-8")
-    assert 'browser-fallback-v7' in source
+    assert 'browser-fallback-v8' in source
     assert 'deterministic-js' in source
     assert 'runSlicoLite' in source
     assert 'new Float64Array(width * height)' in source
@@ -59,6 +60,8 @@ def test_browser_fallback_v7_has_no_network_or_model_runtime_dependency():
     assert 'spectral-exact' in source
     assert 'spectralL0BetaMax: 1.0e5' in source
     assert 'structuralPreprocess: analysis.metrics.structuralPreprocess' in source
+    assert 'X-Minimalizer-Analysis-Resize' in source
+    assert 'analysisResize: resizeMethod' in source
     assert 'l0Lambda: 0.010' in source
     assert 'l0BetaMax: 100.0' in source
     assert 'l0JacobiIterations: 16' in source
@@ -90,7 +93,7 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'window.MinimalizerBrowserFallback' in source
     assert 'compute: "browser"' in source
     assert 'fetch("/api/v2/minimalize"' in source
-    assert 'Minimalizer Browser Fallback v7' in source
+    assert 'Minimalizer Browser Fallback v8' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
     assert 'paletteTarget: 8' in source
@@ -354,7 +357,7 @@ process.stdout.write(JSON.stringify({first:digest(first), second:digest(second)}
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
-def test_v7_pipeline_enforces_hierarchy_shape_and_palette_budgets():
+def test_v8_pipeline_enforces_hierarchy_shape_and_palette_budgets():
     payload = _node(r"""
 const api = require(process.argv[1]);
 const width = 40;
@@ -397,7 +400,7 @@ process.stdout.write(JSON.stringify({first, second}));
     first = payload["first"]
     second = payload["second"]
     assert first == second
-    assert first["version"] == "browser-fallback-v7"
+    assert first["version"] == "browser-fallback-v8"
     assert first["metrics"]["initialRegionCount"] >= 8
     assert first["metrics"]["componentCount"] == 8
     assert first["metrics"]["hierarchyCutCount"] == 8
@@ -863,3 +866,84 @@ process.stdout.write(JSON.stringify({regionCount:seg.regionCount}));
     actual = np.frombuffer(labels_path.read_bytes(), dtype=np.int32).reshape(height, width)
     assert payload["regionCount"] == expected.region_count
     assert np.array_equal(actual, expected.labels)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_opencv_inter_area_resize_matches_python_exactly(tmp_path):
+    import cv2
+
+    resize_module = ROOT / "web" / "static" / "opencv-area-resize.js"
+    rng = np.random.default_rng(20260930)
+    cases = [
+        (17, 13, 7, 5),
+        (12, 9, 5, 5),
+        (31, 29, 13, 11),
+        (53, 47, 19, 17),
+        (100, 78, 40, 31),
+    ]
+    records = []
+    for index, (width, height, dest_width, dest_height) in enumerate(cases):
+        rgb = rng.integers(0, 256, size=(height, width, 3), dtype=np.uint8)
+        rgba = np.dstack(
+            [rgb, np.full((height, width), 255, dtype=np.uint8)]
+        )
+        expected = cv2.resize(
+            rgb,
+            (dest_width, dest_height),
+            interpolation=cv2.INTER_AREA,
+        )
+        source_path = tmp_path / f"{index}.rgba"
+        expected_path = tmp_path / f"{index}.expected"
+        actual_path = tmp_path / f"{index}.actual"
+        source_path.write_bytes(rgba.tobytes())
+        expected_path.write_bytes(expected.tobytes())
+        records.append(
+            {
+                "width": width,
+                "height": height,
+                "dest_width": dest_width,
+                "dest_height": dest_height,
+                "source": str(source_path),
+                "actual": str(actual_path),
+            }
+        )
+
+    script = r"""
+const fs = require("fs");
+const api = require(process.argv[1]);
+const records = JSON.parse(process.argv[2]);
+for (const item of records) {
+  const raw = fs.readFileSync(item.source);
+  const rgba = new Uint8ClampedArray(raw.buffer, raw.byteOffset, raw.byteLength);
+  const resized = api.resizeRgba(
+    rgba, item.width, item.height, item.dest_width, item.dest_height
+  );
+  const rgb = Buffer.alloc(item.dest_width * item.dest_height * 3);
+  for (let i = 0; i < item.dest_width * item.dest_height; i += 1) {
+    rgb[i*3] = resized[i*4];
+    rgb[i*3+1] = resized[i*4+1];
+    rgb[i*3+2] = resized[i*4+2];
+  }
+  fs.writeFileSync(item.actual, rgb);
+}
+"""
+    subprocess.run(
+        ["node", "-e", script, str(resize_module), json.dumps(records)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    for index, (_, _, dest_width, dest_height) in enumerate(cases):
+        count = dest_width * dest_height * 3
+        expected = np.frombuffer(
+            (tmp_path / f"{index}.expected").read_bytes(),
+            dtype=np.uint8,
+            count=count,
+        )
+        actual = np.frombuffer(
+            (tmp_path / f"{index}.actual").read_bytes(),
+            dtype=np.uint8,
+            count=count,
+        )
+        assert np.array_equal(actual, expected)
