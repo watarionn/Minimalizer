@@ -34,6 +34,9 @@ def test_browser_fallback_v2_has_no_network_or_model_runtime_dependency():
     assert 'browser-fallback-v2' in source
     assert 'deterministic-js' in source
     assert 'runSlicoLite' in source
+    assert 'oversegmentSpatial' in source
+    assert 'edgeCoverageThreshold: 0.75' in source
+    assert 'retryScale: 0.80' in source
     assert 'mergeSpatialGroupsToBudget' in source
     assert 'consolidateShapePalette' in source
     assert 'boundaryRings' in source
@@ -231,3 +234,54 @@ process.stdout.write(JSON.stringify({
 """)
     assert payload["contourIoU"] >= 0.94
     assert payload["ringLength"] >= 6
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_adaptive_slic_retry_is_deterministic_and_bounded():
+    payload = _node(r"""
+const api = require(process.argv[1]);
+const width = 64;
+const height = 64;
+const rgba = new Uint8ClampedArray(width * height * 4);
+for (let y = 0; y < height; y += 1) {
+  for (let x = 0; x < width; x += 1) {
+    const i = y * width + x;
+    const o = i * 4;
+    const stripe = Math.floor(x / 4) % 2;
+    rgba[o] = stripe ? 235 : 20;
+    rgba[o + 1] = stripe ? 235 : 40;
+    rgba[o + 2] = stripe ? 235 : 180;
+    rgba[o + 3] = 255;
+  }
+}
+const lab = api._core.rgbaToLab(rgba, width, height);
+const edge = api._core.structuralEdgeMap(lab, width, height);
+const config = {
+  ...api.DEFAULTS,
+  slicIterations: 4,
+  slicTargetMin: 32,
+  slicTargetMax: 32,
+  slicMinAverageArea: 4,
+  edgeCoverageThreshold: 0.95,
+  retryScale: 0.5,
+  maxRetryTargetFactor: 2.5,
+};
+const first = api._core.oversegmentSpatial(lab, edge, width, height, config);
+const second = api._core.oversegmentSpatial(lab, edge, width, height, config);
+process.stdout.write(JSON.stringify({
+  equal: first.labels.every((value, index) => value === second.labels[index]),
+  regionCount: first.regionCount,
+  targetCount: first.targetCount,
+  retried: first.retried,
+  edgeCoverage: first.edgeCoverage,
+  initialEdgeCoverage: first.initialEdgeCoverage,
+  bounded: first.regionCount <= Math.max(
+    first.initialRegionCountBeforeRetry || first.regionCount,
+    Math.ceil(first.targetCount * config.maxRetryTargetFactor)
+  )
+}));
+""")
+    assert payload["equal"] is True
+    assert payload["bounded"] is True
+    assert payload["regionCount"] > 0
+    assert payload["edgeCoverage"] >= payload["initialEdgeCoverage"]
