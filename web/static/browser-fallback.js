@@ -37,6 +37,11 @@
     safeTopologyCost: 0.25,
     safeSharedBoundaryRatio: 0.35,
     safeSoftProtection: 0.02,
+    hierarchyTargetMin: 24,
+    hierarchyTargetMax: 40,
+    maxHierarchyHeight: 1.00,
+    cutComplexityLambda: 1.10,
+    cutTargetWeight: 1.10,
   });
 
   function clamp(value, low, high) {
@@ -1968,6 +1973,204 @@
     return active;
   }
 
+  function canonicalTargetPenalty(count, policy) {
+    if (count >= policy.targetMin && count <= policy.targetMax) return 0;
+    if (count < policy.targetMin) return (policy.targetMin - count) / policy.targetMin;
+    return (count - policy.targetMax) / policy.targetMax;
+  }
+
+  function cutCanonicalHierarchyMinimal(tree, initialRegionCount, totalPixels, config) {
+    const targetMax = Math.min(config.hierarchyTargetMax, initialRegionCount);
+    const targetMin = Math.min(config.hierarchyTargetMin, targetMax);
+    const policy = {
+      targetMin,
+      targetMax,
+      maxHierarchyHeight: config.maxHierarchyHeight,
+      complexityLambda: config.cutComplexityLambda,
+      targetWeight: config.cutTargetWeight,
+    };
+
+    const losses = new Map();
+    for (const leafId of tree.leafIds) losses.set(leafId, 0);
+    for (const regionId of tree.mergeSequence) {
+      const node = tree.nodes.get(regionId);
+      const areaRatio = node.stats.count / totalPixels;
+      const mergeLoss = node.rawMergeCost * Math.sqrt(Math.max(areaRatio, 0));
+      losses.set(
+        regionId,
+        losses.get(node.leftId) + losses.get(node.rightId) + mergeLoss,
+      );
+    }
+
+    const minimum = new Map();
+    for (const leafId of tree.leafIds) minimum.set(leafId, 1);
+    for (const regionId of tree.mergeSequence) {
+      const node = tree.nodes.get(regionId);
+      if (node.hierarchyHeight <= policy.maxHierarchyHeight) {
+        minimum.set(regionId, 1);
+      } else {
+        minimum.set(regionId, minimum.get(node.leftId) + minimum.get(node.rightId));
+      }
+    }
+    const rootIds = Array.from(tree.roots).sort((a, b) => a - b);
+    const minCount = rootIds.reduce((sum, id) => sum + minimum.get(id), 0);
+    const desiredCap = Math.max(policy.targetMax * 2, policy.targetMax + 64);
+    let cap = Math.max(minCount, Math.min(initialRegionCount, desiredCap));
+
+    function buildStates(activeCap) {
+      const states = new Map();
+      for (const leafId of tree.leafIds) {
+        states.set(leafId, new Map([[1, {
+          visualLoss: 0,
+          selectSelf: true,
+          leftCount: 0,
+          rightCount: 0,
+        }]]));
+      }
+      for (const regionId of tree.mergeSequence) {
+        const node = tree.nodes.get(regionId);
+        const left = states.get(node.leftId);
+        const right = states.get(node.rightId);
+        const merged = new Map();
+        for (const [leftCount, leftPlan] of left.entries()) {
+          for (const [rightCount, rightPlan] of right.entries()) {
+            const count = leftCount + rightCount;
+            if (count > activeCap) continue;
+            const visualLoss = leftPlan.visualLoss + rightPlan.visualLoss;
+            const current = merged.get(count);
+            if (!current || visualLoss < current.visualLoss - 1e-15) {
+              merged.set(count, {
+                visualLoss,
+                selectSelf: false,
+                leftCount,
+                rightCount,
+              });
+            }
+          }
+        }
+        if (node.hierarchyHeight <= policy.maxHierarchyHeight) {
+          const selected = {
+            visualLoss: losses.get(regionId),
+            selectSelf: true,
+            leftCount: 0,
+            rightCount: 0,
+          };
+          const current = merged.get(1);
+          if (!current || selected.visualLoss < current.visualLoss) merged.set(1, selected);
+        }
+        if (merged.size === 0) throw new Error("No feasible hierarchy-cut state.");
+        states.set(regionId, merged);
+      }
+      return states;
+    }
+
+    let states = buildStates(cap);
+    let forest = new Map([[0, { visualLoss: 0, rootCounts: [] }]]);
+    for (const rootId of rootIds) {
+      const next = new Map();
+      for (const [previousCount, previous] of forest.entries()) {
+        for (const [rootCount, rootPlan] of states.get(rootId).entries()) {
+          const count = previousCount + rootCount;
+          if (count > cap) continue;
+          const visualLoss = previous.visualLoss + rootPlan.visualLoss;
+          const current = next.get(count);
+          if (!current || visualLoss < current.visualLoss - 1e-15) {
+            next.set(count, {
+              visualLoss,
+              rootCounts: previous.rootCounts.concat([[rootId, rootCount]]),
+            });
+          }
+        }
+      }
+      forest = next;
+    }
+    if (forest.size === 0 && cap < initialRegionCount) {
+      cap = initialRegionCount;
+      states = buildStates(cap);
+      forest = new Map([[0, { visualLoss: 0, rootCounts: [] }]]);
+      for (const rootId of rootIds) {
+        const next = new Map();
+        for (const [previousCount, previous] of forest.entries()) {
+          for (const [rootCount, rootPlan] of states.get(rootId).entries()) {
+            const count = previousCount + rootCount;
+            const visualLoss = previous.visualLoss + rootPlan.visualLoss;
+            const current = next.get(count);
+            if (!current || visualLoss < current.visualLoss - 1e-15) {
+              next.set(count, {
+                visualLoss,
+                rootCounts: previous.rootCounts.concat([[rootId, rootCount]]),
+              });
+            }
+          }
+        }
+        forest = next;
+      }
+    }
+
+    const totalVisualLoss = rootIds.reduce((sum, id) => sum + losses.get(id), 0);
+    let best = null;
+    for (const [count, plan] of forest.entries()) {
+      const normalizedLoss = totalVisualLoss > 1e-15 ? plan.visualLoss / totalVisualLoss : 0;
+      const normalizedCount = count / initialRegionCount;
+      const penalty = canonicalTargetPenalty(count, policy);
+      const objective = (
+        normalizedLoss
+        + policy.complexityLambda * normalizedCount
+        + policy.targetWeight * penalty
+      );
+      const candidate = {
+        count,
+        visualLoss: plan.visualLoss,
+        normalizedLoss,
+        penalty,
+        objective,
+        rootCounts: plan.rootCounts,
+      };
+      if (
+        best === null
+        || candidate.objective < best.objective - 1e-15
+        || (
+          Math.abs(candidate.objective - best.objective) <= 1e-15
+          && candidate.penalty < best.penalty - 1e-15
+        )
+        || (
+          Math.abs(candidate.objective - best.objective) <= 1e-15
+          && Math.abs(candidate.penalty - best.penalty) <= 1e-15
+          && candidate.count < best.count
+        )
+      ) {
+        best = candidate;
+      }
+    }
+    if (!best) throw new Error("No feasible canonical hierarchy cut.");
+
+    const selected = new Set();
+    const stack = best.rootCounts.slice();
+    while (stack.length) {
+      const [regionId, count] = stack.pop();
+      const plan = states.get(regionId).get(count);
+      if (plan.selectSelf) {
+        selected.add(regionId);
+        continue;
+      }
+      const node = tree.nodes.get(regionId);
+      stack.push([node.leftId, plan.leftCount]);
+      stack.push([node.rightId, plan.rightCount]);
+    }
+    let maxHeight = 0;
+    for (const regionId of selected) {
+      maxHeight = Math.max(maxHeight, tree.nodes.get(regionId).hierarchyHeight);
+    }
+    return {
+      selectedIds: selected,
+      regionCount: best.count,
+      visualLoss: best.visualLoss,
+      normalizedVisualLoss: best.normalizedLoss,
+      objective: best.objective,
+      maxSelectedHierarchyHeight: maxHeight,
+    };
+  }
+
   function materializeCanonicalCut(tree, selectedIds, width, height) {
     const labels = new Int32Array(width * height);
     labels.fill(-1);
@@ -2018,7 +2221,13 @@
     const hierarchyMergeCount = runCanonicalMergePass(
       graph, tree, imageArea, config, false, metrics,
     );
-    const selectedIds = cutCanonicalHierarchyToCount(tree, config.maxShapes);
+    const cut = cutCanonicalHierarchyMinimal(
+      tree,
+      graph.initialRegionCount,
+      imageArea,
+      config,
+    );
+    const selectedIds = cut.selectedIds;
     const materialized = materializeCanonicalCut(tree, selectedIds, width, height);
     return {
       ...materialized,
@@ -2026,6 +2235,10 @@
       safeMergeCount,
       hierarchyMergeCount,
       selectedCount: selectedIds.size,
+      cutVisualLoss: cut.visualLoss,
+      cutNormalizedVisualLoss: cut.normalizedVisualLoss,
+      cutObjective: cut.objective,
+      cutMaxHeight: cut.maxSelectedHierarchyHeight,
       finalRootCount: tree.roots.size,
       evaluationCount: metrics.evaluationCount,
       safeCandidateCount: metrics.safeCandidateCount,
@@ -2216,6 +2429,9 @@
         safeCandidateCount: hierarchy.safeCandidateCount,
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: hierarchy.selectedCount,
+        cutObjective: hierarchy.cutObjective,
+        cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
+        cutMaxHeight: hierarchy.cutMaxHeight,
         paletteCount: palette.palette.length,
         retried: segmented.retried,
         initialEdgeCoverage: segmented.initialEdgeCoverage,
@@ -2377,6 +2593,9 @@
         hierarchyMergeCount: analysis.metrics.hierarchyMergeCount,
         hierarchyCutCount: analysis.metrics.hierarchyCutCount,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
+        cutObjective: analysis.metrics.cutObjective,
+        cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
+        cutMaxHeight: analysis.metrics.cutMaxHeight,
       },
     };
   }
@@ -2418,6 +2637,7 @@
       canonicalSafeCandidate,
       runCanonicalRegionHierarchy,
       cutCanonicalHierarchyToCount,
+      cutCanonicalHierarchyMinimal,
       consolidateShapePalette,
       analyzeRgba,
       renderAnalysis,
