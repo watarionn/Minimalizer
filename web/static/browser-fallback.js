@@ -821,6 +821,68 @@
     return edge;
   }
 
+  function reflect101(value, size) {
+    if (size <= 1) return 0;
+    let v = value;
+    while (v < 0 || v >= size) {
+      if (v < 0) v = -v;
+      if (v >= size) v = 2 * size - v - 2;
+    }
+    return v;
+  }
+
+  function percentileLinear(values, percentile) {
+    const finite = Array.from(values).filter(Number.isFinite).sort((a, b) => a - b);
+    if (finite.length === 0) return 0;
+    const rank = (finite.length - 1) * percentile / 100;
+    const low = Math.floor(rank);
+    const high = Math.ceil(rank);
+    if (low === high) return finite[low];
+    const fraction = rank - low;
+    return finite[low] + (finite[high] - finite[low]) * fraction;
+  }
+
+  function canonicalLabEdgeMap(lab, width, height, percentile) {
+    const p = percentile == null ? 99 : percentile;
+    const magnitude = new Float32Array(width * height);
+    const kx = [
+      [-1, 0, 1],
+      [-2, 0, 2],
+      [-1, 0, 1],
+    ];
+    const ky = [
+      [-1, -2, -1],
+      [0, 0, 0],
+      [1, 2, 1],
+    ];
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        let energy = 0;
+        for (let channel = 0; channel < 3; channel += 1) {
+          let gx = 0;
+          let gy = 0;
+          for (let dy = -1; dy <= 1; dy += 1) {
+            const sy = reflect101(y + dy, height);
+            for (let dx = -1; dx <= 1; dx += 1) {
+              const sx = reflect101(x + dx, width);
+              const sample = lab[(sy * width + sx) * 3 + channel];
+              gx += sample * kx[dy + 1][dx + 1];
+              gy += sample * ky[dy + 1][dx + 1];
+            }
+          }
+          energy += gx * gx + gy * gy;
+        }
+        magnitude[y * width + x] = Math.sqrt(energy);
+      }
+    }
+    const scale = percentileLinear(magnitude, p);
+    if (!(scale > 1e-12)) return new Float32Array(width * height);
+    for (let i = 0; i < magnitude.length; i += 1) {
+      magnitude[i] = clamp(magnitude[i] / scale, 0, 1);
+    }
+    return magnitude;
+  }
+
   function targetSuperpixelCount(width, height, config) {
     const area = width * height;
     const requested = clamp(
@@ -2360,11 +2422,12 @@
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
-    const rawEdge = structuralEdgeMap(lab, width, height);
+    const slicEdge = structuralEdgeMap(lab, width, height);
+    const rawEdge = canonicalLabEdgeMap(lab, width, height, 99);
     const structuralEdge = rawEdge;
     const segmented = oversegmentSpatial(
       lab,
-      structuralEdge,
+      slicEdge,
       width,
       height,
       config,
@@ -2620,6 +2683,7 @@
       rgbToLab,
       rgbaToLab,
       structuralEdgeMap,
+      canonicalLabEdgeMap,
       targetSuperpixelCount,
       regionSizeForTarget,
       runSlicoLite,
