@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v8";
+  const VERSION = "browser-fallback-v9";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -17,6 +17,15 @@
     slicTargetMax: 1200,
     slicMinAverageArea: 64,
     paletteTarget: 8,
+    paletteTargetMin: 6,
+    paletteTargetMax: 9,
+    paletteMaxSamplesPerRegion: 1024,
+    paletteMedoidCandidateCount: 64,
+    paletteColorDistanceScale: 25.0,
+    paletteContrastOriginalDeltaE: 12.0,
+    paletteContrastAssignedDeltaE: 5.0,
+    paletteSignificantDeltaL: 12.0,
+    paletteMajorRegionAreaRatio: 0.03,
     edgeCoverageThreshold: 0.75,
     retryScale: 0.80,
     maxRetryTargetFactor: 2.5,
@@ -2498,7 +2507,7 @@
     };
   }
 
-  function consolidateShapePalette(groups, targetCount) {
+  function consolidateLegacyShapePalette(groups, targetCount) {
     if (groups.length === 0) return { colors: [], assignments: [], palette: [] };
     const count = Math.max(1, Math.min(targetCount, groups.length));
     const ranked = groups
@@ -2609,6 +2618,479 @@
     };
   }
 
+
+  function ciede2000Scalar(first, second) {
+    const l1 = first[0], a1 = first[1], b1 = first[2];
+    const l2 = second[0], a2 = second[1], b2 = second[2];
+    const c1 = Math.hypot(a1, b1);
+    const c2 = Math.hypot(a2, b2);
+    const cbar = (c1 + c2) * 0.5;
+    const cbar7 = Math.pow(cbar, 7);
+    const g = 0.5 * (1 - Math.sqrt(cbar7 / (cbar7 + Math.pow(25, 7))));
+    const a1p = (1 + g) * a1;
+    const a2p = (1 + g) * a2;
+    const c1p = Math.hypot(a1p, b1);
+    const c2p = Math.hypot(a2p, b2);
+    const degrees = (value) => value * 180 / Math.PI;
+    const radians = (value) => value * Math.PI / 180;
+    const hue = (bb, aa) => (degrees(Math.atan2(bb, aa)) + 360) % 360;
+    const h1p = hue(b1, a1p);
+    const h2p = hue(b2, a2p);
+    const deltaLp = l2 - l1;
+    const deltaCp = c2p - c1p;
+    const hueDelta = h2p - h1p;
+    const product = c1p * c2p;
+    let deltaHp = 0;
+    if (product !== 0) {
+      if (Math.abs(hueDelta) <= 180) deltaHp = hueDelta;
+      else if (hueDelta > 180) deltaHp = hueDelta - 360;
+      else deltaHp = hueDelta + 360;
+    }
+    const deltaHpTerm = 2 * Math.sqrt(product) * Math.sin(radians(deltaHp * 0.5));
+    const lbarp = (l1 + l2) * 0.5;
+    const cbarp = (c1p + c2p) * 0.5;
+    const hueSum = h1p + h2p;
+    const hueAbs = Math.abs(h1p - h2p);
+    let hbarp;
+    if (product === 0) hbarp = hueSum;
+    else if (hueAbs <= 180) hbarp = hueSum * 0.5;
+    else if (hueSum < 360) hbarp = (hueSum + 360) * 0.5;
+    else hbarp = (hueSum - 360) * 0.5;
+    const t = (
+      1
+      - 0.17 * Math.cos(radians(hbarp - 30))
+      + 0.24 * Math.cos(radians(2 * hbarp))
+      + 0.32 * Math.cos(radians(3 * hbarp + 6))
+      - 0.20 * Math.cos(radians(4 * hbarp - 63))
+    );
+    const deltaTheta = 30 * Math.exp(-Math.pow((hbarp - 275) / 25, 2));
+    const cbarp7 = Math.pow(cbarp, 7);
+    const rc = 2 * Math.sqrt(cbarp7 / (cbarp7 + Math.pow(25, 7)));
+    const sl = 1 + 0.015 * Math.pow(lbarp - 50, 2) / Math.sqrt(20 + Math.pow(lbarp - 50, 2));
+    const sc = 1 + 0.045 * cbarp;
+    const sh = 1 + 0.015 * cbarp * t;
+    const rt = -Math.sin(radians(2 * deltaTheta)) * rc;
+    const lTerm = deltaLp / sl;
+    const cTerm = deltaCp / sc;
+    const hTerm = deltaHpTerm / sh;
+    return Math.sqrt(Math.max(
+      0,
+      lTerm * lTerm + cTerm * cTerm + hTerm * hTerm + rt * cTerm * hTerm,
+    ));
+  }
+
+  function medianNumber(values) {
+    const ordered = values.slice().sort((a, b) => a - b);
+    const middle = Math.floor(ordered.length / 2);
+    if (ordered.length % 2) return ordered[middle];
+    return (ordered[middle - 1] + ordered[middle]) * 0.5;
+  }
+
+  function deterministicPaletteIndices(indices, maximum) {
+    if (indices.length <= maximum) return indices.slice();
+    const sampled = new Array(maximum);
+    const denominator = maximum - 1;
+    const span = indices.length - 1;
+    for (let i = 0; i < maximum; i += 1) {
+      sampled[i] = indices[Math.floor(i * span / denominator)];
+    }
+    return sampled;
+  }
+
+  function sampleCanonicalPaletteRegions(labels, rgba, lab, width, height, regionCount, config) {
+    const pixels = Array.from({ length: regionCount }, () => []);
+    for (let index = 0; index < labels.length; index += 1) pixels[labels[index]].push(index);
+    const samples = [];
+    for (let regionId = 0; regionId < regionCount; regionId += 1) {
+      const regionPixels = pixels[regionId];
+      if (!regionPixels.length) throw new Error("palette region has no pixels");
+      const selected = deterministicPaletteIndices(
+        regionPixels,
+        config.paletteMaxSamplesPerRegion,
+      );
+      const labs = selected.map((index) => {
+        const offset = index * 3;
+        return [lab[offset], lab[offset + 1], lab[offset + 2]];
+      });
+      const median = [
+        medianNumber(labs.map((value) => value[0])),
+        medianNumber(labs.map((value) => value[1])),
+        medianNumber(labs.map((value) => value[2])),
+      ];
+      const orderedCandidates = labs
+        .map((value, index) => ({
+          index,
+          distance: Math.hypot(
+            value[0] - median[0],
+            value[1] - median[1],
+            value[2] - median[2],
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance || a.index - b.index)
+        .slice(0, Math.min(config.paletteMedoidCandidateCount, labs.length));
+      let bestLocal = orderedCandidates[0].index;
+      let bestTotal = Number.POSITIVE_INFINITY;
+      for (const candidate of orderedCandidates) {
+        let total = 0;
+        for (const value of labs) total += ciede2000Scalar(labs[candidate.index], value);
+        if (total < bestTotal) {
+          bestTotal = total;
+          bestLocal = candidate.index;
+        }
+      }
+      const sourceIndex = selected[bestLocal];
+      const x = sourceIndex % width;
+      const y = Math.floor(sourceIndex / width);
+      const ro = sourceIndex * 4;
+      samples.push({
+        regionId,
+        lab: labs[bestLocal].slice(),
+        rgb: [rgba[ro], rgba[ro + 1], rgba[ro + 2]],
+        sourceXY: [x, y],
+        pixelCount: regionPixels.length,
+      });
+    }
+    return samples;
+  }
+
+  function canonicalPalettePairKey(a, b) {
+    return a < b ? a + "," + b : b + "," + a;
+  }
+
+  function buildCanonicalPaletteRelationships(samples, labels, width, height, config) {
+    const totalPixels = labels.length;
+    const major = new Set(
+      samples
+        .filter((sample) => sample.pixelCount / totalPixels >= config.paletteMajorRegionAreaRatio)
+        .map((sample) => sample.regionId),
+    );
+    const pending = new Map();
+    function add(a, b, reason, protection) {
+      if (a === b) return;
+      const left = Math.min(a, b), right = Math.max(a, b);
+      const key = canonicalPalettePairKey(left, right);
+      let item = pending.get(key);
+      if (!item) {
+        item = { a: left, b: right, reasons: new Set(), protection: 0 };
+        pending.set(key, item);
+      }
+      item.reasons.add(reason);
+      item.protection = Math.max(item.protection, protection);
+    }
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const index = y * width + x;
+        const id = labels[index];
+        if (x + 1 < width) {
+          const other = labels[index + 1];
+          if (id !== other && major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+        }
+        if (y + 1 < height) {
+          const other = labels[index + width];
+          if (id !== other && major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+        }
+      }
+    }
+    const majorIds = Array.from(major).sort((a, b) => a - b);
+    for (let i = 0; i < majorIds.length; i += 1) {
+      for (let j = i + 1; j < majorIds.length; j += 1) {
+        const a = majorIds[i], b = majorIds[j];
+        if (ciede2000Scalar(samples[a].lab, samples[b].lab) >= config.paletteContrastOriginalDeltaE) {
+          add(a, b, "major_mass", 0.75);
+        }
+      }
+    }
+    return Array.from(pending.values())
+      .sort((a, b) => a.a - b.a || a.b - b.b)
+      .map((item) => ({
+        regionA: item.a,
+        regionB: item.b,
+        originalDeltaE: ciede2000Scalar(samples[item.a].lab, samples[item.b].lab),
+        originalDeltaL: samples[item.a].lab[0] - samples[item.b].lab[0],
+        protection: item.protection,
+        reasons: Array.from(item.reasons).sort(),
+      }));
+  }
+
+  function canonicalPaletteRelationshipRisk(first, second, relationships, config) {
+    let risk = 0;
+    for (const relationship of relationships) {
+      const spans = (
+        first.memberRegions.includes(relationship.regionA)
+        && second.memberRegions.includes(relationship.regionB)
+      ) || (
+        first.memberRegions.includes(relationship.regionB)
+        && second.memberRegions.includes(relationship.regionA)
+      );
+      if (!spans) continue;
+      const contrast = Math.max(
+        relationship.originalDeltaE / config.paletteContrastOriginalDeltaE,
+        Math.abs(relationship.originalDeltaL) / config.paletteSignificantDeltaL,
+      );
+      risk = Math.max(risk, relationship.protection * Math.min(contrast, 1));
+    }
+    return risk;
+  }
+
+  function canonicalPaletteRepresentative(memberRegions, samples, distances, count) {
+    let minimum = Number.POSITIVE_INFINITY;
+    let winner = memberRegions[0];
+    for (const candidate of memberRegions) {
+      let total = 0;
+      for (const other of memberRegions) {
+        total += distances[candidate * count + other] * samples[other].pixelCount;
+      }
+      if (
+        total < minimum - 1e-12
+        || (Math.abs(total - minimum) <= 1e-12 && candidate < winner)
+      ) {
+        minimum = total;
+        winner = candidate;
+      }
+    }
+    return winner;
+  }
+
+  function buildCanonicalPaletteHierarchy(samples, relationships, config) {
+    const count = samples.length;
+    const distances = new Float64Array(count * count);
+    for (let a = 0; a < count; a += 1) {
+      for (let b = a + 1; b < count; b += 1) {
+        const value = ciede2000Scalar(samples[a].lab, samples[b].lab);
+        distances[a * count + b] = value;
+        distances[b * count + a] = value;
+      }
+    }
+    const nodes = new Map();
+    const active = new Set();
+    for (let regionId = 0; regionId < count; regionId += 1) {
+      const sample = samples[regionId];
+      nodes.set(regionId, {
+        id: regionId,
+        leftId: null,
+        rightId: null,
+        memberRegions: [regionId],
+        representativeRegionId: regionId,
+        lab: sample.lab.slice(),
+        rgb: sample.rgb.slice(),
+        sourceXY: sample.sourceXY.slice(),
+        mergeCost: 0,
+        hierarchyHeight: 0,
+      });
+      active.add(regionId);
+    }
+    const mergeSequence = [];
+    let nextId = count;
+    while (active.size > 1) {
+      const ids = Array.from(active).sort((a, b) => a - b);
+      let best = null;
+      for (let i = 0; i < ids.length; i += 1) {
+        for (let j = i + 1; j < ids.length; j += 1) {
+          const leftId = ids[i], rightId = ids[j];
+          const left = nodes.get(leftId), right = nodes.get(rightId);
+          const colorDistance = distances[
+            left.representativeRegionId * count + right.representativeRegionId
+          ];
+          const colorCost = Math.min(colorDistance / config.paletteColorDistanceScale, 1);
+          const relationshipCost = canonicalPaletteRelationshipRisk(
+            left, right, relationships, config,
+          );
+          const totalCost = 0.65 * colorCost + 0.10 * relationshipCost;
+          const candidate = { totalCost, leftId, rightId };
+          if (
+            best === null
+            || candidate.totalCost < best.totalCost
+            || (
+              candidate.totalCost === best.totalCost
+              && (candidate.leftId < best.leftId
+                || (
+                  candidate.leftId === best.leftId
+                  && candidate.rightId < best.rightId
+                ))
+            )
+          ) best = candidate;
+        }
+      }
+      if (!best) break;
+      const first = nodes.get(best.leftId), second = nodes.get(best.rightId);
+      const members = first.memberRegions.concat(second.memberRegions).sort((a, b) => a - b);
+      const representative = canonicalPaletteRepresentative(members, samples, distances, count);
+      const sample = samples[representative];
+      nodes.set(nextId, {
+        id: nextId,
+        leftId: best.leftId,
+        rightId: best.rightId,
+        memberRegions: members,
+        representativeRegionId: representative,
+        lab: sample.lab.slice(),
+        rgb: sample.rgb.slice(),
+        sourceXY: sample.sourceXY.slice(),
+        mergeCost: best.totalCost,
+        hierarchyHeight: Math.max(
+          best.totalCost,
+          first.hierarchyHeight,
+          second.hierarchyHeight,
+        ),
+      });
+      active.delete(best.leftId);
+      active.delete(best.rightId);
+      active.add(nextId);
+      mergeSequence.push(nextId);
+      nextId += 1;
+    }
+    return { nodes, mergeSequence, leafCount: count };
+  }
+
+  function cutCanonicalPaletteHierarchy(hierarchy, desiredCount) {
+    const active = new Set();
+    for (let id = 0; id < hierarchy.leafCount; id += 1) active.add(id);
+    if (active.size <= desiredCount) return active;
+    for (const nodeId of hierarchy.mergeSequence) {
+      if (active.size <= desiredCount) break;
+      const node = hierarchy.nodes.get(nodeId);
+      if (!active.has(node.leftId) || !active.has(node.rightId)) {
+        throw new Error("palette merge sequence is not replayable");
+      }
+      active.delete(node.leftId);
+      active.delete(node.rightId);
+      active.add(nodeId);
+    }
+    return active;
+  }
+
+  function canonicalPaletteRegionMapping(selected, hierarchy) {
+    const mapping = new Int32Array(hierarchy.leafCount);
+    mapping.fill(-1);
+    for (const nodeId of selected) {
+      for (const regionId of hierarchy.nodes.get(nodeId).memberRegions) mapping[regionId] = nodeId;
+    }
+    return mapping;
+  }
+
+  function canonicalPaletteRelationshipBroken(relationship, mapping, hierarchy, config) {
+    const nodeAId = mapping[relationship.regionA];
+    const nodeBId = mapping[relationship.regionB];
+    const nodeA = hierarchy.nodes.get(nodeAId);
+    const nodeB = hierarchy.nodes.get(nodeBId);
+    const assignedDeltaE = ciede2000Scalar(nodeA.lab, nodeB.lab);
+    const assignedDeltaL = nodeA.lab[0] - nodeB.lab[0];
+    if (
+      relationship.originalDeltaE >= config.paletteContrastOriginalDeltaE
+      && assignedDeltaE <= config.paletteContrastAssignedDeltaE
+    ) return true;
+    if (
+      Math.abs(relationship.originalDeltaL) >= config.paletteSignificantDeltaL
+      && relationship.originalDeltaL * assignedDeltaL < 0
+    ) return true;
+    return false;
+  }
+
+  function splitCanonicalPaletteNode(selected, nodeId, hierarchy) {
+    const node = hierarchy.nodes.get(nodeId);
+    if (node.leftId === null || node.rightId === null) return false;
+    selected.delete(nodeId);
+    selected.add(node.leftId);
+    selected.add(node.rightId);
+    return true;
+  }
+
+  function repairCanonicalPaletteRelationships(selected, hierarchy, samples, relationships, config) {
+    let repaired = 0;
+    const maximumSteps = Math.max(hierarchy.nodes.size * 2, 1);
+    for (let step = 0; step < maximumSteps; step += 1) {
+      const mapping = canonicalPaletteRegionMapping(selected, hierarchy);
+      const broken = relationships.find((relationship) => (
+        canonicalPaletteRelationshipBroken(relationship, mapping, hierarchy, config)
+      ));
+      if (!broken) return { selected, repaired };
+      const nodeAId = mapping[broken.regionA];
+      const nodeBId = mapping[broken.regionB];
+      if (nodeAId === nodeBId) {
+        if (!splitCanonicalPaletteNode(selected, nodeAId, hierarchy)) {
+          throw new Error("protected palette relationship collapsed inside leaf");
+        }
+        repaired += 1;
+        continue;
+      }
+      const options = [];
+      for (const [regionId, nodeId] of [
+        [broken.regionA, nodeAId],
+        [broken.regionB, nodeBId],
+      ]) {
+        const node = hierarchy.nodes.get(nodeId);
+        if (node.leftId === null) continue;
+        options.push({
+          error: ciede2000Scalar(samples[regionId].lab, node.lab),
+          nodeId,
+        });
+      }
+      if (!options.length) throw new Error("palette relationship cannot be repaired");
+      options.sort((a, b) => b.error - a.error || a.nodeId - b.nodeId);
+      if (!splitCanonicalPaletteNode(selected, options[0].nodeId, hierarchy)) {
+        throw new Error("failed to split canonical palette node");
+      }
+      repaired += 1;
+    }
+    throw new Error("palette relationship repair exceeded deterministic limit");
+  }
+
+  function consolidateCanonicalPalette(groups, labels, rgba, lab, width, height, config) {
+    if (!groups.length) {
+      return {
+        colors: [],
+        assignments: [],
+        palette: [],
+        relationshipCount: 0,
+        repairedSplitCount: 0,
+        method: "canonical-medoid-hierarchy",
+      };
+    }
+    const samples = sampleCanonicalPaletteRegions(
+      labels, rgba, lab, width, height, groups.length, config,
+    );
+    const relationships = buildCanonicalPaletteRelationships(
+      samples, labels, width, height, config,
+    );
+    const hierarchy = buildCanonicalPaletteHierarchy(samples, relationships, config);
+    const desiredCount = Math.max(
+      1,
+      Math.min(
+        Math.floor((config.paletteTargetMin + config.paletteTargetMax) / 2),
+        samples.length,
+      ),
+    );
+    let selected = cutCanonicalPaletteHierarchy(hierarchy, desiredCount);
+    const repaired = repairCanonicalPaletteRelationships(
+      selected, hierarchy, samples, relationships, config,
+    );
+    selected = repaired.selected;
+    const selectedIds = Array.from(selected).sort((a, b) => a - b);
+    const palette = selectedIds.map((nodeId) => {
+      const node = hierarchy.nodes.get(nodeId);
+      return {
+        id: nodeId,
+        representativeRegionId: node.representativeRegionId,
+        memberRegions: node.memberRegions.slice(),
+        lab: node.lab.slice(),
+        rgb: node.rgb.slice(),
+        sourceXY: node.sourceXY.slice(),
+      };
+    });
+    const mapping = canonicalPaletteRegionMapping(selected, hierarchy);
+    const entryById = new Map(palette.map((entry) => [entry.id, entry]));
+    const assignments = Array.from(mapping);
+    return {
+      palette,
+      assignments,
+      colors: assignments.map((id) => entryById.get(id).rgb.slice()),
+      samples,
+      relationships,
+      relationshipCount: relationships.length,
+      repairedSplitCount: repaired.repaired,
+      method: "canonical-medoid-hierarchy",
+    };
+  }
+
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
@@ -2657,7 +3139,15 @@
       height,
       config,
     );
-    const palette = consolidateShapePalette(hierarchy.groups, config.paletteTarget);
+    const palette = consolidateCanonicalPalette(
+      hierarchy.groups,
+      hierarchy.built.componentIds,
+      rgba,
+      lab,
+      width,
+      height,
+      config,
+    );
 
     let contourIoUSum = 0;
     let vertexCount = 0;
@@ -2709,6 +3199,9 @@
         cutMaxHeight: hierarchy.cutMaxHeight,
         structuralPreprocess,
         paletteCount: palette.palette.length,
+        paletteMethod: palette.method,
+        paletteRelationshipCount: palette.relationshipCount,
+        paletteRepairCount: palette.repairedSplitCount,
         retried: segmented.retried,
         initialEdgeCoverage: segmented.initialEdgeCoverage,
         initialRegionCountBeforeRetry: segmented.initialRegionCountBeforeRetry ?? segmented.regionCount,
@@ -2910,6 +3403,8 @@
       "X-Minimalizer-Superpixel-Count": String(analysis.metrics.initialRegionCount),
       "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
       "X-Minimalizer-Palette-Count": String(analysis.metrics.paletteCount),
+      "X-Minimalizer-Palette-Method": analysis.metrics.paletteMethod,
+      "X-Minimalizer-Palette-Repairs": String(analysis.metrics.paletteRepairCount),
       "X-Minimalizer-SLIC-Retried": analysis.metrics.retried ? "1" : "0",
       "X-Minimalizer-Safe-Merges": String(analysis.metrics.safeMergeCount),
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
@@ -2938,6 +3433,9 @@
         initialRegionCount: analysis.metrics.initialRegionCount,
         edgeCoverage: analysis.metrics.edgeCoverage,
         paletteCount: analysis.metrics.paletteCount,
+        paletteMethod: analysis.metrics.paletteMethod,
+        paletteRelationshipCount: analysis.metrics.paletteRelationshipCount,
+        paletteRepairCount: analysis.metrics.paletteRepairCount,
         regionSize: analysis.metrics.regionSize,
         retried: analysis.metrics.retried,
         initialEdgeCoverage: analysis.metrics.initialEdgeCoverage,
@@ -2998,7 +3496,14 @@
       runCanonicalRegionHierarchy,
       cutCanonicalHierarchyToCount,
       cutCanonicalHierarchyMinimal,
-      consolidateShapePalette,
+      consolidateLegacyShapePalette,
+      ciede2000Scalar,
+      sampleCanonicalPaletteRegions,
+      buildCanonicalPaletteRelationships,
+      buildCanonicalPaletteHierarchy,
+      cutCanonicalPaletteHierarchy,
+      repairCanonicalPaletteRelationships,
+      consolidateCanonicalPalette,
       analyzeRgba,
       renderAnalysis,
     }),
