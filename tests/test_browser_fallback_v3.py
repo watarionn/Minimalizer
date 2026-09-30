@@ -7,6 +7,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import numpy as np
+
+from minimalize_engine.v2.preprocessing import lab_edge_map, rgb_to_canonical_lab
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -429,3 +432,41 @@ process.stdout.write(JSON.stringify({groups:graph.nodes.size, pixels, edges:grap
     assert payload["groups"] > 0
     assert payload["pixels"] == 400 * 311
     assert payload["edges"] > 0
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_canonical_lab_edge_map_matches_python(tmp_path):
+    height, width = 17, 23
+    yy, xx = np.indices((height, width))
+    rgb = np.zeros((height, width, 3), dtype=np.uint8)
+    rgb[..., 0] = (xx * 11 + yy * 3) % 256
+    rgb[..., 1] = (yy * 17 + xx * 5) % 256
+    rgb[..., 2] = ((xx + yy) * 13) % 256
+    lab = rgb_to_canonical_lab(rgb).astype(np.float32)
+    expected = lab_edge_map(lab).astype(np.float32)
+
+    lab_path = tmp_path / "lab.bin"
+    out_path = tmp_path / "edge.bin"
+    lab_path.write_bytes(lab.tobytes())
+
+    script = r"""
+const fs = require("fs");
+const api = require(process.argv[1]);
+const input = process.argv[2];
+const output = process.argv[3];
+const height = 17;
+const width = 23;
+const count = height * width;
+const raw = fs.readFileSync(input);
+const lab = new Float32Array(raw.buffer, raw.byteOffset, count * 3);
+const edge = api._core.canonicalLabEdgeMap(lab, width, height, 99);
+fs.writeFileSync(output, Buffer.from(edge.buffer, edge.byteOffset, edge.byteLength));
+"""
+    subprocess.run(
+        ["node", "-e", script, str(BROWSER_ENGINE), str(lab_path), str(out_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    actual = np.frombuffer(out_path.read_bytes(), dtype=np.float32).reshape(height, width)
+    assert np.allclose(actual, expected, atol=1.0e-5)
