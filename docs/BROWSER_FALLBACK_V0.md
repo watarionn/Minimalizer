@@ -2,8 +2,8 @@
 
 Status: **FUNCTIONAL PASS / QUALITY HOLD**
 
-Date: 2026-09-30  
-Branch: `feature/browser-fallback-v0-20260930`  
+Date: 2026-09-30
+Branch: `feature/browser-fallback-v0-20260930`
 Production default: **unchanged**. Railway remains the normal hosted fallback until a later quality gate passes.
 
 ## Goal
