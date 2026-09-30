@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v0";
+  const VERSION = "browser-fallback-v1";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 192,
@@ -11,6 +11,7 @@
     minComponentRatio: 0.0012,
     maxShapes: 40,
     alphaThreshold: 8,
+    contourFidelity: 0.94,
   });
 
   function clamp(value, low, high) {
@@ -309,36 +310,6 @@
     return current;
   }
 
-  function cross(origin, a, b) {
-    return (a[0] - origin[0]) * (b[1] - origin[1])
-      - (a[1] - origin[1]) * (b[0] - origin[0]);
-  }
-
-  function convexHull(points) {
-    if (points.length <= 2) return points.slice();
-    const sorted = points
-      .slice()
-      .sort((left, right) => left[0] - right[0] || left[1] - right[1]);
-    const lower = [];
-    for (const point of sorted) {
-      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) {
-        lower.pop();
-      }
-      lower.push(point);
-    }
-    const upper = [];
-    for (let i = sorted.length - 1; i >= 0; i -= 1) {
-      const point = sorted[i];
-      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) {
-        upper.pop();
-      }
-      upper.push(point);
-    }
-    lower.pop();
-    upper.pop();
-    return lower.concat(upper);
-  }
-
   function pointSegmentDistance(point, start, end) {
     const dx = end[0] - start[0];
     const dy = end[1] - start[1];
@@ -392,24 +363,247 @@
     return merged.length >= 3 ? merged : points.slice();
   }
 
-  function componentPolygon(component, componentIds, width, height) {
-    const points = [];
+  function ringArea(ring) {
+    let area = 0;
+    for (let i = 0; i < ring.length; i += 1) {
+      const next = ring[(i + 1) % ring.length];
+      area += ring[i][0] * next[1] - next[0] * ring[i][1];
+    }
+    return area / 2;
+  }
+
+  function pointInRing(x, y, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const xi = ring[i][0];
+      const yi = ring[i][1];
+      const xj = ring[j][0];
+      const yj = ring[j][1];
+      const intersects = ((yi > y) !== (yj > y))
+        && x < ((xj - xi) * (y - yi)) / ((yj - yi) || Number.EPSILON) + xi;
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+
+  function pointInRings(x, y, rings) {
+    let inside = false;
+    for (const ring of rings) {
+      if (pointInRing(x, y, ring)) inside = !inside;
+    }
+    return inside;
+  }
+
+  function edgeKey(point) {
+    return point[0] + "," + point[1];
+  }
+
+  function boundaryRings(component, componentIds, width, height) {
+    const edges = [];
+    function addEdge(start, end, direction) {
+      edges.push({ start, end, direction });
+    }
+
     for (const index of component.pixels) {
       const x = index % width;
       const y = Math.floor(index / width);
-      const left = x === 0 || componentIds[index - 1] !== component.id;
-      const right = x === width - 1 || componentIds[index + 1] !== component.id;
       const top = y === 0 || componentIds[index - width] !== component.id;
+      const right = x === width - 1 || componentIds[index + 1] !== component.id;
       const bottom = y === height - 1 || componentIds[index + width] !== component.id;
-      if (!(left || right || top || bottom)) continue;
-      points.push([x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]);
+      const left = x === 0 || componentIds[index - 1] !== component.id;
+      if (top) addEdge([x, y], [x + 1, y], 0);
+      if (right) addEdge([x + 1, y], [x + 1, y + 1], 1);
+      if (bottom) addEdge([x + 1, y + 1], [x, y + 1], 2);
+      if (left) addEdge([x, y + 1], [x, y], 3);
     }
-    const hull = convexHull(points);
+
+    edges.sort((a, b) => (
+      a.start[1] - b.start[1]
+      || a.start[0] - b.start[0]
+      || a.direction - b.direction
+    ));
+    const outgoing = new Map();
+    for (let i = 0; i < edges.length; i += 1) {
+      const key = edgeKey(edges[i].start);
+      if (!outgoing.has(key)) outgoing.set(key, []);
+      outgoing.get(key).push(i);
+    }
+    const used = new Uint8Array(edges.length);
+    const rings = [];
+    const turnRank = [1, 0, 3, 2];
+
+    function nextEdgeIndex(current) {
+      const candidates = outgoing.get(edgeKey(current.end)) || [];
+      let best = -1;
+      let bestRank = Number.POSITIVE_INFINITY;
+      for (const index of candidates) {
+        if (used[index]) continue;
+        const delta = (edges[index].direction - current.direction + 4) % 4;
+        const rank = turnRank.indexOf(delta);
+        if (rank < bestRank || (rank === bestRank && index < best)) {
+          best = index;
+          bestRank = rank;
+        }
+      }
+      return best;
+    }
+
+    for (let startIndex = 0; startIndex < edges.length; startIndex += 1) {
+      if (used[startIndex]) continue;
+      const ring = [];
+      let edgeIndex = startIndex;
+      const startPoint = edges[startIndex].start;
+      let closed = false;
+      for (let guard = 0; guard <= edges.length + 1; guard += 1) {
+        if (edgeIndex < 0 || used[edgeIndex]) break;
+        const edge = edges[edgeIndex];
+        used[edgeIndex] = 1;
+        if (ring.length === 0) ring.push(edge.start);
+        ring.push(edge.end);
+        if (edge.end[0] === startPoint[0] && edge.end[1] === startPoint[1]) {
+          closed = true;
+          break;
+        }
+        edgeIndex = nextEdgeIndex(edge);
+      }
+      if (!closed || ring.length < 4) continue;
+      ring.pop();
+      if (ring.length >= 3 && Math.abs(ringArea(ring)) >= 0.5) rings.push(ring);
+    }
+
+    return rings.sort((a, b) => Math.abs(ringArea(b)) - Math.abs(ringArea(a)));
+  }
+
+  function componentContourIoU(rings, component, componentIds, width, height) {
+    let intersection = 0;
+    let union = 0;
+    for (let y = component.minY; y <= component.maxY; y += 1) {
+      for (let x = component.minX; x <= component.maxX; x += 1) {
+        const actual = componentIds[y * width + x] === component.id;
+        const predicted = pointInRings(x + 0.5, y + 0.5, rings);
+        if (actual && predicted) intersection += 1;
+        if (actual || predicted) union += 1;
+      }
+    }
+    return union > 0 ? intersection / union : 1;
+  }
+
+  function componentGeometry(component, componentIds, width, height, fidelity) {
+    const rawRings = boundaryRings(component, componentIds, width, height);
+    if (rawRings.length === 0) {
+      const ring = [
+        [component.minX, component.minY],
+        [component.maxX + 1, component.minY],
+        [component.maxX + 1, component.maxY + 1],
+        [component.minX, component.maxY + 1],
+      ];
+      return { polygon: ring, rings: [ring], contourIoU: 1, epsilon: 0 };
+    }
+
     const diagonal = Math.hypot(
       component.maxX - component.minX + 1,
       component.maxY - component.minY + 1,
     );
-    return simplifyClosed(hull, Math.max(0.75, diagonal * 0.018));
+    let epsilon = Math.max(0.5, diagonal * 0.012);
+    let rings = rawRings.map((ring) => simplifyClosed(ring, epsilon));
+    let contourIoU = componentContourIoU(rings, component, componentIds, width, height);
+
+    while (contourIoU < fidelity && epsilon > 0.26) {
+      epsilon *= 0.5;
+      rings = rawRings.map((ring) => simplifyClosed(ring, epsilon));
+      contourIoU = componentContourIoU(rings, component, componentIds, width, height);
+    }
+
+    const polygon = rings[0] || rawRings[0];
+    return { polygon, rings, contourIoU, epsilon };
+  }
+
+  function componentNeighborStats(component, built, width, height) {
+    const stats = new Map();
+    for (const index of component.pixels) {
+      const x = index % width;
+      const y = Math.floor(index / width);
+      const neighbors = [];
+      if (x > 0) neighbors.push(index - 1);
+      if (x + 1 < width) neighbors.push(index + 1);
+      if (y > 0) neighbors.push(index - width);
+      if (y + 1 < height) neighbors.push(index + width);
+      for (const neighbor of neighbors) {
+        const id = built.componentIds[neighbor];
+        if (id < 0 || id === component.id) continue;
+        stats.set(id, (stats.get(id) || 0) + 1);
+      }
+    }
+    return stats;
+  }
+
+  function chooseMergeTarget(component, built, width, height) {
+    const stats = componentNeighborStats(component, built, width, height);
+    let winner = null;
+    for (const [targetId, sharedBoundary] of stats.entries()) {
+      const target = built.components[targetId];
+      if (!target) continue;
+      const distance = rgbDistanceSq(component.rgb, target.rgb);
+      const candidate = { target, sharedBoundary, distance };
+      if (
+        winner === null
+        || candidate.sharedBoundary > winner.sharedBoundary
+        || (
+          candidate.sharedBoundary === winner.sharedBoundary
+          && candidate.target.count > winner.target.count
+        )
+        || (
+          candidate.sharedBoundary === winner.sharedBoundary
+          && candidate.target.count === winner.target.count
+          && candidate.distance < winner.distance
+        )
+        || (
+          candidate.sharedBoundary === winner.sharedBoundary
+          && candidate.target.count === winner.target.count
+          && candidate.distance === winner.distance
+          && candidate.target.id < winner.target.id
+        )
+      ) {
+        winner = candidate;
+      }
+    }
+    return winner ? winner.target : null;
+  }
+
+  function reduceComponentsToBudget(labels, rgba, width, height, maxShapes) {
+    let current = labels;
+    let mergeCount = 0;
+    for (let pass = 0; pass < 16; pass += 1) {
+      const built = buildComponents(current, rgba, width, height);
+      if (built.components.length <= maxShapes) {
+        return { labels: current, built, mergeCount };
+      }
+
+      const excess = built.components.length - maxShapes;
+      const ordered = built.components
+        .slice()
+        .sort((a, b) => a.count - b.count || a.borderTouches - b.borderTouches || a.id - b.id);
+      const next = new Int16Array(current);
+      let mergedThisPass = 0;
+
+      for (const component of ordered) {
+        if (mergedThisPass >= excess) break;
+        const target = chooseMergeTarget(component, built, width, height);
+        if (!target) continue;
+        for (const index of component.pixels) next[index] = target.label;
+        mergedThisPass += 1;
+      }
+
+      if (mergedThisPass === 0) return { labels: current, built, mergeCount };
+      mergeCount += mergedThisPass;
+      current = next;
+    }
+
+    return {
+      labels: current,
+      built: buildComponents(current, rgba, width, height),
+      mergeCount,
+    };
   }
 
   function borderColor(rgba, width, height, alphaThreshold) {
@@ -449,23 +643,54 @@
     labels = smoothLabels(labels, width, height, centers.length, config.smoothPasses);
     const minPixels = Math.max(2, Math.round(width * height * config.minComponentRatio));
     labels = mergeTinyComponents(labels, rgba, width, height, minPixels, 2);
-    const built = buildComponents(labels, rgba, width, height);
+
+    const reduced = reduceComponentsToBudget(
+      labels,
+      rgba,
+      width,
+      height,
+      config.maxShapes,
+    );
+    const built = reduced.built;
     const ranked = built.components
       .slice()
-      .sort((left, right) => right.count - left.count || right.borderTouches - left.borderTouches || left.id - right.id)
-      .slice(0, config.maxShapes);
-    const shapes = ranked.map((component) => ({
-      id: component.id,
-      count: component.count,
-      rgb: component.rgb,
-      borderTouches: component.borderTouches,
-      polygon: componentPolygon(component, built.componentIds, width, height),
-    }));
+      .sort((left, right) => right.count - left.count || right.borderTouches - left.borderTouches || left.id - right.id);
+
+    let contourIoUSum = 0;
+    let vertexCount = 0;
+    const shapes = ranked.map((component) => {
+      const geometry = componentGeometry(
+        component,
+        built.componentIds,
+        width,
+        height,
+        config.contourFidelity,
+      );
+      contourIoUSum += geometry.contourIoU;
+      vertexCount += geometry.rings.reduce((sum, ring) => sum + ring.length, 0);
+      return {
+        id: component.id,
+        count: component.count,
+        rgb: component.rgb,
+        borderTouches: component.borderTouches,
+        polygon: geometry.polygon,
+        rings: geometry.rings,
+        contourIoU: geometry.contourIoU,
+        contourEpsilon: geometry.epsilon,
+      };
+    });
+
     return {
       version: VERSION,
       centers,
       shapes,
       background: borderColor(rgba, width, height, config.alphaThreshold),
+      metrics: {
+        budgetMergeCount: reduced.mergeCount,
+        componentCount: built.components.length,
+        meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
+        vertexCount,
+      },
     };
   }
 
@@ -516,15 +741,18 @@
       .slice()
       .sort((left, right) => right.count - left.count || left.id - right.id);
     for (const shape of shapes) {
-      if (shape.polygon.length < 3) continue;
+      const rings = shape.rings && shape.rings.length > 0 ? shape.rings : [shape.polygon];
       outputContext.beginPath();
-      outputContext.moveTo(shape.polygon[0][0] * scaleX, shape.polygon[0][1] * scaleY);
-      for (let i = 1; i < shape.polygon.length; i += 1) {
-        outputContext.lineTo(shape.polygon[i][0] * scaleX, shape.polygon[i][1] * scaleY);
+      for (const ring of rings) {
+        if (!ring || ring.length < 3) continue;
+        outputContext.moveTo(ring[0][0] * scaleX, ring[0][1] * scaleY);
+        for (let i = 1; i < ring.length; i += 1) {
+          outputContext.lineTo(ring[i][0] * scaleX, ring[i][1] * scaleY);
+        }
+        outputContext.closePath();
       }
-      outputContext.closePath();
       outputContext.fillStyle = "rgb(" + shape.rgb[0] + "," + shape.rgb[1] + "," + shape.rgb[2] + ")";
-      outputContext.fill();
+      outputContext.fill("evenodd");
     }
     return { canvas: outputCanvas, shapes };
   }
@@ -584,6 +812,8 @@
       "X-Minimalizer-Analysis-Size": analysisSize.width + "x" + analysisSize.height,
       "X-Minimalizer-Processing-Ms": elapsed.toFixed(1),
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
+      "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
+      "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -595,6 +825,9 @@
         workHeight: workSize.height,
         shapeCount: shapes.length,
         processingMs: elapsed,
+        meanContourIoU: analysis.metrics.meanContourIoU,
+        budgetMergeCount: analysis.metrics.budgetMergeCount,
+        vertexCount: analysis.metrics.vertexCount,
       },
     };
   }
@@ -612,8 +845,10 @@
       smoothLabels,
       mergeTinyComponents,
       buildComponents,
-      convexHull,
       simplifyClosed,
+      boundaryRings,
+      componentGeometry,
+      reduceComponentsToBudget,
       analyzeRgba,
       renderAnalysis,
     }),
