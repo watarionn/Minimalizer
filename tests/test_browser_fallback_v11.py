@@ -1212,7 +1212,12 @@ def test_opencv_fill_raster_matches_python_2x_contract_exactly():
             dtype=np.float32,
         )[:-1],
     )
-    expected = rasterize_loops(loops, (17, 19), scale=2).astype(np.uint8).tolist()
+    expected = (
+        rasterize_loops(loops, (17, 19), scale=2)
+        .astype(np.uint8)
+        .ravel()
+        .tolist()
+    )
     script = r"""
 const raster = require(process.argv[1]);
 const loops = [
