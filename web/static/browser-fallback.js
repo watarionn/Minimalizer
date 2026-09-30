@@ -58,6 +58,7 @@
     l0JacobiOmega: 0.80,
     structuralMode: "l0-lite-jacobi",
     spectralL0BetaMax: 1.0e5,
+    canonicalContourLite: false,
   });
 
   function clamp(value, low, high) {
@@ -3151,7 +3152,8 @@
 
     let canonicalContour = null;
     if (
-      typeof globalThis !== "undefined"
+      (config.structuralMode === "spectral-exact" || config.canonicalContourLite === true)
+      && typeof globalThis !== "undefined"
       && globalThis.MinimalizerCanonicalContour
       && typeof globalThis.MinimalizerCanonicalContour.simplifyLabels === "function"
     ) {
