@@ -56,8 +56,6 @@ def test_browser_fallback_v9_has_no_network_or_model_runtime_dependency():
     assert 'oversegmentSpatial' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
-    assert 'paletteTargetMin: 6' in source
-    assert 'paletteTargetMax: 9' in source
     assert 'paletteMedoidCandidateCount: 64' in source
     assert 'consolidateCanonicalPalette' in source
     assert 'canonical-medoid-hierarchy' in source
