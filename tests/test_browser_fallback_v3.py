@@ -9,7 +9,11 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-from minimalize_engine.v2.preprocessing import lab_edge_map, rgb_to_canonical_lab
+from minimalize_engine.v2.preprocessing import build_image_bundle, lab_edge_map, rgb_to_canonical_lab
+from minimalize_engine.v2.region_merge.cost import RegionMergeConfig
+from minimalize_engine.v2.region_merge.cut import _build_cut, default_cut_policies, materialize_region_selection
+from minimalize_engine.v2.region_merge.graph import build_region_graph_from_arrays
+from minimalize_engine.v2.region_merge.hierarchy import run_region_merge_from_graph
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -470,3 +474,130 @@ fs.writeFileSync(output, Buffer.from(edge.buffer, edge.byteOffset, edge.byteLeng
     )
     actual = np.frombuffer(out_path.read_bytes(), dtype=np.float32).reshape(height, width)
     assert np.allclose(actual, expected, atol=1.0e-5)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_canonical_region_hierarchy_matches_python_on_same_inputs(tmp_path):
+    height = width = 32
+    block = 4
+    labels = np.empty((height, width), dtype=np.int32)
+    image = np.empty((height, width, 3), dtype=np.uint8)
+    region_id = 0
+    for gy in range(0, height, block):
+        for gx in range(0, width, block):
+            labels[gy:gy + block, gx:gx + block] = region_id
+            image[gy:gy + block, gx:gx + block] = (
+                (40 + gx * 5 + gy * 2) % 256,
+                (70 + gy * 4 + gx * 3) % 256,
+                (190 - gx * 2 + gy) % 256,
+            )
+            region_id += 1
+
+    bundle = build_image_bundle(image, analysis_max_side=32)
+    graph = build_region_graph_from_arrays(
+        labels,
+        bundle.analysis_lab,
+        bundle.edge_raw,
+        bundle.edge_structural,
+    )
+    merge = run_region_merge_from_graph(graph, config=RegionMergeConfig())
+    policy = default_cut_policies()["minimal"]
+    cut = _build_cut(
+        merge,
+        preset="minimal",
+        policy=policy,
+        atomic_ids=frozenset(),
+    )
+    selection = materialize_region_selection(merge, cut).labels
+
+    rgba = np.empty((height, width, 4), dtype=np.uint8)
+    rgba[:, :, :3] = bundle.analysis_rgb
+    rgba[:, :, 3] = 255
+
+    paths = {}
+    for name, array in {
+        "rgba": rgba,
+        "lab": bundle.analysis_lab.astype(np.float32),
+        "raw": bundle.edge_raw.astype(np.float32),
+        "structural": bundle.edge_structural.astype(np.float32),
+        "labels": labels,
+    }.items():
+        path = tmp_path / f"{name}.bin"
+        path.write_bytes(array.tobytes())
+        paths[name] = path
+    js_labels = tmp_path / "js-labels.bin"
+
+    script = r"""
+const fs = require("fs");
+const api = require(process.argv[1]);
+const width = 32;
+const height = 32;
+const n = width * height;
+function bytes(path) { return fs.readFileSync(path); }
+const rgbaRaw = bytes(process.argv[2]);
+const labRaw = bytes(process.argv[3]);
+const rawRaw = bytes(process.argv[4]);
+const structuralRaw = bytes(process.argv[5]);
+const labelRaw = bytes(process.argv[6]);
+const rgba = new Uint8ClampedArray(rgbaRaw.buffer, rgbaRaw.byteOffset, n * 4);
+const lab = new Float32Array(labRaw.buffer, labRaw.byteOffset, n * 3);
+const edgeRaw = new Float32Array(rawRaw.buffer, rawRaw.byteOffset, n);
+const edgeStructural = new Float32Array(structuralRaw.buffer, structuralRaw.byteOffset, n);
+const labels = new Int32Array(labelRaw.buffer, labelRaw.byteOffset, n);
+const result = api._core.runCanonicalRegionHierarchy(
+  labels, rgba, lab, edgeRaw, edgeStructural, width, height, api.DEFAULTS
+);
+fs.writeFileSync(
+  process.argv[7],
+  Buffer.from(result.labels.buffer, result.labels.byteOffset, result.labels.byteLength)
+);
+process.stdout.write(JSON.stringify({
+  safeMergeCount: result.safeMergeCount,
+  hierarchyMergeCount: result.hierarchyMergeCount,
+  finalRootCount: result.finalRootCount,
+  selectedCount: result.selectedCount,
+  evaluationCount: result.evaluationCount,
+  safeCandidateCount: result.safeCandidateCount,
+  cutObjective: result.cutObjective,
+  cutNormalizedVisualLoss: result.cutNormalizedVisualLoss,
+  cutMaxHeight: result.cutMaxHeight,
+}));
+"""
+    completed = subprocess.run(
+        [
+            "node", "-e", script, str(BROWSER_ENGINE),
+            str(paths["rgba"]), str(paths["lab"]), str(paths["raw"]),
+            str(paths["structural"]), str(paths["labels"]), str(js_labels),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    js_metrics = json.loads(completed.stdout)
+    actual = np.frombuffer(js_labels.read_bytes(), dtype=np.int32).reshape(height, width)
+
+    assert js_metrics["safeMergeCount"] == merge.safe_merge_count
+    assert js_metrics["hierarchyMergeCount"] == merge.hierarchy_merge_count
+    assert js_metrics["finalRootCount"] == merge.metrics.final_root_count
+    assert js_metrics["selectedCount"] == cut.region_count
+    assert js_metrics["evaluationCount"] == merge.metrics.evaluation_count
+    assert js_metrics["safeCandidateCount"] == merge.metrics.safe_candidate_count
+    assert js_metrics["cutObjective"] == pytest.approx(cut.objective, abs=1e-12)
+    assert js_metrics["cutNormalizedVisualLoss"] == pytest.approx(
+        cut.normalized_visual_loss, abs=1e-12
+    )
+    assert js_metrics["cutMaxHeight"] == pytest.approx(
+        cut.max_selected_hierarchy_height, abs=1e-12
+    )
+
+    def boundary_map(array):
+        boundary = np.zeros(array.shape, dtype=bool)
+        horizontal = array[:, :-1] != array[:, 1:]
+        boundary[:, :-1] |= horizontal
+        boundary[:, 1:] |= horizontal
+        vertical = array[:-1, :] != array[1:, :]
+        boundary[:-1, :] |= vertical
+        boundary[1:, :] |= vertical
+        return boundary
+
+    assert np.array_equal(boundary_map(actual), boundary_map(selection))
