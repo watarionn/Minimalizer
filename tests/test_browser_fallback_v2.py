@@ -36,6 +36,9 @@ def test_browser_fallback_v2_has_no_network_or_model_runtime_dependency():
     assert 'runSlicoLite' in source
     assert 'oversegmentSpatial' in source
     assert 'edgeCoverageThreshold: 0.75' in source
+    assert 'workMaxSide: 400' in source
+    assert 'slicIterations: 10' in source
+    assert 'paletteTarget: 8' in source
     assert 'retryScale: 0.80' in source
     assert 'mergeSpatialGroupsToBudget' in source
     assert 'consolidateShapePalette' in source
@@ -59,6 +62,9 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'compute: "browser"' in source
     assert 'fetch("/api/v2/minimalize"' in source
     assert 'Minimalizer Browser Fallback v2' in source
+    assert 'workMaxSide: 400' in source
+    assert 'slicIterations: 10' in source
+    assert 'paletteTarget: 8' in source
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
