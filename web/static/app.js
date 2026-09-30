@@ -6,6 +6,20 @@ const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
 const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
 const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
 const BROWSER_FALLBACK_STORAGE_KEY = "minimalizer.browserFallbackMode";
+const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality";
+
+const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
+if (browserFallbackQualityParam === "exact") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "lite") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "lite");
+}
+
+function browserFallbackStructuralMode() {
+  return window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY) === "exact"
+    ? "spectral-exact"
+    : "l0-lite-jacobi";
+}
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
 if (browserFallbackParam === "1") {
@@ -363,6 +377,7 @@ async function requestBrowserFallback() {
     maxShapes: 40,
     slicIterations: 10,
     paletteTarget: 8,
+    structuralMode: browserFallbackStructuralMode(),
   });
   return result.response;
 }
@@ -507,7 +522,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = computeRoute === "browser"
-        ? "Minimalizer Browser Fallback v4"
+        ? "Minimalizer Browser Fallback v5"
         : v2Contract
           ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
           : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
@@ -552,7 +567,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
             ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
             : "ローカル高精度Workerでミニマル化が完了しました。"
           : computeRoute === "browser"
-            ? "Browser fallback v4でミニマル化が完了しました。"
+            ? "Browser fallback v5でミニマル化が完了しました。"
             : fallbackReason
               ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
               : "Railwayでミニマル化が完了しました。";
