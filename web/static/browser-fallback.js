@@ -2830,9 +2830,9 @@
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
         cutMaxHeight: analysis.metrics.cutMaxHeight,
-        structuralPreprocess,
-        l0JacobiIterations: structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
-        l0BetaMax: structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
+        structuralPreprocess: analysis.metrics.structuralPreprocess,
+        l0JacobiIterations: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
+        l0BetaMax: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
       },
     };
   }
