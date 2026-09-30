@@ -1,0 +1,74 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v1",
+  "date": "2026-09-30",
+  "source_commit": "00b6642873f77edf5db555821523777ba804301c",
+  "browser_engine": "browser-fallback-v0",
+  "browser_branch": "feature/browser-fallback-v0-20260930",
+  "settings": {
+    "analysis_max_side": 400,
+    "work_max_side": 192,
+    "max_shapes": 40,
+    "preset_reference": "minimal"
+  },
+  "cases": [
+    {
+      "case": "Juufuutei-Raden_list_thumb",
+      "js_processing_ms": 35.3,
+      "js_shape_count": 40,
+      "js_vs_proxy_ssim": 0.7249,
+      "js_vs_proxy_edge_iou": 0.0551,
+      "js_vs_railway_ssim": 0.7085,
+      "js_vs_railway_edge_iou": 0.0495
+    },
+    {
+      "case": "Oozora-Subaru_list_thumb",
+      "js_processing_ms": 14.1,
+      "js_shape_count": 40,
+      "js_vs_proxy_ssim": 0.7351,
+      "js_vs_proxy_edge_iou": 0.0807,
+      "js_vs_railway_ssim": 0.7338,
+      "js_vs_railway_edge_iou": 0.0709
+    },
+    {
+      "case": "Shirogane-Noel_list_thumb",
+      "js_processing_ms": 13.9,
+      "js_shape_count": 40,
+      "js_vs_proxy_ssim": 0.7356,
+      "js_vs_proxy_edge_iou": 0.0642,
+      "js_vs_railway_ssim": 0.7328,
+      "js_vs_railway_edge_iou": 0.0646
+    },
+    {
+      "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+      "js_processing_ms": 9.2,
+      "js_shape_count": 40,
+      "js_vs_proxy_ssim": 0.7617,
+      "js_vs_proxy_edge_iou": 0.0991,
+      "js_vs_railway_ssim": 0.7636,
+      "js_vs_railway_edge_iou": 0.1083
+    },
+    {
+      "case": "Night-River-City_general",
+      "js_processing_ms": 10.4,
+      "js_shape_count": 40,
+      "js_vs_proxy_ssim": 0.6475,
+      "js_vs_proxy_edge_iou": 0.1175,
+      "js_vs_railway_ssim": 0.6474,
+      "js_vs_railway_edge_iou": 0.1191
+    }
+  ],
+  "summary": {
+    "js_mean_processing_ms": 16.6,
+    "js_mean_shape_count": 40,
+    "js_mean_proxy_ssim": 0.721,
+    "js_mean_proxy_edge_iou": 0.0833,
+    "js_mean_railway_ssim": 0.7172,
+    "js_mean_railway_edge_iou": 0.0825,
+    "python_unguided_proxy_vs_railway_mean_ssim": 0.9067,
+    "python_unguided_proxy_vs_railway_mean_edge_iou": 0.5332,
+    "python_unguided_proxy_mean_processing_ms": 3879.9,
+    "railway_mean_http_ms": 4299.7
+  },
+  "conclusion": "functional-pass-quality-hold",
+  "first_bad_stage": "component-to-polygon geometry: convex hull overfills concave regions and crosses semantic boundaries"
+}
