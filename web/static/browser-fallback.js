@@ -2660,6 +2660,7 @@
         cutObjective: hierarchy.cutObjective,
         cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
         cutMaxHeight: hierarchy.cutMaxHeight,
+        structuralPreprocess,
         paletteCount: palette.palette.length,
         retried: segmented.retried,
         initialEdgeCoverage: segmented.initialEdgeCoverage,
