@@ -359,8 +359,10 @@ async function requestBrowserFallback() {
   }
   const result = await engine.minimalizeFile(state.file, {
     analysisMaxSide: 400,
-    workMaxSide: 192,
+    workMaxSide: 400,
     maxShapes: 40,
+    slicIterations: 10,
+    paletteTarget: 8,
   });
   return result.response;
 }
