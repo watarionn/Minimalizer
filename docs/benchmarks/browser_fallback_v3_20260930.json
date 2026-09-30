@@ -1,0 +1,151 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v3",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v3",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "phase_goal": "canonical Region Merge hierarchy and hierarchy-cut fidelity",
+  "runtime_profile": {
+    "analysis_max_side": 400,
+    "work_max_side": 400,
+    "slic_iterations": 10,
+    "max_shapes": 40,
+    "palette_target": 8,
+    "gradient_bins": 32,
+    "hierarchy_target_min": 24,
+    "hierarchy_target_max": 40,
+    "max_hierarchy_height": 1,
+    "cut_complexity_lambda": 1.1,
+    "cut_target_weight": 1.1
+  },
+  "baselines": {
+    "browser_v2_final": {
+      "mean_processing_ms": 336.5,
+      "mean_initial_regions": 647.2,
+      "mean_vertices": 1058.8,
+      "mean_proxy_ssim": 0.8364,
+      "mean_proxy_edge_iou": 0.2188
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    },
+    "python_canonical_region_merge": {
+      "mean_initial_regions": 670.6,
+      "mean_safe_merges": 0,
+      "mean_hierarchy_merges": 669.6,
+      "mean_initial_edges": 1695,
+      "mean_evaluations": 10666.6,
+      "mean_safe_candidates": 0,
+      "mean_selected_regions": 40,
+      "mean_cut_normalized_visual_loss": 0.5116524068928612,
+      "mean_cut_objective": 0.5786175065211022,
+      "mean_cut_max_height": 0.5522002577920254,
+      "mean_vertices": 1000.8,
+      "mean_palette": 7.6
+    }
+  },
+  "full_browser_v3": {
+    "mean_processing_ms": 365.6,
+    "mean_initial_regions": 647.2,
+    "mean_safe_merges": 0.4,
+    "mean_hierarchy_merges": 645.8,
+    "mean_merge_evaluations": 10393.8,
+    "mean_selected_regions": 40,
+    "mean_palette": 8,
+    "mean_vertices": 1519.6,
+    "mean_proxy_ssim": 0.8335,
+    "mean_proxy_edge_iou": 0.2243,
+    "mean_railway_ssim": 0.8229,
+    "mean_railway_edge_iou": 0.2068,
+    "note": "Full-pipeline quality is still limited by browser structural preprocessing/SLIC inputs, not by Region Merge parity."
+  },
+  "canonical_input_probe": {
+    "case_count": 5,
+    "python_inputs_used": [
+      "analysis_rgb/RGBA",
+      "analysis_lab",
+      "edge_raw",
+      "edge_structural",
+      "SLIC labels"
+    ],
+    "merge_metrics_exact_match": true,
+    "cases": [
+      {
+        "case": "Juufuutei-Raden_list_thumb",
+        "safe_merges": 0,
+        "hierarchy_merges": 628,
+        "evaluations": 10606,
+        "cut_objective": 0.49324550532701106,
+        "cut_normalized_visual_loss": 0.4232932000805882,
+        "cut_max_height": 0.47700759063487685,
+        "boundary_iou": 1
+      },
+      {
+        "case": "Oozora-Subaru_list_thumb",
+        "safe_merges": 0,
+        "hierarchy_merges": 537,
+        "evaluations": 8276,
+        "cut_objective": 0.5691127781551033,
+        "cut_normalized_visual_loss": 0.4873283915380029,
+        "cut_max_height": 0.6060536111124213,
+        "boundary_iou": 1
+      },
+      {
+        "case": "Shirogane-Noel_list_thumb",
+        "safe_merges": 0,
+        "hierarchy_merges": 789,
+        "evaluations": 12256,
+        "cut_objective": 0.6977835195042167,
+        "cut_normalized_visual_loss": 0.6420873169725712,
+        "cut_max_height": 0.5474829728642879,
+        "boundary_iou": 1
+      },
+      {
+        "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+        "safe_merges": 0,
+        "hierarchy_merges": 626,
+        "evaluations": 8955,
+        "cut_objective": 0.4884878156517835,
+        "cut_normalized_visual_loss": 0.4183123770552923,
+        "cut_max_height": 0.5504364025313072,
+        "boundary_iou": 1
+      },
+      {
+        "case": "Night-River-City_general",
+        "safe_merges": 0,
+        "hierarchy_merges": 768,
+        "evaluations": 13240,
+        "cut_objective": 0.6444579139673966,
+        "cut_normalized_visual_loss": 0.5872407488178517,
+        "cut_max_height": 0.5800207118172338,
+        "boundary_iou": 1
+      }
+    ],
+    "mean_boundary_iou": 1,
+    "mean_js_to_python_purity": 1,
+    "mean_python_to_js_purity": 1
+  },
+  "canonical_lab_edge_probe": {
+    "shape": [
+      17,
+      23
+    ],
+    "percentile": 99,
+    "max_abs_error": 1.1920928955078125e-7,
+    "mean_abs_error": 1.1395005827807836e-8,
+    "allclose_at_1e_5": true
+  },
+  "gate": {
+    "functional": "pass",
+    "canonical_lab_edge": "pass",
+    "region_merge_cost": "pass",
+    "safe_consolidation": "pass",
+    "merge_hierarchy": "pass",
+    "hierarchy_cut": "pass",
+    "canonical_input_partition_parity": "pass",
+    "full_browser_quality": "hold",
+    "railway_replacement": "hold",
+    "next_first_bad_stage": "structural preprocessing and SLIC input fidelity (L0 gradient smoothing + structural Lab/edge path)"
+  }
+}
