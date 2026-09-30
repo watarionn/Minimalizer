@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v2";
+  const VERSION = "browser-fallback-v3";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -20,6 +20,23 @@
     edgeCoverageThreshold: 0.75,
     retryScale: 0.80,
     maxRetryTargetFactor: 2.5,
+    gradientBins: 32,
+    colorTau: 25.0,
+    hullInflationTau: 0.25,
+    thinNeckTau: 0.15,
+    colorWeight: 0.30,
+    boundaryWeight: 0.25,
+    topologyWeight: 0.10,
+    geometryWeight: 0.10,
+    redundancyWeight: 0.15,
+    majorMassRatio: 0.03,
+    majorMassWeight: 0.20,
+    safeAreaRatio: 0.0008,
+    safeColorCost: 0.08,
+    safeBoundaryCost: 0.15,
+    safeTopologyCost: 0.25,
+    safeSharedBoundaryRatio: 0.35,
+    safeSoftProtection: 0.02,
   });
 
   function clamp(value, low, high) {
@@ -1378,6 +1395,644 @@
     };
   }
 
+
+  function canonicalEdgeKey(a, b) {
+    return a < b ? a + ":" + b : b + ":" + a;
+  }
+
+  function histogramAdd(hist, value) {
+    const clipped = clamp(value, 0, 1);
+    const index = Math.min(hist.length - 1, Math.floor(clipped * hist.length));
+    hist[index] += 1;
+  }
+
+  function histogramQuantile(hist, q) {
+    let total = 0;
+    for (let i = 0; i < hist.length; i += 1) total += hist[i];
+    if (total <= 0) return 0;
+    const target = q * (total - 1);
+    let cumulative = 0;
+    for (let i = 0; i < hist.length; i += 1) {
+      cumulative += hist[i];
+      if (cumulative >= target + 1) {
+        return i / Math.max(1, hist.length - 1);
+      }
+    }
+    return 1;
+  }
+
+  function hullCross(o, a, b) {
+    return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  }
+
+  function convexHullPoints(points) {
+    const unique = new Map();
+    for (const point of points) unique.set(point[0] + "," + point[1], point);
+    const sorted = Array.from(unique.values()).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (sorted.length <= 2) return sorted;
+    const lower = [];
+    for (const point of sorted) {
+      while (lower.length >= 2 && hullCross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) {
+        lower.pop();
+      }
+      lower.push(point);
+    }
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i -= 1) {
+      const point = sorted[i];
+      while (upper.length >= 2 && hullCross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) {
+        upper.pop();
+      }
+      upper.push(point);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  function polygonArea(points) {
+    if (!points || points.length < 3) return 0;
+    let twice = 0;
+    for (let i = 0; i < points.length; i += 1) {
+      const next = points[(i + 1) % points.length];
+      twice += points[i][0] * next[1] - next[0] * points[i][1];
+    }
+    return Math.abs(twice) * 0.5;
+  }
+
+  function canonicalRegionHull(group, labels, width, height) {
+    const rings = boundaryRings(group, labels, width, height);
+    const points = [];
+    for (const ring of rings) for (const point of ring) points.push(point);
+    if (points.length < 3) {
+      return [
+        [group.minX, group.minY],
+        [group.maxX + 1, group.minY],
+        [group.maxX + 1, group.maxY + 1],
+        [group.minX, group.maxY + 1],
+      ];
+    }
+    return convexHullPoints(points);
+  }
+
+  function buildCanonicalRegionGraph(labels, rgba, lab, rawEdge, structuralEdge, width, height, bins) {
+    let maxLabel = -1;
+    for (let i = 0; i < labels.length; i += 1) maxLabel = Math.max(maxLabel, labels[i]);
+    const regionCount = maxLabel + 1;
+    const nodes = new Map();
+    for (let id = 0; id < regionCount; id += 1) {
+      nodes.set(id, {
+        id,
+        pixels: [],
+        count: 0,
+        minX: width,
+        minY: height,
+        maxX: -1,
+        maxY: -1,
+        borderTouches: 0,
+        perimeter: 0,
+        sumLab: [0, 0, 0],
+        sumSqLab: [0, 0, 0],
+        rgbSum: [0, 0, 0],
+        lab: [0, 0, 0],
+        rgb: [0, 0, 0],
+        hull: [],
+        hullArea: 0,
+      });
+    }
+    for (let index = 0; index < labels.length; index += 1) {
+      const node = nodes.get(labels[index]);
+      const x = index % width;
+      const y = Math.floor(index / width);
+      const lo = index * 3;
+      const ro = index * 4;
+      node.pixels.push(index);
+      node.count += 1;
+      node.minX = Math.min(node.minX, x);
+      node.minY = Math.min(node.minY, y);
+      node.maxX = Math.max(node.maxX, x);
+      node.maxY = Math.max(node.maxY, y);
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) node.borderTouches += 1;
+      for (let k = 0; k < 3; k += 1) {
+        node.sumLab[k] += lab[lo + k];
+        node.sumSqLab[k] += lab[lo + k] * lab[lo + k];
+        node.rgbSum[k] += rgba[ro + k];
+      }
+    }
+    for (const node of nodes.values()) {
+      node.lab = node.sumLab.map((v) => v / node.count);
+      node.rgb = node.rgbSum.map((v) => Math.round(v / node.count));
+      node.perimeter = node.count * 4;
+    }
+
+    const adjacency = new Map();
+    for (const id of nodes.keys()) adjacency.set(id, new Set());
+    const edges = new Map();
+    function addPair(a, b, rawValue, structuralValue) {
+      if (a === b) return;
+      const key = canonicalEdgeKey(a, b);
+      let edge = edges.get(key);
+      if (!edge) {
+        edge = {
+          a: Math.min(a, b),
+          b: Math.max(a, b),
+          shared: 0,
+          rawHist: new Int32Array(bins),
+          structuralHist: new Int32Array(bins),
+        };
+        edges.set(key, edge);
+      }
+      edge.shared += 1;
+      histogramAdd(edge.rawHist, rawValue);
+      histogramAdd(edge.structuralHist, structuralValue);
+      adjacency.get(a).add(b);
+      adjacency.get(b).add(a);
+    }
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const index = y * width + x;
+        const id = labels[index];
+        if (x + 1 < width) {
+          const other = labels[index + 1];
+          if (other === id) {
+            nodes.get(id).perimeter -= 2;
+          } else {
+            addPair(
+              id,
+              other,
+              Math.max(rawEdge[index], rawEdge[index + 1]),
+              Math.max(structuralEdge[index], structuralEdge[index + 1]),
+            );
+          }
+        }
+        if (y + 1 < height) {
+          const other = labels[index + width];
+          if (other === id) {
+            nodes.get(id).perimeter -= 2;
+          } else {
+            addPair(
+              id,
+              other,
+              Math.max(rawEdge[index], rawEdge[index + width]),
+              Math.max(structuralEdge[index], structuralEdge[index + width]),
+            );
+          }
+        }
+      }
+    }
+
+    for (const node of nodes.values()) {
+      node.hull = canonicalRegionHull(node, labels, width, height);
+      node.hullArea = Math.max(1, polygonArea(node.hull));
+    }
+    return {
+      nodes,
+      adjacency,
+      edges,
+      nextRegionId: regionCount,
+      initialLabels: new Int32Array(labels),
+      initialRegionCount: regionCount,
+      width,
+      height,
+    };
+  }
+
+  function canonicalColorCost(left, right, config) {
+    const nLeft = left.count;
+    const nRight = right.count;
+    const dl = left.lab[0] - right.lab[0];
+    const da = left.lab[1] - right.lab[1];
+    const db = left.lab[2] - right.lab[2];
+    const deltaSq = dl * dl + da * da + db * db;
+    const deltaSse = (nLeft * nRight / (nLeft + nRight)) * deltaSq;
+    const perPixel = deltaSse / (nLeft + nRight);
+    return 1 - Math.exp(-perPixel / config.colorTau);
+  }
+
+  function canonicalBoundaryCost(edge) {
+    const structural = (
+      0.45 * histogramQuantile(edge.structuralHist, 0.75)
+      + 0.55 * histogramQuantile(edge.structuralHist, 0.90)
+    );
+    const raw = (
+      0.40 * histogramQuantile(edge.rawHist, 0.90)
+      + 0.60 * histogramQuantile(edge.rawHist, 0.98)
+    );
+    return clamp(Math.max(structural, 0.35 * raw), 0, 1);
+  }
+
+  function canonicalSharedBoundaryRatio(left, right, edge) {
+    return clamp(edge.shared / Math.max(1e-12, Math.min(left.perimeter, right.perimeter)), 0, 1);
+  }
+
+  function canonicalTopologyCost(left, right, edge, config) {
+    const ratio = canonicalSharedBoundaryRatio(left, right, edge);
+    return clamp(Math.exp(-ratio / config.thinNeckTau), 0, 1);
+  }
+
+  function canonicalGeometryCost(left, right, config) {
+    const mergedHull = convexHullPoints(left.hull.concat(right.hull));
+    const mergedArea = Math.max(1, polygonArea(mergedHull));
+    const baseArea = Math.max(1e-12, left.hullArea + right.hullArea);
+    const inflation = Math.max(0, mergedArea - baseArea) / baseArea;
+    return clamp(1 - Math.exp(-inflation / config.hullInflationTau), 0, 1);
+  }
+
+  function canonicalSoftProtection(left, right, imageArea, config) {
+    const smallerRatio = Math.min(left.count, right.count) / imageArea;
+    return Math.min(0.35, config.majorMassWeight * Math.min(1, smallerRatio / config.majorMassRatio));
+  }
+
+  function canonicalRedundancyReward(left, right, edge, imageArea, colorCost, boundaryCost) {
+    const smallerRatio = Math.min(left.count, right.count) / imageArea;
+    const smallness = Math.exp(-smallerRatio / 0.01);
+    const similarity = 1 - colorCost;
+    const weakBoundary = 1 - boundaryCost;
+    const enclosure = Math.min(1, canonicalSharedBoundaryRatio(left, right, edge) / 0.50);
+    return clamp(smallness * similarity * weakBoundary * enclosure, 0, 1);
+  }
+
+  function evaluateCanonicalMerge(left, right, edge, imageArea, config) {
+    const colorCost = canonicalColorCost(left, right, config);
+    const boundaryCost = canonicalBoundaryCost(edge);
+    const topologyCost = canonicalTopologyCost(left, right, edge, config);
+    const geometryCost = canonicalGeometryCost(left, right, config);
+    const softProtection = canonicalSoftProtection(left, right, imageArea, config);
+    const redundancyReward = canonicalRedundancyReward(
+      left, right, edge, imageArea, colorCost, boundaryCost,
+    );
+    const totalCost = clamp(
+      config.colorWeight * colorCost
+      + config.boundaryWeight * boundaryCost
+      + config.topologyWeight * topologyCost
+      + config.geometryWeight * geometryCost
+      + softProtection
+      - config.redundancyWeight * redundancyReward,
+      0,
+      1.35,
+    );
+    return {
+      allowed: true,
+      totalCost,
+      colorCost,
+      boundaryCost,
+      topologyCost,
+      geometryCost,
+      softProtection,
+      redundancyReward,
+    };
+  }
+
+  function canonicalSafeCandidate(left, right, edge, evaluation, imageArea, config) {
+    const areaRatio = Math.min(left.count, right.count) / imageArea;
+    return (
+      areaRatio <= config.safeAreaRatio
+      && evaluation.colorCost <= config.safeColorCost
+      && evaluation.boundaryCost <= config.safeBoundaryCost
+      && evaluation.topologyCost <= config.safeTopologyCost
+      && canonicalSharedBoundaryRatio(left, right, edge) >= config.safeSharedBoundaryRatio
+      && evaluation.softProtection <= config.safeSoftProtection
+    );
+  }
+
+  class CanonicalMinHeap {
+    constructor() {
+      this.items = [];
+    }
+    push(item) {
+      const items = this.items;
+      items.push(item);
+      let index = items.length - 1;
+      while (index > 0) {
+        const parent = Math.floor((index - 1) / 2);
+        if (this.compare(items[parent], items[index]) <= 0) break;
+        [items[parent], items[index]] = [items[index], items[parent]];
+        index = parent;
+      }
+    }
+    pop() {
+      const items = this.items;
+      if (items.length === 0) return null;
+      const first = items[0];
+      const last = items.pop();
+      if (items.length > 0) {
+        items[0] = last;
+        let index = 0;
+        while (true) {
+          const left = index * 2 + 1;
+          const right = left + 1;
+          let smallest = index;
+          if (left < items.length && this.compare(items[left], items[smallest]) < 0) smallest = left;
+          if (right < items.length && this.compare(items[right], items[smallest]) < 0) smallest = right;
+          if (smallest === index) break;
+          [items[index], items[smallest]] = [items[smallest], items[index]];
+          index = smallest;
+        }
+      }
+      return first;
+    }
+    get length() {
+      return this.items.length;
+    }
+    compare(a, b) {
+      return a.cost - b.cost || a.left - b.left || a.right - b.right;
+    }
+  }
+
+  function mergeCanonicalEdge(edges, newId, neighborId) {
+    let shared = 0;
+    const rawHist = new Int32Array(edges[0].rawHist.length);
+    const structuralHist = new Int32Array(edges[0].structuralHist.length);
+    for (const edge of edges) {
+      shared += edge.shared;
+      for (let i = 0; i < rawHist.length; i += 1) {
+        rawHist[i] += edge.rawHist[i];
+        structuralHist[i] += edge.structuralHist[i];
+      }
+    }
+    return {
+      a: Math.min(newId, neighborId),
+      b: Math.max(newId, neighborId),
+      shared,
+      rawHist,
+      structuralHist,
+    };
+  }
+
+  function mergeCanonicalNodes(graph, tree, leftId, rightId, evaluation, stage) {
+    const left = graph.nodes.get(leftId);
+    const right = graph.nodes.get(rightId);
+    const separatingKey = canonicalEdgeKey(leftId, rightId);
+    const separating = graph.edges.get(separatingKey);
+    const newId = graph.nextRegionId++;
+    const total = left.count + right.count;
+    const mergedHull = convexHullPoints(left.hull.concat(right.hull));
+    const node = {
+      id: newId,
+      pixels: left.pixels.concat(right.pixels),
+      count: total,
+      minX: Math.min(left.minX, right.minX),
+      minY: Math.min(left.minY, right.minY),
+      maxX: Math.max(left.maxX, right.maxX),
+      maxY: Math.max(left.maxY, right.maxY),
+      borderTouches: left.borderTouches + right.borderTouches,
+      perimeter: left.perimeter + right.perimeter - 2 * separating.shared,
+      sumLab: [
+        left.sumLab[0] + right.sumLab[0],
+        left.sumLab[1] + right.sumLab[1],
+        left.sumLab[2] + right.sumLab[2],
+      ],
+      sumSqLab: [
+        left.sumSqLab[0] + right.sumSqLab[0],
+        left.sumSqLab[1] + right.sumSqLab[1],
+        left.sumSqLab[2] + right.sumSqLab[2],
+      ],
+      rgbSum: [
+        left.rgbSum[0] + right.rgbSum[0],
+        left.rgbSum[1] + right.rgbSum[1],
+        left.rgbSum[2] + right.rgbSum[2],
+      ],
+      lab: [0, 0, 0],
+      rgb: [0, 0, 0],
+      hull: mergedHull,
+      hullArea: Math.max(1, polygonArea(mergedHull)),
+    };
+    node.lab = node.sumLab.map((v) => v / total);
+    node.rgb = node.rgbSum.map((v) => Math.round(v / total));
+
+    const neighbors = new Set([
+      ...graph.adjacency.get(leftId),
+      ...graph.adjacency.get(rightId),
+    ]);
+    neighbors.delete(leftId);
+    neighbors.delete(rightId);
+
+    const replacementEdges = [];
+    for (const neighborId of neighbors) {
+      const sourceEdges = [];
+      const lk = canonicalEdgeKey(leftId, neighborId);
+      const rk = canonicalEdgeKey(rightId, neighborId);
+      if (graph.edges.has(lk)) sourceEdges.push(graph.edges.get(lk));
+      if (graph.edges.has(rk)) sourceEdges.push(graph.edges.get(rk));
+      replacementEdges.push([
+        neighborId,
+        mergeCanonicalEdge(sourceEdges, newId, neighborId),
+      ]);
+    }
+
+    for (const regionId of [leftId, rightId]) {
+      for (const neighborId of graph.adjacency.get(regionId)) {
+        graph.edges.delete(canonicalEdgeKey(regionId, neighborId));
+        if (graph.adjacency.has(neighborId)) graph.adjacency.get(neighborId).delete(regionId);
+      }
+      graph.adjacency.delete(regionId);
+      graph.nodes.delete(regionId);
+    }
+
+    graph.nodes.set(newId, node);
+    graph.adjacency.set(newId, new Set(neighbors));
+    for (const [neighborId, edge] of replacementEdges) {
+      graph.adjacency.get(neighborId).add(newId);
+      graph.edges.set(canonicalEdgeKey(newId, neighborId), edge);
+    }
+
+    const leftTree = tree.nodes.get(leftId);
+    const rightTree = tree.nodes.get(rightId);
+    const hierarchyHeight = Math.max(
+      evaluation.totalCost,
+      leftTree.hierarchyHeight,
+      rightTree.hierarchyHeight,
+    );
+    tree.nodes.set(newId, {
+      id: newId,
+      leftId,
+      rightId,
+      rawMergeCost: evaluation.totalCost,
+      hierarchyHeight,
+      stage,
+      stats: node,
+    });
+    tree.roots.delete(leftId);
+    tree.roots.delete(rightId);
+    tree.roots.add(newId);
+    tree.mergeSequence.push(newId);
+    return newId;
+  }
+
+  function initializeCanonicalTree(graph) {
+    const nodes = new Map();
+    for (const [id, stats] of graph.nodes.entries()) {
+      nodes.set(id, {
+        id,
+        leftId: null,
+        rightId: null,
+        rawMergeCost: 0,
+        hierarchyHeight: 0,
+        stage: "initial",
+        stats,
+      });
+    }
+    return {
+      nodes,
+      leafIds: new Set(graph.nodes.keys()),
+      roots: new Set(graph.nodes.keys()),
+      mergeSequence: [],
+    };
+  }
+
+  function pushCanonicalCandidate(heap, graph, leftId, rightId, imageArea, config, safeOnly, metrics) {
+    const key = canonicalEdgeKey(leftId, rightId);
+    if (!graph.edges.has(key) || !graph.nodes.has(leftId) || !graph.nodes.has(rightId)) return;
+    const evaluation = evaluateCanonicalMerge(
+      graph.nodes.get(leftId),
+      graph.nodes.get(rightId),
+      graph.edges.get(key),
+      imageArea,
+      config,
+    );
+    metrics.evaluationCount += 1;
+    const safe = canonicalSafeCandidate(
+      graph.nodes.get(leftId),
+      graph.nodes.get(rightId),
+      graph.edges.get(key),
+      evaluation,
+      imageArea,
+      config,
+    );
+    if (safe) metrics.safeCandidateCount += 1;
+    if (!safeOnly || safe) {
+      heap.push({
+        cost: evaluation.totalCost,
+        left: Math.min(leftId, rightId),
+        right: Math.max(leftId, rightId),
+      });
+    }
+  }
+
+  function runCanonicalMergePass(graph, tree, imageArea, config, safeOnly, metrics) {
+    const heap = new CanonicalMinHeap();
+    for (const edge of graph.edges.values()) {
+      pushCanonicalCandidate(heap, graph, edge.a, edge.b, imageArea, config, safeOnly, metrics);
+    }
+    let count = 0;
+    while (heap.length) {
+      const candidate = heap.pop();
+      const key = canonicalEdgeKey(candidate.left, candidate.right);
+      if (!graph.nodes.has(candidate.left) || !graph.nodes.has(candidate.right) || !graph.edges.has(key)) continue;
+      const left = graph.nodes.get(candidate.left);
+      const right = graph.nodes.get(candidate.right);
+      const edge = graph.edges.get(key);
+      const evaluation = evaluateCanonicalMerge(left, right, edge, imageArea, config);
+      metrics.evaluationCount += 1;
+      const safe = canonicalSafeCandidate(left, right, edge, evaluation, imageArea, config);
+      if (safe) metrics.safeCandidateCount += 1;
+      if (safeOnly && !safe) continue;
+      if (Math.abs(evaluation.totalCost - candidate.cost) > 1e-12) {
+        heap.push({
+          cost: evaluation.totalCost,
+          left: candidate.left,
+          right: candidate.right,
+        });
+        continue;
+      }
+      const newId = mergeCanonicalNodes(
+        graph,
+        tree,
+        candidate.left,
+        candidate.right,
+        evaluation,
+        safeOnly ? "safe" : "hierarchy",
+      );
+      count += 1;
+      for (const neighborId of graph.adjacency.get(newId)) {
+        pushCanonicalCandidate(heap, graph, newId, neighborId, imageArea, config, safeOnly, metrics);
+      }
+    }
+    return count;
+  }
+
+  function cutCanonicalHierarchyToCount(tree, targetCount) {
+    const active = new Set(tree.leafIds);
+    if (active.size <= targetCount) return active;
+    for (const regionId of tree.mergeSequence) {
+      const node = tree.nodes.get(regionId);
+      if (!active.has(node.leftId) || !active.has(node.rightId)) {
+        throw new Error("Invalid canonical merge sequence.");
+      }
+      active.delete(node.leftId);
+      active.delete(node.rightId);
+      active.add(regionId);
+      if (active.size === targetCount) return active;
+    }
+    return active;
+  }
+
+  function materializeCanonicalCut(tree, selectedIds, width, height) {
+    const labels = new Int32Array(width * height);
+    labels.fill(-1);
+    const selected = Array.from(selectedIds)
+      .map((id) => tree.nodes.get(id).stats)
+      .sort((a, b) => a.id - b.id);
+    const components = selected.map((node, id) => {
+      for (const pixel of node.pixels) labels[pixel] = id;
+      return {
+        id,
+        sourceId: node.id,
+        label: id,
+        pixels: node.pixels,
+        count: node.count,
+        minX: node.minX,
+        minY: node.minY,
+        maxX: node.maxX,
+        maxY: node.maxY,
+        borderTouches: node.borderTouches,
+        rgb: node.rgb,
+        lab: node.lab,
+      };
+    });
+    for (let i = 0; i < labels.length; i += 1) {
+      if (labels[i] < 0) throw new Error("Canonical hierarchy cut left uncovered pixels.");
+    }
+    return {
+      labels,
+      built: { components, componentIds: labels },
+      groups: components,
+    };
+  }
+
+  function runCanonicalRegionHierarchy(labels, rgba, lab, rawEdge, structuralEdge, width, height, config) {
+    const graph = buildCanonicalRegionGraph(
+      labels, rgba, lab, rawEdge, structuralEdge, width, height, config.gradientBins,
+    );
+    const tree = initializeCanonicalTree(graph);
+    const metrics = {
+      initialEdgeCount: graph.edges.size,
+      evaluationCount: 0,
+      safeCandidateCount: 0,
+    };
+    const imageArea = width * height;
+    const safeMergeCount = runCanonicalMergePass(
+      graph, tree, imageArea, config, true, metrics,
+    );
+    const hierarchyMergeCount = runCanonicalMergePass(
+      graph, tree, imageArea, config, false, metrics,
+    );
+    const selectedIds = cutCanonicalHierarchyToCount(tree, config.maxShapes);
+    const materialized = materializeCanonicalCut(tree, selectedIds, width, height);
+    return {
+      ...materialized,
+      tree,
+      safeMergeCount,
+      hierarchyMergeCount,
+      selectedCount: selectedIds.size,
+      finalRootCount: tree.roots.size,
+      evaluationCount: metrics.evaluationCount,
+      safeCandidateCount: metrics.safeCandidateCount,
+      totalMergeCount: safeMergeCount + hierarchyMergeCount,
+    };
+  }
+
   function consolidateShapePalette(groups, targetCount) {
     if (groups.length === 0) return { colors: [], assignments: [], palette: [] };
     const count = Math.max(1, Math.min(targetCount, groups.length));
@@ -1492,10 +2147,11 @@
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
-    const edge = structuralEdgeMap(lab, width, height);
+    const rawEdge = structuralEdgeMap(lab, width, height);
+    const structuralEdge = rawEdge;
     const segmented = oversegmentSpatial(
       lab,
-      edge,
+      structuralEdge,
       width,
       height,
       config,
@@ -1503,28 +2159,24 @@
     const targetCount = segmented.targetCount;
     const regionSize = segmented.regionSize;
     const edgeCoverage = segmented.edgeCoverage;
-    const initialGroups = buildSpatialGroups(
+    const hierarchy = runCanonicalRegionHierarchy(
       segmented.labels,
       rgba,
       lab,
-      edge,
+      rawEdge,
+      structuralEdge,
       width,
       height,
+      config,
     );
-    const reduced = mergeSpatialGroupsToBudget(
-      initialGroups,
-      width,
-      height,
-      config.maxShapes,
-    );
-    const palette = consolidateShapePalette(reduced.groups, config.paletteTarget);
+    const palette = consolidateShapePalette(hierarchy.groups, config.paletteTarget);
 
     let contourIoUSum = 0;
     let vertexCount = 0;
-    const shapes = reduced.built.components.map((component, index) => {
+    const shapes = hierarchy.built.components.map((component, index) => {
       const geometry = componentGeometry(
         component,
-        reduced.built.componentIds,
+        hierarchy.built.componentIds,
         width,
         height,
         config.contourFidelity,
@@ -1533,6 +2185,7 @@
       vertexCount += geometry.rings.reduce((sum, ring) => sum + ring.length, 0);
       return {
         id: component.id,
+        sourceId: component.sourceId,
         count: component.count,
         sourceRgb: component.rgb,
         rgb: palette.colors[index] || component.rgb,
@@ -1555,8 +2208,14 @@
         regionSize,
         initialRegionCount: segmented.regionCount,
         edgeCoverage,
-        budgetMergeCount: reduced.mergeCount,
-        componentCount: reduced.built.components.length,
+        budgetMergeCount: hierarchy.totalMergeCount,
+        safeMergeCount: hierarchy.safeMergeCount,
+        hierarchyMergeCount: hierarchy.hierarchyMergeCount,
+        finalRootCount: hierarchy.finalRootCount,
+        mergeEvaluationCount: hierarchy.evaluationCount,
+        safeCandidateCount: hierarchy.safeCandidateCount,
+        componentCount: hierarchy.built.components.length,
+        hierarchyCutCount: hierarchy.selectedCount,
         paletteCount: palette.palette.length,
         retried: segmented.retried,
         initialEdgeCoverage: segmented.initialEdgeCoverage,
@@ -1691,6 +2350,9 @@
       "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
       "X-Minimalizer-Palette-Count": String(analysis.metrics.paletteCount),
       "X-Minimalizer-SLIC-Retried": analysis.metrics.retried ? "1" : "0",
+      "X-Minimalizer-Safe-Merges": String(analysis.metrics.safeMergeCount),
+      "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
+      "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -1711,6 +2373,10 @@
         regionSize: analysis.metrics.regionSize,
         retried: analysis.metrics.retried,
         initialEdgeCoverage: analysis.metrics.initialEdgeCoverage,
+        safeMergeCount: analysis.metrics.safeMergeCount,
+        hierarchyMergeCount: analysis.metrics.hierarchyMergeCount,
+        hierarchyCutCount: analysis.metrics.hierarchyCutCount,
+        mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
       },
     };
   }
@@ -1743,6 +2409,15 @@
       structuralEdgeCoverageJs,
       buildSpatialGroups,
       mergeSpatialGroupsToBudget,
+      buildCanonicalRegionGraph,
+      canonicalColorCost,
+      canonicalBoundaryCost,
+      canonicalTopologyCost,
+      canonicalGeometryCost,
+      evaluateCanonicalMerge,
+      canonicalSafeCandidate,
+      runCanonicalRegionHierarchy,
+      cutCanonicalHierarchyToCount,
       consolidateShapePalette,
       analyzeRgba,
       renderAnalysis,
