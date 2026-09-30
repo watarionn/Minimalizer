@@ -1,0 +1,144 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v5",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v5",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "phase_goal": "evaluate and integrate exact arbitrary-size spectral L0 as an opt-in browser quality mode",
+  "delivery": {
+    "default_browser_profile": "lite",
+    "opt_in_quality_param": "?browserFallbackQuality=exact",
+    "reset_quality_param": "?browserFallbackQuality=lite",
+    "lite_structural_mode": "l0-lite-jacobi",
+    "exact_structural_mode": "spectral-exact"
+  },
+  "implementation": {
+    "fft": "pure-js radix-2 + Bluestein arbitrary-size FFT",
+    "fft_dimensions_supported": "arbitrary positive sizes",
+    "exact_l0": {
+      "lambda": 0.01,
+      "kappa": 2,
+      "beta_max": 100000
+    },
+    "external_runtime_dependency": false
+  },
+  "correctness_gates": {
+    "prime_and_composite_1d_fft_vs_direct_dft": "pass < 1e-9 max error",
+    "arbitrary_2d_fft_roundtrip": "pass < 1e-9 max error",
+    "exact_l0_small_fixture_vs_python": "pass <= 1 gray level max error",
+    "exact_profile_metadata": "pass"
+  },
+  "spectral_only_runtime_ms": {
+    "raden_340x340": 6055.863,
+    "night_river_400x311": 6420.8189
+  },
+  "baselines": {
+    "browser_v4_lite": {
+      "mean_processing_ms": 851,
+      "mean_proxy_ssim": 0.8517,
+      "mean_proxy_edge_iou": 0.2592,
+      "mean_vertices": 1472.4
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    },
+    "same_structural_input_browser_slic_vs_python": {
+      "mean_boundary_iou": 0.9446570536981174,
+      "mean_js_to_python_purity": 0.9916211893459451,
+      "mean_python_to_js_purity": 0.9916285007969791
+    },
+    "python_unguided_structure": {
+      "mean_initial_regions": 670.6,
+      "mean_selected_regions": 40,
+      "mean_palette_count": 7.6,
+      "mean_vertices": 1000.8
+    }
+  },
+  "exact_five_case_summary": {
+    "case_count": 5,
+    "mean_processing_ms": 9646.5,
+    "mean_initial_regions": 644.2,
+    "mean_vertices": 1485.4,
+    "mean_proxy_ssim": 0.8622,
+    "mean_proxy_edge_iou": 0.2749,
+    "mean_proxy_mae": 14.2379,
+    "mean_railway_ssim": 0.8407,
+    "mean_railway_edge_iou": 0.2549,
+    "mean_v4_ssim": 0.8888,
+    "mean_v4_edge_iou": 0.4236
+  },
+  "exact_cases": [
+    {
+      "case": "Juufuutei-Raden_list_thumb",
+      "processing_ms": 8757.5,
+      "initial_regions": 629,
+      "vertices": 1306,
+      "proxy_ssim": 0.8727059496669608,
+      "proxy_edge_iou": 0.26225234619395205,
+      "railway_ssim": 0.8538261925515767,
+      "railway_edge_iou": 0.2542997542997543
+    },
+    {
+      "case": "Oozora-Subaru_list_thumb",
+      "processing_ms": 8905.699999809265,
+      "initial_regions": 537,
+      "vertices": 1481,
+      "proxy_ssim": 0.8809243179937097,
+      "proxy_edge_iou": 0.27915057915057917,
+      "railway_ssim": 0.8697766109215473,
+      "railway_edge_iou": 0.2536610878661088
+    },
+    {
+      "case": "Shirogane-Noel_list_thumb",
+      "processing_ms": 9606.800000190735,
+      "initial_regions": 784,
+      "vertices": 1425,
+      "proxy_ssim": 0.874669660213602,
+      "proxy_edge_iou": 0.2646702440713173,
+      "railway_ssim": 0.8434193824947993,
+      "railway_edge_iou": 0.22276822276822278
+    },
+    {
+      "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+      "processing_ms": 9927.200000047684,
+      "initial_regions": 528,
+      "vertices": 1720,
+      "proxy_ssim": 0.8923705528270637,
+      "proxy_edge_iou": 0.3191745485812554,
+      "railway_ssim": 0.863545829225202,
+      "railway_edge_iou": 0.30345991561181435
+    },
+    {
+      "case": "Night-River-City_general",
+      "processing_ms": 11035.5,
+      "initial_regions": 743,
+      "vertices": 1495,
+      "proxy_ssim": 0.7903359340280295,
+      "proxy_edge_iou": 0.24912060301507538,
+      "railway_ssim": 0.772924939144362,
+      "railway_edge_iou": 0.2402831402831403
+    }
+  ],
+  "wrapper_smoke": {
+    "status": "pass",
+    "mode": "browser-fallback-v5",
+    "compute": "browser",
+    "structural_preprocess": "spectral-exact",
+    "l0_jacobi_iterations": 0,
+    "shape_count": 40,
+    "palette_count": 8,
+    "hierarchy_cut_count": 40
+  },
+  "decision": {
+    "exact_spectral_correctness": "pass",
+    "exact_spectral_browser_integration": "pass",
+    "exact_spectral_default_profile": "reject_for_now",
+    "exact_spectral_opt_in_profile": "adopt",
+    "lite_default_profile": "keep",
+    "railway_replacement": "hold",
+    "rationale": "exact spectral improves quality but increases core browser processing from ~0.85 s to ~9.65 s while remaining materially below the Python proxy quality baseline",
+    "next_first_bad_stage": "canonical SLIC parity on identical structural inputs",
+    "secondary_follow_up": "contour simplification and palette fidelity if SLIC parity does not close the remaining gap"
+  }
+}

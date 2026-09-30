@@ -1,0 +1,130 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v7",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v7",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "opencv_lab_lut": {
+    "grid_dimension": 33,
+    "node_binary_bytes": 215622,
+    "module_bytes": 292600,
+    "random_color_count": 100000,
+    "max_abs_error": [
+      0,
+      0,
+      0
+    ],
+    "mean_abs_error": [
+      0,
+      0,
+      0
+    ],
+    "exact_row_fraction": 1
+  },
+  "same_analysis_rgba_probe": {
+    "case_count": 5,
+    "structural_lab_max_abs_error": 0,
+    "structural_lab_mean_abs_error": 0,
+    "slic_label_maps_exact": true,
+    "mean_label_pixel_equal": 1
+  },
+  "chrome_no_resize_probe": {
+    "cases": [
+      "Juufuutei-Raden_list_thumb",
+      "Oozora-Subaru_list_thumb",
+      "Shirogane-Noel_list_thumb"
+    ],
+    "source_pixels_exact": true,
+    "slic_label_hashes_match_python": true
+  },
+  "native_decode_probe": {
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "mean_abs": 0.00445224171539961,
+      "max_abs": 1,
+      "pixels_exact": 0.9921497076023392
+    },
+    "Night-River-City_general": {
+      "mean_abs": 0,
+      "max_abs": 0,
+      "pixels_exact": 1
+    }
+  },
+  "analysis_resize_probe": {
+    "Juufuutei-Raden_list_thumb": {
+      "mean_abs": 0,
+      "max_abs": 0,
+      "pixels_exact": 1
+    },
+    "Oozora-Subaru_list_thumb": {
+      "mean_abs": 0,
+      "max_abs": 0,
+      "pixels_exact": 1
+    },
+    "Shirogane-Noel_list_thumb": {
+      "mean_abs": 0,
+      "max_abs": 0,
+      "pixels_exact": 1
+    },
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "mean_abs": 1.0191043890865954,
+      "max_abs": 70,
+      "pixels_exact": 0.6204181494661922
+    },
+    "Night-River-City_general": {
+      "mean_abs": 2.0041559485530547,
+      "max_abs": 63,
+      "pixels_exact": 0.2859807073954984
+    }
+  },
+  "lite_five_case": {
+    "mean_processing_ms": 802.9,
+    "mean_initial_regions": 638.6,
+    "mean_vertices": 1459,
+    "mean_proxy_ssim": 0.8453,
+    "mean_proxy_edge_iou": 0.2627,
+    "mean_railway_ssim": 0.8385,
+    "mean_railway_edge_iou": 0.2557
+  },
+  "exact_five_case": {
+    "mean_processing_ms": 8772.2,
+    "mean_initial_regions": 646.8,
+    "mean_vertices": 1553,
+    "mean_proxy_ssim": 0.8598,
+    "mean_proxy_edge_iou": 0.281,
+    "mean_railway_ssim": 0.8401,
+    "mean_railway_edge_iou": 0.2602,
+    "mean_v5_ssim": 0.9416,
+    "mean_v5_edge_iou": 0.6416
+  },
+  "historical": {
+    "v4_lite": {
+      "proxy_ssim": 0.8517,
+      "proxy_edge_iou": 0.2592,
+      "processing_ms": 851
+    },
+    "v5_exact": {
+      "proxy_ssim": 0.8622,
+      "proxy_edge_iou": 0.2749,
+      "processing_ms": 9646.5
+    },
+    "python_proxy_vs_railway": {
+      "ssim": 0.9067,
+      "edge_iou": 0.5332
+    }
+  },
+  "validation": {
+    "focused_regression": "76 passed",
+    "js_syntax": "pass",
+    "git_diff_check": "pass",
+    "wrapper_smoke": "pass"
+  },
+  "gate": {
+    "opencv_lab_parity": "pass",
+    "canonical_slic_parity": "pass",
+    "region_merge_parity": "pass",
+    "full_browser_quality": "hold",
+    "railway_replacement": "hold",
+    "next_upstream_first_bad_stage": "analysis resize parity: Canvas drawImage vs cv2.INTER_AREA",
+    "next_downstream_candidate_for_unscaled_images": "palette fidelity, then contour simplification"
+  }
+}
