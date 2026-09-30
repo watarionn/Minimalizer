@@ -36,15 +36,16 @@ def _node(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
-def test_browser_fallback_v6_is_loaded_before_app():
+def test_browser_fallback_v7_is_loaded_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
+    assert html.index('/static/opencv-lab-lut.js') < html.index('/static/browser-fallback.js')
     assert html.index('/static/spectral-fft.js') < html.index('/static/browser-fallback.js')
     assert html.index('/static/browser-fallback.js') < html.index('/static/app.js')
 
 
-def test_browser_fallback_v6_has_no_network_or_model_runtime_dependency():
+def test_browser_fallback_v7_has_no_network_or_model_runtime_dependency():
     source = BROWSER_ENGINE.read_text(encoding="utf-8")
-    assert 'browser-fallback-v6' in source
+    assert 'browser-fallback-v7' in source
     assert 'deterministic-js' in source
     assert 'runSlicoLite' in source
     assert 'new Float64Array(width * height)' in source
@@ -89,7 +90,7 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'window.MinimalizerBrowserFallback' in source
     assert 'compute: "browser"' in source
     assert 'fetch("/api/v2/minimalize"' in source
-    assert 'Minimalizer Browser Fallback v6' in source
+    assert 'Minimalizer Browser Fallback v7' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
     assert 'paletteTarget: 8' in source
@@ -353,7 +354,7 @@ process.stdout.write(JSON.stringify({first:digest(first), second:digest(second)}
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
-def test_v6_pipeline_enforces_hierarchy_shape_and_palette_budgets():
+def test_v7_pipeline_enforces_hierarchy_shape_and_palette_budgets():
     payload = _node(r"""
 const api = require(process.argv[1]);
 const width = 40;
@@ -396,7 +397,7 @@ process.stdout.write(JSON.stringify({first, second}));
     first = payload["first"]
     second = payload["second"]
     assert first == second
-    assert first["version"] == "browser-fallback-v6"
+    assert first["version"] == "browser-fallback-v7"
     assert first["metrics"]["initialRegionCount"] >= 8
     assert first["metrics"]["componentCount"] == 8
     assert first["metrics"]["hierarchyCutCount"] == 8
@@ -745,3 +746,120 @@ process.stdout.write(JSON.stringify({regionCount:result.regionCount}));
 
     assert payload["regionCount"] == int(expected.max()) + 1
     assert np.array_equal(actual, expected)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_opencv_lab_lut_matches_python_exactly(tmp_path):
+    from minimalize_engine.v2.preprocessing import rgb_to_canonical_lab
+
+    rng = np.random.default_rng(20260930)
+    rgb = rng.integers(0, 256, size=(4096, 3), dtype=np.uint8)
+    rgb[:256] = np.stack([np.arange(256, dtype=np.uint8)] * 3, axis=1)
+    expected = rgb_to_canonical_lab(rgb.reshape(-1, 1, 3)).reshape(-1, 3)
+
+    rgb_path = tmp_path / "rgb.bin"
+    lab_path = tmp_path / "lab.bin"
+    rgb_path.write_bytes(rgb.tobytes())
+
+    script = r"""
+const fs = require("fs");
+const lut = require(process.argv[1]);
+const raw = fs.readFileSync(process.argv[2]);
+const count = raw.length / 3;
+const out = new Float32Array(count * 3);
+for (let i = 0; i < count; i += 1) {
+  const value = lut.rgbToLab(raw[i*3], raw[i*3+1], raw[i*3+2]);
+  out[i*3] = value[0];
+  out[i*3+1] = value[1];
+  out[i*3+2] = value[2];
+}
+fs.writeFileSync(process.argv[3], Buffer.from(out.buffer));
+"""
+    lut_path = ROOT / "web" / "static" / "opencv-lab-lut.js"
+    subprocess.run(
+        ["node", "-e", script, str(lut_path), str(rgb_path), str(lab_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    actual = np.frombuffer(lab_path.read_bytes(), dtype=np.float32).reshape(-1, 3)
+    assert np.array_equal(actual, expected)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_exact_preprocess_to_slic_matches_python_with_same_rgba(tmp_path):
+    from minimalize_engine.v2.preprocessing import (
+        lab_edge_map,
+        l0_gradient_smooth,
+        rgb_to_canonical_lab,
+    )
+    from minimalize_engine.v2.region_merge.segmentation import oversegment
+    from minimalize_engine.v2.types import ImageBundle
+
+    height, width = 29, 31
+    yy, xx = np.indices((height, width))
+    rgb = np.empty((height, width, 3), dtype=np.uint8)
+    rgb[..., 0] = (35 + xx * 13 + yy * 5) % 256
+    rgb[..., 1] = (70 + yy * 17 + xx * 3) % 256
+    rgb[..., 2] = (180 + xx * 7 - yy * 9) % 256
+    rgba = np.empty((height, width, 4), dtype=np.uint8)
+    rgba[:, :, :3] = rgb
+    rgba[:, :, 3] = 255
+
+    structural_rgb = l0_gradient_smooth(rgb)
+    analysis_lab = rgb_to_canonical_lab(rgb)
+    structural_lab = rgb_to_canonical_lab(structural_rgb)
+    edge_raw = lab_edge_map(analysis_lab)
+    edge_structural = lab_edge_map(structural_lab)
+    bundle = ImageBundle(
+        source_rgb=rgb,
+        analysis_rgb=rgb,
+        structural_rgb=structural_rgb,
+        analysis_lab=analysis_lab,
+        structural_lab=structural_lab,
+        edge_raw=edge_raw,
+        edge_structural=edge_structural,
+        scale_x=1.0,
+        scale_y=1.0,
+    )
+    expected = oversegment(bundle)
+
+    rgba_path = tmp_path / "rgba.bin"
+    labels_path = tmp_path / "labels.bin"
+    rgba_path.write_bytes(rgba.tobytes())
+
+    script = r"""
+const fs = require("fs");
+global.MinimalizerOpenCvLab = require(process.argv[1]);
+global.MinimalizerSpectralFFT = require(process.argv[2]);
+const api = require(process.argv[3]);
+const width = 31, height = 29, count = width * height;
+const raw = fs.readFileSync(process.argv[4]);
+const rgba = new Uint8ClampedArray(raw.buffer, raw.byteOffset, count * 4);
+const structural = global.MinimalizerSpectralFFT.exactL0StructuralRgba(
+  rgba, width, height, {lambda:0.010, kappa:2.0, betaMax:1e5}
+);
+const lab = api._core.rgbaToLab(structural, width, height);
+const edge = api._core.canonicalLabEdgeMap(lab, width, height, 99);
+const seg = api._core.oversegmentSpatial(lab, edge, width, height, api.DEFAULTS);
+fs.writeFileSync(
+  process.argv[5],
+  Buffer.from(seg.labels.buffer, seg.labels.byteOffset, seg.labels.byteLength)
+);
+process.stdout.write(JSON.stringify({regionCount:seg.regionCount}));
+"""
+    lut_path = ROOT / "web" / "static" / "opencv-lab-lut.js"
+    spectral_path = ROOT / "web" / "static" / "spectral-fft.js"
+    completed = subprocess.run(
+        [
+            "node", "-e", script, str(lut_path), str(spectral_path),
+            str(BROWSER_ENGINE), str(rgba_path), str(labels_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(completed.stdout)
+    actual = np.frombuffer(labels_path.read_bytes(), dtype=np.int32).reshape(height, width)
+    assert payload["regionCount"] == expected.region_count
+    assert np.array_equal(actual, expected.labels)

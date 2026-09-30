@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v6";
+  const VERSION = "browser-fallback-v7";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -787,6 +787,13 @@
   }
 
   function rgbaToLab(rgba, width, height) {
+    if (
+      typeof globalThis !== "undefined"
+      && globalThis.MinimalizerOpenCvLab
+      && typeof globalThis.MinimalizerOpenCvLab.rgbaToLab === "function"
+    ) {
+      return globalThis.MinimalizerOpenCvLab.rgbaToLab(rgba, width, height);
+    }
     const lab = new Float32Array(width * height * 3);
     for (let index = 0; index < width * height; index += 1) {
       const offset = index * 4;
