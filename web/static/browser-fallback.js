@@ -1141,7 +1141,11 @@
   }
 
   function buildSpatialGroups(labels, rgba, lab, edge, width, height) {
-    const regionCount = Math.max(...labels) + 1;
+    let maxLabel = -1;
+    for (let index = 0; index < labels.length; index += 1) {
+      if (labels[index] > maxLabel) maxLabel = labels[index];
+    }
+    const regionCount = maxLabel + 1;
     const groups = Array.from({ length: regionCount }, (_, id) => ({
       id,
       active: true,
