@@ -1,0 +1,164 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v4",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v4",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "phase_goal": "improve structural preprocessing fidelity before SLIC while keeping v3 Region Merge fixed",
+  "runtime_profile": {
+    "analysis_max_side": 400,
+    "work_max_side": 400,
+    "l0_method": "l0-lite-jacobi",
+    "l0_lambda": 0.01,
+    "l0_kappa": 2,
+    "l0_beta_max": 100,
+    "l0_jacobi_iterations": 16,
+    "l0_jacobi_omega": 0.8,
+    "slic_iterations": 10,
+    "max_shapes": 40,
+    "palette_target": 8
+  },
+  "baselines": {
+    "browser_v2_final": {
+      "mean_processing_ms": 336.5,
+      "mean_proxy_ssim": 0.8364,
+      "mean_proxy_edge_iou": 0.2188,
+      "mean_vertices": 1058.8
+    },
+    "browser_v3_final": {
+      "mean_processing_ms": 365.6,
+      "mean_proxy_ssim": 0.8335,
+      "mean_proxy_edge_iou": 0.2243,
+      "mean_vertices": 1519.6
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    }
+  },
+  "profile_sweep": {
+    "fast": {
+      "l0_beta_max": 20,
+      "l0_jacobi_iterations": 4,
+      "mean_processing_ms": 528.4,
+      "mean_initial_regions": 645.2,
+      "mean_vertices": 1550.2,
+      "mean_proxy_ssim": 0.8328,
+      "mean_proxy_edge_iou": 0.2362
+    },
+    "current": {
+      "l0_beta_max": 100,
+      "l0_jacobi_iterations": 8,
+      "mean_processing_ms": 649.3,
+      "mean_initial_regions": 640.2,
+      "mean_vertices": 1482.6,
+      "mean_proxy_ssim": 0.8503,
+      "mean_proxy_edge_iou": 0.2567
+    },
+    "strong_selected": {
+      "l0_beta_max": 100,
+      "l0_jacobi_iterations": 16,
+      "mean_processing_ms": 851,
+      "mean_initial_regions": 636.6,
+      "mean_vertices": 1472.4,
+      "mean_proxy_ssim": 0.8517,
+      "mean_proxy_edge_iou": 0.2592
+    }
+  },
+  "final_five_case": {
+    "summary": {
+      "mean_processing_ms": 851,
+      "mean_initial_regions": 636.6,
+      "mean_vertices": 1472.4,
+      "mean_proxy_ssim": 0.8517,
+      "mean_proxy_edge_iou": 0.2592,
+      "mean_railway_ssim": 0.8337209791097164,
+      "mean_railway_edge_iou": 0.2502050354780042,
+      "mean_railway_mae": 16.190825648353886
+    },
+    "cases": [
+      {
+        "case": "Juufuutei-Raden_list_thumb",
+        "processing_ms": 887.8,
+        "initial_regions": 618,
+        "vertices": 1289,
+        "proxy_ssim": 0.8712859688210717,
+        "proxy_edge_iou": 0.2343562489285102,
+        "railway_ssim": 0.8552472193898049,
+        "railway_edge_iou": 0.23436138700121972
+      },
+      {
+        "case": "Oozora-Subaru_list_thumb",
+        "processing_ms": 786.2,
+        "initial_regions": 523,
+        "vertices": 1466,
+        "proxy_ssim": 0.8709511534908915,
+        "proxy_edge_iou": 0.26905333087285477,
+        "railway_ssim": 0.8723674381906888,
+        "railway_edge_iou": 0.2602878916172735
+      },
+      {
+        "case": "Shirogane-Noel_list_thumb",
+        "processing_ms": 866,
+        "initial_regions": 777,
+        "vertices": 1630,
+        "proxy_ssim": 0.8515023373759697,
+        "proxy_edge_iou": 0.23145820238843495,
+        "railway_ssim": 0.8258969882260047,
+        "railway_edge_iou": 0.20222522928882875
+      },
+      {
+        "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+        "processing_ms": 751.4,
+        "initial_regions": 536,
+        "vertices": 1535,
+        "proxy_ssim": 0.8910027712947812,
+        "proxy_edge_iou": 0.31331058020477814,
+        "railway_ssim": 0.8618415539656964,
+        "railway_edge_iou": 0.30284176895913906
+      },
+      {
+        "case": "Night-River-City_general",
+        "processing_ms": 963.5,
+        "initial_regions": 729,
+        "vertices": 1442,
+        "proxy_ssim": 0.773916362224114,
+        "proxy_edge_iou": 0.2475747508305648,
+        "railway_ssim": 0.7532516957763873,
+        "railway_edge_iou": 0.2513089005235602
+      }
+    ]
+  },
+  "preprocessing_parity": {
+    "selected_profile": "beta100_i16",
+    "mean_structural_rgb_mae": 2.4738336453582113,
+    "mean_slic_boundary_iou": 0.7098756098375761,
+    "mean_js_to_python_purity": 0.9469433211887599,
+    "mean_python_to_js_purity": 0.9471176395754529,
+    "reference_same_structural_input_slico_boundary_iou": 0.9446570536981174,
+    "reference_same_structural_input_slico_purity": 0.9916,
+    "interpretation": "Browser SLIC is already close on identical structural inputs; the remaining upstream mismatch is dominated by approximate L0 structural preprocessing."
+  },
+  "validation": {
+    "focused_regression": "69 passed",
+    "js_syntax": "pass",
+    "git_diff_check": "pass",
+    "chrome_wrapper_smoke": "pass",
+    "wrapper_metadata": {
+      "mode": "browser-fallback-v4",
+      "compute": "browser",
+      "structural_preprocess": "l0-lite-jacobi",
+      "l0_jacobi_iterations": 16,
+      "shapes": 40,
+      "palette": 8,
+      "hierarchy_cut": 40
+    }
+  },
+  "gate": {
+    "structural_preprocessing": "pass_improved",
+    "region_merge_parity": "pass_inherited_from_v3",
+    "full_browser_quality": "pass_improved_but_hold_for_graduation",
+    "railway_replacement": "hold",
+    "next_first_bad_stage": "exact or higher-fidelity L0 structural smoothing"
+  }
+}
