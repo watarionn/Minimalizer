@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v1";
+  const VERSION = "browser-fallback-v2";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 192,
@@ -12,6 +12,11 @@
     maxShapes: 40,
     alphaThreshold: 8,
     contourFidelity: 0.94,
+    slicIterations: 6,
+    slicTargetMin: 400,
+    slicTargetMax: 1200,
+    slicMinAverageArea: 64,
+    paletteTarget: 8,
   });
 
   function clamp(value, low, high) {
@@ -722,37 +727,728 @@
     return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
   }
 
+  function srgbChannelToLinear(value) {
+    const normalized = value / 255;
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : Math.pow((normalized + 0.055) / 1.055, 2.4);
+  }
+
+  function labPivot(value) {
+    const delta = 6 / 29;
+    const threshold = delta * delta * delta;
+    if (value > threshold) return Math.cbrt(value);
+    return value / (3 * delta * delta) + 4 / 29;
+  }
+
+  function rgbToLab(r, g, b) {
+    const lr = srgbChannelToLinear(r);
+    const lg = srgbChannelToLinear(g);
+    const lb = srgbChannelToLinear(b);
+    const x = (0.4124564 * lr + 0.3575761 * lg + 0.1804375 * lb) / 0.95047;
+    const y = 0.2126729 * lr + 0.7151522 * lg + 0.0721750 * lb;
+    const z = (0.0193339 * lr + 0.1191920 * lg + 0.9503041 * lb) / 1.08883;
+    const fx = labPivot(x);
+    const fy = labPivot(y);
+    const fz = labPivot(z);
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+  }
+
+  function rgbaToLab(rgba, width, height) {
+    const lab = new Float32Array(width * height * 3);
+    for (let index = 0; index < width * height; index += 1) {
+      const offset = index * 4;
+      const converted = rgbToLab(rgba[offset], rgba[offset + 1], rgba[offset + 2]);
+      lab[index * 3] = converted[0];
+      lab[index * 3 + 1] = converted[1];
+      lab[index * 3 + 2] = converted[2];
+    }
+    return lab;
+  }
+
+  function structuralEdgeMap(lab, width, height) {
+    const edge = new Float32Array(width * height);
+    let maximum = 0;
+    function lightness(x, y) {
+      const cx = clamp(x, 0, width - 1);
+      const cy = clamp(y, 0, height - 1);
+      return lab[(cy * width + cx) * 3];
+    }
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const gx = (
+          -lightness(x - 1, y - 1) + lightness(x + 1, y - 1)
+          - 2 * lightness(x - 1, y) + 2 * lightness(x + 1, y)
+          - lightness(x - 1, y + 1) + lightness(x + 1, y + 1)
+        );
+        const gy = (
+          -lightness(x - 1, y - 1) - 2 * lightness(x, y - 1) - lightness(x + 1, y - 1)
+          + lightness(x - 1, y + 1) + 2 * lightness(x, y + 1) + lightness(x + 1, y + 1)
+        );
+        const magnitude = Math.hypot(gx, gy);
+        edge[y * width + x] = magnitude;
+        maximum = Math.max(maximum, magnitude);
+      }
+    }
+    if (maximum > 1e-9) {
+      for (let i = 0; i < edge.length; i += 1) edge[i] /= maximum;
+    }
+    return edge;
+  }
+
+  function targetSuperpixelCount(width, height, config) {
+    const area = width * height;
+    const requested = clamp(
+      Math.round(area / 900),
+      config.slicTargetMin,
+      config.slicTargetMax,
+    );
+    const areaLimited = Math.max(1, Math.floor(area / config.slicMinAverageArea));
+    return Math.max(1, Math.min(requested, areaLimited));
+  }
+
+  function regionSizeForTarget(width, height, targetCount) {
+    return Math.max(1, Math.round(Math.sqrt((width * height) / targetCount)));
+  }
+
+  function moveCenterToLowEdge(y, x, edge, width, height) {
+    let bestX = x;
+    let bestY = y;
+    let bestValue = Number.POSITIVE_INFINITY;
+    for (let dy = -1; dy <= 1; dy += 1) {
+      const ny = y + dy;
+      if (ny < 0 || ny >= height) continue;
+      for (let dx = -1; dx <= 1; dx += 1) {
+        const nx = x + dx;
+        if (nx < 0 || nx >= width) continue;
+        const value = edge[ny * width + nx];
+        if (
+          value < bestValue
+          || (value === bestValue && (ny < bestY || (ny === bestY && nx < bestX)))
+        ) {
+          bestValue = value;
+          bestX = nx;
+          bestY = ny;
+        }
+      }
+    }
+    return [bestY, bestX];
+  }
+
+  function initialSlicoCenters(lab, edge, width, height, regionSize) {
+    const centers = [];
+    const offset = Math.max(0, Math.floor(regionSize / 2));
+    const ys = [];
+    const xs = [];
+    for (let y = offset; y < height; y += regionSize) ys.push(y);
+    for (let x = offset; x < width; x += regionSize) xs.push(x);
+    if (ys.length === 0) ys.push(Math.floor(height / 2));
+    if (xs.length === 0) xs.push(Math.floor(width / 2));
+    for (const y of ys) {
+      for (const x of xs) {
+        const moved = moveCenterToLowEdge(y, x, edge, width, height);
+        const cy = moved[0];
+        const cx = moved[1];
+        const offsetLab = (cy * width + cx) * 3;
+        centers.push({
+          l: lab[offsetLab],
+          a: lab[offsetLab + 1],
+          b: lab[offsetLab + 2],
+          y: cy,
+          x: cx,
+          colorScale: 5000,
+        });
+      }
+    }
+    return centers;
+  }
+
+  function splitDisconnectedLabelsJs(labels, width, height) {
+    const output = new Int32Array(labels.length);
+    output.fill(-1);
+    let nextId = 0;
+    const queue = new Int32Array(labels.length);
+    for (let start = 0; start < labels.length; start += 1) {
+      if (output[start] >= 0) continue;
+      const sourceLabel = labels[start];
+      let head = 0;
+      let tail = 0;
+      queue[tail++] = start;
+      output[start] = nextId;
+      while (head < tail) {
+        const index = queue[head++];
+        const x = index % width;
+        const y = Math.floor(index / width);
+        if (x > 0) {
+          const neighbor = index - 1;
+          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+            output[neighbor] = nextId;
+            queue[tail++] = neighbor;
+          }
+        }
+        if (x + 1 < width) {
+          const neighbor = index + 1;
+          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+            output[neighbor] = nextId;
+            queue[tail++] = neighbor;
+          }
+        }
+        if (y > 0) {
+          const neighbor = index - width;
+          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+            output[neighbor] = nextId;
+            queue[tail++] = neighbor;
+          }
+        }
+        if (y + 1 < height) {
+          const neighbor = index + width;
+          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+            output[neighbor] = nextId;
+            queue[tail++] = neighbor;
+          }
+        }
+      }
+      nextId += 1;
+    }
+    return { labels: output, regionCount: nextId };
+  }
+
+  function runSlicoLite(lab, edge, width, height, regionSize, iterations) {
+    let centers = initialSlicoCenters(lab, edge, width, height, regionSize);
+    const clusterCount = centers.length;
+    const labels = new Int32Array(width * height);
+    const distances = new Float32Array(width * height);
+    const spatialScale = Math.max(regionSize * regionSize, 1);
+
+    for (let iteration = 0; iteration < iterations; iteration += 1) {
+      labels.fill(-1);
+      distances.fill(Number.POSITIVE_INFINITY);
+
+      for (let clusterId = 0; clusterId < clusterCount; clusterId += 1) {
+        const center = centers[clusterId];
+        const y0 = Math.max(0, Math.floor(center.y - regionSize));
+        const y1 = Math.min(height - 1, Math.ceil(center.y + regionSize));
+        const x0 = Math.max(0, Math.floor(center.x - regionSize));
+        const x1 = Math.min(width - 1, Math.ceil(center.x + regionSize));
+        for (let y = y0; y <= y1; y += 1) {
+          for (let x = x0; x <= x1; x += 1) {
+            const index = y * width + x;
+            const offsetLab = index * 3;
+            const dl = lab[offsetLab] - center.l;
+            const da = lab[offsetLab + 1] - center.a;
+            const db = lab[offsetLab + 2] - center.b;
+            const dc2 = dl * dl + da * da + db * db;
+            const dy = y - center.y;
+            const dx = x - center.x;
+            const ds2 = dy * dy + dx * dx;
+            const distance = dc2 / Math.max(center.colorScale, 1) + ds2 / spatialScale;
+            if (distance < distances[index]) {
+              distances[index] = distance;
+              labels[index] = clusterId;
+            }
+          }
+        }
+      }
+
+      for (let index = 0; index < labels.length; index += 1) {
+        if (labels[index] >= 0) continue;
+        const x = index % width;
+        const y = Math.floor(index / width);
+        let winner = 0;
+        let winnerDistance = Number.POSITIVE_INFINITY;
+        for (let clusterId = 0; clusterId < clusterCount; clusterId += 1) {
+          const center = centers[clusterId];
+          const spatial = (x - center.x) ** 2 + (y - center.y) ** 2;
+          if (spatial < winnerDistance) {
+            winner = clusterId;
+            winnerDistance = spatial;
+          }
+        }
+        labels[index] = winner;
+      }
+
+      const counts = new Int32Array(clusterCount);
+      const sums = Array.from({ length: clusterCount }, () => [0, 0, 0, 0, 0]);
+      for (let index = 0; index < labels.length; index += 1) {
+        const clusterId = labels[index];
+        const x = index % width;
+        const y = Math.floor(index / width);
+        const offsetLab = index * 3;
+        counts[clusterId] += 1;
+        sums[clusterId][0] += lab[offsetLab];
+        sums[clusterId][1] += lab[offsetLab + 1];
+        sums[clusterId][2] += lab[offsetLab + 2];
+        sums[clusterId][3] += y;
+        sums[clusterId][4] += x;
+      }
+
+      centers = centers.map((center, clusterId) => {
+        const count = counts[clusterId];
+        if (count <= 0) return center;
+        return {
+          l: sums[clusterId][0] / count,
+          a: sums[clusterId][1] / count,
+          b: sums[clusterId][2] / count,
+          y: sums[clusterId][3] / count,
+          x: sums[clusterId][4] / count,
+          colorScale: 5000,
+        };
+      });
+
+      const colorScales = new Float32Array(clusterCount);
+      colorScales.fill(5000);
+      for (let index = 0; index < labels.length; index += 1) {
+        const clusterId = labels[index];
+        const center = centers[clusterId];
+        const offsetLab = index * 3;
+        const dl = lab[offsetLab] - center.l;
+        const da = lab[offsetLab + 1] - center.a;
+        const db = lab[offsetLab + 2] - center.b;
+        const dc2 = dl * dl + da * da + db * db;
+        if (dc2 > colorScales[clusterId]) colorScales[clusterId] = dc2;
+      }
+      centers = centers.map((center, clusterId) => ({
+        ...center,
+        colorScale: Math.max(5000, colorScales[clusterId]),
+      }));
+    }
+
+    return splitDisconnectedLabelsJs(labels, width, height);
+  }
+
+  function labelBoundaryMask(labels, width, height) {
+    const boundary = new Uint8Array(labels.length);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const index = y * width + x;
+        if (x + 1 < width && labels[index] !== labels[index + 1]) {
+          boundary[index] = 1;
+          boundary[index + 1] = 1;
+        }
+        if (y + 1 < height && labels[index] !== labels[index + width]) {
+          boundary[index] = 1;
+          boundary[index + width] = 1;
+        }
+      }
+    }
+    return boundary;
+  }
+
+  function structuralEdgeCoverageJs(labels, edge, width, height) {
+    let total = 0;
+    let covered = 0;
+    const boundary = labelBoundaryMask(labels, width, height);
+    for (let index = 0; index < edge.length; index += 1) {
+      const weight = edge[index];
+      total += weight;
+      if (weight <= 0) continue;
+      const x = index % width;
+      const y = Math.floor(index / width);
+      let near = false;
+      for (let dy = -1; dy <= 1 && !near; dy += 1) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -1; dx <= 1; dx += 1) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          if (boundary[ny * width + nx]) {
+            near = true;
+            break;
+          }
+        }
+      }
+      if (near) covered += weight;
+    }
+    return total > 1e-12 ? covered / total : 1;
+  }
+
+  function buildSpatialGroups(labels, rgba, lab, edge, width, height) {
+    const regionCount = Math.max(...labels) + 1;
+    const groups = Array.from({ length: regionCount }, (_, id) => ({
+      id,
+      active: true,
+      pixels: [],
+      count: 0,
+      minX: width,
+      minY: height,
+      maxX: 0,
+      maxY: 0,
+      borderTouches: 0,
+      perimeter: 0,
+      rgbSum: [0, 0, 0],
+      labSum: [0, 0, 0],
+      rgb: [0, 0, 0],
+      lab: [0, 0, 0],
+      adjacency: new Map(),
+    }));
+
+    for (let index = 0; index < labels.length; index += 1) {
+      const id = labels[index];
+      const group = groups[id];
+      const x = index % width;
+      const y = Math.floor(index / width);
+      const offsetRgba = index * 4;
+      const offsetLab = index * 3;
+      group.pixels.push(index);
+      group.count += 1;
+      group.minX = Math.min(group.minX, x);
+      group.minY = Math.min(group.minY, y);
+      group.maxX = Math.max(group.maxX, x);
+      group.maxY = Math.max(group.maxY, y);
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) group.borderTouches += 1;
+      group.rgbSum[0] += rgba[offsetRgba];
+      group.rgbSum[1] += rgba[offsetRgba + 1];
+      group.rgbSum[2] += rgba[offsetRgba + 2];
+      group.labSum[0] += lab[offsetLab];
+      group.labSum[1] += lab[offsetLab + 1];
+      group.labSum[2] += lab[offsetLab + 2];
+    }
+
+    for (const group of groups) {
+      group.rgb = group.rgbSum.map((sum) => Math.round(sum / Math.max(group.count, 1)));
+      group.lab = group.labSum.map((sum) => sum / Math.max(group.count, 1));
+      group.perimeter = group.count * 4;
+    }
+
+    function addAdjacency(a, b, edgeValue) {
+      if (a === b) return;
+      const map = groups[a].adjacency;
+      let item = map.get(b);
+      if (!item) {
+        item = { shared: 0, edgeSum: 0 };
+        map.set(b, item);
+      }
+      item.shared += 1;
+      item.edgeSum += edgeValue;
+    }
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const index = y * width + x;
+        const id = labels[index];
+        if (x + 1 < width) {
+          const other = labels[index + 1];
+          if (other === id) {
+            groups[id].perimeter -= 2;
+          } else {
+            const edgeValue = (edge[index] + edge[index + 1]) * 0.5;
+            addAdjacency(id, other, edgeValue);
+            addAdjacency(other, id, edgeValue);
+          }
+        }
+        if (y + 1 < height) {
+          const other = labels[index + width];
+          if (other === id) {
+            groups[id].perimeter -= 2;
+          } else {
+            const edgeValue = (edge[index] + edge[index + width]) * 0.5;
+            addAdjacency(id, other, edgeValue);
+            addAdjacency(other, id, edgeValue);
+          }
+        }
+      }
+    }
+    return groups;
+  }
+
+  function spatialMergeCost(left, right, relation, imageArea) {
+    const dl = left.lab[0] - right.lab[0];
+    const da = left.lab[1] - right.lab[1];
+    const db = left.lab[2] - right.lab[2];
+    const deltaE = Math.hypot(dl, da, db);
+    const colorCost = 1 - Math.exp(-(deltaE * deltaE) / (25 * 25));
+    const boundaryCost = clamp(relation.edgeSum / Math.max(relation.shared, 1), 0, 1);
+    const sharedRatio = clamp(
+      relation.shared / Math.max(1, Math.min(left.perimeter, right.perimeter)),
+      0,
+      1,
+    );
+    const topologyCost = clamp(Math.exp(-sharedRatio / 0.15), 0, 1);
+    const smallerRatio = Math.min(left.count, right.count) / imageArea;
+    const majorProtection = 0.20 * Math.min(1, smallerRatio / 0.03);
+    const smallness = Math.exp(-smallerRatio / 0.01);
+    const redundancy = (
+      smallness
+      * (1 - colorCost)
+      * (1 - boundaryCost)
+      * Math.min(1, sharedRatio / 0.50)
+    );
+    return (
+      0.30 * colorCost
+      + 0.25 * boundaryCost
+      + 0.10 * topologyCost
+      + majorProtection
+      - 0.15 * redundancy
+    );
+  }
+
+  function mergeSpatialGroupsToBudget(groups, width, height, maxShapes) {
+    let activeCount = groups.length;
+    let mergeCount = 0;
+    const imageArea = width * height;
+
+    while (activeCount > maxShapes) {
+      let best = null;
+      for (const left of groups) {
+        if (!left.active) continue;
+        for (const [rightId, relation] of left.adjacency.entries()) {
+          if (rightId <= left.id) continue;
+          const right = groups[rightId];
+          if (!right || !right.active) continue;
+          const cost = spatialMergeCost(left, right, relation, imageArea);
+          const smallerCount = Math.min(left.count, right.count);
+          const candidate = { left, right, relation, cost, smallerCount };
+          if (
+            best === null
+            || candidate.cost < best.cost
+            || (
+              candidate.cost === best.cost
+              && candidate.smallerCount < best.smallerCount
+            )
+            || (
+              candidate.cost === best.cost
+              && candidate.smallerCount === best.smallerCount
+              && candidate.left.id < best.left.id
+            )
+            || (
+              candidate.cost === best.cost
+              && candidate.smallerCount === best.smallerCount
+              && candidate.left.id === best.left.id
+              && candidate.right.id < best.right.id
+            )
+          ) {
+            best = candidate;
+          }
+        }
+      }
+      if (!best) break;
+
+      const left = best.left;
+      const right = best.right;
+      const target = left.count >= right.count ? left : right;
+      const source = target === left ? right : left;
+      const total = target.count + source.count;
+
+      target.rgb = [
+        Math.round((target.rgb[0] * target.count + source.rgb[0] * source.count) / total),
+        Math.round((target.rgb[1] * target.count + source.rgb[1] * source.count) / total),
+        Math.round((target.rgb[2] * target.count + source.rgb[2] * source.count) / total),
+      ];
+      target.lab = [
+        (target.lab[0] * target.count + source.lab[0] * source.count) / total,
+        (target.lab[1] * target.count + source.lab[1] * source.count) / total,
+        (target.lab[2] * target.count + source.lab[2] * source.count) / total,
+      ];
+      target.count = total;
+      target.pixels.push(...source.pixels);
+      target.minX = Math.min(target.minX, source.minX);
+      target.minY = Math.min(target.minY, source.minY);
+      target.maxX = Math.max(target.maxX, source.maxX);
+      target.maxY = Math.max(target.maxY, source.maxY);
+      target.borderTouches += source.borderTouches;
+      target.perimeter = target.perimeter + source.perimeter - 2 * best.relation.shared;
+
+      target.adjacency.delete(source.id);
+      for (const [neighborId, relation] of source.adjacency.entries()) {
+        if (neighborId === target.id) continue;
+        const neighbor = groups[neighborId];
+        if (!neighbor || !neighbor.active) continue;
+        const existing = target.adjacency.get(neighborId) || { shared: 0, edgeSum: 0 };
+        const combined = {
+          shared: existing.shared + relation.shared,
+          edgeSum: existing.edgeSum + relation.edgeSum,
+        };
+        target.adjacency.set(neighborId, combined);
+        neighbor.adjacency.delete(source.id);
+        neighbor.adjacency.set(target.id, combined);
+      }
+      source.active = false;
+      source.adjacency.clear();
+      activeCount -= 1;
+      mergeCount += 1;
+    }
+
+    const active = groups.filter((group) => group.active).sort((a, b) => a.id - b.id);
+    const labels = new Int32Array(width * height);
+    labels.fill(-1);
+    const components = active.map((group, id) => {
+      for (const pixel of group.pixels) labels[pixel] = id;
+      return {
+        id,
+        label: id,
+        pixels: group.pixels,
+        count: group.count,
+        minX: group.minX,
+        minY: group.minY,
+        maxX: group.maxX,
+        maxY: group.maxY,
+        borderTouches: group.borderTouches,
+        rgb: group.rgb,
+        lab: group.lab,
+      };
+    });
+
+    return {
+      labels,
+      built: { components, componentIds: labels },
+      groups: components,
+      mergeCount,
+    };
+  }
+
+  function consolidateShapePalette(groups, targetCount) {
+    if (groups.length === 0) return { colors: [], assignments: [], palette: [] };
+    const count = Math.max(1, Math.min(targetCount, groups.length));
+    const ranked = groups
+      .slice()
+      .sort((a, b) => b.count - a.count || a.id - b.id);
+    const centers = [ranked[0].lab.slice()];
+
+    while (centers.length < count) {
+      let winner = null;
+      let winnerScore = -1;
+      for (const group of ranked) {
+        let minDistance = Number.POSITIVE_INFINITY;
+        for (const center of centers) {
+          minDistance = Math.min(
+            minDistance,
+            Math.hypot(
+              group.lab[0] - center[0],
+              group.lab[1] - center[1],
+              group.lab[2] - center[2],
+            ),
+          );
+        }
+        const score = minDistance * Math.sqrt(group.count);
+        if (score > winnerScore) {
+          winnerScore = score;
+          winner = group;
+        }
+      }
+      if (!winner) break;
+      centers.push(winner.lab.slice());
+    }
+
+    let refined = centers;
+    for (let iteration = 0; iteration < 6; iteration += 1) {
+      const sums = refined.map(() => [0, 0, 0, 0]);
+      for (const group of groups) {
+        let best = 0;
+        let bestDistance = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < refined.length; i += 1) {
+          const distance = Math.hypot(
+            group.lab[0] - refined[i][0],
+            group.lab[1] - refined[i][1],
+            group.lab[2] - refined[i][2],
+          );
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            best = i;
+          }
+        }
+        sums[best][0] += group.lab[0] * group.count;
+        sums[best][1] += group.lab[1] * group.count;
+        sums[best][2] += group.lab[2] * group.count;
+        sums[best][3] += group.count;
+      }
+      refined = refined.map((center, i) => (
+        sums[i][3] > 0
+          ? [sums[i][0] / sums[i][3], sums[i][1] / sums[i][3], sums[i][2] / sums[i][3]]
+          : center
+      ));
+    }
+
+    const palette = refined.map((center, paletteId) => {
+      let representative = groups[0];
+      let bestDistance = Number.POSITIVE_INFINITY;
+      for (const group of groups) {
+        const distance = Math.hypot(
+          group.lab[0] - center[0],
+          group.lab[1] - center[1],
+          group.lab[2] - center[2],
+        );
+        if (
+          distance < bestDistance
+          || (distance === bestDistance && group.count > representative.count)
+          || (
+            distance === bestDistance
+            && group.count === representative.count
+            && group.id < representative.id
+          )
+        ) {
+          representative = group;
+          bestDistance = distance;
+        }
+      }
+      return { id: paletteId, lab: center, rgb: representative.rgb.slice() };
+    });
+
+    const assignments = groups.map((group) => {
+      let best = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < palette.length; i += 1) {
+        const distance = Math.hypot(
+          group.lab[0] - palette[i].lab[0],
+          group.lab[1] - palette[i].lab[1],
+          group.lab[2] - palette[i].lab[2],
+        );
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = i;
+        }
+      }
+      return best;
+    });
+
+    return {
+      palette,
+      assignments,
+      colors: assignments.map((id) => palette[id].rgb.slice()),
+    };
+  }
+
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
-    const entries = buildHistogram(rgba, config.alphaThreshold);
-    const centers = refineCenters(
-      entries,
-      seedCenters(entries, config.paletteSize),
-      config.kmeansIterations,
+    const lab = rgbaToLab(rgba, width, height);
+    const edge = structuralEdgeMap(lab, width, height);
+    const targetCount = targetSuperpixelCount(width, height, config);
+    const regionSize = regionSizeForTarget(width, height, targetCount);
+    const segmented = runSlicoLite(
+      lab,
+      edge,
+      width,
+      height,
+      regionSize,
+      config.slicIterations,
     );
-    let labels = assignLabels(rgba, width, height, centers, config.alphaThreshold);
-    labels = smoothLabels(labels, width, height, centers.length, config.smoothPasses);
-    const minPixels = Math.max(2, Math.round(width * height * config.minComponentRatio));
-    labels = mergeTinyComponents(labels, rgba, width, height, minPixels, 2);
-
-    const reduced = reduceComponentsToBudget(
-      labels,
+    const edgeCoverage = structuralEdgeCoverageJs(
+      segmented.labels,
+      edge,
+      width,
+      height,
+    );
+    const initialGroups = buildSpatialGroups(
+      segmented.labels,
       rgba,
+      lab,
+      edge,
+      width,
+      height,
+    );
+    const reduced = mergeSpatialGroupsToBudget(
+      initialGroups,
       width,
       height,
       config.maxShapes,
     );
-    const built = reduced.built;
-    const ranked = built.components
-      .slice()
-      .sort((left, right) => right.count - left.count || right.borderTouches - left.borderTouches || left.id - right.id);
+    const palette = consolidateShapePalette(reduced.groups, config.paletteTarget);
 
     let contourIoUSum = 0;
     let vertexCount = 0;
-    const shapes = ranked.map((component) => {
+    const shapes = reduced.built.components.map((component, index) => {
       const geometry = componentGeometry(
         component,
-        built.componentIds,
+        reduced.built.componentIds,
         width,
         height,
         config.contourFidelity,
@@ -762,7 +1458,9 @@
       return {
         id: component.id,
         count: component.count,
-        rgb: component.rgb,
+        sourceRgb: component.rgb,
+        rgb: palette.colors[index] || component.rgb,
+        paletteId: palette.assignments[index] ?? 0,
         borderTouches: component.borderTouches,
         polygon: geometry.polygon,
         rings: geometry.rings,
@@ -773,12 +1471,17 @@
 
     return {
       version: VERSION,
-      centers,
+      centers: palette.palette.map((entry) => entry.rgb),
       shapes,
       background: borderColor(rgba, width, height, config.alphaThreshold),
       metrics: {
+        targetSuperpixels: targetCount,
+        regionSize,
+        initialRegionCount: segmented.regionCount,
+        edgeCoverage,
         budgetMergeCount: reduced.mergeCount,
-        componentCount: built.components.length,
+        componentCount: reduced.built.components.length,
+        paletteCount: palette.palette.length,
         meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
         vertexCount,
       },
@@ -905,6 +1608,9 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
+      "X-Minimalizer-Superpixel-Count": String(analysis.metrics.initialRegionCount),
+      "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
+      "X-Minimalizer-Palette-Count": String(analysis.metrics.paletteCount),
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -919,6 +1625,10 @@
         meanContourIoU: analysis.metrics.meanContourIoU,
         budgetMergeCount: analysis.metrics.budgetMergeCount,
         vertexCount: analysis.metrics.vertexCount,
+        initialRegionCount: analysis.metrics.initialRegionCount,
+        edgeCoverage: analysis.metrics.edgeCoverage,
+        paletteCount: analysis.metrics.paletteCount,
+        regionSize: analysis.metrics.regionSize,
       },
     };
   }
@@ -940,6 +1650,17 @@
       boundaryRings,
       componentGeometry,
       reduceComponentsToBudget,
+      rgbToLab,
+      rgbaToLab,
+      structuralEdgeMap,
+      targetSuperpixelCount,
+      regionSizeForTarget,
+      runSlicoLite,
+      splitDisconnectedLabelsJs,
+      structuralEdgeCoverageJs,
+      buildSpatialGroups,
+      mergeSpatialGroupsToBudget,
+      consolidateShapePalette,
       analyzeRgba,
       renderAnalysis,
     }),
