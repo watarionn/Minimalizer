@@ -1094,51 +1094,91 @@
   }
 
   function splitDisconnectedLabelsJs(labels, width, height) {
+    let maxLabel = -1;
+    for (let index = 0; index < labels.length; index += 1) {
+      if (labels[index] < 0) throw new Error("labels must be non-negative");
+      if (labels[index] > maxLabel) maxLabel = labels[index];
+    }
+
+    const minX = new Int32Array(maxLabel + 1);
+    const minY = new Int32Array(maxLabel + 1);
+    const maxX = new Int32Array(maxLabel + 1);
+    const maxY = new Int32Array(maxLabel + 1);
+    const counts = new Int32Array(maxLabel + 1);
+    minX.fill(width);
+    minY.fill(height);
+    maxX.fill(-1);
+    maxY.fill(-1);
+
+    for (let index = 0; index < labels.length; index += 1) {
+      const label = labels[index];
+      const x = index % width;
+      const y = Math.floor(index / width);
+      counts[label] += 1;
+      if (x < minX[label]) minX[label] = x;
+      if (x > maxX[label]) maxX[label] = x;
+      if (y < minY[label]) minY[label] = y;
+      if (y > maxY[label]) maxY[label] = y;
+    }
+
     const output = new Int32Array(labels.length);
     output.fill(-1);
-    let nextId = 0;
     const queue = new Int32Array(labels.length);
-    for (let start = 0; start < labels.length; start += 1) {
-      if (output[start] >= 0) continue;
-      const sourceLabel = labels[start];
-      let head = 0;
-      let tail = 0;
-      queue[tail++] = start;
-      output[start] = nextId;
-      while (head < tail) {
-        const index = queue[head++];
-        const x = index % width;
-        const y = Math.floor(index / width);
-        if (x > 0) {
-          const neighbor = index - 1;
-          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
-            output[neighbor] = nextId;
-            queue[tail++] = neighbor;
+    let nextId = 0;
+
+    // Match Python split_disconnected_labels():
+    // np.unique(source) label order, then connected-component raster order.
+    for (let sourceLabel = 0; sourceLabel <= maxLabel; sourceLabel += 1) {
+      if (counts[sourceLabel] === 0) continue;
+      for (let y = minY[sourceLabel]; y <= maxY[sourceLabel]; y += 1) {
+        for (let x = minX[sourceLabel]; x <= maxX[sourceLabel]; x += 1) {
+          const startIndex = y * width + x;
+          if (labels[startIndex] !== sourceLabel || output[startIndex] >= 0) continue;
+
+          let head = 0;
+          let tail = 0;
+          queue[tail++] = startIndex;
+          output[startIndex] = nextId;
+          while (head < tail) {
+            const index = queue[head++];
+            const cx = index % width;
+            const cy = Math.floor(index / width);
+            if (cx > 0) {
+              const neighbor = index - 1;
+              if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+                output[neighbor] = nextId;
+                queue[tail++] = neighbor;
+              }
+            }
+            if (cx + 1 < width) {
+              const neighbor = index + 1;
+              if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+                output[neighbor] = nextId;
+                queue[tail++] = neighbor;
+              }
+            }
+            if (cy > 0) {
+              const neighbor = index - width;
+              if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+                output[neighbor] = nextId;
+                queue[tail++] = neighbor;
+              }
+            }
+            if (cy + 1 < height) {
+              const neighbor = index + width;
+              if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
+                output[neighbor] = nextId;
+                queue[tail++] = neighbor;
+              }
+            }
           }
-        }
-        if (x + 1 < width) {
-          const neighbor = index + 1;
-          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
-            output[neighbor] = nextId;
-            queue[tail++] = neighbor;
-          }
-        }
-        if (y > 0) {
-          const neighbor = index - width;
-          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
-            output[neighbor] = nextId;
-            queue[tail++] = neighbor;
-          }
-        }
-        if (y + 1 < height) {
-          const neighbor = index + width;
-          if (output[neighbor] < 0 && labels[neighbor] === sourceLabel) {
-            output[neighbor] = nextId;
-            queue[tail++] = neighbor;
-          }
+          nextId += 1;
         }
       }
-      nextId += 1;
+    }
+
+    for (let index = 0; index < output.length; index += 1) {
+      if (output[index] < 0) throw new Error("connectivity split left unlabeled pixels");
     }
     return { labels: output, regionCount: nextId };
   }
