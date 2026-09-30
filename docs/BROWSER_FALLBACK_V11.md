@@ -2,7 +2,7 @@
 
 Status: **RASTER PARITY PASS / CONTOUR GUARD PARITY PASS / UNGUIDED PROXY NEAR-PARITY / LITE STABLE / RAILWAY GRADUATION HOLD**
 
-Date: 2026-10-01  
+Date: 2026-10-01
 Branch: `feature/browser-fallback-v11-raster-parity-20261001`
 
 Production default remains unchanged. Browser fallback is still opt-in. Lite keeps the v9/v10 fast Canvas route. Exact now uses both the canonical shared-boundary contour path and a deterministic OpenCV-compatible 2x polygon raster path.
