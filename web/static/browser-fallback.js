@@ -4,7 +4,7 @@
   const VERSION = "browser-fallback-v2";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
-    workMaxSide: 192,
+    workMaxSide: 400,
     paletteSize: 12,
     kmeansIterations: 6,
     smoothPasses: 2,
@@ -12,7 +12,7 @@
     maxShapes: 40,
     alphaThreshold: 8,
     contourFidelity: 0.94,
-    slicIterations: 6,
+    slicIterations: 10,
     slicTargetMin: 400,
     slicTargetMax: 1200,
     slicMinAverageArea: 64,
