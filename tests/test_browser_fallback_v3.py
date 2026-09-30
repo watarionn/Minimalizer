@@ -235,7 +235,13 @@ for (let y = 0; y < height; y += 1) {
 }
 const lab = api._core.rgbaToLab(rgba, width, height);
 const edge = api._core.structuralEdgeMap(lab, width, height);
-const config = {...api.DEFAULTS, maxShapes:4, gradientBins:32};
+const config = {
+  ...api.DEFAULTS,
+  maxShapes:4,
+  hierarchyTargetMin:4,
+  hierarchyTargetMax:4,
+  gradientBins:32,
+};
 const first = api._core.runCanonicalRegionHierarchy(labels, rgba, lab, edge, edge, width, height, config);
 const second = api._core.runCanonicalRegionHierarchy(labels, rgba, lab, edge, edge, width, height, config);
 const digest = (result) => ({
@@ -288,6 +294,8 @@ const options = {
   slicTargetMax: 24,
   slicMinAverageArea: 4,
   maxShapes: 8,
+  hierarchyTargetMin: 8,
+  hierarchyTargetMax: 8,
   paletteTarget: 4,
   contourFidelity: 0.94,
 };
