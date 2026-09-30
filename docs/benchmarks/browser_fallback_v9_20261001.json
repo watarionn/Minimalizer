@@ -1,0 +1,177 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v9",
+  "date": "2026-10-01",
+  "browser_engine": "browser-fallback-v9",
+  "branch": "feature/browser-fallback-v9-palette-parity-20261001",
+  "production_default_changed": false,
+  "initial_palette_diagnosis": {
+    "Juufuutei-Raden_list_thumb": {
+      "region_partition_exact": true,
+      "python_palette_count": 7,
+      "browser_v8_palette_count": 8,
+      "exact_assigned_region_colors": 0,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 14.5
+    },
+    "Oozora-Subaru_list_thumb": {
+      "region_partition_exact": true,
+      "python_palette_count": 8,
+      "browser_v8_palette_count": 8,
+      "exact_assigned_region_colors": 0,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 18.4
+    },
+    "Shirogane-Noel_list_thumb": {
+      "region_partition_exact": true,
+      "python_palette_count": 7,
+      "browser_v8_palette_count": 8,
+      "exact_assigned_region_colors": 0,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 21.958333333333336
+    }
+  },
+  "canonical_palette_parity": {
+    "Juufuutei-Raden_list_thumb": {
+      "python_palette_count": 7,
+      "browser_palette_count": 7,
+      "python_relationships": 40,
+      "browser_relationships": 40,
+      "python_repairs": 0,
+      "browser_repairs": 0,
+      "exact_assigned_region_colors": 40,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 0
+    },
+    "Oozora-Subaru_list_thumb": {
+      "python_palette_count": 8,
+      "browser_palette_count": 8,
+      "python_relationships": 37,
+      "browser_relationships": 37,
+      "python_repairs": 1,
+      "browser_repairs": 1,
+      "exact_assigned_region_colors": 40,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 0
+    },
+    "Shirogane-Noel_list_thumb": {
+      "python_palette_count": 7,
+      "browser_palette_count": 7,
+      "python_relationships": 17,
+      "browser_relationships": 17,
+      "python_repairs": 0,
+      "browser_repairs": 0,
+      "exact_assigned_region_colors": 40,
+      "region_count": 40,
+      "assigned_rgb_mean_abs": 0
+    }
+  },
+  "five_case_summary": {
+    "lite": {
+      "mean_processing_ms": 1172.1,
+      "mean_initial_regions": 643.6,
+      "mean_vertices": 1507.6,
+      "mean_palette_count": 7.4,
+      "mean_palette_relationships": 25.2,
+      "mean_palette_repairs": 0.4,
+      "mean_proxy_ssim": 0.8524,
+      "mean_proxy_edge_iou": 0.2652,
+      "mean_proxy_mae": 9.6686,
+      "mean_railway_ssim": 0.8424,
+      "mean_railway_edge_iou": 0.2546
+    },
+    "exact": {
+      "mean_processing_ms": 9153.4,
+      "mean_initial_regions": 652,
+      "mean_vertices": 1546.4,
+      "mean_palette_count": 7.4,
+      "mean_palette_relationships": 30,
+      "mean_palette_repairs": 0.4,
+      "mean_proxy_ssim": 0.9065,
+      "mean_proxy_edge_iou": 0.3353,
+      "mean_proxy_mae": 2.8992,
+      "mean_railway_ssim": 0.8563,
+      "mean_railway_edge_iou": 0.2827
+    }
+  },
+  "exact_cases": {
+    "Juufuutei-Raden_list_thumb": {
+      "palette_count": 7,
+      "relationships": 40,
+      "repairs": 0,
+      "proxy_ssim": 0.900629100748168,
+      "proxy_edge_iou": 0.2919090428344791,
+      "proxy_mae": 2.1229700115340253
+    },
+    "Oozora-Subaru_list_thumb": {
+      "palette_count": 8,
+      "relationships": 37,
+      "repairs": 1,
+      "proxy_ssim": 0.9351354479110467,
+      "proxy_edge_iou": 0.35616124599175447,
+      "proxy_mae": 2.093125720876586
+    },
+    "Shirogane-Noel_list_thumb": {
+      "palette_count": 7,
+      "relationships": 17,
+      "repairs": 0,
+      "proxy_ssim": 0.8988282786698255,
+      "proxy_edge_iou": 0.3158869067653989,
+      "proxy_mae": 2.7225374855824684
+    },
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "palette_count": 7,
+      "relationships": 18,
+      "repairs": 0,
+      "proxy_ssim": 0.9242042386651393,
+      "proxy_edge_iou": 0.39333087693441415,
+      "proxy_mae": 4.112636417556346
+    },
+    "Night-River-City_general": {
+      "palette_count": 8,
+      "relationships": 38,
+      "repairs": 1,
+      "proxy_ssim": 0.873843030060712,
+      "proxy_edge_iou": 0.31917111950997,
+      "proxy_mae": 3.444895498392283
+    }
+  },
+  "historical": {
+    "v8_lite": {
+      "proxy_ssim": 0.8513,
+      "proxy_edge_iou": 0.2636
+    },
+    "v8_exact": {
+      "proxy_ssim": 0.8817,
+      "proxy_edge_iou": 0.3069
+    },
+    "python_proxy_vs_railway": {
+      "ssim": 0.9067,
+      "edge_iou": 0.5332
+    }
+  },
+  "wrapper_smoke": {
+    "mode": "browser-fallback-v9",
+    "palette_method": "canonical-medoid-hierarchy",
+    "resize": "opencv-inter-area",
+    "lite_structural": "l0-lite-jacobi",
+    "exact_structural": "spectral-exact",
+    "status": "pass"
+  },
+  "validation": {
+    "focused_suite": "29 passed",
+    "full_regression": "78 passed",
+    "existing_warning": "Starlette/httpx deprecation",
+    "js_syntax": "pass",
+    "git_diff_check": "pass"
+  },
+  "gate": {
+    "canonical_palette_parity": "pass",
+    "robust_medoid_parity": "pass",
+    "protected_relationship_repair": "pass",
+    "upstream_parity": "pass except known Elizabeth WebP decode residual",
+    "full_browser_quality": "improved",
+    "railway_replacement": "hold",
+    "next_primary_stage": "contour simplification and raster geometry fidelity",
+    "operational_follow_up": "large-image Browser memory hardening or tiled resize"
+  }
+}
