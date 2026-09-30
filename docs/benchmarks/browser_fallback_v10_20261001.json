@@ -1,0 +1,259 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v10",
+  "date": "2026-10-01",
+  "browser_engine": "browser-fallback-v10",
+  "branch": "feature/browser-fallback-v10-contour-parity-20261001",
+  "production_default_changed": false,
+  "first_bad_stage_audit": {
+    "conclusion": "contour_simplification",
+    "primitive_effect": "negligible_on_three_character_probes",
+    "cases": {
+      "Juufuutei-Raden_list_thumb": {
+        "browser_v9_vs_selection": {
+          "ssim": 0.9065046914783784,
+          "edge_iou": 0.3455855855855856,
+          "mae": 1.868388119953864
+        },
+        "browser_v9_vs_contour": {
+          "ssim": 0.9012087401072844,
+          "edge_iou": 0.2933709449929478,
+          "mae": 2.0420386389850056
+        },
+        "python_primitive_vs_contour_mean_iou": 1
+      },
+      "Oozora-Subaru_list_thumb": {
+        "browser_v9_vs_selection": {
+          "ssim": 0.9541794740597526,
+          "edge_iou": 0.4195679796696315,
+          "mae": 1.440210495963091
+        },
+        "browser_v9_vs_contour": {
+          "ssim": 0.9361316853410034,
+          "edge_iou": 0.36260688698867577,
+          "mae": 1.9453316032295271
+        },
+        "python_primitive_vs_contour_mean_iou": 0.9972972972972972
+      },
+      "Shirogane-Noel_list_thumb": {
+        "browser_v9_vs_selection": {
+          "ssim": 0.9299610815294312,
+          "edge_iou": 0.4257301558860419,
+          "mae": 1.640121107266436
+        },
+        "browser_v9_vs_contour": {
+          "ssim": 0.8997433897043439,
+          "edge_iou": 0.31295145304888294,
+          "mae": 2.48699538638985
+        },
+        "python_primitive_vs_contour_mean_iou": 0.9975341345760771
+      }
+    }
+  },
+  "canonical_contour_probe": {
+    "Juufuutei-Raden_list_thumb": {
+      "python_original_vertices": 6368,
+      "browser_original_vertices": 6368,
+      "python_simplified_vertices": 717,
+      "browser_simplified_vertices": 703,
+      "python_min_region_iou": 0.9178082191780822,
+      "browser_min_region_iou": 0.9136690647482014,
+      "contour_ssim": 0.9964539593535573,
+      "contour_edge_iou": 0.9386422976501305,
+      "contour_mae": 0.08301326412918109
+    },
+    "Oozora-Subaru_list_thumb": {
+      "python_original_vertices": 7049,
+      "browser_original_vertices": 7049,
+      "python_simplified_vertices": 1380,
+      "browser_simplified_vertices": 1389,
+      "python_min_region_iou": 0.9111111111111111,
+      "browser_min_region_iou": 0.9056291390728477,
+      "contour_ssim": 0.9917490262785247,
+      "contour_edge_iou": 0.912975912975913,
+      "contour_mae": 0.21739907727797,
+      "cross_region_mean_iou": 0.9839340006566865,
+      "cross_region_p10_iou": 0.9547787144362486,
+      "cross_region_min_iou": 0.85,
+      "exact_region_masks": 16,
+      "region_count": 40
+    },
+    "Shirogane-Noel_list_thumb": {
+      "python_original_vertices": 6920,
+      "browser_original_vertices": 6920,
+      "python_simplified_vertices": 1108,
+      "browser_simplified_vertices": 898,
+      "python_min_region_iou": 0.904997748761819,
+      "browser_min_region_iou": 0.9037037037037037,
+      "contour_ssim": 0.9852878950141477,
+      "contour_edge_iou": 0.8259917920656634,
+      "contour_mae": 0.4099913494809689
+    }
+  },
+  "profiles": {
+    "lite": {
+      "structural": "l0-lite-jacobi",
+      "contour": "legacy-independent-rings",
+      "palette": "canonical-medoid-hierarchy",
+      "canonical_contour_lite_default": false,
+      "stability_probe": {
+        "case": "Juufuutei-Raden_list_thumb",
+        "pixel_exact_to_v9": true,
+        "changed_pixel_ratio": 0,
+        "rgb_mae": 0,
+        "measured_processing_ms": 1167.3999998569489
+      }
+    },
+    "exact": {
+      "structural": "spectral-exact",
+      "contour": "canonical-shared-chain",
+      "palette": "canonical-medoid-hierarchy"
+    }
+  },
+  "exact_five_case_summary": {
+    "mean_processing_ms": 14058.05999994278,
+    "mean_shared_vertices": 984.4,
+    "proxy": {
+      "ssim": 0.9471167570659762,
+      "edge_iou": 0.47408489029261086,
+      "mae": 1.568175694264427
+    },
+    "railway": {
+      "ssim": 0.8794667483747254,
+      "edge_iou": 0.32403698346920745,
+      "mae": 10.565008546748306
+    },
+    "v9_image": {
+      "ssim": 0.9243673468492286,
+      "edge_iou": 0.41871864169680306,
+      "mae": 2.21958285342425
+    }
+  },
+  "exact_cases": {
+    "Juufuutei-Raden_list_thumb": {
+      "processing_ms": 11754.099999904633,
+      "shared_vertices": 703,
+      "proxy": {
+        "ssim": 0.9419613834417447,
+        "edge_iou": 0.3999218139171227,
+        "mae": 0.8710207612456747
+      },
+      "railway": {
+        "ssim": 0.8880417357231977,
+        "edge_iou": 0.30144070927225713,
+        "mae": 8.126072664359862
+      }
+    },
+    "Oozora-Subaru_list_thumb": {
+      "processing_ms": 11682.299999952316,
+      "shared_vertices": 1389,
+      "proxy": {
+        "ssim": 0.9660467769515378,
+        "edge_iou": 0.5702824133504493,
+        "mae": 0.9739417531718569
+      },
+      "railway": {
+        "ssim": 0.9038037532968045,
+        "edge_iou": 0.3748110831234257,
+        "mae": 9.169809688581315
+      }
+    },
+    "Shirogane-Noel_list_thumb": {
+      "processing_ms": 14892.399999856949,
+      "shared_vertices": 898,
+      "proxy": {
+        "ssim": 0.9528947232595527,
+        "edge_iou": 0.48080065359477125,
+        "mae": 1.2706833910034603
+      },
+      "railway": {
+        "ssim": 0.8707005104354676,
+        "edge_iou": 0.2660628844839371,
+        "mae": 16.377690311418686
+      }
+    },
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "processing_ms": 13612.799999952316,
+      "shared_vertices": 1025,
+      "proxy": {
+        "ssim": 0.9481585938993221,
+        "edge_iou": 0.5033517350157729,
+        "mae": 3.261049822064057
+      },
+      "railway": {
+        "ssim": 0.857190955387097,
+        "edge_iou": 0.2974480310968396,
+        "mae": 12.962600830367734
+      }
+    },
+    "Night-River-City_general": {
+      "processing_ms": 18348.700000047684,
+      "shared_vertices": 907,
+      "proxy": {
+        "ssim": 0.9265223077777242,
+        "edge_iou": 0.4160678355849382,
+        "mae": 1.4641827438370847
+      },
+      "railway": {
+        "ssim": 0.8775967870310604,
+        "edge_iou": 0.38042220936957777,
+        "mae": 6.1888692390139335
+      }
+    }
+  },
+  "historical": {
+    "v9_exact_proxy": {
+      "ssim": 0.9065,
+      "edge_iou": 0.3353,
+      "mae": 2.8992
+    },
+    "v8_exact_proxy": {
+      "ssim": 0.8817,
+      "edge_iou": 0.3069
+    },
+    "v9_exact_railway": {
+      "ssim": 0.8563,
+      "edge_iou": 0.2827
+    },
+    "python_unguided_proxy_vs_railway": {
+      "ssim": 0.9067,
+      "edge_iou": 0.5332
+    }
+  },
+  "wrapper_smoke": {
+    "mode": "browser-fallback-v10",
+    "lite": {
+      "contour": "legacy-independent-rings",
+      "palette": "canonical-medoid-hierarchy",
+      "resize": "opencv-inter-area"
+    },
+    "exact": {
+      "contour": "canonical-shared-chain",
+      "palette": "canonical-medoid-hierarchy",
+      "resize": "opencv-inter-area",
+      "min_region_iou": 0.9661016949152542
+    },
+    "status": "pass"
+  },
+  "validation": {
+    "focused_suite": "31 passed",
+    "full_regression": "80 passed",
+    "existing_warning": "Starlette/httpx deprecation",
+    "js_syntax": "pass",
+    "git_diff_check": "pass",
+    "lite_pixel_stability": "pass"
+  },
+  "gate": {
+    "first_bad_stage_isolation": "pass",
+    "shared_raw_boundary_parity": "pass",
+    "shared_contour_parity": "pass",
+    "lite_stability": "pass",
+    "exact_quality": "pass",
+    "railway_replacement": "hold",
+    "next_primary_stage": "rasterization parity and contour residual closure",
+    "operational_follow_up": [
+      "optimize exact canonical contour runtime",
+      "large-image Browser memory hardening or tiled resize",
+      "known Elizabeth WebP decode residual"
+    ]
+  }
+}
