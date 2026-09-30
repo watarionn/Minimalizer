@@ -1,0 +1,153 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v6",
+  "date": "2026-09-30",
+  "browser_engine": "browser-fallback-v6",
+  "branch": "feature/browser-fallback-v0-20260930",
+  "production_default_changed": false,
+  "phase_goal": "close canonical SLIC parity on identical structural Lab/edge inputs",
+  "changes": {
+    "slic_distance_buffer": "Float64Array",
+    "slic_color_scale_buffer": "Float64Array",
+    "connectivity_label_order": "Python-compatible source-label order then component raster order"
+  },
+  "canonical_input_slic_parity": {
+    "case_count": 5,
+    "exact_label_maps": 5,
+    "mean_boundary_iou": 1,
+    "mean_js_to_python_purity": 1,
+    "mean_python_to_js_purity": 1,
+    "mean_pixel_label_equal": 1,
+    "cases": [
+      {
+        "case": "Juufuutei-Raden_list_thumb",
+        "python_regions": 629,
+        "browser_regions": 629,
+        "exact": true
+      },
+      {
+        "case": "Oozora-Subaru_list_thumb",
+        "python_regions": 538,
+        "browser_regions": 538,
+        "exact": true
+      },
+      {
+        "case": "Shirogane-Noel_list_thumb",
+        "python_regions": 790,
+        "browser_regions": 790,
+        "exact": true
+      },
+      {
+        "case": "Elizabeth-Rose-Bloodflame_pr-img_01",
+        "python_regions": 627,
+        "browser_regions": 627,
+        "exact": true
+      },
+      {
+        "case": "Night-River-City_general",
+        "python_regions": 769,
+        "browser_regions": 769,
+        "exact": true
+      }
+    ]
+  },
+  "canonical_analysis_rgba_probe": {
+    "description": "Python analysis RGBA passed into Browser exact spectral L0, Browser Lab/edge, and Browser SLIC",
+    "exact_structural_rgb": {
+      "all_five_cases_exact": true,
+      "max_abs_error": 0,
+      "mean_abs_error": 0
+    },
+    "browser_vs_python_lab": {
+      "mean_abs_error_across_cases": 0.06070268414914608,
+      "max_abs_error_across_cases": 0.41589927673339844,
+      "case_mean_abs": {
+        "Juufuutei-Raden_list_thumb": 0.06834779679775238,
+        "Oozora-Subaru_list_thumb": 0.0986327975988388,
+        "Shirogane-Noel_list_thumb": 0.040479227900505066,
+        "Elizabeth-Rose-Bloodflame_pr-img_01": 0.028936339542269707,
+        "Night-River-City_general": 0.06711725890636444
+      }
+    },
+    "browser_vs_python_structural_edge": {
+      "mean_abs_error_across_cases": 0.00024397723318543286,
+      "case_mean_abs": {
+        "Juufuutei-Raden_list_thumb": 0.00026555225485935807,
+        "Oozora-Subaru_list_thumb": 0.00013717533147428185,
+        "Shirogane-Noel_list_thumb": 0.0002648472727742046,
+        "Elizabeth-Rose-Bloodflame_pr-img_01": 0.00023434500326402485,
+        "Night-River-City_general": 0.00031796630355529487
+      }
+    },
+    "interpretation": "Exact L0 is no longer the discrepancy. SLIC is exact on identical Lab/edge. The next first-bad-stage is RGB-to-Lab parity."
+  },
+  "baselines": {
+    "browser_v5_exact": {
+      "mean_processing_ms": 9646.5,
+      "mean_proxy_ssim": 0.8622,
+      "mean_proxy_edge_iou": 0.2749,
+      "mean_vertices": 1485.4
+    },
+    "browser_v4_lite": {
+      "mean_processing_ms": 851,
+      "mean_proxy_ssim": 0.8517,
+      "mean_proxy_edge_iou": 0.2592,
+      "mean_vertices": 1472.4
+    },
+    "python_unguided_proxy_vs_railway": {
+      "mean_ssim": 0.9067,
+      "mean_edge_iou": 0.5332
+    },
+    "python_unguided_vertices": 1000.8
+  },
+  "v6_five_case": {
+    "lite": {
+      "mean_processing_ms": 849,
+      "mean_initial_regions": 637.2,
+      "mean_vertices": 1470.8,
+      "mean_proxy_ssim": 0.8503,
+      "mean_proxy_edge_iou": 0.2574,
+      "mean_railway_ssim": 0.8371,
+      "mean_railway_edge_iou": 0.2487
+    },
+    "exact": {
+      "mean_processing_ms": 10243,
+      "mean_initial_regions": 645.2,
+      "mean_vertices": 1553.2,
+      "mean_proxy_ssim": 0.8575,
+      "mean_proxy_edge_iou": 0.2787,
+      "mean_railway_ssim": 0.8379,
+      "mean_railway_edge_iou": 0.2589
+    }
+  },
+  "validation": {
+    "focused_parity_suite": "25 passed",
+    "full_regression": "74 passed, 1 dependency deprecation warning",
+    "javascript_syntax": "pass",
+    "git_diff_check": "pass",
+    "chrome_wrapper_smoke": {
+      "lite": {
+        "status": "pass",
+        "mode": "browser-fallback-v6",
+        "compute": "browser",
+        "structural": "l0-lite-jacobi",
+        "palette": 8
+      },
+      "exact": {
+        "status": "pass",
+        "mode": "browser-fallback-v6",
+        "compute": "browser",
+        "structural": "spectral-exact",
+        "palette": 8
+      }
+    }
+  },
+  "decision": {
+    "canonical_slic_implementation": "pass_exact",
+    "default_browser_profile": "keep_lite",
+    "exact_quality_profile": "keep_opt_in",
+    "railway_replacement": "hold",
+    "full_browser_quality": "mixed_vs_v5_exact",
+    "next_first_bad_stage": "OpenCV-compatible RGB-to-Lab conversion parity",
+    "secondary_downstream_gap": "contour simplification / vertex count parity"
+  }
+}
