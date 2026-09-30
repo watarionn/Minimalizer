@@ -13,6 +13,7 @@ from minimalize_engine.v2.preprocessing import l0_gradient_smooth
 
 ROOT = Path(__file__).resolve().parents[1]
 SPECTRAL = ROOT / "web" / "static" / "spectral-fft.js"
+BROWSER_ENGINE = ROOT / "web" / "static" / "browser-fallback.js"
 
 
 def _node(script: str, *args: str) -> dict:
@@ -137,3 +138,52 @@ process.stdout.write(JSON.stringify({bytes:result.byteLength}));
     diff = np.abs(actual[:, :, :3].astype(np.int16) - expected.astype(np.int16))
     assert int(diff.max()) <= 1
     assert float(diff.mean()) <= 0.05
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_browser_v5_exact_mode_reports_structural_profile():
+    completed = subprocess.run(
+        [
+            "node",
+            "-e",
+            r"""
+global.MinimalizerSpectralFFT = require(process.argv[1]);
+const api = require(process.argv[2]);
+const width = 12, height = 10;
+const rgba = new Uint8ClampedArray(width * height * 4);
+for (let y = 0; y < height; y += 1) {
+  for (let x = 0; x < width; x += 1) {
+    const i = y * width + x;
+    rgba[i * 4] = (x * 19 + y * 7) % 256;
+    rgba[i * 4 + 1] = (y * 23 + x * 5) % 256;
+    rgba[i * 4 + 2] = (180 + x * 3 - y * 9 + 256) % 256;
+    rgba[i * 4 + 3] = 255;
+  }
+}
+const result = api._core.analyzeRgba(rgba, width, height, {
+  ...api.DEFAULTS,
+  structuralMode: "spectral-exact",
+  slicIterations: 2,
+  slicTargetMin: 4,
+  slicTargetMax: 4,
+  slicMinAverageArea: 4,
+  maxShapes: 2,
+  hierarchyTargetMin: 2,
+  hierarchyTargetMax: 2,
+  paletteTarget: 2,
+});
+process.stdout.write(JSON.stringify({
+  version: result.version,
+  structuralPreprocess: result.metrics.structuralPreprocess,
+}));
+""",
+            str(SPECTRAL),
+            str(BROWSER_ENGINE),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(completed.stdout)
+    assert payload["version"] == "browser-fallback-v5"
+    assert payload["structuralPreprocess"] == "spectral-exact"
