@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v9";
+  const VERSION = "browser-fallback-v10";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -3149,16 +3149,43 @@
       config,
     );
 
-    let contourIoUSum = 0;
-    let vertexCount = 0;
-    const shapes = hierarchy.built.components.map((component, index) => {
-      const geometry = componentGeometry(
-        component,
+    let canonicalContour = null;
+    if (
+      typeof globalThis !== "undefined"
+      && globalThis.MinimalizerCanonicalContour
+      && typeof globalThis.MinimalizerCanonicalContour.simplifyLabels === "function"
+    ) {
+      canonicalContour = globalThis.MinimalizerCanonicalContour.simplifyLabels(
         hierarchy.built.componentIds,
         width,
         height,
-        config.contourFidelity,
+        hierarchy.built.components.length,
       );
+    }
+
+    let contourIoUSum = 0;
+    let vertexCount = 0;
+    const shapes = hierarchy.built.components.map((component, index) => {
+      let geometry;
+      if (canonicalContour) {
+        const rings = canonicalContour.loopsByRegion[index].map((ring) => (
+          ring.map((point) => point.slice())
+        ));
+        geometry = {
+          polygon: rings[0] || [],
+          rings,
+          contourIoU: canonicalContour.regionIoU[index],
+          epsilon: null,
+        };
+      } else {
+        geometry = componentGeometry(
+          component,
+          hierarchy.built.componentIds,
+          width,
+          height,
+          config.contourFidelity,
+        );
+      }
       contourIoUSum += geometry.contourIoU;
       vertexCount += geometry.rings.reduce((sum, ring) => sum + ring.length, 0);
       return {
@@ -3207,6 +3234,22 @@
         initialRegionCountBeforeRetry: segmented.initialRegionCountBeforeRetry ?? segmented.regionCount,
         meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
         vertexCount,
+        contourMethod: canonicalContour ? canonicalContour.method : "legacy-independent-rings",
+        contourOriginalVertexCount: canonicalContour
+          ? canonicalContour.metrics.originalVertexCount
+          : vertexCount,
+        contourSharedVertexCount: canonicalContour
+          ? canonicalContour.metrics.simplifiedVertexCount
+          : vertexCount,
+        contourFallbackChainCount: canonicalContour
+          ? canonicalContour.metrics.fallbackChainCount
+          : 0,
+        contourRejectedCandidateCount: canonicalContour
+          ? canonicalContour.metrics.rejectedCandidateCount
+          : 0,
+        contourMinRegionIoU: canonicalContour
+          ? canonicalContour.metrics.minRegionIoU
+          : (shapes.length > 0 ? Math.min(...shapes.map((shape) => shape.contourIoU)) : 1),
       },
     };
   }
@@ -3399,6 +3442,8 @@
       "X-Minimalizer-Processing-Ms": elapsed.toFixed(1),
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
+      "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
+      "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
       "X-Minimalizer-Superpixel-Count": String(analysis.metrics.initialRegionCount),
       "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
@@ -3428,6 +3473,12 @@
         shapeCount: shapes.length,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
+        contourMethod: analysis.metrics.contourMethod,
+        contourMinRegionIoU: analysis.metrics.contourMinRegionIoU,
+        contourOriginalVertexCount: analysis.metrics.contourOriginalVertexCount,
+        contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,
+        contourFallbackChainCount: analysis.metrics.contourFallbackChainCount,
+        contourRejectedCandidateCount: analysis.metrics.contourRejectedCandidateCount,
         budgetMergeCount: analysis.metrics.budgetMergeCount,
         vertexCount: analysis.metrics.vertexCount,
         initialRegionCount: analysis.metrics.initialRegionCount,
