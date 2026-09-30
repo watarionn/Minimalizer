@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v10";
+  const VERSION = "browser-fallback-v11";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -3351,11 +3351,39 @@
   function renderAnalysis(analysis, analysisWidth, analysisHeight, workWidth, workHeight) {
     const outputCanvas = canvasElement(analysisWidth, analysisHeight);
     const outputContext = context2d(outputCanvas);
-    outputContext.fillStyle = "rgb(255,255,255)";
-    outputContext.fillRect(0, 0, analysisWidth, analysisHeight);
-
     const scaleX = analysisWidth / workWidth;
     const scaleY = analysisHeight / workHeight;
+    const canonicalRaster = (
+      analysis.metrics.contourMethod === "canonical-shared-chain"
+      && typeof globalThis !== "undefined"
+      && globalThis.MinimalizerOpenCvRaster
+      && typeof globalThis.MinimalizerOpenCvRaster.renderShapesRgba === "function"
+    );
+
+    if (canonicalRaster) {
+      const shapes = analysis.shapes.slice().sort((left, right) => left.id - right.id);
+      const rgba = globalThis.MinimalizerOpenCvRaster.renderShapesRgba(
+        shapes,
+        analysisWidth,
+        analysisHeight,
+        scaleX,
+        scaleY,
+        2,
+      );
+      outputContext.putImageData(
+        new ImageData(rgba, analysisWidth, analysisHeight),
+        0,
+        0,
+      );
+      return {
+        canvas: outputCanvas,
+        shapes,
+        rasterMethod: "opencv-fillpoly-2x",
+      };
+    }
+
+    outputContext.fillStyle = "rgb(255,255,255)";
+    outputContext.fillRect(0, 0, analysisWidth, analysisHeight);
     const shapes = analysis.shapes
       .slice()
       .sort((left, right) => right.count - left.count || left.id - right.id);
@@ -3373,7 +3401,11 @@
       outputContext.fillStyle = "rgb(" + shape.rgb[0] + "," + shape.rgb[1] + "," + shape.rgb[2] + ")";
       outputContext.fill("evenodd");
     }
-    return { canvas: outputCanvas, shapes };
+    return {
+      canvas: outputCanvas,
+      shapes,
+      rasterMethod: "canvas-evenodd",
+    };
   }
 
   async function canvasToBlob(canvas) {
@@ -3432,6 +3464,7 @@
     );
     const outputCanvas = rendered.canvas;
     const shapes = rendered.shapes;
+    const rasterMethod = rendered.rasterMethod;
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3446,6 +3479,7 @@
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
       "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
+      "X-Minimalizer-Raster-Method": rasterMethod,
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
       "X-Minimalizer-Superpixel-Count": String(analysis.metrics.initialRegionCount),
       "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
@@ -3481,6 +3515,7 @@
         contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,
         contourFallbackChainCount: analysis.metrics.contourFallbackChainCount,
         contourRejectedCandidateCount: analysis.metrics.contourRejectedCandidateCount,
+        rasterMethod,
         budgetMergeCount: analysis.metrics.budgetMergeCount,
         vertexCount: analysis.metrics.vertexCount,
         initialRegionCount: analysis.metrics.initialRegionCount,
