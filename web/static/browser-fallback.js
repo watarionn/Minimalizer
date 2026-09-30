@@ -1147,7 +1147,7 @@
     let centers = initialSlicoCenters(lab, edge, width, height, regionSize);
     const clusterCount = centers.length;
     const labels = new Int32Array(width * height);
-    const distances = new Float32Array(width * height);
+    const distances = new Float64Array(width * height);
     const spatialScale = Math.max(regionSize * regionSize, 1);
 
     for (let iteration = 0; iteration < iterations; iteration += 1) {
@@ -1225,7 +1225,7 @@
         };
       });
 
-      const colorScales = new Float32Array(clusterCount);
+      const colorScales = new Float64Array(clusterCount);
       colorScales.fill(5000);
       for (let index = 0; index < labels.length; index += 1) {
         const clusterId = labels[index];
