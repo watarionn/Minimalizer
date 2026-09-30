@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v7";
+  const VERSION = "browser-fallback-v8";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -2737,6 +2737,63 @@
     return context;
   }
 
+  function nativeCompositeRgba(image) {
+    const canvas = canvasElement(image.width, image.height);
+    const context = context2d(canvas);
+    context.fillStyle = "rgb(255,255,255)";
+    context.fillRect(0, 0, image.width, image.height);
+    context.drawImage(image, 0, 0, image.width, image.height);
+    return context.getImageData(0, 0, image.width, image.height).data;
+  }
+
+  function resizeAnalysisRgba(sourceRgba, sourceWidth, sourceHeight, destinationWidth, destinationHeight) {
+    if (sourceWidth === destinationWidth && sourceHeight === destinationHeight) {
+      const copy = new Uint8ClampedArray(sourceRgba.length);
+      copy.set(sourceRgba);
+      return { rgba: copy, method: "native" };
+    }
+
+    if (
+      typeof globalThis !== "undefined"
+      && globalThis.MinimalizerOpenCvAreaResize
+      && typeof globalThis.MinimalizerOpenCvAreaResize.resizeRgba === "function"
+    ) {
+      return {
+        rgba: globalThis.MinimalizerOpenCvAreaResize.resizeRgba(
+          sourceRgba,
+          sourceWidth,
+          sourceHeight,
+          destinationWidth,
+          destinationHeight,
+        ),
+        method: "opencv-inter-area",
+      };
+    }
+
+    const sourceCanvas = canvasElement(sourceWidth, sourceHeight);
+    const sourceContext = context2d(sourceCanvas);
+    const sourceImage = sourceContext.createImageData(sourceWidth, sourceHeight);
+    sourceImage.data.set(sourceRgba);
+    sourceContext.putImageData(sourceImage, 0, 0);
+    const canvas = canvasElement(destinationWidth, destinationHeight);
+    const context = context2d(canvas);
+    context.drawImage(
+      sourceCanvas,
+      0,
+      0,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      destinationWidth,
+      destinationHeight,
+    );
+    return {
+      rgba: context.getImageData(0, 0, destinationWidth, destinationHeight).data,
+      method: "canvas-fallback",
+    };
+  }
+
   async function decodeFile(file) {
     if (typeof createImageBitmap === "function") {
       return await createImageBitmap(file);
@@ -2797,24 +2854,36 @@
     const started = performance.now();
     const config = Object.assign({}, DEFAULTS, options || {});
     const image = await decodeFile(file);
-    const analysisSize = fitSize(image.width, image.height, config.analysisMaxSide);
-    const analysisCanvas = canvasElement(analysisSize.width, analysisSize.height);
-    const analysisContext = context2d(analysisCanvas);
-    analysisContext.clearRect(0, 0, analysisSize.width, analysisSize.height);
-    analysisContext.drawImage(image, 0, 0, analysisSize.width, analysisSize.height);
+    const sourceWidth = image.width;
+    const sourceHeight = image.height;
+    const analysisSize = fitSize(sourceWidth, sourceHeight, config.analysisMaxSide);
+    const nativeRgba = nativeCompositeRgba(image);
     if (typeof image.close === "function") image.close();
 
+    const analysisResize = resizeAnalysisRgba(
+      nativeRgba,
+      sourceWidth,
+      sourceHeight,
+      analysisSize.width,
+      analysisSize.height,
+    );
     const workSize = fitSize(analysisSize.width, analysisSize.height, config.workMaxSide);
-    const workCanvas = canvasElement(workSize.width, workSize.height);
-    const workContext = context2d(workCanvas);
-    workContext.drawImage(analysisCanvas, 0, 0, workSize.width, workSize.height);
-    const workImage = workContext.getImageData(0, 0, workSize.width, workSize.height);
+    const workResize = resizeAnalysisRgba(
+      analysisResize.rgba,
+      analysisSize.width,
+      analysisSize.height,
+      workSize.width,
+      workSize.height,
+    );
     const analysis = analyzeRgba(
-      workImage.data,
+      workResize.rgba,
       workSize.width,
       workSize.height,
       config,
     );
+    const resizeMethod = workResize.method === "native"
+      ? analysisResize.method
+      : analysisResize.method + "+" + workResize.method;
 
     const rendered = renderAnalysis(
       analysis,
@@ -2846,6 +2915,7 @@
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
+      "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-L0-Jacobi-Iterations": String(
         analysis.metrics.structuralPreprocess === "l0-lite-jacobi"
           ? config.l0JacobiIterations
@@ -2879,6 +2949,7 @@
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
         cutMaxHeight: analysis.metrics.cutMaxHeight,
         structuralPreprocess: analysis.metrics.structuralPreprocess,
+        analysisResize: resizeMethod,
         l0JacobiIterations: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
         l0BetaMax: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
       },
@@ -2891,6 +2962,8 @@
     minimalizeFile,
     _core: Object.freeze({
       fitSize,
+      nativeCompositeRgba,
+      resizeAnalysisRgba,
       buildHistogram,
       seedCenters,
       refineCenters,
