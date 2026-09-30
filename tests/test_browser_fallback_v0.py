@@ -31,6 +31,8 @@ def test_browser_fallback_v0_has_no_network_or_model_runtime_dependency():
     assert 'transformers' not in source.lower()
     assert 'rembg' not in source.lower()
     assert 'rtmlib' not in source.lower()
+    assert 'destination-in' not in source
+    assert 'rgb(255,255,255)' in source
 
 
 def test_browser_fallback_is_opt_in_and_railway_remains_default():
