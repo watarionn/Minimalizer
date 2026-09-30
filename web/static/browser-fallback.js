@@ -45,7 +45,7 @@
     l0Lambda: 0.010,
     l0Kappa: 2.0,
     l0BetaMax: 100.0,
-    l0JacobiIterations: 8,
+    l0JacobiIterations: 16,
     l0JacobiOmega: 0.80,
   });
 
@@ -2774,6 +2774,8 @@
       "X-Minimalizer-Safe-Merges": String(analysis.metrics.safeMergeCount),
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
+      "X-Minimalizer-Structural-Preprocess": "l0-lite-jacobi",
+      "X-Minimalizer-L0-Jacobi-Iterations": String(config.l0JacobiIterations),
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -2801,6 +2803,9 @@
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
         cutMaxHeight: analysis.metrics.cutMaxHeight,
+        structuralPreprocess: "l0-lite-jacobi",
+        l0JacobiIterations: config.l0JacobiIterations,
+        l0BetaMax: config.l0BetaMax,
       },
     };
   }
