@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v5";
+  const VERSION = "browser-fallback-v6";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
