@@ -17,6 +17,9 @@
     slicTargetMax: 1200,
     slicMinAverageArea: 64,
     paletteTarget: 8,
+    edgeCoverageThreshold: 0.75,
+    retryScale: 0.80,
+    maxRetryTargetFactor: 2.5,
   });
 
   function clamp(value, low, high) {
@@ -1016,6 +1019,81 @@
     return splitDisconnectedLabelsJs(labels, width, height);
   }
 
+  function oversegmentSpatial(lab, edge, width, height, config) {
+    const targetCount = targetSuperpixelCount(width, height, config);
+    const regionSize = regionSizeForTarget(width, height, targetCount);
+    const initial = runSlicoLite(
+      lab,
+      edge,
+      width,
+      height,
+      regionSize,
+      config.slicIterations,
+    );
+    const initialCoverage = structuralEdgeCoverageJs(
+      initial.labels,
+      edge,
+      width,
+      height,
+    );
+
+    if (initialCoverage >= config.edgeCoverageThreshold || regionSize <= 1) {
+      return {
+        ...initial,
+        targetCount,
+        regionSize,
+        edgeCoverage: initialCoverage,
+        retried: false,
+        initialEdgeCoverage: initialCoverage,
+      };
+    }
+
+    let retrySize = Math.max(1, Math.round(regionSize * config.retryScale));
+    if (retrySize >= regionSize) retrySize = regionSize - 1;
+    const retry = runSlicoLite(
+      lab,
+      edge,
+      width,
+      height,
+      retrySize,
+      config.slicIterations,
+    );
+    const retryCoverage = structuralEdgeCoverageJs(
+      retry.labels,
+      edge,
+      width,
+      height,
+    );
+    const countLimit = Math.max(
+      initial.regionCount,
+      Math.ceil(targetCount * config.maxRetryTargetFactor),
+    );
+    const keepRetry = (
+      retryCoverage > initialCoverage
+      && retry.regionCount <= countLimit
+    );
+    if (keepRetry) {
+      return {
+        ...retry,
+        targetCount,
+        regionSize: retrySize,
+        edgeCoverage: retryCoverage,
+        retried: true,
+        initialRegionCountBeforeRetry: initial.regionCount,
+        initialEdgeCoverage: initialCoverage,
+      };
+    }
+    return {
+      ...initial,
+      targetCount,
+      regionSize,
+      edgeCoverage: initialCoverage,
+      retried: false,
+      initialRegionCountBeforeRetry: initial.regionCount,
+      initialEdgeCoverage: initialCoverage,
+    };
+  }
+
   function labelBoundaryMask(labels, width, height) {
     const boundary = new Uint8Array(labels.length);
     for (let y = 0; y < height; y += 1) {
@@ -1411,22 +1489,16 @@
     const config = Object.assign({}, DEFAULTS, options || {});
     const lab = rgbaToLab(rgba, width, height);
     const edge = structuralEdgeMap(lab, width, height);
-    const targetCount = targetSuperpixelCount(width, height, config);
-    const regionSize = regionSizeForTarget(width, height, targetCount);
-    const segmented = runSlicoLite(
+    const segmented = oversegmentSpatial(
       lab,
       edge,
       width,
       height,
-      regionSize,
-      config.slicIterations,
+      config,
     );
-    const edgeCoverage = structuralEdgeCoverageJs(
-      segmented.labels,
-      edge,
-      width,
-      height,
-    );
+    const targetCount = segmented.targetCount;
+    const regionSize = segmented.regionSize;
+    const edgeCoverage = segmented.edgeCoverage;
     const initialGroups = buildSpatialGroups(
       segmented.labels,
       rgba,
@@ -1482,6 +1554,9 @@
         budgetMergeCount: reduced.mergeCount,
         componentCount: reduced.built.components.length,
         paletteCount: palette.palette.length,
+        retried: segmented.retried,
+        initialEdgeCoverage: segmented.initialEdgeCoverage,
+        initialRegionCountBeforeRetry: segmented.initialRegionCountBeforeRetry ?? segmented.regionCount,
         meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
         vertexCount,
       },
@@ -1611,6 +1686,7 @@
       "X-Minimalizer-Superpixel-Count": String(analysis.metrics.initialRegionCount),
       "X-Minimalizer-Edge-Coverage": analysis.metrics.edgeCoverage.toFixed(4),
       "X-Minimalizer-Palette-Count": String(analysis.metrics.paletteCount),
+      "X-Minimalizer-SLIC-Retried": analysis.metrics.retried ? "1" : "0",
     });
     return {
       response: new Response(blob, { status: 200, headers }),
@@ -1629,6 +1705,8 @@
         edgeCoverage: analysis.metrics.edgeCoverage,
         paletteCount: analysis.metrics.paletteCount,
         regionSize: analysis.metrics.regionSize,
+        retried: analysis.metrics.retried,
+        initialEdgeCoverage: analysis.metrics.initialEdgeCoverage,
       },
     };
   }
@@ -1656,6 +1734,7 @@
       targetSuperpixelCount,
       regionSizeForTarget,
       runSlicoLite,
+      oversegmentSpatial,
       splitDisconnectedLabelsJs,
       structuralEdgeCoverageJs,
       buildSpatialGroups,
