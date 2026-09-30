@@ -2,8 +2,8 @@
 
 Status: **STRUCTURAL PREPROCESSING IMPROVED / RAILWAY GRADUATION HOLD**
 
-Date: 2026-09-30  
-Branch: `feature/browser-fallback-v0-20260930`  
+Date: 2026-09-30
+Branch: `feature/browser-fallback-v0-20260930`
 Production default: **unchanged**. Railway remains the hosted escape hatch.
 
 ## Goal
