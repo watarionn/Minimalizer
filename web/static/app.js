@@ -522,7 +522,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = computeRoute === "browser"
-        ? "Minimalizer Browser Fallback v9"
+        ? "Minimalizer Browser Fallback v10"
         : v2Contract
           ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
           : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
@@ -567,7 +567,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
             ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
             : "ローカル高精度Workerでミニマル化が完了しました。"
           : computeRoute === "browser"
-            ? "Browser fallback v9でミニマル化が完了しました。"
+            ? "Browser fallback v10でミニマル化が完了しました。"
             : fallbackReason
               ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
               : "Railwayでミニマル化が完了しました。";
