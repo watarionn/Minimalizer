@@ -522,7 +522,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = computeRoute === "browser"
-        ? "Minimalizer Browser Fallback v10"
+        ? "Minimalizer Browser Fallback v11"
         : v2Contract
           ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
           : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";

@@ -687,15 +687,49 @@
     let sumX = 0;
     let sumY = 0;
     const pixels = [];
-    for (let y = stats.minY; y <= stats.maxY; y += 1) {
-      for (let x = stats.minX; x <= stats.maxX; x += 1) {
-        if (!pointInRings(x + 0.5, y + 0.5, loops)) continue;
-        const index = y * width + x;
-        mask[index] = 1;
-        area += 1;
-        sumX += x + 0.5;
-        sumY += y + 0.5;
-        pixels.push(index);
+    const exactRaster = (
+      typeof globalThis !== "undefined"
+      && globalThis.MinimalizerOpenCvRaster
+      && typeof globalThis.MinimalizerOpenCvRaster.rasterizeLoops === "function"
+    );
+
+    if (exactRaster) {
+      const localWidth = stats.maxX - stats.minX + 1;
+      const localHeight = stats.maxY - stats.minY + 1;
+      const shiftedLoops = (loops || []).map((loop) => loop.map((point) => [
+        point[0] - stats.minX,
+        point[1] - stats.minY,
+      ]));
+      const localMask = globalThis.MinimalizerOpenCvRaster.rasterizeLoops(
+        shiftedLoops,
+        localWidth,
+        localHeight,
+        2,
+      );
+      for (let localY = 0; localY < localHeight; localY += 1) {
+        const y = stats.minY + localY;
+        for (let localX = 0; localX < localWidth; localX += 1) {
+          if (!localMask[localY * localWidth + localX]) continue;
+          const x = stats.minX + localX;
+          const index = y * width + x;
+          mask[index] = 1;
+          area += 1;
+          sumX += x + 0.5;
+          sumY += y + 0.5;
+          pixels.push(index);
+        }
+      }
+    } else {
+      for (let y = stats.minY; y <= stats.maxY; y += 1) {
+        for (let x = stats.minX; x <= stats.maxX; x += 1) {
+          if (!pointInRings(x + 0.5, y + 0.5, loops)) continue;
+          const index = y * width + x;
+          mask[index] = 1;
+          area += 1;
+          sumX += x + 0.5;
+          sumY += y + 0.5;
+          pixels.push(index);
+        }
       }
     }
     return {
@@ -703,6 +737,7 @@
       area,
       pixels,
       centroid: area > 0 ? [sumX / area, sumY / area] : [0, 0],
+      rasterMethod: exactRaster ? "opencv-fillpoly-2x" : "pixel-center-evenodd",
     };
   }
 

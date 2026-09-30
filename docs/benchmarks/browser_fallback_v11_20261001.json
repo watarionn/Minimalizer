@@ -1,0 +1,302 @@
+{
+  "schema_version": "minimalizer-browser-fallback-benchmark-v11",
+  "date": "2026-10-01",
+  "browser_engine": "browser-fallback-v11",
+  "branch": "feature/browser-fallback-v11-raster-parity-20261001",
+  "production_default_changed": false,
+  "raster_contract": {
+    "method": "opencv-fillpoly-2x",
+    "implementation": "web/static/opencv-fill-raster.js",
+    "network_dependency": false,
+    "model_runtime_dependency": false,
+    "same_loop_probe": {
+      "Juufuutei-Raden_list_thumb": {
+        "pixel_exact": true,
+        "changed_pixel_ratio": 0,
+        "rgb_mae": 0,
+        "ssim": 1,
+        "edge_iou": 1
+      },
+      "Oozora-Subaru_list_thumb": {
+        "pixel_exact": true,
+        "changed_pixel_ratio": 0,
+        "rgb_mae": 0,
+        "ssim": 1,
+        "edge_iou": 1
+      },
+      "Shirogane-Noel_list_thumb": {
+        "pixel_exact": true,
+        "changed_pixel_ratio": 0,
+        "rgb_mae": 0,
+        "ssim": 1,
+        "edge_iou": 1
+      }
+    }
+  },
+  "contour_guard_parity": {
+    "Juufuutei-Raden_list_thumb": {
+      "python": {
+        "original_vertices": 6368,
+        "simplified_vertices": 717,
+        "fallback_chains": 4,
+        "rejected_candidates": 16,
+        "min_region_iou": 0.9178082191780822
+      },
+      "browser": {
+        "original_vertices": 6368,
+        "simplified_vertices": 720,
+        "fallback_chains": 4,
+        "rejected_candidates": 16,
+        "min_region_iou": 0.9178082191780822
+      },
+      "cross_region": {
+        "mean_iou": 0.9991952966342215,
+        "p10_iou": 0.9993922234581438,
+        "min_iou": 0.9881305637982196
+      },
+      "contour_render": {
+        "ssim": 0.998935840042171,
+        "edge_iou": 0.9826782145236509,
+        "mae": 0.025302768166089964
+      }
+    },
+    "Oozora-Subaru_list_thumb": {
+      "python": {
+        "original_vertices": 7049,
+        "simplified_vertices": 1380,
+        "fallback_chains": 8,
+        "rejected_candidates": 44,
+        "min_region_iou": 0.9111111111111111
+      },
+      "browser": {
+        "original_vertices": 7049,
+        "simplified_vertices": 1378,
+        "fallback_chains": 8,
+        "rejected_candidates": 44,
+        "min_region_iou": 0.9111111111111111
+      },
+      "cross_region": {
+        "mean_iou": 0.9988547083955774,
+        "p10_iou": 0.9991065375339463,
+        "min_iou": 0.9714673913043478
+      },
+      "contour_render": {
+        "ssim": 0.9990197981613097,
+        "edge_iou": 0.9854662898667743,
+        "mae": 0.026856978085351788
+      }
+    },
+    "Shirogane-Noel_list_thumb": {
+      "python": {
+        "original_vertices": 6920,
+        "simplified_vertices": 1108,
+        "fallback_chains": 20,
+        "rejected_candidates": 90,
+        "min_region_iou": 0.904997748761819
+      },
+      "browser": {
+        "original_vertices": 6920,
+        "simplified_vertices": 1109,
+        "fallback_chains": 20,
+        "rejected_candidates": 90,
+        "min_region_iou": 0.904997748761819
+      },
+      "cross_region": {
+        "mean_iou": 0.9997430949505894,
+        "p10_iou": 1,
+        "min_iou": 0.9911991199119912
+      },
+      "contour_render": {
+        "pixel_exact": true,
+        "ssim": 1,
+        "edge_iou": 1,
+        "mae": 0
+      }
+    }
+  },
+  "profiles": {
+    "lite": {
+      "structural": "l0-lite-jacobi",
+      "contour": "legacy-independent-rings",
+      "raster": "canvas-evenodd",
+      "palette": "canonical-medoid-hierarchy",
+      "stability_probe": {
+        "case": "Juufuutei-Raden_list_thumb",
+        "processing_ms": 1192.7000000476837,
+        "pixel_exact_to_v9": true,
+        "changed_pixel_ratio": 0,
+        "rgb_mae": 0
+      }
+    },
+    "exact": {
+      "structural": "spectral-exact",
+      "contour": "canonical-shared-chain",
+      "raster": "opencv-fillpoly-2x",
+      "palette": "canonical-medoid-hierarchy"
+    }
+  },
+  "exact_five_case_summary": {
+    "mean_processing_ms": 9656.420000076294,
+    "proxy": {
+      "ssim": 0.991271535712398,
+      "edge_iou": 0.9112617572517137,
+      "mae": 0.6130473579630196
+    },
+    "railway": {
+      "ssim": 0.9052070113716976,
+      "edge_iou": 0.521595024072284,
+      "mae": 10.10167275842728
+    }
+  },
+  "exact_cases": {
+    "Juufuutei-Raden_list_thumb": {
+      "processing_ms": 9426,
+      "original_vertices": 6368,
+      "shared_vertices": 720,
+      "fallback_chains": 4,
+      "rejected_candidates": 16,
+      "min_region_iou": 0.9178082191780822,
+      "proxy": {
+        "ssim": 0.9982649959535337,
+        "edge_iou": 0.9796869796869797,
+        "mae": 0.10752595155709342
+      },
+      "railway": {
+        "ssim": 0.9237639715298371,
+        "edge_iou": 0.5669354838709677,
+        "mae": 7.706251441753172
+      }
+    },
+    "Oozora-Subaru_list_thumb": {
+      "processing_ms": 9644.700000047684,
+      "original_vertices": 7049,
+      "shared_vertices": 1378,
+      "fallback_chains": 8,
+      "rejected_candidates": 44,
+      "min_region_iou": 0.9111111111111111,
+      "proxy": {
+        "ssim": 0.9972659604657578,
+        "edge_iou": 0.9553006329113924,
+        "mae": 0.19055074971164937
+      },
+      "railway": {
+        "ssim": 0.9216719314497736,
+        "edge_iou": 0.5714693295292439,
+        "mae": 8.749913494809688
+      }
+    },
+    "Shirogane-Noel_list_thumb": {
+      "processing_ms": 9565.700000047684,
+      "original_vertices": 6920,
+      "shared_vertices": 1109,
+      "fallback_chains": 20,
+      "rejected_candidates": 90,
+      "min_region_iou": 0.904997748761819,
+      "proxy": {
+        "ssim": 0.9964384146868713,
+        "edge_iou": 0.9638128861429832,
+        "mae": 0.3114878892733564
+      },
+      "railway": {
+        "ssim": 0.8866422665084288,
+        "edge_iou": 0.3616258218768679,
+        "mae": 16.174094579008074
+      }
+    },
+    "Elizabeth-Rose-Bloodflame_pr-img_01": {
+      "processing_ms": 9425.800000190735,
+      "original_vertices": 6794,
+      "shared_vertices": 1209,
+      "fallback_chains": 9,
+      "rejected_candidates": 49,
+      "min_region_iou": 0.9045346062052506,
+      "proxy": {
+        "ssim": 0.9730010343514987,
+        "edge_iou": 0.75700024348673,
+        "mae": 2.130774021352313
+      },
+      "railway": {
+        "ssim": 0.8600680896536228,
+        "edge_iou": 0.33162330524001465,
+        "mae": 12.698208778173191
+      }
+    },
+    "Night-River-City_general": {
+      "processing_ms": 10219.900000095367,
+      "original_vertices": 7963,
+      "shared_vertices": 917,
+      "fallback_chains": 6,
+      "rejected_candidates": 47,
+      "min_region_iou": 0.9010629599345871,
+      "proxy": {
+        "ssim": 0.9913872731043293,
+        "edge_iou": 0.9005080440304827,
+        "mae": 0.324898177920686
+      },
+      "railway": {
+        "ssim": 0.9338887977168255,
+        "edge_iou": 0.7763211798443261,
+        "mae": 5.179895498392283
+      }
+    }
+  },
+  "historical": {
+    "v10_exact_proxy": {
+      "ssim": 0.9471167570659762,
+      "edge_iou": 0.47408489029261086,
+      "mae": 1.568175694264427
+    },
+    "v9_exact_proxy": {
+      "ssim": 0.9065,
+      "edge_iou": 0.3353,
+      "mae": 2.8992
+    },
+    "python_unguided_proxy_vs_railway": {
+      "ssim": 0.9067,
+      "edge_iou": 0.5332
+    }
+  },
+  "wrapper_smoke": {
+    "mode": "browser-fallback-v11",
+    "lite": {
+      "contour": "legacy-independent-rings",
+      "raster": "canvas-evenodd",
+      "palette": "canonical-medoid-hierarchy",
+      "resize": "opencv-inter-area"
+    },
+    "exact": {
+      "contour": "canonical-shared-chain",
+      "raster": "opencv-fillpoly-2x",
+      "palette": "canonical-medoid-hierarchy",
+      "resize": "opencv-inter-area"
+    },
+    "response_metadata_raster_match": true,
+    "status": "pass"
+  },
+  "validation": {
+    "focused_suite": "33 passed",
+    "full_regression": "82 passed",
+    "existing_warning": "Starlette/httpx deprecation",
+    "js_syntax": "pass",
+    "same_loop_raster_fixture": "pixel exact",
+    "real_chrome_wrapper": "pass",
+    "lite_pixel_stability": "pass",
+    "exact_five_case_browser_benchmark": "pass"
+  },
+  "gate": {
+    "same_loop_raster_parity": "pass",
+    "contour_candidate_guard_parity": "pass",
+    "contour_residual_closure": "pass",
+    "unguided_python_proxy_parity": "pass",
+    "lite_stability": "pass",
+    "railway_replacement": "hold",
+    "next_primary_stage": "Railway Graduation Prerequisites",
+    "remaining": [
+      "semantic guidance value of rembg",
+      "Elizabeth WebP and resized-input residual",
+      "large-image Browser memory hardening",
+      "Exact runtime profiling and optimization",
+      "Shin Free Server production routing and deployment"
+    ]
+  }
+}
