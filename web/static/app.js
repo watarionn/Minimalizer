@@ -5,6 +5,29 @@ const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
 const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
 const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
 const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
+const BROWSER_FALLBACK_STORAGE_KEY = "minimalizer.browserFallbackMode";
+
+const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
+if (browserFallbackParam === "1") {
+  window.localStorage.setItem(BROWSER_FALLBACK_STORAGE_KEY, "after-local");
+} else if (browserFallbackParam === "force") {
+  window.localStorage.setItem(BROWSER_FALLBACK_STORAGE_KEY, "force");
+} else if (browserFallbackParam === "0") {
+  window.localStorage.removeItem(BROWSER_FALLBACK_STORAGE_KEY);
+}
+
+function browserFallbackMode() {
+  const mode = window.localStorage.getItem(BROWSER_FALLBACK_STORAGE_KEY);
+  return mode === "force" ? "force" : mode === "after-local" ? "after-local" : "off";
+}
+
+function browserFallbackEnabled() {
+  return browserFallbackMode() !== "off";
+}
+
+function browserFallbackForced() {
+  return browserFallbackMode() === "force";
+}
 
 const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
 if (localWorkerParam === "1") {
@@ -108,7 +131,7 @@ function refreshEngineBadge() {
       enabled: `${workerName}優先`,
       checking: `${workerName}接続確認中`,
       ready: `${workerName}接続済み`,
-      fallback: "Railway fallback",
+      fallback: browserFallbackEnabled() ? "Browser fallback" : "Railway fallback",
     };
     parts.push(labels[state.localWorkerStatus] || `${workerName}優先`);
   }
@@ -124,7 +147,8 @@ function localWorkerFallbackMessage(reason = "") {
       : tailscale
         ? "携帯のTailscale接続とPC側のTailscale Serve / Local Workerを確認してください。"
         : "ブラウザのローカルネットワーク権限、またはLocal Workerの起動状態を確認してください。";
-  return `${localWorkerDisplayName()}に接続できなかったためRailway fallbackを使用します。 ${suffix}`;
+  const route = browserFallbackEnabled() ? "Browser fallback" : "Railway fallback";
+  return `${localWorkerDisplayName()}に接続できなかったため${route}を使用します。 ${suffix}`;
 }
 
 function currentMode() {
@@ -328,7 +352,24 @@ async function probeLocalWorker() {
   }
 }
 
+async function requestBrowserFallback() {
+  const engine = window.MinimalizerBrowserFallback;
+  if (!engine || typeof engine.minimalizeFile !== "function") {
+    throw new Error("Browser fallback engine is unavailable.");
+  }
+  const result = await engine.minimalizeFile(state.file, {
+    analysisMaxSide: 400,
+    workMaxSide: 192,
+    maxShapes: 40,
+  });
+  return result.response;
+}
+
 async function requestStandardV2() {
+  if (browserFallbackForced()) {
+    const response = await requestBrowserFallback();
+    return { response, compute: "browser", fallbackReason: "forced-browser" };
+  }
   let fallbackReason = "";
   if (localWorkerEnabled()) {
     const probe = await probeLocalWorker();
@@ -356,6 +397,15 @@ async function requestStandardV2() {
     state.localWorkerFallbackReason = fallbackReason;
     refreshEngineBadge();
     setStatus(localWorkerFallbackMessage(fallbackReason), true);
+  }
+  if (browserFallbackEnabled()) {
+    try {
+      const response = await requestBrowserFallback();
+      return { response, compute: "browser", fallbackReason: fallbackReason || "browser-opt-in" };
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "unknown browser error";
+      setStatus(`Browser fallbackに失敗したためRailwayへ退避します。 ${detail}`, true);
+    }
   }
   const response = await fetch("/api/v2/minimalize", {
     method: "POST",
@@ -454,9 +504,11 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
-      const modeLabel = v2Contract
-        ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
-        : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
+      const modeLabel = computeRoute === "browser"
+        ? "Minimalizer Browser Fallback v0"
+        : v2Contract
+          ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
+          : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
 
       const colorOptionLabel = responseMode === "color_strip"
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
@@ -466,7 +518,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const workerLabel = localWorkerDisplayName();
       const computeLabel = computeRoute === "local-worker"
         ? analysis ? `${workerLabel} · ${analysis}` : workerLabel
-        : fallbackReason ? "Railway fallback" : "Railway";
+        : computeRoute === "browser"
+          ? analysis ? `Browser fallback · ${analysis}` : "Browser fallback"
+          : fallbackReason ? "Railway fallback" : "Railway";
       elements.resultMeta.textContent = [
         modeLabel,
         computeLabel,
@@ -478,7 +532,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 
     if (download) downloadBlob(blob, filename);
     if (download) {
-      if (fallbackReason) {
+      if (computeRoute === "browser") {
+        setStatus(`${label}をBrowser fallbackで保存しました。`, Boolean(fallbackReason && fallbackReason !== "forced-browser"));
+      } else if (fallbackReason) {
         setStatus(
           `${label}をRailway fallbackで保存しました。 ${localWorkerFallbackMessage(fallbackReason)}`,
           true,
@@ -493,10 +549,13 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
           ? localWorkerMode() === "tailscale"
             ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
             : "ローカル高精度Workerでミニマル化が完了しました。"
-          : fallbackReason
-            ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
-            : "Railwayでミニマル化が完了しました。";
-      setStatus(completionMessage, Boolean(fallbackReason));
+          : computeRoute === "browser"
+            ? "Browser fallback v0でミニマル化が完了しました。"
+            : fallbackReason
+              ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
+              : "Railwayでミニマル化が完了しました。";
+      const routeWarning = computeRoute === "railway" && Boolean(fallbackReason);
+      setStatus(completionMessage, routeWarning);
     }
   } catch (error) {
     if (preview && !state.resultBlob) {
