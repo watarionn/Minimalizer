@@ -199,23 +199,20 @@
     });
   }
 
-  function reassignCounts(rgba, width, height, selected, alphaThreshold) {
+  function reassignCounts(entries, selected) {
     const counts = new Array(selected.length).fill(0);
     const labs = selected.map(function (item) { return rgbToLab(item.rgb); });
-    for (let index = 0; index < width * height; index += 1) {
-      const offset = index * 4;
-      if (rgba[offset + 3] <= alphaThreshold) continue;
-      const lab = rgbToLab([rgba[offset], rgba[offset + 1], rgba[offset + 2]]);
+    for (const entry of entries) {
       let best = 0;
       let bestDistance = Number.POSITIVE_INFINITY;
       for (let center = 0; center < labs.length; center += 1) {
-        const distance = labDistance(lab, labs[center]);
+        const distance = labDistance(entry.lab, labs[center]);
         if (distance < bestDistance) {
           bestDistance = distance;
           best = center;
         }
       }
-      counts[best] += 1;
+      counts[best] += entry.count;
     }
     return selected.map(function (item, index) {
       return { rgb: item.rgb.slice(), count: counts[index] };
@@ -437,14 +434,15 @@
         borderLabs(rgba, analysis.width, analysis.height)
       );
     } else {
-      const merged = mergeCandidates(built.entries, config.similarity);
+      const merged = mergeCandidates(built.entries.slice(0, 512), config.similarity);
       selected = config.selectionMode === "featured"
         ? selectFeatured(merged, built.totalVisible, config.colorCount)
         : merged.slice(0, config.colorCount);
     }
 
     let colors = reassignCounts(
-      rgba, analysis.width, analysis.height, selected.slice(0, config.colorCount), alphaThreshold
+      built.entries,
+      selected.slice(0, config.colorCount)
     ).filter(function (item) { return item.count > 0; });
     const reassignedTotal = colors.reduce(function (sum, item) { return sum + item.count; }, 0);
     colors = colors.map(function (item) {
