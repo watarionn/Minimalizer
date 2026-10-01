@@ -3712,7 +3712,7 @@
     ) {
       try {
         subjectGuidance = await globalThis.MinimalizerBrowserSubject.predict(
-          image,
+          file,
           {
             targetWidth: workSize.width,
             targetHeight: workSize.height,
@@ -3780,6 +3780,7 @@
       "X-Minimalizer-Subject-Guidance": subjectGuidance ? subjectGuidance.provider : "unguided",
       "X-Minimalizer-Subject-Model": subjectGuidance ? subjectGuidance.model : "none",
       "X-Minimalizer-Subject-Inference-Ms": subjectGuidance ? subjectGuidance.inferenceMs.toFixed(1) : "0.0",
+      "X-Minimalizer-Subject-Decode": subjectGuidance ? subjectGuidance.decodeMethod : "none",
       "X-Minimalizer-L0-Jacobi-Iterations": String(
         analysis.metrics.structuralPreprocess === "l0-lite-jacobi"
           ? config.l0JacobiIterations
@@ -3831,6 +3832,7 @@
         subjectInferenceMs: subjectGuidance ? subjectGuidance.inferenceMs : 0,
         subjectSessionMs: subjectGuidance ? subjectGuidance.sessionMs : 0,
         subjectProcessingMs: subjectGuidance ? subjectGuidance.processingMs : 0,
+        subjectDecodeMethod: subjectGuidance ? subjectGuidance.decodeMethod : null,
         subjectResizeMethod: subjectGuidance ? subjectGuidance.resizeMethod : null,
         subjectGuidanceError,
         subjectGuided: Boolean(subjectGuidance),
