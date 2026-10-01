@@ -35,6 +35,7 @@
     thinNeckTau: 0.15,
     colorWeight: 0.30,
     boundaryWeight: 0.25,
+    structureWeight: 0.15,
     topologyWeight: 0.10,
     geometryWeight: 0.10,
     redundancyWeight: 0.15,
@@ -43,9 +44,14 @@
     safeAreaRatio: 0.0008,
     safeColorCost: 0.08,
     safeBoundaryCost: 0.15,
+    safeStructureCost: 0.05,
     safeTopologyCost: 0.25,
     safeSharedBoundaryRatio: 0.35,
     safeSoftProtection: 0.02,
+    subjectHighThreshold: 0.80,
+    backgroundLowThreshold: 0.20,
+    subjectConfidenceThreshold: 0.80,
+    subjectProtectionWeight: 0.25,
     hierarchyTargetMin: 24,
     hierarchyTargetMax: 40,
     maxHierarchyHeight: 1.00,
@@ -1759,7 +1765,7 @@
     return convexHullPoints(points);
   }
 
-  function buildCanonicalRegionGraph(labels, rgba, lab, rawEdge, structuralEdge, width, height, bins) {
+  function buildCanonicalRegionGraph(labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence, width, height, bins) {
     let maxLabel = -1;
     for (let i = 0; i < labels.length; i += 1) maxLabel = Math.max(maxLabel, labels[i]);
     const regionCount = maxLabel + 1;
@@ -1782,6 +1788,10 @@
         rgb: [0, 0, 0],
         hull: [],
         hullArea: 0,
+        subjectProbSum: 0,
+        subjectConfidenceSum: 0,
+        subjectRatio: 0,
+        subjectConfidence: 0,
       });
     }
     for (let index = 0; index < labels.length; index += 1) {
@@ -1802,11 +1812,15 @@
         node.sumSqLab[k] += lab[lo + k] * lab[lo + k];
         node.rgbSum[k] += rgba[ro + k];
       }
+      if (subjectProb) node.subjectProbSum += subjectProb[index];
+      if (subjectConfidence) node.subjectConfidenceSum += subjectConfidence[index];
     }
     for (const node of nodes.values()) {
       node.lab = node.sumLab.map((v) => v / node.count);
       node.rgb = node.rgbSum.map((v) => Math.round(v / node.count));
       node.perimeter = node.count * 4;
+      node.subjectRatio = node.subjectProbSum / node.count;
+      node.subjectConfidence = node.subjectConfidenceSum / node.count;
     }
 
     const adjacency = new Map();
@@ -1910,6 +1924,29 @@
     return clamp(edge.shared / Math.max(1e-12, Math.min(left.perimeter, right.perimeter)), 0, 1);
   }
 
+  function canonicalStructureCost(left, right) {
+    return clamp(
+      Math.abs(left.subjectRatio - right.subjectRatio)
+      * Math.min(left.subjectConfidence, right.subjectConfidence),
+      0,
+      1,
+    );
+  }
+
+  function canonicalSubjectBackgroundBlocked(left, right, config) {
+    const leftConfident = left.subjectConfidence >= config.subjectConfidenceThreshold;
+    const rightConfident = right.subjectConfidence >= config.subjectConfidenceThreshold;
+    if (!leftConfident || !rightConfident) return false;
+    const leftSubject = left.subjectRatio >= config.subjectHighThreshold;
+    const rightSubject = right.subjectRatio >= config.subjectHighThreshold;
+    const leftBackground = left.subjectRatio <= config.backgroundLowThreshold;
+    const rightBackground = right.subjectRatio <= config.backgroundLowThreshold;
+    return (
+      (leftSubject && rightBackground)
+      || (rightSubject && leftBackground)
+    );
+  }
+
   function canonicalTopologyCost(left, right, edge, config) {
     const ratio = canonicalSharedBoundaryRatio(left, right, edge);
     return clamp(Math.exp(-ratio / config.thinNeckTau), 0, 1);
@@ -1940,15 +1977,18 @@
   function evaluateCanonicalMerge(left, right, edge, imageArea, config) {
     const colorCost = canonicalColorCost(left, right, config);
     const boundaryCost = canonicalBoundaryCost(edge);
+    const structureCost = canonicalStructureCost(left, right);
     const topologyCost = canonicalTopologyCost(left, right, edge, config);
     const geometryCost = canonicalGeometryCost(left, right, config);
     const softProtection = canonicalSoftProtection(left, right, imageArea, config);
     const redundancyReward = canonicalRedundancyReward(
       left, right, edge, imageArea, colorCost, boundaryCost,
     );
-    const totalCost = clamp(
+    const blocked = canonicalSubjectBackgroundBlocked(left, right, config);
+    const totalCost = blocked ? Number.POSITIVE_INFINITY : clamp(
       config.colorWeight * colorCost
       + config.boundaryWeight * boundaryCost
+      + config.structureWeight * structureCost
       + config.topologyWeight * topologyCost
       + config.geometryWeight * geometryCost
       + softProtection
@@ -1957,10 +1997,11 @@
       1.35,
     );
     return {
-      allowed: true,
+      allowed: !blocked,
       totalCost,
       colorCost,
       boundaryCost,
+      structureCost,
       topologyCost,
       geometryCost,
       softProtection,
@@ -1971,9 +2012,11 @@
   function canonicalSafeCandidate(left, right, edge, evaluation, imageArea, config) {
     const areaRatio = Math.min(left.count, right.count) / imageArea;
     return (
-      areaRatio <= config.safeAreaRatio
+      evaluation.allowed
+      && areaRatio <= config.safeAreaRatio
       && evaluation.colorCost <= config.safeColorCost
       && evaluation.boundaryCost <= config.safeBoundaryCost
+      && evaluation.structureCost <= config.safeStructureCost
       && evaluation.topologyCost <= config.safeTopologyCost
       && canonicalSharedBoundaryRatio(left, right, edge) >= config.safeSharedBoundaryRatio
       && evaluation.softProtection <= config.safeSoftProtection
@@ -2081,9 +2124,15 @@
       rgb: [0, 0, 0],
       hull: mergedHull,
       hullArea: Math.max(1, polygonArea(mergedHull)),
+      subjectProbSum: left.subjectProbSum + right.subjectProbSum,
+      subjectConfidenceSum: left.subjectConfidenceSum + right.subjectConfidenceSum,
+      subjectRatio: 0,
+      subjectConfidence: 0,
     };
     node.lab = node.sumLab.map((v) => v / total);
     node.rgb = node.rgbSum.map((v) => Math.round(v / total));
+    node.subjectRatio = node.subjectProbSum / total;
+    node.subjectConfidence = node.subjectConfidenceSum / total;
 
     const neighbors = new Set([
       ...graph.adjacency.get(leftId),
@@ -2176,6 +2225,10 @@
       config,
     );
     metrics.evaluationCount += 1;
+    if (!evaluation.allowed) {
+      metrics.blockedEvaluationCount = (metrics.blockedEvaluationCount || 0) + 1;
+      return;
+    }
     const safe = canonicalSafeCandidate(
       graph.nodes.get(leftId),
       graph.nodes.get(rightId),
@@ -2209,6 +2262,10 @@
       const edge = graph.edges.get(key);
       const evaluation = evaluateCanonicalMerge(left, right, edge, imageArea, config);
       metrics.evaluationCount += 1;
+      if (!evaluation.allowed) {
+        metrics.blockedEvaluationCount = (metrics.blockedEvaluationCount || 0) + 1;
+        continue;
+      }
       const safe = canonicalSafeCandidate(left, right, edge, evaluation, imageArea, config);
       if (safe) metrics.safeCandidateCount += 1;
       if (safeOnly && !safe) continue;
@@ -2483,9 +2540,10 @@
     };
   }
 
-  function runCanonicalRegionHierarchy(labels, rgba, lab, rawEdge, structuralEdge, width, height, config) {
+  function runCanonicalRegionHierarchy(labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence, width, height, config) {
     const graph = buildCanonicalRegionGraph(
-      labels, rgba, lab, rawEdge, structuralEdge, width, height, config.gradientBins,
+      labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence,
+      width, height, config.gradientBins,
     );
     const tree = initializeCanonicalTree(graph);
     const metrics = {
@@ -3140,6 +3198,8 @@
     const segmented = oversegmentSpatial(
       structuralLab,
       structuralEdge,
+      config.subjectProb || null,
+      config.subjectConfidence || null,
       width,
       height,
       config,
@@ -3237,7 +3297,9 @@
         hierarchyMergeCount: hierarchy.hierarchyMergeCount,
         finalRootCount: hierarchy.finalRootCount,
         mergeEvaluationCount: hierarchy.evaluationCount,
+        blockedMergeEvaluationCount: hierarchy.blockedEvaluationCount || 0,
         safeCandidateCount: hierarchy.safeCandidateCount,
+        subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: hierarchy.selectedCount,
         cutObjective: hierarchy.cutObjective,
