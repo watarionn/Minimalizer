@@ -1,8 +1,27 @@
 # Minimalizer Web deployment
 
-Checked: 2026-09-08
+Checked: 2026-10-01
 
-Minimalizer Web is a stateless FastAPI service. It does not require a database or persistent disk for the current feature set. Uploaded images are written only to a per-request temporary directory, processed synchronously, and removed when the request ends.
+## Current production architecture
+
+Browser Fallback v12 removes the public frontend's runtime dependency on a hosted Minimalizer API. The target production topology is:
+
+- Shin Free Server: static HTML/CSS/JS, vendored ONNX Runtime WASM, and the u2netp browser model
+- owner Local Worker: optional high-quality primary compute path when the browser is opted in
+- Browser Fallback v12: default public compute path and Local Worker fallback
+- Railway: no longer part of the frontend runtime routing contract
+
+Build the static document root with:
+
+```powershell
+python scripts\build_shin_static.py
+```
+
+The output is `dist\shin`. Before switching the owner browser to Local Worker on the final public origin, configure that HTTPS origin with `scripts\set_local_worker_origin.ps1`.
+
+The FastAPI container documentation below is retained as historical/portable server deployment reference. It is not required by the Browser Fallback v12 static production path.
+
+Minimalizer Web's optional server implementation is a stateless FastAPI service. It does not require a database or persistent disk for the current feature set. Uploaded images are written only to a per-request temporary directory, processed synchronously, and removed when the request ends.
 
 ## Container contract
 
@@ -61,7 +80,7 @@ The guided V2 production path uses rembg `u2netp`. The production ONNX Runtime s
 
 The existing 52.21 MP engine stress result demonstrates engine capability on the development machine, not a guarantee that a small cloud instance can process the same image safely.
 
-## Railway pilot
+## Legacy Railway pilot (historical)
 
 Railway is the preferred first hosted pilot target.
 
@@ -113,7 +132,7 @@ References:
 - https://fly.io/pricing/
 - https://fly.io/docs/about/pricing/
 
-## Before widening public access
+## Legacy hosted-pilot checklist (historical)
 
 - enable Railway billing/spend controls appropriate to the account;
 - verify deployed `/health`, `/`, `/api/info`, and `/docs`;
