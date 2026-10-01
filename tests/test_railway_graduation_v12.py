@@ -14,6 +14,7 @@ APP_JS = ROOT / "web" / "static" / "app.js"
 INDEX_HTML = ROOT / "web" / "static" / "index.html"
 BROWSER_ENGINE = ROOT / "web" / "static" / "browser-fallback.js"
 COLOR_STRIP = ROOT / "web" / "static" / "browser-color-strip.js"
+FEATURE_PALETTE = ROOT / "web" / "static" / "browser-feature-palette.js"
 SHIN_BUILDER = ROOT / "scripts" / "build_shin_static.py"
 ORIGIN_SETTER = ROOT / "scripts" / "set_local_worker_origin.ps1"
 START_WORKER = ROOT / "scripts" / "start_local_worker.ps1"
@@ -33,7 +34,8 @@ def test_static_runtime_has_no_railway_or_hosted_api_dependency():
 def test_static_index_loads_all_browser_engines_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
     assert '/docs' not in html
-    assert html.index('/static/browser-fallback.js') < html.index('/static/browser-color-strip.js')
+    assert html.index('/static/browser-fallback.js') < html.index('/static/browser-feature-palette.js')
+    assert html.index('/static/browser-feature-palette.js') < html.index('/static/browser-color-strip.js')
     assert html.index('/static/browser-color-strip.js') < html.index('/static/app.js')
 
 
@@ -44,6 +46,10 @@ def test_browser_color_strip_is_self_hosted_and_network_free():
     assert '"browser"' in source
     assert 'fetch(' not in source
     assert 'WebSocket' not in source
+    feature_source = FEATURE_PALETTE.read_text(encoding="utf-8")
+    assert 'browser-feature-palette-v1' in feature_source
+    assert 'fetch(' not in feature_source
+    assert 'WebSocket' not in feature_source
     assert 'onnx' not in source.lower()
     assert 'rembg' not in source.lower()
     assert 'rtmlib' not in source.lower()
@@ -117,6 +123,7 @@ def test_shin_builder_produces_static_document_root(tmp_path):
     assert (output / "static" / "app.js").is_file()
     assert (output / "static" / "browser-fallback.js").is_file()
     assert (output / "static" / "browser-color-strip.js").is_file()
+    assert (output / "static" / "browser-feature-palette.js").is_file()
 
     app_source = (output / "static" / "app.js").read_text(encoding="utf-8")
     assert "Railway" not in app_source
