@@ -1,6 +1,6 @@
 import * as ort from "./vendor/onnxruntime/ort.wasm.min.mjs";
 
-const VERSION = "browser-subject-u2netp-v1";
+const VERSION = "browser-subject-u2netp-v2";
 const MODEL_SIZE = 320;
 const MEAN = [0.485, 0.456, 0.406];
 const STD = [0.229, 0.224, 0.225];
@@ -30,6 +30,8 @@ function context2d(canvas) {
 function nativeImageRgb(image) {
   const canvas = canvasElement(image.width, image.height);
   const context = context2d(canvas);
+  context.fillStyle = "rgb(255,255,255)";
+  context.fillRect(0, 0, image.width, image.height);
   context.drawImage(image, 0, 0, image.width, image.height);
   const rgba = context.getImageData(0, 0, image.width, image.height).data;
   const rgb = new Uint8ClampedArray(image.width * image.height * 3);
@@ -46,6 +48,8 @@ function nativeImageRgb(image) {
 function canvasResizeRgb(image) {
   const canvas = canvasElement(MODEL_SIZE, MODEL_SIZE);
   const context = context2d(canvas);
+  context.fillStyle = "rgb(255,255,255)";
+  context.fillRect(0, 0, MODEL_SIZE, MODEL_SIZE);
   context.imageSmoothingEnabled = true;
   if ("imageSmoothingQuality" in context) context.imageSmoothingQuality = "high";
   context.drawImage(image, 0, 0, image.width, image.height, 0, 0, MODEL_SIZE, MODEL_SIZE);
