@@ -124,6 +124,14 @@ def test_shin_builder_produces_static_document_root(tmp_path):
     assert (output / "static" / "browser-fallback.js").is_file()
     assert (output / "static" / "browser-color-strip.js").is_file()
     assert (output / "static" / "browser-feature-palette.js").is_file()
+    assert (output / "static" / "models" / "u2netp.onnx").is_file()
+    assert (
+        output / "static" / "vendor" / "onnxruntime" / "ort.wasm.min.mjs"
+    ).is_file()
+    assert (
+        output / "static" / "vendor" / "onnxruntime" / "ort-wasm-simd-threaded.wasm"
+    ).is_file()
+    assert not (output / "static" / "index.html").exists()
 
     app_source = (output / "static" / "app.js").read_text(encoding="utf-8")
     assert "Railway" not in app_source
