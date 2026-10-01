@@ -2338,7 +2338,15 @@
     for (const regionId of tree.mergeSequence) {
       const node = tree.nodes.get(regionId);
       const areaRatio = node.stats.count / totalPixels;
-      const mergeLoss = node.rawMergeCost * Math.sqrt(Math.max(areaRatio, 0));
+      const subjectConfidence = Number.isFinite(node.stats.subjectConfidence)
+        ? node.stats.subjectConfidence
+        : 0;
+      const protectionWeight = 1 + config.subjectProtectionWeight * subjectConfidence;
+      const mergeLoss = (
+        node.rawMergeCost
+        * Math.sqrt(Math.max(areaRatio, 0))
+        * protectionWeight
+      );
       losses.set(
         regionId,
         losses.get(node.leftId) + losses.get(node.rightId) + mergeLoss,
@@ -2844,6 +2852,22 @@
 
   function buildCanonicalPaletteRelationships(samples, labels, width, height, config) {
     const totalPixels = labels.length;
+    const subjectStats = samples.map(() => ({ count: 0, prob: 0, confidence: 0 }));
+    if (config.subjectProb && config.subjectConfidence) {
+      for (let index = 0; index < labels.length; index += 1) {
+        const regionId = labels[index];
+        const stats = subjectStats[regionId];
+        stats.count += 1;
+        stats.prob += config.subjectProb[index];
+        stats.confidence += config.subjectConfidence[index];
+      }
+      for (const stats of subjectStats) {
+        if (stats.count > 0) {
+          stats.prob /= stats.count;
+          stats.confidence /= stats.count;
+        }
+      }
+    }
     const major = new Set(
       samples
         .filter((sample) => sample.pixelCount / totalPixels >= config.paletteMajorRegionAreaRatio)
@@ -2868,11 +2892,39 @@
         const id = labels[index];
         if (x + 1 < width) {
           const other = labels[index + 1];
-          if (id !== other && major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+          if (id !== other) {
+            if (major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+            if (config.subjectProb && config.subjectConfidence) {
+              const a = subjectStats[id], b = subjectStats[other];
+              const subjectBackground = (
+                a.confidence >= config.subjectConfidenceThreshold
+                && b.confidence >= config.subjectConfidenceThreshold
+                && (
+                  (a.prob >= config.subjectHighThreshold && b.prob <= config.backgroundLowThreshold)
+                  || (b.prob >= config.subjectHighThreshold && a.prob <= config.backgroundLowThreshold)
+                )
+              );
+              if (subjectBackground) add(id, other, "subject_background", 1.00);
+            }
+          }
         }
         if (y + 1 < height) {
           const other = labels[index + width];
-          if (id !== other && major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+          if (id !== other) {
+            if (major.has(id) && major.has(other)) add(id, other, "adjacent_major", 0.80);
+            if (config.subjectProb && config.subjectConfidence) {
+              const a = subjectStats[id], b = subjectStats[other];
+              const subjectBackground = (
+                a.confidence >= config.subjectConfidenceThreshold
+                && b.confidence >= config.subjectConfidenceThreshold
+                && (
+                  (a.prob >= config.subjectHighThreshold && b.prob <= config.backgroundLowThreshold)
+                  || (b.prob >= config.subjectHighThreshold && a.prob <= config.backgroundLowThreshold)
+                )
+              );
+              if (subjectBackground) add(id, other, "subject_background", 1.00);
+            }
+          }
         }
       }
     }
@@ -2899,6 +2951,7 @@
 
   function canonicalPaletteRelationshipRisk(first, second, relationships, config) {
     let risk = 0;
+    let blocked = false;
     for (const relationship of relationships) {
       const spans = (
         first.memberRegions.includes(relationship.regionA)
@@ -2913,8 +2966,15 @@
         Math.abs(relationship.originalDeltaL) / config.paletteSignificantDeltaL,
       );
       risk = Math.max(risk, relationship.protection * Math.min(contrast, 1));
+      if (
+        relationship.protection >= 0.95
+        && (
+          relationship.originalDeltaE >= config.paletteContrastOriginalDeltaE
+          || Math.abs(relationship.originalDeltaL) >= config.paletteSignificantDeltaL
+        )
+      ) blocked = true;
     }
-    return risk;
+    return { risk, blocked };
   }
 
   function canonicalPaletteRepresentative(memberRegions, samples, distances, count) {
@@ -2977,10 +3037,11 @@
             left.representativeRegionId * count + right.representativeRegionId
           ];
           const colorCost = Math.min(colorDistance / config.paletteColorDistanceScale, 1);
-          const relationshipCost = canonicalPaletteRelationshipRisk(
+          const relationship = canonicalPaletteRelationshipRisk(
             left, right, relationships, config,
           );
-          const totalCost = 0.65 * colorCost + 0.10 * relationshipCost;
+          if (relationship.blocked) continue;
+          const totalCost = 0.65 * colorCost + 0.10 * relationship.risk;
           const candidate = { totalCost, leftId, rightId };
           if (
             best === null
