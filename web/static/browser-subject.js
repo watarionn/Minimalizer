@@ -27,21 +27,33 @@ function context2d(canvas) {
   return context;
 }
 
+function compositeRgbaToWhiteRgb(rgba, width, height) {
+  const rgb = new Uint8ClampedArray(width * height * 3);
+  for (let index = 0; index < width * height; index += 1) {
+    const ro = index * 4;
+    const oo = index * 3;
+    const alpha = rgba[ro + 3];
+    if (alpha >= 255) {
+      rgb[oo] = rgba[ro];
+      rgb[oo + 1] = rgba[ro + 1];
+      rgb[oo + 2] = rgba[ro + 2];
+      continue;
+    }
+    const inverse = 255 - alpha;
+    rgb[oo] = Math.round((rgba[ro] * alpha + 255 * inverse) / 255);
+    rgb[oo + 1] = Math.round((rgba[ro + 1] * alpha + 255 * inverse) / 255);
+    rgb[oo + 2] = Math.round((rgba[ro + 2] * alpha + 255 * inverse) / 255);
+  }
+  return rgb;
+}
+
 function nativeImageRgbCanvas(image) {
   const canvas = canvasElement(image.width, image.height);
   const context = context2d(canvas);
   context.clearRect(0, 0, image.width, image.height);
   context.drawImage(image, 0, 0, image.width, image.height);
   const rgba = context.getImageData(0, 0, image.width, image.height).data;
-  const rgb = new Uint8ClampedArray(image.width * image.height * 3);
-  for (let index = 0; index < image.width * image.height; index += 1) {
-    const ro = index * 4;
-    const oo = index * 3;
-    rgb[oo] = rgba[ro];
-    rgb[oo + 1] = rgba[ro + 1];
-    rgb[oo + 2] = rgba[ro + 2];
-  }
-  return rgb;
+  return compositeRgbaToWhiteRgb(rgba, image.width, image.height);
 }
 
 function nativeImageRgbWebGl(image) {
@@ -90,15 +102,7 @@ function nativeImageRgbWebGl(image) {
       0, 0, image.width, image.height,
       gl.RGBA, gl.UNSIGNED_BYTE, rgba,
     );
-    const rgb = new Uint8ClampedArray(image.width * image.height * 3);
-    for (let index = 0; index < image.width * image.height; index += 1) {
-      const ro = index * 4;
-      const oo = index * 3;
-      rgb[oo] = rgba[ro];
-      rgb[oo + 1] = rgba[ro + 1];
-      rgb[oo + 2] = rgba[ro + 2];
-    }
-    return rgb;
+    return compositeRgbaToWhiteRgb(rgba, image.width, image.height);
   } finally {
     gl.deleteFramebuffer(framebuffer);
     gl.deleteTexture(texture);
@@ -359,6 +363,7 @@ export const MinimalizerBrowserSubject = Object.freeze({
   VERSION,
   predict,
   _core: Object.freeze({
+    compositeRgbaToWhiteRgb,
     nativeImageRgb,
     nativeImageRgbCanvas,
     nativeImageRgbWebGl,
