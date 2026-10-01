@@ -26,6 +26,9 @@
     paletteContrastAssignedDeltaE: 5.0,
     paletteSignificantDeltaL: 12.0,
     paletteMajorRegionAreaRatio: 0.03,
+    paletteSubjectRescueHighThreshold: 0.90,
+    paletteSubjectRescueConfidenceThreshold: 0.70,
+    paletteSubjectRescueColorDeltaE: 2.0,
     edgeCoverageThreshold: 0.75,
     retryScale: 0.80,
     maxRetryTargetFactor: 2.5,
@@ -2949,6 +2952,74 @@
       }));
   }
 
+  function buildCanonicalPaletteSubjectClasses(samples, labels, config) {
+    if (!config.subjectProb) return null;
+    const stats = samples.map(() => ({ count: 0, prob: 0, confidence: 0 }));
+    const hasConfidence = Boolean(config.subjectConfidence);
+    for (let index = 0; index < labels.length; index += 1) {
+      const regionId = labels[index];
+      const item = stats[regionId];
+      item.count += 1;
+      item.prob += config.subjectProb[index];
+      item.confidence += hasConfidence ? config.subjectConfidence[index] : 1;
+    }
+    const classes = new Int8Array(samples.length);
+    for (let regionId = 0; regionId < samples.length; regionId += 1) {
+      const item = stats[regionId];
+      if (item.count > 0) {
+        item.prob /= item.count;
+        item.confidence /= item.count;
+      }
+      if (item.confidence < config.subjectConfidenceThreshold) {
+        classes[regionId] = 0;
+      } else if (item.prob >= config.subjectHighThreshold) {
+        classes[regionId] = 1;
+      } else if (item.prob <= config.backgroundLowThreshold) {
+        classes[regionId] = -1;
+      } else {
+        classes[regionId] = 0;
+      }
+    }
+    const backgrounds = [];
+    for (let regionId = 0; regionId < classes.length; regionId += 1) {
+      if (classes[regionId] === -1) backgrounds.push(regionId);
+    }
+    if (backgrounds.length === 0) return classes;
+    for (let regionId = 0; regionId < classes.length; regionId += 1) {
+      if (classes[regionId] !== 0) continue;
+      const item = stats[regionId];
+      if (
+        item.confidence < config.paletteSubjectRescueConfidenceThreshold
+        || item.confidence >= config.subjectConfidenceThreshold
+        || item.prob < config.paletteSubjectRescueHighThreshold
+      ) continue;
+      let closest = Number.POSITIVE_INFINITY;
+      for (const backgroundId of backgrounds) {
+        closest = Math.min(
+          closest,
+          ciede2000Scalar(samples[regionId].lab, samples[backgroundId].lab),
+        );
+      }
+      if (closest <= config.paletteSubjectRescueColorDeltaE) classes[regionId] = 1;
+    }
+    return classes;
+  }
+
+  function canonicalPaletteSubjectConflict(first, second, subjectClasses) {
+    if (!subjectClasses) return false;
+    let hasSubject = false;
+    let hasBackground = false;
+    for (const regionId of first.memberRegions) {
+      if (subjectClasses[regionId] === 1) hasSubject = true;
+      else if (subjectClasses[regionId] === -1) hasBackground = true;
+    }
+    for (const regionId of second.memberRegions) {
+      if (subjectClasses[regionId] === 1) hasSubject = true;
+      else if (subjectClasses[regionId] === -1) hasBackground = true;
+    }
+    return hasSubject && hasBackground;
+  }
+
   function canonicalPaletteRelationshipRisk(first, second, relationships, config) {
     let risk = 0;
     let blocked = false;
@@ -2996,7 +3067,7 @@
     return winner;
   }
 
-  function buildCanonicalPaletteHierarchy(samples, relationships, config) {
+  function buildCanonicalPaletteHierarchy(samples, relationships, config, subjectClasses = null) {
     const count = samples.length;
     const distances = new Float64Array(count * count);
     for (let a = 0; a < count; a += 1) {
@@ -3033,6 +3104,7 @@
         for (let j = i + 1; j < ids.length; j += 1) {
           const leftId = ids[i], rightId = ids[j];
           const left = nodes.get(leftId), right = nodes.get(rightId);
+          if (canonicalPaletteSubjectConflict(left, right, subjectClasses)) continue;
           const colorDistance = distances[
             left.representativeRegionId * count + right.representativeRegionId
           ];
@@ -3197,7 +3269,12 @@
     const relationships = buildCanonicalPaletteRelationships(
       samples, labels, width, height, config,
     );
-    const hierarchy = buildCanonicalPaletteHierarchy(samples, relationships, config);
+    const subjectClasses = buildCanonicalPaletteSubjectClasses(
+      samples, labels, config,
+    );
+    const hierarchy = buildCanonicalPaletteHierarchy(
+      samples, relationships, config, subjectClasses,
+    );
     const desiredCount = Math.max(
       1,
       Math.min(
@@ -3772,6 +3849,8 @@
       ciede2000Scalar,
       sampleCanonicalPaletteRegions,
       buildCanonicalPaletteRelationships,
+      buildCanonicalPaletteSubjectClasses,
+      canonicalPaletteSubjectConflict,
       buildCanonicalPaletteHierarchy,
       cutCanonicalPaletteHierarchy,
       repairCanonicalPaletteRelationships,
