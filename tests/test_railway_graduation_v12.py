@@ -24,6 +24,8 @@ def test_static_runtime_has_no_railway_or_hosted_api_dependency():
     source = APP_JS.read_text(encoding="utf-8")
     assert "Railway" not in source
     assert "railway.app" not in source
+    assert "Browser fallback v11" not in source
+    assert "Browser fallback v12" in source
     assert 'fetch("/api/v2/minimalize"' not in source
     assert 'fetch("/api/minimalize"' not in source
     assert 'fetch("/health")' not in source
