@@ -39,6 +39,12 @@ def build() -> Path:
     shutil.copytree(SOURCE, static_dir)
     shutil.copy2(SOURCE / "index.html", DESTINATION / "index.html")
     (static_dir / "index.html").unlink()
+    (static_dir / ".htaccess").write_text(
+        "AddType application/javascript .mjs\n"
+        "AddType application/wasm .wasm\n"
+        "AddType application/octet-stream .onnx\n",
+        encoding="utf-8",
+    )
 
     return DESTINATION
 
