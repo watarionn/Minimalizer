@@ -18,8 +18,8 @@ FORBIDDEN_RUNTIME_MARKERS = (
 
 
 def validate_static_runtime() -> None:
-    for path in sorted(SOURCE.glob("*")):
-        if path.suffix.lower() not in {".html", ".js", ".css"}:
+    for path in sorted(SOURCE.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in {".html", ".js", ".css"}:
             continue
         text = path.read_text(encoding="utf-8")
         for marker in FORBIDDEN_RUNTIME_MARKERS:
@@ -34,14 +34,11 @@ def build() -> Path:
     validate_static_runtime()
     if DESTINATION.exists():
         shutil.rmtree(DESTINATION)
-    static_dir = DESTINATION / "static"
-    static_dir.mkdir(parents=True)
 
+    static_dir = DESTINATION / "static"
+    shutil.copytree(SOURCE, static_dir)
     shutil.copy2(SOURCE / "index.html", DESTINATION / "index.html")
-    for path in sorted(SOURCE.iterdir()):
-        if not path.is_file() or path.name == "index.html":
-            continue
-        shutil.copy2(path, static_dir / path.name)
+    (static_dir / "index.html").unlink()
 
     return DESTINATION
 
