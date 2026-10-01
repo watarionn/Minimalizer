@@ -72,6 +72,26 @@
     "no_hosted_api_static_runtime": "PASS",
     "nested_model_runtime_packaging": "PASS",
     "local_worker_external_origin_config": "PASS",
-    "live_shin_cutover": "PENDING_DESTINATION_CONFIG"
+    "live_shin_cutover": "PASS"
+  },
+  "deployment_validation": {
+    "public_url": "https://cf278796.cloudfree.jp/minimalizer/",
+    "validated_head": "691ca9291489f09548f6ed0597473cd05ad7d003",
+    "shin_mime": {
+      "mjs": "application/javascript",
+      "wasm": "application/wasm",
+      "onnx": "application/octet-stream"
+    },
+    "live_browser_smoke": {
+      "status": 200,
+      "mode": "browser-fallback-v12",
+      "subject_resize": "pillow-lanczos+lanczos-source",
+      "processing_ms": 4259.700000047684
+    },
+    "local_worker": {
+      "origin": "https://cf278796.cloudfree.jp",
+      "health_status": 200,
+      "cors_allow_origin": "https://cf278796.cloudfree.jp"
+    }
   }
 }
