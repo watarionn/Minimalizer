@@ -102,7 +102,7 @@ def test_browser_fallback_v11_has_no_network_or_model_runtime_dependency():
     assert 'rtmlib' not in source.lower()
 
 
-def test_browser_fallback_is_opt_in_and_railway_remains_default():
+def test_browser_fallback_is_default_after_local_without_railway_runtime():
     source = APP_JS.read_text(encoding="utf-8")
     assert 'minimalizer.browserFallbackMode' in source
     assert 'minimalizer.browserFallbackQuality' in source
@@ -112,9 +112,14 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'browserFallbackParam === "1"' in source
     assert 'browserFallbackParam === "force"' in source
     assert 'browserFallbackParam === "0"' in source
+    assert 'return mode === "force" ? "force" : "after-local"' in source
     assert 'window.MinimalizerBrowserFallback' in source
+    assert 'window.MinimalizerBrowserColorStrip' in source
     assert 'compute: "browser"' in source
-    assert 'fetch("/api/v2/minimalize"' in source
+    assert 'fetch("/api/v2/minimalize"' not in source
+    assert 'fetch("/api/minimalize"' not in source
+    assert 'fetch("/health")' not in source
+    assert "Railway" not in source
     assert 'Minimalizer Browser Fallback v11' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
