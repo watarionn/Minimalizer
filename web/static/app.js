@@ -537,7 +537,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const modeLabel = responseMode === "color_strip"
         ? "Color Strip"
         : computeRoute === "browser"
-          ? "Minimalizer Browser Fallback v11"
+          ? "Minimalizer Browser Fallback v12"
           : v2Contract
             ? "Minimalizer 2.0 Local"
             : "Minimalizer";
