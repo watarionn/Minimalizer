@@ -139,6 +139,10 @@ def test_shin_builder_produces_static_document_root(tmp_path):
     assert (
         output / "static" / "vendor" / "onnxruntime" / "ort-wasm-simd-threaded.wasm"
     ).is_file()
+    mime_rules = (output / "static" / ".htaccess").read_text(encoding="utf-8")
+    assert "AddType application/javascript .mjs" in mime_rules
+    assert "AddType application/wasm .wasm" in mime_rules
+    assert "AddType application/octet-stream .onnx" in mime_rules
     assert not (output / "static" / "index.html").exists()
 
     app_source = (output / "static" / "app.js").read_text(encoding="utf-8")
