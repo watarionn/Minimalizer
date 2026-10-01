@@ -1765,7 +1765,7 @@
     return convexHullPoints(points);
   }
 
-  function buildCanonicalRegionGraph(labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence, width, height, bins) {
+  function buildCanonicalRegionGraph(labels, rgba, lab, rawEdge, structuralEdge, width, height, bins, subjectProb = null, subjectConfidence = null) {
     let maxLabel = -1;
     for (let i = 0; i < labels.length; i += 1) maxLabel = Math.max(maxLabel, labels[i]);
     const regionCount = maxLabel + 1;
@@ -1925,22 +1925,29 @@
   }
 
   function canonicalStructureCost(left, right) {
+    const leftRatio = Number.isFinite(left.subjectRatio) ? left.subjectRatio : 0;
+    const rightRatio = Number.isFinite(right.subjectRatio) ? right.subjectRatio : 0;
+    const leftConfidence = Number.isFinite(left.subjectConfidence) ? left.subjectConfidence : 0;
+    const rightConfidence = Number.isFinite(right.subjectConfidence) ? right.subjectConfidence : 0;
     return clamp(
-      Math.abs(left.subjectRatio - right.subjectRatio)
-      * Math.min(left.subjectConfidence, right.subjectConfidence),
+      Math.abs(leftRatio - rightRatio) * Math.min(leftConfidence, rightConfidence),
       0,
       1,
     );
   }
 
   function canonicalSubjectBackgroundBlocked(left, right, config) {
-    const leftConfident = left.subjectConfidence >= config.subjectConfidenceThreshold;
-    const rightConfident = right.subjectConfidence >= config.subjectConfidenceThreshold;
+    const leftRatio = Number.isFinite(left.subjectRatio) ? left.subjectRatio : 0;
+    const rightRatio = Number.isFinite(right.subjectRatio) ? right.subjectRatio : 0;
+    const leftConfidence = Number.isFinite(left.subjectConfidence) ? left.subjectConfidence : 0;
+    const rightConfidence = Number.isFinite(right.subjectConfidence) ? right.subjectConfidence : 0;
+    const leftConfident = leftConfidence >= config.subjectConfidenceThreshold;
+    const rightConfident = rightConfidence >= config.subjectConfidenceThreshold;
     if (!leftConfident || !rightConfident) return false;
-    const leftSubject = left.subjectRatio >= config.subjectHighThreshold;
-    const rightSubject = right.subjectRatio >= config.subjectHighThreshold;
-    const leftBackground = left.subjectRatio <= config.backgroundLowThreshold;
-    const rightBackground = right.subjectRatio <= config.backgroundLowThreshold;
+    const leftSubject = leftRatio >= config.subjectHighThreshold;
+    const rightSubject = rightRatio >= config.subjectHighThreshold;
+    const leftBackground = leftRatio <= config.backgroundLowThreshold;
+    const rightBackground = rightRatio <= config.backgroundLowThreshold;
     return (
       (leftSubject && rightBackground)
       || (rightSubject && leftBackground)
@@ -2540,10 +2547,12 @@
     };
   }
 
-  function runCanonicalRegionHierarchy(labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence, width, height, config) {
+  function runCanonicalRegionHierarchy(labels, rgba, lab, rawEdge, structuralEdge, width, height, config) {
     const graph = buildCanonicalRegionGraph(
-      labels, rgba, lab, rawEdge, structuralEdge, subjectProb, subjectConfidence,
+      labels, rgba, lab, rawEdge, structuralEdge,
       width, height, config.gradientBins,
+      config.subjectProb || null,
+      config.subjectConfidence || null,
     );
     const tree = initializeCanonicalTree(graph);
     const metrics = {
@@ -3198,8 +3207,6 @@
     const segmented = oversegmentSpatial(
       structuralLab,
       structuralEdge,
-      config.subjectProb || null,
-      config.subjectConfidence || null,
       width,
       height,
       config,
