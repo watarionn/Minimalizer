@@ -1,6 +1,6 @@
 import * as ort from "./vendor/onnxruntime/ort.wasm.min.mjs";
 
-const VERSION = "browser-subject-u2netp-v2";
+const VERSION = "browser-subject-u2netp-v3";
 const MODEL_SIZE = 320;
 const MEAN = [0.485, 0.456, 0.406];
 const STD = [0.229, 0.224, 0.225];
@@ -27,11 +27,10 @@ function context2d(canvas) {
   return context;
 }
 
-function nativeImageRgb(image) {
+function nativeImageRgbCanvas(image) {
   const canvas = canvasElement(image.width, image.height);
   const context = context2d(canvas);
-  context.fillStyle = "rgb(255,255,255)";
-  context.fillRect(0, 0, image.width, image.height);
+  context.clearRect(0, 0, image.width, image.height);
   context.drawImage(image, 0, 0, image.width, image.height);
   const rgba = context.getImageData(0, 0, image.width, image.height).data;
   const rgb = new Uint8ClampedArray(image.width * image.height * 3);
@@ -43,6 +42,86 @@ function nativeImageRgb(image) {
     rgb[oo + 2] = rgba[ro + 2];
   }
   return rgb;
+}
+
+function nativeImageRgbWebGl(image) {
+  const canvas = canvasElement(image.width, image.height);
+  const gl = (
+    canvas.getContext("webgl2", { premultipliedAlpha: false, alpha: true })
+    || canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true })
+  );
+  if (!gl) return null;
+
+  const texture = gl.createTexture();
+  const framebuffer = gl.createFramebuffer();
+  if (!texture || !framebuffer) return null;
+  try {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    if (gl.UNPACK_COLORSPACE_CONVERSION_WEBGL !== undefined) {
+      gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    }
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      image.width,
+      image.height,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      image,
+    );
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0,
+      gl.TEXTURE_2D,
+      texture,
+      0,
+    );
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      return null;
+    }
+    const rgba = new Uint8Array(image.width * image.height * 4);
+    gl.readPixels(
+      0, 0, image.width, image.height,
+      gl.RGBA, gl.UNSIGNED_BYTE, rgba,
+    );
+    const rgb = new Uint8ClampedArray(image.width * image.height * 3);
+    for (let index = 0; index < image.width * image.height; index += 1) {
+      const ro = index * 4;
+      const oo = index * 3;
+      rgb[oo] = rgba[ro];
+      rgb[oo + 1] = rgba[ro + 1];
+      rgb[oo + 2] = rgba[ro + 2];
+    }
+    return rgb;
+  } finally {
+    gl.deleteFramebuffer(framebuffer);
+    gl.deleteTexture(texture);
+  }
+}
+
+function nativeImageRgb(image) {
+  return nativeImageRgbWebGl(image) || nativeImageRgbCanvas(image);
+}
+
+async function subjectImage(source) {
+  if (
+    typeof Blob !== "undefined"
+    && source instanceof Blob
+    && typeof createImageBitmap === "function"
+  ) {
+    const image = await createImageBitmap(source, {
+      premultiplyAlpha: "none",
+      colorSpaceConversion: "none",
+    });
+    return { image, owned: true, decodeMethod: "imagebitmap-unpremultiplied" };
+  }
+  return { image: source, owned: false, decodeMethod: "provided-image" };
 }
 
 function canvasResizeRgb(image) {
@@ -219,8 +298,10 @@ async function getSession(modelUrl) {
   return await sessionPromise;
 }
 
-async function predict(image, options = {}) {
+async function predict(source, options = {}) {
   const started = performance.now();
+  const decoded = await subjectImage(source);
+  const image = decoded.image;
   const sourceWidth = image.width;
   const sourceHeight = image.height;
   const targetWidth = options.targetWidth || sourceWidth;
@@ -255,7 +336,7 @@ async function predict(image, options = {}) {
     resizeMethod = "large-source-direct-area";
   }
 
-  return {
+  const result = {
     probability,
     confidence: subjectConfidence(probability),
     provider: "browser-u2netp",
@@ -263,12 +344,15 @@ async function predict(image, options = {}) {
     sessionMs,
     inferenceMs,
     processingMs: performance.now() - started,
+    decodeMethod: decoded.decodeMethod,
     resizeMethod: preparedInput.resizeMethod + "+" + resizeMethod,
     inputResizeMethod: preparedInput.resizeMethod,
     outputResizeMethod: resizeMethod,
     outputMin: normalized.minimum,
     outputMax: normalized.maximum,
   };
+  if (decoded.owned && typeof image.close === "function") image.close();
+  return result;
 }
 
 export const MinimalizerBrowserSubject = Object.freeze({
@@ -276,6 +360,9 @@ export const MinimalizerBrowserSubject = Object.freeze({
   predict,
   _core: Object.freeze({
     nativeImageRgb,
+    nativeImageRgbCanvas,
+    nativeImageRgbWebGl,
+    subjectImage,
     canvasResizeRgb,
     imageToTensor,
     normalizedMask,
