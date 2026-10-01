@@ -576,7 +576,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
           ? localWorkerMode() === "tailscale"
             ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
             : "ローカル高精度Workerでミニマル化が完了しました。"
-          : "Browser fallback v11でミニマル化が完了しました。";
+          : "Browser fallback v12でミニマル化が完了しました。";
       const routeWarning = computeRoute === "browser" && Boolean(fallbackReason);
       setStatus(completionMessage, routeWarning);
     }
