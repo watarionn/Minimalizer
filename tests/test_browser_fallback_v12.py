@@ -43,12 +43,12 @@ def _node(script: str) -> dict:
 
 def test_browser_fallback_v12_is_loaded_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
-    assert html.index('/static/opencv-lab-lut.js') < html.index('/static/browser-fallback.js')
+    assert html.index('static/opencv-lab-lut.js') < html.index('static/browser-fallback.js')
     assert html.index('/static/opencv-area-resize.js') < html.index('/static/browser-fallback.js')
     assert html.index('/static/spectral-fft.js') < html.index('/static/opencv-fill-raster.js')
     assert html.index('/static/opencv-fill-raster.js') < html.index('/static/canonical-contour.js')
     assert html.index('/static/canonical-contour.js') < html.index('/static/browser-fallback.js')
-    assert html.index('/static/browser-fallback.js') < html.index('/static/app.js')
+    assert html.index('/static/browser-fallback.js') < html.index('static/app.js')
 
 
 def test_browser_fallback_v12_has_no_network_or_model_runtime_dependency():
