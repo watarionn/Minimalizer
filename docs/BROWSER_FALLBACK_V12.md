@@ -195,16 +195,37 @@ Nested model and ONNX Runtime assets are now part of the Shin package and are re
 
 The static frontend contract contains no Railway endpoint and no hosted Minimalizer processing API route.
 
-### Live Shin cutover: PENDING DESTINATION CONFIG
+### Live Shin cutover: PASS
 
-The repository and connected project documents do not contain the actual Shin Free Server production origin / document-root destination.
+Production origin:
 
-That is now the only deployment-specific input still required for the live cutover.
+```text
+https://cf278796.cloudfree.jp/minimalizer/
+```
+
+The static package was deployed to the Shin Free Server document root under `public_html/minimalizer`.
+
+During live validation, Shin served `.mjs` as `text/plain`, which blocked the ONNX Runtime ES module. The Shin builder now emits `static/.htaccess` with explicit MIME declarations:
+
+- `.mjs -> application/javascript`
+- `.wasm -> application/wasm`
+- `.onnx -> application/octet-stream`
+
+After redeployment, the production MIME checks passed.
+
+The production-origin browser smoke then completed with:
+
+- HTTP result status: 200
+- runtime mode: `browser-fallback-v12`
+- subject resize path: `pillow-lanczos+lanczos-source`
+- live smoke processing: about 4.26 s for the synthetic small-input case
+
+The temporary production smoke page was removed after validation.
+
+The Local Worker production origin is configured as `https://cf278796.cloudfree.jp`; direct health validation returned HTTP 200 with the matching CORS allow-origin response.
 
 ## Graduation decision
 
-**Browser Fallback v12 is code-ready for Railway graduation.**
+**Browser Fallback v12 has completed the live Shin cutover and is ready to graduate from Railway.**
 
-Do not describe the live migration as complete until the Shin production destination is configured, the public origin is written to the Local Worker allowlist, the static package is deployed, and the deployed origin passes the same static/runtime smoke checks.
-
-No additional Railway compute work is required by the current runtime design.
+The public runtime is now Shin static hosting + optional Local Worker + Browser Fallback v12. No hosted Minimalizer compute API is required by the production route.
