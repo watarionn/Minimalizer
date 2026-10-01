@@ -36,9 +36,13 @@ def test_static_runtime_has_no_railway_or_hosted_api_dependency():
 def test_static_index_loads_all_browser_engines_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
     assert '/docs' not in html
-    assert html.index('/static/browser-fallback.js') < html.index('/static/browser-feature-palette.js')
-    assert html.index('/static/browser-feature-palette.js') < html.index('/static/browser-color-strip.js')
-    assert html.index('/static/browser-color-strip.js') < html.index('/static/app.js')
+    assert 'href="/static/' not in html
+    assert 'src="/static/' not in html
+    assert 'href="/" aria-label="Minimalizer ホーム"' not in html
+    assert '>Browser v12</span>' in html
+    assert html.index('static/browser-fallback.js') < html.index('static/browser-feature-palette.js')
+    assert html.index('static/browser-feature-palette.js') < html.index('static/browser-color-strip.js')
+    assert html.index('static/browser-color-strip.js') < html.index('static/app.js')
 
 
 def test_browser_color_strip_is_self_hosted_and_network_free():
