@@ -121,7 +121,7 @@ const state = {
   resultBlob: null,
   resultFilename: "minimalized.png",
   busy: false,
-  engineVersion: "Browser v11",
+  engineVersion: "Browser v12",
   localWorkerStatus: localWorkerEnabled() ? "enabled" : "disabled",
   localWorkerFallbackReason: "",
 };
