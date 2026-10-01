@@ -59,6 +59,9 @@
     structuralMode: "l0-lite-jacobi",
     spectralL0BetaMax: 1.0e5,
     canonicalContourLite: false,
+    nativeRgbaMaxPixels: 12000000,
+    sourcePixelHardLimit: 100000000,
+    sourceFileByteLimit: 67108864,
   });
 
   function clamp(value, low, high) {
@@ -3284,6 +3287,17 @@
     return context.getImageData(0, 0, image.width, image.height).data;
   }
 
+  function compositeImageToRgba(image, width, height) {
+    const canvas = canvasElement(width, height);
+    const context = context2d(canvas);
+    context.fillStyle = "rgb(255,255,255)";
+    context.fillRect(0, 0, width, height);
+    context.imageSmoothingEnabled = true;
+    if ("imageSmoothingQuality" in context) context.imageSmoothingQuality = "high";
+    context.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
+    return context.getImageData(0, 0, width, height).data;
+  }
+
   function resizeAnalysisRgba(sourceRgba, sourceWidth, sourceHeight, destinationWidth, destinationHeight) {
     if (sourceWidth === destinationWidth && sourceHeight === destinationHeight) {
       const copy = new Uint8ClampedArray(sourceRgba.length);
@@ -3423,20 +3437,38 @@
   async function minimalizeFile(file, options) {
     const started = performance.now();
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (file && Number.isFinite(file.size) && file.size > config.sourceFileByteLimit) {
+      throw new Error("画像ファイルが大きすぎます。64MB以下の画像を使用してください。");
+    }
     const image = await decodeFile(file);
     const sourceWidth = image.width;
     const sourceHeight = image.height;
+    const sourcePixels = sourceWidth * sourceHeight;
+    if (sourcePixels > config.sourcePixelHardLimit) {
+      if (typeof image.close === "function") image.close();
+      throw new Error("画像の解像度が大きすぎます。1億画素以下の画像を使用してください。");
+    }
     const analysisSize = fitSize(sourceWidth, sourceHeight, config.analysisMaxSide);
-    const nativeRgba = nativeCompositeRgba(image);
+    let analysisResize;
+    if (
+      sourcePixels > config.nativeRgbaMaxPixels
+      && (analysisSize.width !== sourceWidth || analysisSize.height !== sourceHeight)
+    ) {
+      analysisResize = {
+        rgba: compositeImageToRgba(image, analysisSize.width, analysisSize.height),
+        method: "canvas-large-source",
+      };
+    } else {
+      const nativeRgba = nativeCompositeRgba(image);
+      analysisResize = resizeAnalysisRgba(
+        nativeRgba,
+        sourceWidth,
+        sourceHeight,
+        analysisSize.width,
+        analysisSize.height,
+      );
+    }
     if (typeof image.close === "function") image.close();
-
-    const analysisResize = resizeAnalysisRgba(
-      nativeRgba,
-      sourceWidth,
-      sourceHeight,
-      analysisSize.width,
-      analysisSize.height,
-    );
     const workSize = fitSize(analysisSize.width, analysisSize.height, config.workMaxSide);
     const workResize = resizeAnalysisRgba(
       analysisResize.rgba,
@@ -3492,6 +3524,7 @@
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
+      "X-Minimalizer-Source-Sampling": analysisResize.method,
       "X-Minimalizer-L0-Jacobi-Iterations": String(
         analysis.metrics.structuralPreprocess === "l0-lite-jacobi"
           ? config.l0JacobiIterations
@@ -3536,6 +3569,8 @@
         cutMaxHeight: analysis.metrics.cutMaxHeight,
         structuralPreprocess: analysis.metrics.structuralPreprocess,
         analysisResize: resizeMethod,
+        sourceSampling: analysisResize.method,
+        sourcePixels,
         l0JacobiIterations: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
         l0BetaMax: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
       },
@@ -3549,6 +3584,7 @@
     _core: Object.freeze({
       fitSize,
       nativeCompositeRgba,
+      compositeImageToRgba,
       resizeAnalysisRgba,
       buildHistogram,
       seedCenters,
