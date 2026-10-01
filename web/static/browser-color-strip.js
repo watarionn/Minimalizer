@@ -429,10 +429,24 @@
 
     let selected;
     if (config.selectionMode === "characteristic") {
-      selected = selectCharacteristic(
-        built.entries, built.totalVisible, config.colorCount,
-        borderLabs(rgba, analysis.width, analysis.height)
-      );
+      if (
+        typeof globalThis !== "undefined"
+        && globalThis.MinimalizerBrowserFeaturePalette
+        && typeof globalThis.MinimalizerBrowserFeaturePalette.extract === "function"
+      ) {
+        selected = globalThis.MinimalizerBrowserFeaturePalette.extract(
+          rgba,
+          analysis.width,
+          analysis.height,
+          config.colorCount,
+          { removeBackground: true, sampleMax: 12000, clusters: 18, seed: 42 },
+        );
+      } else {
+        selected = selectCharacteristic(
+          built.entries, built.totalVisible, config.colorCount,
+          borderLabs(rgba, analysis.width, analysis.height)
+        );
+      }
     } else {
       const merged = mergeCandidates(built.entries.slice(0, 512), config.similarity);
       selected = config.selectionMode === "featured"
