@@ -4,6 +4,14 @@ $Python = Join-Path $Root ".venv\Scripts\python.exe"
 if (-not (Test-Path $Python)) {
     throw "Local worker venv not found. Run scripts\setup_local_worker.ps1 first."
 }
+$ConfigDir = Join-Path $env:LOCALAPPDATA "Minimalizer\config"
+$OriginFile = Join-Path $ConfigDir "public-origin.txt"
+if (Test-Path $OriginFile) {
+    $ConfiguredOrigin = (Get-Content $OriginFile -Raw).Trim()
+    if ($ConfiguredOrigin) {
+        $env:MINIMALIZER_LOCAL_ALLOWED_ORIGINS = $ConfiguredOrigin
+    }
+}
 $Health = "http://127.0.0.1:28765/health"
 try {
     $existing = Invoke-RestMethod -Uri $Health -TimeoutSec 1
