@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "browser-fallback-v11";
+  const VERSION = "browser-fallback-v12";
   const DEFAULTS = Object.freeze({
     analysisMaxSide: 400,
     workMaxSide: 400,
@@ -71,6 +71,7 @@
     nativeRgbaMaxPixels: 12000000,
     sourcePixelHardLimit: 100000000,
     sourceFileByteLimit: 67108864,
+    browserSubjectGuidance: true,
   });
 
   function clamp(value, low, high) {
@@ -3692,7 +3693,6 @@
         analysisSize.height,
       );
     }
-    if (typeof image.close === "function") image.close();
     const workSize = fitSize(analysisSize.width, analysisSize.height, config.workMaxSide);
     const workResize = resizeAnalysisRgba(
       analysisResize.rgba,
@@ -3701,6 +3701,34 @@
       workSize.width,
       workSize.height,
     );
+
+    let subjectGuidance = null;
+    let subjectGuidanceError = null;
+    if (
+      config.browserSubjectGuidance !== false
+      && typeof globalThis !== "undefined"
+      && globalThis.MinimalizerBrowserSubject
+      && typeof globalThis.MinimalizerBrowserSubject.predict === "function"
+    ) {
+      try {
+        subjectGuidance = await globalThis.MinimalizerBrowserSubject.predict(
+          image,
+          {
+            targetWidth: workSize.width,
+            targetHeight: workSize.height,
+            nativeMaskPixelLimit: config.nativeRgbaMaxPixels,
+          },
+        );
+        config.subjectProb = subjectGuidance.probability;
+        config.subjectConfidence = subjectGuidance.confidence;
+      } catch (error) {
+        subjectGuidanceError = String(error);
+        config.subjectProb = null;
+        config.subjectConfidence = null;
+      }
+    }
+    if (typeof image.close === "function") image.close();
+
     const analysis = analyzeRgba(
       workResize.rgba,
       workSize.width,
@@ -3749,6 +3777,9 @@
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
+      "X-Minimalizer-Subject-Guidance": subjectGuidance ? subjectGuidance.provider : "unguided",
+      "X-Minimalizer-Subject-Model": subjectGuidance ? subjectGuidance.model : "none",
+      "X-Minimalizer-Subject-Inference-Ms": subjectGuidance ? subjectGuidance.inferenceMs.toFixed(1) : "0.0",
       "X-Minimalizer-L0-Jacobi-Iterations": String(
         analysis.metrics.structuralPreprocess === "l0-lite-jacobi"
           ? config.l0JacobiIterations
@@ -3795,6 +3826,14 @@
         analysisResize: resizeMethod,
         sourceSampling: analysisResize.method,
         sourcePixels,
+        subjectGuidance: subjectGuidance ? subjectGuidance.provider : "unguided",
+        subjectModel: subjectGuidance ? subjectGuidance.model : null,
+        subjectInferenceMs: subjectGuidance ? subjectGuidance.inferenceMs : 0,
+        subjectSessionMs: subjectGuidance ? subjectGuidance.sessionMs : 0,
+        subjectProcessingMs: subjectGuidance ? subjectGuidance.processingMs : 0,
+        subjectResizeMethod: subjectGuidance ? subjectGuidance.resizeMethod : null,
+        subjectGuidanceError,
+        subjectGuided: Boolean(subjectGuidance),
         l0JacobiIterations: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0JacobiIterations : 0,
         l0BetaMax: analysis.metrics.structuralPreprocess === "l0-lite-jacobi" ? config.l0BetaMax : config.spectralL0BetaMax,
       },
