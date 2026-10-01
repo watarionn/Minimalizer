@@ -508,29 +508,124 @@
     );
   }
 
-  function simplifyOpen(points, epsilon) {
-    if (points.length <= 2) return points.map((point) => point.slice());
-    let maxDistance = 0;
-    let maxIndex = 0;
-    const start = points[0];
-    const end = points[points.length - 1];
-    for (let i = 1; i < points.length - 1; i += 1) {
-      const distance = pointSegmentDistance(points[i], start, end);
-      if (distance > maxDistance) {
-        maxDistance = distance;
-        maxIndex = i;
+  function simplifyOpenCvOpen(points, epsilon) {
+    const count = points.length;
+    if (count <= 2) return points.map((point) => point.slice());
+    const epsSquared = epsilon * epsilon;
+    const stack = [{ start: 0, end: count - 1 }];
+    const approximated = [];
+
+    while (stack.length > 0) {
+      const slice = stack.pop();
+      const startPoint = points[slice.start];
+      const endPoint = points[slice.end];
+      if (slice.start + 1 >= slice.end) {
+        approximated.push(startPoint.slice());
+        continue;
+      }
+
+      const dx = endPoint[0] - startPoint[0];
+      const dy = endPoint[1] - startPoint[1];
+      const segmentLengthSquared = dx * dx + dy * dy;
+      if (segmentLengthSquared <= 0) {
+        approximated.push(startPoint.slice());
+        continue;
+      }
+
+      let maximumDistanceScaled = 0;
+      let splitIndex = slice.start;
+      for (let index = slice.start + 1; index < slice.end; index += 1) {
+        const point = points[index];
+        const rx = point[0] - startPoint[0];
+        const ry = point[1] - startPoint[1];
+        const projection = rx * dx + ry * dy;
+        let distanceScaled;
+        if (projection < 0) {
+          distanceScaled = (rx * rx + ry * ry) * segmentLengthSquared;
+        } else if (projection > segmentLengthSquared) {
+          const ex = point[0] - endPoint[0];
+          const ey = point[1] - endPoint[1];
+          distanceScaled = (ex * ex + ey * ey) * segmentLengthSquared;
+        } else {
+          const cross = ry * dx - rx * dy;
+          distanceScaled = cross * cross;
+        }
+        if (distanceScaled > maximumDistanceScaled) {
+          maximumDistanceScaled = distanceScaled;
+          splitIndex = index;
+        }
+      }
+
+      if (maximumDistanceScaled <= epsSquared * segmentLengthSquared) {
+        approximated.push(startPoint.slice());
+      } else {
+        // OpenCV pushes right first and left second onto a LIFO stack.
+        stack.push({ start: splitIndex, end: slice.end });
+        stack.push({ start: slice.start, end: splitIndex });
       }
     }
-    if (maxDistance <= epsilon) return [start.slice(), end.slice()];
-    const left = simplifyOpen(points.slice(0, maxIndex + 1), epsilon);
-    const right = simplifyOpen(points.slice(maxIndex), epsilon);
-    return left.slice(0, -1).concat(right);
+    approximated.push(points[count - 1].slice());
+
+    if (approximated.length <= 2) return approximated;
+
+    // Match approxPolyDP_'s final open-curve cleanup pass. The OpenCV
+    // implementation mutates the destination array in place; this equivalent
+    // list form preserves the same scan order and skip-after-removal rule.
+    const cleaned = approximated.map((point) => point.slice());
+    let newCount = cleaned.length;
+    let startPoint = cleaned[0];
+    let point = cleaned[1];
+    let writePosition = 1;
+    let position = 2;
+    let iteration = 1;
+
+    while (iteration < cleaned.length - 1 && newCount > 2) {
+      const endPoint = cleaned[position];
+      position += 1;
+      const dx = endPoint[0] - startPoint[0];
+      const dy = endPoint[1] - startPoint[1];
+      const dist = Math.abs(
+        (point[0] - startPoint[0]) * dy
+        - (point[1] - startPoint[1]) * dx
+      );
+      const successiveInnerProduct = (
+        (point[0] - startPoint[0]) * (endPoint[0] - point[0])
+        + (point[1] - startPoint[1]) * (endPoint[1] - point[1])
+      );
+
+      if (
+        dist * dist <= 0.5 * epsSquared * (dx * dx + dy * dy)
+        && dx !== 0
+        && dy !== 0
+        && successiveInnerProduct >= 0
+      ) {
+        newCount -= 1;
+        cleaned[writePosition] = endPoint.slice();
+        startPoint = endPoint;
+        writePosition += 1;
+        if (position < cleaned.length) {
+          point = cleaned[position].slice();
+          position += 1;
+        }
+        iteration += 2;
+        continue;
+      }
+
+      cleaned[writePosition] = point.slice();
+      startPoint = point;
+      writePosition += 1;
+      point = endPoint;
+      iteration += 1;
+    }
+
+    cleaned[writePosition] = point.slice();
+    return cleaned.slice(0, newCount);
   }
 
   function simplifyOpenChain(points, epsilon) {
     const cleaned = microCleanup(points);
     if (epsilon <= 0 || cleaned.length <= 2) return cleaned;
-    const candidate = simplifyOpen(cleaned, epsilon);
+    const candidate = simplifyOpenCvOpen(cleaned, epsilon);
     if (candidate.length < 2) return cleaned;
     candidate[0] = cleaned[0].slice();
     candidate[candidate.length - 1] = cleaned[cleaned.length - 1].slice();
@@ -1095,6 +1190,7 @@
       buildBoundaryGraph,
       assembleRegionLoops,
       microCleanup,
+      simplifyOpenCvOpen,
       simplifyOpenChain,
       planarLineCandidate,
       candidateChainIntersectionFree,
