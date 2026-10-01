@@ -27,29 +27,76 @@ function context2d(canvas) {
   return context;
 }
 
-function imageToTensor(image) {
+function nativeImageRgb(image) {
+  const canvas = canvasElement(image.width, image.height);
+  const context = context2d(canvas);
+  context.drawImage(image, 0, 0, image.width, image.height);
+  const rgba = context.getImageData(0, 0, image.width, image.height).data;
+  const rgb = new Uint8ClampedArray(image.width * image.height * 3);
+  for (let index = 0; index < image.width * image.height; index += 1) {
+    const ro = index * 4;
+    const oo = index * 3;
+    rgb[oo] = rgba[ro];
+    rgb[oo + 1] = rgba[ro + 1];
+    rgb[oo + 2] = rgba[ro + 2];
+  }
+  return rgb;
+}
+
+function canvasResizeRgb(image) {
   const canvas = canvasElement(MODEL_SIZE, MODEL_SIZE);
   const context = context2d(canvas);
   context.imageSmoothingEnabled = true;
   if ("imageSmoothingQuality" in context) context.imageSmoothingQuality = "high";
   context.drawImage(image, 0, 0, image.width, image.height, 0, 0, MODEL_SIZE, MODEL_SIZE);
   const rgba = context.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE).data;
+  const rgb = new Uint8ClampedArray(MODEL_SIZE * MODEL_SIZE * 3);
+  for (let index = 0; index < MODEL_SIZE * MODEL_SIZE; index += 1) {
+    const ro = index * 4;
+    const oo = index * 3;
+    rgb[oo] = rgba[ro];
+    rgb[oo + 1] = rgba[ro + 1];
+    rgb[oo + 2] = rgba[ro + 2];
+  }
+  return rgb;
+}
+
+function imageToTensor(image, nativePixelLimit = 12000000) {
+  const sourcePixels = image.width * image.height;
+  let rgb;
+  let resizeMethod;
+  if (
+    sourcePixels <= nativePixelLimit
+    && globalThis.MinimalizerPillowLanczos
+    && typeof globalThis.MinimalizerPillowLanczos.resizeRgb === "function"
+  ) {
+    const nativeRgb = nativeImageRgb(image);
+    rgb = globalThis.MinimalizerPillowLanczos.resizeRgb(
+      nativeRgb,
+      image.width,
+      image.height,
+      MODEL_SIZE,
+      MODEL_SIZE,
+    );
+    resizeMethod = "pillow-lanczos";
+  } else {
+    rgb = canvasResizeRgb(image);
+    resizeMethod = "canvas-large-source";
+  }
 
   let maximum = 1;
-  for (let offset = 0; offset < rgba.length; offset += 4) {
-    maximum = Math.max(maximum, rgba[offset], rgba[offset + 1], rgba[offset + 2]);
-  }
+  for (const value of rgb) maximum = Math.max(maximum, value);
   const plane = MODEL_SIZE * MODEL_SIZE;
   const input = new Float32Array(plane * 3);
   for (let index = 0; index < plane; index += 1) {
-    const offset = index * 4;
+    const offset = index * 3;
     for (let channel = 0; channel < 3; channel += 1) {
       input[channel * plane + index] = (
-        rgba[offset + channel] / maximum - MEAN[channel]
+        rgb[offset + channel] / maximum - MEAN[channel]
       ) / STD[channel];
     }
   }
-  return input;
+  return { input, resizeMethod };
 }
 
 function normalizedMask(output) {
@@ -85,6 +132,18 @@ function maskCanvas(mask, width, height) {
 
 function resizeMaskToSource(mask, sourceWidth, sourceHeight) {
   if (sourceWidth === MODEL_SIZE && sourceHeight === MODEL_SIZE) return mask.slice();
+  if (
+    globalThis.MinimalizerPillowLanczos
+    && typeof globalThis.MinimalizerPillowLanczos.resizeGray === "function"
+  ) {
+    return globalThis.MinimalizerPillowLanczos.resizeGray(
+      mask,
+      MODEL_SIZE,
+      MODEL_SIZE,
+      sourceWidth,
+      sourceHeight,
+    );
+  }
   const source = maskCanvas(mask, MODEL_SIZE, MODEL_SIZE);
   const canvas = canvasElement(sourceWidth, sourceHeight);
   const context = context2d(canvas);
@@ -162,7 +221,11 @@ async function predict(image, options = {}) {
   const sourceHeight = image.height;
   const targetWidth = options.targetWidth || sourceWidth;
   const targetHeight = options.targetHeight || sourceHeight;
-  const input = imageToTensor(image);
+  const preparedInput = imageToTensor(
+    image,
+    options.nativeMaskPixelLimit || 12000000,
+  );
+  const input = preparedInput.input;
 
   const sessionStarted = performance.now();
   const session = await getSession(options.modelUrl);
@@ -196,7 +259,9 @@ async function predict(image, options = {}) {
     sessionMs,
     inferenceMs,
     processingMs: performance.now() - started,
-    resizeMethod,
+    resizeMethod: preparedInput.resizeMethod + "+" + resizeMethod,
+    inputResizeMethod: preparedInput.resizeMethod,
+    outputResizeMethod: resizeMethod,
     outputMin: normalized.minimum,
     outputMax: normalized.maximum,
   };
@@ -206,6 +271,8 @@ export const MinimalizerBrowserSubject = Object.freeze({
   VERSION,
   predict,
   _core: Object.freeze({
+    nativeImageRgb,
+    canvasResizeRgb,
     imageToTensor,
     normalizedMask,
     resizeMaskToSource,
