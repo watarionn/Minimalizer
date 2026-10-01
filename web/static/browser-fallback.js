@@ -79,6 +79,20 @@
     };
   }
 
+  function shouldUseLargeSourceSampling(
+    sourceWidth,
+    sourceHeight,
+    analysisWidth,
+    analysisHeight,
+    config,
+  ) {
+    const sourcePixels = sourceWidth * sourceHeight;
+    return (
+      sourcePixels > config.nativeRgbaMaxPixels
+      && (analysisWidth !== sourceWidth || analysisHeight !== sourceHeight)
+    );
+  }
+
   function rgbDistanceSq(a, b) {
     const dr = a[0] - b[0];
     const dg = a[1] - b[1];
@@ -3450,10 +3464,13 @@
     }
     const analysisSize = fitSize(sourceWidth, sourceHeight, config.analysisMaxSide);
     let analysisResize;
-    if (
-      sourcePixels > config.nativeRgbaMaxPixels
-      && (analysisSize.width !== sourceWidth || analysisSize.height !== sourceHeight)
-    ) {
+    if (shouldUseLargeSourceSampling(
+      sourceWidth,
+      sourceHeight,
+      analysisSize.width,
+      analysisSize.height,
+      config,
+    )) {
       analysisResize = {
         rgba: compositeImageToRgba(image, analysisSize.width, analysisSize.height),
         method: "canvas-large-source",
@@ -3583,6 +3600,7 @@
     minimalizeFile,
     _core: Object.freeze({
       fitSize,
+      shouldUseLargeSourceSampling,
       nativeCompositeRgba,
       compositeImageToRgba,
       resizeAnalysisRgba,
