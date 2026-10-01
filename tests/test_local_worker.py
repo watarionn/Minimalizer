@@ -62,8 +62,8 @@ def test_local_worker_rejects_untrusted_browser_origin():
     assert response.status_code == 403
 
 
-def test_local_worker_allows_production_origin_cors():
-    origin = "https://minimalizer-web-production-a2bc.up.railway.app"
+def test_local_worker_allows_local_development_origin_cors():
+    origin = "http://localhost:8000"
     with TestClient(worker.app) as client:
         response = client.get("/health", headers={"Origin": origin})
     assert response.status_code == 200
@@ -79,7 +79,7 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
         response = client.post(
             "/api/v2/minimalize",
             headers={
-                "Origin": "https://minimalizer-web-production-a2bc.up.railway.app"
+                "Origin": "http://localhost:8000"
             },
             files={"file": ("sample.png", b"not-empty", "image/png")},
             data={"preset": "minimal", "include_facets": "true"},
@@ -166,3 +166,16 @@ def test_build_guidance_keeps_transparent_source_alpha(tmp_path, monkeypatch):
     assert guidance.alpha[2, 3] == 1.0
     assert guidance.subject_prob[0, 0] == 0.0
     assert guidance.subject_prob[2, 3] == 1.0
+
+
+def test_local_worker_no_longer_trusts_railway_origin():
+    origin = "https://minimalizer-web-production-a2bc.up.railway.app"
+    assert origin not in worker.ALLOWED_ORIGINS
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/v2/minimalize",
+            headers={"Origin": origin},
+            files={"file": ("sample.png", b"x", "image/png")},
+            data={"preset": "minimal", "include_facets": "true"},
+        )
+    assert response.status_code == 403

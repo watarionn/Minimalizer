@@ -49,7 +49,6 @@ GEOMETRIC_MASS_ENABLED = os.getenv(
 ).strip().lower() not in {"0", "false", "no", "off"}
 
 DEFAULT_ORIGINS = (
-    "https://minimalizer-web-production-a2bc.up.railway.app",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
 )

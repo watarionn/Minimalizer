@@ -9,6 +9,9 @@ from pathlib import Path
 import pytest
 import numpy as np
 
+from minimalize_engine.io.image_loader import load_image
+from minimalize_engine.v2.contour.validation import rasterize_loops
+from minimalize_engine.v2.pipeline import minimalize_v2
 from minimalize_engine.v2.preprocessing import build_image_bundle, lab_edge_map, rgb_to_canonical_lab
 from minimalize_engine.v2.region_merge.cost import RegionMergeConfig
 from minimalize_engine.v2.region_merge.cut import _build_cut, default_cut_policies, materialize_region_selection
@@ -24,6 +27,8 @@ ROOT = Path(__file__).resolve().parents[1]
 BROWSER_ENGINE = ROOT / "web" / "static" / "browser-fallback.js"
 APP_JS = ROOT / "web" / "static" / "app.js"
 INDEX_HTML = ROOT / "web" / "static" / "index.html"
+CANONICAL_CONTOUR = ROOT / "web" / "static" / "canonical-contour.js"
+OPENCV_RASTER = ROOT / "web" / "static" / "opencv-fill-raster.js"
 
 
 def _node(script: str) -> dict:
@@ -36,17 +41,20 @@ def _node(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
-def test_browser_fallback_v8_is_loaded_before_app():
+def test_browser_fallback_v12_is_loaded_before_app():
     html = INDEX_HTML.read_text(encoding="utf-8")
-    assert html.index('/static/opencv-lab-lut.js') < html.index('/static/browser-fallback.js')
-    assert html.index('/static/opencv-area-resize.js') < html.index('/static/browser-fallback.js')
-    assert html.index('/static/spectral-fft.js') < html.index('/static/browser-fallback.js')
-    assert html.index('/static/browser-fallback.js') < html.index('/static/app.js')
+    assert html.index('static/opencv-lab-lut.js') < html.index('static/browser-fallback.js')
+    assert html.index('static/opencv-area-resize.js') < html.index('static/browser-fallback.js')
+    assert html.index('static/spectral-fft.js') < html.index('static/opencv-fill-raster.js')
+    assert html.index('static/opencv-fill-raster.js') < html.index('static/canonical-contour.js')
+    assert html.index('static/canonical-contour.js') < html.index('static/browser-fallback.js')
+    assert html.index('static/browser-fallback.js') < html.index('static/app.js')
 
 
-def test_browser_fallback_v8_has_no_network_or_model_runtime_dependency():
+def test_browser_fallback_v12_has_no_network_or_model_runtime_dependency():
     source = BROWSER_ENGINE.read_text(encoding="utf-8")
-    assert 'browser-fallback-v8' in source
+    raster_source = OPENCV_RASTER.read_text(encoding="utf-8")
+    assert 'browser-fallback-v12' in source
     assert 'deterministic-js' in source
     assert 'runSlicoLite' in source
     assert 'new Float64Array(width * height)' in source
@@ -54,7 +62,19 @@ def test_browser_fallback_v8_has_no_network_or_model_runtime_dependency():
     assert 'oversegmentSpatial' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
-    assert 'paletteTarget: 8' in source
+    assert 'paletteMedoidCandidateCount: 64' in source
+    assert 'consolidateCanonicalPalette' in source
+    assert 'canonical-medoid-hierarchy' in source
+    assert 'X-Minimalizer-Palette-Method' in source
+    assert 'canonicalContourLite: false' in source
+    assert 'X-Minimalizer-Contour-Method' in source
+    assert 'X-Minimalizer-Raster-Method' in source
+    assert 'opencv-fillpoly-2x' in source
+    assert 'canonical-shared-chain' in CANONICAL_CONTOUR.read_text(encoding="utf-8")
+    assert 'opencv-fillpoly-2x-v1' in raster_source
+    assert 'renderShapesRgba' in raster_source
+    assert 'fetch(' not in raster_source
+    assert 'WebSocket' not in raster_source
     assert 'gradientBins: 32' in source
     assert 'approximateL0StructuralRgba' in source
     assert 'spectral-exact' in source
@@ -70,7 +90,9 @@ def test_browser_fallback_v8_has_no_network_or_model_runtime_dependency():
     assert 'runCanonicalRegionHierarchy' in source
     assert 'cutCanonicalHierarchyToCount' in source
     assert 'canonicalGeometryCost' in source
-    assert 'consolidateShapePalette' in source
+    assert 'consolidateCanonicalPalette' in source
+    assert 'ciede2000Scalar' in source
+    assert 'repairCanonicalPaletteRelationships' in source
     assert 'boundaryRings' in source
     assert 'fetch(' not in source
     assert 'WebSocket' not in source
@@ -80,7 +102,7 @@ def test_browser_fallback_v8_has_no_network_or_model_runtime_dependency():
     assert 'rtmlib' not in source.lower()
 
 
-def test_browser_fallback_is_opt_in_and_railway_remains_default():
+def test_browser_fallback_is_default_after_local_without_railway_runtime():
     source = APP_JS.read_text(encoding="utf-8")
     assert 'minimalizer.browserFallbackMode' in source
     assert 'minimalizer.browserFallbackQuality' in source
@@ -90,13 +112,17 @@ def test_browser_fallback_is_opt_in_and_railway_remains_default():
     assert 'browserFallbackParam === "1"' in source
     assert 'browserFallbackParam === "force"' in source
     assert 'browserFallbackParam === "0"' in source
+    assert 'return mode === "force" ? "force" : "after-local"' in source
     assert 'window.MinimalizerBrowserFallback' in source
+    assert 'window.MinimalizerBrowserColorStrip' in source
     assert 'compute: "browser"' in source
-    assert 'fetch("/api/v2/minimalize"' in source
-    assert 'Minimalizer Browser Fallback v8' in source
+    assert 'fetch("/api/v2/minimalize"' not in source
+    assert 'fetch("/api/minimalize"' not in source
+    assert 'fetch("/health")' not in source
+    assert "Railway" not in source
+    assert 'Minimalizer Browser Fallback v12' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
-    assert 'paletteTarget: 8' in source
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
@@ -357,7 +383,7 @@ process.stdout.write(JSON.stringify({first:digest(first), second:digest(second)}
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
-def test_v8_pipeline_enforces_hierarchy_shape_and_palette_budgets():
+def test_v12_pipeline_enforces_hierarchy_shape_and_palette_budgets():
     payload = _node(r"""
 const api = require(process.argv[1]);
 const width = 40;
@@ -390,7 +416,8 @@ const options = {
   maxShapes: 8,
   hierarchyTargetMin: 8,
   hierarchyTargetMax: 8,
-  paletteTarget: 4,
+  paletteTargetMin: 4,
+  paletteTargetMax: 4,
   contourFidelity: 0.94,
 };
 const first = api._core.analyzeRgba(rgba, width, height, options);
@@ -400,17 +427,19 @@ process.stdout.write(JSON.stringify({first, second}));
     first = payload["first"]
     second = payload["second"]
     assert first == second
-    assert first["version"] == "browser-fallback-v8"
+    assert first["version"] == "browser-fallback-v12"
     assert first["metrics"]["initialRegionCount"] >= 8
     assert first["metrics"]["componentCount"] == 8
     assert first["metrics"]["hierarchyCutCount"] == 8
     assert first["metrics"]["finalRootCount"] == 1
     assert first["metrics"]["safeMergeCount"] + first["metrics"]["hierarchyMergeCount"] == first["metrics"]["initialRegionCount"] - 1
-    assert first["metrics"]["paletteCount"] == 4
+    assert first["metrics"]["paletteCount"] >= 4
+    assert first["metrics"]["paletteCount"] <= 8
+    assert first["metrics"]["paletteMethod"] == "canonical-medoid-hierarchy"
     assert first["metrics"]["edgeCoverage"] >= 0.75
     assert first["metrics"]["meanContourIoU"] >= 0.94
     assert len(first["shapes"]) == 8
-    assert len({tuple(shape["rgb"]) for shape in first["shapes"]}) <= 4
+    assert len({tuple(shape["rgb"]) for shape in first["shapes"]}) <= first["metrics"]["paletteCount"]
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
@@ -947,3 +976,279 @@ for (const item of records) {
             count=count,
         )
         assert np.array_equal(actual, expected)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_canonical_palette_matches_python_subaru_with_relationship_repair(tmp_path):
+    source_path = ROOT / "tests" / "assets" / "corpus" / "Oozora-Subaru_list_thumb.png"
+    result = minimalize_v2(
+        load_image(source_path),
+        presets=("minimal",),
+        guidance=None,
+    )
+    preset = result.presets["minimal"]
+    bundle = result.bundle
+    palette = preset.palette
+
+    region_ids = sorted(preset.selection.region_ids)
+    local_id = {region_id: index for index, region_id in enumerate(region_ids)}
+    local_labels = np.vectorize(local_id.__getitem__, otypes=[np.int32])(
+        preset.selection.labels
+    ).astype(np.int32)
+
+    rgba = np.empty((*bundle.analysis_rgb.shape[:2], 4), dtype=np.uint8)
+    rgba[:, :, :3] = bundle.analysis_rgb
+    rgba[:, :, 3] = 255
+
+    expected_colors = []
+    for region_id in region_ids:
+        palette_id = palette.region_to_palette[region_id]
+        expected_colors.append(list(palette.entries[palette_id].rgb))
+
+    labels_path = tmp_path / "labels.bin"
+    rgba_path = tmp_path / "rgba.bin"
+    lab_path = tmp_path / "lab.bin"
+    labels_path.write_bytes(local_labels.tobytes())
+    rgba_path.write_bytes(rgba.tobytes())
+    lab_path.write_bytes(bundle.analysis_lab.astype(np.float32).tobytes())
+
+    script = r"""
+const fs = require("fs");
+global.MinimalizerOpenCvLab = require(process.argv[1]);
+const api = require(process.argv[2]);
+const width = Number(process.argv[3]);
+const height = Number(process.argv[4]);
+const count = width * height;
+const labelsRaw = fs.readFileSync(process.argv[5]);
+const rgbaRaw = fs.readFileSync(process.argv[6]);
+const labRaw = fs.readFileSync(process.argv[7]);
+const labels = new Int32Array(labelsRaw.buffer, labelsRaw.byteOffset, count);
+const rgba = new Uint8ClampedArray(rgbaRaw.buffer, rgbaRaw.byteOffset, count * 4);
+const lab = new Float32Array(labRaw.buffer, labRaw.byteOffset, count * 3);
+const groups = Array.from({length:40}, (_, id) => ({id}));
+const result = api._core.consolidateCanonicalPalette(
+  groups, labels, rgba, lab, width, height, api.DEFAULTS
+);
+process.stdout.write(JSON.stringify({
+  colors: result.colors,
+  palette: result.palette.map(entry => entry.rgb),
+  relationshipCount: result.relationshipCount,
+  repairedSplitCount: result.repairedSplitCount,
+  method: result.method,
+}));
+"""
+    lut_path = ROOT / "web" / "static" / "opencv-lab-lut.js"
+    completed = subprocess.run(
+        [
+            "node", "-e", script,
+            str(lut_path),
+            str(BROWSER_ENGINE),
+            str(bundle.analysis_rgb.shape[1]),
+            str(bundle.analysis_rgb.shape[0]),
+            str(labels_path),
+            str(rgba_path),
+            str(lab_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    actual = json.loads(completed.stdout)
+
+    assert actual["method"] == "canonical-medoid-hierarchy"
+    assert actual["relationshipCount"] == palette.metrics.protected_relationship_count
+    assert actual["repairedSplitCount"] == palette.metrics.repaired_split_count == 1
+    assert len(actual["palette"]) == palette.metrics.palette_count == 8
+    assert actual["colors"] == expected_colors
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_canonical_contour_tracks_python_subaru_shared_boundary(tmp_path):
+    source_path = ROOT / "tests" / "assets" / "corpus" / "Oozora-Subaru_list_thumb.png"
+    result = minimalize_v2(
+        load_image(source_path),
+        presets=("minimal",),
+        guidance=None,
+    )
+    preset = result.presets["minimal"]
+    ids = sorted(preset.selection.region_ids)
+    local_id = {region_id: index for index, region_id in enumerate(ids)}
+    labels = np.vectorize(local_id.__getitem__, otypes=[np.int32])(
+        preset.selection.labels
+    ).astype(np.int32)
+    labels_path = tmp_path / "labels.bin"
+    labels_path.write_bytes(labels.tobytes())
+
+    script = r"""
+const fs = require("fs");
+global.MinimalizerOpenCvRaster = require(process.argv[2]);
+const contour = require(process.argv[1]);
+const width = Number(process.argv[3]);
+const height = Number(process.argv[4]);
+const regionCount = Number(process.argv[5]);
+const raw = fs.readFileSync(process.argv[6]);
+const labels = new Int32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4);
+const result = contour.simplifyLabels(labels, width, height, regionCount);
+process.stdout.write(JSON.stringify({
+  metrics: result.metrics,
+  loopsByRegion: result.loopsByRegion,
+}));
+"""
+    completed = subprocess.run(
+        [
+            "node", "-e", script,
+            str(CANONICAL_CONTOUR),
+            str(OPENCV_RASTER),
+            str(labels.shape[1]),
+            str(labels.shape[0]),
+            str(len(ids)),
+            str(labels_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(completed.stdout)
+    metrics = payload["metrics"]
+
+    assert metrics["originalVertexCount"] == preset.contour.metrics.original_vertex_count
+    assert abs(
+        metrics["simplifiedVertexCount"]
+        - preset.contour.metrics.simplified_vertex_count
+    ) <= 3
+    assert metrics["fallbackChainCount"] == preset.contour.metrics.fallback_chain_count
+    assert metrics["rejectedCandidateCount"] == preset.contour.metrics.rejected_candidate_count
+    assert metrics["minRegionIoU"] == pytest.approx(
+        preset.contour.metrics.min_region_iou, abs=1e-12
+    )
+
+    cross_ious = []
+    for local_index, region_id in enumerate(ids):
+        python_mask = rasterize_loops(
+            preset.contour.contours[region_id].loops,
+            preset.selection.labels.shape,
+            scale=2,
+        )
+        browser_loops = tuple(
+            np.asarray(loop, dtype=np.float32)
+            for loop in payload["loopsByRegion"][local_index]
+        )
+        browser_mask = rasterize_loops(
+            browser_loops,
+            preset.selection.labels.shape,
+            scale=2,
+        )
+        intersection = int(np.count_nonzero(python_mask & browser_mask))
+        union = int(np.count_nonzero(python_mask | browser_mask))
+        cross_ious.append(intersection / max(union, 1))
+
+    assert float(np.mean(cross_ious)) >= 0.998
+    assert float(np.percentile(cross_ious, 10)) >= 0.9985
+    assert min(cross_ious) >= 0.97
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_v12_exact_uses_canonical_contour_while_lite_keeps_fast_legacy():
+    script = r"""
+global.MinimalizerOpenCvRaster = require(process.argv[3]);
+global.MinimalizerCanonicalContour = require(process.argv[2]);
+const api = require(process.argv[1]);
+const width = 24, height = 24;
+const rgba = new Uint8ClampedArray(width * height * 4);
+for (let y = 0; y < height; y += 1) {
+  for (let x = 0; x < width; x += 1) {
+    const o = (y * width + x) * 4;
+    const left = x < 12;
+    rgba[o] = left ? 220 : 45;
+    rgba[o + 1] = left ? 70 : 105;
+    rgba[o + 2] = left ? 65 : 215;
+    rgba[o + 3] = 255;
+  }
+}
+const lite = api._core.analyzeRgba(rgba, width, height, {
+  ...api.DEFAULTS,
+  structuralMode: "l0-lite-jacobi",
+  slicTargetMin: 16,
+  slicTargetMax: 16,
+  slicMinAverageArea: 4,
+  hierarchyTargetMin: 4,
+  hierarchyTargetMax: 8,
+});
+const exactProfile = api._core.analyzeRgba(rgba, width, height, {
+  ...api.DEFAULTS,
+  structuralMode: "l0-lite-jacobi",
+  canonicalContourLite: true,
+  slicTargetMin: 16,
+  slicTargetMax: 16,
+  slicMinAverageArea: 4,
+  hierarchyTargetMin: 4,
+  hierarchyTargetMax: 8,
+});
+process.stdout.write(JSON.stringify({
+  liteMethod: lite.metrics.contourMethod,
+  canonicalMethod: exactProfile.metrics.contourMethod,
+}));
+"""
+    completed = subprocess.run(
+        [
+            "node", "-e", script,
+            str(BROWSER_ENGINE),
+            str(CANONICAL_CONTOUR),
+            str(OPENCV_RASTER),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(completed.stdout)
+    assert payload["liteMethod"] == "legacy-independent-rings"
+    assert payload["canonicalMethod"] == "canonical-shared-chain"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")
+def test_opencv_fill_raster_matches_python_2x_contract_exactly():
+    loops = (
+        np.asarray(
+            [[1, 1], [16, 2], [17, 8], [14, 15], [3, 13], [1, 1]],
+            dtype=np.float32,
+        )[:-1],
+        np.asarray(
+            [[6, 5], [12, 6], [10, 11], [7, 10], [6, 5]],
+            dtype=np.float32,
+        )[:-1],
+    )
+    expected = (
+        rasterize_loops(loops, (17, 19), scale=2)
+        .astype(np.uint8)
+        .ravel()
+        .tolist()
+    )
+    script = r"""
+const raster = require(process.argv[1]);
+const loops = [
+  [[1,1],[16,2],[17,8],[14,15],[3,13]],
+  [[6,5],[12,6],[10,11],[7,10]],
+];
+const mask = raster.rasterizeLoops(loops, 19, 17, 2);
+process.stdout.write(JSON.stringify({
+  version: raster.VERSION,
+  mask: Array.from(mask),
+}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", script, str(OPENCV_RASTER)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(completed.stdout)
+    assert payload["version"] == "opencv-fillpoly-2x-v1"
+    assert payload["mask"] == expected
+
+
+def test_v12_exact_raster_contract_is_explicit_in_renderer():
+    source = BROWSER_ENGINE.read_text(encoding="utf-8")
+    assert 'analysis.metrics.contourMethod === "canonical-shared-chain"' in source
+    assert 'MinimalizerOpenCvRaster.renderShapesRgba' in source
+    assert 'rasterMethod: "opencv-fillpoly-2x"' in source
+    assert 'rasterMethod: "canvas-evenodd"' in source

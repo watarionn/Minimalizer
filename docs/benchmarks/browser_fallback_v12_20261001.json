@@ -1,0 +1,97 @@
+{
+  "benchmark": "browser-fallback-v12-railway-graduation-20261001",
+  "measured_runtime_commit": "9eb1334e1985cc49444437997abded1aafcf0513",
+  "comparison_reference": "Railway V2 reference outputs captured before graduation",
+  "guided_16_vs_railway": {
+    "count": 16,
+    "mean_ssim": 0.9901273762209188,
+    "min_ssim": 0.9650183402081084,
+    "mean_edge_iou": 0.8415973359274929,
+    "min_edge_iou": 0.37848189415041783,
+    "mean_mae": 0.7914916136916664,
+    "max_mae": 4.736070581257414,
+    "mean_processing_ms": 12119.89374999702,
+    "mean_subject_inference_ms": 1202.199999988079,
+    "worst_ssim": {
+      "name": "Elizabeth-Rose-Bloodflame_pr-img_01",
+      "ssim": 0.9650183402081084,
+      "edge_iou": 0.7555555555555555,
+      "mae": 4.736070581257414
+    },
+    "worst_edge": {
+      "name": "Ichijou-Ririka_pr-img_01_a",
+      "ssim": 0.9738328418275453,
+      "edge_iou": 0.37848189415041783,
+      "mae": 1.1231520833333333
+    },
+    "polka": {
+      "name": "Omaru-Polka_list_thumb",
+      "ssim": 0.9952987106400172,
+      "edge_iou": 0.9722369116869382,
+      "mae": 0.2763985005767013,
+      "subject_resize": "pillow-lanczos+lanczos-source"
+    }
+  },
+  "large_source_smoke": {
+    "source": [
+      5000,
+      3000
+    ],
+    "source_pixels": 15000000,
+    "status": 200,
+    "mode": "browser-fallback-v12",
+    "source_sampling": "canvas-large-source",
+    "analysis": [
+      100,
+      60
+    ],
+    "processing_ms": 268.2000000476837,
+    "chrome_peak_working_set_mb_approx": 570.5
+  },
+  "regression": {
+    "command": "pytest tests/test_browser_fallback_v12.py tests/test_railway_graduation_v12.py -q",
+    "passed": 32,
+    "failed": 0,
+    "runtime_seconds": 15.24
+  },
+  "shin_static_smoke": {
+    "file_count": 20,
+    "index_status": 200,
+    "app_js_status": 200,
+    "browser_subject_status": 200,
+    "u2netp_status": 200,
+    "u2netp_bytes": 4574861,
+    "ort_module_status": 200,
+    "ort_wasm_status": 200,
+    "ort_wasm_bytes": 14239897
+  },
+  "gates": {
+    "browser_subject_guidance": "PASS",
+    "pillow_lanczos_parity_path": "PASS",
+    "large_source_guard": "PASS",
+    "no_hosted_api_static_runtime": "PASS",
+    "nested_model_runtime_packaging": "PASS",
+    "local_worker_external_origin_config": "PASS",
+    "live_shin_cutover": "PASS"
+  },
+  "deployment_validation": {
+    "public_url": "https://cf278796.cloudfree.jp/minimalizer/",
+    "validated_head": "691ca9291489f09548f6ed0597473cd05ad7d003",
+    "shin_mime": {
+      "mjs": "application/javascript",
+      "wasm": "application/wasm",
+      "onnx": "application/octet-stream"
+    },
+    "live_browser_smoke": {
+      "status": 200,
+      "mode": "browser-fallback-v12",
+      "subject_resize": "pillow-lanczos+lanczos-source",
+      "processing_ms": 4259.700000047684
+    },
+    "local_worker": {
+      "origin": "https://cf278796.cloudfree.jp",
+      "health_status": 200,
+      "cors_allow_origin": "https://cf278796.cloudfree.jp"
+    }
+  }
+}

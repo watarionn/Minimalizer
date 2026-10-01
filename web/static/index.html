@@ -4,21 +4,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="画像をシンプルな図形や色のストリップへ変換する Minimalizer Web">
   <title>Minimalizer</title>
-  <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="/static/color-strip.css">
-  <script src="/static/opencv-lab-lut.js" defer></script>
-  <script src="/static/opencv-area-resize.js" defer></script>
-  <script src="/static/spectral-fft.js" defer></script>
-  <script src="/static/browser-fallback.js" defer></script>
-  <script src="/static/app.js" defer></script>
+  <link rel="stylesheet" href="static/styles.css">
+  <link rel="stylesheet" href="static/color-strip.css">
+  <script src="static/opencv-lab-lut.js" defer></script>
+  <script src="static/opencv-area-resize.js" defer></script>
+  <script src="static/spectral-fft.js" defer></script>
+  <script src="static/opencv-fill-raster.js" defer></script>
+  <script src="static/canonical-contour.js" defer></script>
+  <script src="static/pillow-lanczos.js" defer></script>
+  <script type="module" src="static/browser-subject.js"></script>
+  <script src="static/browser-fallback.js" defer></script>
+  <script src="static/browser-feature-palette.js" defer></script>
+  <script src="static/browser-color-strip.js" defer></script>
+  <script src="static/app.js" defer></script>
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="/" aria-label="Minimalizer ホーム">
+    <a class="brand" href="./" aria-label="Minimalizer ホーム">
       <span class="brand-mark" aria-hidden="true"></span>
       <span>Minimalizer</span>
     </a>
-    <span class="engine-badge" id="engine-badge">Engine v0.3.0</span>
+    <span class="engine-badge" id="engine-badge">Browser v12</span>
   </header>
 
   <main class="page-shell">
@@ -166,7 +172,6 @@
 
   <footer class="site-footer">
     <span>Minimalizer Web</span>
-    <a href="/docs">API Docs</a>
   </footer>
 </body>
 </html>
