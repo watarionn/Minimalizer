@@ -25,6 +25,8 @@ def test_static_runtime_has_no_railway_or_hosted_api_dependency():
     assert "Railway" not in source
     assert "railway.app" not in source
     assert "Browser fallback v11" not in source
+    assert 'engineVersion: "Browser v11"' not in source
+    assert 'engineVersion: "Browser v12"' in source
     assert "Browser fallback v12" in source
     assert 'fetch("/api/v2/minimalize"' not in source
     assert 'fetch("/api/minimalize"' not in source
