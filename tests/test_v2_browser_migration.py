@@ -81,7 +81,7 @@ def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     assert 'async function fetchLocalWorker' in source
     assert 'localWorkerMode() === "loopback"' in source
     assert 'const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled"' in source
-    assert 'new URLSearchParams(window.location.search).get("localWorker")' in source
+    assert 'pageParams.get("localWorker")' in source
     assert "const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000" in source
     assert "const probe = await probeLocalWorker()" in source
     assert '"Railway fallback"' in source
