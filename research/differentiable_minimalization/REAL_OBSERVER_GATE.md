@@ -238,3 +238,10 @@ With semantic-part union ownership, Kyoko hair primitive `phase12-aggressive-000
 Independent evidence on the full rerender: DINOv3 source-relative score 0.604167 baseline -> 0.599238 candidate, delta **-0.004929**, inside the current research stability tolerance. Baseline-relative whole-foreground silhouette IoU was **0.985505**, with 920 changed pixels. Thus the candidate clears the current 0.985 silhouette floor by a narrow margin and strongly clears semantic hair ownership. This is the first real candidate to satisfy the core renderer-grounded retention constraints while improving its local source-target objective.
 
 Status remains research ADOPT-for-next-evaluation, not production adoption. The improvement magnitude is small and the silhouette margin is narrow. Next work should batch the remaining hair primitives, retain only individually feasible proposals, and compose them incrementally with a scene-level silhouette/DINO rollback gate so local improvements cannot accumulate into a global regression.
+
+
+### Hair batch feasibility
+
+A reusable semantic-part batch runner was added and executed across all four Kyoko Phase12 hair polygons. Results: primitive 0000 had no feasible checkpoint and remained frozen; primitives 0001, 0002 and 0003 were feasible. Their selected ownership IoUs were 0.999198, 0.998647 and 0.999248 respectively, each with a real but small target-loss improvement and polygon guard PASS. This validates fail-closed per-proposal search rather than forcing every primitive to move.
+
+A scene-level rollback policy was then introduced for incremental composition. Every accepted local proposal must keep whole-scene silhouette IoU >= 0.985 and DINO score within 0.01 of the baseline reference; otherwise that proposal is rolled back. This is the next guard against individually safe local changes accumulating into a global identity regression.
