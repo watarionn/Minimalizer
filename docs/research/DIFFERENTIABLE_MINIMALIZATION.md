@@ -149,3 +149,12 @@ Focused P0-P5 suite: **25/25 PASS**.
 The repository has canonical Approved-18/Approved-78 manifests and Phase 14 evaluation machinery, but the Differentiable Minimalization candidate does not yet have actual pretrained DINOv3/SAM observer measurements on Diagnostic-2. The current injected adapters/unit observations are contracts, not corpus evidence. Therefore no real-image ADOPT claim is scientifically valid yet.
 
 **Decision: P5 HOLD for adoption, with evaluation readiness PASS.** The next engineering gate is to connect real frozen observer runtimes in an isolated research environment, generate Diagnostic-2 candidate evidence, and run the fail-closed A/B harness. Approved-18 runs only after Diagnostic-2 machine + visual evidence passes; Approved-78 only after Approved-18.
+
+
+## P5 runtime-closure attempt — environment reuse gate (2026-10-03)
+
+Canonical history revealed an important reuse path: Minimalizer 2.0 Calibration 06 Phase E already validated an isolated RTX 5060 Grounded-SAM environment (Python 3.11.9, Torch 2.11 CUDA 12.8, Transformers 5.17, Grounding-DINO tiny + SAM ViT-B) and kept it outside base requirements. The current canonical `.venv311` no longer contains Torch, so blindly reinstalling another ~4.47 GB observer environment would duplicate a previously validated research dependency.
+
+The local GPU is available (RTX 5060, 8151 MiB total, about 7079 MiB free at inspection). A noisy recursive cache scan was terminated rather than left consuming resources. No global or production dependency was installed.
+
+**Decision: runtime closure remains HOLD, but the next path is narrowed.** Reuse/recover the prior isolated Phase E observer assets or build one explicitly shared observer environment, then add the DINOv3 frozen feature extractor alongside it. Do not create a second project-local heavyweight environment unless reuse is proven impossible. Diagnostic-2 real A/B remains the first evidence gate.
