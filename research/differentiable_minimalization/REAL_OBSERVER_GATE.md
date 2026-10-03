@@ -96,3 +96,17 @@ A canonical research adapter now converts the existing Phase E NPZ evidence (`la
 Adapter-focused regional/evaluation suite: 21/21 PASS. Real Diagnostic-2 source evidence was also passed through the adapter. The recovered coverages exactly reproduce the prior Grounded-SAM report, and self-overlap is 1.0 for hair, face-skin, limb, and accessory on both Kyoko and Raden.
 
 This closes the confidence-map-to-spatial-contract bridge. It does not by itself measure Minimalizer retention: the next gate requires rendering the SHA-bound baseline/candidate outputs, observing them with the same frozen Grounded-SAM configuration, and comparing their masks against these source observations.
+
+
+## Source-to-baseline spatial observation 2026-10-04
+
+A strict current-code shadow regeneration was attempted for both Diagnostic-2 cases in the isolated Python 3.11 analysis environment. Kyoko completed Phase 3-12 with selected profile `aggressive`, 34 primitives, silhouette IoU 0.96808, final SHA-256 `045f72b867d53215091255f56d3a399fb548c474d2330107c9a8d8b4043c845c`. Raden failed closed in current Phase 12 because a 51-pixel `__unbound__` baseline part was removed by both candidates and therefore appeared in `missing_visible_parts`. The input SHA `d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00` matches the canonical Raden Diagnostic-2 source, so this is a current-code behavior drift rather than an input mismatch.
+
+For observation only, Raden therefore uses the preserved canonical Drive Phase-12 artifact from 2026-09-29; Kyoko uses the newly regenerated current baseline. These are explicitly not treated as a symmetric adoption A/B pair.
+
+Frozen Grounded-SAM observation of those baseline images completed successfully. Source-to-baseline spatial IoU at the unchanged confidence >= 0.20 threshold was:
+
+- Kyoko: hair 0.018097, face-skin 0.568797, limb 0.0, accessory 0.122446.
+- Raden: hair 0.0, face-skin 0.678067, limb 0.0, accessory 0.0.
+
+The baseline observer also produced zero active limb area for both cases and zero active hair area for Raden. Therefore these raw semantic-mask IoUs cannot currently serve as hard Minimalizer retention gates: the observer distribution changes substantially after geometric abstraction. This is valuable negative evidence. The next refinement step must compare source and rendered candidates with an abstraction-aware spatial descriptor or a calibrated observer threshold rather than promoting these raw values into adoption thresholds.
