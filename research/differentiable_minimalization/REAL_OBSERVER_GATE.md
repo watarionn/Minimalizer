@@ -135,3 +135,27 @@ The pinned model ID `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` was reveri
 A model-independent immutable DINO spatial contract was completed instead. It accepts a finite dense feature map and records aligned patch features plus a global feature. Comparison reports global cosine, aligned patch cosine, coarse 4x4 spatial cosine, and a research score. The contract specifically detects spatial relocation even when global feature means are unchanged.
 
 Focused DINO-spatial + abstraction-spatial tests: 8/8 PASS. Real Diagnostic-2 DINO measurements remain HOLD until the gated weights are legitimately available to the isolated observer runtime. No adoption threshold was invented from fixture data.
+
+
+## Real DINOv3 Diagnostic-2 observation 2026-10-04
+
+The gated official model `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` was obtained through the authenticated Hugging Face device flow and cached locally. No token was written to the repository. The model loads offline from cache after acquisition.
+
+Runtime verification on the isolated observer environment:
+
+- model: DINOv3 ConvNeXt Tiny, 27.8M parameters
+- input tensor: 1x3x224x224
+- final dense feature map: 7x7x768
+- CUDA execution: PASS on RTX 5060
+- measured peak CUDA allocation during Diagnostic-2 extraction: about 129.29 MB after model load
+
+Source-to-baseline Diagnostic-2 results using the same frozen model and preprocessing:
+
+- Hyakuto-Kyoko: global cosine 0.633302, aligned patch cosine 0.612491, coarse spatial cosine 0.576816, research score 0.604167.
+- Juufuutei-Raden: global cosine 0.521796, aligned patch cosine 0.507560, coarse spatial cosine 0.421382, research score 0.480245.
+
+The first measured source extraction included CUDA warm-up (1.224 s); subsequent image inference was roughly 0.0046-0.0089 s, so the warm-up value must not be treated as steady-state throughput.
+
+Interpretation: unlike cross-style Grounded-SAM semantic masks, DINOv3 returns non-degenerate dense evidence for both cases without requiring named-part detection. This supports using frozen DINO patch features as an independent companion observer. The current scores are evidence, not calibrated pass/fail thresholds. DINOv3 is therefore ADOPTED as research observer evidence but remains HOLD as a standalone hard adoption gate.
+
+Focused DINO/SAM/spatial/evaluation suite after real inference: 29/29 PASS.
