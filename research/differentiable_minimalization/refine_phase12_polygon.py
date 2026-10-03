@@ -19,13 +19,26 @@ def main():
     ref=np.asarray(p["parameters"]["components"][0],dtype=np.float32); h,w=np.asarray(Image.open(args.target_mask)).shape[:2]
     target=torch.from_numpy((np.asarray(Image.open(args.target_mask).convert("L"),dtype=np.float32)/255.)).to(torch.float32)
     pydiffvg.set_use_gpu(False)
-    reference=torch.tensor(ref); delta=torch.zeros_like(reference,requires_grad=True); opt=torch.optim.Adam([delta],lr=.15)
+    policy=SemanticTrustPolicy()
+    radius=policy.radius_for(p["composition_part"])
+    reference=torch.tensor(ref)
+    reference_mask=render_mask(reference,w,h).detach()
+    delta=torch.zeros_like(reference,requires_grad=True)
+    opt=torch.optim.Adam([delta],lr=.15)
     initial=None
     for _ in range(30):
-        opt.zero_grad(); points=reference+4.0*torch.tanh(delta); loss=((render_mask(points,w,h)-target)**2).mean()
-        if initial is None: initial=float(loss.detach())
-        loss.backward(); torch.nn.utils.clip_grad_norm_([delta],1.0); opt.step()
-    candidate=(reference+2.75*torch.tanh(delta)).detach().numpy()
+        opt.zero_grad()
+        points=reference+radius*torch.tanh(delta)
+        rendered=render_mask(points,w,h)
+        target_loss=((rendered-target)**2).mean()
+        ownership_loss=((rendered-reference_mask)**2).mean()
+        loss=target_loss+policy.ownership_weight*ownership_loss
+        if initial is None:
+            initial=float(target_loss.detach())
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_([delta],1.0)
+        opt.step()
+    candidate=(reference+radius*torch.tanh(delta)).detach().numpy()
     guard=validate_polygon_candidate(ref,candidate,width=w,height=h)
     if not guard.valid: raise SystemExit("GUARD_REJECT: "+str(guard.reason))
     final=float(((render_mask(torch.tensor(candidate),w,h)-target)**2).mean().detach())
