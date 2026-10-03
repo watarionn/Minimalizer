@@ -26,3 +26,22 @@ def test_dinov3_is_optional_and_fails_closed():
         assert "optional" in str(exc)
     else:
         raise AssertionError("expected DinoV3Unavailable")
+
+
+def test_patch_damage_can_fail_existing_identity_gate():
+    from minimalizer_zerobase.refine.objective import LossBreakdown
+    from minimalizer_zerobase.refine.semantic import accept_with_semantic_observation
+    before=LossBreakdown(0,0,0,0,0,0,2.0)
+    after=LossBreakdown(0,0,0,0,0,0,1.0)
+    ref=SemanticObservation((1.,0.),((1.,0.),(0.,1.)))
+    damaged=SemanticObservation((1.,0.),((0.,1.),(0.,1.)))
+    assert not accept_with_semantic_observation(before=before,after=after,reference=ref,candidate=damaged,silhouette_ratio=1.0)
+
+def test_semantically_preserved_improvement_can_pass_gate():
+    from minimalizer_zerobase.refine.objective import LossBreakdown
+    from minimalizer_zerobase.refine.semantic import accept_with_semantic_observation
+    before=LossBreakdown(0,0,0,0,0,0,2.0)
+    after=LossBreakdown(0,0,0,0,0,0,1.0)
+    ref=SemanticObservation((1.,0.),((1.,0.),(0.,1.)))
+    same=SemanticObservation((1.,0.),((1.,0.),(0.,1.)))
+    assert accept_with_semantic_observation(before=before,after=after,reference=ref,candidate=same,silhouette_ratio=1.0)
