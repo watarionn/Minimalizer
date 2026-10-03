@@ -309,7 +309,8 @@ async function fetchLocalWorker(path, options = {}, timeoutMs = 0, workerMode = 
     if (workerMode === "loopback") {
       requestOptions.targetAddressSpace = "loopback";
     }
-    const base = workerMode === "tailscale" ? LOCAL_WORKER_TAILSCALE_BASE : LOCAL_WORKER_LOOPBACK_BASE;\n    const request = new Request(`${base}${path}`, requestOptions);
+    const base = workerMode === "tailscale" ? LOCAL_WORKER_TAILSCALE_BASE : LOCAL_WORKER_LOOPBACK_BASE;
+    const request = new Request(`${base}${path}`, requestOptions);
     return await fetch(request);
   } finally {
     if (timer !== null) window.clearTimeout(timer);
