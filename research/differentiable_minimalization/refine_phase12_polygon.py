@@ -24,7 +24,7 @@ def main():
         opt.zero_grad(); points=reference+4.0*torch.tanh(delta); loss=((render_mask(points,w,h)-target)**2).mean()
         if initial is None: initial=float(loss.detach())
         loss.backward(); torch.nn.utils.clip_grad_norm_([delta],1.0); opt.step()
-    candidate=(reference+4.0*torch.tanh(delta)).detach().numpy()
+    candidate=(reference+3.75*torch.tanh(delta)).detach().numpy()
     guard=validate_polygon_candidate(ref,candidate,width=w,height=h)
     if not guard.valid: raise SystemExit("GUARD_REJECT: "+str(guard.reason))
     final=float(((render_mask(torch.tensor(candidate),w,h)-target)**2).mean().detach())
