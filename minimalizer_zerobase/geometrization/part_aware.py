@@ -140,6 +140,7 @@ class PartAwareGeometrizationPolicy:
     arm_critical_max_silhouette_loss: float = 0.05
     fidelity_fallback_vertex_budget_min: int = 48
     fidelity_fallback_budget_multiplier: int = 4
+    hair_fidelity_fallback_budget_multiplier: int = 8
     major_clothing_fidelity_fallback_budget_multiplier: int = 6
     lower_body_fidelity_fallback_budget_multiplier: int = 6
     allow_axis_aligned_rectangle: bool = False
@@ -185,6 +186,8 @@ class PartAwareGeometrizationPolicy:
             raise ValueError("Phase 10 fidelity fallback budget must be at least 3")
         if self.fidelity_fallback_budget_multiplier < 1:
             raise ValueError("Phase 10 fidelity fallback multiplier must be positive")
+        if self.hair_fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("hair_fidelity_fallback_budget_multiplier must be >= 1")
         if self.major_clothing_fidelity_fallback_budget_multiplier < 1:
             raise ValueError("Phase 10 major clothing fidelity fallback multiplier must be positive")
         if self.lower_body_fidelity_fallback_budget_multiplier < 1:
@@ -1041,6 +1044,8 @@ def geometrize_parts(
                 )
             else:
                 fallback_multiplier = policy.fidelity_fallback_budget_multiplier
+            if normalized_part_id == "hair":
+                fallback_multiplier = max(fallback_multiplier, policy.hair_fidelity_fallback_budget_multiplier)
             fallback_budget = max(
                 policy.fidelity_fallback_vertex_budget_min,
                 budget * fallback_multiplier,
