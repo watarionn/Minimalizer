@@ -23,7 +23,7 @@ def test_weighted_regional_loss_prioritizes_important_region():
 def test_sam_adapter_is_read_only_and_optional():
     image={"pixels":[1,2,3]}
     before=list(image["pixels"])
-    observer=SamObserver(lambda _: (RegionObservation("subject", .5),))
+    observer=SamObserver(lambda _, _concepts: (RegionObservation("subject", .5),))
     assert observer.observe(image)[0].label == "subject"
     assert image["pixels"] == before
     try:
