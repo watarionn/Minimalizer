@@ -26,7 +26,7 @@ def test_equal_coverage_but_spatial_relocation_rejects():
     assert evaluate_ab(m(),candidate).decision is Decision.REJECT
 
 def test_missing_spatial_evidence_holds():
-    assert evaluate_ab(m(),m(objective=.8)).decision is Decision.HOLD
+    assert evaluate_ab(m(),m(objective=.8,regional_spatial_iou=None)).decision is Decision.HOLD
 
 def test_complete_spatially_guarded_win_can_adopt():
     candidate=m(objective=.8)
