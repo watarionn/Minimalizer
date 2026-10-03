@@ -4,7 +4,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image,ImageDraw
 import torch,pydiffvg
-from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate\nfrom minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
+from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate
+from minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
 
 def render_mask(points,w,h):
     path=pydiffvg.Path(num_control_points=torch.zeros(len(points),dtype=torch.int32),points=points,is_closed=True)
