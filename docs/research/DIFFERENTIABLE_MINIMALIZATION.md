@@ -103,3 +103,14 @@ Focused P0-P5 contract suite: 17/17 PASS on the isolated worktree.
 Reason: the canonical corpus/replay evidence exists, but the actual differentiable renderer/runtime remains P1 HOLD. Therefore there is not yet a genuine B image/VectorScene produced by gradient refinement across Approved-78. Fabricating B measurements from synthetic finite differences would violate the benchmark policy and the project's existing rule against ungrounded corpus claims.
 
 Next action: unblock one real differentiable rendering backend (diffvg first), run a small Diagnostic-2/Approved-18 real-image optimization smoke, then run Approved-78 only if that smoke passes. The observer contracts and fail-closed corpus gate remain valid independently of backend choice.
+
+
+## P2 result — VectorScene geometry refinement PASS (2026-10-03)
+
+P2 now connects the canonical `VectorScene` boundary to differentiable tensors without mutating the input scene. Rectangle `bbox` and ellipse `cx/cy/rx/ry` parameters can be optimized with a research-only analytic PyTorch soft raster backend; the backend interface remains replaceable by diffvg. Geometry is bounded, gradients are checked for finiteness, and clipping is applied before each update.
+
+The focused P0/P2 suite passes **8/8**. Tests prove loss reduction for rectangle and ellipse, preservation of primitive identity/material/topology, rejection of unknown primitive proposals, and non-mutation of the original `VectorScene`. A first rectangle run exposed a weak-gradient basin for distant shapes; widening the soft-raster gradient field improved the 50-step loss from 0.03669 to 0.01002, and the bounded 80-step test meets the convergence gate. This tuning is research-only and does not change production rendering.
+
+Polygon topology is deliberately not tensorized in this step. The current SVG schema represents triangle/trapezoid/convex_polygon as point arrays, so polygon refinement will be added only with winding/self-intersection guards rather than treating unconstrained vertices as safe.
+
+**Decision: P2 PASS for rectangle/ellipse.** Next: P3 frozen DINOv3 semantic/perceptual observation loss, still evaluation-only and never image generation. Polygon refinement remains a guarded subtask before corpus-scale A/B.
