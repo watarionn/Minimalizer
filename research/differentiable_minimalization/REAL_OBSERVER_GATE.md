@@ -60,3 +60,21 @@ Canonical source identity was resolved without using the dirty local repository 
 - Both downloaded binaries were independently SHA-256 verified and exactly match the GitHub stage-manifest hashes.
 
 This closes the Diagnostic-2 source-provenance gate. Observer measurements must bind evidence to these hashes; filename-only selection is prohibited.
+
+
+## Diagnostic-2 real Grounded-SAM observation 2026-10-04
+
+The shared observer runtime was verified on the RTX 5060 with Python 3.11, torch 2.11.0+cu128, CUDA available, and Transformers 5.17.0. Cached observer weights were reused with local-files-only for the final two-case run.
+
+The exact SHA-bound Diagnostic-2 inputs were evaluated with `IDEA-Research/grounding-dino-tiny` + `facebook/sam-vit-base` using the existing Phase E prompt and rembg subject authority.
+
+Results:
+
+- Hyakuto-Kyoko active-area ratios: hair 0.0501903, face-skin 0.0291003, limb 0.0151298, accessory 0.0768339; 20 accepted detections, 0 oversize rejects; 1.100 s.
+- Juufuutei-Raden active-area ratios: hair 0.1448270, face-skin 0.0241436, limb 0.1239792, accessory 0.0215225; 19 accepted detections, 2 oversize rejects; 0.263 s.
+- Two-case mean inference time: 0.681693 s/image.
+- Peak CUDA memory: 1378.613 MB.
+- No zero-area semantic channel for hair, face-skin, limb, or accessory.
+- Spatial confidence maps were emitted as per-case NPZ files plus a contact sheet and report JSON in the isolated local evidence directory.
+
+Interpretation: real regional observation is now operational on Diagnostic-2 and is no longer represented only by injected test fixtures. This is observation evidence, not yet an adoption PASS. The current `RegionObservation` coverage contract still cannot prove spatial IoU/shape retention, so the next evaluation step must bind these spatial maps to an immutable overlap descriptor before any strong regional-retention claim.
