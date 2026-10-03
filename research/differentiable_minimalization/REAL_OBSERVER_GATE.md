@@ -205,3 +205,21 @@ The ownership gate is fail closed and compares rasterized masks for canonical se
 The same first Kyoko face candidate was then measured with renderer-owned geometry rather than SAM rediscovery. The selected face polygon changed from its canonical Phase12 geometry to the guarded diffvg proposal with ownership IoU **0.911208**, below the research hard-retention floor 0.985. Therefore the candidate remains **REJECT**, now for a renderer-grounded reason rather than because Grounded-SAM failed to rediscover face-skin. This is a materially stronger rejection rationale.
 
 The result also shows that the 4px polygon trust region is too permissive for a large identity-critical face primitive even though whole-image silhouette and DINO stayed stable. The next optimization revision should make the trust region semantic-part-aware (face much tighter than clothing/hair) and/or include ownership-mask retention directly in the differentiable objective instead of relying only on a post-hoc guard.
+
+
+## Semantic-part-aware trust experiment 2026-10-04
+
+Polygon refinement now has an explicit semantic trust policy and a differentiable ownership-retention term. Face uses a much tighter trust radius than hair/clothing, and the optimization objective is target-mask loss plus a weighted MSE to the original renderer-owned polygon mask. Focused semantic-trust/ownership/polygon/candidate tests: 19/19 PASS before the real probe.
+
+Kyoko face sweep results, all using the same canonical Phase12 polygon and Phase4 face target:
+
+- Original permissive probe: ownership IoU 0.911208, target loss 0.005848 -> about 0.00201.
+- radius 0.45, ownership weight 4: IoU 0.974141, target loss 0.005848 -> 0.005545.
+- radius 0.20, weight 4: IoU 0.973074, target loss -> 0.005529.
+- radius 0.45, weight 12: IoU 0.976571, target loss -> 0.005734.
+- radius 0.45, weight 40: IoU 0.977169, target loss -> 0.005815.
+- radius 0.08, weight 12: IoU 0.974891, target loss -> 0.005768.
+
+The experiment therefore improved ownership retention substantially but did **not** reach the 0.985 hard floor while preserving a useful target improvement. Merely shrinking the continuous subpixel radius did not monotonically improve rasterized ownership IoU because the post-hoc ownership measurement uses hard rasterization and is sensitive to boundary pixel quantization. The 0.985 threshold was not weakened to force a pass.
+
+Decision: keep the semantic-aware objective, but HOLD face-polygon adoption. The next refinement should optimize a soft differentiable overlap surrogate (soft IoU/Dice) and select/checkpoint the best iterate satisfying a hard-raster ownership constraint, rather than returning the final Adam iterate. This turns ownership from a weighted preference into a constrained optimization problem.
