@@ -30,7 +30,8 @@ def _sha256(path: Path) -> str:
 
 
 def _load_rgb(path: Path, size: int = 128) -> np.ndarray:
-    bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    encoded = np.fromfile(path, dtype=np.uint8)
+    bgr = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
     if bgr is None:
         raise ValueError(f"Could not decode image: {path}")
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)

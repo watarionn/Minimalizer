@@ -33,6 +33,20 @@ def test_phase15_approved18_manifest_has_18_unique_pairs_and_fixed_hashes():
         int(entry["approved_sha256"], 16)
 
 
+def test_approved18_evaluator_decodes_unicode_paths(tmp_path):
+    from PIL import Image
+    from tools.evaluate_approved18 import _load_rgb
+
+    path = tmp_path / "日本語フォルダ" / "参照画像.png"
+    path.parent.mkdir(parents=True)
+    Image.new("RGB", (8, 6), (12, 34, 56)).save(path)
+
+    rgb = _load_rgb(path, size=4)
+
+    assert rgb.shape == (4, 4, 3)
+    assert tuple(int(value) for value in rgb[0, 0]) == (12, 34, 56)
+
+
 def test_phase15_approved_reference_uses_direct_coarse_planes():
     from minimalize_engine import minimalize_rinka_reference
 

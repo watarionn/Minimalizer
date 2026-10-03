@@ -727,3 +727,218 @@ def test_bridge_phase11_fails_closed_when_phase11_stage_is_missing(
     _add_phase10(case_dir, source_path)
     with pytest.raises(StageContractBridgeError, match="missing Phase 11"):
         bridge_stage_contracts(case_dir, source_path, max_phase=11)
+
+
+def _add_phase12(case_dir: Path, source_path: Path) -> None:
+    phase11 = case_dir / "phase_11"
+    phase12 = case_dir / "phase_12"
+    phase12.mkdir()
+    source = _load_stage(case_dir, 11)["source"]
+    stage11 = _load_stage(case_dir, 11)
+    data_sha = _write_output(
+        phase12 / "12_simplification.json", b'{"simplification":"ok"}\n'
+    )
+    final_sha = _write_output(
+        phase12 / "12_final.png", b"phase12-final"
+    )
+    stage12 = _base_stage(
+        phase=12,
+        stage_name="style_constraint_simplification",
+        source=source,
+        config={"style": "test"},
+        inputs={
+            "phase11": {
+                **stage11["outputs"],
+                "stage.json": _sha256_file(phase11 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "12_simplification.json": data_sha,
+            "12_final.png": final_sha,
+        },
+    )
+    _write_stage(phase12 / "stage.json", stage12)
+
+
+def _add_phase13(case_dir: Path, source_path: Path) -> None:
+    phase12 = case_dir / "phase_12"
+    phase13 = case_dir / "phase_13"
+    phase13.mkdir()
+    source = _load_stage(case_dir, 12)["source"]
+    stage12 = _load_stage(case_dir, 12)
+    board_sha = _write_output(
+        phase13 / "13_debug_board.png", b"phase13-board"
+    )
+    index_sha = _write_output(
+        phase13 / "13_stage_index.json", b'{"stages":[]}\n'
+    )
+    stage13 = _base_stage(
+        phase=13,
+        stage_name="stage_visualizer_debug_board",
+        source=source,
+        config={"stage_order": ["input", "03", "12"]},
+        inputs={
+            "phase12": {
+                "12_final.png": stage12["outputs"]["12_final.png"],
+                "stage.json": _sha256_file(phase12 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "13_debug_board.png": board_sha,
+            "13_stage_index.json": index_sha,
+        },
+    )
+    _write_stage(phase13 / "stage.json", stage13)
+
+
+def test_bridge_can_extend_verified_chain_through_phase13(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    _add_phase10(case_dir, source_path)
+    _add_phase11(case_dir, source_path)
+    _add_phase12(case_dir, source_path)
+    _add_phase13(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase13",
+        max_phase=13,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-13"
+    assert len(result.run_manifest.stage_manifest_refs) == 11
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    assert by_id["phase13:13_debug_board.png"].artifact_type == "stage-debug-board"
+    assert by_id["phase13:13_stage_index.json"].artifact_type == "stage-debug-index"
+    parent_ids = {
+        parent.artifact_id
+        for parent in by_id["phase13:13_debug_board.png"].parents
+    }
+    assert "phase12:12_final.png" in parent_ids
+    assert "phase12:stage.json" in parent_ids
+    assert "source" in parent_ids
+
+
+def _add_phase14(case_dir: Path, source_path: Path) -> None:
+    phase4 = case_dir / "phase_04"
+    phase12 = case_dir / "phase_12"
+    phase13 = case_dir / "phase_13"
+    phase14 = case_dir / "phase_14"
+    phase14.mkdir()
+    source = _load_stage(case_dir, 13)["source"]
+    stage4 = _load_stage(case_dir, 4)
+    stage12 = _load_stage(case_dir, 12)
+    stage13 = _load_stage(case_dir, 13)
+
+    eval_sha = _write_output(
+        phase14 / "14_case_evaluation.json",
+        b'{"phase":14,"pass":true}\n',
+    )
+    sheet_sha = _write_output(
+        phase14 / "14_eval_sheet.png",
+        b"phase14-eval-sheet",
+    )
+    preview_sha = _write_output(
+        phase14 / "preview.png",
+        b"phase14-preview",
+    )
+    metrics_sha = _write_output(
+        phase14 / "metrics.json",
+        b'{"pass":true}\n',
+    )
+
+    stage14 = _base_stage(
+        phase=14,
+        stage_name="evaluation_redesign_calibration",
+        source=source,
+        config={"evaluation_version": "phase14-test-v1"},
+        inputs={
+            "phase04": {
+                "part_masks/face.png": stage4["outputs"][
+                    "part_masks/face.png"
+                ],
+                "stage.json": _sha256_file(phase4 / "stage.json"),
+            },
+            "phase12": {
+                "12_simplification.json": stage12["outputs"][
+                    "12_simplification.json"
+                ],
+                "12_final.png": stage12["outputs"]["12_final.png"],
+                "stage.json": _sha256_file(phase12 / "stage.json"),
+            },
+            "phase13": {
+                "13_stage_index.json": stage13["outputs"][
+                    "13_stage_index.json"
+                ],
+                "13_debug_board.png": stage13["outputs"][
+                    "13_debug_board.png"
+                ],
+                "stage.json": _sha256_file(phase13 / "stage.json"),
+            },
+            "source": {
+                "path": source_path.name,
+                "sha256": source["sha256"],
+            },
+        },
+        outputs={
+            "14_case_evaluation.json": eval_sha,
+            "14_eval_sheet.png": sheet_sha,
+            "preview.png": preview_sha,
+            "metrics.json": metrics_sha,
+        },
+    )
+    _write_stage(phase14 / "stage.json", stage14)
+
+
+def test_bridge_can_extend_verified_chain_through_phase14(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    _add_phase7(case_dir, source_path)
+    _add_phase8(case_dir, source_path)
+    _add_phase9(case_dir, source_path)
+    _add_phase10(case_dir, source_path)
+    _add_phase11(case_dir, source_path)
+    _add_phase12(case_dir, source_path)
+    _add_phase13(case_dir, source_path)
+    _add_phase14(case_dir, source_path)
+
+    result = bridge_stage_contracts(
+        case_dir,
+        source_path,
+        output_dir=tmp_path / "bridge-phase14",
+        max_phase=14,
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-14"
+    assert len(result.run_manifest.stage_manifest_refs) == 12
+    by_id = {record.artifact_id: record for record in result.artifacts}
+    assert (
+        by_id["phase14:14_case_evaluation.json"].artifact_type
+        == "evaluation-redesign-data"
+    )
+    assert (
+        by_id["phase14:14_eval_sheet.png"].artifact_type
+        == "evaluation-sheet"
+    )
+    parent_ids = {
+        parent.artifact_id
+        for parent in by_id["phase14:14_case_evaluation.json"].parents
+    }
+    assert "phase04:part_masks/face.png" in parent_ids
+    assert "phase12:12_simplification.json" in parent_ids
+    assert "phase12:12_final.png" in parent_ids
+    assert "phase13:13_stage_index.json" in parent_ids
+    assert "phase13:13_debug_board.png" in parent_ids
+    assert "source" in parent_ids

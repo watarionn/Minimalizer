@@ -262,6 +262,35 @@ def test_person_part_minimal_cut_budgets_are_bold():
         assert _person_part_cut_policies(name)["minimal"].target_max == ceiling
 
 
+
+def test_confident_raised_arm_core_overrides_coarse_head_prior():
+    guidance = _guidance()
+    maps = guidance.structural.confidence_maps.copy()
+    maps[3:5] = 0.0
+    maps[3, 3:7, 5:8] = 0.95
+    raised = AnalysisGuidance(
+        subject_prob=guidance.subject_prob,
+        subject_confidence=guidance.subject_confidence,
+        structural=StructuralGuide(
+            labels=guidance.structural.labels,
+            confidence_maps=maps,
+            provider="test",
+            model="raised-arm-over-head-prior",
+        ),
+        subject_provider="test",
+        subject_model="mask",
+    )
+    partition = build_person_part_partition(
+        raised,
+        config=PersonPartConfig(structural_min_part_pixels=4),
+    )
+    core = np.zeros_like(partition.subject_mask)
+    core[3:7, 5:8] = True
+    core &= partition.subject_mask
+
+    assert int(np.count_nonzero(core & partition.part_masks["right_arm"])) == int(core.sum())
+    assert not np.any(core & partition.part_masks["head"])
+
 def test_structural_partition_expands_pose_corridors_across_subject():
     partition = build_person_part_partition(_guidance(), config=PersonPartConfig(structural_min_part_pixels=4))
     covered = np.zeros_like(partition.subject_mask)

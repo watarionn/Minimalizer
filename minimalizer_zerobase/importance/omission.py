@@ -28,6 +28,18 @@ SEMANTIC_ROLE_SCORES: dict[str, float] = {
     "torso": 0.85,
 }
 
+STRUCTURAL_BODY_PARTS = frozenset(
+    {
+        "left_arm",
+        "right_arm",
+        "torso",
+        "lower_body",
+        "major_clothing",
+        "neck",
+    }
+)
+
+
 IDENTITY_ROLE_SCORES: dict[str, float] = {
     "accessory_or_held_object": 1.0,
     "face": 0.95,
@@ -53,6 +65,7 @@ class OmissionPolicy:
     redundancy_threshold: float = 0.70
     prune_score_ceiling: float = 0.55
     prune_max_part_ratio: float = 0.08
+    structural_prune_max_part_ratio: float = 0.025
     prune_max_subject_ratio: float = 0.005
     minimum_low_dimension_count: int = 2
     low_silhouette_threshold: float = 0.12
@@ -76,6 +89,7 @@ class OmissionPolicy:
             self.redundancy_threshold,
             self.prune_score_ceiling,
             self.prune_max_part_ratio,
+            self.structural_prune_max_part_ratio,
             self.prune_max_subject_ratio,
             self.low_silhouette_threshold,
             self.low_semantic_threshold,
@@ -101,6 +115,8 @@ class OmissionPolicy:
             "prune_requirements": {
                 "minimum_low_dimension_count": self.minimum_low_dimension_count,
                 "prune_max_part_ratio": self.prune_max_part_ratio,
+                "structural_prune_max_part_ratio": self.structural_prune_max_part_ratio,
+                "structural_parts": sorted(STRUCTURAL_BODY_PARTS),
                 "prune_max_subject_ratio": self.prune_max_subject_ratio,
                 "prune_score_ceiling": self.prune_score_ceiling,
                 "redundancy_threshold": self.redundancy_threshold,
@@ -462,10 +478,15 @@ def evaluate_importance_omission(
             action = "protect"
             rationale.append(f"largest-mass-for-present-part:{part_id}")
         else:
+            prune_part_ratio_limit = (
+                policy.structural_prune_max_part_ratio
+                if part_id in STRUCTURAL_BODY_PARTS
+                else policy.prune_max_part_ratio
+            )
             prune_supported = (
                 redundancy >= policy.redundancy_threshold
                 and score <= policy.prune_score_ceiling
-                and part_area_ratio <= policy.prune_max_part_ratio
+                and part_area_ratio <= prune_part_ratio_limit
                 and subject_area_ratio <= policy.prune_max_subject_ratio
                 and len(low_grounds) >= policy.minimum_low_dimension_count
             )
@@ -496,6 +517,11 @@ def evaluate_importance_omission(
             "color_similarity": _rounded(best_colour),
             "spatial_proximity": _rounded(best_proximity),
             "candidate_to_largest_part_area_ratio": _rounded(part_area_ratio),
+            "prune_part_ratio_limit": _rounded(
+                policy.structural_prune_max_part_ratio
+                if part_id in STRUCTURAL_BODY_PARTS
+                else policy.prune_max_part_ratio
+            ),
         }
 
         decisions.append(

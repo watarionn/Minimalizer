@@ -127,6 +127,26 @@ def _grow_hair(
     seed = head & ~face_dilated & ~skin
     if int(seed.sum()) < 24:
         seed = head & ~face_dilated
+    if hair_hint is not None:
+        hint = np.asarray(hair_hint, dtype=np.float32)
+        if hint.shape != subject.shape:
+            raise ValueError("hair_hint must match subject shape")
+        face_box = _bbox(face)
+        near_face = np.zeros_like(subject)
+        if face_box is not None:
+            fx0, fy0, fx1, fy1 = face_box
+            face_scale = max(fx1 - fx0, fy1 - fy0, 1)
+            radius = max(3, int(round(face_scale * 0.70)))
+            near_face = cv2.dilate(
+                face.astype(np.uint8),
+                cv2.getStructuringElement(
+                    cv2.MORPH_ELLIPSE,
+                    (radius * 2 + 1, radius * 2 + 1),
+                ),
+            ).astype(bool)
+        guarded_seed = seed & ((hint >= 0.12) | near_face)
+        if int(guarded_seed.sum()) >= 24:
+            seed = guarded_seed
     prototypes = _dominant_hair_prototypes(rgb, seed)
     if len(prototypes) == 0:
         return seed, 0
@@ -225,6 +245,289 @@ def _grow_hair(
     return kept, int(len(prototypes))
 
 
+def _rescue_face_side_hair_strands(
+    rgb: np.ndarray,
+    subject: np.ndarray,
+    face: np.ndarray,
+    hair: np.ndarray,
+) -> np.ndarray:
+    face_box = _bbox(face)
+    if face_box is None or not np.any(hair):
+        return np.zeros_like(subject)
+    x0, y0, x1, y1 = face_box
+    fw = max(x1 - x0, 1)
+    fh = max(y1 - y0, 1)
+    yy, xx = np.indices(subject.shape)
+    corridor = (
+        (yy >= y0)
+        & (yy <= y1 + int(round(fh * 1.35)))
+        & (xx >= x0 - int(round(fw * 0.85)))
+        & (xx <= x1 + int(round(fw * 0.85)))
+    )
+    residual = subject & ~face & ~hair & corridor
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    values = gray[residual]
+    if values.size < 24:
+        return np.zeros_like(subject)
+    threshold, _ = cv2.threshold(
+        values.reshape(-1, 1).astype(np.uint8),
+        0,
+        255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU,
+    )
+    candidate = residual & (gray > int(threshold))
+    candidate = cv2.morphologyEx(
+        candidate.astype(np.uint8),
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
+    )
+    candidate = cv2.morphologyEx(
+        candidate,
+        cv2.MORPH_OPEN,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+    )
+    support_radius = max(3, int(round(fw * 0.15)))
+    hair_support = cv2.dilate(
+        hair.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (support_radius * 2 + 1, support_radius * 2 + 1),
+        ),
+    ).astype(bool)
+    minimum_area = max(24, int(round(np.count_nonzero(face) * 0.10)))
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(candidate, 8)
+    rescued = np.zeros_like(subject)
+    for label in range(1, count):
+        component = labels == label
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area < minimum_area:
+            continue
+        width = int(stats[label, cv2.CC_STAT_WIDTH])
+        height = int(stats[label, cv2.CC_STAT_HEIGHT])
+        aspect = height / float(max(width, 1))
+        contact = int(np.count_nonzero(component & hair_support))
+        if aspect < 1.20:
+            continue
+        if contact < max(3, int(round(area * 0.08))):
+            continue
+        rescued |= component
+    return rescued & subject & ~face
+
+
+def _rescue_bright_face_side_hair_strands(
+    rgb: np.ndarray,
+    subject: np.ndarray,
+    face: np.ndarray,
+    hair: np.ndarray,
+) -> np.ndarray:
+    face_box = _bbox(face)
+    if face_box is None or not np.any(hair):
+        return np.zeros_like(subject)
+    x0, y0, x1, y1 = face_box
+    fw = max(x1 - x0, 1)
+    fh = max(y1 - y0, 1)
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+    hair_gray = gray[hair]
+    if hair_gray.size < 24:
+        return np.zeros_like(subject)
+    luminance_threshold = float(np.quantile(hair_gray, 0.90))
+    bright_hair = hair & (gray > luminance_threshold)
+    if int(np.count_nonzero(bright_hair)) < 12:
+        bright_hair = hair & (gray >= luminance_threshold)
+    if int(np.count_nonzero(bright_hair)) < 12:
+        return np.zeros_like(subject)
+    prototype = np.median(lab[bright_hair], axis=0)
+    color_distance = np.linalg.norm(lab - prototype, axis=2)
+
+    yy, xx = np.indices(subject.shape)
+    side_corridor = (
+        (
+            (xx >= x0 - int(round(fw * 0.65)))
+            & (xx <= x0 + int(round(fw * 0.10)))
+        )
+        | (
+            (xx >= x1 - int(round(fw * 0.10)))
+            & (xx <= x1 + int(round(fw * 0.65)))
+        )
+    )
+    side_corridor &= (
+        (yy >= y1)
+        & (yy <= y1 + int(round(fh * 1.30)))
+    )
+    support_radius = max(3, int(round(fw * 0.14)))
+    hair_support = cv2.dilate(
+        hair.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (support_radius * 2 + 1, support_radius * 2 + 1),
+        ),
+    ).astype(bool)
+    candidate = (
+        subject
+        & ~face
+        & ~hair
+        & side_corridor
+        & (gray >= luminance_threshold)
+        & (color_distance <= 28.0)
+    )
+    candidate = cv2.morphologyEx(
+        candidate.astype(np.uint8),
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+    )
+    minimum_area = max(18, int(round(np.count_nonzero(face) * 0.04)))
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(candidate, 8)
+    rescued = np.zeros_like(subject)
+    for label in range(1, count):
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area < minimum_area:
+            continue
+        width = int(stats[label, cv2.CC_STAT_WIDTH])
+        height = int(stats[label, cv2.CC_STAT_HEIGHT])
+        component = labels == label
+        if height / float(max(width, 1)) < 1.05:
+            continue
+        contact = int(np.count_nonzero(component & hair_support))
+        if contact < max(3, int(round(area * 0.08))):
+            continue
+        rescued |= component
+    return rescued & subject & ~face & ~hair
+
+
+def _rescue_hair_like_unknown_components(
+    rgb: np.ndarray,
+    unknown: np.ndarray,
+    hair: np.ndarray,
+    competitors: Mapping[str, np.ndarray],
+) -> np.ndarray:
+    if not np.any(unknown) or not np.any(hair):
+        return np.zeros_like(unknown)
+    lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+    hair_pixels = lab[hair]
+    if hair_pixels.size == 0:
+        return np.zeros_like(unknown)
+    hair_prototype = np.median(hair_pixels, axis=0)
+    competitor_prototypes = [
+        np.median(lab[np.asarray(mask, dtype=bool)], axis=0)
+        for mask in competitors.values()
+        if np.any(mask)
+    ]
+    if not competitor_prototypes:
+        return np.zeros_like(unknown)
+
+    support_radius = max(3, int(round(min(unknown.shape) * 0.012)))
+    hair_support = cv2.dilate(
+        hair.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (support_radius * 2 + 1, support_radius * 2 + 1),
+        ),
+    ).astype(bool)
+    minimum_area = max(24, int(round(unknown.size * 0.00012)))
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(
+        unknown.astype(np.uint8), connectivity=8
+    )
+    rescued = np.zeros_like(unknown)
+    for label in range(1, count):
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area < minimum_area:
+            continue
+        component = labels == label
+        contact = int(np.count_nonzero(component & hair_support))
+        if contact < max(3, int(round(area * 0.02))):
+            continue
+        component_prototype = np.median(lab[component], axis=0)
+        hair_distance = float(
+            np.linalg.norm(component_prototype - hair_prototype)
+        )
+        other_distance = min(
+            float(np.linalg.norm(component_prototype - prototype))
+            for prototype in competitor_prototypes
+        )
+        if hair_distance > 22.0:
+            continue
+        if hair_distance > other_distance * 0.70:
+            continue
+        rescued |= component
+    return rescued & unknown
+
+
+def _rescue_large_unknown_components_by_owner(
+    rgb: np.ndarray,
+    subject: np.ndarray,
+    unknown: np.ndarray,
+    owners: Mapping[str, np.ndarray],
+) -> dict[str, np.ndarray]:
+    rescued = {
+        name: np.zeros_like(unknown)
+        for name in owners
+    }
+    if not np.any(unknown) or not np.any(subject):
+        return rescued
+
+    lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+    prototypes = {
+        name: np.median(lab[np.asarray(mask, dtype=bool)], axis=0)
+        for name, mask in owners.items()
+        if np.any(mask)
+    }
+    if not prototypes:
+        return rescued
+
+    support_radius = max(3, int(round(min(unknown.shape) * 0.016)))
+    support_kernel = cv2.getStructuringElement(
+        cv2.MORPH_ELLIPSE,
+        (support_radius * 2 + 1, support_radius * 2 + 1),
+    )
+    supports = {
+        name: cv2.dilate(
+            np.asarray(mask, dtype=np.uint8),
+            support_kernel,
+        ).astype(bool)
+        for name, mask in owners.items()
+        if name in prototypes
+    }
+
+    minimum_area = max(
+        64,
+        int(round(np.count_nonzero(subject) * 0.01)),
+    )
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(
+        unknown.astype(np.uint8), connectivity=8
+    )
+    for label in range(1, count):
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area < minimum_area:
+            continue
+        component = labels == label
+        component_prototype = np.median(lab[component], axis=0)
+        candidates: list[tuple[float, str]] = []
+        for name, prototype in prototypes.items():
+            contact = int(np.count_nonzero(component & supports[name]))
+            contact_ratio = float(contact) / max(float(area), 1.0)
+            if contact < max(12, int(round(area * 0.08))):
+                continue
+            color_distance = float(
+                np.linalg.norm(component_prototype - prototype)
+            )
+            if color_distance > 12.0:
+                continue
+            color_factor = max(0.0, 1.0 - color_distance / 20.0)
+            score = contact_ratio * color_factor
+            candidates.append((score, name))
+        if not candidates:
+            continue
+        candidates.sort(reverse=True)
+        best_score, best_name = candidates[0]
+        if best_score < 0.08:
+            continue
+        if len(candidates) > 1 and best_score < candidates[1][0] * 1.50:
+            continue
+        rescued[best_name] |= component
+    return rescued
+
+
 def _face_from_landmarks(
     subject: np.ndarray,
     points: np.ndarray | None,
@@ -271,6 +574,34 @@ def _face_from_landmarks(
         return np.zeros_like(subject), 0.0
     confidence = float(np.mean(scr[valid]))
     return face, confidence
+
+
+def _semantic_head_mask(
+    structural_head: np.ndarray,
+    face: np.ndarray,
+    subject: np.ndarray,
+) -> np.ndarray:
+    head = np.asarray(structural_head, dtype=bool) & subject
+    if not np.any(face):
+        return head
+    face_box = _bbox(face)
+    if face_box is None:
+        return head
+    x0, y0, x1, y1 = face_box
+    scale = max(x1 - x0, y1 - y0, 1)
+    radius = max(3, int(round(scale * 0.55)))
+    support = cv2.dilate(
+        face.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (radius * 2 + 1, radius * 2 + 1),
+        ),
+    ).astype(bool)
+    refined = head & support
+    minimum = max(24, int(round(np.count_nonzero(face) * 1.15)))
+    if int(np.count_nonzero(refined)) < minimum:
+        return head
+    return refined
 
 
 def _neck_mask(
@@ -410,11 +741,19 @@ def _detect_vivid_torso_accent(
     fw, fh = max(fx1 - fx0, 1), max(fy1 - fy0, 1)
     fcx = (fx0 + fx1) * 0.5
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    support_radius = max(3, int(round(fw * 0.60)))
+    search_support = cv2.dilate(
+        torso.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (support_radius * 2 + 1, support_radius * 2 + 1),
+        ),
+    ).astype(bool)
+    search_support &= subject & ~face
     vivid_base = (
         (hsv[..., 1] >= 105)
         & (hsv[..., 2] >= 80)
-        & torso
-        & subject
+        & search_support
     )
     subject_count = max(int(subject.sum()), 1)
     torso_pixels = rgb[torso]
@@ -453,7 +792,7 @@ def _detect_vivid_torso_accent(
             if aspect < 1.45:
                 continue
             cx, cy = [float(v) for v in centroids[label]]
-            if abs(cx - fcx) > fw * 1.05 or cy < fy1 - fh * 0.12:
+            if abs(cx - fcx) > fw * 1.35 or cy < fy1 - fh * 0.12:
                 continue
             comp = labels == label
             pixels = rgb[comp]
@@ -479,6 +818,100 @@ def _detect_vivid_torso_accent(
     if best is None:
         return None
     return best[1], float(best[0])
+
+
+def _recover_secondary_vivid_accents(
+    rgb: np.ndarray,
+    subject: np.ndarray,
+    torso: np.ndarray,
+    face: np.ndarray,
+    primary: np.ndarray,
+) -> np.ndarray:
+    if not np.any(primary) or not np.any(torso):
+        return np.zeros_like(subject)
+    face_box = _bbox(face)
+    if face_box is None:
+        return np.zeros_like(subject)
+    fx0, fy0, fx1, fy1 = face_box
+    fw, fh = max(fx1 - fx0, 1), max(fy1 - fy0, 1)
+    fcx, fcy = (fx0 + fx1) * 0.5, (fy0 + fy1) * 0.5
+
+    primary_pixels = rgb[primary]
+    if len(primary_pixels) < 8:
+        return np.zeros_like(subject)
+    primary_rgb = np.median(primary_pixels, axis=0).astype(np.uint8)
+    primary_lab = cv2.cvtColor(
+        primary_rgb.reshape(1, 1, 3), cv2.COLOR_RGB2LAB
+    ).astype(np.float32)[0, 0]
+    primary_hsv = cv2.cvtColor(
+        primary_rgb.reshape(1, 1, 3), cv2.COLOR_RGB2HSV
+    )[0, 0]
+
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    hue_delta = np.abs(
+        hsv[..., 0].astype(np.int16) - int(primary_hsv[0])
+    )
+    hue_delta = np.minimum(hue_delta, 180 - hue_delta)
+    minimum_saturation = max(60, int(round(float(primary_hsv[1]) * 0.55)))
+    minimum_value = max(45, int(round(float(primary_hsv[2]) * 0.45)))
+
+    support_radius = max(4, int(round(fw * 0.85)))
+    search_support = cv2.dilate(
+        torso.astype(np.uint8),
+        cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (support_radius * 2 + 1, support_radius * 2 + 1),
+        ),
+    ).astype(bool)
+    candidate = (
+        subject
+        & search_support
+        & ~primary
+        & (hue_delta <= 15)
+        & (hsv[..., 1] >= minimum_saturation)
+        & (hsv[..., 2] >= minimum_value)
+    )
+    candidate = cv2.morphologyEx(
+        candidate.astype(np.uint8),
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+    )
+
+    subject_count = max(int(np.count_nonzero(subject)), 1)
+    minimum_area = max(6, int(round(subject_count * 0.00025)))
+    maximum_area = max(
+        minimum_area,
+        int(round(np.count_nonzero(primary) * 0.35)),
+    )
+    count, labels, stats, centroids = cv2.connectedComponentsWithStats(
+        candidate, connectivity=8
+    )
+    recovered = np.zeros_like(subject)
+    for label in range(1, count):
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area < minimum_area or area > maximum_area:
+            continue
+        cx, cy = [float(value) for value in centroids[label]]
+        lateral = abs(cx - fcx) / max(float(fw), 1.0)
+        vertical = (cy - fcy) / max(float(fh), 1.0)
+        if not 0.45 <= lateral <= 1.30:
+            continue
+        if not 0.25 <= vertical <= 1.25:
+            continue
+        component = labels == label
+        face_overlap = float(np.count_nonzero(component & face)) / max(
+            float(area), 1.0
+        )
+        if face_overlap > 0.15:
+            continue
+        median_rgb = np.median(rgb[component], axis=0).astype(np.uint8)
+        median_lab = cv2.cvtColor(
+            median_rgb.reshape(1, 1, 3), cv2.COLOR_RGB2LAB
+        ).astype(np.float32)[0, 0]
+        if float(np.linalg.norm(median_lab - primary_lab)) > 35.0:
+            continue
+        recovered |= component
+    return recovered & subject & ~primary
 
 
 def _detect_accessory(
@@ -552,9 +985,21 @@ def decompose_semantic_parts(
         face,
         hair_hint=hair_hint,
     )
+    semantic_head = _semantic_head_mask(structural["head"], face, subject)
     neck = _neck_mask(source, subject, face, structural["torso"])
     accessory, accessory_kind, accessory_score = _detect_accessory(
         source, subject, structural["torso"], face
+    )
+    if accessory_kind == "vivid-accent":
+        accessory |= _recover_secondary_vivid_accents(
+            source,
+            subject,
+            structural["torso"],
+            face,
+            accessory,
+        )
+    hair |= _rescue_bright_face_side_hair_strands(
+        source, subject & ~accessory, face, hair
     )
 
     torso_core, major_clothing = _torso_core(structural["torso"], face)
@@ -581,9 +1026,54 @@ def decompose_semantic_parts(
         | major_clothing
     )
     unknown = subject & ~assigned
+    rescued_hair = _rescue_face_side_hair_strands(source, unknown, face, hair)
+    if np.any(rescued_hair):
+        hair |= rescued_hair
+        unknown &= ~rescued_hair
+    hair_like_unknown = _rescue_hair_like_unknown_components(
+        source,
+        unknown,
+        hair,
+        {
+            "left_arm": left_arm,
+            "right_arm": right_arm,
+            "major_clothing": major_clothing,
+            "torso": torso_core,
+        },
+    )
+    if np.any(hair_like_unknown):
+        hair |= hair_like_unknown
+        unknown &= ~hair_like_unknown
+
+    owner_rescues = _rescue_large_unknown_components_by_owner(
+        source,
+        subject,
+        unknown,
+        {
+            "left_arm": left_arm,
+            "right_arm": right_arm,
+            "major_clothing": major_clothing,
+            "torso": torso_core,
+        },
+    )
+    rescued_owner_pixels = np.zeros_like(unknown)
+    if np.any(owner_rescues["left_arm"]):
+        left_arm |= owner_rescues["left_arm"]
+        rescued_owner_pixels |= owner_rescues["left_arm"]
+    if np.any(owner_rescues["right_arm"]):
+        right_arm |= owner_rescues["right_arm"]
+        rescued_owner_pixels |= owner_rescues["right_arm"]
+    if np.any(owner_rescues["major_clothing"]):
+        major_clothing |= owner_rescues["major_clothing"]
+        rescued_owner_pixels |= owner_rescues["major_clothing"]
+    if np.any(owner_rescues["torso"]):
+        torso_core |= owner_rescues["torso"]
+        rescued_owner_pixels |= owner_rescues["torso"]
+    if np.any(rescued_owner_pixels):
+        unknown &= ~rescued_owner_pixels
 
     part_masks = {
-        "head": structural["head"],
+        "head": semantic_head,
         "hair": hair,
         "face": face,
         "neck": neck,
