@@ -82,3 +82,24 @@ P4 is complete at the production-safe segmentation boundary.
 Synthetic guard check: subject retention 0.98 with hair retention 0.50 is rejected, demonstrating that a locally destructive refinement cannot pass merely because the global subject silhouette remains strong.
 
 Next: P5 runs the canonical Approved corpus A/B. Report identity/silhouette/regional retention, semantic loss, palette, primitive/tiny-shape/complexity, runtime and determinism. Adopt only on aggregate improvement with hard guards satisfied; otherwise HOLD/REJECT and preserve the useful observer contracts independently.
+
+
+## P5 checkpoint — corpus gate ready, real refinement A/B HOLD (2026-10-03)
+
+The canonical evaluation assets were verified before making an adoption claim:
+
+- GitHub defines Approved-18 as the medium regression gate and Approved-78 as the formal calibration/final gate.
+- Google Drive remains the authoritative image-binary store; the canonical Approved-78 ZIP is present there.
+- The local canonical project still contains all 78 replay directories with saved VectorScene/SVG artifacts, plus the Approved-18 source/reference/evaluation assets.
+
+A fail-closed A/B decision contract is now implemented. It reports accepted/rejected, improved/regressed, guard failures, determinism and mean objective delta. Crucially, a composite-score improvement may no longer hide a regression in silhouette, palette, semantic, tiny-shape, complexity, or primitive count. This rule was added after a synthetic P5 test exposed exactly that masking failure mode.
+
+Focused P0-P5 contract suite: 17/17 PASS on the isolated worktree.
+
+### Decision
+
+**HOLD**, not ADOPT and not REJECT.
+
+Reason: the canonical corpus/replay evidence exists, but the actual differentiable renderer/runtime remains P1 HOLD. Therefore there is not yet a genuine B image/VectorScene produced by gradient refinement across Approved-78. Fabricating B measurements from synthetic finite differences would violate the benchmark policy and the project's existing rule against ungrounded corpus claims.
+
+Next action: unblock one real differentiable rendering backend (diffvg first), run a small Diagnostic-2/Approved-18 real-image optimization smoke, then run Approved-78 only if that smoke passes. The observer contracts and fail-closed corpus gate remain valid independently of backend choice.
