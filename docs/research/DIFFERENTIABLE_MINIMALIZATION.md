@@ -114,3 +114,14 @@ The focused P0/P2 suite passes **8/8**. Tests prove loss reduction for rectangle
 Polygon topology is deliberately not tensorized in this step. The current SVG schema represents triangle/trapezoid/convex_polygon as point arrays, so polygon refinement will be added only with winding/self-intersection guards rather than treating unconstrained vertices as safe.
 
 **Decision: P2 PASS for rectangle/ellipse.** Next: P3 frozen DINOv3 semantic/perceptual observation loss, still evaluation-only and never image generation. Polygon refinement remains a guarded subtask before corpus-scale A/B.
+
+
+## P3 result — frozen DINOv3 semantic observer gate PASS (2026-10-03)
+
+DINOv3 remains an optional, injected, read-only observer. The research contract stores immutable global and aligned patch features, computes cosine perceptual loss, converts that evidence to an identity-retention ratio, and feeds it into the existing hard acceptance gate. The observer cannot render, mutate a Scene/VectorScene, or accept a candidate by itself. Missing runtime configuration fails closed.
+
+The focused P0/P2/P3 suite passes **14/14**. New gate tests prove that a candidate with a lower optimization objective is still rejected when patch-level semantic identity is damaged, while a semantically preserved improvement can pass when the silhouette guard also passes.
+
+This matches the intended use of DINOv3 as a frozen evaluator: Meta describes DINOv3 as producing high-quality dense image features and reports frozen-backbone evaluation across downstream tasks. Actual pretrained weights remain a research-runtime concern and are not introduced as a production dependency.
+
+**Decision: P3 PASS.** Next: P4 observation-only semantic region masks (SAM-family official runtime if available), used only for regional weighting and retention guards. No synthesis, inpainting, redraw, or pixel mutation is permitted.
