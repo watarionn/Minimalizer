@@ -26,3 +26,12 @@ A narrow local search found a pre-existing non-Minimalizer environment at `C:\\W
 The expected Hugging Face cache directories for `IDEA-Research/grounding-dino-tiny` and `facebook/sam-vit-base` were not confirmed by the narrow probe. Therefore the old Phase E model weights must not be assumed present.
 
 Recovery policy: do not bind Minimalizer to the benchmark environment. If execution access is later available, inspect its exact Torch/Transformers/CUDA versions and cached model availability read-only. Reuse only shared model/cache assets or reproduce a dedicated observer environment from a pinned manifest. Production requirements remain unchanged.
+
+
+## Reuse decision 2026-10-03
+
+Read-only inspection shows the benchmark venv is Python 3.11.9 but Torch 2.14.0+cpu with no CUDA build, and Transformers 5.15.1. It is rejected as the Phase E GPU observer runtime. The standard Hugging Face hub cache also does not contain the Phase E Grounding-DINO tiny or SAM ViT-B model directories.
+
+A research-only observer-runtime.lock now records the previously validated Phase E target versions and model IDs. DINOv3 stays unresolved until an official compatible model identifier is verified rather than guessed.
+
+Gate result: environment/cache recovery is complete. Existing assets cannot close the runtime gate. Next is one shared observer environment from the pinned target, followed by Diagnostic-2 real measurements.
