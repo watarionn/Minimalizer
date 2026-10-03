@@ -34,3 +34,18 @@ P4: SAM concept masks as regional weighting/guards.
 P5: Approved corpus A/B and decision.
 
 No stage is allowed to mutate the existing production path by default.
+
+
+## P2 result — geometry contract PASS (2026-10-03)
+
+P2 is complete at the backend-neutral contract level.
+
+- Existing VectorScene is the only geometry authority entering refinement.
+- Refinement may change parameters only for the current supported flat primitives.
+- Primitive identity, fill, z-order and primitive count remain fixed in this stage.
+- Unknown primitives/proposals fail closed.
+- A backend protocol keeps diffvg optional; production does not import it eagerly.
+- A finite-difference smoke backend is test-only/research scaffolding, not the intended production optimizer.
+- Focused P0+P2 suite: 6/6 PASS on the isolated worktree.
+
+Next: P3 adds frozen semantic observation. DINOv3 must return losses/features only and must never mutate Scene/VectorScene or pixels. Geometry candidates still pass the hard identity/silhouette acceptance gate before adoption.
