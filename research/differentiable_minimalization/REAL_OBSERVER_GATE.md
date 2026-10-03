@@ -87,3 +87,12 @@ Regional evaluation now distinguishes coverage retention from spatial retention.
 The A/B evaluator now requires spatial regional evidence before ADOPT. Missing spatial evidence yields HOLD; a critical-region IoU below the current research floor of 0.85 yields REJECT. Missing masks in an invoked spatial guard fail closed.
 
 Focused P0-P5 + spatial-guard suite: 31/31 PASS in the isolated research worktree. This contract removes the earlier coverage-only limitation, but the existing Grounded-SAM confidence NPZ evidence still needs an adapter that thresholds/binds those maps into these immutable masks for baseline-vs-candidate Diagnostic-2 comparison.
+
+
+## Grounded-SAM confidence-to-mask adapter 2026-10-04
+
+A canonical research adapter now converts the existing Phase E NPZ evidence (`labels` + `confidence[label,y,x]`) into immutable `RegionObservation.spatial_mask` values using the unchanged Phase E active threshold `confidence >= 0.20`. It rejects malformed and non-finite evidence and does not mutate source pixels or vector geometry.
+
+Adapter-focused regional/evaluation suite: 21/21 PASS. Real Diagnostic-2 source evidence was also passed through the adapter. The recovered coverages exactly reproduce the prior Grounded-SAM report, and self-overlap is 1.0 for hair, face-skin, limb, and accessory on both Kyoko and Raden.
+
+This closes the confidence-map-to-spatial-contract bridge. It does not by itself measure Minimalizer retention: the next gate requires rendering the SHA-bound baseline/candidate outputs, observing them with the same frozen Grounded-SAM configuration, and comparing their masks against these source observations.
