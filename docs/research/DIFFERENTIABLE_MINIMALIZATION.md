@@ -49,3 +49,19 @@ P2 is complete at the backend-neutral contract level.
 - Focused P0+P2 suite: 6/6 PASS on the isolated worktree.
 
 Next: P3 adds frozen semantic observation. DINOv3 must return losses/features only and must never mutate Scene/VectorScene or pixels. Geometry candidates still pass the hard identity/silhouette acceptance gate before adoption.
+
+
+## P3 result — frozen semantic observer contract PASS (2026-10-03)
+
+P3 is complete at the production-safe observer boundary.
+
+- DINOv3 is observation-only and optional; no eager runtime dependency is introduced.
+- The observer returns immutable global and patch feature observations only.
+- Semantic loss uses cosine distance over aligned global/patch features.
+- Identity ratio is derived for the existing hard acceptance gate; the observer cannot accept candidates itself.
+- Missing DINOv3 configuration fails closed without changing the canonical production path.
+- Focused P0+P2+P3 suite: 10/10 PASS on the isolated worktree.
+
+Official DINOv3 supports class-token and dense patch-token representations and recommends frozen features as a strong default. The actual heavyweight model/weights remain a research-runtime concern, not a Minimalizer production dependency.
+
+Next: P4 introduces segmentation observations as regional weights/guards. Segmentation remains observation-only: masks may weight losses but may never synthesize, inpaint, redraw, or mutate source/rendered pixels.
