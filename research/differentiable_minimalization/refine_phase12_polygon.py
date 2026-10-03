@@ -6,7 +6,8 @@ from PIL import Image,ImageDraw
 import torch,pydiffvg
 from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate
 from minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
-from minimalizer_zerobase.refine.constrained_polygon import PolygonCheckpoint,hard_mask,hard_iou,choose_best_feasible\nfrom minimalizer_zerobase.refine.semantic_ownership import union_masks
+from minimalizer_zerobase.refine.constrained_polygon import PolygonCheckpoint,hard_mask,hard_iou,choose_best_feasible
+from minimalizer_zerobase.refine.semantic_ownership import union_masks
 
 def render_mask(points,w,h):
     path=pydiffvg.Path(num_control_points=torch.zeros(len(points),dtype=torch.int32),points=points,is_closed=True)
