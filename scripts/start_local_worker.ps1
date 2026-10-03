@@ -12,7 +12,7 @@ if (Test-Path $OriginFile) {
         $env:MINIMALIZER_LOCAL_ALLOWED_ORIGINS = $ConfiguredOrigin
     }
 }
-$Health = "http://127.0.0.1:28765/health"
+$Health = "http://127.0.0.1:28764/health"
 try {
     $existing = Invoke-RestMethod -Uri $Health -TimeoutSec 1
     if ($existing.worker -eq "local-compute-v1") {
@@ -25,5 +25,5 @@ New-Item -ItemType Directory -Force $LogDir | Out-Null
 $Log = Join-Path $LogDir "local-worker.log"
 Set-Location $Root
 $ErrorActionPreference = "Continue"
-& $Python -m uvicorn local_worker.app:app --host 127.0.0.1 --port 28765 --workers 1 >> $Log 2>&1
+& $Python -m uvicorn local_worker.app:app --host 127.0.0.1 --port 28764 --workers 1 >> $Log 2>&1
 exit $LASTEXITCODE

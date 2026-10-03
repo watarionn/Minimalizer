@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$WorkerUrl = "http://127.0.0.1:28765"
+$WorkerUrl = "http://127.0.0.1:28764"
 $HttpsPort = 28765
 
 if (-not (Get-Command tailscale -ErrorAction SilentlyContinue)) {
