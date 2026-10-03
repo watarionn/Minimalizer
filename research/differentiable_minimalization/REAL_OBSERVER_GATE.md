@@ -78,3 +78,12 @@ Results:
 - Spatial confidence maps were emitted as per-case NPZ files plus a contact sheet and report JSON in the isolated local evidence directory.
 
 Interpretation: real regional observation is now operational on Diagnostic-2 and is no longer represented only by injected test fixtures. This is observation evidence, not yet an adoption PASS. The current `RegionObservation` coverage contract still cannot prove spatial IoU/shape retention, so the next evaluation step must bind these spatial maps to an immutable overlap descriptor before any strong regional-retention claim.
+
+
+## Spatial regional guard contract 2026-10-04
+
+Regional evaluation now distinguishes coverage retention from spatial retention. `RegionObservation` can carry an immutable rectangular boolean spatial mask; `spatial_iou` and `regional_spatial_iou` measure overlap, while the legacy coverage ratio remains available for compatibility. Equal coverage with relocated geometry can therefore fail the regional gate.
+
+The A/B evaluator now requires spatial regional evidence before ADOPT. Missing spatial evidence yields HOLD; a critical-region IoU below the current research floor of 0.85 yields REJECT. Missing masks in an invoked spatial guard fail closed.
+
+Focused P0-P5 + spatial-guard suite: 31/31 PASS in the isolated research worktree. This contract removes the earlier coverage-only limitation, but the existing Grounded-SAM confidence NPZ evidence still needs an adapter that thresholds/binds those maps into these immutable masks for baseline-vs-candidate Diagnostic-2 comparison.
