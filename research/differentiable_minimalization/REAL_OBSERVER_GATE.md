@@ -126,3 +126,12 @@ Diagnostic-2 source-to-baseline observations:
 Interpretation: the descriptor successfully recovers useful spatial agreement for Kyoko hair and both face-skin channels despite very low raw mask IoU. It does not rescue channels for which the frozen semantic observer emits no candidate region, notably both limb channels and Raden hair. Therefore the descriptor is promising as an abstraction-tolerant measurement, but it is still HOLD as a hard adoption gate. Missing semantic detections must remain explicit evidence rather than being hidden by high background occupancy similarity.
 
 Next: add DINOv3 patch-level spatial evidence as an observer-independent companion, then evaluate a combined descriptor without weakening the existing fail-closed identity/silhouette contract.
+
+
+## DINOv3 patch-spatial contract 2026-10-04
+
+The pinned model ID `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` was reverified against the official Meta/Hugging Face release. It is a 27.8M-parameter DINOv3 ConvNeXt Tiny image-feature-extraction model. The repository is gated. The shared local observer runtime currently has no cached processor/model for this ID and no HF token, so real model download/inference was not bypassed or fabricated.
+
+A model-independent immutable DINO spatial contract was completed instead. It accepts a finite dense feature map and records aligned patch features plus a global feature. Comparison reports global cosine, aligned patch cosine, coarse 4x4 spatial cosine, and a research score. The contract specifically detects spatial relocation even when global feature means are unchanged.
+
+Focused DINO-spatial + abstraction-spatial tests: 8/8 PASS. Real Diagnostic-2 DINO measurements remain HOLD until the gated weights are legitimately available to the isolated observer runtime. No adoption threshold was invented from fixture data.
