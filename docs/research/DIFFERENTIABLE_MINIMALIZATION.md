@@ -65,3 +65,20 @@ P3 is complete at the production-safe observer boundary.
 Official DINOv3 supports class-token and dense patch-token representations and recommends frozen features as a strong default. The actual heavyweight model/weights remain a research-runtime concern, not a Minimalizer production dependency.
 
 Next: P4 introduces segmentation observations as regional weights/guards. Segmentation remains observation-only: masks may weight losses but may never synthesize, inpaint, redraw, or mutate source/rendered pixels.
+
+
+## P4 result — regional observation/guard contract PASS (2026-10-03)
+
+P4 is complete at the production-safe segmentation boundary.
+
+- SAM-family integration is optional, frozen, and observation-only.
+- Observations expose semantic label, coverage, and confidence; there is no mutation/generation API.
+- Regional retention prevents global metrics from hiding local collapse.
+- Critical regions default to subject, hair, clothes, and object; thresholds remain research hypotheses until corpus calibration.
+- Low-confidence observations are excluded from hard guards rather than treated as truth.
+- Regional losses can be importance-weighted independently of the hard retention gate.
+- Focused P0+P2+P3+P4 suite: 14/14 PASS on the isolated worktree.
+
+Synthetic guard check: subject retention 0.98 with hair retention 0.50 is rejected, demonstrating that a locally destructive refinement cannot pass merely because the global subject silhouette remains strong.
+
+Next: P5 runs the canonical Approved corpus A/B. Report identity/silhouette/regional retention, semantic loss, palette, primitive/tiny-shape/complexity, runtime and determinism. Adopt only on aggregate improvement with hard guards satisfied; otherwise HOLD/REJECT and preserve the useful observer contracts independently.
