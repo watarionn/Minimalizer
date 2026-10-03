@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image,ImageDraw
 import torch,pydiffvg
 from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate
-from minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
+from minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy\nfrom minimalizer_zerobase.refine.constrained_polygon import PolygonCheckpoint,hard_mask,hard_iou,choose_best_feasible
 
 def render_mask(points,w,h):
     path=pydiffvg.Path(num_control_points=torch.zeros(len(points),dtype=torch.int32),points=points,is_closed=True)
@@ -25,20 +25,28 @@ def main():
     reference_mask=render_mask(reference,w,h).detach()
     delta=torch.zeros_like(reference,requires_grad=True)
     opt=torch.optim.Adam([delta],lr=.15)
-    initial=None
-    for _ in range(30):
+    initial=float(((reference_mask-target)**2).mean().detach())
+    reference_hard=hard_mask(ref,w,h)
+    checkpoints=[]
+    for step in range(1,61):
         opt.zero_grad()
         points=reference+radius*torch.tanh(delta)
         rendered=render_mask(points,w,h)
         target_loss=((rendered-target)**2).mean()
-        ownership_loss=((rendered-reference_mask)**2).mean()
+        intersection=(rendered*reference_mask).sum()
+        soft_dice=(2*intersection+1e-6)/(rendered.sum()+reference_mask.sum()+1e-6)
+        ownership_loss=1-soft_dice
         loss=target_loss+policy.ownership_weight*ownership_loss
-        if initial is None:
-            initial=float(target_loss.detach())
         loss.backward()
         torch.nn.utils.clip_grad_norm_([delta],1.0)
         opt.step()
-    candidate=(reference+radius*torch.tanh(delta)).detach().numpy()
+        candidate_now=(reference+radius*torch.tanh(delta)).detach().numpy()
+        candidate_loss=float(((render_mask(torch.tensor(candidate_now),w,h)-target)**2).mean().detach())
+        checkpoints.append(PolygonCheckpoint(step,candidate_loss,hard_iou(reference_hard,hard_mask(candidate_now,w,h)),candidate_now.copy()))
+    best=choose_best_feasible(checkpoints,minimum_iou=.985,initial_loss=initial)
+    if best is None:
+        raise SystemExit("NO_FEASIBLE_CHECKPOINT")
+    candidate=best.points
     guard=validate_polygon_candidate(ref,candidate,width=w,height=h)
     if not guard.valid: raise SystemExit("GUARD_REJECT: "+str(guard.reason))
     final=float(((render_mask(torch.tensor(candidate),w,h)-target)**2).mean().detach())
@@ -52,5 +60,5 @@ def main():
             json.dumps({"primitive_id":p["primitive_id"],"points":candidate.tolist()}),
             encoding="utf8",
         )
-    print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"trust_radius":radius,"ownership_weight":policy.ownership_weight,"guard":"PASS","output":str(args.output)},indent=2))
+    print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"selected_step":best.step,"ownership_iou":best.ownership_iou,"trust_radius":radius,"ownership_weight":policy.ownership_weight,"guard":"PASS","output":str(args.output)},indent=2))
 if __name__=="__main__": main()
