@@ -125,3 +125,14 @@ The focused P0/P2/P3 suite passes **14/14**. New gate tests prove that a candida
 This matches the intended use of DINOv3 as a frozen evaluator: Meta describes DINOv3 as producing high-quality dense image features and reports frozen-backbone evaluation across downstream tasks. Actual pretrained weights remain a research-runtime concern and are not introduced as a production dependency.
 
 **Decision: P3 PASS.** Next: P4 observation-only semantic region masks (SAM-family official runtime if available), used only for regional weighting and retention guards. No synthesis, inpainting, redraw, or pixel mutation is permitted.
+
+
+## P4 result — observation-only semantic region guards PASS (2026-10-03)
+
+The official Meta SAM 3 line was re-verified before implementation. SAM 3 supports open-vocabulary concept segmentation from short text/exemplar prompts; Meta has also published SAM 3.1 as a drop-in SAM 3 update focused on video efficiency. Minimalizer does not depend on either runtime in production: the adapter is injected and observation-only.
+
+P4 adds immutable region observations, confidence filtering, per-label coverage retention, weighted regional loss, critical-region guards, concept/order validation, and a fail-closed optional SAM adapter. Important local regions can be weighted above background, and loss improvement cannot excuse a critical-region collapse. The observer exposes no synthesis, inpainting, redraw, Scene mutation, or pixel-editing API.
+
+Focused P0-P4 suite: **20/20 PASS**. Tests cover local hair collapse, confidence filtering, weighted local damage, caller-image immutability, missing runtime failure, duplicate labels, and requested-concept alignment.
+
+**Decision: P4 PASS.** Next: P5 real A/B evaluation. Begin with Diagnostic-2 / Approved-18 using actual rendered candidates and the existing hard gates; only advance to Approved-78 if the small real-image smoke passes. SAM/DINO observations remain evidence, never geometry authority or output generation.
