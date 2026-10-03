@@ -16,5 +16,5 @@ class SemanticTrustPolicy:
         if part == "hair": return self.hair
         if part == "major_clothing": return self.major_clothing
         if part in ("left_arm","right_arm","lower_body","limb"): return self.limb
-        if part == "accessory": return self.accessory
+        if part in ("accessory","accessory_or_held_object"): return self.accessory
         return self.default
