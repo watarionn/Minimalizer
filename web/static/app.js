@@ -318,7 +318,6 @@ async function fetchLocalWorker(path, options = {}, timeoutMs = 0) {
 }
 
 async function probeLocalWorker() {
-  if (!localWorkerEnabled()) return { ready: false, reason: "disabled" };
   state.localWorkerStatus = "checking";
   state.localWorkerFallbackReason = "";
   refreshEngineBadge();
