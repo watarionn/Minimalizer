@@ -13,7 +13,7 @@ def render_mask(points,w,h):
     return pydiffvg.RenderFunction.apply(w,h,2,2,0,None,*args)[...,3]
 
 def main():
-    a=argparse.ArgumentParser(); a.add_argument("--simplification",type=Path,required=True); a.add_argument("--target-mask",type=Path,required=True); a.add_argument("--baseline",type=Path,required=True); a.add_argument("--output",type=Path,required=True); a.add_argument("--primitive-index",type=int,default=9); args=a.parse_args()
+    a=argparse.ArgumentParser(); a.add_argument("--simplification",type=Path,required=True); a.add_argument("--target-mask",type=Path,required=True); a.add_argument("--baseline",type=Path,required=True); a.add_argument("--output",type=Path,required=True); a.add_argument("--primitive-index",type=int,default=9); a.add_argument("--points-output",type=Path); args=a.parse_args()
     d=json.loads(args.simplification.read_text(encoding="utf8")); c=next(x for x in d["candidates"] if x["name"]==d["selected_name"]); p=c["primitives"][args.primitive_index]
     ref=np.asarray(p["parameters"]["components"][0],dtype=np.float32); h,w=np.asarray(Image.open(args.target_mask)).shape[:2]
     target=torch.from_numpy((np.asarray(Image.open(args.target_mask).convert("L"),dtype=np.float32)/255.)).to(torch.float32)
@@ -31,6 +31,6 @@ def main():
     image=Image.open(args.baseline).convert("RGB"); draw=ImageDraw.Draw(image)
     # repaint only the selected polygon with its canonical fill after a tiny guarded geometry move.
     fill=tuple(int(x) for x in p["palette_color_rgb"]); draw.polygon([tuple(map(float,q)) for q in candidate],fill=fill)
-    args.output.parent.mkdir(parents=True,exist_ok=True); image.save(args.output)
+    args.output.parent.mkdir(parents=True,exist_ok=True); image.save(args.output)\n    if args.points_output:\n        args.points_output.write_text(json.dumps({"primitive_id":p["primitive_id"],"points":candidate.tolist()}),encoding="utf8")
     print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"guard":"PASS","output":str(args.output)},indent=2))
 if __name__=="__main__": main()
