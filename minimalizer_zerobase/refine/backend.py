@@ -8,7 +8,7 @@ class DifferentiableRasterBackend(Protocol):
 
 class TorchSoftRasterBackend:
     """Research-only analytic rasterizer used to validate the optimizer boundary."""
-    def __init__(self, sharpness: float = 1.5):
+    def __init__(self, sharpness: float = 0.35):
         self.sharpness = float(sharpness)
 
     def _grid(self, width: int, height: int, ref: torch.Tensor):
