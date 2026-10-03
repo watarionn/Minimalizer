@@ -127,6 +127,21 @@ class PartAwareGeometrizationPolicy:
     max_candidates_per_mass: int = 4
     unbound_vertex_budget: int = 12
     minimum_candidates_per_active_mass: int = 2
+    fidelity_gate_min_subject_ratio: float = 0.003
+    max_coverage_loss_large_mass: float = 0.18
+    max_spill_loss_large_mass: float = 0.18
+    max_silhouette_loss_large_mass: float = 0.22
+    critical_fidelity_parts: tuple[str, ...] = ("torso", "left_arm", "right_arm", "major_clothing")
+    critical_fidelity_min_subject_ratio: float = 0.02
+    critical_max_coverage_loss: float = 0.08
+    critical_max_spill_loss: float = 0.12
+    critical_max_silhouette_loss: float = 0.12
+    arm_critical_max_coverage_loss: float = 0.03
+    arm_critical_max_silhouette_loss: float = 0.05
+    fidelity_fallback_vertex_budget_min: int = 48
+    fidelity_fallback_budget_multiplier: int = 4
+    major_clothing_fidelity_fallback_budget_multiplier: int = 6
+    lower_body_fidelity_fallback_budget_multiplier: int = 6
     allow_axis_aligned_rectangle: bool = False
     allow_cross_mass_candidate: bool = False
     allow_prune_resurrection: bool = False
@@ -146,6 +161,34 @@ class PartAwareGeometrizationPolicy:
             raise ValueError("invalid Phase 10 candidate-count bounds")
         if self.unbound_vertex_budget < 3:
             raise ValueError("unbound vertex budget must be at least 3")
+        if not 0.0 <= self.fidelity_gate_min_subject_ratio <= 1.0:
+            raise ValueError("invalid Phase 10 fidelity gate subject ratio")
+        for value in (
+            self.max_coverage_loss_large_mass,
+            self.max_spill_loss_large_mass,
+            self.max_silhouette_loss_large_mass,
+        ):
+            if not 0.0 <= value <= 1.0:
+                raise ValueError("invalid Phase 10 fidelity loss threshold")
+        if not 0.0 <= self.critical_fidelity_min_subject_ratio <= 1.0:
+            raise ValueError("invalid Phase 10 critical fidelity subject ratio")
+        for value in (
+            self.critical_max_coverage_loss,
+            self.critical_max_spill_loss,
+            self.critical_max_silhouette_loss,
+            self.arm_critical_max_coverage_loss,
+            self.arm_critical_max_silhouette_loss,
+        ):
+            if not 0.0 <= value <= 1.0:
+                raise ValueError("invalid Phase 10 critical fidelity loss threshold")
+        if self.fidelity_fallback_vertex_budget_min < 3:
+            raise ValueError("Phase 10 fidelity fallback budget must be at least 3")
+        if self.fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("Phase 10 fidelity fallback multiplier must be positive")
+        if self.major_clothing_fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("Phase 10 major clothing fidelity fallback multiplier must be positive")
+        if self.lower_body_fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("Phase 10 lower body fidelity fallback multiplier must be positive")
         if self.allow_axis_aligned_rectangle:
             raise ValueError("Phase 10 forbids generic axis-aligned rectangles")
         if self.allow_cross_mass_candidate:
@@ -210,6 +253,25 @@ class PartAwareGeometrizationPolicy:
             "unbound_vertex_budget": self.unbound_vertex_budget,
             "max_candidates_per_mass": self.max_candidates_per_mass,
             "minimum_candidates_per_active_mass": self.minimum_candidates_per_active_mass,
+            "fidelity_guard": {
+                "minimum_subject_area_ratio": self.fidelity_gate_min_subject_ratio,
+                "max_coverage_loss": self.max_coverage_loss_large_mass,
+                "max_spill_loss": self.max_spill_loss_large_mass,
+                "max_silhouette_loss": self.max_silhouette_loss_large_mass,
+                "critical_parts": list(self.critical_fidelity_parts),
+                "critical_minimum_subject_area_ratio": self.critical_fidelity_min_subject_ratio,
+                "critical_max_coverage_loss": self.critical_max_coverage_loss,
+                "critical_max_spill_loss": self.critical_max_spill_loss,
+                "critical_max_silhouette_loss": self.critical_max_silhouette_loss,
+                "arm_critical_max_coverage_loss": self.arm_critical_max_coverage_loss,
+                "arm_critical_max_silhouette_loss": self.arm_critical_max_silhouette_loss,
+                "fallback_family": "polygon",
+                "fallback_vertex_budget_min": self.fidelity_fallback_vertex_budget_min,
+                "fallback_budget_multiplier": self.fidelity_fallback_budget_multiplier,
+                "major_clothing_fallback_budget_multiplier": self.major_clothing_fidelity_fallback_budget_multiplier,
+                "lower_body_fallback_budget_multiplier": self.lower_body_fidelity_fallback_budget_multiplier,
+                "fail_local_when_no_candidate_passes": True,
+            },
             "allow_axis_aligned_rectangle": False,
             "allow_cross_mass_candidate": False,
             "allow_prune_resurrection": False,
@@ -445,6 +507,153 @@ def _polygon_candidate(mask: np.ndarray, budget: int, *, rounded: bool) -> tuple
     return candidate, parameters, sum(len(points) for points in polygons)
 
 
+def _fidelity_polygon_candidate(
+    mask: np.ndarray, budget: int
+) -> tuple[np.ndarray, dict[str, Any], int]:
+    found, hierarchy = cv2.findContours(
+        mask.astype(np.uint8),
+        cv2.RETR_TREE,
+        cv2.CHAIN_APPROX_NONE,
+    )
+    if not found or hierarchy is None:
+        raise ValueError("Phase 10 fidelity fallback requires a non-empty mask")
+    hierarchy = hierarchy[0]
+
+    depths: list[int] = []
+    for index in range(len(found)):
+        depth = 0
+        parent = int(hierarchy[index][3])
+        while parent >= 0:
+            depth += 1
+            parent = int(hierarchy[parent][3])
+        depths.append(depth)
+
+    perimeters = [
+        max(1.0, float(cv2.arcLength(contour, True)))
+        for contour in found
+    ]
+    perimeter_total = sum(perimeters)
+    allocations: list[int] = []
+    remaining = max(3 * len(found), budget)
+    for index, perimeter in enumerate(perimeters):
+        if index == len(found) - 1:
+            allocation = max(3, remaining)
+        else:
+            proportional = int(round(budget * perimeter / perimeter_total))
+            allocation = max(3, proportional)
+            remaining -= allocation
+        allocations.append(allocation)
+
+    ratios = (
+        0.00035,
+        0.0005,
+        0.00075,
+        0.001,
+        0.0015,
+        0.002,
+        0.003,
+        0.004,
+        0.005,
+        0.008,
+        0.012,
+        0.018,
+    )
+    rings: list[dict[str, Any]] = []
+    approximated: list[np.ndarray] = []
+    for index, (contour, allocation, depth) in enumerate(
+        zip(found, allocations, depths)
+    ):
+        perimeter = float(cv2.arcLength(contour, True))
+        chosen = contour.reshape(-1, 2)
+        for ratio in ratios:
+            approximated_candidate = cv2.approxPolyDP(
+                contour, ratio * perimeter, True
+            ).reshape(-1, 2)
+            if len(approximated_candidate) >= 3:
+                chosen = approximated_candidate
+            if 3 <= len(approximated_candidate) <= allocation:
+                break
+        points = chosen.astype(np.float32)
+        approximated.append(points)
+        rings.append(
+            {
+                "points": _points_payload(points),
+                "depth": depth,
+                "role": "fill" if depth % 2 == 0 else "hole",
+                "source_contour_index": index,
+            }
+        )
+
+    canvas = np.zeros(mask.shape, dtype=np.uint8)
+    for ring, points in sorted(
+        zip(rings, approximated),
+        key=lambda pair: (
+            int(pair[0]["depth"]),
+            int(pair[0]["source_contour_index"]),
+        ),
+    ):
+        value = 255 if ring["role"] == "fill" else 0
+        rounded = np.rint(points).astype(np.int32).reshape(-1, 1, 2)
+        cv2.fillPoly(canvas, [rounded], value, lineType=cv2.LINE_8)
+
+    parameters = {
+        "components": [
+            ring["points"] for ring in rings if ring["role"] == "fill"
+        ],
+        "holes": [
+            ring["points"] for ring in rings if ring["role"] == "hole"
+        ],
+        "rings": rings,
+        "corner_radius_px": 0,
+        "fidelity_fallback": True,
+        "hole_preservation": "contour-tree-even-odd",
+    }
+    return (
+        canvas > 0,
+        parameters,
+        sum(len(points) for points in approximated),
+    )
+
+
+def _candidate_meets_fidelity(
+    candidate: PrimitiveCandidate,
+    policy: PartAwareGeometrizationPolicy,
+) -> bool:
+    loss = candidate.cost_breakdown
+    source_shape = candidate.parameters.get("source_mass_shape") or {}
+    subject_ratio = float(source_shape.get("subject_area_ratio", 0.0))
+    critical = (
+        candidate.semantic_part_id in policy.critical_fidelity_parts
+        and subject_ratio >= policy.critical_fidelity_min_subject_ratio
+    )
+    max_coverage = (
+        policy.critical_max_coverage_loss
+        if critical
+        else policy.max_coverage_loss_large_mass
+    )
+    if critical and candidate.semantic_part_id in ARM_PARTS:
+        max_coverage = min(max_coverage, policy.arm_critical_max_coverage_loss)
+    max_spill = (
+        policy.critical_max_spill_loss
+        if critical
+        else policy.max_spill_loss_large_mass
+    )
+    max_silhouette = (
+        policy.critical_max_silhouette_loss
+        if critical
+        else policy.max_silhouette_loss_large_mass
+    )
+    if critical and candidate.semantic_part_id in ARM_PARTS:
+        max_silhouette = min(
+            max_silhouette, policy.arm_critical_max_silhouette_loss
+        )
+    return (
+        float(loss["coverage_loss"]) <= max_coverage
+        and float(loss["spill_loss"]) <= max_spill
+        and float(loss["silhouette_loss"]) <= max_silhouette
+    )
+
+
 def _ellipse_candidate(mask: np.ndarray) -> tuple[np.ndarray, dict[str, Any], int]:
     contours = _contours(mask)
     points = np.concatenate([contour.reshape(-1, 2) for contour in contours]).astype(np.float32)
@@ -669,6 +878,9 @@ def geometrize_parts(
     seen_mass_ids: set[str] = set()
     active_source_pixels = 0
     selected_pixels = 0
+    fidelity_gate_failures: list[str] = []
+    fidelity_fallback_candidate_ids: list[str] = []
+    fidelity_fallback_selected_ids: list[str] = []
     subject_pixels = int(
         phase7_payload.get("validation", {}).get(
             "subject_pixel_count", int(np.count_nonzero(labels >= 0))
@@ -805,14 +1017,101 @@ def geometrize_parts(
                 for item in non_giant_candidates
                 if item.primitive_type not in {"capsule", "oriented_rectangle"}
             ]
+
+        fidelity_required = (
+            mass_subject_ratio >= policy.fidelity_gate_min_subject_ratio
+        )
+        fidelity_candidates = (
+            [
+                item
+                for item in non_giant_candidates
+                if _candidate_meets_fidelity(item, policy)
+            ]
+            if fidelity_required
+            else list(non_giant_candidates)
+        )
+        if fidelity_required and not fidelity_candidates:
+            if normalized_part_id == "major_clothing":
+                fallback_multiplier = (
+                    policy.major_clothing_fidelity_fallback_budget_multiplier
+                )
+            elif normalized_part_id == "lower_body":
+                fallback_multiplier = (
+                    policy.lower_body_fidelity_fallback_budget_multiplier
+                )
+            else:
+                fallback_multiplier = policy.fidelity_fallback_budget_multiplier
+            fallback_budget = max(
+                policy.fidelity_fallback_vertex_budget_min,
+                budget * fallback_multiplier,
+            )
+            fallback_mask, fallback_parameters, fallback_units = (
+                _fidelity_polygon_candidate(mask, fallback_budget)
+            )
+            effective_fallback_budget = max(fallback_budget, fallback_units)
+            fallback_parameters["requested_vertex_budget"] = fallback_budget
+            fallback_parameters["effective_vertex_budget"] = effective_fallback_budget
+            fallback_id = f"{mass_id}:fidelity_polygon"
+            breakdown, total = _candidate_cost(
+                mask,
+                fallback_mask,
+                complexity_units=fallback_units,
+                complexity_budget=effective_fallback_budget,
+                family_prior=0.0,
+                policy=policy,
+            )
+            fallback = PrimitiveCandidate(
+                candidate_id=fallback_id,
+                mass_id=mass_id,
+                semantic_part_id=part_id if isinstance(part_id, str) else None,
+                binding_status=status,
+                action=action,
+                primitive_type="polygon",
+                parameters={
+                    **fallback_parameters,
+                    "source_mass_shape": {
+                        "elongation": _rounded(elongation),
+                        "subject_area_ratio": _rounded(mass_subject_ratio),
+                    },
+                },
+                source_pixel_count=pixel_count,
+                candidate_pixel_count=int(np.count_nonzero(fallback_mask)),
+                complexity_units=fallback_units,
+                complexity_budget=effective_fallback_budget,
+                cost_breakdown=breakdown,
+                total_cost=total,
+                palette_id=palette_id_raw,
+                evidence_refs=(
+                    f"phase07:{mass_id}",
+                    f"phase08:{mass_id}:{action}",
+                    f"phase09:{palette_id_raw}",
+                    "phase10:fidelity-fallback",
+                ),
+            )
+            mass_candidates.append(fallback)
+            candidates.append(fallback)
+            candidate_masks[fallback_id] = fallback_mask
+            fidelity_fallback_candidate_ids.append(fallback_id)
+            if _candidate_meets_fidelity(fallback, policy):
+                fidelity_candidates = [fallback]
+
+        selectable = (
+            fidelity_candidates
+            if fidelity_candidates
+            else (non_giant_candidates or mass_candidates)
+        )
         winner = min(
-            non_giant_candidates or mass_candidates,
+            selectable,
             key=lambda item: (
                 item.total_cost,
                 FAMILY_ORDER.index(item.primitive_type),
                 item.candidate_id,
             ),
         )
+        if fidelity_required and not _candidate_meets_fidelity(winner, policy):
+            fidelity_gate_failures.append(mass_id)
+        if winner.candidate_id.endswith(":fidelity_polygon"):
+            fidelity_fallback_selected_ids.append(winner.candidate_id)
         selected.append(
             SelectedPrimitive(
                 primitive_id=f"primitive-{mass_id.removeprefix('mass-')}",
@@ -825,11 +1124,15 @@ def geometrize_parts(
                 palette_color_rgb=color,
                 total_cost=winner.total_cost,
                 selection_rationale=(
-                    "minimum-aspect-aware-arm-cost-with-broad-mass-guard"
-                    if normalized_part_id in ARM_PARTS
-                    and elongation <= ARM_LOW_ELONGATION_MAX
-                    and mass_subject_ratio >= ARM_LARGE_MASS_MIN_SUBJECT_RATIO
-                    else "minimum-part-aware-cost-with-stable-family-tie-break"
+                    "fidelity-fallback-after-standard-candidates-failed"
+                    if winner.candidate_id.endswith(":fidelity_polygon")
+                    else (
+                        "minimum-aspect-aware-arm-cost-with-broad-mass-guard"
+                        if normalized_part_id in ARM_PARTS
+                        and elongation <= ARM_LOW_ELONGATION_MAX
+                        and mass_subject_ratio >= ARM_LARGE_MASS_MIN_SUBJECT_RATIO
+                        else "minimum-part-aware-cost-with-fidelity-gate"
+                    )
                 ),
             )
         )
@@ -905,6 +1208,10 @@ def geometrize_parts(
         "orphan_selections": orphan_selections,
         "prune_resurrections": prune_resurrections,
         "giant_box_or_capsule_chain_candidates": giant_box_or_capsule,
+        "fidelity_gate_failures": sorted(fidelity_gate_failures),
+        "fidelity_fallback_candidate_ids": sorted(fidelity_fallback_candidate_ids),
+        "fidelity_fallback_selected_ids": sorted(fidelity_fallback_selected_ids),
+        "fidelity_fallback_selected_count": len(fidelity_fallback_selected_ids),
         "cross_mass_candidate_count": 0,
         "semantic_owner_change_count": 0,
         "phase8_action_change_count": 0,
@@ -921,6 +1228,7 @@ def geometrize_parts(
                 orphan_selections,
                 prune_resurrections,
                 giant_box_or_capsule,
+                fidelity_gate_failures,
             )
         )
         and len(selected) + len(omitted) == len(raw_masses),

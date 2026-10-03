@@ -111,7 +111,34 @@ def rasterize_primitive_candidate(
         raw_components = parameters.get("components")
         if not isinstance(raw_components, list) or not raw_components:
             raise ValueError("polygon primitive requires components")
-        mask = _fill_polygons(shape, [_points(item) for item in raw_components])
+        raw_rings = parameters.get("rings")
+        if raw_rings is not None:
+            if family != "polygon":
+                raise ValueError("ring-aware geometry is currently polygon-only")
+            if not isinstance(raw_rings, list) or not raw_rings:
+                raise ValueError("polygon rings must be a non-empty list")
+            canvas = np.zeros(shape, dtype=np.uint8)
+            normalized_rings: list[tuple[int, int, np.ndarray]] = []
+            for index, ring in enumerate(raw_rings):
+                if not isinstance(ring, Mapping):
+                    raise ValueError("polygon ring entries must be objects")
+                depth = int(ring.get("depth", -1))
+                role = ring.get("role")
+                expected_role = "fill" if depth >= 0 and depth % 2 == 0 else "hole"
+                if depth < 0 or role != expected_role:
+                    raise ValueError("polygon ring role/depth mismatch")
+                normalized_rings.append((depth, index, _points(ring.get("points"))))
+            for depth, _, points in sorted(normalized_rings):
+                rounded = np.rint(points).astype(np.int32).reshape(-1, 1, 2)
+                cv2.fillPoly(
+                    canvas,
+                    [rounded],
+                    255 if depth % 2 == 0 else 0,
+                    lineType=cv2.LINE_8,
+                )
+            mask = canvas > 0
+        else:
+            mask = _fill_polygons(shape, [_points(item) for item in raw_components])
         if family == "rounded_polygon":
             radius = int(parameters.get("corner_radius_px", 0))
             if radius < 0:

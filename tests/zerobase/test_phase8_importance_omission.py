@@ -298,3 +298,72 @@ def test_phase8_writer_rejects_phase7_input_tampering(tmp_path: Path) -> None:
             config=OmissionPolicy().to_dict(),
             phase7_stage=phase7_stage,
         )
+
+
+def test_phase8_structural_part_ratio_guard_keeps_nontrivial_internal_fragment() -> None:
+    height = width = 32
+    labels = np.full((height, width), 65535, dtype=np.uint16)
+    labels[2:30, 2:30] = 0
+    labels[10:15, 10:16] = 1
+    labels[16, 12] = 2
+
+    specs = (
+        ("major_clothing", (45, 48, 52)),
+        ("torso", (72, 76, 70)),
+        ("torso", (72, 76, 70)),
+    )
+    masses = []
+    for index, (part, color) in enumerate(specs):
+        mask = labels == index
+        ys, xs = np.where(mask)
+        masses.append(
+            {
+                "mass_id": f"mass-{index:04d}",
+                "semantic_part_id": part,
+                "binding_status": "bound",
+                "region_ids": [f"region-{index:04d}"],
+                "pixel_count": int(xs.size),
+                "bbox_xywh": [
+                    int(xs.min()),
+                    int(ys.min()),
+                    int(xs.max() - xs.min() + 1),
+                    int(ys.max() - ys.min() + 1),
+                ],
+                "centroid_xy": [float(xs.mean()), float(ys.mean())],
+                "mean_rgb": list(color),
+                "pixel_runs": _runs(mask),
+                "evidence_refs": ["phase06:test"],
+            }
+        )
+    silhouette = (labels != 65535).astype(np.uint8) * 255
+    payload = {
+        "schema_version": "1.0",
+        "coordinate_space": {
+            "pixel_width": width,
+            "pixel_height": height,
+            "normalized_origin": "top-left",
+            "normalized_range": [0.0, 1.0],
+        },
+        "masses": masses,
+        "validation": {
+            "subject_pixel_count": int(np.count_nonzero(silhouette)),
+            "pass": True,
+        },
+    }
+
+    guarded = _by_id(
+        evaluate_importance_omission(payload, labels, silhouette)
+    )["mass-0002"]
+    legacy = _by_id(
+        evaluate_importance_omission(
+            payload,
+            labels,
+            silhouette,
+            policy=OmissionPolicy(structural_prune_max_part_ratio=0.08),
+        )
+    )["mass-0002"]
+
+    assert guarded.part_area_ratio > OmissionPolicy().structural_prune_max_part_ratio
+    assert guarded.action == "keep"
+    assert legacy.action == "prune"
+    assert legacy.redundancy_evidence["established"] is True

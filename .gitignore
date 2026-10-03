@@ -19,3 +19,5 @@ examples/phase15_*/
 
 # Local evaluation artifacts
 artifacts/
+.venv311/
+.phase15-chrome/
