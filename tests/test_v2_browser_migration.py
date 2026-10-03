@@ -80,7 +80,8 @@ def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     assert 'async function fetchLocalWorker' in source
     assert "const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000" in source
     assert "const probe = await probeLocalWorker()" in source
-    assert 'fetchLocalWorker("/api/zerobase2/minimalize"' in source\n    assert "localWorkerEnabled" not in source
+    assert 'fetchLocalWorker("/api/zerobase2/minimalize"' in source
+    assert "localWorkerEnabled" not in source
     assert "ローカルネットワークアクセスを許可してください" in source
     assert "await requestStandardV2()" in source
     assert 'form.append("preset", "minimal")' in source
