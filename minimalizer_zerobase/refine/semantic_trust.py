@@ -3,13 +3,13 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SemanticTrustPolicy:
-    face: float = 0.45
+    face: float = 0.08
     hair: float = 1.50
     major_clothing: float = 2.00
     limb: float = 1.00
     accessory: float = 1.25
     default: float = 1.00
-    ownership_weight: float = 40.0
+    ownership_weight: float = 12.0
 
     def radius_for(self, part: str) -> float:
         if part == "face": return self.face
