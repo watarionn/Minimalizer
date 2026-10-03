@@ -44,7 +44,9 @@ def main():
         opt.step()
         candidate_now=(reference+radius*torch.tanh(delta)).detach().numpy()
         candidate_loss=float(((render_mask(torch.tensor(candidate_now),w,h)-target)**2).mean().detach())
-        candidate_parts=list(other_masks)+[hard_mask(candidate_now,w,h)]\n        candidate_union=union_masks(candidate_parts)\n        checkpoints.append(PolygonCheckpoint(step,candidate_loss,hard_iou(reference_hard,candidate_union),candidate_now.copy()))
+        candidate_parts=list(other_masks)+[hard_mask(candidate_now,w,h)]
+        candidate_union=union_masks(candidate_parts)
+        checkpoints.append(PolygonCheckpoint(step,candidate_loss,hard_iou(reference_hard,candidate_union),candidate_now.copy()))
     best=choose_best_feasible(checkpoints,minimum_iou=.985,initial_loss=initial)
     if best is None:
         raise SystemExit("NO_FEASIBLE_CHECKPOINT")
