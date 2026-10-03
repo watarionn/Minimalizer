@@ -6,7 +6,7 @@ from PIL import Image,ImageDraw
 import torch,pydiffvg
 from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate
 from minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
-from minimalizer_zerobase.refine.constrained_polygon import PolygonCheckpoint,hard_mask,hard_iou,choose_best_feasible
+from minimalizer_zerobase.refine.constrained_polygon import PolygonCheckpoint,hard_mask,hard_iou,choose_best_feasible\nfrom minimalizer_zerobase.refine.semantic_ownership import union_masks
 
 def render_mask(points,w,h):
     path=pydiffvg.Path(num_control_points=torch.zeros(len(points),dtype=torch.int32),points=points,is_closed=True)
@@ -43,7 +43,7 @@ def main():
         opt.step()
         candidate_now=(reference+radius*torch.tanh(delta)).detach().numpy()
         candidate_loss=float(((render_mask(torch.tensor(candidate_now),w,h)-target)**2).mean().detach())
-        checkpoints.append(PolygonCheckpoint(step,candidate_loss,hard_iou(reference_hard,hard_mask(candidate_now,w,h)),candidate_now.copy()))
+        candidate_parts=list(other_masks)+[hard_mask(candidate_now,w,h)]\n        candidate_union=union_masks(candidate_parts)\n        checkpoints.append(PolygonCheckpoint(step,candidate_loss,hard_iou(reference_hard,candidate_union),candidate_now.copy()))
     best=choose_best_feasible(checkpoints,minimum_iou=.985,initial_loss=initial)
     if best is None:
         raise SystemExit("NO_FEASIBLE_CHECKPOINT")
