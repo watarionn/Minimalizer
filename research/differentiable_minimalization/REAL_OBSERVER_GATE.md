@@ -47,3 +47,16 @@ Gate result: environment/cache recovery is complete. Existing assets cannot clos
 - DINOv3 `facebook/dinov3-convnext-tiny-pretrain-lvd1689m`: HOLD. The official Hugging Face repository is gated and returned HTTP 401 without user authentication. Meta's official DINOv3 README likewise requires obtaining model-weight access before pretrained-weight use. No credential was requested, stored, or bypassed.
 
 Gate decision: observer runtime infrastructure PASS for CUDA + Grounding-DINO + SAM; DINOv3 pretrained semantic observer remains HOLD on an external access prerequisite. Diagnostic-2 may exercise the regional observer path now, but a DINOv3-backed adoption decision remains fail-closed until official pretrained weights are legitimately available.
+
+
+## Diagnostic-2 source binding 2026-10-04
+
+Canonical source identity was resolved without using the dirty local repository as authority.
+
+- Hyakuto-Kyoko: `Hyakuto-Kyoko_list_thumb.png`, 340x340 RGBA, SHA-256 `cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2`.
+- Juufuutei-Raden: `Juufuutei-Raden_list_thumb.png`, 340x340 RGBA, SHA-256 `d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00`.
+- GitHub stage manifests supplied the canonical names and hashes.
+- Google Drive supplied the binary PNGs.
+- Both downloaded binaries were independently SHA-256 verified and exactly match the GitHub stage-manifest hashes.
+
+This closes the Diagnostic-2 source-provenance gate. Observer measurements must bind evidence to these hashes; filename-only selection is prohibited.
