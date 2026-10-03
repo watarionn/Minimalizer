@@ -110,3 +110,19 @@ Frozen Grounded-SAM observation of those baseline images completed successfully.
 - Raden: hair 0.0, face-skin 0.678067, limb 0.0, accessory 0.0.
 
 The baseline observer also produced zero active limb area for both cases and zero active hair area for Raden. Therefore these raw semantic-mask IoUs cannot currently serve as hard Minimalizer retention gates: the observer distribution changes substantially after geometric abstraction. This is valuable negative evidence. The next refinement step must compare source and rendered candidates with an abstraction-aware spatial descriptor or a calibrated observer threshold rather than promoting these raw values into adoption thresholds.
+
+
+## Abstraction-aware spatial descriptor PoC 2026-10-04
+
+Raw mask IoU was demoted from hard-gate candidacy after the source-to-baseline experiment. A research-only abstraction-aware descriptor now combines normalized region coverage, centroid retention, bounding-box overlap, and an 8x8 area-resampled occupancy map. The score weights are coverage 0.15, centroid 0.25, bbox 0.20, occupancy 0.40. These are PoC weights, not canonical thresholds.
+
+Unit behavior is fixed by tests: identical masks score 1.0; a small boundary perturbation is intentionally scored more leniently than raw pixel IoU; large relocation remains penalized; a missing region cannot be mistaken for retention. Focused spatial/regional suite: 13/13 PASS.
+
+Diagnostic-2 source-to-baseline observations:
+
+- Kyoko: hair 0.901345, face-skin 0.845991, limb 0.393948, accessory 0.694276.
+- Raden: hair 0.342069, face-skin 0.867721, limb 0.350408, accessory 0.691240.
+
+Interpretation: the descriptor successfully recovers useful spatial agreement for Kyoko hair and both face-skin channels despite very low raw mask IoU. It does not rescue channels for which the frozen semantic observer emits no candidate region, notably both limb channels and Raden hair. Therefore the descriptor is promising as an abstraction-tolerant measurement, but it is still HOLD as a hard adoption gate. Missing semantic detections must remain explicit evidence rather than being hidden by high background occupancy similarity.
+
+Next: add DINOv3 patch-level spatial evidence as an observer-independent companion, then evaluate a combined descriptor without weakening the existing fail-closed identity/silhouette contract.
