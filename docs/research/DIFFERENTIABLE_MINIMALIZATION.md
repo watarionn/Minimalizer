@@ -136,3 +136,16 @@ P4 adds immutable region observations, confidence filtering, per-label coverage 
 Focused P0-P4 suite: **20/20 PASS**. Tests cover local hair collapse, confidence filtering, weighted local damage, caller-image immutability, missing runtime failure, duplicate labels, and requested-concept alignment.
 
 **Decision: P4 PASS.** Next: P5 real A/B evaluation. Begin with Diagnostic-2 / Approved-18 using actual rendered candidates and the existing hard gates; only advance to Approved-78 if the small real-image smoke passes. SAM/DINO observations remain evidence, never geometry authority or output generation.
+
+
+## P5 result — real A/B readiness PASS, adoption decision HOLD (2026-10-03)
+
+The canonical evaluation hierarchy was re-read before running this gate: Diagnostic-2 (Kyoko/Raden) is the shortest real-image feedback loop, Approved-18 is the medium regression corpus, and Approved-78 is the formal calibration/final gate. Phase 14 explicitly states that visual FAIL outranks numeric PASS and that diagnostic similarity metrics must not be promoted into hidden thresholds.
+
+P5 therefore adds a fail-closed A/B decision harness rather than fabricating unavailable observer scores. It records objective, identity retention, silhouette retention, regional retention, determinism and runtime. Missing required metrics produce HOLD; identity/silhouette/critical-region or determinism regressions produce REJECT; ADOPT is possible only when the objective improves and all required hard evidence is actually present and passing.
+
+Focused P0-P5 suite: **25/25 PASS**.
+
+The repository has canonical Approved-18/Approved-78 manifests and Phase 14 evaluation machinery, but the Differentiable Minimalization candidate does not yet have actual pretrained DINOv3/SAM observer measurements on Diagnostic-2. The current injected adapters/unit observations are contracts, not corpus evidence. Therefore no real-image ADOPT claim is scientifically valid yet.
+
+**Decision: P5 HOLD for adoption, with evaluation readiness PASS.** The next engineering gate is to connect real frozen observer runtimes in an isolated research environment, generate Diagnostic-2 candidate evidence, and run the fail-closed A/B harness. Approved-18 runs only after Diagnostic-2 machine + visual evidence passes; Approved-78 only after Approved-18.
