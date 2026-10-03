@@ -9,7 +9,7 @@ class SemanticTrustPolicy:
     limb: float = 1.00
     accessory: float = 1.25
     default: float = 1.00
-    ownership_weight: float = 12.0
+    ownership_weight: float = 40.0
 
     def radius_for(self, part: str) -> float:
         if part == "face": return self.face
