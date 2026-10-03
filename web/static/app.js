@@ -44,7 +44,7 @@ function browserFallbackForced() {
   return browserFallbackMode() === "force";
 }
 
-const localWorkerParam = new URLSearchParams(window.location.search).get("localWorker");
+const pageParams = new URLSearchParams(window.location.search);\nconst localWorkerParam = pageParams.get("localWorker");\nconst zeroBase2Requested = pageParams.get("engine") === "zerobase2";
 if (localWorkerParam === "1") {
   window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
   window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "loopback");
@@ -412,7 +412,7 @@ async function requestStandardV2() {
     const probe = await probeLocalWorker();
     if (probe.ready) {
       try {
-        const response = await fetchLocalWorker("/api/v2/minimalize", {
+        const response = await fetchLocalWorker(zeroBase2Requested ? "/api/zerobase2/minimalize" : "/api/v2/minimalize", {
           method: "POST",
           body: buildV2FormData(),
         });
@@ -525,7 +525,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.resultEmpty.hidden = true;
       elements.downloadRow.hidden = false;
 
-      const responseMode = response.headers.get("x-minimalizer-mode");
+      const responseMode = response.headers.get("x-minimalizer-mode");\n      const responseRoute = response.headers.get("x-minimalizer-route");
       const v2Contract = response.headers.get("x-minimalizer-v2-contract-version");
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
