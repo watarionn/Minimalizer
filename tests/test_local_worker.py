@@ -70,6 +70,22 @@ def test_local_worker_allows_local_development_origin_cors():
     assert response.headers["access-control-allow-origin"] == origin
 
 
+def test_local_worker_allows_private_network_preflight():
+    origin = "https://cf278796.cloudfree.jp"
+    with TestClient(worker.app) as client:
+        response = client.options(
+            "/health",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Private-Network": "true",
+            },
+        )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
+    assert response.headers["access-control-allow-private-network"] == "true"
+
+
 def test_local_worker_returns_high_quality_headers(monkeypatch):
     def fake_run(*args, **kwargs):
         return _fake_export(), SimpleNamespace(score=1.0)
