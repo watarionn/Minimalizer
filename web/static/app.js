@@ -295,7 +295,7 @@ function buildColorStripFormData(outputFormat) {
   return form;
 }
 
-async function fetchLocalWorker(path, options = {}, timeoutMs = 0) {
+async function fetchLocalWorker(path, options = {}, timeoutMs = 0, workerMode = localWorkerMode()) {
   const controller = new AbortController();
   const timer = timeoutMs > 0
     ? window.setTimeout(() => controller.abort(), timeoutMs)
@@ -306,13 +306,26 @@ async function fetchLocalWorker(path, options = {}, timeoutMs = 0) {
       mode: "cors",
       signal: controller.signal,
     };
-    if (localWorkerMode() === "loopback") {
+    if (workerMode === "loopback") {
       requestOptions.targetAddressSpace = "loopback";
     }
-    const request = new Request(`${localWorkerBase()}${path}`, requestOptions);
+    const base = workerMode === "tailscale" ? LOCAL_WORKER_TAILSCALE_BASE : LOCAL_WORKER_LOOPBACK_BASE;
+    const request = new Request(`${base}${path}`, requestOptions);
     return await fetch(request);
   } finally {
     if (timer !== null) window.clearTimeout(timer);
+  }
+}
+
+async function probeWorkerMode(workerMode) {
+  try {
+    const response = await fetchLocalWorker("/health", { method: "GET" }, LOCAL_WORKER_HEALTH_TIMEOUT_MS, workerMode);
+    if (!response.ok) return { ready: false, reason: `health-${response.status}` };
+    const payload = await response.json();
+    if (payload?.worker !== "local-compute-v1" || payload?.ready !== true) return { ready: false, reason: "not-ready" };
+    return { ready: true, reason: "" };
+  } catch (error) {
+    return { ready: false, reason: error instanceof DOMException && error.name === "AbortError" ? "timeout" : "permission-or-offline" };
   }
 }
 
@@ -320,33 +333,17 @@ async function probeLocalWorker() {
   state.localWorkerStatus = "checking";
   state.localWorkerFallbackReason = "";
   refreshEngineBadge();
-  setStatus(
-    localWorkerMode() === "tailscale"
-      ? "Tailscale経由で自宅PCのLocal Workerへ接続しています。"
-      : "Local Workerへ接続しています。初回はブラウザのローカルネットワークアクセスを許可してください。",
-  );
-  try {
-    const response = await fetchLocalWorker(
-      "/health",
-      { method: "GET" },
-      LOCAL_WORKER_HEALTH_TIMEOUT_MS,
-    );
-    if (!response.ok) return { ready: false, reason: `health-${response.status}` };
-    const payload = await response.json();
-    if (payload?.worker !== "local-compute-v1" || payload?.ready !== true) {
-      return { ready: false, reason: "not-ready" };
-    }
-    state.localWorkerStatus = "ready";
-    refreshEngineBadge();
-    return { ready: true, reason: "" };
-  } catch (error) {
-    return {
-      ready: false,
-      reason: error instanceof DOMException && error.name === "AbortError"
-        ? "timeout"
-        : "permission-or-offline",
-    };
+  setStatus("Local Workerへ接続しています。PCではloopback、携帯ではTailscaleを自動検出します。");
+  const loopback = await probeWorkerMode("loopback");
+  if (loopback.ready) activeLocalWorkerMode = "loopback";
+  else {
+    const tailscale = await probeWorkerMode("tailscale");
+    if (!tailscale.ready) return { ready: false, reason: tailscale.reason || loopback.reason };
+    activeLocalWorkerMode = "tailscale";
   }
+  state.localWorkerStatus = "ready";
+  refreshEngineBadge();
+  return { ready: true, reason: "" };
 }
 
 async function requestBrowserFallback() {
