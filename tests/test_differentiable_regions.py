@@ -44,3 +44,18 @@ def test_concept_alignment_is_fail_closed():
     try: observer.observe({},("subject","hair"))
     except ValueError as exc: assert "align" in str(exc)
     else: raise AssertionError("expected ValueError")
+
+def test_spatial_iou_detects_relocation_despite_equal_coverage():
+    from minimalizer_zerobase.refine.regions import spatial_iou
+    ref=RegionObservation("hair",.5,spatial_mask=((1,1,0,0),(1,1,0,0)))
+    moved=RegionObservation("hair",.5,spatial_mask=((0,0,1,1),(0,0,1,1)))
+    assert spatial_iou(ref,moved) == 0.0
+
+def test_spatial_iou_identical_masks_pass():
+    from minimalizer_zerobase.refine.regions import spatial_iou
+    mask=((1,0),(1,1))
+    assert spatial_iou(RegionObservation("hair",.75,spatial_mask=mask),RegionObservation("hair",.75,spatial_mask=mask)) == 1.0
+
+def test_spatial_guard_fails_closed_when_mask_missing():
+    from minimalizer_zerobase.refine.regions import regional_guard_passes
+    assert not regional_guard_passes({"hair":1.0},spatial={"hair":None})
