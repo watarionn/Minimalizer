@@ -1044,7 +1044,7 @@ def geometrize_parts(
                 )
             else:
                 fallback_multiplier = policy.fidelity_fallback_budget_multiplier
-            if mass.semantic_part == "hair":
+            if normalized_part_id == "hair":
                 fallback_multiplier = max(fallback_multiplier, policy.hair_fidelity_fallback_budget_multiplier)
             fallback_budget = max(
                 policy.fidelity_fallback_vertex_budget_min,
