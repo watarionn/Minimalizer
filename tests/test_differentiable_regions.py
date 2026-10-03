@@ -32,3 +32,15 @@ def test_sam_adapter_is_read_only_and_optional():
         pass
     else:
         raise AssertionError("expected SamUnavailable")
+
+
+def test_hair_damage_is_weighted_more_than_background_damage():
+    hair=weighted_regional_loss({"hair":.5,"background":0.0},{"hair":4,"background":1})
+    bg=weighted_regional_loss({"hair":0.0,"background":.5},{"hair":4,"background":1})
+    assert hair > bg
+
+def test_concept_alignment_is_fail_closed():
+    observer=SamObserver(lambda _image,_concepts:(RegionObservation("subject",.5),))
+    try: observer.observe({},("subject","hair"))
+    except ValueError as exc: assert "align" in str(exc)
+    else: raise AssertionError("expected ValueError")
