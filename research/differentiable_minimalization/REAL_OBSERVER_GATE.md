@@ -245,3 +245,18 @@ Status remains research ADOPT-for-next-evaluation, not production adoption. The 
 A reusable semantic-part batch runner was added and executed across all four Kyoko Phase12 hair polygons. Results: primitive 0000 had no feasible checkpoint and remained frozen; primitives 0001, 0002 and 0003 were feasible. Their selected ownership IoUs were 0.999198, 0.998647 and 0.999248 respectively, each with a real but small target-loss improvement and polygon guard PASS. This validates fail-closed per-proposal search rather than forcing every primitive to move.
 
 A scene-level rollback policy was then introduced for incremental composition. Every accepted local proposal must keep whole-scene silhouette IoU >= 0.985 and DINO score within 0.01 of the baseline reference; otherwise that proposal is rolled back. This is the next guard against individually safe local changes accumulating into a global identity regression.
+
+
+## Renderer-normalized scene gate and Kyoko cumulative candidate 2026-10-04
+
+A zero-change rerender control exposed an evaluation confound: reconstructing the unchanged Phase12 scene with the research PIL compositor already differs from the preserved Phase12 PNG by 917 pixels and gives silhouette IoU 0.985580. Therefore the earlier near-0.985 scene scores were dominated by renderer mismatch rather than optimizer geometry. Scene rollback evidence is now interpreted against a zero-change image produced by the same research compositor. Production adoption must eventually use the canonical renderer directly; thresholds must not compare images from different rasterizers.
+
+Under renderer-normalized evaluation, the three-hair candidate has silhouette IoU 0.999297 relative to the zero-change control. An exhaustive seven-subset hair search was added as reproducible tooling. The full three-hair set was retained because it preserves ample normalized scene margin while keeping all three local objective improvements.
+
+Major-clothing search found 3/8 feasible local proposals (0025, 0026, 0027). Accessory/held-object found 0/2 and remained frozen. Lower-body found 1/4 feasible (0011). Left arm found 1/3 feasible (0037); right arm found 0/1. Torso found 1/2 feasible (0020). Neck found 0/1. Unknown `__unbound__` primitives were never optimized.
+
+Head was given a tighter 0.60 px trust radius because it lies close to the identity core. It produced 2/5 feasible proposals (0051, 0053); face itself remains completely frozen because no face checkpoint met the hard constraint.
+
+The cumulative Kyoko v7 research candidate contains 11 constrained replacements: hair 0001/0002/0003, major clothing 0025/0026/0027, lower body 0011, left arm 0037, torso 0020, head 0051/0053. Against the same-renderer zero-change control it has whole-scene silhouette IoU **0.997456**. Source-relative DINOv3 score is 0.598479 control versus 0.597705 candidate, delta **-0.000774**, comfortably inside the current research stability tolerance. The candidate therefore passes the current renderer-normalized scene rollback checks while every included primitive also passed semantic-part ownership and polygon guards.
+
+This is still a research candidate, not a production migration decision. The local objective improvements are individually small, Diagnostic-2 currently has only Kyoko as a fully runnable current Phase12 case, and the research compositor must be replaced by or proven equivalent to the canonical renderer before production gating. Next expansion should repeat the exact constrained/normalized protocol on an independent character after resolving the Raden Phase11/12 drift, rather than tuning thresholds further on Kyoko.
