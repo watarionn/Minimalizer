@@ -31,6 +31,12 @@ def main():
     image=Image.open(args.baseline).convert("RGB"); draw=ImageDraw.Draw(image)
     # repaint only the selected polygon with its canonical fill after a tiny guarded geometry move.
     fill=tuple(int(x) for x in p["palette_color_rgb"]); draw.polygon([tuple(map(float,q)) for q in candidate],fill=fill)
-    args.output.parent.mkdir(parents=True,exist_ok=True); image.save(args.output)\n    if args.points_output:\n        args.points_output.write_text(json.dumps({"primitive_id":p["primitive_id"],"points":candidate.tolist()}),encoding="utf8")
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    image.save(args.output)
+    if args.points_output:
+        args.points_output.write_text(
+            json.dumps({"primitive_id":p["primitive_id"],"points":candidate.tolist()}),
+            encoding="utf8",
+        )
     print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"guard":"PASS","output":str(args.output)},indent=2))
 if __name__=="__main__": main()
