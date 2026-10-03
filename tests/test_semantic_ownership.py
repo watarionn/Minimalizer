@@ -15,3 +15,8 @@ def test_missing_owned_part_fails_closed():
 def test_empty_to_empty_is_retained():
     z=np.zeros((4,4),bool)
     assert mask_iou(z,z)==1
+
+def test_union_masks_combines_owned_fragments():
+    a=np.zeros((4,4),bool); b=a.copy(); a[0,0]=1; b[3,3]=1
+    u=union_masks([a,b])
+    assert u.sum()==2 and u[0,0] and u[3,3]
