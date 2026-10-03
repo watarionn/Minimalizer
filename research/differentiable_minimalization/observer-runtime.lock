@@ -6,4 +6,4 @@ torchvision: 0.26.0+cu128
 transformers: 5.17.0
 grounding_dino: IDEA-Research/grounding-dino-tiny
 sam: facebook/sam-vit-base
-dinov3: unresolved-official-model-id
+dinov3: facebook/dinov3-convnext-tiny-pretrain-lvd1689m
