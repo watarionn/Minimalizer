@@ -43,7 +43,13 @@ function browserFallbackForced() {
   return browserFallbackMode() === "force";
 }
 
-let activeLocalWorkerMode = "loopback";\n\nfunction localWorkerMode() {\n  return activeLocalWorkerMode;\n}onst MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+let activeLocalWorkerMode = "loopback";
+
+function localWorkerMode() {
+  return activeLocalWorkerMode;
+}
+
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28764";
 const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
