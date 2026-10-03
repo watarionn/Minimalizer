@@ -26,11 +26,11 @@ def validate_polygon_candidate(reference: Sequence[Point], candidate: Sequence[P
     if len(ref)!=len(cand) or len(ref)<3: return PolygonGuardResult(False,"vertex count changed or polygon degenerate")
     if any(not(math.isfinite(x) and math.isfinite(y)) for x,y in cand): return PolygonGuardResult(False,"non-finite vertex")
     if any(x<0 or y<0 or x>width or y>height for x,y in cand): return PolygonGuardResult(False,"vertex left canvas")
-    if any(math.hypot(x-x0,y-y0)>max_vertex_shift for (x0,y0),(x,y) in zip(ref,cand)):
-        return PolygonGuardResult(False,"vertex shift exceeded trust region")
     ar=signed_area(ref); ac=signed_area(cand)
     if ar==0 or ac==0 or ar*ac<=0: return PolygonGuardResult(False,"winding changed or area collapsed")
     if abs(ac)/abs(ar)<min_area_ratio: return PolygonGuardResult(False,"polygon area collapsed")
+    if any(math.hypot(x-x0,y-y0)>max_vertex_shift for (x0,y0),(x,y) in zip(ref,cand)):
+        return PolygonGuardResult(False,"vertex shift exceeded trust region")
     n=len(cand)
     for i in range(n):
         a,b=cand[i],cand[(i+1)%n]
