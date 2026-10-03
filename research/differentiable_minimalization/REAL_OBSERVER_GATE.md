@@ -179,3 +179,18 @@ The first planned real Kyoko differentiable candidate was intentionally stopped 
 This exposed the next required implementation boundary: fixed-topology polygon refinement. A fail-closed polygon guard was added before any real polygon optimization. It requires unchanged vertex count, finite/in-canvas vertices, preserved winding, minimum 90% signed-area magnitude by default, no segment self-intersection, and a default 4px per-vertex trust region. Focused polygon + combined-gate tests: 14/14 PASS.
 
 No Kyoko candidate score was fabricated and no Phase12 artifact was mutated. Next step is to connect diffvg polygon vertices to this guard, optimize only within the trust region, render the guarded candidate, and then run the already-completed combined observer gate.
+
+
+## First real guarded polygon candidate 2026-10-04
+
+The first real differentiable Minimalizer candidate was generated from the current Kyoko Phase12 selected output. Preflight showed the selected profile contains 34/34 polygons, so the experiment used one existing face polygon (`phase12-aggressive-0018`) with fixed vertex count and no topology/material/primitive-count changes.
+
+The diffvg optimization targeted the canonical Phase4 face mask for 30 Adam steps. Vertex displacement was parameterized inside a 4px Euclidean trust radius (2.75px per-axis tanh bound), then validated by the polygon guard. Result: local differentiable mask loss 0.00584775 -> 0.00201125 (about 65.6% reduction), guard PASS. A first overlay-only render was correctly rejected as evaluation methodology because it could leave old pixels behind; the probe was changed to fully rerender all 34 Phase12 primitives in raster order before observer evaluation.
+
+Full-rerender candidate versus baseline changed 252 pixels with RGB MAE 0.068924. Baseline-relative foreground silhouette IoU was 0.996765 and a diagnostic normalized pixel-MSE identity proxy was 0.999899. The latter is explicitly a proxy, not the canonical Phase14 identity metric.
+
+Frozen DINOv3 source-relative evidence remained within the research stability tolerance: baseline score 0.604167, candidate 0.595553, delta -0.008614. Global/aligned/coarse components were 0.633302/0.612491/0.576816 baseline and 0.622417/0.605000/0.568058 candidate.
+
+Grounded-SAM abstraction evidence exposed observer instability. Source-relative hair slightly improved 0.901345 -> 0.906210 and accessory was essentially stable 0.694276 -> 0.693231, while limb stayed at 0.393948. However face-skin collapsed from 0.845991 to 0.388360 because the candidate Grounded-SAM run returned zero face-skin active area after only this small geometric edit. Under the current fail-closed combined observer semantics, this is a named-region regression and the candidate is REJECTED.
+
+This rejection is not evidence that the rendered face is visually destroyed. Combined with the earlier source-to-Minimalizer SAM failures, it is evidence that Grounded-SAM rediscovery of named parts is too brittle to act as an unconditional hard veto across strongly abstracted renders. DINO remained non-degenerate and stable. The next evaluator revision should use renderer-owned semantic part masks for hard geometric retention, keep DINO as independent perceptual evidence, and demote Grounded-SAM named-part rediscovery to supporting diagnostic evidence unless calibrated on a larger corpus.
