@@ -20,7 +20,7 @@ The local worker uses:
 - V2 deterministic primitive rendering
 - no generative image model
 
-The worker listens only on `127.0.0.1:28765`.
+The worker listens only on `127.0.0.1:28764`.
 
 ## Setup
 
@@ -61,7 +61,7 @@ Do not commit the machine-specific production origin to the repository.
 Health check:
 
 ```text
-http://127.0.0.1:28765/health
+http://127.0.0.1:28764/health
 ```
 
 ## Owner browser opt-in
@@ -107,7 +107,7 @@ Useful query parameters:
 
 ## Mobile / remote access over Tailscale
 
-The worker itself remains bound to `127.0.0.1:28765`. Remote access is provided by Tailscale Serve, so the worker is not opened on the home LAN or public internet.
+The worker itself remains bound to `127.0.0.1:28764`. Remote access is provided by Tailscale Serve, so the worker is not opened on the home LAN or public internet.
 
 On the Windows PC:
 
@@ -120,7 +120,7 @@ This adds the tailnet-only HTTPS proxy:
 
 ```text
 https://ywshtmr.tail8fd68c.ts.net:28765
-  -> http://127.0.0.1:28765
+  -> http://127.0.0.1:28764
 ```
 
 Tailscale Funnel is not enabled for this port.
@@ -163,7 +163,7 @@ The builder rejects hosted API / Railway runtime markers and copies nested model
 ## Security boundary
 
 - Local Worker stays bound to loopback only.
-- PC-browser access uses `127.0.0.1:28765`.
+- PC-browser access uses `127.0.0.1:28764`.
 - Mobile access uses tailnet-only Tailscale Serve.
 - Tailscale Funnel is not enabled for the Minimalizer worker port.
 - The public HTTPS origin is stored outside the repository and applied to the CORS allowlist at worker startup.
