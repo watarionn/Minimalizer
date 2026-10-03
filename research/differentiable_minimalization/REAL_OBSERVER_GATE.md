@@ -170,3 +170,12 @@ Decision precedence is fail closed: hard-guard failure => REJECT; required hard 
 Focused combined-gate suite: 25/25 PASS. Tests lock the critical invariant that better observer scores cannot rescue an identity hard-guard failure.
 
 The gate is ready for a real rendered differentiable candidate A/B. That next measurement must compare baseline and candidate observer evidence generated from the same frozen DINO/SAM runtimes; fixture scores are not adoption evidence.
+
+
+## First real candidate preflight: polygon-only baseline 2026-10-04
+
+The first planned real Kyoko differentiable candidate was intentionally stopped at preflight rather than fabricated. The current Phase12 selected profile is `aggressive` with 34 primitives, and all 34 are polygons; there are zero rectangle or ellipse primitives. The existing differentiable geometry optimizer only has safe tensorization/raster contracts for rectangle and ellipse, so applying it to this baseline would not constitute a real candidate.
+
+This exposed the next required implementation boundary: fixed-topology polygon refinement. A fail-closed polygon guard was added before any real polygon optimization. It requires unchanged vertex count, finite/in-canvas vertices, preserved winding, minimum 90% signed-area magnitude by default, no segment self-intersection, and a default 4px per-vertex trust region. Focused polygon + combined-gate tests: 14/14 PASS.
+
+No Kyoko candidate score was fabricated and no Phase12 artifact was mutated. Next step is to connect diffvg polygon vertices to this guard, optimize only within the trust region, render the guarded candidate, and then run the already-completed combined observer gate.
