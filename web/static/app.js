@@ -334,13 +334,19 @@ async function probeLocalWorker() {
   state.localWorkerFallbackReason = "";
   refreshEngineBadge();
   setStatus("Local Workerへ接続しています。PCではloopback、携帯ではTailscaleを自動検出します。");
-  const loopback = await probeWorkerMode("loopback");
-  if (loopback.ready) activeLocalWorkerMode = "loopback";
-  else {
-    const tailscale = await probeWorkerMode("tailscale");
-    if (!tailscale.ready) return { ready: false, reason: tailscale.reason || loopback.reason };
-    activeLocalWorkerMode = "tailscale";
+  const order = preferTailscaleWorker() ? ["tailscale", "loopback"] : ["loopback", "tailscale"];
+  let lastReason = "permission-or-offline";
+  for (const workerMode of order) {
+    const probe = await probeWorkerMode(workerMode);
+    if (probe.ready) {
+      activeLocalWorkerMode = workerMode;
+      state.localWorkerStatus = "ready";
+      refreshEngineBadge();
+      return { ready: true, reason: "" };
+    }
+    lastReason = probe.reason || lastReason;
   }
+  return { ready: false, reason: lastReason };
   state.localWorkerStatus = "ready";
   refreshEngineBadge();
   return { ready: true, reason: "" };
