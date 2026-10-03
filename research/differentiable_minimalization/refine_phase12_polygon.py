@@ -28,7 +28,16 @@ def main():
     delta=torch.zeros_like(reference,requires_grad=True)
     opt=torch.optim.Adam([delta],lr=.15)
     initial=float(((reference_mask-target)**2).mean().detach())
-    reference_hard=hard_mask(ref,w,h)
+    sibling_masks=[]
+    other_masks=[]
+    for sibling in c["primitives"]:
+        if sibling["composition_part"]==p["composition_part"]:
+            for component in sibling.get("parameters",{}).get("components",[]):
+                mask=hard_mask(np.asarray(component,dtype=np.float32),w,h)
+                sibling_masks.append(mask)
+                if sibling["primitive_id"]!=p["primitive_id"]:
+                    other_masks.append(mask)
+    reference_hard=union_masks(sibling_masks)
     checkpoints=[]
     for step in range(1,61):
         opt.zero_grad()
