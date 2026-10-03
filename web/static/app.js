@@ -43,8 +43,10 @@ function browserFallbackForced() {
   return browserFallbackMode() === "force";
 }
 
+let activeLocalWorkerMode = "loopback";
+
 function localWorkerMode() {
-  return "loopback";
+  return activeLocalWorkerMode;
 }
 
 function localWorkerBase() {
@@ -327,6 +329,11 @@ async function probeWorkerMode(workerMode) {
   } catch (error) {
     return { ready: false, reason: error instanceof DOMException && error.name === "AbortError" ? "timeout" : "permission-or-offline" };
   }
+}
+
+function preferTailscaleWorker() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
 async function probeLocalWorker() {
