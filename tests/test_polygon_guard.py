@@ -10,7 +10,7 @@ def test_self_intersection_rejected():
     r=validate_polygon_candidate(REF,((2,2),(10,10),(10,2),(2,10)),width=16,height=16,min_area_ratio=0)
     assert not r.valid
 def test_large_shift_rejected():
-    r=validate_polygon_candidate(REF,((8,2),(10,2),(10,10),(2,10)),width=16,height=16)
+    r=validate_polygon_candidate(REF,((7,2),(15,2),(15,10),(7,10)),width=16,height=16)
     assert not r.valid and "trust region" in r.reason
 def test_area_collapse_rejected():
     r=validate_polygon_candidate(REF,((2,2),(10,2),(10,3),(2,3)),width=16,height=16)
