@@ -26,3 +26,12 @@ def evaluate_ownership_retention(reference: Mapping[str,np.ndarray],candidate: M
         if score<minimum_iou: reasons.append(f"{part} ownership IoU {score:.6f} below {minimum_iou:.6f}")
     minimum=min(scores.values()) if scores else 0.0
     return OwnershipRetention(scores,minimum,not reasons,tuple(reasons))
+
+def union_masks(masks) -> np.ndarray:
+    items=[np.asarray(m,dtype=bool) for m in masks]
+    if not items: raise ValueError("ownership union requires at least one mask")
+    shape=items[0].shape
+    if any(m.shape!=shape for m in items): raise ValueError("ownership union shape mismatch")
+    out=np.zeros(shape,dtype=bool)
+    for m in items: out|=m
+    return out
