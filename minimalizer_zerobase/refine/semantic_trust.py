@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SemanticTrustPolicy:
-    face: float = 0.45
+    face: float = 0.20
     hair: float = 1.50
     major_clothing: float = 2.00
     limb: float = 1.00
