@@ -3,7 +3,6 @@ const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28764";
 const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
 const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
-const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
 const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
 const BROWSER_FALLBACK_STORAGE_KEY = "minimalizer.browserFallbackMode";
 const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality";
