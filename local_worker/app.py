@@ -33,7 +33,7 @@ from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwit
 logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
-PORT = int(os.getenv("MINIMALIZER_LOCAL_WORKER_PORT", "28765"))
+PORT = int(os.getenv("MINIMALIZER_LOCAL_WORKER_PORT", "28764"))
 ANALYSIS_MAX_SIDE = int(os.getenv("MINIMALIZER_LOCAL_ANALYSIS_MAX_SIDE", "400"))
 REMBG_MODEL = os.getenv("MINIMALIZER_LOCAL_REMBG_MODEL", "u2netp")
 RTMLIB_MODE = os.getenv("MINIMALIZER_LOCAL_RTMLIB_MODE", "balanced")
