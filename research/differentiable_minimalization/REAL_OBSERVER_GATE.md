@@ -159,3 +159,14 @@ The first measured source extraction included CUDA warm-up (1.224 s); subsequent
 Interpretation: unlike cross-style Grounded-SAM semantic masks, DINOv3 returns non-degenerate dense evidence for both cases without requiring named-part detection. This supports using frozen DINO patch features as an independent companion observer. The current scores are evidence, not calibrated pass/fail thresholds. DINOv3 is therefore ADOPTED as research observer evidence but remains HOLD as a standalone hard adoption gate.
 
 Focused DINO/SAM/spatial/evaluation suite after real inference: 29/29 PASS.
+
+
+## Combined candidate gate 2026-10-04
+
+A research-only combined candidate gate now composes the existing objective/identity/silhouette/determinism contract with independent observer trends. Identity and silhouette remain hard authority and cannot be overridden by DINOv3 or Grounded-SAM evidence. Observer evidence is comparative: DINO and abstraction-aware regional scores are classified as IMPROVED, STABLE, REGRESSED, or UNAVAILABLE relative to the baseline. No absolute DINO/SAM pass threshold is inferred from Diagnostic-2.
+
+Decision precedence is fail closed: hard-guard failure => REJECT; required hard evidence missing => HOLD; DINO or named-region regression => REJECT; DINO unavailable => HOLD; otherwise an objective improvement with hard guards passing and non-regressing observers may ADOPT. Raw cross-style SAM pixel IoU is deliberately excluded from this composed authority.
+
+Focused combined-gate suite: 25/25 PASS. Tests lock the critical invariant that better observer scores cannot rescue an identity hard-guard failure.
+
+The gate is ready for a real rendered differentiable candidate A/B. That next measurement must compare baseline and candidate observer evidence generated from the same frozen DINO/SAM runtimes; fixture scores are not adoption evidence.
