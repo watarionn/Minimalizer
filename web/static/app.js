@@ -309,7 +309,7 @@ async function fetchLocalWorker(path, options = {}, timeoutMs = 0, workerMode = 
     if (workerMode === "loopback") {
       requestOptions.targetAddressSpace = "loopback";
     }
-    const request = new Request(`${localWorkerBase(workerMode)}${path}`, requestOptions);
+    const base = workerMode === "tailscale" ? LOCAL_WORKER_TAILSCALE_BASE : LOCAL_WORKER_LOOPBACK_BASE;\n    const request = new Request(`${base}${path}`, requestOptions);
     return await fetch(request);
   } finally {
     if (timer !== null) window.clearTimeout(timer);
@@ -334,20 +334,337 @@ async function probeLocalWorker() {
   refreshEngineBadge();
   setStatus("Local Workerへ接続しています。PCではloopback、携帯ではTailscaleを自動検出します。");
   const loopback = await probeWorkerMode("loopback");
-  if (loopback.ready) {
-    activeLocalWorkerMode = "loopback";
-    state.localWorkerStatus = "ready";
-    refreshEngineBadge();
-    return loopback;
-  }
-  const tailscale = await probeWorkerMode("tailscale");
-  if (tailscale.ready) {
+  if (loopback.ready) activeLocalWorkerMode = "loopback";
+  else {
+    const tailscale = await probeWorkerMode("tailscale");
+    if (!tailscale.ready) return { ready: false, reason: tailscale.reason || loopback.reason };
     activeLocalWorkerMode = "tailscale";
-    state.localWorkerStatus = "ready";
-    refreshEngineBadge();
-    return tailscale;
   }
-  activeLocalWorkerMode = "loopback";
-  return { ready: false, reason: tailscale.reason || loopback.reason };
+  state.localWorkerStatus = "ready";
+  refreshEngineBadge();
+  return { ready: true, reason: "" };
 }
+
+async function requestBrowserFallback() {
+  const engine = window.MinimalizerBrowserFallback;
+  if (!engine || typeof engine.minimalizeFile !== "function") {
+    throw new Error("Browser fallback engine is unavailable.");
+  }
+  const result = await engine.minimalizeFile(state.file, {
+    analysisMaxSide: 400,
+    workMaxSide: 400,
+    maxShapes: 40,
+    slicIterations: 10,
+    paletteTarget: 8,
+    structuralMode: browserFallbackStructuralMode(),
+  });
+  return result.response;
+}
+
+async function requestBrowserColorStrip(outputFormat) {
+  const engine = window.MinimalizerBrowserColorStrip;
+  if (!engine || typeof engine.create !== "function") {
+    throw new Error("Browser Color Strip engine is unavailable.");
+  }
+  const result = await engine.create(state.file, {
+    colorCount: Number(elements.stripColors.value),
+    similarity: Number(elements.colorSimilarity.value),
+    selectionMode: elements.stripSelectionMode.value,
+    sizeMode: elements.stripSizeMode.value,
+    order: elements.stripOrder.value,
+    orientation: elements.stripOrientation.value,
+    outputFormat,
+  });
+  return result.response;
+}
+
+async function requestStandardV2() {
+  if (browserFallbackForced()) {
+    const response = await requestBrowserFallback();
+    return { response, compute: "browser", fallbackReason: "forced-browser" };
+  }
+  let fallbackReason = "";
+  {
+    const probe = await probeLocalWorker();
+    if (probe.ready) {
+      try {
+        const response = await fetchLocalWorker("/api/zerobase2/minimalize", {
+          method: "POST",
+          body: buildV2FormData(),
+        });
+        if (response.ok || response.status === 400 || response.status === 415) {
+          state.localWorkerStatus = "ready";
+          refreshEngineBadge();
+          return { response, compute: "local-worker", fallbackReason: "" };
+        }
+        fallbackReason = `worker-${response.status}`;
+      } catch (error) {
+        fallbackReason = error instanceof DOMException && error.name === "AbortError"
+          ? "timeout"
+          : "permission-or-offline";
+      }
+    } else {
+      fallbackReason = probe.reason;
+    }
+    state.localWorkerStatus = "fallback";
+    state.localWorkerFallbackReason = fallbackReason;
+    refreshEngineBadge();
+    setStatus(localWorkerFallbackMessage(fallbackReason), true);
+  }
+  if (!browserFallbackEnabled()) {
+    throw new Error("Browser fallbackが無効です。Local Workerを有効にするか、Browser fallbackを有効にしてください。");
+  }
+  try {
+    const response = await requestBrowserFallback();
+    return { response, compute: "browser", fallbackReason };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "unknown browser error";
+    throw new Error(`Browser fallbackに失敗しました。 ${detail}`);
+  }
+}
+
+async function responseError(response) {
+  try {
+    const payload = await response.json();
+    if (payload && typeof payload.detail === "string") return payload.detail;
+  } catch (_) {
+    // Fall back to the status code below.
+  }
+  return `処理に失敗しました (${response.status})`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function resultFilename(outputFormat) {
+  const stem = isColorStripMode() ? "color-strip" : "minimalized";
+  return `${stem}.${outputFormat}`;
+}
+
+function colorStripOptionLabel(selectionMode, sizeMode, order, orientation) {
+  const selectionLabel = selectionMode === "characteristic"
+    ? "特徴色 v5"
+    : selectionMode === "featured" ? "特徴色優先" : "使用量順";
+  const sizeLabel = sizeMode === "proportional" ? "使用量比例" : "均等";
+  const orderLabel = order === "most_first" ? "多→少" : "少→多";
+  const orientationLabel = orientation === "horizontal" ? "横" : "縦";
+  return `${selectionLabel} · ${sizeLabel} · ${orderLabel} · ${orientationLabel}`;
+}
+
+async function requestMinimalize(outputFormat, { preview = false, download = false } = {}) {
+  if (!state.file || state.busy) return;
+
+  const colorStrip = isColorStripMode();
+  if (!colorStrip) outputFormat = "png";
+
+  const label = outputFormat.toUpperCase();
+  const action = colorStrip ? "Color Stripを生成しています…" : "画像をミニマル化しています…";
+  setBusy(true, download ? `${label}を生成しています…` : action);
+
+  if (preview) {
+    elements.resultEmpty.hidden = true;
+    elements.resultPreview.hidden = true;
+  }
+
+  try {
+    let response;
+    let computeRoute = "browser";
+    let fallbackReason = "";
+    if (colorStrip) {
+      response = await requestBrowserColorStrip(outputFormat);
+    } else {
+      const result = await requestStandardV2();
+      response = result.response;
+      computeRoute = result.compute;
+      fallbackReason = result.fallbackReason || "";
+    }
+    if (!response.ok) throw new Error(await responseError(response));
+
+    const blob = await response.blob();
+    const filename = resultFilename(outputFormat);
+
+    if (preview) {
+      if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+      state.resultBlob = blob;
+      state.resultFilename = filename;
+      state.resultUrl = URL.createObjectURL(blob);
+      elements.resultPreview.src = state.resultUrl;
+      elements.resultPreview.hidden = false;
+      elements.resultEmpty.hidden = true;
+      elements.downloadRow.hidden = false;
+
+      const responseMode = response.headers.get("x-minimalizer-mode");
+      const responseRoute = response.headers.get("x-minimalizer-route");
+      const v2Contract = response.headers.get("x-minimalizer-v2-contract-version");
+      const shapes = response.headers.get("x-minimalizer-shape-count");
+      const colorCount = response.headers.get("x-minimalizer-color-count");
+      const size = response.headers.get("x-minimalizer-analysis-size");
+      const colorSelectionMode = response.headers.get("x-minimalizer-color-selection-mode");
+      const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
+      const colorOrder = response.headers.get("x-minimalizer-color-order");
+      const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
+      const modeLabel = responseMode === "color_strip"
+        ? "Color Strip"
+        : responseRoute === "zerobase2"
+          ? "Minimalizer ZeroBase2"
+          : computeRoute === "browser"
+            ? "Minimalizer Browser Fallback v12"
+            : v2Contract
+              ? "Minimalizer 2.0 Local"
+              : "Minimalizer";
+
+      const colorOptionLabel = responseMode === "color_strip"
+        ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
+        : "";
+
+      const analysis = response.headers.get("x-minimalizer-analysis");
+      const workerLabel = localWorkerDisplayName();
+      const computeLabel = computeRoute === "local-worker"
+        ? analysis ? `${workerLabel} · ${analysis}` : workerLabel
+        : responseMode === "color_strip"
+          ? "Browser"
+          : analysis ? `Browser fallback · ${analysis}` : "Browser fallback";
+      elements.resultMeta.textContent = [
+        modeLabel,
+        computeLabel,
+        responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
+        colorOptionLabel,
+        size || "",
+      ].filter(Boolean).join(" · ");
+    }
+
+    if (download) downloadBlob(blob, filename);
+    if (download) {
+      if (computeRoute === "browser") {
+        setStatus(`${label}をBrowser fallbackで保存しました。`, Boolean(fallbackReason && fallbackReason !== "forced-browser"));
+      } else {
+        setStatus(`${label}を保存しました。`);
+      }
+    } else {
+      const completionMessage = colorStrip
+        ? "Color Stripが完成しました。"
+        : computeRoute === "local-worker"
+          ? localWorkerMode() === "tailscale"
+            ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
+            : "ローカル高精度Workerでミニマル化が完了しました。"
+          : "Browser fallback v12でミニマル化が完了しました。";
+      const routeWarning = computeRoute === "browser" && Boolean(fallbackReason);
+      setStatus(completionMessage, routeWarning);
+    }
+  } catch (error) {
+    if (preview && !state.resultBlob) {
+      elements.resultEmpty.hidden = false;
+      elements.resultPreview.hidden = true;
+    }
+    setStatus(error instanceof Error ? error.message : "処理に失敗しました。", true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function invalidateAfterSettingChange() {
+  if (state.resultBlob) clearResult("設定が変更されました。もう一度生成してください。");
+}
+
+elements.dropZone.addEventListener("click", () => {
+  if (!state.busy) elements.fileInput.click();
+});
+
+elements.dropZone.addEventListener("keydown", (event) => {
+  if ((event.key === "Enter" || event.key === " ") && !state.busy) {
+    event.preventDefault();
+    elements.fileInput.click();
+  }
+});
+
+elements.fileInput.addEventListener("change", () => setFile(elements.fileInput.files?.[0]));
+elements.replaceButton.addEventListener("click", () => elements.fileInput.click());
+
+for (const eventName of ["dragenter", "dragover"]) {
+  elements.dropZone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    if (!state.busy) elements.dropZone.classList.add("is-dragging");
+  });
+}
+
+for (const eventName of ["dragleave", "drop"]) {
+  elements.dropZone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    elements.dropZone.classList.remove("is-dragging");
+  });
+}
+
+elements.dropZone.addEventListener("drop", (event) => {
+  if (!state.busy) setFile(event.dataTransfer?.files?.[0]);
+});
+
+function downloadOrRequest(outputFormat) {
+  if (!isColorStripMode() && outputFormat === "svg") return;
+
+  if (state.resultBlob && state.resultFilename.endsWith(`.${outputFormat}`)) {
+    downloadBlob(state.resultBlob, state.resultFilename);
+    setStatus(`${outputFormat.toUpperCase()}を保存しました。`);
+    return;
+  }
+  requestMinimalize(outputFormat, { download: true });
+}
+
+elements.minimalizeButton.addEventListener("click", () => {
+  requestMinimalize(isColorStripMode() ? "svg" : "png", { preview: true });
+});
+
+elements.downloadSvg.addEventListener("click", () => downloadOrRequest("svg"));
+elements.downloadPng.addEventListener("click", () => downloadOrRequest("png"));
+
+for (const control of [
+  elements.stripColors,
+  elements.stripSelectionMode,
+  elements.stripSizeMode,
+  elements.stripOrder,
+  elements.stripOrientation,
+]) {
+  control.addEventListener("change", invalidateAfterSettingChange);
+}
+
+elements.stripSelectionMode.addEventListener("change", updateModeUi);
+
+elements.colorSimilarity.addEventListener("input", () => {
+  updateSimilarityLabel();
+  invalidateAfterSettingChange();
+});
+
+for (const input of elements.modeInputs) {
+  input.addEventListener("change", () => {
+    invalidateAfterSettingChange();
+    updateModeUi();
+    if (!state.resultBlob) {
+      setStatus(isColorStripMode()
+        ? "Color Stripを選択しました。代表色や特徴色を抽出して並べます。"
+        : "ミニマル化を選択しました。高精度エンジンを自動で使用します。");
+    }
+  });
+}
+
+updateModeUi();
+refreshEngineBadge();
+{
+  setStatus(
+    localWorkerMode() === "tailscale"
+      ? "Tailscale Local Worker優先モードです。携帯のTailscaleを接続した状態でミニマル化してください。"
+      : "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
+  );
+}
+
+window.addEventListener("beforeunload", () => {
+  if (state.sourceUrl) URL.revokeObjectURL(state.sourceUrl);
+  if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+});
 
