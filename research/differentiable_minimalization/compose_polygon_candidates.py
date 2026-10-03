@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image,ImageDraw
 
 def main():
-    a=argparse.ArgumentParser();a.add_argument("--simplification",type=Path,required=True);a.add_argument("--baseline",type=Path,required=True);a.add_argument("--points",type=Path,nargs="+",required=True);a.add_argument("--output",type=Path,required=True);x=a.parse_args()
+    a=argparse.ArgumentParser();a.add_argument("--simplification",type=Path,required=True);a.add_argument("--baseline",type=Path,required=True);a.add_argument("--points",type=Path,nargs="*",default=[]);a.add_argument("--output",type=Path,required=True);x=a.parse_args()
     d=json.loads(x.simplification.read_text(encoding="utf8")); c=next(v for v in d["candidates"] if v["name"]==d["selected_name"])
     replacements={}
     for path in x.points:
