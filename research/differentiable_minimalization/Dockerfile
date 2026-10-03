@@ -9,7 +9,7 @@ RUN git clone https://github.com/BachiLi/diffvg.git /opt/diffvg \
  && git checkout 85802a71fbcc72d79cb75716eb4da4392fd09532 \
  && git submodule update --init pybind11 thrust \
  && mv pyproject.toml pyproject.toml.disabled \
- && pip install --no-cache-dir svgpathtools \
+ && pip install --no-cache-dir svgpathtools scikit-image cssutils matplotlib \
  && (python setup.py build_ext --inplace || true) \
  && cp build/lib.linux-x86_64-cpython-310/diffvg.so /opt/diffvg/diffvg.so \
  && test -f /opt/diffvg/diffvg.so
