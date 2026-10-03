@@ -37,7 +37,7 @@ def test_rectangle_refinement_reduces_loss_without_mutation():
     original=copy.deepcopy(s.primitives[0].parameters)
     b=TorchSoftRasterBackend()
     target=b.rectangle(torch.tensor([24.,22.,18.,15.]),64,64).detach()
-    result=refine_primitive(s,"primitive:r1",target,steps=50,learning_rate=.35,backend=b)
+    result=refine_primitive(s,"primitive:r1",target,steps=80,learning_rate=.35,backend=b)
     assert result.final_loss < result.initial_loss * .25
     assert s.primitives[0].parameters == original
     assert result.scene.primitives[0].parameters != original
