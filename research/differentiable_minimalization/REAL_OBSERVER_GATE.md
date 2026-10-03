@@ -223,3 +223,18 @@ Kyoko face sweep results, all using the same canonical Phase12 polygon and Phase
 The experiment therefore improved ownership retention substantially but did **not** reach the 0.985 hard floor while preserving a useful target improvement. Merely shrinking the continuous subpixel radius did not monotonically improve rasterized ownership IoU because the post-hoc ownership measurement uses hard rasterization and is sensitive to boundary pixel quantization. The 0.985 threshold was not weakened to force a pass.
 
 Decision: keep the semantic-aware objective, but HOLD face-polygon adoption. The next refinement should optimize a soft differentiable overlap surrogate (soft IoU/Dice) and select/checkpoint the best iterate satisfying a hard-raster ownership constraint, rather than returning the final Adam iterate. This turns ownership from a weighted preference into a constrained optimization problem.
+
+
+## Constrained optimization and semantic-part union breakthrough 2026-10-04
+
+A constrained checkpoint optimizer was added. It records every Adam iterate, measures hard-raster renderer ownership, and selects the lowest target-loss checkpoint that both improves on the initial target loss and satisfies the hard ownership floor. If none exists, it fails closed with `NO_FEASIBLE_CHECKPOINT`. Soft Dice to renderer ownership is also used inside the differentiable objective. Focused constrained/ownership/trust/polygon/candidate tests: 23/23 PASS, then 24/24 PASS after semantic-union coverage was added.
+
+For the Kyoko face polygon, 60 steps produced no checkpoint satisfying ownership IoU >= 0.985 plus target improvement. This confirms that the large identity-critical face primitive should currently remain frozen rather than weakening the gate.
+
+The same primitive-level 0.985 constraint also rejected three tested hair fragments. This revealed a granularity error: semantic identity belongs to the complete composition part, not each individual hair fragment. The hard ownership constraint was therefore changed to the union mask of all renderer-owned polygons with the same `composition_part`.
+
+With semantic-part union ownership, Kyoko hair primitive `phase12-aggressive-0001` produced the first feasible constrained candidate. The selector chose step 4 automatically: target loss 0.151622519 -> 0.151593864, hair-union ownership IoU **0.998245**, polygon guard PASS, trust radius 1.5. The full 34-primitive scene was then rerendered rather than overpainted.
+
+Independent evidence on the full rerender: DINOv3 source-relative score 0.604167 baseline -> 0.599238 candidate, delta **-0.004929**, inside the current research stability tolerance. Baseline-relative whole-foreground silhouette IoU was **0.985505**, with 920 changed pixels. Thus the candidate clears the current 0.985 silhouette floor by a narrow margin and strongly clears semantic hair ownership. This is the first real candidate to satisfy the core renderer-grounded retention constraints while improving its local source-target objective.
+
+Status remains research ADOPT-for-next-evaluation, not production adoption. The improvement magnitude is small and the silhouette margin is narrow. Next work should batch the remaining hair primitives, retain only individually feasible proposals, and compose them incrementally with a scene-level silhouette/DINO rollback gate so local improvements cannot accumulate into a global regression.
