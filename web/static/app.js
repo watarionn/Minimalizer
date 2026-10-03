@@ -44,28 +44,8 @@ function browserFallbackForced() {
   return browserFallbackMode() === "force";
 }
 
-const pageParams = new URLSearchParams(window.location.search);
-const localWorkerParam = pageParams.get("localWorker");
-const zeroBase2Requested = pageParams.get("engine") === "zerobase2";
-if (localWorkerParam === "1") {
-  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
-  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "loopback");
-} else if (localWorkerParam === "tailscale") {
-  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
-  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "tailscale");
-} else if (localWorkerParam === "0") {
-  window.localStorage.removeItem(LOCAL_WORKER_STORAGE_KEY);
-  window.localStorage.removeItem(LOCAL_WORKER_MODE_STORAGE_KEY);
-}
-
-function localWorkerEnabled() {
-  return window.localStorage.getItem(LOCAL_WORKER_STORAGE_KEY) === "1";
-}
-
 function localWorkerMode() {
-  return window.localStorage.getItem(LOCAL_WORKER_MODE_STORAGE_KEY) === "tailscale"
-    ? "tailscale"
-    : "loopback";
+  return "loopback";
 }
 
 function localWorkerBase() {
@@ -124,7 +104,7 @@ const state = {
   resultFilename: "minimalized.png",
   busy: false,
   engineVersion: "Browser v12",
-  localWorkerStatus: localWorkerEnabled() ? "enabled" : "disabled",
+  localWorkerStatus: "enabled",
   localWorkerFallbackReason: "",
 };
 
@@ -142,7 +122,7 @@ function setStatus(message = "", isError = false) {
 function refreshEngineBadge() {
   const parts = [];
   if (state.engineVersion) parts.push(state.engineVersion);
-  if (localWorkerEnabled()) {
+  {
     const workerName = localWorkerDisplayName();
     const labels = {
       enabled: `${workerName}優先`,
@@ -410,11 +390,11 @@ async function requestStandardV2() {
     return { response, compute: "browser", fallbackReason: "forced-browser" };
   }
   let fallbackReason = "";
-  if (localWorkerEnabled()) {
+  {
     const probe = await probeLocalWorker();
     if (probe.ready) {
       try {
-        const response = await fetchLocalWorker(zeroBase2Requested ? "/api/zerobase2/minimalize" : "/api/v2/minimalize", {
+        const response = await fetchLocalWorker("/api/zerobase2/minimalize", {
           method: "POST",
           body: buildV2FormData(),
         });
@@ -681,7 +661,7 @@ for (const input of elements.modeInputs) {
 
 updateModeUi();
 refreshEngineBadge();
-if (localWorkerEnabled()) {
+{
   setStatus(
     localWorkerMode() === "tailscale"
       ? "Tailscale Local Worker優先モードです。携帯のTailscaleを接続した状態でミニマル化してください。"
