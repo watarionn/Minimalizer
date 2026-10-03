@@ -19,7 +19,7 @@ from .contracts import (
 from .persistence import ContractBundleWriteResult, write_contract_bundle
 from .policy import ProvenanceGateResult, ProvenancePolicyGate
 
-SUPPORTED_PHASES = (3, 4, 5, 6, 7, 8, 9, 10, 11)
+SUPPORTED_PHASES = (3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
 BRIDGE_VERSION = "stage-contract-bridge-v1"
 
 
@@ -226,6 +226,26 @@ def _output_type(relative_path: str) -> str:
         return "semantic-composition-preview"
     if name == "11_zorder_overlay.png":
         return "semantic-zorder-overlay"
+    if name == "12_simplification.json":
+        return "style-simplification-data"
+    if name == "12_final.png":
+        return "style-simplification-final"
+    if name.startswith("12_candidate_") and name.endswith(".png"):
+        return "style-simplification-candidate"
+    if name == "12_before.png":
+        return "style-simplification-before"
+    if name == "12_removed_shapes_overlay.png":
+        return "style-simplification-diff-overlay"
+    if name == "13_debug_board.png":
+        return "stage-debug-board"
+    if name == "13_stage_index.json":
+        return "stage-debug-index"
+    if name == "14_case_evaluation.json":
+        return "evaluation-redesign-data"
+    if name == "14_eval_sheet.png":
+        return "evaluation-sheet"
+    if name == "14_corpus_summary.json":
+        return "evaluation-corpus-summary"
     if "pruned_masses" in name:
         return "pruned-mass-preview"
     if "removed_overlay" in name:
@@ -457,7 +477,7 @@ def bridge_stage_contracts(
 
     if max_phase not in SUPPORTED_PHASES or max_phase < 6:
         raise StageContractBridgeError(
-            f"unsupported max_phase={max_phase}; expected 6, 7, 8, 9, 10, or 11"
+            f"unsupported max_phase={max_phase}; expected a supported phase from 6 through 14"
         )
     selected_phases = tuple(
         phase for phase in SUPPORTED_PHASES if phase <= max_phase

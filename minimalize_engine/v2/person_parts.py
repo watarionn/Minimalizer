@@ -417,7 +417,22 @@ def build_person_part_partition(
             parts[name] = candidate
             structural_seed_pixels[name] = int(np.count_nonzero(candidate))
             has_structural_support = has_structural_support or bool(candidate.any())
-    fallback = _silhouette_fallback_parts(subject, head)
+    if has_structural_support:
+        # The head seed is a coarse silhouette prior, while arm channels come
+        # from explicit pose evidence.  When a confident raised-arm corridor
+        # crosses the head prior, preserve the structural arm core so the
+        # heuristic head seed cannot steal sleeves/hands near the face.
+        for arm_name in ("left_arm", "right_arm"):
+            support = structural_supports.get(arm_name)
+            if support is None:
+                continue
+            core = (support >= active.arm_core_min_confidence) & subject
+            if int(np.count_nonzero(core)) < active.minimum_part_pixels:
+                continue
+            parts["head"] &= ~core
+            parts[arm_name] |= core
+
+    fallback = _silhouette_fallback_parts(subject, parts["head"])
     if has_structural_support:
         required = ("torso", "left_arm", "right_arm", "left_leg", "right_leg")
         supported = sum(int(parts[name].sum()) >= active.structural_min_part_pixels for name in required)

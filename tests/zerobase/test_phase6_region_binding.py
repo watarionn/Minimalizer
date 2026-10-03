@@ -93,6 +93,27 @@ def test_dark_hair_and_dark_clothing_do_not_cross_bind_by_color():
     assert result.validation["hair_clothing_forced_binding_regions"] == []
 
 
+
+def test_unknown_winner_remains_unbound_instead_of_becoming_semantic_owner():
+    shape = (20, 20)
+    masks = {name: np.zeros(shape, dtype=bool) for name in PART_NAMES}
+    masks["unknown"][4:16, 4:16] = True
+    labels = np.full(shape, -1, dtype=np.int32)
+    labels[4:16, 4:16] = 5
+    image = np.full((*shape, 3), 80, dtype=np.uint8)
+    graph = {
+        "present_parts": [],
+        "relations": [],
+        "validation": {"pass": True},
+    }
+
+    result = bind_labeled_regions(image, labels, masks, graph)
+    region = result.regions[0]
+
+    assert region.binding_status == "unbound"
+    assert region.semantic_part_id is None
+    assert "unknown-semantic-owner-remains-unbound" in region.decision_reasons
+
 def test_cross_part_region_is_left_unbound_when_overlap_is_ambiguous():
     labels = np.full((48, 36), -1, dtype=np.int32)
     labels[6:42, 4:32] = 7
@@ -155,7 +176,7 @@ def test_slic_region_generation_is_deterministic_and_mask_bounded():
     assert first.validation["pass"] is True
 
 
-def test_parent_slic_ambiguity_survives_semantic_boundary_split(monkeypatch):
+def test_clean_semantic_split_can_resolve_ambiguous_parent(monkeypatch):
     parent = np.full((48, 36), -1, dtype=np.int32)
     parent[6:42, 4:32] = 17
     monkeypatch.setattr(
@@ -170,8 +191,22 @@ def test_parent_slic_ambiguity_survives_semantic_boundary_split(monkeypatch):
     assert all(region.parent_ambiguous for region in result.regions)
     assert all(region.parent_winner_overlap_ratio == 0.5 for region in result.regions)
     assert all(region.parent_winner_margin == 0.0 for region in result.regions)
-    assert all(region.binding_status == "unbound" for region in result.regions)
+    assert [region.semantic_part_id for region in result.regions] == [
+        "hair",
+        "major_clothing",
+    ]
+    assert all(region.binding_status == "bound" for region in result.regions)
+    assert all(
+        "semantic-boundary-split-resolved-by-child-evidence"
+        in region.decision_reasons
+        for region in result.regions
+    )
+    assert set(result.validation["semantic_split_override_bindings"]) == {
+        "region-0000",
+        "region-0001",
+    }
     assert result.validation["hair_clothing_forced_binding_regions"] == []
+    assert result.validation["pass"] is True
 
 
 def _two_part_fixture(*, with_graph: bool) -> tuple[np.ndarray, dict, dict]:

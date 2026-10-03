@@ -29,6 +29,7 @@ from minimalize_engine.v2 import (
     minimalize_v2,
 )
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
+from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
 logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
@@ -49,6 +50,8 @@ GEOMETRIC_MASS_ENABLED = os.getenv(
 ).strip().lower() not in {"0", "false", "no", "off"}
 
 DEFAULT_ORIGINS = (
+    "https://cf278796.cloudfree.jp",
+
     "http://127.0.0.1:8000",
     "http://localhost:8000",
 )
@@ -230,6 +233,81 @@ def warmup():
         "worker": "local-compute-v1",
         "warmup_ms": round((perf_counter() - started) * 1000.0, 1),
     }
+
+
+def _phase14_closure_path() -> Path:
+    return Path(
+        os.getenv(
+            "MINIMALIZER_PHASE14_CLOSURE",
+            str(Path(__file__).resolve().parents[1] / "artifacts" / "phase14_closure" / "14_phase_gate_summary.json"),
+        )
+    )
+
+
+def _zerobase2_route_decision():
+    import json
+
+    path = _phase14_closure_path()
+    if not path.is_file():
+        return ProductionRouteSwitch(ZEROBASE2_ROUTE).decide({})
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return ProductionRouteSwitch(ZEROBASE2_ROUTE).decide(payload)
+
+
+def _run_zerobase2(input_path: Path):
+    from tools.run_zerobase2_shadow_pipeline import run_zerobase2_shadow_pipeline
+
+    with TemporaryDirectory(prefix="minimalizer-zerobase2-production-") as output_root:
+        summary = run_zerobase2_shadow_pipeline(input_path, output_root)
+        final_path = Path(summary["final_path"])
+        return final_path.read_bytes(), summary
+
+
+@app.post("/api/zerobase2/minimalize")
+async def minimalize_zerobase2(file: UploadFile = File(...)):
+    decision = _zerobase2_route_decision()
+    if decision.active_route != ZEROBASE2_ROUTE:
+        raise HTTPException(
+            status_code=503,
+            detail="ZeroBase2 production route is not authorized by the Phase 14 closure.",
+            headers={"X-Minimalizer-Route": decision.active_route},
+        )
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
+    if not _process_lock.acquire(blocking=False):
+        raise HTTPException(status_code=429, detail="Local Minimalizer worker is busy.", headers={"Retry-After": "2"})
+    started = perf_counter()
+    try:
+        with TemporaryDirectory(prefix="minimalizer-local-zerobase2-") as temp_dir:
+            input_path = Path(temp_dir) / "input.upload"
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Uploaded image is empty.")
+            input_path.write_bytes(content)
+            try:
+                result, summary = _run_zerobase2(input_path)
+            except Exception as exc:
+                logger.exception("ZeroBase2 production minimalization failed")
+                raise HTTPException(status_code=503, detail="ZeroBase2 production route failed.") from exc
+    finally:
+        _process_lock.release()
+        await file.close()
+    elapsed_ms = (perf_counter() - started) * 1000.0
+    metrics = summary["phase12_metrics"]
+    return Response(
+        content=result,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": 'attachment; filename="minimalized.png"',
+            "X-Minimalizer-Mode": "zerobase2",
+            "X-Minimalizer-Route": ZEROBASE2_ROUTE,
+            "X-Minimalizer-ZeroBase2-Profile": str(summary["selected_profile"]),
+            "X-Minimalizer-ZeroBase2-SHA256": str(summary["final_sha256"]),
+            "X-Minimalizer-Shape-Count": str(metrics["primitive_count"]),
+            "X-Minimalizer-Processing-Ms": f"{elapsed_ms:.1f}",
+            "X-Minimalizer-Rollback-Available": str(decision.rollback_available).lower(),
+        },
+    )
 
 
 @app.post("/api/v2/minimalize")

@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$Python = Join-Path $Root ".venv\Scripts\python.exe"
+$Python = Join-Path $Root ".venv311\Scripts\python.exe"
 if (-not (Test-Path $Python)) {
     throw "Local worker venv not found. Run scripts\setup_local_worker.ps1 first."
 }

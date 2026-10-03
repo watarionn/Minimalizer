@@ -179,3 +179,57 @@ def test_local_worker_no_longer_trusts_railway_origin():
             data={"preset": "minimal", "include_facets": "true"},
         )
     assert response.status_code == 403
+
+def test_local_worker_allows_cloudfree_production_origin_cors():
+    origin = "https://cf278796.cloudfree.jp"
+    with TestClient(worker.app) as client:
+        response = client.get("/health", headers={"Origin": origin})
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
+
+
+def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    monkeypatch.setattr(
+        worker,
+        "_run_zerobase2",
+        lambda path: (
+            b"png-bytes",
+            {
+                "selected_profile": "conservative",
+                "final_sha256": "abc123",
+                "phase12_metrics": {"primitive_count": 14},
+            },
+        ),
+    )
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "https://cf278796.cloudfree.jp"},
+            files={"file": ("sample.png", b"not-empty", "image/png")},
+        )
+    assert response.status_code == 200
+    assert response.headers["x-minimalizer-route"] == "zerobase2"
+    assert response.headers["x-minimalizer-rollback-available"] == "true"
+    assert response.headers["x-minimalizer-zerobase2-profile"] == "conservative"
+
+
+def test_zerobase2_endpoint_fails_closed_when_not_authorized(monkeypatch):
+    class Decision:
+        active_route = "minimalizer2"
+        rollback_available = True
+
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "https://cf278796.cloudfree.jp"},
+            files={"file": ("sample.png", b"not-empty", "image/png")},
+        )
+    assert response.status_code == 503
+    assert response.headers["x-minimalizer-route"] == "minimalizer2"
+

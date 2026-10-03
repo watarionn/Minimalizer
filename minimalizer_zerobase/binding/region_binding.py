@@ -35,6 +35,7 @@ class BindingPolicy:
     minimum_decision_margin: float = 0.08
     minimum_graph_support: float = 0.45
     minimum_spatial_support: float = 0.35
+    semantic_split_override_min_overlap: float = 0.90
 
     def __post_init__(self) -> None:
         if self.n_segments < 2:
@@ -49,6 +50,7 @@ class BindingPolicy:
             "minimum_decision_margin",
             "minimum_graph_support",
             "minimum_spatial_support",
+            "semantic_split_override_min_overlap",
         ):
             value = float(getattr(self, name))
             if not 0.0 <= value <= 1.0:
@@ -65,6 +67,9 @@ class BindingPolicy:
             "minimum_decision_margin": _rounded(self.minimum_decision_margin),
             "minimum_graph_support": _rounded(self.minimum_graph_support),
             "minimum_spatial_support": _rounded(self.minimum_spatial_support),
+            "semantic_split_override_min_overlap": _rounded(
+                self.semantic_split_override_min_overlap
+            ),
         }
 
 
@@ -583,15 +588,29 @@ def bind_labeled_regions(
             reasons.append("multi-evidence-score-below-threshold")
         if decision_margin < policy.minimum_decision_margin:
             reasons.append("multi-evidence-margin-below-threshold")
+        if top.part_id == "unknown":
+            reasons.append("unknown-semantic-owner-remains-unbound")
 
         requires_resolution = parent_ambiguous or top.part_id != parent_winner
+        semantic_split_override = (
+            requires_resolution
+            and parent_region_labels is not None
+            and top.part_id != "unknown"
+            and top.region_overlap_ratio >= policy.semantic_split_override_min_overlap
+            and top.decision_score >= policy.minimum_decision_score
+            and decision_margin >= policy.minimum_decision_margin
+            and top.graph_support >= policy.minimum_graph_support
+            and max(top.boundary_support, top.geometry_support)
+            >= policy.minimum_spatial_support
+        )
         if (
             "parent-crosses-hair-clothing-semantic-boundary"
             in parent_ambiguity_reasons
             and (top.part_id == "hair" or top.part_id in CLOTHING_PARTS)
+            and not semantic_split_override
         ):
             reasons.append("parent-crosses-hair-clothing-semantic-boundary")
-        elif requires_resolution:
+        elif requires_resolution and not semantic_split_override:
             if top.graph_support < policy.minimum_graph_support:
                 reasons.append("parent-ambiguity-lacks-graph-support")
             if (
@@ -643,9 +662,13 @@ def bind_labeled_regions(
                     reasons
                     or [
                         (
-                            "parent-ambiguity-resolved-by-graph-and-spatial-support"
-                            if requires_resolution
-                            else "parent-and-child-evidence-consistent"
+                            "semantic-boundary-split-resolved-by-child-evidence"
+                            if semantic_split_override
+                            else (
+                                "parent-ambiguity-resolved-by-graph-and-spatial-support"
+                                if requires_resolution
+                                else "parent-and-child-evidence-consistent"
+                            )
                         )
                     ]
                 ),
@@ -680,7 +703,14 @@ def bind_labeled_regions(
     ]
     crossing_unbound: list[str] = []
     crossing_forced: list[str] = []
+    semantic_split_override_bindings: list[str] = []
     for region in bindings:
+        resolved_by_split = (
+            "semantic-boundary-split-resolved-by-child-evidence"
+            in region.decision_reasons
+        )
+        if resolved_by_split and region.binding_status == "bound":
+            semantic_split_override_bindings.append(region.region_id)
         if (
             "parent-crosses-hair-clothing-semantic-boundary"
             in region.parent_ambiguity_reasons
@@ -691,7 +721,7 @@ def bind_labeled_regions(
         ):
             if region.binding_status == "unbound":
                 crossing_unbound.append(region.region_id)
-            else:
+            elif not resolved_by_split:
                 crossing_forced.append(region.region_id)
 
     parent_ambiguous_regions = [
@@ -729,6 +759,7 @@ def bind_labeled_regions(
         "forced_low_confidence_regions": forced_low_confidence,
         "hair_clothing_crossing_unbound_regions": crossing_unbound,
         "hair_clothing_forced_binding_regions": crossing_forced,
+        "semantic_split_override_bindings": semantic_split_override_bindings,
         "parent_ambiguous_regions": parent_ambiguous_regions,
         "parent_ambiguous_unbound_regions": parent_ambiguous_unbound,
         "graph_supported_binding_regions": graph_supported_bindings,

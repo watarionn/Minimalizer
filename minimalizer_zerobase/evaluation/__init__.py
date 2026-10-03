@@ -9,6 +9,24 @@ from .calibration import (
     load_approved78_binding,
 )
 from .migration_gate import MigrationGate, MigrationGateResult
+from .debug_board import (
+    DebugStage,
+    StageVisualSpec,
+    STAGE_VISUALS,
+    build_stage_index,
+    collect_debug_stages,
+    render_debug_board,
+    write_phase13_artifacts,
+)
+from .phase14 import (
+    HUMAN_CRITERIA,
+    Phase14EvaluationPolicy,
+    build_phase14_corpus_summary,
+    evaluate_phase14_case,
+    render_phase14_eval_sheet,
+    write_phase14_artifacts,
+    write_phase14_corpus_summary,
+)
 
 __all__ = [
     "ApprovedReference",
@@ -21,4 +39,18 @@ __all__ = [
     "load_approved78_binding",
     "MigrationGate",
     "MigrationGateResult",
+    "DebugStage",
+    "StageVisualSpec",
+    "STAGE_VISUALS",
+    "build_stage_index",
+    "collect_debug_stages",
+    "render_debug_board",
+    "write_phase13_artifacts",
+    "HUMAN_CRITERIA",
+    "Phase14EvaluationPolicy",
+    "build_phase14_corpus_summary",
+    "evaluate_phase14_case",
+    "render_phase14_eval_sheet",
+    "write_phase14_artifacts",
+    "write_phase14_corpus_summary",
 ]
