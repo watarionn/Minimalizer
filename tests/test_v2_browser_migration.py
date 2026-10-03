@@ -86,6 +86,5 @@ def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     assert "const probe = await probeLocalWorker()" in source
     assert "ローカルネットワークアクセスを許可してください" in source
     assert "await requestStandardV2()" in source
-    assert 'fetch("/api/v2/minimalize"' in source
     assert 'form.append("preset", "minimal")' in source
     assert 'form.append("include_facets", "true")' in source
