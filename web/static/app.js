@@ -411,7 +411,14 @@ async function requestStandardV2() {
           refreshEngineBadge();
           return { response, compute: "local-worker", fallbackReason: "" };
         }
-        fallbackReason = `worker-${response.status}`;
+        if (response.status === 422 && response.headers.get("x-minimalizer-failure-class") === "quality-gate") {
+          state.localWorkerStatus = "ready";
+          refreshEngineBadge();
+          const failedStage = response.headers.get("x-minimalizer-failed-stage") || "quality-gate";
+          fallbackReason = `zerobase2-${failedStage}`;
+        } else {
+          fallbackReason = `worker-${response.status}`;
+        }
       } catch (error) {
         fallbackReason = error instanceof DOMException && error.name === "AbortError"
           ? "timeout"
@@ -571,6 +578,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
             : "ローカル高精度Workerでミニマル化が完了しました。"
           : "Browser fallback v12でミニマル化が完了しました。";
       const routeWarning = computeRoute === "browser" && Boolean(fallbackReason);
+      if (fallbackReason.startsWith("zerobase2-")) {
+        setStatus("Local Workerへの接続は成功しましたが、この画像はZeroBase2品質Gateを通過しなかったためBrowser fallbackで処理しました。", false);
+      }
       setStatus(completionMessage, routeWarning);
     }
   } catch (error) {

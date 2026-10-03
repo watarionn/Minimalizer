@@ -289,7 +289,12 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
                 result, summary = _run_zerobase2(input_path)
             except Exception as exc:
                 logger.exception("ZeroBase2 production minimalization failed")
-                raise HTTPException(status_code=503, detail="ZeroBase2 production route failed.") from exc
+                detail = str(exc)
+                headers = {"X-Minimalizer-Route": ZEROBASE2_ROUTE, "X-Minimalizer-Failure-Class": "quality-gate"}
+                if "Phase 11 requires a passing Phase 10 geometry result" in detail:
+                    headers["X-Minimalizer-Failed-Stage"] = "phase10-geometry"
+                    raise HTTPException(status_code=422, detail="ZeroBase2 quality Gate rejected this image at Phase 10 geometry.", headers=headers) from exc
+                raise HTTPException(status_code=503, detail="ZeroBase2 production route failed.", headers={"X-Minimalizer-Route": ZEROBASE2_ROUTE, "X-Minimalizer-Failure-Class": "runtime"}) from exc
     finally:
         _process_lock.release()
         await file.close()
