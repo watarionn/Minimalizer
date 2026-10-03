@@ -329,6 +329,11 @@ async function probeWorkerMode(workerMode) {
   }
 }
 
+function preferTailscaleWorker() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 async function probeLocalWorker() {
   state.localWorkerStatus = "checking";
   state.localWorkerFallbackReason = "";
