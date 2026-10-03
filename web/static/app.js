@@ -539,11 +539,13 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
       const modeLabel = responseMode === "color_strip"
         ? "Color Strip"
-        : computeRoute === "browser"
-          ? "Minimalizer Browser Fallback v12"
-          : v2Contract
-            ? "Minimalizer 2.0 Local"
-            : "Minimalizer";
+        : responseRoute === "zerobase2"
+          ? "Minimalizer ZeroBase2"
+          : computeRoute === "browser"
+            ? "Minimalizer Browser Fallback v12"
+            : v2Contract
+              ? "Minimalizer 2.0 Local"
+              : "Minimalizer";
 
       const colorOptionLabel = responseMode === "color_strip"
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
