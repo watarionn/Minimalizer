@@ -71,7 +71,7 @@ def test_browser_route_composes_output_and_alpha_contracts():
 
 def test_current_browser_bundle_routes_canonical_minimalization_to_v2():
     source = (ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
-    assert 'const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28765"' in source
+    assert 'const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28764"' in source
     assert 'const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765"' in source
     assert 'const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode"' in source
     assert 'localWorkerParam === "tailscale"' in source
