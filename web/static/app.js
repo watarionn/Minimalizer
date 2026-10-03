@@ -124,7 +124,7 @@ const state = {
   resultFilename: "minimalized.png",
   busy: false,
   engineVersion: "Browser v12",
-  localWorkerStatus: localWorkerEnabled() ? "enabled" : "disabled",
+  localWorkerStatus: "enabled",
   localWorkerFallbackReason: "",
 };
 
@@ -142,7 +142,7 @@ function setStatus(message = "", isError = false) {
 function refreshEngineBadge() {
   const parts = [];
   if (state.engineVersion) parts.push(state.engineVersion);
-  if (localWorkerEnabled()) {
+  {
     const workerName = localWorkerDisplayName();
     const labels = {
       enabled: `${workerName}優先`,
@@ -414,7 +414,7 @@ async function requestStandardV2() {
     const probe = await probeLocalWorker();
     if (probe.ready) {
       try {
-        const response = await fetchLocalWorker(zeroBase2Requested ? "/api/zerobase2/minimalize" : "/api/v2/minimalize", {
+        const response = await fetchLocalWorker("/api/zerobase2/minimalize", {
           method: "POST",
           body: buildV2FormData(),
         });
