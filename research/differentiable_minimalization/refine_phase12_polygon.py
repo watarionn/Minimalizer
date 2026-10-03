@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image,ImageDraw
 import torch,pydiffvg
-from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate
+from minimalizer_zerobase.refine.polygon_guard import validate_polygon_candidate\nfrom minimalizer_zerobase.refine.semantic_trust import SemanticTrustPolicy
 
 def render_mask(points,w,h):
     path=pydiffvg.Path(num_control_points=torch.zeros(len(points),dtype=torch.int32),points=points,is_closed=True)
@@ -38,5 +38,5 @@ def main():
             json.dumps({"primitive_id":p["primitive_id"],"points":candidate.tolist()}),
             encoding="utf8",
         )
-    print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"guard":"PASS","output":str(args.output)},indent=2))
+    print(json.dumps({"primitive_id":p["primitive_id"],"part":p["composition_part"],"initial_loss":initial,"final_loss":final,"trust_radius":radius,"ownership_weight":policy.ownership_weight,"guard":"PASS","output":str(args.output)},indent=2))
 if __name__=="__main__": main()
