@@ -63,9 +63,19 @@ def main():
     guard=validate_polygon_candidate(ref,candidate,width=w,height=h)
     if not guard.valid: raise SystemExit("GUARD_REJECT: "+str(guard.reason))
     final=float(((render_mask(torch.tensor(candidate),w,h)-target)**2).mean().detach())
-    image=Image.open(args.baseline).convert("RGB"); draw=ImageDraw.Draw(image)
-    # repaint only the selected polygon with its canonical fill after a tiny guarded geometry move.
-    fill=tuple(int(x) for x in p["palette_color_rgb"]); draw.polygon([tuple(map(float,q)) for q in candidate],fill=fill)
+    background=Image.open(args.baseline).convert("RGB").getpixel((0,0))
+    image=Image.new("RGB",(w,h),background)
+    draw=ImageDraw.Draw(image)
+    for primitive in sorted(c["primitives"],key=lambda item:item["raster_index"]):
+        fill=tuple(int(x) for x in primitive["palette_color_rgb"])
+        components=primitive.get("parameters",{}).get("components",[])
+        for component_index,component in enumerate(components):
+            pts=candidate.tolist() if primitive["primitive_id"]==p["primitive_id"] and component_index==0 else component
+            if len(pts)>=3:
+                draw.polygon([tuple(map(float,q)) for q in pts],fill=fill)
+        for hole in primitive.get("parameters",{}).get("holes",[]):
+            if len(hole)>=3:
+                draw.polygon([tuple(map(float,q)) for q in hole],fill=background)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     image.save(args.output)
     if args.points_output:
