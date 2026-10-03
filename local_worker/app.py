@@ -199,7 +199,10 @@ async def guard_browser_origin(request: Request, call_next):
     origin = request.headers.get("origin")
     if origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse(status_code=403, content={"detail": "Origin is not allowed."})
-    return await call_next(request)
+    response = await call_next(request)
+    if request.headers.get("access-control-request-private-network") == "true":
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
 @app.get("/health")
 def health():
     ready = _rembg_session is not None and _rtmlib_model is not None
