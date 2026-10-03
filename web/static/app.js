@@ -49,55 +49,6 @@ function localWorkerMode() {
   return activeLocalWorkerMode;
 }
 
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
-const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
-const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28764";
-const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
-const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
-const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
-const BROWSER_FALLBACK_STORAGE_KEY = "minimalizer.browserFallbackMode";
-const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality";
-
-const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
-if (browserFallbackQualityParam === "exact") {
-  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
-} else if (browserFallbackQualityParam === "lite") {
-  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "lite");
-}
-
-function browserFallbackStructuralMode() {
-  return window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY) === "exact"
-    ? "spectral-exact"
-    : "l0-lite-jacobi";
-}
-
-const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
-if (browserFallbackParam === "1") {
-  window.localStorage.setItem(BROWSER_FALLBACK_STORAGE_KEY, "after-local");
-} else if (browserFallbackParam === "force") {
-  window.localStorage.setItem(BROWSER_FALLBACK_STORAGE_KEY, "force");
-} else if (browserFallbackParam === "0") {
-  window.localStorage.removeItem(BROWSER_FALLBACK_STORAGE_KEY);
-}
-
-function browserFallbackMode() {
-  const mode = window.localStorage.getItem(BROWSER_FALLBACK_STORAGE_KEY);
-  if (mode === "off") return "off";
-  return mode === "force" ? "force" : "after-local";
-}
-
-function browserFallbackEnabled() {
-  return browserFallbackMode() !== "off";
-}
-
-function browserFallbackForced() {
-  return browserFallbackMode() === "force";
-}
-
-function localWorkerMode() {
-  return "loopback";
-}
-
 function localWorkerBase() {
   return localWorkerMode() === "tailscale"
     ? LOCAL_WORKER_TAILSCALE_BASE
