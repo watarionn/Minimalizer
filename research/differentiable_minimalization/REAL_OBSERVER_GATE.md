@@ -35,3 +35,15 @@ Read-only inspection shows the benchmark venv is Python 3.11.9 but Torch 2.14.0+
 A research-only observer-runtime.lock now records the previously validated Phase E target versions and model IDs. DINOv3 stays unresolved until an official compatible model identifier is verified rather than guessed.
 
 Gate result: environment/cache recovery is complete. Existing assets cannot close the runtime gate. Next is one shared observer environment from the pinned target, followed by Diagnostic-2 real measurements.
+
+
+## Runtime smoke 2026-10-04
+
+- Shared environment: `C:\\Work\\SharedAI\\minimalizer-observers` (research-only; production requirements unchanged).
+- PyTorch 2.11.0+cu128 on NVIDIA GeForce RTX 5060: PASS; real CUDA tensor computation completed.
+- Transformers 5.17.0: PASS.
+- Grounding-DINO `IDEA-Research/grounding-dino-tiny`: PASS; real model loaded on CUDA, about 660 MiB allocated at smoke point.
+- SAM `facebook/sam-vit-base`: PASS; real model loaded on CUDA, about 358 MiB allocated at smoke point.
+- DINOv3 `facebook/dinov3-convnext-tiny-pretrain-lvd1689m`: HOLD. The official Hugging Face repository is gated and returned HTTP 401 without user authentication. Meta's official DINOv3 README likewise requires obtaining model-weight access before pretrained-weight use. No credential was requested, stored, or bypassed.
+
+Gate decision: observer runtime infrastructure PASS for CUDA + Grounding-DINO + SAM; DINOv3 pretrained semantic observer remains HOLD on an external access prerequisite. Diagnostic-2 may exercise the regional observer path now, but a DINOv3-backed adoption decision remains fail-closed until official pretrained weights are legitimately available.
