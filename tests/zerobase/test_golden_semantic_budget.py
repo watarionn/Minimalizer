@@ -74,3 +74,34 @@ def test_budgeter_is_deterministic() -> None:
 def test_invalid_budget_is_rejected(bad_budget) -> None:
     with pytest.raises(SemanticBudgetError):
         allocate_semantic_budget(_manifest(), bad_budget)
+
+
+def test_generic_manifest_uses_semantics_not_case001_names_or_list_order() -> None:
+    manifest = {
+        "schema_version": "1.0",
+        "case_id": "synthetic",
+        "features": [
+            {"id": "tiny_symbol", "semantic_role": "symbol", "disposition": "optional", "importance": "compressible", "palette_role": "accent", "compression_policy": "symbolic"},
+            {"id": "core_b", "semantic_role": "shape_b", "disposition": "required", "importance": "identity_critical", "palette_role": "secondary", "compression_policy": "preserve"},
+            {"id": "detail", "semantic_role": "detail", "disposition": "optional", "importance": "important", "palette_role": "accent", "compression_policy": "symbolic"},
+            {"id": "core_a", "semantic_role": "shape_a", "disposition": "required", "importance": "identity_critical", "palette_role": "primary", "compression_policy": "preserve"},
+            {"id": "noise", "semantic_role": "noise", "disposition": "forbidden", "importance": "supporting", "palette_role": "not_applicable", "compression_policy": "omit"}
+        ],
+        "relations": [],
+        "evaluation_regions": [{"id": "identity", "feature_ids": ["core_a", "core_b", "detail", "tiny_symbol", "noise"]}]
+    }
+    allocation = _alloc(allocate_semantic_budget(manifest, 3))
+    assert allocation["core_a"] == 1
+    assert allocation["core_b"] == 1
+    assert allocation["detail"] == 1
+    assert allocation["tiny_symbol"] == 0
+    assert allocation["noise"] == 0
+
+
+def test_feature_list_reordering_does_not_change_allocation() -> None:
+    manifest = _manifest()
+    reversed_manifest = dict(manifest)
+    reversed_manifest["features"] = list(reversed(manifest["features"]))
+    first = _alloc(allocate_semantic_budget(manifest, 13))
+    second = _alloc(allocate_semantic_budget(reversed_manifest, 13))
+    assert first == second
