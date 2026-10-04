@@ -9,6 +9,13 @@ from .integration import (
     phase14_authorizes_production,
 )
 from .pipeline import PipelineArtifacts, ProductionPipeline, ProductionPipelinePolicy
+from .diffmin_artifact import (
+    DiffMinArtifactDecision,
+    DiffMinCandidateArtifact,
+    evaluate_candidate_artifact,
+    load_candidate_artifact,
+    write_candidate_artifact,
+)
 from .diffmin import (
     DIFFMIN_ENV,
     DIFFMIN_GUARDED,
@@ -38,4 +45,9 @@ __all__ = [
     "DiffMinEvidence",
     "GuardedDiffMinPolicy",
     "GuardedDiffMinSwitch",
+    "DiffMinArtifactDecision",
+    "DiffMinCandidateArtifact",
+    "evaluate_candidate_artifact",
+    "load_candidate_artifact",
+    "write_candidate_artifact",
 ]

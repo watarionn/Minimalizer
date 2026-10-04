@@ -467,3 +467,13 @@ This integration layer does not invoke pydiffvg, does not add a generated-conten
 Regression result: 234/234 ZeroBase tests PASS, including new tests for default-off behavior, hard-guard rollback, silhouette rollback, missing observer rollback, DINO tie/regression rollback, positive guarded adoption, and unknown-mode rejection.
 
 Gate result: PASS_GUARDED_INTEGRATION_FOUNDATION. Production routing remains unchanged; the next gate is wiring this decision boundary to a worker/candidate artifact contract without making local GPU execution the canonical source.
+
+## Portable worker candidate artifact contract 2026-10-04
+
+DiffMin candidate production is now separated from canonical decision state by a portable artifact contract. Schema v1 records candidate identity, source SHA-256, baseline SHA-256, candidate SHA-256, hard-guard status, same-renderer silhouette IoU, baseline/candidate observer scores, and a non-authoritative worker label. The consumer recomputes all three file hashes before invoking the guarded decision boundary. Any source, baseline, or candidate mismatch fails closed to baseline before observer acceptance can occur; unknown schema versions are rejected.
+
+The contract uses canonical sorted JSON and has no dependency on pydiffvg, CUDA, Docker, or a local machine path. Local GPU/Docker workers therefore remain replaceable compute providers rather than the source of truth. A real Approved-18 Vestia-Zeta result was serialized and replayed through the contract: all hashes matched, silhouette IoU was 0.9994001117973469, DINO improved from 0.6158053820144906 to 0.6216236087306333, and the guarded consumer reproduced apply_candidate=true without rerunning the optimizer.
+
+Regression result: 239/239 ZeroBase tests PASS. New coverage includes canonical artifact round-trip, real hash-bound consumption semantics, tampered-candidate rejection, wrong-baseline rejection, and schema-version rejection.
+
+Gate result: PASS_PORTABLE_WORKER_CONTRACT. GPU execution is no longer required to be canonical. The next gate is packaging the worker output and consumer decision into a stable handoff bundle plus corpus replay/audit, after which production-routing authorization can be considered separately.
