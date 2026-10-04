@@ -297,3 +297,18 @@ The two lower-complexity major-clothing polygons were then evaluated before touc
 Its real DINOv3 source-relative metrics are: global **0.532881**, aligned patch **0.524440**, coarse patch **0.449059**, research score **0.499745**. Against the unchanged normalized baseline score 0.487929, the cumulative delta is **+0.011816**. All three perceptual dimensions improve, and the DINO gain grows substantially after the clothing additions rather than merely staying inside a tolerance band.
 
 This is stronger cross-character transfer evidence for the constrained refinement protocol. The two large 75/85-vertex clothing polygons remain intentionally unoptimized pending need: the smaller safe changes already produce a positive semantic gain, so extra high-dimensional movement is not justified by the current evidence. No production threshold is inferred from two characters.
+
+
+## Google Drive preservation gate restored 2026-10-04
+
+A preservation-process miss was identified during the Differentiable Minimalization PoC: research images had been allowed to remain under local Temp while optimization continued, despite the project rule that phase result images are preserved to Google Drive. Cause: the PoC execution loop did not encode Drive preservation as a phase-completion gate. Impact: intermediate Kyoko/Raden evidence temporarily existed only in local working storage. Correction: optimization was paused and existing outputs were retrospectively copied to the canonical Minimalizer Drive hierarchy. Prevention: a phase is not considered preserved/complete until its result images are copied to Drive and the preservation location is recorded; local Temp remains scratch only.
+
+Drive preservation root: `Minimalizer / Differentiable Minimalization Research`, separated from the existing `Minimalizer ZeroBase 2nd Cycle` archive. Subfolders: `Kyoko`, `Raden`, and `Comparison Evidence`. Under Kyoko and Raden, Phase_03 through Phase_12 image outputs are preserved by phase. Research cumulative images are preserved at the character-folder level.
+
+Current preservation inventory after retrospective copy:
+- Kyoko: 48 PNG files total. Phase image counts P03..P12 = 3,3,2,4,5,4,3,3,3,6 plus research cumulative/control images.
+- Raden: 41 PNG files total. Phase image counts P03..P12 = 3,3,2,4,5,4,3,3,3,6 plus research cumulative/control images.
+- Kyoko cumulative/control set includes current baseline, zero-change rerender control, early diffvg/semantic candidates, hair candidate, v1-v7, with v7 as the current research candidate.
+- Raden cumulative/control set includes Phase14 historical baseline, zero-change rerender control, hair v1, hair+torso v2, and cumulative v3.
+
+The local Google Drive mount reported all files copied successfully. Connector-side search indexing had not yet surfaced the newly copied v7 file at the immediate verification point, so index visibility is explicitly **pending** rather than falsely reported as verified. Filesystem-level Drive-mount counts above are verified. Future phases must perform both copy verification and, when available after sync propagation, connector-side visibility verification.
