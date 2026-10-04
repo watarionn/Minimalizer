@@ -25,9 +25,12 @@ def prepare_golden_candidate(
     *,
     manifest: dict[str, Any],
     feature_evidence: Mapping[str, Any],
+    golden_raster: Any | None = None,
     policy: GoldenProductionBridgePolicy | None = None,
 ) -> dict[str, Any]:
     policy = policy or GoldenProductionBridgePolicy()
+    if golden_raster is not None:
+        raise GoldenProductionBridgeError("Golden raster is evaluation-only and forbidden as production input")
     if not policy.enabled:
         return {
             "schema_version": "1.0",
