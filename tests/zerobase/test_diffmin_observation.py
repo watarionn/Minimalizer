@@ -1,4 +1,5 @@
 import json
+import pytest
 from minimalizer_zerobase.production.diffmin_observation import observations_from_release_audit,summarize_observations,write_observation_log
 
 def payload():
@@ -7,7 +8,7 @@ def payload():
   {"artifact":{"candidate_id":"b","silhouette_iou":.998,"baseline_dino_score":.5,"candidate_dino_score":.49},"decision":{"apply_candidate":False,"reason":"observer-not-improved"}}]}}
 
 def test_release_audit_becomes_observation_records(tmp_path):
- x=observations_from_release_audit(payload(),run_id="r1");assert len(x)==2 and x[0].dino_delta==.01 and not x[1].apply_candidate
+ x=observations_from_release_audit(payload(),run_id="r1");assert len(x)==2 and x[0].dino_delta==pytest.approx(.01) and not x[1].apply_candidate
  p=tmp_path/"obs.jsonl";write_observation_log(p,x);assert len(p.read_text().splitlines())==2
 
 def test_summary_tracks_adoption_and_rollback_reason():
