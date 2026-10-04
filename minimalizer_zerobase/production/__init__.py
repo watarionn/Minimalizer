@@ -9,6 +9,30 @@ from .integration import (
     phase14_authorizes_production,
 )
 from .pipeline import PipelineArtifacts, ProductionPipeline, ProductionPipelinePolicy
+from .diffmin_handoff import (
+    DiffMinBundleAudit,
+    DiffMinBundleEntry,
+    DiffMinHandoffManifest,
+    audit_handoff_bundle,
+    load_handoff_manifest,
+    write_handoff_manifest,
+)
+from .diffmin_artifact import (
+    DiffMinArtifactDecision,
+    DiffMinCandidateArtifact,
+    evaluate_candidate_artifact,
+    load_candidate_artifact,
+    write_candidate_artifact,
+)
+from .diffmin import (
+    DIFFMIN_ENV,
+    DIFFMIN_GUARDED,
+    DIFFMIN_OFF,
+    DiffMinDecision,
+    DiffMinEvidence,
+    GuardedDiffMinPolicy,
+    GuardedDiffMinSwitch,
+)
 
 __all__ = [
     "LEGACY_ROUTE",
@@ -22,4 +46,22 @@ __all__ = [
     "PipelineArtifacts",
     "ProductionPipeline",
     "ProductionPipelinePolicy",
+    "DIFFMIN_ENV",
+    "DIFFMIN_GUARDED",
+    "DIFFMIN_OFF",
+    "DiffMinDecision",
+    "DiffMinEvidence",
+    "GuardedDiffMinPolicy",
+    "GuardedDiffMinSwitch",
+    "DiffMinArtifactDecision",
+    "DiffMinCandidateArtifact",
+    "evaluate_candidate_artifact",
+    "load_candidate_artifact",
+    "write_candidate_artifact",
+    "DiffMinBundleAudit",
+    "DiffMinBundleEntry",
+    "DiffMinHandoffManifest",
+    "audit_handoff_bundle",
+    "load_handoff_manifest",
+    "write_handoff_manifest",
 ]

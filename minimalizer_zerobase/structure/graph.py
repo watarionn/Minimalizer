@@ -476,14 +476,35 @@ def build_structural_layout_graph(
 
     if "face" in present_parts and "head" in present_parts:
         face_inside = _overlap_ratio(masks["face"], masks["head"])
-        if face_inside >= 0.45:
+        face_pixels = int(np.count_nonzero(masks["face"]))
+        head_pixels = int(np.count_nonzero(masks["head"]))
+        face_box = _bbox(masks["face"])
+        head_box = _bbox(masks["head"])
+        spatially_nested = False
+        if face_box is not None and head_box is not None and face_pixels and head_pixels:
+            fcx = (face_box[0] + face_box[2]) * 0.5
+            fcy = (face_box[1] + face_box[3]) * 0.5
+            spatially_nested = (
+                head_box[0] <= fcx <= head_box[2]
+                and head_box[1] <= fcy <= head_box[3] + (face_box[3] - face_box[1]) * 0.75
+                and head_pixels >= face_pixels * 2
+            )
+        if face_inside >= 0.45 or (face_inside >= 0.30 and spatially_nested):
             add_relation(
                 "face",
                 "head",
                 "inside",
                 face_inside,
-                (_mask_ref("face"), _mask_ref("head"), "derived:mask-overlap"),
-                measurements={"source_overlap_ratio": face_inside},
+                (
+                    _mask_ref("face"),
+                    _mask_ref("head"),
+                    "derived:mask-overlap",
+                    "derived:face-head-spatial-nesting" if face_inside < 0.45 else "derived:direct-overlap",
+                ),
+                measurements={
+                    "source_overlap_ratio": face_inside,
+                    "spatially_nested": spatially_nested,
+                },
             )
 
     if "hair" in present_parts and "head" in present_parts:
@@ -520,16 +541,34 @@ def build_structural_layout_graph(
         "face",
         threshold_px=base_attachment_threshold,
     )
+    neck_canvas_ratio = (
+        float(np.count_nonzero(masks["neck"])) / float(width * height)
+        if "neck" in present_parts
+        else 0.0
+    )
+    tiny_neck = 0.0 < neck_canvas_ratio <= 0.001
     add_attachment(
         "neck",
         "torso",
         threshold_px=base_attachment_threshold,
+        confidence_scale=0.55 if tiny_neck else 1.0,
+        allow_extended_gap=tiny_neck,
+        evidence_refs=("derived:tiny-neck-conservative-gap",) if tiny_neck else (),
     )
     for arm in ("left_arm", "right_arm"):
+        arm_canvas_ratio = (
+            float(np.count_nonzero(masks[arm])) / float(width * height)
+            if arm in present_parts
+            else 0.0
+        )
+        tiny_arm = 0.0 < arm_canvas_ratio <= 0.015
         add_attachment(
             arm,
             "torso",
             threshold_px=base_attachment_threshold,
+            confidence_scale=0.55 if tiny_arm else 1.0,
+            allow_extended_gap=tiny_arm,
+            evidence_refs=("derived:tiny-arm-conservative-gap",) if tiny_arm else (),
         )
         if arm in present_parts and "torso" in present_parts:
             arm_x = _centroid(masks[arm])[0]

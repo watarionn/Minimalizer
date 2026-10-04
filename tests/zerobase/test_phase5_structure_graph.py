@@ -225,3 +225,21 @@ def test_missing_face_inside_head_is_a_core_gate_failure():
     validation = graph_validation(broken)
     assert "face-inside-head" in validation["missing_core_relations"]
     assert validation["pass"] is False
+
+
+def test_tiny_neck_may_use_conservative_extended_torso_gap():
+    masks = _synthetic_masks()
+    masks["neck"][:] = False
+    masks["neck"][55:57, 54:59] = True
+    masks["torso"][:] = False
+    masks["torso"][66:126, 38:82] = True
+    graph = build_structural_layout_graph(masks)
+    relation = next(
+        item for item in graph.relations
+        if item.source_part == "neck"
+        and item.relation_kind == "attached_to"
+        and item.target_part == "torso"
+    )
+    assert relation.confidence <= 0.55
+    assert "derived:tiny-neck-conservative-gap" in relation.evidence_refs
+    assert graph.to_dict()["validation"]["pass"] is True
