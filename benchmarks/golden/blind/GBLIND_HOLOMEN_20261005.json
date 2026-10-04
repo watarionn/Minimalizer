@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_HOLOMEN_20261005",
+  "purpose": "sealed blind generalization corpus; no Golden images",
+  "source_archive": {
+    "file_name": "HoloMenImages.zip",
+    "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9",
+    "file_count": 609
+  },
+  "rules_frozen_at_main": "df3e757df697035ab3ac73b9f0fad6a5a3f06739",
+  "cases": [
+    {"case_id":"blind_azki","member":"HoloMenImages/AZKi（AZKi）/AZKi_list_thumb.png","sha256":"571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d","has_golden":false},
+    {"case_id":"blind_irys","member":"HoloMenImages/IRyS（IRyS）/IRyS_list_thumb.png","sha256":"f5042942bf489c3a64f6b52fecfff1481e0f6b194e6b7882617b4b54267cad46","has_golden":false},
+    {"case_id":"blind_gura","member":"HoloMenImages/【卒業生】がうる・ぐら（Gawr Gura）/Gawr-Gura_list_thumb.png","sha256":"d50a12f9f2f547deaeac6c40b0cba117069a654ab7d9d7b6babe647b291a91e7","has_golden":false},
+    {"case_id":"blind_fauna","member":"HoloMenImages/【卒業生】セレス・ファウナ（Ceres Fauna）/Ceres-Fauna_list_thumb.png","sha256":"24198fd06503c2ae89b82c43c2b2a7f8bd85d752bb32b0ea34ee495928408b50","has_golden":false},
+    {"case_id":"blind_mumei","member":"HoloMenImages/【卒業生】七詩ムメイ（Nanashi Mumei）/Nanashi-Mumei_list_thumb.png","sha256":"5ce3d58ef1d0a3c72ea708c0ff7b8cc375186b9d4b4acb4210abe936005fedde","has_golden":false}
+  ],
+  "adoption_state": "HOLD",
+  "hold_reason": "G2-G7 are not yet integrated into production candidate generation, so real blind improvement cannot honestly be demonstrated."
+}

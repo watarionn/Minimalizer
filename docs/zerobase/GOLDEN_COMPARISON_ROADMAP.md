@@ -1,6 +1,6 @@
 # Golden Comparison Development Roadmap
 
-Status: G7 CLOSED / G8 READY
+Status: G8 CONTRACT CLOSED / ADOPTION HOLD
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
@@ -9,7 +9,7 @@ G4 Semantic Feature Budgeter [CLOSED / PASS]: allocate primitive budget by seman
 G5 Geometry Re-authoring PoC [CLOSED / PASS]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
 G6 Golden Gap Evaluator [CLOSED / PASS]: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
 G7 Guarded DiffMin Integration [CLOSED / PASS]: refine accepted authored geometry only; same-renderer baseline; default OFF.
-G8 Blind Generalization Gate [NEXT]: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
+G8 Blind Generalization Gate [CLOSED / HOLD]: gate and sealed five-character blind corpus are fixed; adoption waits for production integration and real blind outputs.
 
 ## G1 closure
 
@@ -121,4 +121,22 @@ Validation before merge:
 - same-renderer enforcement: PASS
 - add/delete/substitute/duplicate primitive rejection: PASS
 - production behavior changes: none
+
+
+## G8 closure
+
+G8 closes the Golden Comparison design/guardrail cycle with a fail-closed blind generalization gate and a sealed five-character corpus selected from the user-provided `HoloMenImages.zip`: AZKi, IRyS, Gawr Gura, Ceres Fauna, and Nanashi Mumei. The archive SHA-256 and each selected source SHA-256 are frozen in `benchmarks/golden/blind/GBLIND_HOLOMEN_20261005.json`. No blind case has a Golden image. G2-G7 rules were frozen at main `df3e757df697035ab3ac73b9f0fad6a5a3f06739` before the blind corpus was sealed.
+
+Adoption decision: **HOLD**, not PASS and not REJECT. G2-G7 deliberately introduced no production behavior changes, so there is not yet an integrated candidate path from which real blind improvement can be demonstrated. The gate therefore refuses a false adoption. After the generic production bridge is implemented, the sealed cases must be run without changing G2-G7 rules. ADOPT requires every case to hard-PASS, have no dimension regression, and demonstrate improvement; one failed/regressed character blocks adoption and no aggregate score may hide it.
+
+Validation before merge:
+- focused Blind Generalization tests: 9 passed
+- full `tests/zerobase`: 332 passed
+- `git diff --check`: PASS
+- minimum multi-character requirement: PASS
+- Golden-free blind case enforcement: PASS
+- per-character failure/regression visibility: PASS
+- false adoption without production integration: blocked as HOLD
+
+Next production milestone: generic G2-G7 production bridge -> sealed blind execution -> Rinka visual review -> ADOPT or REJECT. Blind outcomes are evaluation evidence, not tuning targets.
 
