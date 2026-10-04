@@ -114,3 +114,25 @@ def test_failed_candidate_is_never_admissible_even_when_dimensions_improve() -> 
     )
     comparison = compare_golden_gap(baseline, candidate)
     assert comparison["candidate_admissible"] is False
+
+
+def test_unknown_feature_local_evidence_fails_closed_when_manifest_ids_are_bound() -> None:
+    with pytest.raises(GoldenGapError, match="unknown feature"):
+        evaluate_golden_gap(
+            case_id="synthetic",
+            feature_survival_report=_survival(),
+            dimension_scores=_scores(),
+            feature_local_evidence={"invented_feature": {"score": 1.0, "source": "dinov3"}},
+            allowed_feature_ids={"core"},
+        )
+
+
+def test_known_feature_local_evidence_passes_manifest_binding() -> None:
+    report = evaluate_golden_gap(
+        case_id="synthetic",
+        feature_survival_report=_survival(),
+        dimension_scores=_scores(),
+        feature_local_evidence={"core": {"score": 0.7, "source": "dinov3"}},
+        allowed_feature_ids={"core"},
+    )
+    assert report["feature_local_evidence"][0]["feature_id"] == "core"
