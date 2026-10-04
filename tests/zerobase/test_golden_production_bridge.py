@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from minimalizer_zerobase.production.golden_bridge import (
+    GoldenProductionBridgeError,
     GoldenProductionBridgePolicy,
     prepare_golden_candidate,
 )
@@ -74,3 +75,13 @@ def test_manifest_feature_names_are_not_gc001_specific() -> None:
     )
     assert report["case_id"]=="blind_synthetic"
     assert {x["feature_id"] for x in report["geometry_plan"]["primitives"]} <= {"hair","tie"}
+
+
+def test_golden_raster_is_rejected_even_when_bridge_is_off() -> None:
+    import pytest
+    with pytest.raises(GoldenProductionBridgeError, match="evaluation-only"):
+        prepare_golden_candidate(
+            manifest=_manifest(),
+            feature_evidence=_evidence(),
+            golden_raster=b"forbidden",
+        )
