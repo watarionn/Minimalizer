@@ -1,11 +1,11 @@
 # Golden Comparison Development Roadmap
 
-Status: G2 CLOSED / G3 READY
+Status: G3 CLOSED / G4 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
-G3 Feature Survival Gate [NEXT]: required/optional/forbidden semantics; fail-closed evidence.
-G4 Semantic Feature Budgeter: allocate primitive budget by semantic importance and recognizability rather than pixel area.
+G3 Feature Survival Gate [CLOSED / PASS]: required/optional/forbidden semantics; fail-closed evidence.
+G4 Semantic Feature Budgeter [NEXT]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
 G5 Geometry Re-authoring PoC: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
 G6 Golden Gap Evaluator: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
 G7 Guarded DiffMin Integration: refine accepted authored geometry only; same-renderer baseline; default OFF.
@@ -48,5 +48,17 @@ Validation before merge:
 - full `tests/zerobase`: 263 passed
 - `git diff --check`: PASS
 - G1/G2 case identity linkage: PASS
+- production behavior changes: none
+
+
+## G3 closure
+
+G3 adds a generic fail-closed Feature Survival Gate over the G2 semantic contract. Required features must be present; absent, unknown, or missing evidence hard-fails. Forbidden features must be absent; present or unknown evidence hard-fails. Optional features do not hard-fail when absent or unknown. Perceptual scores are recorded but cannot override hard failures, and observer confidence remains evidence rather than semantic authority.
+
+Validation before merge:
+- focused Feature Survival tests: 13 passed
+- full `tests/zerobase`: 276 passed
+- `git diff --check`: PASS
+- perfect perceptual score cannot offset required-feature loss: PASS
 - production behavior changes: none
 
