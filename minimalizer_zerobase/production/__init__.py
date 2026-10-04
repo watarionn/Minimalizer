@@ -9,6 +9,15 @@ from .integration import (
     phase14_authorizes_production,
 )
 from .pipeline import PipelineArtifacts, ProductionPipeline, ProductionPipelinePolicy
+from .diffmin import (
+    DIFFMIN_ENV,
+    DIFFMIN_GUARDED,
+    DIFFMIN_OFF,
+    DiffMinDecision,
+    DiffMinEvidence,
+    GuardedDiffMinPolicy,
+    GuardedDiffMinSwitch,
+)
 
 __all__ = [
     "LEGACY_ROUTE",
@@ -22,4 +31,11 @@ __all__ = [
     "PipelineArtifacts",
     "ProductionPipeline",
     "ProductionPipelinePolicy",
+    "DIFFMIN_ENV",
+    "DIFFMIN_GUARDED",
+    "DIFFMIN_OFF",
+    "DiffMinDecision",
+    "DiffMinEvidence",
+    "GuardedDiffMinPolicy",
+    "GuardedDiffMinSwitch",
 ]

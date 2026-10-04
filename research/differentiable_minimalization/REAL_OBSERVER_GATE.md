@@ -457,3 +457,13 @@ Frozen DINOv3 was loaded once and evaluated source-relative across the full corp
 Gate result: PASS_LIMITED_CORPUS_EVIDENCE. DiffMin demonstrates transferable observer-positive benefit on 9/18 Approved-18 characters without relaxing semantic trust, ownership, silhouette, or character-specific thresholds. The 8 observer-negative cases prove that local objective feasibility is not sufficient for adoption and validate the scene-level DINO rollback gate. This supports a future opt-in/guarded integration path, not unconditional production routing.
 
 Evidence is preserved in Google Drive under Minimalizer / Differentiable Minimalization Research / Approved18_DiffMin_Escalation with per-character zero-change and accepted/rejected candidate images plus corpus scene/DINO/final-gate metrics.
+
+## Guarded production integration foundation 2026-10-04
+
+A production-facing decision boundary is now implemented without enabling DiffMin in the default route. MINIMALIZER_DIFFMIN defaults to off. The only opt-in mode is guarded, and it may apply a candidate only when local hard guards passed, same-renderer scene silhouette IoU remains at or above 0.985, frozen observer evidence is present, and candidate DINO score is strictly greater than baseline. Missing observer evidence, a tied/regressed DINO score, silhouette regression, or any hard-guard failure rolls back to the baseline.
+
+This integration layer does not invoke pydiffvg, does not add a generated-content path, and does not alter the existing ProductionRouteSwitch. It is a pure fail-closed decision boundary intended to sit after research/worker-side candidate production. Default production behavior therefore remains unchanged until a separate explicit routing decision is authorized.
+
+Regression result: 234/234 ZeroBase tests PASS, including new tests for default-off behavior, hard-guard rollback, silhouette rollback, missing observer rollback, DINO tie/regression rollback, positive guarded adoption, and unknown-mode rejection.
+
+Gate result: PASS_GUARDED_INTEGRATION_FOUNDATION. Production routing remains unchanged; the next gate is wiring this decision boundary to a worker/candidate artifact contract without making local GPU execution the canonical source.
