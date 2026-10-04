@@ -341,3 +341,16 @@ With the semantic-head and bright-hair chroma guards active, Raden was rerun thr
 Per the restored preservation rule, the guarded Raden Phase 3-12 result images were copied to Google Drive under `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_Shadow`. The preserved set contains 37 PNG files including `Raden_phase12_guarded_final.png`. Local Temp remains scratch only.
 
 **Phase 4 rescue repair status: CLOSED for this research gate.** The repair is minimal rather than a wholesale revert of `d118e60`: valid newer rescue behavior remains, destructive semantic-head shrinkage fails closed, pale face-adjacent bright-hair false rescue is chroma-guarded, and the independent Raden character reaches Phase 12 successfully.
+
+
+## Guarded-current Raden differentiable revalidation 2026-10-04
+
+After closing the Phase 4 rescue repair, the differentiable hair protocol was rerun against the current guarded Raden Phase 3-12 shadow output rather than the earlier preserved/pre-d118 Phase 4 control. The same three hair primitives (0003, 0005, 0006) were feasible; 0002 remained NO_FEASIBLE_CHECKPOINT and 0004 remained canvas-guard rejected.
+
+The composed candidate has same-renderer silhouette IoU **0.998715** with 152 changed pixels. Frozen DINOv3 source-relative score improves from **0.487929** to **0.492020** (delta **+0.004091**); global, aligned-patch, and coarse-patch cosine all improve. This removes the temporary dependency on the preserved Phase 4 control and confirms that the repaired current semantic decomposition still supports the independent-character differentiable hair PASS.
+
+A latent reproducibility bug in `compare_dinov3_pair.py` was also fixed: escaped newline literals in the progress/load block had made the committed runner syntactically invalid even though prior measurements used a temporary corrected copy. The committed runner is now directly executable.
+
+Drive preservation: current guarded zero-change control, cumulative hair candidate, three accepted primitive images, and metrics JSON were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin`.
+
+**Gate result: PASS.** Current guarded Raden is now a valid independent-character control for the constrained Differentiable Minimalization protocol. Next expansion should evaluate additional semantic parts on this repaired current baseline before any Approved-18 escalation.
