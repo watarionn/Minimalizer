@@ -187,4 +187,25 @@ Validation before merge:
 - manual semantic label path: absent
 - Golden usage: absent
 
-Next: connect a frozen real semantic observer/hypothesis runtime and pass its untouched output through this binder.
+Next: frozen Grounded-SAM semantic observer [CONNECTED] -> run sealed five-character observer corpus -> bind untouched evidence -> same-renderer baseline/candidate execution.
+
+
+## Frozen Grounded-SAM Observer connection
+
+The previously validated Phase E Grounded-SAM stack is now the frozen real semantic observer for Golden blind evaluation. The model pair and thresholds are unchanged: IDEA-Research/grounding-dino-tiny + facebook/sam-vit-base, active semantic threshold 0.20. A ZeroBase adapter converts thresholded semantic confidence maps into immutable labelled bbox Evidence for the blind binder. It cannot lower the threshold or invent finer semantic labels; for example accessory remains accessory rather than being guessed as goggles/ribbon/etc.
+
+Local runtime smoke validation on the existing isolated observer environment:
+- Python environment: C:\\Work\\SharedAI\\minimalizer-observers
+- PyTorch: 2.11.0+cu128
+- CUDA available: true
+- Transformers: 5.17.0
+- Grounding-DINO tiny load: PASS
+- SAM ViT-B load: PASS
+- GPU frozen observer runtime: READY
+
+Repository validation:
+- focused frozen-observer + blind-binding tests: 10 passed
+- full `tests/zerobase`: 355 passed
+- `git diff --check`: PASS
+
+Next: execute the sealed five-character corpus with the frozen observer. Any semantic role the frozen observer cannot resolve remains unknown/HOLD; no human label substitution is allowed.
