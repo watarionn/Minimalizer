@@ -208,4 +208,18 @@ Repository validation:
 - full `tests/zerobase`: 355 passed
 - `git diff --check`: PASS
 
-Next: execute the sealed five-character corpus with the frozen observer. Any semantic role the frozen observer cannot resolve remains unknown/HOLD; no human label substitution is allowed.
+Sealed five-character Frozen Observer run: COMPLETE. Promotion into per-character feature binding is HOLD because no per-character semantic feature manifests were frozen before the first blind outcomes. Creating them now would contaminate the blind gate. Next: define a fresh blind suite with pre-frozen evaluation manifests, then execute it once through observer -> binder -> production candidate -> renderer.
+
+
+## Sealed five-character Frozen Observer run
+
+The frozen GBLIND_HOLOMEN_20261005 corpus was executed once without changing prompts, thresholds, G2-G7 rules, or source membership. Archive SHA-256 and all five member SHA-256 values matched the sealed manifest before inference.
+
+Frozen Grounded-SAM completed 5/5 on CUDA. Hair, face-skin, limb, and accessory all had non-zero active evidence on all five cases. Mean inference time was 0.567 s/image, peak allocated CUDA memory 1378.6 MB, and one oversized IRyS hair detection was rejected by the already-frozen Phase E guard.
+
+Machine-readable summary: `benchmarks/golden/blind/GBLIND_HOLOMEN_20261005_OBSERVER_RUN.json`.
+Full NPZ evidence, contact sheet, rembg masks, report, and input manifest are preserved in Google Drive as `GBLIND_HOLOMEN_20261005_frozen_observer_run.zip` with SHA-256 `de498aa0769c7aa48665d93dc4b603d69123247d69e3a48fa514ad942ea14892`.
+
+Binding/adoption remains HOLD. The original G8 freeze did not include per-character semantic feature manifests. Creating those after seeing this blind run would leak outcome knowledge into the benchmark. The gap and prevention rule are recorded in `docs/incidents/INC-20261005-golden-blind-manifest-freeze-gap.md`.
+
+No human labels were substituted and no post-outcome tuning was performed.
