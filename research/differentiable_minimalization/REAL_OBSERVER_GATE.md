@@ -354,3 +354,15 @@ A latent reproducibility bug in `compare_dinov3_pair.py` was also fixed: escaped
 Drive preservation: current guarded zero-change control, cumulative hair candidate, three accepted primitive images, and metrics JSON were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin`.
 
 **Gate result: PASS.** Current guarded Raden is now a valid independent-character control for the constrained Differentiable Minimalization protocol. Next expansion should evaluate additional semantic parts on this repaired current baseline before any Approved-18 escalation.
+
+## Guarded-current Raden semantic expansion v1 2026-10-04
+
+The repaired current Raden baseline was expanded beyond hair without changing the existing constrained protocol. Identity-core face/head/neck remained frozen for this step. Torso, right arm, major clothing, and lower body were searched with semantic-part ownership, polygon topology, and trust-region guards.
+
+Feasible additions were torso 0000/0001, right-arm 0011, and major-clothing 0015/0016. Right-arm 0010 was canvas-guard rejected; major-clothing 0013/0014 and all three lower-body proposals had no feasible checkpoint and remained frozen. Together with the already accepted hair 0003/0005/0006, the cumulative candidate contains eight replacements.
+
+Same-renderer silhouette IoU is **0.995840** with 403 changed pixels. Frozen DINOv3 source-relative score improves from **0.487929** baseline to **0.498803** candidate, delta **+0.010874**. Candidate global/aligned/coarse cosines are 0.532411 / 0.523671 / 0.447625, all above baseline.
+
+Drive preservation: cumulative candidate, five newly accepted primitive images, and metrics JSON were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin / Semantic_Expansion_v1`.
+
+**Gate result: PASS.** The repaired current Raden baseline supports constrained semantic expansion beyond hair while preserving scene silhouette and improving independent DINO evidence. Lower-body and high-dimensional clothing proposals remain fail-closed rather than forcing motion. Next should test the remaining non-core left-arm/accessory groups, then decide whether the evidence justifies a tightly constrained head-only experiment; face remains frozen.
