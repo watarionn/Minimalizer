@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "case_id": "GC001_IMG_1205",
+  "features": [
+    {
+      "id": "orange_hair",
+      "semantic_role": "hair",
+      "disposition": "required",
+      "importance": "identity_critical",
+      "palette_role": "primary",
+      "compression_policy": "preserve"
+    },
+    {
+      "id": "goggles",
+      "semantic_role": "eyewear_accessory",
+      "disposition": "required",
+      "importance": "identity_critical",
+      "palette_role": "contrast",
+      "compression_policy": "preserve"
+    },
+    {
+      "id": "green_necktie",
+      "semantic_role": "necktie",
+      "disposition": "required",
+      "importance": "identity_critical",
+      "palette_role": "accent",
+      "compression_policy": "preserve"
+    },
+    {
+      "id": "navy_white_uniform",
+      "semantic_role": "uniform",
+      "disposition": "required",
+      "importance": "identity_critical",
+      "palette_role": "secondary",
+      "compression_policy": "preserve"
+    },
+    {
+      "id": "hair_ornament",
+      "semantic_role": "hair_accessory",
+      "disposition": "optional",
+      "importance": "important",
+      "palette_role": "accent",
+      "compression_policy": "symbolic"
+    },
+    {
+      "id": "badges",
+      "semantic_role": "uniform_badges",
+      "disposition": "optional",
+      "importance": "compressible",
+      "palette_role": "accent",
+      "compression_policy": "symbolic"
+    },
+    {
+      "id": "armband",
+      "semantic_role": "armband",
+      "disposition": "optional",
+      "importance": "compressible",
+      "palette_role": "accent",
+      "compression_policy": "symbolic"
+    },
+    {
+      "id": "facial_details",
+      "semantic_role": "facial_details",
+      "disposition": "forbidden",
+      "importance": "supporting",
+      "palette_role": "not_applicable",
+      "compression_policy": "omit"
+    }
+  ],
+  "relations": [
+    {"subject": "goggles", "predicate": "overlaps", "object": "orange_hair"},
+    {"subject": "hair_ornament", "predicate": "attached_to", "object": "orange_hair"},
+    {"subject": "green_necktie", "predicate": "attached_to", "object": "navy_white_uniform"},
+    {"subject": "badges", "predicate": "attached_to", "object": "navy_white_uniform"},
+    {"subject": "armband", "predicate": "attached_to", "object": "navy_white_uniform"}
+  ],
+  "evaluation_regions": [
+    {"id": "head_identity", "feature_ids": ["orange_hair", "goggles", "hair_ornament", "facial_details"]},
+    {"id": "torso_identity", "feature_ids": ["green_necktie", "navy_white_uniform", "badges", "armband"]}
+  ]
+}
