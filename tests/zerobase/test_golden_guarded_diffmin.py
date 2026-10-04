@@ -148,3 +148,33 @@ def test_valid_refinement_contract_passes() -> None:
     )
     assert report["status"] == "PASS"
     assert report["primitive_identity_preserved"] is True
+
+
+def test_duplicate_requested_identity_cannot_fake_primitive_count() -> None:
+    duplicate = [_plan()["primitives"][0], _plan()["primitives"][0], _plan()["primitives"][1]]
+    with pytest.raises(GuardedDiffMinError, match="duplicate primitive identity"):
+        prepare_diffmin_refinement(
+            enabled=True,
+            feature_survival_report=_survival(),
+            geometry_plan=_plan(),
+            baseline_renderer="svg",
+            candidate_renderer="svg",
+            requested_primitives=duplicate,
+        )
+
+
+def test_duplicate_result_identity_is_rejected() -> None:
+    contract = prepare_diffmin_refinement(
+        enabled=True,
+        feature_survival_report=_survival(),
+        geometry_plan=_plan(),
+        baseline_renderer="svg",
+        candidate_renderer="svg",
+    )
+    duplicate = [_plan()["primitives"][0], _plan()["primitives"][0], _plan()["primitives"][1]]
+    with pytest.raises(GuardedDiffMinError, match="duplicate primitive identity"):
+        validate_diffmin_result(
+            contract,
+            resulting_primitives=duplicate,
+            post_feature_survival_report=_survival(),
+        )
