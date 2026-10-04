@@ -141,6 +141,7 @@ class PartAwareGeometrizationPolicy:
     fidelity_fallback_vertex_budget_min: int = 48
     fidelity_fallback_budget_multiplier: int = 4
     hair_fidelity_fallback_budget_multiplier: int = 8
+    neck_fidelity_fallback_budget_multiplier: int = 48
     major_clothing_fidelity_fallback_budget_multiplier: int = 6
     lower_body_fidelity_fallback_budget_multiplier: int = 6
     allow_axis_aligned_rectangle: bool = False
@@ -188,6 +189,8 @@ class PartAwareGeometrizationPolicy:
             raise ValueError("Phase 10 fidelity fallback multiplier must be positive")
         if self.hair_fidelity_fallback_budget_multiplier < 1:
             raise ValueError("hair_fidelity_fallback_budget_multiplier must be >= 1")
+        if self.neck_fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("Phase 10 neck fidelity fallback multiplier must be positive")
         if self.major_clothing_fidelity_fallback_budget_multiplier < 1:
             raise ValueError("Phase 10 major clothing fidelity fallback multiplier must be positive")
         if self.lower_body_fidelity_fallback_budget_multiplier < 1:
@@ -271,6 +274,7 @@ class PartAwareGeometrizationPolicy:
                 "fallback_family": "polygon",
                 "fallback_vertex_budget_min": self.fidelity_fallback_vertex_budget_min,
                 "fallback_budget_multiplier": self.fidelity_fallback_budget_multiplier,
+                "neck_fallback_budget_multiplier": self.neck_fidelity_fallback_budget_multiplier,
                 "major_clothing_fallback_budget_multiplier": self.major_clothing_fidelity_fallback_budget_multiplier,
                 "lower_body_fallback_budget_multiplier": self.lower_body_fidelity_fallback_budget_multiplier,
                 "fail_local_when_no_candidate_passes": True,
@@ -513,10 +517,13 @@ def _polygon_candidate(mask: np.ndarray, budget: int, *, rounded: bool) -> tuple
 def _fidelity_polygon_candidate(
     mask: np.ndarray, budget: int
 ) -> tuple[np.ndarray, dict[str, Any], int]:
+    # CHAIN_APPROX_SIMPLE is pixel-exact when rasterized by OpenCV while
+    # removing collinear contour samples.  Preserve that exact contour whenever
+    # it already fits the fidelity budget; only simplify further when required.
     found, hierarchy = cv2.findContours(
         mask.astype(np.uint8),
         cv2.RETR_TREE,
-        cv2.CHAIN_APPROX_NONE,
+        cv2.CHAIN_APPROX_SIMPLE,
     )
     if not found or hierarchy is None:
         raise ValueError("Phase 10 fidelity fallback requires a non-empty mask")
@@ -536,6 +543,7 @@ def _fidelity_polygon_candidate(
         for contour in found
     ]
     perimeter_total = sum(perimeters)
+    exact_fits_budget = sum(len(contour) for contour in found) <= budget
     allocations: list[int] = []
     remaining = max(3 * len(found), budget)
     for index, perimeter in enumerate(perimeters):
@@ -568,14 +576,15 @@ def _fidelity_polygon_candidate(
     ):
         perimeter = float(cv2.arcLength(contour, True))
         chosen = contour.reshape(-1, 2)
-        for ratio in ratios:
-            approximated_candidate = cv2.approxPolyDP(
-                contour, ratio * perimeter, True
-            ).reshape(-1, 2)
-            if len(approximated_candidate) >= 3:
-                chosen = approximated_candidate
-            if 3 <= len(approximated_candidate) <= allocation:
-                break
+        if not exact_fits_budget and len(chosen) > allocation:
+            for ratio in ratios:
+                approximated_candidate = cv2.approxPolyDP(
+                    contour, ratio * perimeter, True
+                ).reshape(-1, 2)
+                if len(approximated_candidate) >= 3:
+                    chosen = approximated_candidate
+                if 3 <= len(approximated_candidate) <= allocation:
+                    break
         points = chosen.astype(np.float32)
         approximated.append(points)
         rings.append(
@@ -588,16 +597,21 @@ def _fidelity_polygon_candidate(
         )
 
     canvas = np.zeros(mask.shape, dtype=np.uint8)
-    for ring, points in sorted(
-        zip(rings, approximated),
-        key=lambda pair: (
-            int(pair[0]["depth"]),
-            int(pair[0]["source_contour_index"]),
-        ),
-    ):
-        value = 255 if ring["role"] == "fill" else 0
-        rounded = np.rint(points).astype(np.int32).reshape(-1, 1, 2)
-        cv2.fillPoly(canvas, [rounded], value, lineType=cv2.LINE_8)
+    raster_contours = [
+        np.rint(points).astype(np.int32).reshape(-1, 1, 2)
+        for points in approximated
+    ]
+    # Let OpenCV apply the original contour hierarchy in one fill operation.
+    # Painting holes as zero in separate passes erases their boundary pixels and
+    # can lose substantial area on thin or nested semantic masses.
+    cv2.drawContours(
+        canvas,
+        raster_contours,
+        -1,
+        255,
+        thickness=cv2.FILLED,
+        lineType=cv2.LINE_8,
+    )
 
     parameters = {
         "components": [
@@ -1034,7 +1048,17 @@ def geometrize_parts(
             else list(non_giant_candidates)
         )
         if fidelity_required and not fidelity_candidates:
-            if normalized_part_id == "major_clothing":
+            if normalized_part_id == "neck":
+                fallback_multiplier = policy.neck_fidelity_fallback_budget_multiplier
+            elif normalized_part_id in ARM_PARTS:
+                # Arms can contain long curved or bent silhouettes.  The generic
+                # fallback budget was the only reason otherwise exact observed
+                # arm contours missed the strict arm fidelity gate.
+                fallback_multiplier = max(
+                    policy.fidelity_fallback_budget_multiplier,
+                    16,
+                )
+            elif normalized_part_id == "major_clothing":
                 fallback_multiplier = (
                     policy.major_clothing_fidelity_fallback_budget_multiplier
                 )

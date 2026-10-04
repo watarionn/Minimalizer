@@ -803,6 +803,27 @@ def build_region_bindings(
         mask=subject,
         channel_axis=-1,
     )
+    # SLIC can leave rare masked subject pixels unlabeled on fragmented
+    # silhouettes. Assign those holes to the nearest observed SLIC region
+    # before semantic splitting. No source pixels or semantics are generated.
+    missing_parent = subject & (labels < 0)
+    if np.any(missing_parent):
+        known = subject & (labels >= 0)
+        if not np.any(known):
+            raise ValueError("SLIC produced no parent regions inside the subject")
+        _, nearest = cv2.distanceTransformWithLabels(
+            (~known).astype(np.uint8),
+            cv2.DIST_L2,
+            5,
+            labelType=cv2.DIST_LABEL_PIXEL,
+        )
+        known_coords = np.argwhere(known)
+        lookup = np.asarray(
+            [labels[y, x] for y, x in known_coords],
+            dtype=np.int32,
+        )
+        fill_ids = nearest[missing_parent] - 1
+        labels[missing_parent] = lookup[np.clip(fill_ids, 0, len(lookup) - 1)]
     exclusive = _exclusive_part_labels(masks, subject)
     refined_labels, parent_labels = _split_at_semantic_boundaries(
         labels,

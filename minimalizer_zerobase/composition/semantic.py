@@ -128,14 +128,21 @@ def rasterize_primitive_candidate(
                 if depth < 0 or role != expected_role:
                     raise ValueError("polygon ring role/depth mismatch")
                 normalized_rings.append((depth, index, _points(ring.get("points"))))
-            for depth, _, points in sorted(normalized_rings):
-                rounded = np.rint(points).astype(np.int32).reshape(-1, 1, 2)
-                cv2.fillPoly(
-                    canvas,
-                    [rounded],
-                    255 if depth % 2 == 0 else 0,
-                    lineType=cv2.LINE_8,
-                )
+            contours = [
+                np.rint(points).astype(np.int32).reshape(-1, 1, 2)
+                for _, _, points in sorted(normalized_rings)
+            ]
+            # A single FILLED draw uses OpenCV's even-odd contour rule, preserving
+            # hole boundary pixels. Separate fill/hole passes erase those pixels
+            # and drift from the Phase 10 fidelity raster.
+            cv2.drawContours(
+                canvas,
+                contours,
+                -1,
+                255,
+                thickness=cv2.FILLED,
+                lineType=cv2.LINE_8,
+            )
             mask = canvas > 0
         else:
             mask = _fill_polygons(shape, [_points(item) for item in raw_components])

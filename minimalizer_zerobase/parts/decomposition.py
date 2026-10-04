@@ -599,7 +599,13 @@ def _semantic_head_mask(
     ).astype(bool)
     refined = head & support
     minimum = max(24, int(round(np.count_nonzero(face) * 1.15)))
-    if int(np.count_nonzero(refined)) < minimum:
+    refined_count = int(np.count_nonzero(refined))
+    head_count = int(np.count_nonzero(head))
+    if refined_count < minimum:
+        return head
+    # Semantic head support is evidence, not authority. A face-local support mask
+    # must not erase a large fraction of a structurally valid head/hair envelope.
+    if head_count > 0 and refined_count / float(head_count) < 0.80:
         return head
     return refined
 
@@ -998,9 +1004,20 @@ def decompose_semantic_parts(
             face,
             accessory,
         )
-    hair |= _rescue_bright_face_side_hair_strands(
+    bright_hair_rescue = _rescue_bright_face_side_hair_strands(
         source, subject & ~accessory, face, hair
     )
+    if np.any(bright_hair_rescue):
+        # A bright strand may legitimately differ in luminance from the main
+        # hair mass, but it must still agree in chroma. This blocks pale
+        # skin/clothing regions from becoming hair solely because they are
+        # bright and face-adjacent.
+        lab = cv2.cvtColor(source, cv2.COLOR_RGB2LAB).astype(np.float32)
+        hair_lab = np.median(lab[hair], axis=0)
+        rescue_lab = np.median(lab[bright_hair_rescue], axis=0)
+        chroma_distance = float(np.linalg.norm(rescue_lab[1:] - hair_lab[1:]))
+        if chroma_distance <= 6.0:
+            hair |= bright_hair_rescue
 
     torso_core, major_clothing = _torso_core(structural["torso"], face)
     lower = structural["left_leg"] | structural["right_leg"]
