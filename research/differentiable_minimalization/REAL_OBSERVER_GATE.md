@@ -477,3 +477,15 @@ The contract uses canonical sorted JSON and has no dependency on pydiffvg, CUDA,
 Regression result: 239/239 ZeroBase tests PASS. New coverage includes canonical artifact round-trip, real hash-bound consumption semantics, tampered-candidate rejection, wrong-baseline rejection, and schema-version rejection.
 
 Gate result: PASS_PORTABLE_WORKER_CONTRACT. GPU execution is no longer required to be canonical. The next gate is packaging the worker output and consumer decision into a stable handoff bundle plus corpus replay/audit, after which production-routing authorization can be considered separately.
+
+## Approved-18 portable handoff bundle and corpus replay 2026-10-04
+
+The worker/candidate contract is now packaged as a stable corpus handoff bundle. Handoff schema v1 contains sorted unique candidate entries with relative-only source, baseline, candidate, and artifact paths. Absolute paths and parent-directory escapes are rejected. The handoff manifest itself is canonical JSON and SHA-256 addressed, while every candidate artifact independently binds source, baseline, and candidate bytes.
+
+A complete Approved-18 bundle was built from preserved research evidence and audited without rerunning pydiffvg, Docker optimization, CUDA, or DINO inference. Artifact-only replay passed integrity for all 18/18 entries and reproduced the guarded corpus outcome: 9 apply_candidate and 9 rollback_to_baseline. Kobo Kanaeru is represented as an exact zero-change candidate and therefore safely rolls back on observer tie. The canonical handoff manifest SHA-256 is 2ea9d5dbf96cc81b97dfb3222aaf3d74540d24f6b67e34e18b8d513ecb29a762.
+
+The bundle contains 74 files and is preserved in Google Drive under Minimalizer / Differentiable Minimalization Research / Approved18_DiffMin_Escalation / Approved18_Handoff_Bundle_v1. The Drive copy's handoff.json hash was independently re-read after copy and matches the canonical manifest hash.
+
+Regression result: 243/243 ZeroBase tests PASS. New handoff coverage includes multi-candidate replay, manifest hashing, tamper detection, relative-path confinement, and sorted/unique corpus identity enforcement.
+
+Gate result: PASS_PORTABLE_CORPUS_HANDOFF. Research-worker execution is now reproducibly separable from artifact consumption across the full Approved-18 corpus. Production routing remains default-off and unchanged. The next major gate is release-readiness review: define the explicit authorization boundary, operator-facing opt-in surface, audit retention behavior, and rollback/kill-switch requirements before any production-route activation is considered.
