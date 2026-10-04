@@ -605,7 +605,7 @@ def _semantic_head_mask(
         return head
     # Semantic head support is evidence, not authority. A face-local support mask
     # must not erase a large fraction of a structurally valid head/hair envelope.
-    if head_count > 0 and refined_count / float(head_count) < 0.70:
+    if head_count > 0 and refined_count / float(head_count) < 0.80:
         return head
     return refined
 
