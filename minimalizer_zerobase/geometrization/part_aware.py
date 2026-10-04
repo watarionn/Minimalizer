@@ -141,6 +141,7 @@ class PartAwareGeometrizationPolicy:
     fidelity_fallback_vertex_budget_min: int = 48
     fidelity_fallback_budget_multiplier: int = 4
     hair_fidelity_fallback_budget_multiplier: int = 8
+    neck_fidelity_fallback_budget_multiplier: int = 48
     major_clothing_fidelity_fallback_budget_multiplier: int = 6
     lower_body_fidelity_fallback_budget_multiplier: int = 6
     allow_axis_aligned_rectangle: bool = False
@@ -188,6 +189,8 @@ class PartAwareGeometrizationPolicy:
             raise ValueError("Phase 10 fidelity fallback multiplier must be positive")
         if self.hair_fidelity_fallback_budget_multiplier < 1:
             raise ValueError("hair_fidelity_fallback_budget_multiplier must be >= 1")
+        if self.neck_fidelity_fallback_budget_multiplier < 1:
+            raise ValueError("Phase 10 neck fidelity fallback multiplier must be positive")
         if self.major_clothing_fidelity_fallback_budget_multiplier < 1:
             raise ValueError("Phase 10 major clothing fidelity fallback multiplier must be positive")
         if self.lower_body_fidelity_fallback_budget_multiplier < 1:
@@ -271,6 +274,7 @@ class PartAwareGeometrizationPolicy:
                 "fallback_family": "polygon",
                 "fallback_vertex_budget_min": self.fidelity_fallback_vertex_budget_min,
                 "fallback_budget_multiplier": self.fidelity_fallback_budget_multiplier,
+                "neck_fallback_budget_multiplier": self.neck_fidelity_fallback_budget_multiplier,
                 "major_clothing_fallback_budget_multiplier": self.major_clothing_fidelity_fallback_budget_multiplier,
                 "lower_body_fallback_budget_multiplier": self.lower_body_fidelity_fallback_budget_multiplier,
                 "fail_local_when_no_candidate_passes": True,
@@ -1034,7 +1038,9 @@ def geometrize_parts(
             else list(non_giant_candidates)
         )
         if fidelity_required and not fidelity_candidates:
-            if normalized_part_id == "major_clothing":
+            if normalized_part_id == "neck":
+                fallback_multiplier = policy.neck_fidelity_fallback_budget_multiplier
+            elif normalized_part_id == "major_clothing":
                 fallback_multiplier = (
                     policy.major_clothing_fidelity_fallback_budget_multiplier
                 )
