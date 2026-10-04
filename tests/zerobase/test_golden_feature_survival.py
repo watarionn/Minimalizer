@@ -96,3 +96,12 @@ def test_report_is_deterministic_for_same_input() -> None:
     first = evaluate_feature_survival(_manifest(), evidence, perceptual_score=0.75)
     second = evaluate_feature_survival(_manifest(), evidence, perceptual_score=0.75)
     assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
+
+
+def test_observer_confidence_is_recorded_but_not_semantic_authority() -> None:
+    evidence = _passing_evidence()
+    evidence["goggles"] = {"state": "present", "source": "observer", "confidence": 0.01}
+    report = evaluate_feature_survival(_manifest(), evidence, perceptual_score=0.0)
+    assert report["gate"] == "PASS"
+    goggles = next(row for row in report["feature_evidence"] if row["feature_id"] == "goggles")
+    assert goggles["confidence"] == 0.01
