@@ -312,3 +312,12 @@ Current preservation inventory after retrospective copy:
 - Raden cumulative/control set includes Phase14 historical baseline, zero-change rerender control, hair v1, hair+torso v2, and cumulative v3.
 
 The local Google Drive mount reported all files copied successfully. Connector-side search indexing had not yet surfaced the newly copied v7 file at the immediate verification point, so index visibility is explicitly **pending** rather than falsely reported as verified. Filesystem-level Drive-mount counts above are verified. Future phases must perform both copy verification and, when available after sync propagation, connector-side visibility verification.
+
+
+## Preservation verification and first Phase 4 guard 2026-10-04
+
+Google Drive connector indexing now exposes both `Kyoko_v7_head_try.png` under the research Kyoko folder and `Raden_v3.png` under the research Raden folder. The retrospective preservation gate is therefore **PASS** at both mount-copy and connector-visibility levels.
+
+The first guarded Phase 4 repair was implemented on the research branch. Raden's largest single Phase 4 drift was the semantic-head refinement: preserved/pre-`d118e60` head coverage was 14,526 px while the unguarded current refinement reduced it to 11,193 px (3,333 px removed). `_semantic_head_mask` now treats face-local semantic support as evidence rather than authority and fails closed when a proposed refinement retains less than 80% of the structural head envelope. The existing synthetic remote-spill cleanup test remains valid, and a new destructive-shrink regression test locks the fail-closed behavior. Phase 4 focused tests: **14 passed**.
+
+Real Raden rerun with the guard restores the head mask **exactly** to the preserved 14,526 px mask (XOR difference 0) while leaving the newer hair/owner-rescue behavior available for separate evaluation. Remaining preserved-vs-current differences after the head repair are hair +979 px (1,013 XOR), torso -604 px, right arm -272 px, major clothing -120 px, and unknown +17 px. This isolates the next repair target without reverting the whole `d118e60` feature set.
