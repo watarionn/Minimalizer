@@ -35,18 +35,24 @@ def prepare_diffmin_refinement(
     if not isinstance(planned, list) or not planned:
         raise GuardedDiffMinError("DiffMin requires an existing authored geometry plan")
 
-    authorized = {
+    authorized_rows = [
         (row.get("feature_id"), row.get("primitive_kind"), row.get("ordinal"))
         for row in planned
-    }
+    ]
+    authorized = set(authorized_rows)
+    if len(authorized) != len(authorized_rows):
+        raise GuardedDiffMinError("geometry plan contains duplicate primitive identity")
     if None in {value for item in authorized for value in item}:
         raise GuardedDiffMinError("geometry plan contains incomplete primitive identity")
 
     requested = requested_primitives if requested_primitives is not None else planned
-    requested_ids = {
+    requested_rows = [
         (row.get("feature_id"), row.get("primitive_kind"), row.get("ordinal"))
         for row in requested
-    }
+    ]
+    requested_ids = set(requested_rows)
+    if len(requested_ids) != len(requested_rows):
+        raise GuardedDiffMinError("requested refinement contains duplicate primitive identity")
     if requested_ids != authorized:
         added = requested_ids - authorized
         removed = authorized - requested_ids
@@ -86,10 +92,13 @@ def validate_diffmin_result(
         (row["feature_id"], row["primitive_kind"], row["ordinal"])
         for row in contract.get("authorized_primitives", [])
     }
-    actual = {
+    actual_rows = [
         (row.get("feature_id"), row.get("primitive_kind"), row.get("ordinal"))
         for row in resulting_primitives
-    }
+    ]
+    actual = set(actual_rows)
+    if len(actual) != len(actual_rows):
+        raise GuardedDiffMinError("DiffMin result contains duplicate primitive identity")
     if actual != expected:
         raise GuardedDiffMinError("DiffMin result changed authored primitive identity/count")
 
