@@ -480,3 +480,30 @@ def test_semantic_head_evidence_fails_closed_on_large_structural_shrinkage():
     # Face-local evidence may refine a head only when it preserves most of the
     # structural envelope. Large destructive shrinkage must fail closed.
     assert np.array_equal(refined, structural_head)
+
+
+def test_bright_hair_rescue_chroma_guard_rejects_pale_face_adjacent_region():
+    shape = (120, 120)
+    rgb = np.full((*shape, 3), (35, 35, 40), dtype=np.uint8)
+    subject = np.zeros(shape, dtype=bool)
+    face = np.zeros(shape, dtype=bool)
+    hair = np.zeros(shape, dtype=bool)
+    face[30:60, 45:75] = True
+    rgb[face] = (235, 205, 195)
+    hair[18:64, 35:45] = True
+    hair[18:30, 35:85] = True
+    rgb[hair] = (55, 48, 65)
+    pale = np.zeros(shape, dtype=bool)
+    pale[62:90, 36:43] = True
+    rgb[pale] = (205, 192, 185)
+    subject |= face | hair | pale
+
+    candidate = _rescue_bright_face_side_hair_strands(rgb, subject, face, hair)
+    if np.any(candidate):
+        lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+        hair_lab = np.median(lab[hair], axis=0)
+        candidate_lab = np.median(lab[candidate], axis=0)
+        chroma_distance = float(
+            np.linalg.norm(candidate_lab[1:] - hair_lab[1:])
+        )
+        assert chroma_distance > 6.0
