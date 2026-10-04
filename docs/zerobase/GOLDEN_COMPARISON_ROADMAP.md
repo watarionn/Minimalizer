@@ -1,12 +1,12 @@
 # Golden Comparison Development Roadmap
 
-Status: G3 CLOSED / G4 READY
+Status: G4 CLOSED / G5 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
 G3 Feature Survival Gate [CLOSED / PASS]: required/optional/forbidden semantics; fail-closed evidence.
-G4 Semantic Feature Budgeter [NEXT]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
-G5 Geometry Re-authoring PoC: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
+G4 Semantic Feature Budgeter [CLOSED / PASS]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
+G5 Geometry Re-authoring PoC [NEXT]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
 G6 Golden Gap Evaluator: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
 G7 Guarded DiffMin Integration: refine accepted authored geometry only; same-renderer baseline; default OFF.
 G8 Blind Generalization Gate: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
@@ -60,5 +60,18 @@ Validation before merge:
 - full `tests/zerobase`: 276 passed
 - `git diff --check`: PASS
 - perfect perceptual score cannot offset required-feature loss: PASS
+- production behavior changes: none
+
+
+## G4 closure
+
+G4 adds a generic deterministic Semantic Feature Budgeter. Required features reserve their minimum primitive budget before optional features. Insufficient total budget fails closed rather than deleting required identity. Important optional features receive their minimum before compressible optional features; forbidden/omit features receive zero. After eligible optional minima are satisfied, surplus budget remains within the highest semantic tier instead of inflating low-value details. Allocation uses manifest semantics and stable feature IDs, never pixel area or Case-001 names/colors.
+
+Validation before merge:
+- focused Semantic Feature Budgeter tests: 13 passed
+- full `tests/zerobase`: 289 passed
+- `git diff --check`: PASS
+- synthetic non-GC001 manifest generalization: PASS
+- feature-list reorder determinism: PASS
 - production behavior changes: none
 
