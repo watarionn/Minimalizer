@@ -286,3 +286,14 @@ Real source-to-render DINOv3 evidence for the independent Raden control:
 - changed pixels: 152
 
 All three DINO dimensions improve while the silhouette remains within the already conservative local guard. This is a **Raden hair semantic PASS for the current PoC protocol**, not a production adoption threshold. It is independent-character transfer evidence beyond Kyoko. Primitive 0002 remains no-feasible-checkpoint and 0004 remains topology/canvas rejected; fail-closed behavior is preserved.
+
+
+## Raden torso + clothing cumulative transfer 2026-10-04
+
+The independent-character run was extended without relaxing any existing trust/ownership thresholds. Adding torso primitive `phase12-aggressive-0000` to the three accepted hair replacements yields same-renderer silhouette IoU **0.997166** (257 changed pixels). Its local checkpoint passed at ownership IoU 0.989834. Source-relative DINOv3 improves from the normalized baseline score 0.487929 to 0.492394, delta **+0.004465**; global, aligned-patch, and coarse-patch cosine all remain above baseline.
+
+The two lower-complexity major-clothing polygons were then evaluated before touching the 75/85-vertex clothing shapes. Primitive `0015` (28 vertices) passed at ownership IoU 0.986376 and primitive `0016` (11 vertices) passed at 0.990751. The cumulative six-replacement Raden v3 candidate (hair 0003/0005/0006 + torso 0000 + clothing 0015/0016) has same-renderer silhouette IoU **0.996473** with 335 changed pixels.
+
+Its real DINOv3 source-relative metrics are: global **0.532881**, aligned patch **0.524440**, coarse patch **0.449059**, research score **0.499745**. Against the unchanged normalized baseline score 0.487929, the cumulative delta is **+0.011816**. All three perceptual dimensions improve, and the DINO gain grows substantially after the clothing additions rather than merely staying inside a tolerance band.
+
+This is stronger cross-character transfer evidence for the constrained refinement protocol. The two large 75/85-vertex clothing polygons remain intentionally unoptimized pending need: the smaller safe changes already produce a positive semantic gain, so extra high-dimensional movement is not justified by the current evidence. No production threshold is inferred from two characters.
