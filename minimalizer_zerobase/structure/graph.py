@@ -535,10 +535,19 @@ def build_structural_layout_graph(
         evidence_refs=("derived:tiny-neck-conservative-gap",) if tiny_neck else (),
     )
     for arm in ("left_arm", "right_arm"):
+        arm_canvas_ratio = (
+            float(np.count_nonzero(masks[arm])) / float(width * height)
+            if arm in present_parts
+            else 0.0
+        )
+        tiny_arm = 0.0 < arm_canvas_ratio <= 0.015
         add_attachment(
             arm,
             "torso",
             threshold_px=base_attachment_threshold,
+            confidence_scale=0.55 if tiny_arm else 1.0,
+            allow_extended_gap=tiny_arm,
+            evidence_refs=("derived:tiny-arm-conservative-gap",) if tiny_arm else (),
         )
         if arm in present_parts and "torso" in present_parts:
             arm_x = _centroid(masks[arm])[0]

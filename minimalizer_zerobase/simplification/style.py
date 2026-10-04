@@ -374,6 +374,10 @@ def _merge_owner_local_near_palette_groups(
         "major_clothing": int(policy.major_clothing_palette_merge_delta),
         "accessory_or_held_object": int(policy.accessory_palette_merge_delta),
         UNBOUND_PART: int(policy.unbound_palette_merge_delta),
+        # Both arms use the same owner-local palette merge policy. Keeping the
+        # left arm out made tiny/foreshortened left arms fragment into many
+        # micro-planes before simplification.
+        "left_arm": int(policy.right_arm_palette_merge_delta),
         "right_arm": int(policy.right_arm_palette_merge_delta),
     }
     passthrough: list[dict[str, Any]] = []
@@ -1728,6 +1732,20 @@ def _candidate_for_profile(
     removed_components = 0
     for group_index, group in enumerate(groups):
         group_min_area = min_area
+        # Critical semantic parts can legitimately be tiny (for example a
+        # foreshortened arm). Do not let the generic micro-component floor erase
+        # a large fraction of an already-small identity-bearing part.
+        if group["part"] in policy.critical_parts:
+            part_pixels = sum(
+                int(np.count_nonzero(item["mask"]))
+                for item in groups
+                if item["part"] == group["part"]
+            )
+            if part_pixels <= max(256, policy.minimum_visible_part_pixels * 32):
+                group_min_area = min(
+                    group_min_area,
+                    max(2, int(round(part_pixels * 0.02))),
+                )
         if group["part"] == "accessory_or_held_object":
             accessory_min_area = max(
                 8,
@@ -1786,6 +1804,10 @@ def _candidate_for_profile(
         raw_mask = group["mask"].astype(np.uint8)
         working = raw_mask
         preserve_clothing_plane = group["part"] == "major_clothing"
+        preserve_tiny_critical_plane = (
+            group["part"] in policy.critical_parts
+            and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+        )
         preserve_source_detail_plane = (
             source_guided_kind.startswith("hair-")
             or source_guided_kind == "wrist-skin-overlay"
@@ -1798,6 +1820,7 @@ def _candidate_for_profile(
         if (
             profile.merge_gap_px > 0
             and not preserve_clothing_plane
+            and not preserve_tiny_critical_plane
             and not preserve_source_detail_plane
         ):
             working = cv2.morphologyEx(raw_mask, cv2.MORPH_CLOSE, kernel)
@@ -1817,6 +1840,8 @@ def _candidate_for_profile(
         polygon_rings: list[dict[str, Any]] = []
         for _, component in sorted(components, key=lambda item: -item[0]):
             epsilon_ratio = profile.epsilon_ratio
+            if preserve_tiny_critical_plane:
+                epsilon_ratio = min(epsilon_ratio, 0.0005)
             if source_guided_kind == "hair-crown-light-plane":
                 epsilon_ratio = policy.hair_crown_epsilon_ratio
             elif source_guided_kind == "hair-local-contrast-plane":
@@ -1851,7 +1876,9 @@ def _candidate_for_profile(
                 else 0.0
             )
             simplified = _simplify_component(
-                component, epsilon_ratio, min_hole_area=min_hole_area
+                component,
+                0.0 if preserve_tiny_critical_plane else epsilon_ratio,
+                min_hole_area=min_hole_area,
             )
             if simplified is None:
                 continue
@@ -1883,6 +1910,27 @@ def _candidate_for_profile(
         if group.get("source_guided_kind"):
             record["source_guided_kind"] = str(group["source_guided_kind"])
         mask = rasterize_primitive_candidate(record, width=width, height=height)
+        if preserve_tiny_critical_plane:
+            exact_mask = group["mask"].astype(bool)
+            exact_iou = _iou(exact_mask, mask)
+            if exact_iou < 0.98:
+                # Fail closed to the observed Phase 11 geometry for tiny
+                # identity-critical parts when polygon simplification itself
+                # would erase too much of the part.
+                source_records = [
+                    item
+                    for item in baseline_primitives
+                    if str(item["primitive_id"]) in set(group["source_ids"])
+                ]
+                for source_record in source_records:
+                    source_copy = dict(source_record)
+                    source_copy["phase12_profile"] = profile.name
+                    source_copy["raster_index"] = int(group["first_order"])
+                    primitives.append(source_copy)
+                    masks[str(source_copy["primitive_id"])] = rasterize_primitive_candidate(
+                        source_copy, width=width, height=height
+                    )
+                continue
         if not np.any(mask):
             continue
         primitives.append(record)
