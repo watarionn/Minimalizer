@@ -390,3 +390,14 @@ Frozen DINOv3 source-relative score improves from **0.520927** to **0.522060** (
 Drive preservation: source, Phase 3-12 previews, Phase 12 final, zero-change control, differentiable candidate, and metrics were saved under `Minimalizer / Differentiable Minimalization Research / CrossCharacter_IMG_1205_4`.
 
 **Gate result: PASS_CROSS_CHARACTER.** Keep the candidate diagnostic-only. The next escalation should add at least one more independent character before any Approved-18 corpus expansion or production routing change.
+
+## Cross-character escalation gate: upstream robustness HOLD 2026-10-04
+
+After the second-character PASS, two additional independent HoloMenImages cases were attempted with the same unmodified ZeroBase and Differentiable policies. This deliberately records pre-DiffMin failures instead of cherry-picking only compatible characters.
+
+- **AZKi**: Phases 3-9 PASS; Phase 6 subject coverage 1.0 with zero unbound pixels. Phase 10 geometry FAIL on a single neck mass (`mass-0052`) because even the fidelity polygon did not satisfy the existing fidelity gate. Phase 11/12 correctly refused to run.
+- **Gawr Gura**: Phase 3/4 PASS; Phase 5 structural graph FAIL because `neck-attached-to-torso` was missing. Phase 6 correctly refused to run.
+
+No character-specific threshold was relaxed, no semantic ownership was overridden, and no generated/inpainted pixels were introduced. These failures occur upstream of Differentiable Minimalization and therefore do not invalidate the two successful differentiable diagnostics, but they block a meaningful three-character escalation.
+
+**Decision: HOLD_CROSS_CHARACTER_ESCALATION.** The next engineering target is upstream ZeroBase cross-character robustness, specifically (1) conservative neck attachment inference for tiny-but-visible neck masks and (2) fidelity-safe geometry fallback for narrow neck masses. Re-run AZKi and Gawr Gura after a generic fix; only then resume the three-character Differentiable gate. Evidence and available previews/metrics are preserved in Drive under `CrossCharacter_AZKi` and `CrossCharacter_Gawr-Gura`.
