@@ -1,14 +1,14 @@
 # Golden Comparison Development Roadmap
 
-Status: G5 CLOSED / G6 READY
+Status: G6 CLOSED / G7 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
 G3 Feature Survival Gate [CLOSED / PASS]: required/optional/forbidden semantics; fail-closed evidence.
 G4 Semantic Feature Budgeter [CLOSED / PASS]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
 G5 Geometry Re-authoring PoC [CLOSED / PASS]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
-G6 Golden Gap Evaluator [NEXT]: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
-G7 Guarded DiffMin Integration: refine accepted authored geometry only; same-renderer baseline; default OFF.
+G6 Golden Gap Evaluator [CLOSED / PASS]: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
+G7 Guarded DiffMin Integration [NEXT]: refine accepted authored geometry only; same-renderer baseline; default OFF.
 G8 Blind Generalization Gate: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
 
 ## G1 closure
@@ -89,5 +89,21 @@ Validation before merge:
 - manifest/allocation reorder determinism: PASS
 - synthetic unknown-role fallback: PASS
 - unauthorized VTracer mask/feature/primitive rejection: PASS
+- production behavior changes: none
+
+
+## G6 closure
+
+G6 adds a diagnostic Golden Gap evaluator that preserves eight dimensions separately: semantic survival, recognizability, geometry abstraction, palette-role preservation, composition/negative space, primitive economy, orphan-contour penalty, and feature-local evidence. A diagnostic mean is reported for inspection only and cannot override G3 hard failures. Candidate comparisons expose every per-dimension delta and regression instead of hiding them behind an aggregate.
+
+Feature-local DINO/observer evidence is explicitly non-authoritative and can be bound to manifest-authorized feature IDs; unknown feature evidence fails closed. Perfect diagnostic and DINO evidence cannot rescue a candidate with a required-feature hard failure.
+
+Validation before merge:
+- focused Golden Gap tests: 13 passed
+- full `tests/zerobase`: 312 passed
+- `git diff --check`: PASS
+- perfect-score hard-fail override rejection: PASS
+- per-dimension regression visibility: PASS
+- unknown feature-local evidence rejection: PASS
 - production behavior changes: none
 
