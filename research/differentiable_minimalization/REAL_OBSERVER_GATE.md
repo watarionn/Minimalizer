@@ -271,3 +271,18 @@ Commit `d118e60` introduced a large Phase 4 semantic-rescue expansion, including
 A controlled run using the preserved/pre-`d118e60` Phase 4 semantics followed by the **current** Phase 5-12 implementation passes end-to-end: Phase 11 has 30 primitives; Phase 12 aggressive selects 22, silhouette IoU 0.991528, and no missing visible parts. This does not reproduce the historical 74→55 counts because downstream stages have legitimately evolved, but it proves the Phase 4 drift is sufficient to explain the current Raden stop. Production Phase 4 is not reverted by this research result; the old Phase 4 output is used only as a frozen independent-character control until a guarded production fix is designed.
 
 The Raden zero-change research compositor itself differs from the canonical Phase 12 PNG (silhouette IoU 0.994397, 456 changed pixels), reinforcing the same-renderer normalization requirement found on Kyoko. Under that normalized control, three feasible Raden hair proposals (0003, 0005, 0006) compose to silhouette IoU **0.998715** with 152 changed pixels. Primitive 0002 had no feasible checkpoint and 0004 was rejected by the canvas topology guard. This is the first independent-character evidence that the constrained polygon protocol transfers beyond Kyoko. DINO confirmation for this cumulative Raden candidate remains pending because the local DINO comparison process stalled during this run; no semantic score is inferred or fabricated.
+
+
+## Raden DINOv3 semantic gate 2026-10-04
+
+The previously reported local DINO stall was diagnosed as an observability problem rather than a model/runtime failure. Hugging Face authentication is valid, CUDA is available on the RTX 5060, and the cached official `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` processor/model load successfully. The Transformers cold import can remain silent for more than the RDC quick-return window, so the research pair runner now emits explicit progress before processor load, model load, source inference, baseline inference, and candidate inference.
+
+Real source-to-render DINOv3 evidence for the independent Raden control:
+
+- normalized baseline: global 0.510325, aligned patch 0.516570, coarse patch 0.438307, research score 0.487929
+- constrained hair candidate (0003 + 0005 + 0006): global 0.520027, aligned patch 0.518557, coarse patch 0.441897, research score 0.492020
+- research score delta: **+0.004091**
+- same-renderer silhouette IoU candidate/control: **0.998715**
+- changed pixels: 152
+
+All three DINO dimensions improve while the silhouette remains within the already conservative local guard. This is a **Raden hair semantic PASS for the current PoC protocol**, not a production adoption threshold. It is independent-character transfer evidence beyond Kyoko. Primitive 0002 remains no-feasible-checkpoint and 0004 remains topology/canvas rejected; fail-closed behavior is preserved.
