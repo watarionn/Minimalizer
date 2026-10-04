@@ -463,3 +463,20 @@ def test_large_unknown_owner_rescue_requires_contact_color_and_clear_winner():
         np.any(mask & remote_unknown)
         for mask in rescued.values()
     )
+
+
+def test_semantic_head_evidence_fails_closed_on_large_structural_shrinkage():
+    shape = (120, 120)
+    subject = np.ones(shape, dtype=bool)
+    structural_head = np.zeros(shape, dtype=bool)
+    structural_head[12:92, 20:100] = True
+    face = np.zeros(shape, dtype=bool)
+    face[28:58, 45:75] = True
+
+    from minimalizer_zerobase.parts.decomposition import _semantic_head_mask
+
+    refined = _semantic_head_mask(structural_head, face, subject)
+
+    # Face-local evidence may refine a head only when it preserves most of the
+    # structural envelope. Large destructive shrinkage must fail closed.
+    assert np.array_equal(refined, structural_head)
