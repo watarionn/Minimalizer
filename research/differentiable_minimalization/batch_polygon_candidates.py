@@ -9,8 +9,14 @@ def _preflight(primitive,target,max_vertices,min_mismatch):
     if len(components)!=1 or len(components[0])<3:
         return False,"unsupported_component_topology",0,0.0
     vertices=len(components[0])
+    points=np.asarray(components[0],dtype=np.float32)
     if vertices>max_vertices:
         return False,"vertex_budget",vertices,0.0
+    if len(np.unique(points,axis=0))<3:
+        return False,"degenerate_polygon",vertices,0.0
+    closed=np.vstack([points,points[:1]])
+    if float(np.linalg.norm(np.diff(closed,axis=0),axis=1).sum())<=1e-4:
+        return False,"zero_boundary_length",vertices,0.0
     h,w=target.shape
     canvas=Image.new("L",(w,h),0)
     ImageDraw.Draw(canvas).polygon(
