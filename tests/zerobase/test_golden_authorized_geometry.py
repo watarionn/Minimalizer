@@ -58,3 +58,9 @@ def test_fitter_choice_cannot_change_semantic_identity_or_count():
 def test_rendering_is_deterministic():
     kwargs=dict(geometry_plan=_plan(),semantic_masks=_masks(),width=80,height=100,palette={"hair":"#f80","tie":"#0a6"})
     assert render_authorized_geometry(fit_authorized_geometry(**kwargs))==render_authorized_geometry(fit_authorized_geometry(**kwargs))
+
+
+def test_extra_palette_cannot_smuggle_unplanned_feature():
+    palette={"hair":"#fff","tie":"#000","eyes":"#111"}
+    with pytest.raises(AuthorizedGeometryError,match="palette supplied for unauthorized feature"):
+        fit_authorized_geometry(geometry_plan=_plan(),semantic_masks=_masks(),width=80,height=100,palette=palette)
