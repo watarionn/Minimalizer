@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "minimalizer://golden-comparison/golden-case.schema.json",
+  "title": "Minimalizer Golden Comparison Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "assets"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string", "minLength": 1},
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "golden", "current"],
+      "properties": {
+        "source": {"$ref": "#/$defs/asset"},
+        "golden": {"$ref": "#/$defs/asset"},
+        "current": {"$ref": "#/$defs/asset"}
+      }
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_name", "drive_file_id", "sha256", "media_type"],
+      "properties": {
+        "file_name": {"type": "string", "minLength": 1},
+        "drive_file_id": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "media_type": {"enum": ["image/png", "image/jpeg"]}
+      }
+    }
+  }
+}

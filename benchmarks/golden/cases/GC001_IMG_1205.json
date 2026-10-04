@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "case_id": "GC001_IMG_1205",
+  "assets": {
+    "source": {
+      "file_name": "GC001_source.png",
+      "drive_file_id": "1LxHHizN1nC9JVpbHegqMtO38O6xWwjpj",
+      "sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+      "media_type": "image/png"
+    },
+    "golden": {
+      "file_name": "GC001_golden_rinka.jpeg",
+      "drive_file_id": "1jnYf6RXRoN8o37DnGE11FRertooeADzY",
+      "sha256": "b6fb7b94e3488eee9593090c8085b1f15ece44066baaedd8431817983aa6f3c2",
+      "media_type": "image/jpeg"
+    },
+    "current": {
+      "file_name": "GC001_current_phase12.png",
+      "drive_file_id": "1F92sUgqYWjFrwSYW76aSRteaMWMORofK",
+      "sha256": "fb9b88dcc070b62ba2cb2eed8246af07f0a1fe0a5e1d691224dfa5ccfcb4451d",
+      "media_type": "image/png"
+    }
+  }
+}
