@@ -366,3 +366,15 @@ Same-renderer silhouette IoU is **0.995840** with 403 changed pixels. Frozen DIN
 Drive preservation: cumulative candidate, five newly accepted primitive images, and metrics JSON were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin / Semantic_Expansion_v1`.
 
 **Gate result: PASS.** The repaired current Raden baseline supports constrained semantic expansion beyond hair while preserving scene silhouette and improving independent DINO evidence. Lower-body and high-dimensional clothing proposals remain fail-closed rather than forcing motion. Next should test the remaining non-core left-arm/accessory groups, then decide whether the evidence justifies a tightly constrained head-only experiment; face remains frozen.
+
+## Guarded-current Raden semantic boundary v2 2026-10-04
+
+After Semantic Expansion v1 established an eight-replacement safe candidate, the remaining non-core groups were evaluated without relaxing the existing semantic trust policy. Left arm 0009 and accessory/held-object 0025 both returned NO_FEASIBLE_CHECKPOINT. The current eight-replacement candidate therefore remains the non-core safe frontier.
+
+A head-only probe was then permitted under the existing identity-sensitive head trust radius (0.60, versus hair 1.50). Both head 0022 and 0023 returned NO_FEASIBLE_CHECKPOINT. The radius was not relaxed. Because no safe head evidence was obtained, face was not tested and remains frozen.
+
+The retained frontier remains silhouette IoU **0.995840**, frozen DINOv3 score **0.498803**, delta **+0.010874** versus the guarded zero-change baseline. This step intentionally produces no additional visual mutation: its product is a measured semantic boundary and a fail-closed decision.
+
+Drive preservation: retained frontier image plus left-arm, accessory, head batch evidence and boundary metrics were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin / Semantic_Expansion_v2_Boundary`.
+
+**Gate result: PASS_BOUNDARY_CONFIRMED.** Do not widen trust radii merely to force feasibility. Current Raden evidence supports hair + torso + one right-arm micro-plane + two clothing micro-planes; left arm, accessory, lower body, head, and face stay frozen at this stage. The next useful step is cross-character validation of this semantic-safe-frontier behavior rather than further fitting Raden.
