@@ -599,7 +599,13 @@ def _semantic_head_mask(
     ).astype(bool)
     refined = head & support
     minimum = max(24, int(round(np.count_nonzero(face) * 1.15)))
-    if int(np.count_nonzero(refined)) < minimum:
+    refined_count = int(np.count_nonzero(refined))
+    head_count = int(np.count_nonzero(head))
+    if refined_count < minimum:
+        return head
+    # Semantic head support is evidence, not authority. A face-local support mask
+    # must not erase a large fraction of a structurally valid head/hair envelope.
+    if head_count > 0 and refined_count / float(head_count) < 0.85:
         return head
     return refined
 
