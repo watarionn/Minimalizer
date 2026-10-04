@@ -378,3 +378,15 @@ The retained frontier remains silhouette IoU **0.995840**, frozen DINOv3 score *
 Drive preservation: retained frontier image plus left-arm, accessory, head batch evidence and boundary metrics were copied to `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_DiffMin / Semantic_Expansion_v2_Boundary`.
 
 **Gate result: PASS_BOUNDARY_CONFIRMED.** Do not widen trust radii merely to force feasibility. Current Raden evidence supports hair + torso + one right-arm micro-plane + two clothing micro-planes; left arm, accessory, lower body, head, and face stay frozen at this stage. The next useful step is cross-character validation of this semantic-safe-frontier behavior rather than further fitting Raden.
+
+## Cross-character validation: IMG_1205_4 2026-10-04
+
+A new user-supplied 340x340 character image was admitted as a cross-character diagnostic without using the generated illustrative redraw as evidence. The canonical ZeroBase pipeline passed Phases 3-12. Phase 6 achieved subject-pixel coverage 1.0 with zero unbound pixels. Phase 12 selected the aggressive profile, reducing 150 Phase 11 primitives to 31 with silhouette IoU **0.969927**.
+
+The unchanged Raden-derived semantic trust policy was then applied. Hair, torso, and right arm produced NO_FEASIBLE_CHECKPOINT. Major clothing produced four feasible micro-refinements (0021, 0023, 0024, 0026); two clothing proposals were self-intersection guard rejects and the rest failed closed. The four-replacement cumulative candidate has same-renderer silhouette IoU **0.998527** with 92 changed pixels.
+
+Frozen DINOv3 source-relative score improves from **0.520927** to **0.522060** (delta **+0.001133**); global, aligned, and coarse components all improve. This is a second-character PASS with a different safe frontier from Raden, evidence that the protocol is not merely replaying Raden's accepted semantic parts.
+
+Drive preservation: source, Phase 3-12 previews, Phase 12 final, zero-change control, differentiable candidate, and metrics were saved under `Minimalizer / Differentiable Minimalization Research / CrossCharacter_IMG_1205_4`.
+
+**Gate result: PASS_CROSS_CHARACTER.** Keep the candidate diagnostic-only. The next escalation should add at least one more independent character before any Approved-18 corpus expansion or production routing change.
