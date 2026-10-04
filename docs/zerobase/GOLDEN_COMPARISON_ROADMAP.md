@@ -1,13 +1,13 @@
 # Golden Comparison Development Roadmap
 
-Status: G4 CLOSED / G5 READY
+Status: G5 CLOSED / G6 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
 G3 Feature Survival Gate [CLOSED / PASS]: required/optional/forbidden semantics; fail-closed evidence.
 G4 Semantic Feature Budgeter [CLOSED / PASS]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
-G5 Geometry Re-authoring PoC [NEXT]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
-G6 Golden Gap Evaluator: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
+G5 Geometry Re-authoring PoC [CLOSED / PASS]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
+G6 Golden Gap Evaluator [NEXT]: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
 G7 Guarded DiffMin Integration: refine accepted authored geometry only; same-renderer baseline; default OFF.
 G8 Blind Generalization Gate: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
 
@@ -73,5 +73,21 @@ Validation before merge:
 - `git diff --check`: PASS
 - synthetic non-GC001 manifest generalization: PASS
 - feature-list reorder determinism: PASS
+- production behavior changes: none
+
+
+## G5 closure
+
+G5 adds a deterministic semantic geometry grammar between the G4 budget and any concrete fitter. Supported families are polygon, ellipse, ring, ribbon, trapezoid, and Bezier silhouette. Known semantic roles receive category grammar; unknown roles use a deterministic generic fallback. Geometry plans contain semantic feature IDs, primitive families, ordinals, and provenance only, with no Golden coordinates, points, boxes, or raster reconstruction targets.
+
+Authorized fitting is fail-closed: manifest owns semantic identity, G4 owns primitive count, grammar owns allowed primitive families, and a native/VTracer fitter may only fit an already-authorized semantic mask. The fitter cannot decide semantics.
+
+Validation before merge:
+- focused Geometry Grammar tests: 10 passed
+- full `tests/zerobase`: 299 passed
+- `git diff --check`: PASS
+- manifest/allocation reorder determinism: PASS
+- synthetic unknown-role fallback: PASS
+- unauthorized VTracer mask/feature/primitive rejection: PASS
 - production behavior changes: none
 
