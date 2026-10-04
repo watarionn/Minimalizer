@@ -49,6 +49,12 @@ def fit_authorized_geometry(
         raise AuthorizedGeometryError("authorized geometry plan requires primitives")
 
     planned_features = {row.get("feature_id") for row in rows}
+    missing_palette_features = planned_features - set(palette)
+    extra_palette_features = set(palette) - planned_features
+    if missing_palette_features:
+        raise AuthorizedGeometryError("missing palette assignment: " + ", ".join(sorted(missing_palette_features)))
+    if extra_palette_features:
+        raise AuthorizedGeometryError("palette supplied for unauthorized feature: " + ", ".join(sorted(extra_palette_features)))
     unknown_masks = set(semantic_masks) - planned_features
     if unknown_masks:
         raise AuthorizedGeometryError("semantic mask supplied for unauthorized feature: " + ", ".join(sorted(unknown_masks)))
