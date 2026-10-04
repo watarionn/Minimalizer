@@ -154,4 +154,20 @@ Validation before merge:
 - Golden raster production-input rejection: PASS
 - existing production route behavior: unchanged
 
-Next: implement concrete fitting/rendering that consumes only the authorized geometry plan, then execute the already sealed five-character G8 corpus without tuning G2-G7.
+Next: authorized geometry fitting/rendering [IMPLEMENTED] -> bind upstream semantic observation/masks for the sealed five-character G8 corpus -> same-renderer baseline/candidate execution -> Rinka visual review -> ADOPT or REJECT.
+
+
+## Authorized Geometry Fitting / Rendering closure
+
+A deterministic fitting layer now consumes only the G5-authorized geometry plan, explicitly authorized semantic masks, and palette assignments bound to those same authorized features. Missing, unauthorized, extra, or duplicate semantic identities fail closed. Native and VTracer-labelled fitting paths share the exact same semantic/primitive authority; the fitter cannot decide feature existence or primitive count. Output is rendered through the canonical SvgRenderer and records that no Golden raster was used.
+
+Validation before merge:
+- focused Authorized Geometry tests: 7 passed
+- full `tests/zerobase`: 345 passed
+- `git diff --check`: PASS
+- deterministic same-renderer SVG: PASS
+- unauthorized/extra mask rejection: PASS
+- unauthorized palette-feature rejection: PASS
+- fitter semantic/count invariance: PASS
+
+Next: upstream semantic observation and authorized-mask binding for the already sealed five blind characters. Frozen G2-G7 rules remain untuned.
