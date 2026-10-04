@@ -1,9 +1,9 @@
 # Golden Comparison Development Roadmap
 
-Status: READY FOR NEXT CHAT
+Status: G1 CLOSED / G2 READY
 
-G1 Golden Harness: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
-G2 Semantic Feature Manifest: generic schema plus Case 001 benchmark manifest.
+G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
+G2 Semantic Feature Manifest [NEXT]: generic schema plus Case 001 benchmark manifest.
 G3 Feature Survival Gate: required/optional/forbidden semantics; fail-closed evidence.
 G4 Semantic Feature Budgeter: allocate primitive budget by semantic importance and recognizability rather than pixel area.
 G5 Geometry Re-authoring PoC: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
@@ -11,8 +11,20 @@ G6 Golden Gap Evaluator: semantic, geometry, palette, composition, economy and o
 G7 Guarded DiffMin Integration: refine accepted authored geometry only; same-renderer baseline; default OFF.
 G8 Blind Generalization Gate: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
 
+## G1 closure
+
+Merged by PR #72 at main commit `d0c20e896766768ccf22156ffa794edbb3e9781d`.
+
+Canonical Golden Case 001 is bound by role, Drive file ID, and SHA-256 rather than filename alone. The harness is isolated from production behavior and treats the golden as evaluation-only evidence, never as a reconstruction input.
+
+Validation on a clean detached worktree:
+- focused Golden Harness tests: 4 passed
+- full `tests/zerobase`: 255 passed
+- `git diff --check`: PASS
+- production behavior changes: none
+
 ## Parallel work
-Nao: G1 harness + schema/tests; VTracer isolated PoC; feature-level DINO experiment.
+Nao: VTracer isolated PoC; feature-level DINO experiment; support G2/G3 schema/tests on feature branches.
 Rinka: benchmark authority, visual review, architecture decisions, Golden Gap semantics, independent review and adoption.
 Nao works on feature branches. Rinka reviews before merge.
 
