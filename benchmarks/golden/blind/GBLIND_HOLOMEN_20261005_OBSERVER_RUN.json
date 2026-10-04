@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_HOLOMEN_20261005",
+  "run_state": "OBSERVER_COMPLETE_BINDING_HOLD",
+  "rules_frozen_at_main": "df3e757df697035ab3ac73b9f0fad6a5a3f06739",
+  "source_archive_sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9",
+  "all_case_hashes_verified": true,
+  "observer": {
+    "detector": "IDEA-Research/grounding-dino-tiny",
+    "segmenter": "facebook/sam-vit-base",
+    "threshold": 0.2,
+    "device": "cuda",
+    "mean_elapsed_seconds": 0.566644959943369,
+    "max_peak_cuda_memory_mb": 1378.61279296875,
+    "oversize_rejection_count": 1
+  },
+  "cases": [
+    {
+      "name": "blind_azki",
+      "accepted": 15,
+      "rejected_oversize": 0,
+      "hair": 0.13474048442906575,
+      "face_skin": 0.036496539792387546,
+      "limb": 0.06923875432525951,
+      "accessory": 0.007889273356401385
+    },
+    {
+      "name": "blind_fauna",
+      "accepted": 23,
+      "rejected_oversize": 0,
+      "hair": 0.16677335640138408,
+      "face_skin": 0.023217993079584776,
+      "limb": 0.03125432525951557,
+      "accessory": 0.0407439446366782
+    },
+    {
+      "name": "blind_gura",
+      "accepted": 17,
+      "rejected_oversize": 0,
+      "hair": 0.14728373702422146,
+      "face_skin": 0.056505190311418686,
+      "limb": 0.07314878892733565,
+      "accessory": 0.01689446366782007
+    },
+    {
+      "name": "blind_irys",
+      "accepted": 24,
+      "rejected_oversize": 1,
+      "hair": 0.0840484429065744,
+      "face_skin": 0.02809688581314879,
+      "limb": 0.11974913494809689,
+      "accessory": 0.0210121107266436
+    },
+    {
+      "name": "blind_mumei",
+      "accepted": 24,
+      "rejected_oversize": 0,
+      "hair": 0.08926470588235294,
+      "face_skin": 0.07348615916955017,
+      "limb": 0.037110726643598616,
+      "accessory": 0.02606401384083045
+    }
+  ],
+  "zero_area_cases": {
+    "hair": [],
+    "face_skin": [],
+    "limb": [],
+    "accessory": []
+  },
+  "artifact_zip": {
+    "name": "GBLIND_HOLOMEN_20261005_frozen_observer_run.zip",
+    "sha256": "de498aa0769c7aa48665d93dc4b603d69123247d69e3a48fa514ad942ea14892",
+    "preserved_to": "Google Drive / My Drive"
+  },
+  "binding_hold_reason": "No per-character blind semantic feature manifests were frozen before outcomes. Creating them after observing blind images/results would contaminate the blind gate. Raw frozen-observer evidence is preserved; no human semantic substitution was performed."
+}
