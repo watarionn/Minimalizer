@@ -105,3 +105,12 @@ def test_feature_list_reordering_does_not_change_allocation() -> None:
     first = _alloc(allocate_semantic_budget(manifest, 13))
     second = _alloc(allocate_semantic_budget(reversed_manifest, 13))
     assert first == second
+
+
+def test_surplus_budget_stays_in_highest_semantic_tier() -> None:
+    allocation = _alloc(allocate_semantic_budget(_manifest(), 20))
+    required = ["orange_hair", "goggles", "green_necktie", "navy_white_uniform"]
+    assert min(allocation[key] for key in required) >= 4
+    assert allocation["hair_ornament"] == 1
+    assert allocation["badges"] == 1
+    assert allocation["armband"] == 1
