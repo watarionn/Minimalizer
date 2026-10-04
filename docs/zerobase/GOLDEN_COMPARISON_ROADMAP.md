@@ -170,4 +170,21 @@ Validation before merge:
 - unauthorized palette-feature rejection: PASS
 - fitter semantic/count invariance: PASS
 
-Next: upstream semantic observation and authorized-mask binding for the already sealed five blind characters. Frozen G2-G7 rules remain untuned.
+Next: blind semantic observation/mask binding [IMPLEMENTED / OBSERVER CAPABILITY HOLD] -> connect a real frozen semantic observer runtime -> sealed five-character same-renderer execution. Frozen G2-G7 rules remain untuned.
+
+
+## Blind Semantic Observation / Mask Binding closure
+
+A fail-closed binding layer now converts observer evidence into Golden Comparison feature evidence and authorized masks. Exactly one observer record must carry the manifest semantic role plus valid geometry before a feature can become present. Missing, unlabeled, ambiguous, or geometry-less observations become unknown and receive no mask. Manual semantic labels and Golden images are not part of the binding path.
+
+Repository capability audit found region-level SLIC evidence and existing part-binding infrastructure, but no connected real runtime that assigns arbitrary blind images the Golden Comparison semantic roles required by the frozen manifests. DINO/SAM remain observer/hypothesis contracts, not semantic authority. Therefore real sealed-corpus execution remains HOLD rather than contaminating the blind benchmark with human labels.
+
+Validation before merge:
+- focused blind observation tests: 5 passed
+- full `tests/zerobase`: 350 passed
+- `git diff --check`: PASS
+- unlabeled/ambiguous observation -> unknown: PASS
+- manual semantic label path: absent
+- Golden usage: absent
+
+Next: connect a frozen real semantic observer/hypothesis runtime and pass its untouched output through this binder.
