@@ -1,10 +1,10 @@
 # Golden Comparison Development Roadmap
 
-Status: G1 CLOSED / G2 READY
+Status: G2 CLOSED / G3 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
-G2 Semantic Feature Manifest [NEXT]: generic schema plus Case 001 benchmark manifest.
-G3 Feature Survival Gate: required/optional/forbidden semantics; fail-closed evidence.
+G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
+G3 Feature Survival Gate [NEXT]: required/optional/forbidden semantics; fail-closed evidence.
 G4 Semantic Feature Budgeter: allocate primitive budget by semantic importance and recognizability rather than pixel area.
 G5 Geometry Re-authoring PoC: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
 G6 Golden Gap Evaluator: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
@@ -38,3 +38,15 @@ P2 CLIPasso concepts only due licensing/fit constraints
 
 ## Gates every stage
 focused tests; tests/zerobase regression; deterministic rerun hashes; git diff --check; visual artifact review; Drive preservation of visual/evaluation evidence.
+
+## G2 closure
+
+G2 adds a generic semantic feature manifest contract plus GC001 authority data without golden geometry coordinates. Required identity features are orange hair, goggles, green necktie, and navy-white uniform. Hair ornament is important/optional; badges and armband are symbolic/compressible; facial details are forbidden/omit. Semantic evaluation regions reference feature IDs only.
+
+Validation before merge:
+- focused semantic manifest tests: 8 passed
+- full `tests/zerobase`: 263 passed
+- `git diff --check`: PASS
+- G1/G2 case identity linkage: PASS
+- production behavior changes: none
+
