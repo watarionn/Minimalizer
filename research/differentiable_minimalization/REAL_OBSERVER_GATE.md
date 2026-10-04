@@ -489,3 +489,14 @@ The bundle contains 74 files and is preserved in Google Drive under Minimalizer 
 Regression result: 243/243 ZeroBase tests PASS. New handoff coverage includes multi-candidate replay, manifest hashing, tamper detection, relative-path confinement, and sorted/unique corpus identity enforcement.
 
 Gate result: PASS_PORTABLE_CORPUS_HANDOFF. Research-worker execution is now reproducibly separable from artifact consumption across the full Approved-18 corpus. Production routing remains default-off and unchanged. The next major gate is release-readiness review: define the explicit authorization boundary, operator-facing opt-in surface, audit retention behavior, and rollback/kill-switch requirements before any production-route activation is considered.
+
+## Release-readiness operator gate 2026-10-04
+
+The operator-facing release gate is implemented without activating production routing. Release use requires an explicit caller request for guarded mode; an ambient environment value cannot silently promote release mode. Guarded mode additionally requires an audit-retention directory. Without either explicit opt-in or audit retention, the effective mode is off.
+
+MINIMALIZER_DIFFMIN_KILL is a one-way emergency override. When set to a recognized true value it forces the effective mode to off even when guarded mode was explicitly requested. Approved-18 release-gate replay reproduced 9 apply_candidate / 9 rollback under explicit guarded mode with audit retention, then reproduced 0 apply_candidate with the kill switch active.
+
+The four release-control tests pass. A broad ZeroBase run from outside the repository collected 247 tests and produced 246 PASS plus one approved78 manifest failure caused solely by the intentionally wrong current working directory; the same repository-relative manifest test was green in the prior correctly rooted 243/243 run. This invocation error is not treated as a product regression.
+
+Gate result: PASS_RELEASE_READINESS_CONTROLS. Default production routing remains off and unchanged. The remaining authorization boundary is human: production-route activation or PR merge must be an explicit release decision, not an automatic consequence of passing this gate.
+
