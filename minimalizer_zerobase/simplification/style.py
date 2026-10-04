@@ -1730,6 +1730,10 @@ def _candidate_for_profile(
     primitives: list[dict[str, Any]] = []
     masks: dict[str, np.ndarray] = {}
     removed_components = 0
+    owner_counts: dict[str, int] = {}
+    for item in baseline_primitives:
+        owner = str(item.get("composition_part", UNBOUND_PART))
+        owner_counts[owner] = owner_counts.get(owner, 0) + 1
     for group_index, group in enumerate(groups):
         group_min_area = min_area
         # Critical semantic parts can legitimately be tiny (for example a
@@ -1804,9 +1808,17 @@ def _candidate_for_profile(
         raw_mask = group["mask"].astype(np.uint8)
         working = raw_mask
         preserve_clothing_plane = group["part"] == "major_clothing"
+        preserve_accessory_plane = group["part"] == "accessory_or_held_object"
         preserve_tiny_critical_plane = (
-            group["part"] in policy.critical_parts
-            and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+            owner_counts.get(group["part"], 0) >= 32
+            or (
+                group["part"] in policy.critical_parts
+                and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+            )
+            or (
+                group["part"] in {"left_arm", "right_arm"}
+                and len(group["source_ids"]) >= 12
+            )
         )
         preserve_source_detail_plane = (
             source_guided_kind.startswith("hair-")
@@ -1820,6 +1832,7 @@ def _candidate_for_profile(
         if (
             profile.merge_gap_px > 0
             and not preserve_clothing_plane
+            and not preserve_accessory_plane
             and not preserve_tiny_critical_plane
             and not preserve_source_detail_plane
         ):
@@ -1877,7 +1890,7 @@ def _candidate_for_profile(
             )
             simplified = _simplify_component(
                 component,
-                0.0 if preserve_tiny_critical_plane else epsilon_ratio,
+                0.0 if (preserve_tiny_critical_plane or preserve_accessory_plane) else epsilon_ratio,
                 min_hole_area=min_hole_area,
             )
             if simplified is None:
@@ -1913,7 +1926,7 @@ def _candidate_for_profile(
         if preserve_tiny_critical_plane:
             exact_mask = group["mask"].astype(bool)
             exact_iou = _iou(exact_mask, mask)
-            if exact_iou < 0.98:
+            if exact_iou < 0.98 or len(group["source_ids"]) >= 12:
                 # Fail closed to the observed Phase 11 geometry for tiny
                 # identity-critical parts when polygon simplification itself
                 # would erase too much of the part.

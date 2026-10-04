@@ -1050,6 +1050,14 @@ def geometrize_parts(
         if fidelity_required and not fidelity_candidates:
             if normalized_part_id == "neck":
                 fallback_multiplier = policy.neck_fidelity_fallback_budget_multiplier
+            elif normalized_part_id in ARM_PARTS:
+                # Arms can contain long curved or bent silhouettes.  The generic
+                # fallback budget was the only reason otherwise exact observed
+                # arm contours missed the strict arm fidelity gate.
+                fallback_multiplier = max(
+                    policy.fidelity_fallback_budget_multiplier,
+                    16,
+                )
             elif normalized_part_id == "major_clothing":
                 fallback_multiplier = (
                     policy.major_clothing_fidelity_fallback_budget_multiplier
