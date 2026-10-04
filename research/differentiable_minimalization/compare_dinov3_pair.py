@@ -12,6 +12,6 @@ def obs(p,m,path):
     return observation_from_feature_map(o.hidden_states[-1][0].permute(1,2,0).float().cpu().numpy())
 def main():
     a=argparse.ArgumentParser();a.add_argument("--source",type=Path,required=True);a.add_argument("--baseline",type=Path,required=True);a.add_argument("--candidate",type=Path,required=True);x=a.parse_args()
-    p=AutoImageProcessor.from_pretrained(MODEL,local_files_only=True);m=AutoModel.from_pretrained(MODEL,local_files_only=True).cuda().eval();s=obs(p,m,x.source);b=compare_dino_spatial(s,obs(p,m,x.baseline));c=compare_dino_spatial(s,obs(p,m,x.candidate))
+    print("DINO: loading processor", flush=True)\n    p=AutoImageProcessor.from_pretrained(MODEL,local_files_only=True)\n    print("DINO: loading model", flush=True)\n    m=AutoModel.from_pretrained(MODEL,local_files_only=True).cuda().eval()\n    print("DINO: source", flush=True)\n    s=obs(p,m,x.source)\n    print("DINO: baseline", flush=True)\n    b=compare_dino_spatial(s,obs(p,m,x.baseline))\n    print("DINO: candidate", flush=True)\n    c=compare_dino_spatial(s,obs(p,m,x.candidate))
     print(json.dumps({"baseline":{"global":b.global_cosine,"aligned":b.aligned_patch_cosine,"coarse":b.coarse_patch_cosine,"score":b.score},"candidate":{"global":c.global_cosine,"aligned":c.aligned_patch_cosine,"coarse":c.coarse_patch_cosine,"score":c.score},"delta":c.score-b.score},indent=2))
 if __name__=="__main__":main()
