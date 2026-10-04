@@ -34,6 +34,7 @@ def evaluate_golden_gap(
     feature_survival_report: Mapping[str, Any],
     dimension_scores: Mapping[str, Any],
     feature_local_evidence: Mapping[str, Any] | None = None,
+    allowed_feature_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     if feature_survival_report.get("case_id") != case_id:
         raise GoldenGapError("feature survival case_id mismatch")
@@ -50,7 +51,15 @@ def evaluate_golden_gap(
         raise GoldenGapError("feature survival gate must be PASS or FAIL")
 
     local_rows: list[dict[str, Any]] = []
-    for feature_id, raw in sorted((feature_local_evidence or {}).items()):
+    local_evidence = feature_local_evidence or {}
+    if allowed_feature_ids is not None:
+        unknown_features = set(local_evidence) - set(allowed_feature_ids)
+        if unknown_features:
+            raise GoldenGapError(
+                "feature-local evidence references unknown feature: "
+                + ", ".join(sorted(unknown_features))
+            )
+    for feature_id, raw in sorted(local_evidence.items()):
         if not isinstance(raw, Mapping):
             raise GoldenGapError(f"{feature_id}: feature-local evidence must be an object")
         score = _score(f"{feature_id}.score", raw.get("score"))
