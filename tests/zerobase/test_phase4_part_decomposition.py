@@ -483,6 +483,8 @@ def test_semantic_head_evidence_fails_closed_on_large_structural_shrinkage():
 
 
 def test_bright_hair_rescue_chroma_guard_rejects_pale_face_adjacent_region():
+    import cv2
+
     shape = (120, 120)
     rgb = np.full((*shape, 3), (35, 35, 40), dtype=np.uint8)
     subject = np.zeros(shape, dtype=bool)
