@@ -79,12 +79,14 @@ def allocate_semantic_budget(
             remaining -= minimum
 
     ranked = sorted(eligible, key=_priority)
-    index = 0
     while remaining > 0 and ranked:
-        feature = ranked[index % len(ranked)]
-        allocation[feature["id"]] += 1
-        remaining -= 1
-        index += 1
+        best_rank = _priority(ranked[0])[:2]
+        tier = [feature for feature in ranked if _priority(feature)[:2] == best_rank]
+        for feature in tier:
+            if remaining <= 0:
+                break
+            allocation[feature["id"]] += 1
+            remaining -= 1
 
     rows = [
         {
