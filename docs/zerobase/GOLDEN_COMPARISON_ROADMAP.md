@@ -138,5 +138,20 @@ Validation before merge:
 - per-character failure/regression visibility: PASS
 - false adoption without production integration: blocked as HOLD
 
-Next production milestone: generic G2-G7 production bridge -> sealed blind execution -> Rinka visual review -> ADOPT or REJECT. Blind outcomes are evaluation evidence, not tuning targets.
+Next production milestone: generic G2-G7 production bridge [IMPLEMENTED / DEFAULT OFF] -> authorized geometry fitting/rendering -> sealed blind execution -> Rinka visual review -> ADOPT or REJECT. Blind outcomes are evaluation evidence, not tuning targets.
 
+
+
+## Production Bridge closure
+
+The generic production candidate bridge connects G3 Feature Survival, G4 Semantic Budget, G5 Geometry Grammar, and G7 Guarded DiffMin under one fail-closed runtime-facing contract. It is default OFF and does not alter the existing ProductionPipeline route. A G3 hard failure blocks authorization before budget or geometry creation. DiffMin remains separately opt-in. Golden raster input is rejected at the API boundary as evaluation-only evidence.
+
+Validation before merge:
+- focused Production Bridge tests: 6 passed
+- full `tests/zerobase`: 338 passed
+- `git diff --check`: PASS
+- generic non-GC001 manifest: PASS
+- Golden raster production-input rejection: PASS
+- existing production route behavior: unchanged
+
+Next: implement concrete fitting/rendering that consumes only the authorized geometry plan, then execute the already sealed five-character G8 corpus without tuning G2-G7.
