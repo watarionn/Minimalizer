@@ -330,3 +330,14 @@ The remaining Raden hair drift was isolated to one connected component: 996 newl
 The bright face-side hair rescue now requires chroma agreement with the established hair mass before adoption. Luminance remains free to differ, preserving the intended bright-strand capability, while median a/b chroma distance must be <= 6.0. A pale face-adjacent regression test was added. Focused Phase 4 suite: **15 passed**.
 
 Real Raden after the semantic-head and chroma guards now matches the preserved pre-d118 Phase 4 masks exactly for head, face, neck, torso, both arms, lower body, major clothing, and accessory. Hair differs by only 17 pixels (19,467 preserved vs 19,450 guarded), and those same 17 pixels remain unknown (445 preserved vs 462 guarded). The previous +996 false bright-hair component and the owner shifts (-604 torso, -272 right arm, -120 major clothing) disappear as downstream consequences. This reduces the Phase 4 drift to a single 17-pixel hair/unknown residual rather than broad semantic reassignment.
+
+
+## Phase 4 guard closure and downstream validation 2026-10-04
+
+The final preserved-vs-guarded Raden Phase 4 residual is 17 pixels: one 5x5-connected hair-adjacent component at bbox [117,43,5,5], median RGB about (197,189,188). All 17 pixels are within a 3px dilation of the guarded hair mask and the residual is about 0.015% of the 340x340 image. No Raden-specific recovery rule is added: the residual is intentionally accepted to avoid overfitting a general semantic decomposition rule to one character.
+
+With the semantic-head and bright-hair chroma guards active, Raden was rerun through the strict ZeroBase2 Phase 3->12 shadow pipeline. Result: **PASS**, 22 primitives, selected profile `aggressive`, silhouette IoU **0.991045**, final SHA256 `7a0a3d5c948f23f5ab5f5d17ad5250eeea1692209ee6d304a9e107b9fa870b8e`, elapsed about 14.58 s. The previous Phase 12 `missing_visible_parts=["__unbound__"]` failure did not recur.
+
+Per the restored preservation rule, the guarded Raden Phase 3-12 result images were copied to Google Drive under `Minimalizer / Differentiable Minimalization Research / Raden / Phase4_Guarded_Shadow`. The preserved set contains 37 PNG files including `Raden_phase12_guarded_final.png`. Local Temp remains scratch only.
+
+**Phase 4 rescue repair status: CLOSED for this research gate.** The repair is minimal rather than a wholesale revert of `d118e60`: valid newer rescue behavior remains, destructive semantic-head shrinkage fails closed, pale face-adjacent bright-hair false rescue is chroma-guarded, and the independent Raden character reaches Phase 12 successfully.
