@@ -70,3 +70,11 @@ def test_evaluation_regions_are_semantic_not_coordinate_targets() -> None:
     forbidden_coordinate_keys = {"x", "y", "x1", "y1", "x2", "y2", "bbox", "polygon", "points"}
     assert not any(f'"{key}"' in raw for key in forbidden_coordinate_keys)
     assert all(set(region) == {"id", "feature_ids"} for region in payload["evaluation_regions"])
+
+
+def test_gc001_semantic_manifest_matches_golden_case_identity() -> None:
+    golden_case = json.loads(
+        (ROOT / "benchmarks" / "golden" / "cases" / "GC001_IMG_1205.json").read_text(encoding="utf-8")
+    )
+    semantic_case = _case()
+    assert semantic_case["case_id"] == golden_case["case_id"]
