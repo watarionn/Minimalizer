@@ -1,6 +1,6 @@
 # Golden Comparison Development Roadmap
 
-Status: G6 CLOSED / G7 READY
+Status: G7 CLOSED / G8 READY
 
 G1 Golden Harness [CLOSED / PASS]: freeze source/golden/current triplet, schema, hashes, deterministic comparison report.
 G2 Semantic Feature Manifest [CLOSED / PASS]: generic schema plus Case 001 benchmark manifest.
@@ -8,8 +8,8 @@ G3 Feature Survival Gate [CLOSED / PASS]: required/optional/forbidden semantics;
 G4 Semantic Feature Budgeter [CLOSED / PASS]: allocate primitive budget by semantic importance and recognizability rather than pixel area.
 G5 Geometry Re-authoring PoC [CLOSED / PASS]: deterministic macro primitives and category compression grammar. VTracer may fit already-authorized masks, never decide semantics.
 G6 Golden Gap Evaluator [CLOSED / PASS]: semantic, geometry, palette, composition, economy and orphan-contour dimensions. Add feature-level DINO evidence.
-G7 Guarded DiffMin Integration [NEXT]: refine accepted authored geometry only; same-renderer baseline; default OFF.
-G8 Blind Generalization Gate: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
+G7 Guarded DiffMin Integration [CLOSED / PASS]: refine accepted authored geometry only; same-renderer baseline; default OFF.
+G8 Blind Generalization Gate [NEXT]: evaluate multiple characters unseen by Golden training/design iteration. Adopt only if general improvement survives hard gates.
 
 ## G1 closure
 
@@ -105,5 +105,20 @@ Validation before merge:
 - perfect-score hard-fail override rejection: PASS
 - per-dimension regression visibility: PASS
 - unknown feature-local evidence rejection: PASS
+- production behavior changes: none
+
+
+## G7 closure
+
+G7 adds a fail-closed Guarded DiffMin contract. DiffMin is default OFF. When explicitly enabled, it requires a pre-refinement G3 hard-gate PASS candidate and the same renderer for baseline and candidate. It may optimize parameters of existing authored geometry only; semantic-part creation/deletion/substitution and primitive count/identity changes are rejected before refinement and validated again after refinement. Duplicate primitive identities are rejected so set comparison cannot hide count changes. Post-refinement G3 hard gates must still PASS.
+
+Validation before merge:
+- focused Guarded DiffMin tests: 11 passed
+- full `tests/zerobase`: 323 passed
+- `git diff --check`: PASS
+- default OFF: PASS
+- pre/post hard-gate dominance: PASS
+- same-renderer enforcement: PASS
+- add/delete/substitute/duplicate primitive rejection: PASS
 - production behavior changes: none
 
