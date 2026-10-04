@@ -114,3 +114,17 @@ def test_generic_unknown_role_uses_deterministic_fallback_grammar() -> None:
     }
     plan = build_geometry_plan(manifest, allocate_semantic_budget(manifest, 2))
     assert [row["primitive_kind"] for row in plan["primitives"]] == ["polygon", "ellipse"]
+
+
+def test_geometry_plan_ignores_manifest_and_allocation_list_order() -> None:
+    manifest = _manifest()
+    budget = allocate_semantic_budget(manifest, 17)
+    baseline = build_geometry_plan(manifest, budget)
+
+    reordered_manifest = dict(manifest)
+    reordered_manifest["features"] = list(reversed(manifest["features"]))
+    reordered_budget = dict(budget)
+    reordered_budget["allocations"] = list(reversed(budget["allocations"]))
+
+    reordered = build_geometry_plan(reordered_manifest, reordered_budget)
+    assert json.dumps(baseline, sort_keys=True) == json.dumps(reordered, sort_keys=True)
