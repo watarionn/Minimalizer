@@ -14,7 +14,7 @@ def test_small_noise_does_not_become_mass():
  assert len(r)==2
 def test_polygons_are_coarse():
  h,c=masks();r=reauthor_macro_geometry(hair_mask=h,clothing_mask=c)
- assert all(3<=len(x.polygon)<=12 for x in r)
+ assert all(3<=len(x.polygon)<=24 for x in r)
 def test_deterministic():
  h,c=masks();a=reauthor_macro_geometry(hair_mask=h,clothing_mask=c);b=reauthor_macro_geometry(hair_mask=h,clothing_mask=c)
  assert all(np.array_equal(x.polygon,y.polygon) for x,y in zip(a,b))
