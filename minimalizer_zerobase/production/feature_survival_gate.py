@@ -31,3 +31,34 @@ def feature_survival_report(baseline_image,current_image,baseline_mask=None,curr
  base=extract_feature_signatures(baseline_image,baseline_mask);cur=extract_feature_signatures(current_image,current_mask)
  missing=tuple(x for x in base if not cur or min(_dist(x,y) for y in cur)>match_threshold)
  return SurvivalReport(base,cur,missing,len(missing)==0)
+
+
+def source_supported_feature_survival_report(
+    baseline_image,
+    current_image,
+    source_image,
+    baseline_mask=None,
+    current_mask=None,
+    source_mask=None,
+    *,
+    match_threshold=.20,
+):
+    """Require only baseline signatures that are also supported by the original source.
+
+    This prevents a regression gate from canonizing artifacts introduced by an older
+    Minimalizer output. The source is evidence-only; no Golden raster is accepted.
+    """
+    baseline = extract_feature_signatures(baseline_image, baseline_mask)
+    current = extract_feature_signatures(current_image, current_mask)
+    source = extract_feature_signatures(source_image, source_mask)
+    required = tuple(
+        signature
+        for signature in baseline
+        if source and min(_dist(signature, candidate) for candidate in source) <= match_threshold
+    )
+    missing = tuple(
+        signature
+        for signature in required
+        if not current or min(_dist(signature, candidate) for candidate in current) > match_threshold
+    )
+    return SurvivalReport(required, current, missing, len(missing) == 0)
