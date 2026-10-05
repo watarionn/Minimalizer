@@ -60,12 +60,6 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  if allocations.get("hair",0)>0 and "hair" in masks:
   pts=_contour_polygon(masks["hair"],20)
   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["hair"])}"/>')
- # Accessory remains graph-authorized, but its actual semantic contour is preserved.
- if allocations.get("accessory",0)>0 and "accessory" in masks:
-  rel=[r for r in graph.relations if r.source_part=="accessory_or_held_object" and r.relation_kind=="attached_to"]
-  pts=_contour_polygon(masks["accessory"],12)
-  if rel and pts:
-   chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["accessory"])}"/>')
  # Large garment masses establish collar/body/sleeve-like construction before small evidence.
  garment_mask=clothing_authority(masks["torso"],masks.get("major_clothing")) if "torso" in masks else masks.get("major_clothing")
  if garment_mask is not None:
@@ -74,7 +68,9 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    if pts:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
  # Reserve dominant source-derived color masses before sparse detail motifs.
- for role in ("hair","head","torso","major_clothing","left_arm","right_arm","lower_body"):
+ # Explicit semantic paint authority: body base -> garment -> limbs -> head/hair.
+ # This prevents a late torso mass from painting over sleeve/arm structure.
+ for role in ("lower_body","torso","major_clothing","left_arm","right_arm","head","hair"):
   if role not in masks:continue
   cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
   for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
@@ -105,4 +101,9 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   if not pts: continue
   col="#%02x%02x%02x"%item.region.rgb
   chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
+ # Foreground semantic ownership is restored last for graph-authorized accessories.
+ if allocations.get("accessory",0)>0 and "accessory" in masks:
+  rel=[r for r in graph.relations if r.source_part=="accessory_or_held_object" and r.relation_kind=="attached_to"]
+  pts=_contour_polygon(masks["accessory"],12)
+  if rel and pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["accessory"])}"/>')
  chunks.append("</svg>");return "".join(chunks)
