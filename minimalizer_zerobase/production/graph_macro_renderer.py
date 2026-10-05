@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -75,8 +75,8 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
  # Sparse garment construction motifs: collar and sleeve attachments.
  if "torso" in masks:
-  collar=collar_motif(garment_mask if garment_mask is not None else masks["torso"],masks.get("head",np.zeros_like(masks["torso"])))
-  if np.any(collar):
+  collar_authority=garment_mask if garment_mask is not None else masks["torso"]
+  for collar in collar_shape_segments(rgb,collar_authority,masks.get("head",np.zeros_like(masks["torso"]))):
    pts=_contour_polygon(collar,10)
    if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,collar)}"/>')
   for sleeve in sleeve_boundary_motifs(masks["torso"],masks.get("left_arm"),masks.get("right_arm")):
