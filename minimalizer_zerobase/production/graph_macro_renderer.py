@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -73,6 +73,13 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    pts=_contour_polygon(cmask,14)
    if pts:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
+ # Reserve dominant source-derived color masses before sparse detail motifs.
+ for role in ("hair","head","torso","major_clothing","left_arm","right_arm","lower_body"):
+  if role not in masks:continue
+  cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
+  for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
+   pts=_contour_polygon(mass,12)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({mrgb[0]},{mrgb[1]},{mrgb[2]})"/>')
  # Sparse garment construction motifs: collar and sleeve attachments.
  if "torso" in masks:
   collar_authority=garment_mask if garment_mask is not None else masks["torso"]
