@@ -47,8 +47,12 @@ def select_perceptual_regions(regions:Mapping[str,Sequence[EdgeRegion]],part_mas
  for x in accents[:accent_slots]:
   if len(chosen)<budget:chosen.append(x)
  chosen_ids={(x.part,id(x.region)) for x in chosen}
+ part_cap=max(2,int(np.ceil(budget/max(1,len(regions))))+1)
+ counts={}
+ for x in chosen:counts[x.part]=counts.get(x.part,0)+1
  for x in majors+accents+minors:
   if len(chosen)>=budget:break
   key=(x.part,id(x.region))
-  if key not in chosen_ids:chosen.append(x);chosen_ids.add(key)
+  if key in chosen_ids or counts.get(x.part,0)>=part_cap:continue
+  chosen.append(x);chosen_ids.add(key);counts[x.part]=counts.get(x.part,0)+1
  return tuple(chosen)
