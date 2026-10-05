@@ -32,3 +32,13 @@ def positive_centroid(bank:dict)->np.ndarray:
     vals=[np.asarray(e["vector"],np.float32) for e in bank["entries"] if e["role"]=="positive"]
     if not vals:raise ValueError("positive prototype required")
     v=np.mean(vals,axis=0);return v/max(float(np.linalg.norm(v)),1e-8)
+
+
+def contrastive_direction(bank:dict)->np.ndarray:
+    pos=[np.asarray(e["vector"],np.float32) for e in bank["entries"] if e["role"]=="positive"]
+    neg=[np.asarray(e["vector"],np.float32) for e in bank["entries"] if e["role"]=="negative"]
+    if not pos or not neg:raise ValueError("positive and negative prototypes required")
+    p=np.mean(pos,axis=0);n=np.mean(neg,axis=0);v=p-n
+    norm=float(np.linalg.norm(v))
+    if norm<=1e-8:raise ValueError("degenerate contrastive prototype")
+    return v/norm
