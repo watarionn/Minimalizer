@@ -31,3 +31,7 @@ SA7.9 region evidence remains observer evidence only. SA7.5 structural remains f
 
 ## Next
 SA7.14 should investigate a geometry-first independent witness rather than another GC001-tuned DINO threshold: paired lens/frame topology, symmetry, bridge continuity, or a separately trained/frozen eyewear detector evaluated on non-target multi-holdout first.
+
+
+## SA7.16 correction
+High-resolution source review later found that the SA7.13 thumbnail labels were contaminated: Sorashina Sopia's paired circular head objects are not eyewear, and the inspected Shiranui Flare variant contains no eyewear. Preserve this stage as historical evidence of the run, but do not treat its FAIL as a valid eyewear-recall/generalization judgment. See SA7_16_HIGH_RES_EYEWEAR_CORPUS_20261005.md.
