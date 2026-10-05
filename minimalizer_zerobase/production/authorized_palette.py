@@ -53,7 +53,7 @@ def extract_authorized_palette(
             raise PaletteRoleError(f"authorized semantic mask requires bbox: {fid}")
         x,y,w,h=[int(round(float(v))) for v in box]
         x0,y0=max(0,x),max(0,y);x1,y1=min(W,x+w),min(H,y+h)
-        pixels=rgb[y0:y1,x0:x1].reshape(-1,3)
+        pixels, weights = _topology_pixels(rgb, mask)
         if pixels.size==0:
             raise PaletteRoleError(f"empty authorized region: {fid}")
         q=np.minimum((pixels.astype(np.int32)*bins_per_channel)//256,bins_per_channel-1)
