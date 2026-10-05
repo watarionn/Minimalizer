@@ -1,0 +1,14 @@
+{
+  "schema_version":"1.0",
+  "suite_id":"GBLIND_G9_FRESH_20261005",
+  "status":"FIRST_UNTUNED_RUN_COMPLETE",
+  "canonical_main_sha":"6a93ddf3b84206768f490a9693ac8337630133f4",
+  "corpus_manifest_sha256":"d5fa283982e1fc003f4d09c58bb5b64222b9f8c52c50804be1dd9ddab8b0ae45",
+  "evaluation_template_sha256":"8933fbcda7d7723f7ce21ba8d1aed118b0c8a0295297368359a2ad9554e1ccc0",
+  "input_bundle_sha256":"f4fd46bb5289c668cbc00535d6e5b3ba2f1fb92ff2b8b7da244fd2abba6371c8",
+  "artifact_bundle_sha256":"e446a04bcb913b354876048b40957f10d8a76126b5fb9aa4c76c111d15e72aab",
+  "observer":{"case_count":5,"device":"cuda","mean_elapsed_seconds":0.5828972999937833,"max_peak_cuda_memory_mb":1378.61328125,"zero_area_cases":{"hair":[],"face-skin":[],"limb":[],"accessory":[]},"oversize_rejection_count":1},
+  "pipeline":{"binder_unresolved_case_count":0,"bridge_ready_case_count":5,"rendered_case_count":5,"golden_used":false,"manual_semantic_labels_used":false,"diffmin_enabled":false},
+  "run_adapter":{"palette_method":"median RGB inside already-authorized semantic bbox","production_adopted":false},
+  "drive":{"folder":"chatGPT及びCodex用/Minimalizer","artifact_bundle":"GBLIND_G9_FRESH_20261005_first_run.zip","handoff":"G9_FIRST_BLIND_RUN_HANDOFF.md"}
+}
