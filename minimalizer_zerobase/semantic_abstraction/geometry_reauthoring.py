@@ -12,6 +12,7 @@ from minimalizer_zerobase.production.structural_motifs import (
     reserve_identity_accents,
 )
 from .ir import AbstractionPlan, AbstractionPolicy
+from .survival_reservation import reserve_semantic_survival_signatures
 
 
 def _median_hex(rgb: np.ndarray, mask: np.ndarray) -> str:
@@ -275,36 +276,32 @@ def semantic_reauthor_scene(
             )
             z += 1
 
-    # Preserve a tiny bounded set of source-supported identity accents on major body/limb masses.
-    # This is generic feature reservation: semantic authority decides where an accent may survive,
-    # while source pixels decide its color and shape.
-    for part_id, max_accents in (("torso", 2), ("lower_body", 2), ("left_arm", 1), ("right_arm", 1)):
-        if not allowed(part_id):
+    # Reserve source-supported semantic signatures before optional geometry spends the remainder.
+    reservation_masks = {
+        part_id: np.asarray(masks[part_id]).astype(bool)
+        for part_id in ("torso", "lower_body", "left_arm", "right_arm")
+        if allowed(part_id)
+    }
+    survival_reservations = reserve_semantic_survival_signatures(
+        image,
+        reservation_masks,
+        max_reservations=8,
+    )
+    for reservation in survival_reservations:
+        points = _coarse_hull(reservation.mask, 6)
+        if not points:
             continue
-        authority = np.asarray(masks[part_id]).astype(bool)
-        for index, (accent, color) in enumerate(
-            reserve_identity_accents(
-                image,
-                authority,
-                max_accents=max_accents,
-                min_ratio=0.0015,
-                max_ratio=0.10,
+        primitives.append(
+            _primitive(
+                f"semantic:{reservation.reservation_id}",
+                reservation.part_id,
+                "convex_polygon",
+                {"points": points},
+                _rgb_hex(reservation.color),
+                z,
             )
-        ):
-            points = _coarse_hull(accent, 6)
-            if not points:
-                continue
-            primitives.append(
-                _primitive(
-                    f"semantic:{part_id}-accent:{index}",
-                    part_id,
-                    "convex_polygon",
-                    {"points": points},
-                    _rgb_hex(tuple(int(v) for v in color)),
-                    z,
-                )
-            )
-            z += 1
+        )
+        z += 1
 
     if allowed("major_clothing"):
         clothing = np.asarray(masks["major_clothing"]).astype(bool)
@@ -380,6 +377,7 @@ def semantic_reauthor_scene(
             "identity_accents_protected": True,
             "head_identity_accents_max": 2,
             "head_identity_accents_exclude_face": True,
-            "body_identity_accents_max": {"torso": 2, "lower_body": 2, "left_arm": 1, "right_arm": 1},
+            "survival_reservation_budget": 8,
+            "survival_reservation_source": "source_pixels+authorized_semantic_masks",
         },
     )
