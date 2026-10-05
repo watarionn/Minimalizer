@@ -275,6 +275,37 @@ def semantic_reauthor_scene(
             )
             z += 1
 
+    # Preserve a tiny bounded set of source-supported identity accents on major body/limb masses.
+    # This is generic feature reservation: semantic authority decides where an accent may survive,
+    # while source pixels decide its color and shape.
+    for part_id, max_accents in (("torso", 2), ("lower_body", 1), ("left_arm", 1), ("right_arm", 1)):
+        if not allowed(part_id):
+            continue
+        authority = np.asarray(masks[part_id]).astype(bool)
+        for index, (accent, color) in enumerate(
+            reserve_identity_accents(
+                image,
+                authority,
+                max_accents=max_accents,
+                min_ratio=0.0015,
+                max_ratio=0.10,
+            )
+        ):
+            points = _coarse_hull(accent, 6)
+            if not points:
+                continue
+            primitives.append(
+                _primitive(
+                    f"semantic:{part_id}-accent:{index}",
+                    part_id,
+                    "convex_polygon",
+                    {"points": points},
+                    _rgb_hex(tuple(int(v) for v in color)),
+                    z,
+                )
+            )
+            z += 1
+
     if allowed("major_clothing"):
         clothing = np.asarray(masks["major_clothing"]).astype(bool)
         masses = major_color_masses(
@@ -349,5 +380,6 @@ def semantic_reauthor_scene(
             "identity_accents_protected": True,
             "head_identity_accents_max": 2,
             "head_identity_accents_exclude_face": True,
+            "body_identity_accents_max": {"torso": 2, "lower_body": 1, "left_arm": 1, "right_arm": 1},
         },
     )
