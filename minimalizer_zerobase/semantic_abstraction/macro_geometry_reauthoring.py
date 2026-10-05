@@ -29,7 +29,7 @@ def _coarse_polygon(mask:np.ndarray)->np.ndarray|None:
  if not contours:return None
  contour=max(contours,key=cv2.contourArea)
  peri=cv2.arcLength(contour,True)
- poly=cv2.approxPolyDP(contour,max(1.5,.025*peri),True).reshape(-1,2)
+ poly=cv2.approxPolyDP(contour,max(1.5,.01*peri),True).reshape(-1,2)
  return poly if len(poly)>=3 else contour.reshape(-1,2)
 
 def reauthor_macro_geometry(*,hair_mask:np.ndarray,clothing_mask:np.ndarray)->tuple[MacroGeometryPrimitive,...]:
@@ -52,7 +52,7 @@ def reauthor_macro_geometry(*,hair_mask:np.ndarray,clothing_mask:np.ndarray)->tu
     contours,_=cv2.findContours(mass.astype(np.uint8),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     if not contours:continue
     q=max(contours,key=cv2.contourArea);peri=cv2.arcLength(q,True)
-    poly2=cv2.approxPolyDP(q,max(1.5,.02*peri),True).reshape(-1,2)
+    poly2=cv2.approxPolyDP(q,max(1.5,.01*peri),True).reshape(-1,2)
     if len(poly2)<3:continue
     final=np.zeros(src.shape,np.uint8);cv2.fillPoly(final,[poly2.astype(np.int32)],1)
     final_n=int(final.sum());covered=int(((final>0)&mass).sum())
