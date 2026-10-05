@@ -66,29 +66,27 @@ def observe_eyewear_structure(
         return EyewearStructuralEvidence(empty,empty,empty,empty,0.0,False)
 
     gray=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY).astype(np.float32)
-    blur=cv2.GaussianBlur(gray,(0,0),2.2)
-    contrast=np.abs(gray-blur)
-    edges=cv2.Canny(image,55,145)>0
-
-    # Candidate support is structural contrast near the upper face, excluding the central eye/mouth interior.
-    central_face=face&(yy>=fy+int(.05*fh))&(yy<=fy+int(.72*fh))
-    support=authority&~central_face&((contrast>=10)|(edges))
-    support=cv2.morphologyEx(support.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))>0
-    # A bridge may connect both lenses; split support into face-side hypotheses before pairing.
-    face_mid=fx+.5*fw
-    side_masks=(support&(xx<face_mid),support&(xx>=face_mid))
-
-    labels=np.zeros(support.shape,np.int32);comps=[];next_label=1
-    for side in side_masks:
-        count,local_labels,stats,cent=cv2.connectedComponentsWithStats(side.astype(np.uint8),8)
-        for label in range(1,count):
-            area=int(stats[label,cv2.CC_STAT_AREA]);x=int(stats[label,cv2.CC_STAT_LEFT]);y=int(stats[label,cv2.CC_STAT_TOP])
-            w=int(stats[label,cv2.CC_STAT_WIDTH]);h=int(stats[label,cv2.CC_STAT_HEIGHT])
-            if area<max(5,int(fw*fh*.0015)) or w<max(4,int(.10*fw)) or h<3: continue
-            if w>.95*fw or h>.65*fh: continue
-            cx,cy=cent[label]
-            labels[local_labels==label]=next_label
-            comps.append((next_label,area,float(cx),float(cy),w,h));next_label+=1
+    edges=(cv2.Canny(image,55,145)>0)&authority
+    # Closed-contour evidence rejects open hair strands. A worn lens/frame should enclose
+    # a bounded upper-face region; the enclosed region becomes the lens hypothesis.
+    closed=cv2.morphologyEx(edges.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((5,5),np.uint8),iterations=2)
+    inv=((closed==0)&authority).astype(np.uint8)
+    count,labels0,stats0,cent0=cv2.connectedComponentsWithStats(inv,8)
+    holes=[]
+    for label in range(1,count):
+        area=int(stats0[label,cv2.CC_STAT_AREA]);x=int(stats0[label,cv2.CC_STAT_LEFT]);y=int(stats0[label,cv2.CC_STAT_TOP])
+        w=int(stats0[label,cv2.CC_STAT_WIDTH]);h=int(stats0[label,cv2.CC_STAT_HEIGHT])
+        if area<max(8,int(fw*fh*.004)) or area>int(fw*fh*.34): continue
+        if w<max(5,int(.12*fw)) or h<max(4,int(.07*fh)) or w>int(.85*fw) or h>int(.55*fh): continue
+        comp=labels0==label
+        ring=cv2.dilate(comp.astype(np.uint8),np.ones((3,3),np.uint8)).astype(bool)&~comp
+        closure=float((ring&edges).sum()/max(1,int(ring.sum())))
+        if closure<.16: continue
+        cx,cy=cent0[label];holes.append((label,area,float(cx),float(cy),w,h,closure,comp))
+    labels=np.zeros(head.shape,np.int32);comps=[];next_label=1
+    for _,area,cx,cy,w,h,closure,comp in holes:
+        labels[comp]=next_label
+        comps.append((next_label,area,cx,cy,w,h,closure));next_label+=1
 
     # Prefer a horizontally separated pair with similar vertical placement and scale.
     best=None
@@ -98,11 +96,11 @@ def observe_eyewear_structure(
             sep=(right[2]-left[2])/max(fw,1);dy=abs(right[3]-left[3])/max(fh,1)
             ar=min(left[1],right[1])/max(left[1],right[1])
             if not (.20<=sep<=1.05 and dy<=.30 and ar>=.18): continue
-            score=1.8*ar+max(0,1-dy)+min(1,sep)
+            score=1.8*ar+max(0,1-dy)+min(1,sep)+.5*(left[6]+right[6])
             if best is None or score>best[0]: best=(score,left,right)
 
     if best is None:
-        return EyewearStructuralEvidence(empty,empty,support,empty,min(.45,float(support.sum())/max(1,int(authority.sum()))),False)
+        return EyewearStructuralEvidence(empty,empty,edges,empty,min(.45,float(edges.sum())/max(1,int(authority.sum()))),False)
 
     _,left,right=best
     lm=labels==left[0];rm=labels==right[0]
@@ -127,7 +125,7 @@ def observe_eyewear_structure(
         bridge[max(0,cy-th):min(face.shape[0],cy+th+1),xa:xb+1]=True
         bridge&=authority
 
-    source_support=float(((lm|rm)&(contrast>=10)).sum()/max(1,int((lm|rm).sum())))
+    ring_support=.5*(left[6]+right[6])\n    source_support=min(1.0,ring_support*2.0)
     symmetry=min(left[1],right[1])/max(left[1],right[1])
     confidence=min(1.0,.52+.20*symmetry+.18*source_support+.10*min(1,(right[2]-left[2])/max(fw,1)))
     return EyewearStructuralEvidence(ll,rr,frame,bridge,confidence,True)
