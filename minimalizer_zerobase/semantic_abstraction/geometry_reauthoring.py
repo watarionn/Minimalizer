@@ -257,7 +257,7 @@ def semantic_reauthor_scene(
         head_authority = np.asarray(masks["head"]).astype(bool)
         if "face" in masks:
             head_authority &= ~np.asarray(masks["face"]).astype(bool)
-        observed = observe_identity_structures(image, head_authority, max_structures=3)
+        observed = observe_identity_structures(image, head_authority, max_structures=5)
         observed_bindings = bind_observed_identity_structures(plan, "head", observed)
         for binding in observed_bindings:
             points = _coarse_hull(binding.mask, 8)
