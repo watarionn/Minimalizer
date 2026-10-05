@@ -21,7 +21,7 @@ def observe_identity_structures(
     *,
     max_structures: int = 3,
     min_area_ratio: float = .008,
-    max_area_ratio: float = .16,
+    max_area_ratio: float = .35,
 ) -> tuple[IdentityStructureEvidence, ...]:
     """Observe coherent internal structures without assigning semantic authority."""
     image=np.asarray(rgb,dtype=np.uint8)
@@ -47,9 +47,9 @@ def observe_identity_structures(
         if w < 4 or h < 3:
             continue
         density=float(edges[component].sum()/max(1,pixel_area))
-        if density < .06:
+        if density < .025:
             continue
-        confidence=min(1.0,.45+density*1.8+min(ratio,.08)*2.0)
+        confidence=min(1.0,.45+density*3.0+min(ratio,.12))
         rows.append((confidence,pixel_area,x,y,w,h,component,density,ratio))
     rows.sort(key=lambda r:(-r[0],-r[1],r[3],r[2]))
     return tuple(
