@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -48,7 +48,7 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  # Arms retain their real Phase4 silhouette instead of synthetic bbox ribbons.
  for role in ("left_arm","right_arm"):
   if allocations.get(role,0)<1 or role not in masks: continue
-  near,far=two_segment_arm_masks(masks[role],masks.get("torso",masks[role]))
+  near,far=sleeve_forearm_masses(rgb,masks[role],masks.get("torso",masks[role]))
   for segment in (near,far):
    if not np.any(segment):continue
    pts=_contour_polygon(segment,12)
