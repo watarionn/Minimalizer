@@ -86,6 +86,8 @@ def observe_eyewear_structure(
             if cx<fx-.35*fw or cx>fx+1.35*fw: continue
             # Paired lens/frame structures are laterally oriented; tall narrow closed hair loops are not.
             if h>w*1.35: continue
+            # Paired lens structures live close to the upper face; distant forehead/hair loops are rejected.
+            if cy<fy-.50*fh: continue
             perimeter=max(1.0,float(cv2.arcLength(contour,True)))
             closure=min(1.0,4*np.pi*max(area,1.0)/(perimeter*perimeter))
             labels[comp]=next_label
