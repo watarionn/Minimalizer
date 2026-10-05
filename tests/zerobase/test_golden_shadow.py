@@ -14,7 +14,13 @@ def test_shadow_success_reports_delivery():
     assert result.attempted is True
     assert result.delivered is True
     assert result.error is None
+    assert result.state is None
     assert seen==[result.event_id]
+
+def test_shadow_retains_hub_state_for_evidence():
+    result=deliver_shadow(event(),lambda _: {"state":"STORED"})
+    assert result.delivered is True
+    assert result.state=="STORED"
 
 def test_shadow_outage_never_raises_into_minimalizer():
     def outage(_):
@@ -23,12 +29,14 @@ def test_shadow_outage_never_raises_into_minimalizer():
     assert result.attempted is True
     assert result.delivered is False
     assert result.error=="ConnectionError"
+    assert result.state is None
 
 def test_shadow_disabled_is_noop():
     result=deliver_shadow(event(),None)
     assert result.attempted is False
     assert result.delivered is False
     assert result.error is None
+    assert result.state is None
 
 def test_shadow_requires_event_identity():
     try:

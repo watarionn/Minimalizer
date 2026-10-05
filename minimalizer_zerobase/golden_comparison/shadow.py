@@ -13,6 +13,7 @@ class ShadowDeliveryResult:
     delivered: bool
     event_id: str
     error: str | None = None
+    state: str | None = None
 
 def deliver_shadow(
     event: Mapping[str, Any],
@@ -22,9 +23,10 @@ def deliver_shadow(
     if not event_id:
         raise ValueError("shadow event requires event_id")
     if send is None:
-        return ShadowDeliveryResult(False,False,event_id,None)
+        return ShadowDeliveryResult(False,False,event_id,None,None)
     try:
-        send(event)
+        response=send(event)
     except Exception as exc:
-        return ShadowDeliveryResult(True,False,event_id,type(exc).__name__)
-    return ShadowDeliveryResult(True,True,event_id,None)
+        return ShadowDeliveryResult(True,False,event_id,type(exc).__name__,None)
+    state=response.get("state") if isinstance(response,Mapping) else None
+    return ShadowDeliveryResult(True,True,event_id,None,state)
