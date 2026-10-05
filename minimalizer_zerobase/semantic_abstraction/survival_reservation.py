@@ -60,7 +60,7 @@ def reserve_semantic_survival_signatures(
         keys = np.zeros((h, w), dtype=np.int32)
         for y, x in zip(*np.where(authority)):
             q = _quantized_key(image[y, x], quantization_step)
-            keys[y, x] = q[0] * 65536 + q[1] * 256 + q[2]
+            keys[y, x] = (q[0] << 16) | (q[1] << 8) | q[2]
 
         seen = np.zeros((h, w), dtype=bool)
         for sy, sx in zip(*np.where(authority)):
