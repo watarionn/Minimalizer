@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_id": "GBLIND_G11_FRESH_20261005",
-  "status": "SEALED_BEFORE_FIRST_OBSERVER_RUN",
+  "status": "FIRST_RUN_COMPLETE",
   "source_archive": {
     "name": "HoloMenImages.zip",
     "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9"
@@ -59,5 +59,30 @@
       "has_golden": false
     }
   ],
-  "first_observer_run_performed": false
+  "first_observer_run_performed": true,
+  "first_run": {
+    "observer": {
+      "case_count": 5,
+      "all_four_roles_nonzero": true,
+      "mean_elapsed_seconds": 0.5495582200121134,
+      "max_peak_cuda_memory_mb": 1378.61328125,
+      "oversize_rejection_count": 1
+    },
+    "pipeline": {
+      "all_unresolved_zero": true,
+      "all_bridge_ready": true,
+      "primitive_count_each": 12,
+      "contour_envelope_rendered": true,
+      "local_accent_rendered": true,
+      "golden_used": false,
+      "manual_semantic_labels_used": false
+    },
+    "artifact": {
+      "name": "GBLIND_G11_FRESH_20261005_first_run.zip",
+      "sha256": "b7bcb01d61a2af624b641e4d58c9e372e09aa64480cce5ae3470f03c84ddbc7d"
+    },
+    "review": {
+      "next_generic_bottleneck": "mask-topology-weighted authorized palette extraction"
+    }
+  }
 }
