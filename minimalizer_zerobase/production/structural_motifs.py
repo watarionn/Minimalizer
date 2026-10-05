@@ -166,3 +166,32 @@ def major_color_masses(rgb:np.ndarray,mask:np.ndarray,*,max_masses:int=3,min_rat
   col=tuple(int(v) for v in np.median(a[mm],axis=0));rows.append((len(pts),mm,col))
  rows.sort(key=lambda z:(-z[0],z[2]))
  return tuple((mm,col) for _,mm,col in rows[:max_masses])
+
+def garment_panels(rgb:np.ndarray,garment:np.ndarray,*,max_panels:int=4,min_ratio:float=.07)->tuple[tuple[np.ndarray,tuple[int,int,int]],...]:
+ """Build a few large garment panels from connected quantized source color masses."""
+ a=np.asarray(rgb,np.uint8);g=np.asarray(garment,bool)
+ if not np.any(g):return ()
+ # Coarser than detail proposals: panels represent clothing construction, not trim.
+ q=(a//56).astype(np.int16);key=q[:,:,0]*25+q[:,:,1]*5+q[:,:,2]
+ H,W=g.shape;seen=np.zeros_like(g);total=int(g.sum());rows=[]
+ for sy,sx in zip(*np.where(g)):
+  if seen[sy,sx]:continue
+  k=key[sy,sx];st=[(sy,sx)];seen[sy,sx]=1;pts=[]
+  while st:
+   y,x=st.pop();pts.append((y,x))
+   for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+    if 0<=ny<H and 0<=nx<W and g[ny,nx] and not seen[ny,nx] and key[ny,nx]==k:
+     seen[ny,nx]=1;st.append((ny,nx))
+  if len(pts)<max(8,int(total*min_ratio)):continue
+  m=np.zeros_like(g);yy,xx=zip(*pts);m[yy,xx]=1
+  col=tuple(int(v) for v in np.median(a[m],axis=0))
+  rows.append((len(pts),float(np.mean(yy)),m,col))
+ rows.sort(key=lambda z:(-z[0],z[1],z[3]))
+ chosen=[]
+ occupied=np.zeros_like(g)
+ for _,_,m,col in rows:
+  novel=m&~occupied
+  if novel.sum()<total*min_ratio:continue
+  chosen.append((novel,col));occupied|=novel
+  if len(chosen)>=max_panels:break
+ return tuple(chosen)
