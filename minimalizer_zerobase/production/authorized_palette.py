@@ -46,3 +46,37 @@ def extract_authorized_palette(
         chosen=pixels[keys==winner]
         out[fid]=_hex(np.median(chosen,axis=0))
     return out
+
+
+def extract_authorized_palette_roles(
+    image: np.ndarray,
+    semantic_masks: Mapping[str, Mapping[str, Any]],
+    *,
+    bins_per_channel: int = 8,
+) -> dict[str, dict[str, str | None]]:
+    """Return dominant plus deterministic local accent for each authorized feature.
+
+    Accent is selected from quantized bins by chroma * sqrt(population), excluding
+    the dominant bin. It is evidence about color only and cannot create features.
+    """
+    rgb=np.asarray(image)
+    dominant=extract_authorized_palette(rgb,semantic_masks,bins_per_channel=bins_per_channel)
+    H,W,_=rgb.shape; out={}
+    for fid in sorted(semantic_masks):
+        x,y,w,h=[int(round(float(v))) for v in semantic_masks[fid]["bbox"]]
+        pixels=rgb[max(0,y):min(H,y+h),max(0,x):min(W,x+w)].reshape(-1,3)
+        q=np.minimum((pixels.astype(np.int32)*bins_per_channel)//256,bins_per_channel-1)
+        keys=q[:,0]*bins_per_channel*bins_per_channel+q[:,1]*bins_per_channel+q[:,2]
+        candidates=[]
+        for key in np.unique(keys):
+            chosen=pixels[keys==key]
+            med=np.median(chosen,axis=0)
+            chroma=float(med.max()-med.min())
+            score=chroma*np.sqrt(float(len(chosen)))
+            hx=_hex(med)
+            if hx != dominant[fid]:
+                candidates.append((score,int(len(chosen)),-int(key),hx))
+        candidates.sort(reverse=True)
+        accent=candidates[0][3] if candidates and candidates[0][0] > 0 else None
+        out[fid]={"dominant":dominant[fid],"accent":accent}
+    return out
