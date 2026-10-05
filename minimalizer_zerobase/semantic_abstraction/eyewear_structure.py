@@ -125,7 +125,8 @@ def observe_eyewear_structure(
         bridge[max(0,cy-th):min(face.shape[0],cy+th+1),xa:xb+1]=True
         bridge&=authority
 
-    ring_support=.5*(left[6]+right[6])\n    source_support=min(1.0,ring_support*2.0)
+    ring_support=.5*(left[6]+right[6])
+    source_support=min(1.0,ring_support*2.0)
     symmetry=min(left[1],right[1])/max(left[1],right[1])
     confidence=min(1.0,.52+.20*symmetry+.18*source_support+.10*min(1,(right[2]-left[2])/max(fw,1)))
     return EyewearStructuralEvidence(ll,rr,frame,bridge,confidence,True)
