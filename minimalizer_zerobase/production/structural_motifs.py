@@ -146,3 +146,23 @@ def collar_shape_segments(rgb:np.ndarray,garment:np.ndarray,head:np.ndarray,*,ma
   comps.sort(key=lambda p:(np.mean([q[0] for q in p]),-len(p)))
   m=np.zeros_like(g);py,px=zip(*comps[0]);m[py,px]=1;out.append(m)
  return tuple(out[:max_segments])
+
+def major_color_masses(rgb:np.ndarray,mask:np.ndarray,*,max_masses:int=3,min_ratio:float=.10)->tuple[tuple[np.ndarray,tuple[int,int,int]],...]:
+ """Reserve dominant connected color masses before detail regions consume the primitive budget."""
+ a=np.asarray(rgb,np.uint8);m=np.asarray(mask,bool)
+ if not np.any(m):return ()
+ total=int(m.sum());q=(a//48).astype(np.int16);keys=q[:,:,0]*36+q[:,:,1]*6+q[:,:,2]
+ seen=np.zeros_like(m);rows=[];H,W=m.shape
+ for sy,sx in zip(*np.where(m)):
+  if seen[sy,sx]:continue
+  key=keys[sy,sx];st=[(sy,sx)];seen[sy,sx]=1;pts=[]
+  while st:
+   y,x=st.pop();pts.append((y,x))
+   for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+    if 0<=ny<H and 0<=nx<W and m[ny,nx] and not seen[ny,nx] and keys[ny,nx]==key:
+     seen[ny,nx]=1;st.append((ny,nx))
+  if len(pts)<max(8,int(total*min_ratio)):continue
+  mm=np.zeros_like(m);yy,xx=zip(*pts);mm[yy,xx]=1
+  col=tuple(int(v) for v in np.median(a[mm],axis=0));rows.append((len(pts),mm,col))
+ rows.sort(key=lambda z:(-z[0],z[2]))
+ return tuple((mm,col) for _,mm,col in rows[:max_masses])
