@@ -113,3 +113,36 @@ def sleeve_forearm_masses(rgb:np.ndarray,arm:np.ndarray,torso:np.ndarray)->tuple
  sleeve[y[s],x[s]]=1;fore[y[~s],x[~s]]=1
  if sleeve.sum()<m.sum()*.18 or fore.sum()<m.sum()*.18:return two_segment_arm_masks(m,t)
  return sleeve,fore
+
+def collar_shape_segments(rgb:np.ndarray,garment:np.ndarray,head:np.ndarray,*,max_segments:int=2)->tuple[np.ndarray,...]:
+ """Extract at most two coherent upper-garment collar strokes from source evidence."""
+ a=np.asarray(rgb,np.uint8);g=np.asarray(garment,bool);h=np.asarray(head,bool)
+ if not np.any(g):return ()
+ base=collar_motif(g,h)
+ ys,xs=np.where(g);cx=float(xs.mean());span=max(1.,float(xs.max()-xs.min()+1))
+ yy,xx=np.indices(g.shape)
+ upper=g&(yy<=np.quantile(ys,.42))&(np.abs(xx-cx)<=span*.38)
+ # Prefer color contrast against the garment median, but remain inside upper garment authority.
+ med=np.median(a[g],axis=0).astype(float)
+ dist=np.linalg.norm(a.astype(float)-med,axis=2)
+ cand=upper&(dist>=max(18.,float(np.quantile(dist[g],.68))))
+ cand|=base
+ # Split left/right around garment center. This naturally represents V/Y collars with <=2 masses.
+ out=[]
+ for side in (cand&(xx<=cx),cand&(xx>cx)):
+  if side.sum()<max(4,int(g.sum()*.004)):continue
+  # Keep component nearest upper center.
+  seen=np.zeros_like(side);comps=[];H,W=side.shape
+  for sy,sx in zip(*np.where(side)):
+   if seen[sy,sx]:continue
+   st=[(sy,sx)];seen[sy,sx]=1;pts=[]
+   while st:
+    y,x=st.pop();pts.append((y,x))
+    for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+     if 0<=ny<H and 0<=nx<W and side[ny,nx] and not seen[ny,nx]:
+      seen[ny,nx]=1;st.append((ny,nx))
+   if len(pts)>=4:comps.append(pts)
+  if not comps:continue
+  comps.sort(key=lambda p:(np.mean([q[0] for q in p]),-len(p)))
+  m=np.zeros_like(g);py,px=zip(*comps[0]);m[py,px]=1;out.append(m)
+ return tuple(out[:max_segments])
