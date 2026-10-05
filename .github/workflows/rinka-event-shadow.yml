@@ -5,9 +5,11 @@ on:
       - "minimalizer_zerobase/golden_comparison/events.py"
       - "minimalizer_zerobase/golden_comparison/shadow.py"
       - "minimalizer_zerobase/golden_comparison/event_hub_client.py"
+      - "minimalizer_zerobase/golden_comparison/runtime.py"
       - "tests/zerobase/test_golden_events.py"
       - "tests/zerobase/test_golden_shadow.py"
       - "tests/zerobase/test_event_hub_client.py"
+      - "tests/zerobase/test_golden_runtime.py"
       - ".github/workflows/rinka-event-shadow.yml"
   push:
     branches: [main]
@@ -24,4 +26,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install pytest
-      - run: python -m pytest tests/zerobase/test_golden_events.py tests/zerobase/test_golden_shadow.py tests/zerobase/test_event_hub_client.py -q
+      - run: python -m pytest tests/zerobase/test_golden_events.py tests/zerobase/test_golden_shadow.py tests/zerobase/test_event_hub_client.py tests/zerobase/test_golden_runtime.py -q
