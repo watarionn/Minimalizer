@@ -12,7 +12,7 @@ def _fixture():
     masks={n:np.zeros((120,100),bool) for n in ("head","hair","face","major_clothing","accessory_or_held_object")}
     masks["head"][5:65,20:80]=1; masks["hair"][3:70,15:85]=1; masks["face"][30:62,32:68]=1
     masks["major_clothing"][65:115,18:82]=1; masks["accessory_or_held_object"][72:88,75:92]=1
-    rgb[20:31,24:76]=(35,45,55)
+    rgb[24:34,24:76]=(35,45,55)
     rgb[68:83,44:56]=(80,210,45)
     return rgb,masks
 
