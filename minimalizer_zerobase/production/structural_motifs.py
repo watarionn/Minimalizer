@@ -279,12 +279,3 @@ def hierarchical_shape_mass(mask:np.ndarray,*,bands:int=4)->np.ndarray:
   out|=core&m
  return out
 
-def hierarchical_shape_mass(mask:np.ndarray,*,bands:int=4)->np.ndarray:
- m=np.asarray(mask,bool)
- if not np.any(m):return m.copy()
- y,x=np.where(m);out=np.zeros_like(m);edges=np.linspace(y.min(),y.max()+1,bands+1).astype(int)
- for a,b in zip(edges[:-1],edges[1:]):
-  yy,xx=np.where(m[a:b])
-  if len(xx)<3:continue
-  lo=int(np.quantile(xx,.12));hi=int(np.quantile(xx,.88));core=np.zeros_like(m);core[a:b,lo:hi+1]=1;out|=core&m
- return out
