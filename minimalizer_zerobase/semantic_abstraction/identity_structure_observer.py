@@ -49,7 +49,7 @@ def observe_identity_structures(
         density=float(edges[component].sum()/max(1,pixel_area))
         if density < .025:
             continue
-        confidence=min(1.0,.45+density*3.0+min(ratio,.12))
+        confidence=min(1.0,.45+density*.55+min(ratio,.12)*2.5)
         rows.append((confidence,pixel_area,x,y,w,h,component,density,ratio))
     # Add medium-scale coherent color regions as observer evidence. Color alone is
     # never authority; promotion still requires an authorized SemanticPart parent.
