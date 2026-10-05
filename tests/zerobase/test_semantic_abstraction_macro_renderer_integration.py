@@ -15,3 +15,9 @@ def test_unknown_role_fails_closed():
 def test_no_golden_authority():
  r=replace_macro_roles(scene(),(macro("hair"),macro("major_clothing")),{"hair":"#222","major_clothing":"#333"})
  assert r.scene.provenance["golden_raster_used"] is False
+
+def test_identity_accent_is_recomposed_last():
+ s=VectorScene(10,10,(prim("h","hair",5),prim("c","major_clothing",6),prim("identity-accent-goggle","head",1)),{"golden_raster_used":False})
+ r=replace_macro_roles(s,(macro("hair"),macro("major_clothing")),{"hair":"#222","major_clothing":"#333"})
+ accent=next(p for p in r.scene.primitives if p.primitive_id=="identity-accent-goggle")
+ assert accent.z_order==max(p.z_order for p in r.scene.primitives)
