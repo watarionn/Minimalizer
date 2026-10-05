@@ -40,7 +40,10 @@ def verify_eyewear_region(rgb:np.ndarray,candidate:np.ndarray,authority:np.ndarr
    if not (.16<=sep<=.72 and dy<=.16 and sym>=.40):continue
    lx=l[5]+l[7];rx=r[5];yy0=max(l[6],r[6]);yy1=min(l[6]+l[8],r[6]+r[8]);bridge=False
    if rx>lx and yy1>yy0:bridge=bool((edge[yy0:yy1,lx:rx]>0).sum()>=max(2,(rx-lx)*.05))
-   cm=cv2.resize(c[ya:yb,xa:xb].astype(np.uint8), (edge.shape[1],edge.shape[0]), interpolation=cv2.INTER_NEAREST)>0\n   pair=np.zeros_like(edge,np.uint8);cv2.drawContours(pair,[l[0],r[0]],-1,1,-1);overlap=float((pair.astype(bool)&cm).sum())/max(1,int(pair.sum()))\n   if overlap<.72:continue\n   score=.23*sym+.18*(1-min(1,dy/.16))+.20*((l[4]+r[4])/2)+.22*(1 if bridge else 0)+.17*overlap
+   cm=cv2.resize(c[ya:yb,xa:xb].astype(np.uint8), (edge.shape[1],edge.shape[0]), interpolation=cv2.INTER_NEAREST)>0
+   pair=np.zeros_like(edge,np.uint8);cv2.drawContours(pair,[l[0],r[0]],-1,1,-1);overlap=float((pair.astype(bool)&cm).sum())/max(1,int(pair.sum()))
+   if overlap<.72:continue
+   score=.23*sym+.18*(1-min(1,dy/.16))+.20*((l[4]+r[4])/2)+.22*(1 if bridge else 0)+.17*overlap
    if best is None or score>best[0]:best=(score,l,r,bridge)
  if best is None:return RegionVerification(False,0,False,False,empty,"no_pair")
  score,l,r,bridge=best
