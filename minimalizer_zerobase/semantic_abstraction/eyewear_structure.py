@@ -73,7 +73,7 @@ def observe_eyewear_structure(
     # Candidate support is structural contrast near the upper face, excluding the central eye/mouth interior.
     central_face=face&(yy>=fy+int(.05*fh))&(yy<=fy+int(.72*fh))
     support=authority&~central_face&((contrast>=10)|(edges))
-    support=cv2.morphologyEx(support.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))>0
+    support=cv2.morphologyEx(support.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))>0\n    # A bridge may connect both lenses in source pixels; split structural support into left/right face-side hypotheses before pairing.\n    face_mid=fx+.5*fw\n    side_masks=(support&(xx<face_mid),support&(xx>=face_mid))
 
     count,labels,stats,cent=cv2.connectedComponentsWithStats(support.astype(np.uint8),8)
     comps=[]
