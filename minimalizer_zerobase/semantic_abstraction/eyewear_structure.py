@@ -73,17 +73,22 @@ def observe_eyewear_structure(
     # Candidate support is structural contrast near the upper face, excluding the central eye/mouth interior.
     central_face=face&(yy>=fy+int(.05*fh))&(yy<=fy+int(.72*fh))
     support=authority&~central_face&((contrast>=10)|(edges))
-    support=cv2.morphologyEx(support.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))>0\n    # A bridge may connect both lenses in source pixels; split structural support into left/right face-side hypotheses before pairing.\n    face_mid=fx+.5*fw\n    side_masks=(support&(xx<face_mid),support&(xx>=face_mid))
+    support=cv2.morphologyEx(support.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((3,3),np.uint8))>0
+    # A bridge may connect both lenses; split support into face-side hypotheses before pairing.
+    face_mid=fx+.5*fw
+    side_masks=(support&(xx<face_mid),support&(xx>=face_mid))
 
-    count,labels,stats,cent=cv2.connectedComponentsWithStats(support.astype(np.uint8),8)
-    comps=[]
-    for label in range(1,count):
-        area=int(stats[label,cv2.CC_STAT_AREA]);x=int(stats[label,cv2.CC_STAT_LEFT]);y=int(stats[label,cv2.CC_STAT_TOP])
-        w=int(stats[label,cv2.CC_STAT_WIDTH]);h=int(stats[label,cv2.CC_STAT_HEIGHT])
-        if area<max(5,int(fw*fh*.0015)) or w<max(4,int(.10*fw)) or h<3: continue
-        if w>.95*fw or h>.65*fh: continue
-        cx,cy=cent[label]
-        comps.append((label,area,float(cx),float(cy),w,h))
+    labels=np.zeros(support.shape,np.int32);comps=[];next_label=1
+    for side in side_masks:
+        count,local_labels,stats,cent=cv2.connectedComponentsWithStats(side.astype(np.uint8),8)
+        for label in range(1,count):
+            area=int(stats[label,cv2.CC_STAT_AREA]);x=int(stats[label,cv2.CC_STAT_LEFT]);y=int(stats[label,cv2.CC_STAT_TOP])
+            w=int(stats[label,cv2.CC_STAT_WIDTH]);h=int(stats[label,cv2.CC_STAT_HEIGHT])
+            if area<max(5,int(fw*fh*.0015)) or w<max(4,int(.10*fw)) or h<3: continue
+            if w>.95*fw or h>.65*fh: continue
+            cx,cy=cent[label]
+            labels[local_labels==label]=next_label
+            comps.append((next_label,area,float(cx),float(cy),w,h));next_label+=1
 
     # Prefer a horizontally separated pair with similar vertical placement and scale.
     best=None
