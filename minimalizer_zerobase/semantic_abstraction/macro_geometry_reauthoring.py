@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import cv2,numpy as np
 
-MACRO_GEOMETRY_VERSION="sa7.24-v1"
+MACRO_GEOMETRY_VERSION="sa7.25-v1"
 MAX_EXPANSION_RATIO=1.12
 MIN_SOURCE_COVERAGE=.65
 
@@ -25,11 +25,12 @@ def _masses(mask:np.ndarray,limit:int)->tuple[np.ndarray,...]:
 def _coarse_polygon(mask:np.ndarray)->np.ndarray|None:
  ys,xs=np.where(mask)
  if not xs.size:return None
- pts=np.column_stack((xs,ys)).astype(np.int32)
- hull=cv2.convexHull(pts.reshape(-1,1,2))
- peri=cv2.arcLength(hull,True)
- poly=cv2.approxPolyDP(hull,max(2.0,.035*peri),True).reshape(-1,2)
- return poly if len(poly)>=3 else hull.reshape(-1,2)
+ contours,_=cv2.findContours(np.asarray(mask).astype(np.uint8),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+ if not contours:return None
+ contour=max(contours,key=cv2.contourArea)
+ peri=cv2.arcLength(contour,True)
+ poly=cv2.approxPolyDP(contour,max(1.5,.025*peri),True).reshape(-1,2)
+ return poly if len(poly)>=3 else contour.reshape(-1,2)
 
 def reauthor_macro_geometry(*,hair_mask:np.ndarray,clothing_mask:np.ndarray)->tuple[MacroGeometryPrimitive,...]:
  out=[]
