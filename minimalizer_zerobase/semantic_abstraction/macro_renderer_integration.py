@@ -5,7 +5,7 @@ import numpy as np
 from minimalizer_zerobase.compose.composer import ComposedPrimitive,VectorScene
 from minimalizer_zerobase.render import SvgRenderer
 from .macro_geometry_reauthoring import MacroGeometryPrimitive
-MACRO_RENDER_VERSION="sa7.26-v1"
+MACRO_RENDER_VERSION="sa7.28-v1"
 _ALLOWED=("hair","major_clothing")
 @dataclass(frozen=True)
 class MacroRenderResult:
@@ -30,6 +30,15 @@ def replace_macro_roles(scene:VectorScene,macros:Iterable[MacroGeometryPrimitive
  for role in require_roles:
   for i,m in enumerate(by_role[role]):
    added.append(ComposedPrimitive(primitive_id=f"semantic-macro:{role}:{i}",source_region_id=role,selected_candidate_id=f"semantic-macro:{MACRO_RENDER_VERSION}:{role}:{i}",primitive_type="convex_polygon",parameters={"points":_points(m.polygon)},fill_ref=palette[role],z_order=base_z[role]+i))
- merged=tuple(sorted(kept+added,key=lambda p:(p.z_order,p.primitive_id)))
+ protected=[p for p in kept if p.source_region_id not in set(require_roles) and (
+  "accent" in p.primitive_id.lower() or "identity" in p.primitive_id.lower() or
+  "accent" in p.selected_candidate_id.lower() or "identity" in p.selected_candidate_id.lower()
+ )]
+ protected_ids={p.primitive_id for p in protected}
+ ordinary=[p for p in kept if p.primitive_id not in protected_ids]
+ ordered=sorted(ordinary+added,key=lambda p:(p.z_order,p.primitive_id))
+ top=max([p.z_order for p in ordered],default=0)+1
+ promoted=[ComposedPrimitive(p.primitive_id,p.source_region_id,p.selected_candidate_id,p.primitive_type,p.parameters,p.fill_ref,top+i) for i,p in enumerate(sorted(protected,key=lambda x:(x.z_order,x.primitive_id)))]
+ merged=tuple(sorted(ordered+promoted,key=lambda p:(p.z_order,p.primitive_id)))
  out=VectorScene(width=scene.width,height=scene.height,primitives=merged,provenance={**scene.provenance,"semantic_macro_renderer":MACRO_RENDER_VERSION,"macro_semantic_authority":"upstream_authorized_masks","golden_raster_used":False})
  return MacroRenderResult(out,SvgRenderer().render(out),tuple(require_roles))
