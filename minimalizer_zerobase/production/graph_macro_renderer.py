@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass, hierarchical_shape_mass
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -60,6 +60,12 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  if allocations.get("hair",0)>0 and "hair" in masks:
   pts=_contour_polygon(masks["hair"],20)
   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["hair"])}"/>')
+ # Whole-body hierarchy establishes stable central masses before broad silhouettes.
+ for role in ("lower_body","torso","left_arm","right_arm","hair"):
+  if role not in masks:continue
+  hm=hierarchical_shape_mass(masks[role],bands=4)
+  pts=_contour_polygon(hm,10)
+  if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks[role])}"/>')
  # Broad semantic silhouette masses reduce noisy contour fragments without leaving authority.
  for role in ("hair","torso","left_arm","right_arm","lower_body"):
   if role not in masks:continue
