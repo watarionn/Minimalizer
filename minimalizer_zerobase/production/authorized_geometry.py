@@ -30,6 +30,24 @@ def _bbox(mask: Mapping[str, Any]) -> tuple[float, float, float, float]:
     return x, y, w, h
 
 
+def _feature_bbox(
+    bbox: tuple[float, float, float, float], ordinal: int, count: int
+) -> tuple[float, float, float, float]:
+    """Make repeated primitive budget geometrically effective without leaving authority."""
+    x, y, w, h = bbox
+    if count <= 1:
+        return bbox
+    phase = ordinal % 4
+    ring = ordinal // 4
+    ix = min(w * (0.06 + 0.035 * ring), w * 0.28)
+    iy = min(h * (0.06 + 0.035 * ring), h * 0.28)
+    left = ix if phase in (0, 2) else ix * 0.45
+    right = ix if phase in (1, 2) else ix * 0.45
+    top = iy if phase in (0, 1) else iy * 0.45
+    bottom = iy if phase in (2, 3) else iy * 0.45
+    return x + left, y + top, w - left - right, h - top - bottom
+
+
 def fit_authorized_geometry(
     *,
     geometry_plan: Mapping[str, Any],
@@ -59,6 +77,11 @@ def fit_authorized_geometry(
     if unknown_masks:
         raise AuthorizedGeometryError("semantic mask supplied for unauthorized feature: " + ", ".join(sorted(unknown_masks)))
 
+    feature_counts: dict[str, int] = {}
+    for row in rows:
+        fid = row.get("feature_id")
+        feature_counts[fid] = feature_counts.get(fid, 0) + 1
+
     primitives = []
     identities = set()
     for z_order, row in enumerate(rows):
@@ -78,7 +101,9 @@ def fit_authorized_geometry(
         if feature_id not in palette:
             raise AuthorizedGeometryError(f"missing palette assignment: {feature_id}")
 
-        x, y, w, h = _bbox(semantic_masks[feature_id])
+        x, y, w, h = _feature_bbox(
+            _bbox(semantic_masks[feature_id]), int(ordinal), feature_counts[feature_id]
+        )
         rendered_kind = KIND_MAP[kind]
         params: dict[str, Any] = {"bbox": [x, y, w, h]}
         if rendered_kind == "ellipse":
@@ -109,6 +134,7 @@ def fit_authorized_geometry(
             "semantic_authority": "manifest_and_authorized_masks",
             "fitter_may_decide_semantics": False,
             "golden_raster_used": False,
+            "repeated_budget_geometry": "deterministic_in_bbox_decomposition",
         },
     )
 
