@@ -79,7 +79,7 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
   for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
    pts=_contour_polygon(mass,12)
-   if pts: chunks.append(f'<polygon points="{pts}" fill="{_rgb(mrgb)}"/>')
+   if pts: chunks.append(f'<polygon points="{pts}" fill="{f"rgb({mrgb[0]},{mrgb[1]},{mrgb[2]})"}"/>')
  # Sparse garment construction motifs: collar and sleeve attachments.
  if "torso" in masks:
   collar_authority=garment_mask if garment_mask is not None else masks["torso"]
