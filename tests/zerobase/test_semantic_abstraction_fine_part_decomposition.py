@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from minimalizer_zerobase.semantic_abstraction.fine_part_decomposition import (
-    FINE_IDENTITY_CATEGORIES, FinePartProposal, observe_fine_identity_parts, promote_fine_identity_parts,
+    FINE_IDENTITY_CATEGORIES, FinePartProposal, observe_fine_identity_parts, promote_fine_identity_parts, validate_fine_part_proposal,
 )
 from minimalizer_zerobase.semantic_abstraction.ir import AbstractionPlan,AbstractionPolicy,SemanticPart,VisualRole
 
@@ -54,3 +54,17 @@ def test_unknown_category_is_not_silently_promoted():
     proposal=FinePartProposal("mystery","head",mask,.99,"observer:test")
     plan=AbstractionPlan(parts=(SemanticPart(id="head",category="head",abstraction_policy=AbstractionPolicy.PRESERVE),))
     assert len(promote_fine_identity_parts(plan,(proposal,)).parts)==1
+
+
+def test_validation_rejects_proposal_outside_parent_authority():
+    parent=np.zeros((30,30),bool);parent[10:20,10:20]=1
+    mask=np.zeros((30,30),bool);mask[0:8,0:8]=1
+    ok,reason=validate_fine_part_proposal(FinePartProposal("eyewear","head",mask,.9,"e"),parent)
+    assert not ok and reason=="outside_parent"
+
+
+def test_eyewear_must_be_structurally_near_face():
+    parent=np.ones((60,60),bool);face=np.zeros((60,60),bool);face[35:50,20:40]=1
+    mask=np.zeros((60,60),bool);mask[2:10,2:18]=1
+    ok,reason=validate_fine_part_proposal(FinePartProposal("eyewear","head",mask,.9,"e"),parent,face_mask=face)
+    assert not ok and reason=="not_near_face"
