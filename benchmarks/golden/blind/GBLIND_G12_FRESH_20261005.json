@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_G12_FRESH_20261005",
+  "status": "SEALED_BEFORE_FIRST_OBSERVER_RUN",
+  "source_archive": {
+    "name": "HoloMenImages.zip",
+    "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9"
+  },
+  "production_baseline": {
+    "main_sha": "e588132335e6affc7e5bb15b4a855aea7875d364",
+    "includes": [
+      "mask topology fitting",
+      "8-band contour envelope rendering",
+      "local accent rendering",
+      "topology-weighted authorized palette extraction"
+    ]
+  },
+  "selection_rule": {
+    "exclude_previous_g8_g9_g10_g11": true,
+    "ordering": "ascending source SHA-256",
+    "take": 5,
+    "visual_inspection_used": false
+  },
+  "input_bundle_sha256": "e5ab034e2b2184ced9da30fe94b796579b288bdfdf68249c4383f35e8478cae4",
+  "cases": [
+    {
+      "case_id": "g12_pavolia_reine",
+      "filename": "g12_pavolia_reine.png",
+      "source_path": "HoloMenImages/パヴォリア・レイネ（Pavolia Reine）/Pavolia-Reine_list_thumb.png",
+      "sha256": "312957574ad112f0515222fd412b17aa0e8fb1171857aff435e0dca9670ec31e",
+      "has_golden": false
+    },
+    {
+      "case_id": "g12_hakui_koyori",
+      "filename": "g12_hakui_koyori.png",
+      "source_path": "HoloMenImages/博衣こより（Hakui Koyori）/Hakui-Koyori_list_thumb.png",
+      "sha256": "332b4ad9590a568f0f1605d22cb631f13e1e53af89abf725f1dad72c8f757b3f",
+      "has_golden": false
+    },
+    {
+      "case_id": "g12_amane_kanata",
+      "filename": "g12_amane_kanata.png",
+      "source_path": "HoloMenImages/【卒業生】天音かなた（Amane Kanata）/Amane-Kanata_list_thumb.png",
+      "sha256": "3a31457ed1243e0fd05d6b96a086a8e23dc844784f55d31d9b89f7bb4a04315b",
+      "has_golden": false
+    },
+    {
+      "case_id": "g12_omaru_polka",
+      "filename": "g12_omaru_polka.png",
+      "source_path": "HoloMenImages/尾丸ポルカ（Omaru Polka）/Omaru-Polka_list_thumb.png",
+      "sha256": "3afd428a781c2e5d730ce951286cac95ed83c1765b197c77659cbe2c009e6682",
+      "has_golden": false
+    },
+    {
+      "case_id": "g12_murasaki_shion",
+      "filename": "g12_murasaki_shion.png",
+      "source_path": "HoloMenImages/【卒業生】紫咲シオン（Murasaki Shion）/Murasaki-Shion_list_thumb.png",
+      "sha256": "3f07adc18549c94793210346a6e593311aaefcffa4c346a231c5dcf4ad754602",
+      "has_golden": false
+    }
+  ],
+  "first_observer_run_performed": false
+}
