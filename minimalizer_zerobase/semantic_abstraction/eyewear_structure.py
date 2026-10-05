@@ -95,7 +95,10 @@ def observe_eyewear_structure(
             left,right=(a,b) if a[2]<=b[2] else (b,a)
             sep=(right[2]-left[2])/max(fw,1);dy=abs(right[3]-left[3])/max(fh,1)
             ar=min(left[1],right[1])/max(left[1],right[1])
-            if not (.20<=sep<=1.05 and dy<=.30 and ar>=.18): continue
+            face_mid=fx+.5*fw
+            straddles=left[2] < face_mid < right[2]
+            balance=min(face_mid-left[2],right[2]-face_mid)/max(1.0,max(face_mid-left[2],right[2]-face_mid)) if straddles else 0.0
+            if not (.20<=sep<=1.05 and dy<=.30 and ar>=.18 and straddles and balance>=.18): continue
             score=1.8*ar+max(0,1-dy)+min(1,sep)+.5*(left[6]+right[6])
             if best is None or score>best[0]: best=(score,left,right)
 
