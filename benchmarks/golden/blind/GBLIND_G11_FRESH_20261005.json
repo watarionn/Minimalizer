@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_G11_FRESH_20261005",
+  "status": "SEALED_BEFORE_FIRST_OBSERVER_RUN",
+  "source_archive": {
+    "name": "HoloMenImages.zip",
+    "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9"
+  },
+  "production_baseline": {
+    "main_sha": "a22f4bbef4125e6f10af0a5701f5a7a0ed916e80",
+    "includes": [
+      "mask topology fitting",
+      "deterministic palette roles",
+      "8-band contour envelope rendering",
+      "local accent rendering inside existing primitive budget"
+    ]
+  },
+  "selection_rule": {
+    "exclude_previous_g8_g9_g10": true,
+    "ordering": "ascending source SHA-256",
+    "take": 5,
+    "visual_inspection_used": false
+  },
+  "input_bundle_sha256": "0a002cc586cf7121bf37e6db7e9a1b17a1ca3899960ef88ee269216916798e4b",
+  "cases": [
+    {
+      "case_id": "g11_mori_calliope",
+      "filename": "g11_mori_calliope.png",
+      "source_path": "HoloMenImages/森カリオペ（Mori Calliope）/Mori-Calliope_list_thumb.png",
+      "sha256": "2eb93ef83c0fb4ac136586170b2bd5f8c43cf6884b4e9632c2d6f4218a0e8fb0",
+      "has_golden": false
+    },
+    {
+      "case_id": "g11_watson_amelia",
+      "filename": "g11_watson_amelia.png",
+      "source_path": "HoloMenImages/【配信活動終了】ワトソン・アメリア（Watson Amelia）/Watson-Amelia_list_thumb.png",
+      "sha256": "2f087503bda2d7593509b75edd0b9a4b907c344a78b5b64c741dba471cc3c407",
+      "has_golden": false
+    },
+    {
+      "case_id": "g11_tokoyami_towa",
+      "filename": "g11_tokoyami_towa.png",
+      "source_path": "HoloMenImages/常闇トワ（Tokoyami Towa）/Tokoyami-Towa_list_thumb.png",
+      "sha256": "2f8ec780122344a94a1a8dd65255d93a1b1d395dc1c9a2498ca93cf069618b3c",
+      "has_golden": false
+    },
+    {
+      "case_id": "g11_momosuzu_nene",
+      "filename": "g11_momosuzu_nene.png",
+      "source_path": "HoloMenImages/桃鈴ねね（Momosuzu Nene）/Momosuzu-Nene_list_thumb.png",
+      "sha256": "2fbd77da0ba4c2be94e44eede84ad9a4e6aa3735d95a6b81ac3930cf7452f3aa",
+      "has_golden": false
+    },
+    {
+      "case_id": "g11_ouro_kronii",
+      "filename": "g11_ouro_kronii.png",
+      "source_path": "HoloMenImages/オーロ・クロニー（Ouro Kronii）/Ouro-Kronii_list_thumb.png",
+      "sha256": "30dc6b9f3e65813bb32a08264714405a33d14ea15f091b2a4b80efa66b2372ca",
+      "has_golden": false
+    }
+  ],
+  "first_observer_run_performed": false
+}
