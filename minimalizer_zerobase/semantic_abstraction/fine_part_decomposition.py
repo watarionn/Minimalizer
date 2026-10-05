@@ -167,7 +167,14 @@ def validate_fine_part_proposal(
     return True,"ok"
 
 
-def promote_fine_identity_parts(\n    plan: AbstractionPlan,\n    proposals: tuple[FinePartProposal,...],\n    *,\n    parent_masks: Mapping[str,np.ndarray] | None=None,\n    face_mask: np.ndarray | None=None,\n    minimum_confidence: float=.60,\n) -> AbstractionPlan:
+def promote_fine_identity_parts(
+    plan: AbstractionPlan,
+    proposals: tuple[FinePartProposal,...],
+    *,
+    parent_masks: Mapping[str,np.ndarray] | None=None,
+    face_mask: np.ndarray | None=None,
+    minimum_confidence: float=.60,
+) -> AbstractionPlan:
     """Promote observer evidence only under an existing non-suppressed semantic parent."""
     parents={p.id:p for p in plan.parts}
     additions=[]
@@ -178,7 +185,14 @@ def promote_fine_identity_parts(\n    plan: AbstractionPlan,\n    proposals: tup
         parent=parents.get(proposal.parent_part_id)
         if parent is None or parent.abstraction_policy is AbstractionPolicy.SUPPRESS:
             continue
-        if proposal.confidence < minimum_confidence or not np.any(proposal.mask):\n            continue\n        if parent_masks is not None:\n            if proposal.parent_part_id not in parent_masks:\n                continue\n            valid,_reason=validate_fine_part_proposal(proposal,parent_masks[proposal.parent_part_id],face_mask=face_mask)\n            if not valid:\n                continue
+        if proposal.confidence < minimum_confidence or not np.any(proposal.mask):
+            continue
+        if parent_masks is not None:
+            if proposal.parent_part_id not in parent_masks:
+                continue
+            valid,_reason=validate_fine_part_proposal(proposal,parent_masks[proposal.parent_part_id],face_mask=face_mask)
+            if not valid:
+                continue
         counts[proposal.category]=counts.get(proposal.category,0)+1
         suffix=counts[proposal.category]
         pid=proposal.category if suffix==1 else f"{proposal.category}:{suffix}"
