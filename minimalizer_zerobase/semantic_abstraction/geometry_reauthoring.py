@@ -278,7 +278,7 @@ def semantic_reauthor_scene(
     # Preserve a tiny bounded set of source-supported identity accents on major body/limb masses.
     # This is generic feature reservation: semantic authority decides where an accent may survive,
     # while source pixels decide its color and shape.
-    for part_id, max_accents in (("torso", 2), ("lower_body", 1), ("left_arm", 1), ("right_arm", 1)):
+    for part_id, max_accents in (("torso", 2), ("lower_body", 2), ("left_arm", 1), ("right_arm", 1)):
         if not allowed(part_id):
             continue
         authority = np.asarray(masks[part_id]).astype(bool)
@@ -380,6 +380,6 @@ def semantic_reauthor_scene(
             "identity_accents_protected": True,
             "head_identity_accents_max": 2,
             "head_identity_accents_exclude_face": True,
-            "body_identity_accents_max": {"torso": 2, "lower_body": 1, "left_arm": 1, "right_arm": 1},
+            "body_identity_accents_max": {"torso": 2, "lower_body": 2, "left_arm": 1, "right_arm": 1},
         },
     )
