@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -73,6 +73,15 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    pts=_contour_polygon(cmask,14)
    if pts:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
+ # Sparse garment construction motifs: collar and sleeve attachments.
+ if "torso" in masks:
+  collar=collar_motif(garment_mask if garment_mask is not None else masks["torso"],masks.get("head",np.zeros_like(masks["torso"])))
+  if np.any(collar):
+   pts=_contour_polygon(collar,10)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,collar)}"/>')
+  for sleeve in sleeve_boundary_motifs(masks["torso"],masks.get("left_arm"),masks.get("right_arm")):
+   pts=_contour_polygon(sleeve,10)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,sleeve)}"/>')
  # Compose region evidence across semantic-part boundaries. Semantic masks remain authority.
  active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory","major_clothing") if allocations.get(r,0)>0 and r in masks}
  # Edge-aware candidates compete under one perceptual budget; semantic masks remain authority.
