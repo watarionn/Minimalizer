@@ -57,3 +57,19 @@ def feature_local_regions(
         conf=float(np.mean([sim[y,x] for y,x in cells]))
         items.append(FeatureLocalEvidence(f"dino-local-{len(items)}",mask,conf))
     return tuple(items)
+
+
+CONTRAST_WINDOW_THRESHOLD=-0.0118829645
+
+def contrast_window_evidence(scores:np.ndarray, boxes:tuple[tuple[int,int,int,int],...], *, output_shape:tuple[int,int])->tuple[FeatureLocalEvidence,...]:
+    """Convert independently scored sliding crops into feature-local evidence."""
+    s=np.asarray(scores,dtype=np.float32).reshape(-1)
+    if len(s)!=len(boxes):raise ValueError("window score count mismatch")
+    out=[]
+    for score,box in sorted(zip(s,boxes),key=lambda x:x[1]):
+        if float(score)<CONTRAST_WINDOW_THRESHOLD:continue
+        x0,y0,x1,y1=(int(v) for v in box)
+        if x0<0 or y0<0 or x1<=x0 or y1<=y0 or x1>output_shape[1] or y1>output_shape[0]:continue
+        mask=np.zeros(output_shape,bool);mask[y0:y1,x0:x1]=1
+        out.append(FeatureLocalEvidence(f"dino-window-{len(out)}",mask,float(np.clip((score-CONTRAST_WINDOW_THRESHOLD+.05)/.10,0,1))))
+    return tuple(out)
