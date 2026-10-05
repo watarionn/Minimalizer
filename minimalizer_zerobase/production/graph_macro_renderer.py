@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -60,6 +60,11 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  if allocations.get("hair",0)>0 and "hair" in masks:
   pts=_contour_polygon(masks["hair"],20)
   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["hair"])}"/>')
+ # Global subject masses establish the large visual composition before garment/detail layers.
+ global_parts={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","major_clothing") if r in masks}
+ for _,gm,gcol in global_mass_regions(rgb,global_parts,min_subject_ratio=.022,max_regions=12):
+  pts=_contour_polygon(gm,14)
+  if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({gcol[0]},{gcol[1]},{gcol[2]})"/>')
  # Large garment masses establish collar/body/sleeve-like construction before small evidence.
  garment_mask=clothing_authority(masks["torso"],masks.get("major_clothing")) if "torso" in masks else masks.get("major_clothing")
  if garment_mask is not None:
