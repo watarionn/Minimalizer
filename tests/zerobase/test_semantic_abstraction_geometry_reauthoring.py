@@ -112,7 +112,7 @@ def test_scene_uses_small_primitive_budget() -> None:
     assert len(scene.primitives) <= 23
 
 
-def test_head_identity_accents_are_bounded_and_face_excluded() -> None:
+def test_head_identity_structures_are_bounded_and_face_excluded() -> None:
     rgb, masks, plan = _fixture()
     scene = semantic_reauthor_scene(rgb, masks, plan)
     accents = [p for p in scene.primitives if p.primitive_id.startswith("semantic:head-accent:")]
