@@ -8,7 +8,7 @@ from minimalizer_zerobase.production.cross_part_region_graph import build_cross_
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
 from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass
-from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard
+from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard\nfrom minimalizer_zerobase.semantic_abstraction.fine_geometry_grammar import build_fine_geometry_primitives
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -128,6 +128,19 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    accent=_strengthened_accent_mask(accent,garment_mask,target_ratio=1.18)
    pts=_contour_polygon(accent,12)
    if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({argb[0]},{argb[1]},{argb[2]})"/>')
+ # Fine semantic identity geometry is restored after generic garment accents.
+ # Category grammar, not the renderer, decides primitive family/count.
+ fine_budget=max(2,min(10,sum(max(0,int(v)) for v in allocations.values())))
+ for primitive in build_fine_geometry_primitives(rgb,masks,graph,primitive_budget=fine_budget):
+  col=f"rgb({primitive.rgb[0]},{primitive.rgb[1]},{primitive.rgb[2]})"
+  if primitive.family=="ellipse":
+   box=_bbox(primitive.mask)
+   if box:
+    x0,y0,x1,y1=box;cx=(x0+x1)/2;cy=(y0+y1)/2;rx=max(.5,(x1-x0)/2);ry=max(.5,(y1-y0)/2)
+    chunks.append(f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{rx:.1f}" ry="{ry:.1f}" fill="{col}" data-semantic="{primitive.semantic_part}"/>')
+  else:
+   pts=_contour_polygon(primitive.mask,10)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="{col}" data-semantic="{primitive.semantic_part}"/>')
  # Foreground semantic ownership is restored last for graph-authorized accessories.
  if allocations.get("accessory",0)>0 and "accessory" in masks:
   rel=[r for r in graph.relations if r.source_part=="accessory_or_held_object" and r.relation_kind=="attached_to"]
