@@ -195,3 +195,32 @@ def garment_panels(rgb:np.ndarray,garment:np.ndarray,*,max_panels:int=4,min_rati
   chosen.append((novel,col));occupied|=novel
   if len(chosen)>=max_panels:break
  return tuple(chosen)
+
+def global_mass_regions(rgb:np.ndarray,parts:dict[str,np.ndarray],*,min_subject_ratio:float=.025,max_regions:int=10)->tuple[tuple[str,np.ndarray,tuple[int,int,int]],...]:
+ """Select visually dominant source-derived masses across the whole subject, not per-detail budgets."""
+ a=np.asarray(rgb,np.uint8);subject=np.zeros(a.shape[:2],bool)
+ for m in parts.values():subject|=np.asarray(m,bool)
+ total=max(1,int(subject.sum()));rows=[]
+ for role,m0 in parts.items():
+  m=np.asarray(m0,bool)
+  if not np.any(m):continue
+  # Broad quantization deliberately favors silhouette-scale color blocks.
+  q=(a//64).astype(np.int16);keys=q[:,:,0]*16+q[:,:,1]*4+q[:,:,2]
+  H,W=m.shape;seen=np.zeros_like(m)
+  for sy,sx in zip(*np.where(m)):
+   if seen[sy,sx]:continue
+   k=keys[sy,sx];st=[(sy,sx)];seen[sy,sx]=1;pts=[]
+   while st:
+    y,x=st.pop();pts.append((y,x))
+    for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+     if 0<=ny<H and 0<=nx<W and m[ny,nx] and not seen[ny,nx] and keys[ny,nx]==k:
+      seen[ny,nx]=1;st.append((ny,nx))
+   ratio=len(pts)/total
+   if ratio<min_subject_ratio:continue
+   mm=np.zeros_like(m);yy,xx=zip(*pts);mm[yy,xx]=1
+   col=tuple(int(v) for v in np.median(a[mm],axis=0))
+   # Area dominates, with chroma as a mild identity cue.
+   chroma=(max(col)-min(col))/255.;score=ratio*(1.+.25*chroma)
+   rows.append((score,role,mm,col))
+ rows.sort(key=lambda z:(-z[0],z[1],z[3]))
+ return tuple((role,m,col) for _,role,m,col in rows[:max_regions])
