@@ -38,3 +38,24 @@ def clothing_major_regions(rgb:np.ndarray,mask:np.ndarray,*,max_regions:int=4)->
   col=tuple(int(v) for v in np.median(a[mm],axis=0));rows.append((len(pts),mm,col))
  rows.sort(key=lambda z:(-z[0],z[2]))
  return tuple((mm,col) for _,mm,col in rows[:max_regions])
+
+def two_segment_arm_masks(mask:np.ndarray,torso_mask:np.ndarray)->tuple[np.ndarray,np.ndarray]:
+ """Split an arm into shoulder-side and distal masses using the torso attachment as orientation."""
+ m=np.asarray(mask,bool);torso=np.asarray(torso_mask,bool)
+ if not np.any(m):return m.copy(),m.copy()
+ c,v=principal_axis(m);ys,xs=np.where(m);pts=np.column_stack([xs,ys]).astype(float)
+ # Orient axis so negative projection is nearer the torso centroid.
+ ty,tx=np.where(torso)
+ tc=np.array([tx.mean(),ty.mean()]) if len(tx) else c
+ if np.dot(tc-c,v)>0:v=-v
+ proj=(pts-c)@v;cut=float(np.median(proj))
+ near=np.zeros_like(m);far=np.zeros_like(m)
+ near[ys[proj<=cut],xs[proj<=cut]]=1;far[ys[proj>cut],xs[proj>cut]]=1
+ # Preserve real mass rather than reducing either half to a centerline.
+ if near.sum()<m.sum()*.18 or far.sum()<m.sum()*.18:return m.copy(),np.zeros_like(m)
+ return near,far
+
+def clothing_authority(torso:np.ndarray,major_clothing:np.ndarray|None)->np.ndarray:
+ """Union clothing evidence while retaining semantic ownership boundaries upstream."""
+ t=np.asarray(torso,bool)
+ return t.copy() if major_clothing is None else (t|np.asarray(major_clothing,bool))
