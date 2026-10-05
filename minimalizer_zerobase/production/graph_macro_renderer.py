@@ -5,7 +5,7 @@ from minimalizer_zerobase.structure.graph import StructuralLayoutGraph
 from minimalizer_zerobase.production.semantic_contour import semantic_contour
 from minimalizer_zerobase.production.part_color_regions import extract_part_color_regions
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
-from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions
+from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_accents
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
 
 def _median(rgb,mask):
@@ -51,7 +51,12 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  # Compose region evidence across semantic-part boundaries. Semantic masks remain authority.
  active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory") if allocations.get(r,0)>0 and r in masks}
  # Edge-aware candidates compete under one perceptual budget; semantic masks remain authority.
- candidates={role:propose_edge_regions(rgb,active[role],cell_size=8,max_regions=6) for role in active}
+ candidates={}
+ for role in active:
+  primary=list(propose_edge_regions(rgb,active[role],cell_size=8,max_regions=6))
+  accents=list(propose_contrast_accents(rgb,active[role],max_regions=3))
+  # Accent lane supplements rather than replacing structural proposals.
+  candidates[role]=tuple(primary+accents)
  base={role:tuple(int(v) for v in np.median(np.asarray(rgb)[active[role]],axis=0)) for role in active if np.any(active[role])}
  selected=select_perceptual_regions(candidates,active,base,budget=12)
  for item in selected:
