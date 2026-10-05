@@ -58,3 +58,29 @@ def propose_edge_regions(rgb:np.ndarray,part_mask:np.ndarray,*,cell_size:int=8,m
    boundary=float(e[m].mean());rows.append(EdgeRegion(m,col,len(pts),boundary))
  rows.sort(key=lambda r:(-r.area,-r.edge_boundary,r.rgb))
  return tuple(rows[:max_regions])
+
+def propose_contrast_accents(rgb:np.ndarray,part_mask:np.ndarray,*,max_regions:int=3,min_ratio:float=.006,max_ratio:float=.10)->tuple[EdgeRegion,...]:
+ """Second proposal lane for compact colors that spatial superpixels can absorb."""
+ a=np.asarray(rgb,np.uint8);pm=np.asarray(part_mask,bool)
+ total=int(pm.sum())
+ if not total:return ()
+ pix=a[pm];base=np.median(pix,axis=0);dist=np.sqrt(np.sum((a.astype(float)-base)**2,axis=2))
+ # Generic contrast threshold relative to the part's own color distribution.
+ vals=dist[pm];threshold=max(45.0,float(np.percentile(vals,72)))
+ candidate=pm&(dist>=threshold);h,w=pm.shape;seen=np.zeros((h,w),bool);rows=[]
+ for sy,sx in zip(*np.where(candidate)):
+  if seen[sy,sx]:continue
+  stack=[(sy,sx)];seen[sy,sx]=1;pts=[]
+  while stack:
+   y,x=stack.pop();pts.append((y,x))
+   for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+    if 0<=ny<h and 0<=nx<w and candidate[ny,nx] and not seen[ny,nx]:
+     # prevent unlike accent colors from collapsing into one component
+     if np.linalg.norm(a[ny,nx].astype(float)-a[y,x].astype(float))<=70:
+      seen[ny,nx]=1;stack.append((ny,nx))
+  ratio=len(pts)/total
+  if not(min_ratio<=ratio<=max_ratio):continue
+  m=np.zeros((h,w),bool);yy,xx=zip(*pts);m[yy,xx]=1
+  col=tuple(int(v) for v in np.median(a[m],axis=0));rows.append(EdgeRegion(m,col,len(pts),float(edge_map(a)[m].mean())))
+ rows.sort(key=lambda r:(-np.linalg.norm(np.array(r.rgb)-base),-r.area,r.rgb))
+ return tuple(rows[:max_regions])
