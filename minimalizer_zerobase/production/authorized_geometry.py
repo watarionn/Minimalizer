@@ -103,6 +103,7 @@ def fit_authorized_geometry(
     width: int,
     height: int,
     palette: Mapping[str, str],
+    accent_palette: Mapping[str, str | None] | None = None,
     fitter: str = "native",
 ) -> VectorScene:
     if fitter not in {"native", "vtracer"}:
@@ -130,7 +131,7 @@ def fit_authorized_geometry(
         fid = row.get("feature_id")
         feature_counts[fid] = feature_counts.get(fid, 0) + 1
 
-    primitives = []
+    accent_palette = accent_palette or {}\n    unknown_accents = set(accent_palette) - planned_features\n    if unknown_accents:\n        raise AuthorizedGeometryError("accent supplied for unauthorized feature: " + ", ".join(sorted(unknown_accents)))\n\n    primitives = []
     identities = set()
     for z_order, row in enumerate(rows):
         feature_id = row.get("feature_id")
@@ -163,8 +164,7 @@ def fit_authorized_geometry(
         elif rendered_kind == "trapezoid":
             inset = .12 * w
             params["points"] = [[x + inset, y], [x + w - inset, y], [x + w, y + h], [x, y + h]]
-        elif rendered_kind == "convex_polygon":
-            params["points"] = [[x+w*.2,y],[x+w*.8,y],[x+w,y+h*.35],[x+w*.82,y+h],[x+w*.18,y+h],[x,y+h*.35]]
+        elif rendered_kind == "convex_polygon":\n            contour = semantic_masks[feature_id].get("contour_envelope")\n            extents = contour.get("x_extent") if isinstance(contour, Mapping) else None\n            valid = [(i,e) for i,e in enumerate(extents or []) if isinstance(e,list) and len(e)==2]\n            if valid:\n                ax, ay, aw, ah = authority_box\n                left = [[ax+aw*float(e[0]), ay+ah*((i+.5)/8)] for i,e in valid]\n                right = [[ax+aw*float(e[1]), ay+ah*((i+.5)/8)] for i,e in reversed(valid)]\n                params["points"] = left + right\n            else:\n                params["points"] = [[x+w*.2,y],[x+w*.8,y],[x+w,y+h*.35],[x+w*.82,y+h],[x+w*.18,y+h],[x,y+h*.35]]
 
         primitives.append(ComposedPrimitive(
             primitive_id=f"golden:{feature_id}:{kind}:{ordinal}",
@@ -172,7 +172,7 @@ def fit_authorized_geometry(
             selected_candidate_id=f"authorized:{fitter}:{feature_id}:{kind}:{ordinal}",
             primitive_type=rendered_kind,
             parameters=params,
-            fill_ref=palette[feature_id],
+            fill_ref=(accent_palette.get(feature_id) if accent_palette.get(feature_id) and int(ordinal) == feature_counts[feature_id]-1 else palette[feature_id]),
             z_order=z_order,
         ))
 
@@ -188,7 +188,7 @@ def fit_authorized_geometry(
             "golden_raster_used": False,
             "repeated_budget_geometry": "deterministic_in_bbox_decomposition",
             "mask_descriptor_used": True,
-            "mask_topology_fitting": "deterministic_4x4_occupied_cell_band",
+            "mask_topology_fitting": "deterministic_4x4_occupied_cell_band",\n            "contour_envelope_rendered": True,\n            "local_accent_rendered": bool(accent_palette),
         },
     )
 
