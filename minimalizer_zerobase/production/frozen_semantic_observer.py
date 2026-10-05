@@ -57,6 +57,17 @@ def observations_from_semantic_guide(
                 cell = active[gy[yy]:gy[yy+1], gx[xx]:gx[xx+1]]
                 row.append(float(cell.mean()) if cell.size else 0.0)
             occupancy.append(row)
+        # Coarse contour envelope: left/right occupied x fraction per 8 horizontal bands.
+        # This is shape evidence only; it carries no new semantic labels.
+        contour = []
+        bands = np.linspace(0, h, 9, dtype=int)
+        for bi in range(8):
+            band = active[bands[bi]:bands[bi+1], :]
+            yy, xx = np.where(band)
+            if xx.size:
+                contour.append([float(xx.min()/max(1,w-1)), float(xx.max()/max(1,w-1))])
+            else:
+                contour.append(None)
         out.append(
             Evidence(
                 evidence_id=f"groundedsam-{label}",
@@ -65,7 +76,7 @@ def observations_from_semantic_guide(
                 provenance=provenance,
                 confidence=confidence,
                 semantic_label=label,
-                geometry={"bbox": bbox, "mask_descriptor": {"grid": [4, 4], "occupancy": occupancy}},
+                geometry={"bbox": bbox, "mask_descriptor": {"grid": [4, 4], "occupancy": occupancy}, "contour_envelope": {"bands": 8, "x_extent": contour}},
                 normalization={
                     "active_threshold": active_threshold,
                     "active_pixel_count": int(active.sum()),
