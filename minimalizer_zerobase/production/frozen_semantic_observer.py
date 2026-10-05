@@ -47,6 +47,16 @@ def observations_from_semantic_guide(
             int(ys.max() - ys.min() + 1),
         ]
         confidence = float(np.max(maps[index][active]))
+        h, w = active.shape
+        gx = np.linspace(0, w, 5, dtype=int)
+        gy = np.linspace(0, h, 5, dtype=int)
+        occupancy = []
+        for yy in range(4):
+            row = []
+            for xx in range(4):
+                cell = active[gy[yy]:gy[yy+1], gx[xx]:gx[xx+1]]
+                row.append(float(cell.mean()) if cell.size else 0.0)
+            occupancy.append(row)
         out.append(
             Evidence(
                 evidence_id=f"groundedsam-{label}",
@@ -55,7 +65,7 @@ def observations_from_semantic_guide(
                 provenance=provenance,
                 confidence=confidence,
                 semantic_label=label,
-                geometry={"bbox": bbox},
+                geometry={"bbox": bbox, "mask_descriptor": {"grid": [4, 4], "occupancy": occupancy}},
                 normalization={
                     "active_threshold": active_threshold,
                     "active_pixel_count": int(active.sum()),

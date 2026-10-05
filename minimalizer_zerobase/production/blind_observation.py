@@ -49,9 +49,11 @@ def bind_blind_observations(
             "source": "blind_observer_binding",
             "confidence": obs.get("confidence"),
         }
+        descriptor = obs.get("geometry", {}).get("mask_descriptor")
         masks[feature_id] = {
             "authorized": True,
             "bbox": [float(v) for v in bbox],
+            "mask_descriptor": descriptor,
             "source_evidence_id": obs.get("evidence_id"),
             "semantic_role": role,
         }

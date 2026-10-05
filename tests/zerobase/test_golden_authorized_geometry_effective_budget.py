@@ -33,3 +33,16 @@ def test_ordinal_decomposition_stays_inside_authorized_bbox():
         assert 20 <= x <= 60 and 10 <= y <= 70
         assert x+w <= 60 and y+h <= 70
         assert w > 0 and h > 0
+
+
+def test_mask_descriptor_biases_geometry_but_stays_inside_authority():
+    plan={"primitives":[{"feature_id":"hair","primitive_kind":"polygon","ordinal":i} for i in range(2)]}
+    left={"hair":{"authorized":True,"bbox":[10,10,80,80],"mask_descriptor":{"grid":[4,4],"occupancy":[[1,0,0,0]]*4}}}
+    right={"hair":{"authorized":True,"bbox":[10,10,80,80],"mask_descriptor":{"grid":[4,4],"occupancy":[[0,0,0,1]]*4}}}
+    a=fit_authorized_geometry(geometry_plan=plan,semantic_masks=left,width=100,height=100,palette={"hair":"#fff"})
+    b=fit_authorized_geometry(geometry_plan=plan,semantic_masks=right,width=100,height=100,palette={"hair":"#fff"})
+    assert a.primitives[0].parameters != b.primitives[0].parameters
+    for scene in (a,b):
+        for p in scene.primitives:
+            x,y,w,h=p.parameters["bbox"]
+            assert x>=10 and y>=10 and x+w<=90 and y+h<=90

@@ -48,6 +48,21 @@ def _feature_bbox(
     return x + left, y + top, w - left - right, h - top - bottom
 
 
+def _descriptor_bias(mask: Mapping[str, Any]) -> tuple[float, float]:
+    descriptor = mask.get("mask_descriptor")
+    if not isinstance(descriptor, Mapping) or descriptor.get("grid") != [4, 4]:
+        return 0.0, 0.0
+    occ = descriptor.get("occupancy")
+    if not isinstance(occ, list) or len(occ) != 4 or any(not isinstance(r, list) or len(r) != 4 for r in occ):
+        return 0.0, 0.0
+    total = sum(float(v) for row in occ for v in row)
+    if total <= 0:
+        return 0.0, 0.0
+    cx = sum((x + .5) * float(occ[y][x]) for y in range(4) for x in range(4)) / total / 4
+    cy = sum((y + .5) * float(occ[y][x]) for y in range(4) for x in range(4)) / total / 4
+    return max(-.18, min(.18, cx - .5)), max(-.18, min(.18, cy - .5))
+
+
 def fit_authorized_geometry(
     *,
     geometry_plan: Mapping[str, Any],
@@ -101,9 +116,13 @@ def fit_authorized_geometry(
         if feature_id not in palette:
             raise AuthorizedGeometryError(f"missing palette assignment: {feature_id}")
 
-        x, y, w, h = _feature_bbox(
-            _bbox(semantic_masks[feature_id]), int(ordinal), feature_counts[feature_id]
-        )
+        authority_box = _bbox(semantic_masks[feature_id])
+        x, y, w, h = _feature_bbox(authority_box, int(ordinal), feature_counts[feature_id])
+        bx, by = _descriptor_bias(semantic_masks[feature_id])
+        ax, ay, aw, ah = authority_box
+        dx, dy = bx * aw * .35, by * ah * .35
+        x = min(max(x + dx, ax), ax + aw - w)
+        y = min(max(y + dy, ay), ay + ah - h)
         rendered_kind = KIND_MAP[kind]
         params: dict[str, Any] = {"bbox": [x, y, w, h]}
         if rendered_kind == "ellipse":
@@ -135,6 +154,7 @@ def fit_authorized_geometry(
             "fitter_may_decide_semantics": False,
             "golden_raster_used": False,
             "repeated_budget_geometry": "deterministic_in_bbox_decomposition",
+            "mask_descriptor_used": True,
         },
     )
 
