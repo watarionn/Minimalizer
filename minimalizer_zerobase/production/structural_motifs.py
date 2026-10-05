@@ -224,3 +224,29 @@ def global_mass_regions(rgb:np.ndarray,parts:dict[str,np.ndarray],*,min_subject_
    rows.append((score,role,mm,col))
  rows.sort(key=lambda z:(-z[0],z[1],z[3]))
  return tuple((role,m,col) for _,role,m,col in rows[:max_regions])
+
+def reserve_identity_accents(rgb:np.ndarray,authority:np.ndarray,*,max_accents:int=3,min_ratio:float=.003,max_ratio:float=.09)->tuple[tuple[np.ndarray,tuple[int,int,int]],...]:
+ """Reserve compact, high-contrast connected accents before perceptual-budget competition."""
+ a=np.asarray(rgb,np.uint8);m=np.asarray(authority,bool)
+ if not np.any(m):return ()
+ total=int(m.sum());base=np.median(a[m],axis=0).astype(float)
+ q=(a//40).astype(np.int16);keys=q[:,:,0]*49+q[:,:,1]*7+q[:,:,2]
+ H,W=m.shape;seen=np.zeros_like(m);rows=[]
+ for sy,sx in zip(*np.where(m)):
+  if seen[sy,sx]:continue
+  k=keys[sy,sx];st=[(sy,sx)];seen[sy,sx]=1;pts=[]
+  while st:
+   y,x=st.pop();pts.append((y,x))
+   for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
+    if 0<=ny<H and 0<=nx<W and m[ny,nx] and not seen[ny,nx] and keys[ny,nx]==k:
+     seen[ny,nx]=1;st.append((ny,nx))
+  ratio=len(pts)/total
+  if not(min_ratio<=ratio<=max_ratio):continue
+  yy,xx=zip(*pts);col=np.median(a[yy,xx],axis=0).astype(float)
+  contrast=float(np.linalg.norm(col-base));chroma=float(col.max()-col.min())
+  if contrast<52 or chroma<28:continue
+  mm=np.zeros_like(m);mm[yy,xx]=1
+  score=contrast*(.7+.3*chroma/255.)*np.sqrt(ratio)
+  rows.append((score,mm,tuple(int(v) for v in col)))
+ rows.sort(key=lambda z:(-z[0],z[2]))
+ return tuple((mm,col) for _,mm,col in rows[:max_accents])
