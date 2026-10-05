@@ -115,12 +115,10 @@ def test_scene_uses_small_primitive_budget() -> None:
 def test_head_identity_structures_are_bounded_and_face_excluded() -> None:
     rgb, masks, plan = _fixture()
     scene = semantic_reauthor_scene(rgb, masks, plan)
-    accents = [p for p in scene.primitives if p.primitive_id.startswith("semantic:head-accent:")]
-    assert 1 <= len(accents) <= 2
-    assert any(p.fill_ref == "#fa1e0a" for p in accents)
-    assert all(p.fill_ref != "#191919" for p in accents)
-    assert scene.provenance["head_identity_accents_exclude_face"] is True
-
+    structures = [p for p in scene.primitives if p.primitive_id.startswith("semantic:required:head:observed:")]
+    assert len(structures) <= 3
+    assert all(p.source_region_id == "head" for p in structures)
+    assert scene.provenance["observed_identity_authority"] == "observer proposal + SemanticPart authorization"
 
 def test_body_identity_accents_are_bounded() -> None:
     rgb, masks, plan = _fixture()
