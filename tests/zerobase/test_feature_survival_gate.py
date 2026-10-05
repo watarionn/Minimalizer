@@ -1,5 +1,5 @@
 import numpy as np
-from minimalizer_zerobase.production.feature_survival_gate import extract_feature_signatures,feature_survival_report
+from minimalizer_zerobase.production.feature_survival_gate import extract_feature_signatures,feature_survival_report,source_supported_feature_survival_report
 def img():
  a=np.full((40,40,3),240,np.uint8);a[5:35,8:32]=(40,50,70);a[14:28,17:23]=(150,190,10);return a
 def test_signature_is_deterministic():
@@ -12,3 +12,19 @@ def test_small_noise_is_ignored():
  a=img();b=a.copy();b[0,0]=(255,0,255);assert feature_survival_report(a,b).pass_gate
 def test_position_shift_can_be_regression():
  a=img();b=np.full_like(a,240);b[5:35,8:32]=(40,50,70);b[1:15,1:7]=(150,190,10);assert not feature_survival_report(a,b,match_threshold=.10).pass_gate
+
+
+def test_source_supported_gate_does_not_canonize_baseline_artifact():
+ a=img();source=a.copy();current=a.copy()
+ # Inject an artifact into the adopted baseline only.
+ a[30:38,30:38]=(80,144,208)
+ r=source_supported_feature_survival_report(a,current,source)
+ assert r.pass_gate
+ assert not r.missing
+
+def test_source_supported_gate_still_rejects_real_source_feature_loss():
+ source=img();baseline=source.copy();current=source.copy()
+ current[14:28,17:23]=(40,50,70)
+ r=source_supported_feature_survival_report(baseline,current,source)
+ assert not r.pass_gate
+ assert r.missing
