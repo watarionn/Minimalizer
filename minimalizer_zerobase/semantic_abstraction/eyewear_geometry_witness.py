@@ -47,6 +47,6 @@ def observe_geometry_witness(rgb:np.ndarray, authority:np.ndarray, face:np.ndarr
     bridge=bool(strip.sum()>=max(2,(rx-lx)*.08))
    score=.30*sym+.25*(1-min(1,dy/.18))+.25*((l[4]+r[4])/2)+.20*(1 if bridge else 0)
    if best is None or score>best[0]:best=(score,l,r,bridge)
- if best is None or best[0]<MIN_PAIR_SCORE:return GeometryWitness(empty,0,False,False,0 if best is None else float(best[0]))
+ if best is None or best[0]<MIN_PAIR_SCORE or not best[3]:return GeometryWitness(empty,0,False,False,0 if best is None else float(best[0]))
  score,l,r,bridge=best;mask=(l[0]|r[0])&a
  return GeometryWitness(mask,float(score),True,bool(bridge),float(score))
