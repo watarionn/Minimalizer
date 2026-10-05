@@ -247,6 +247,34 @@ def semantic_reauthor_scene(
             )
             z += 1
 
+    if allowed("head"):
+        head_authority = np.asarray(masks["head"]).astype(bool)
+        if "face" in masks:
+            head_authority &= ~np.asarray(masks["face"]).astype(bool)
+        for index, (accent, color) in enumerate(
+            reserve_identity_accents(
+                image,
+                head_authority,
+                max_accents=2,
+                min_ratio=0.0015,
+                max_ratio=0.12,
+            )
+        ):
+            points = _coarse_hull(accent, 6)
+            if not points:
+                continue
+            primitives.append(
+                _primitive(
+                    f"semantic:head-accent:{index}",
+                    "head",
+                    "convex_polygon",
+                    {"points": points},
+                    _rgb_hex(tuple(int(v) for v in color)),
+                    z,
+                )
+            )
+            z += 1
+
     if allowed("major_clothing"):
         clothing = np.asarray(masks["major_clothing"]).astype(bool)
         masses = major_color_masses(
@@ -319,5 +347,7 @@ def semantic_reauthor_scene(
             "hair_max_masses": 3,
             "clothing_major_masses": 3,
             "identity_accents_protected": True,
+            "head_identity_accents_max": 2,
+            "head_identity_accents_exclude_face": True,
         },
     )
