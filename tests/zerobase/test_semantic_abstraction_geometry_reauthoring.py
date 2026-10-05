@@ -109,7 +109,7 @@ def test_reauthoring_is_deterministic() -> None:
 def test_scene_uses_small_primitive_budget() -> None:
     rgb, masks, plan = _fixture()
     scene = semantic_reauthor_scene(rgb, masks, plan)
-    assert len(scene.primitives) <= 18
+    assert len(scene.primitives) <= 23
 
 
 def test_head_identity_accents_are_bounded_and_face_excluded() -> None:
@@ -120,3 +120,15 @@ def test_head_identity_accents_are_bounded_and_face_excluded() -> None:
     assert any(p.fill_ref == "#fa1e0a" for p in accents)
     assert all(p.fill_ref != "#191919" for p in accents)
     assert scene.provenance["head_identity_accents_exclude_face"] is True
+
+
+def test_body_identity_accents_are_bounded() -> None:
+    rgb, masks, plan = _fixture()
+    rgb[45:49, 30:34] = (15, 15, 15)
+    rgb[70:74, 34:39] = (80, 145, 210)
+    scene = semantic_reauthor_scene(rgb, masks, plan)
+    torso = [p for p in scene.primitives if p.primitive_id.startswith("semantic:torso-accent:")]
+    lower = [p for p in scene.primitives if p.primitive_id.startswith("semantic:lower_body-accent:")]
+    assert len(torso) <= 2
+    assert len(lower) <= 1
+    assert scene.provenance["body_identity_accents_max"]["torso"] == 2
