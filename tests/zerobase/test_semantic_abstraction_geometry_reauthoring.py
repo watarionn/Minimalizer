@@ -38,6 +38,8 @@ def _fixture() -> tuple[np.ndarray, dict[str, np.ndarray], AbstractionPlan]:
     masks["accessory_or_held_object"][20:28, 50:58] = 1
     rgb[masks["hair"].astype(bool)] = (220, 90, 50)
     rgb[masks["face"].astype(bool)] = (230, 190, 165)
+    rgb[10:13, 30:38] = (250, 30, 10)
+    rgb[17:20, 36:39] = (25, 25, 25)
     rgb[masks["major_clothing"].astype(bool)] = (35, 45, 80)
     rgb[43:51, 39:43] = (35, 150, 80)
 
@@ -108,3 +110,13 @@ def test_scene_uses_small_primitive_budget() -> None:
     rgb, masks, plan = _fixture()
     scene = semantic_reauthor_scene(rgb, masks, plan)
     assert len(scene.primitives) <= 18
+
+
+def test_head_identity_accents_are_bounded_and_face_excluded() -> None:
+    rgb, masks, plan = _fixture()
+    scene = semantic_reauthor_scene(rgb, masks, plan)
+    accents = [p for p in scene.primitives if p.primitive_id.startswith("semantic:head-accent:")]
+    assert 1 <= len(accents) <= 2
+    assert any(p.fill_ref == "#fa1e0a" for p in accents)
+    assert all(p.fill_ref != "#191919" for p in accents)
+    assert scene.provenance["head_identity_accents_exclude_face"] is True
