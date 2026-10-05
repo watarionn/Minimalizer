@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 from .ir import AbstractionPlan, AbstractionPolicy, VisualRole
+from .identity_structure_observer import IdentityStructureEvidence
 
 
 @dataclass(frozen=True)
@@ -91,3 +92,30 @@ def bind_required_identity_features(
 
 def required_identity_budget(bindings: tuple[RequiredIdentityBinding, ...]) -> int:
     return sum(binding.min_primitives for binding in bindings)
+
+
+def bind_observed_identity_structures(
+    plan: AbstractionPlan,
+    parent_part_id: str,
+    evidence: tuple[IdentityStructureEvidence, ...],
+) -> tuple[RequiredIdentityBinding, ...]:
+    """Promote observer proposals only when an authorized semantic parent permits it."""
+    parts={part.id:part for part in plan.parts}
+    parent=parts.get(parent_part_id)
+    if parent is None or parent.abstraction_policy is AbstractionPolicy.SUPPRESS:
+        return ()
+    if parent.visual_role not in (VisualRole.SILHOUETTE, VisualRole.MAJOR_MASS, VisualRole.IDENTITY_ACCENT):
+        return ()
+    return tuple(
+        RequiredIdentityBinding(
+            binding_id=f"required:{parent_part_id}:observed:{index}",
+            parent_part_id=parent_part_id,
+            semantic_role="observed_identity_structure",
+            mask=item.mask,
+            min_primitives=1,
+            max_primitives=1,
+            confidence=item.confidence,
+        )
+        for index,item in enumerate(evidence)
+        if item.confidence >= .55
+    )
