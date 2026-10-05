@@ -11,3 +11,11 @@ def test_rejects_zero_vector():
 def test_centroid_uses_positive_only():
  b=build_prototype_bank((PrototypeEntry(H1,np.array([1,0],np.float32)),PrototypeEntry(H2,np.array([0,1],np.float32),"negative")))
  assert np.allclose(positive_centroid(b),[1,0])
+
+def test_contrastive_direction_removes_negative_centroid():
+ b=build_prototype_bank((PrototypeEntry(H1,np.array([2,1],np.float32)),PrototypeEntry(H2,np.array([1,2],np.float32),"negative")))
+ v=contrastive_direction(b);assert np.isclose(np.linalg.norm(v),1) and v[0]>0 and v[1]<0
+
+def test_contrastive_direction_requires_both_roles():
+ b=build_prototype_bank((PrototypeEntry(H1,np.array([1,0],np.float32)),))
+ with pytest.raises(ValueError):contrastive_direction(b)
