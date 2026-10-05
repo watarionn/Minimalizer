@@ -33,3 +33,29 @@ def test_cross_case_previous_report_is_rejected():
         assert "case_id mismatch" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+def test_retry_uses_same_event_and_correlation_ids():
+    first=build_golden_evaluated_event(report(),run_id="run_retry")
+    retry=build_golden_evaluated_event(report(),run_id="run_retry")
+    assert retry["event_id"]==first["event_id"]
+    assert retry["correlation_id"]==first["correlation_id"]
+
+def test_same_run_different_cases_share_correlation_not_event_id():
+    first=build_golden_evaluated_event(report(case_id="case_a"),run_id="run_batch")
+    second=build_golden_evaluated_event(report(case_id="case_b"),run_id="run_batch")
+    assert second["event_id"]!=first["event_id"]
+    assert second["correlation_id"]==first["correlation_id"]
+
+def test_different_runs_get_different_identity():
+    first=build_golden_evaluated_event(report(),run_id="run_a")
+    second=build_golden_evaluated_event(report(),run_id="run_b")
+    assert second["event_id"]!=first["event_id"]
+    assert second["correlation_id"]!=first["correlation_id"]
+
+def test_empty_run_id_is_rejected():
+    try:
+        build_golden_evaluated_event(report(),run_id="")
+    except ValueError as exc:
+        assert "requires run_id" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")
