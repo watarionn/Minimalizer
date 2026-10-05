@@ -5,6 +5,7 @@ from typing import Mapping
 
 import numpy as np
 
+from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import StructuralLayoutGraph
 
 from .anatomy_guard import AnatomyGuardResult, anatomy_integrity_gate
@@ -64,11 +65,15 @@ def build_semantic_render_guard(
     graph: StructuralLayoutGraph,
     allocations: Mapping[str, int],
 ) -> SemanticRenderGuardResult:
+    normalized_masks = {
+        name: np.asarray(masks[name]) if name in masks else np.zeros(rgb.shape[:2], dtype=np.uint8)
+        for name in PART_NAMES
+    }
     baseline = apply_importance_policy(
-        build_semantic_abstraction_evidence(part_masks=masks, graph=graph)
+        build_semantic_abstraction_evidence(part_masks=normalized_masks, graph=graph)
     )
 
-    face_mask = np.asarray(masks.get("face", np.zeros(rgb.shape[:2], dtype=np.uint8)))
+    face_mask = np.asarray(normalized_masks["face"])
     if np.any(face_mask):
         face_evidence = detect_facial_feature_evidence(rgb, face_mask)
         semantic_plan = attach_facial_feature_evidence(baseline, face_evidence)
