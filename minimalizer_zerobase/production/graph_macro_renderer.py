@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -48,9 +48,11 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  # Arms retain their real Phase4 silhouette instead of synthetic bbox ribbons.
  for role in ("left_arm","right_arm"):
   if allocations.get(role,0)<1 or role not in masks: continue
-  readable=arm_axis_band(masks[role])
-  pts=_contour_polygon(readable,14)
-  if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks[role])}"/>')
+  near,far=two_segment_arm_masks(masks[role],masks.get("torso",masks[role]))
+  for segment in (near,far):
+   if not np.any(segment):continue
+   pts=_contour_polygon(segment,12)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,segment)}"/>')
  # Head and hair also retain semantic contours; graph determines paint order. Hair is capped around the head neighborhood instead of using full hair bbox depth.
  if allocations.get("head",0)>0 and "head" in masks:
   pts=_contour_polygon(masks["head"],16)
@@ -65,14 +67,14 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   if rel and pts:
    chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["accessory"])}"/>')
  # Large garment masses establish collar/body/sleeve-like construction before small evidence.
- clothing_authority=masks.get("torso")
- if clothing_authority is not None:
-  for cmask,crgb in clothing_major_regions(rgb,clothing_authority,max_regions=4):
+ garment_mask=clothing_authority(masks["torso"],masks.get("major_clothing")) if "torso" in masks else masks.get("major_clothing")
+ if garment_mask is not None:
+  for cmask,crgb in clothing_major_regions(rgb,garment_mask,max_regions=5):
    pts=_contour_polygon(cmask,14)
    if pts:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
  # Compose region evidence across semantic-part boundaries. Semantic masks remain authority.
- active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory") if allocations.get(r,0)>0 and r in masks}
+ active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory","major_clothing") if allocations.get(r,0)>0 and r in masks}
  # Edge-aware candidates compete under one perceptual budget; semantic masks remain authority.
  candidates={}
  for role in active:
