@@ -91,3 +91,25 @@ def sleeve_boundary_motifs(torso:np.ndarray,left_arm:np.ndarray|None,right_arm:n
   b=boundary_band(t,np.asarray(arm,bool),radius=3)
   if np.any(b):out.append(b)
  return tuple(out)
+
+def sleeve_forearm_masses(rgb:np.ndarray,arm:np.ndarray,torso:np.ndarray)->tuple[np.ndarray,np.ndarray]:
+ """Split an arm into torso-side sleeve and distal forearm using geometry plus dominant color change."""
+ a=np.asarray(rgb,np.uint8);m=np.asarray(arm,bool);t=np.asarray(torso,bool)
+ if not np.any(m):return m.copy(),m.copy()
+ c,v=principal_axis(m);ty,tx=np.where(t);tc=np.array([tx.mean(),ty.mean()]) if len(tx) else c
+ if np.dot(tc-c,v)>0:v=-v
+ y,x=np.where(m);pts=np.column_stack([x,y]).astype(float);proj=(pts-c)@v
+ order=np.argsort(proj);p=proj[order];cols=a[y[order],x[order]].astype(float)
+ # Search central cuts only. Score combines color separation and balanced support.
+ best=None
+ for q in np.linspace(.28,.62,8):
+  cut=np.quantile(p,q);lo=cols[p<=cut];hi=cols[p>cut]
+  if len(lo)<4 or len(hi)<4:continue
+  contrast=float(np.linalg.norm(np.median(lo,axis=0)-np.median(hi,axis=0)))
+  balance=min(len(lo),len(hi))/len(cols);score=contrast*(.5+balance)
+  if best is None or score>best[0]:best=(score,cut)
+ cut=float(np.median(p)) if best is None or best[0]<18 else best[1]
+ sleeve=np.zeros_like(m);fore=np.zeros_like(m);s=proj<=cut
+ sleeve[y[s],x[s]]=1;fore[y[~s],x[~s]]=1
+ if sleeve.sum()<m.sum()*.18 or fore.sum()<m.sum()*.18:return two_segment_arm_masks(m,t)
+ return sleeve,fore
