@@ -66,27 +66,27 @@ def observe_eyewear_structure(
         return EyewearStructuralEvidence(empty,empty,empty,empty,0.0,False)
 
     gray=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY).astype(np.float32)
-    edges=(cv2.Canny(image,55,145)>0)&authority
-    # Closed-contour evidence rejects open hair strands. A worn lens/frame should enclose
-    # a bounded upper-face region; the enclosed region becomes the lens hypothesis.
-    closed=cv2.morphologyEx(edges.astype(np.uint8),cv2.MORPH_CLOSE,np.ones((5,5),np.uint8),iterations=2)
-    inv=((closed==0)&authority).astype(np.uint8)
-    count,labels0,stats0,cent0=cv2.connectedComponentsWithStats(inv,8)
-    holes=[]
-    for label in range(1,count):
-        area=int(stats0[label,cv2.CC_STAT_AREA]);x=int(stats0[label,cv2.CC_STAT_LEFT]);y=int(stats0[label,cv2.CC_STAT_TOP])
-        w=int(stats0[label,cv2.CC_STAT_WIDTH]);h=int(stats0[label,cv2.CC_STAT_HEIGHT])
-        if area<max(8,int(fw*fh*.004)) or area>int(fw*fh*.34): continue
-        if w<max(5,int(.12*fw)) or h<max(4,int(.07*fh)) or w>int(.85*fw) or h>int(.55*fh): continue
-        comp=labels0==label
-        ring=cv2.dilate(comp.astype(np.uint8),np.ones((3,3),np.uint8)).astype(bool)&~comp
-        closure=float((ring&edges).sum()/max(1,int(ring.sum())))
-        if closure<.16: continue
-        cx,cy=cent0[label];holes.append((label,area,float(cx),float(cy),w,h,closure,comp))
+    edge_u8=cv2.Canny(image,55,145)
+    contours,hierarchy=cv2.findContours(edge_u8,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     labels=np.zeros(head.shape,np.int32);comps=[];next_label=1
-    for _,area,cx,cy,w,h,closure,comp in holes:
-        labels[comp]=next_label
-        comps.append((next_label,area,cx,cy,w,h,closure));next_label+=1
+    if hierarchy is not None:
+        for idx,contour in enumerate(contours):
+            # A contour with a child encloses a bounded structure; open hair strokes do not.
+            child=int(hierarchy[0][idx][2])
+            if child<0: continue
+            x,y,w,h=cv2.boundingRect(contour);area=abs(float(cv2.contourArea(contour)))
+            if area<max(8,fw*fh*.004) or area>fw*fh*.34: continue
+            if w<max(5,int(.12*fw)) or h<max(4,int(.07*fh)) or w>.85*fw or h>.55*fh: continue
+            comp=np.zeros(head.shape,np.uint8);cv2.drawContours(comp,[contour],-1,1,-1);comp=comp.astype(bool)&authority
+            if int(comp.sum())<8: continue
+            cy=y+.5*h;cx=x+.5*w
+            # The contour center must stay in the upper-face worn zone, not deep inside facial features.
+            if cy>fy+.34*fh: continue
+            perimeter=max(1.0,float(cv2.arcLength(contour,True)))
+            closure=min(1.0,4*np.pi*max(area,1.0)/(perimeter*perimeter))
+            labels[comp]=next_label
+            comps.append((next_label,int(comp.sum()),float(cx),float(cy),w,h,closure));next_label+=1
+    edges=(edge_u8>0)&authority
 
     # Prefer a horizontally separated pair with similar vertical placement and scale.
     best=None
