@@ -8,7 +8,8 @@ from minimalizer_zerobase.production.cross_part_region_graph import build_cross_
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
 from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass
-from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard\nfrom minimalizer_zerobase.semantic_abstraction.fine_geometry_grammar import build_fine_geometry_primitives
+from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard
+from minimalizer_zerobase.semantic_abstraction.fine_geometry_grammar import build_fine_geometry_primitives
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
