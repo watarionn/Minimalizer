@@ -23,6 +23,20 @@ def _contour_polygon(mask, max_vertices=18):
  pts=semantic_contour(mask,max_vertices)
  return None if len(pts)<3 else " ".join(f"{x:.1f},{y:.1f}" for x,y in pts)
 
+def _strengthened_accent_mask(mask, authority, *, target_ratio=1.35):
+ """Give a selected compact accent modest visual strength without leaving semantic authority."""
+ m=np.asarray(mask,bool);a=np.asarray(authority,bool)
+ target=max(int(m.sum()),int(np.ceil(m.sum()*target_ratio)))
+ out=m.copy()
+ while int(out.sum())<target:
+  p=np.pad(out,1);grown=np.zeros_like(out)
+  for dy,dx in ((0,1),(1,0),(1,2),(2,1)):
+   grown|=p[dy:dy+out.shape[0],dx:dx+out.shape[1]]
+  nxt=(out|grown)&a
+  if np.array_equal(nxt,out):break
+  out=nxt
+ return out
+
 def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:StructuralLayoutGraph, allocations:Mapping[str,int])->str:
  h,w=np.asarray(rgb).shape[:2]; chunks=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">','<rect width="100%" height="100%" fill="#fff"/>']
  # Central chain uses semantic silhouettes; graph still owns ordering/attachment policy.
@@ -59,7 +73,8 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  base={role:tuple(int(v) for v in np.median(np.asarray(rgb)[active[role]],axis=0)) for role in active if np.any(active[role])}
  selected=select_perceptual_regions(candidates,active,base,budget=12)
  for item in selected:
-  pts=_contour_polygon(item.region.mask,14)
+  draw_mask=_strengthened_accent_mask(item.region.mask,active[item.part]) if item.accent else item.region.mask
+  pts=_contour_polygon(draw_mask,14)
   if not pts: continue
   col="#%02x%02x%02x"%item.region.rgb
   chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
