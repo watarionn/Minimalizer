@@ -13,3 +13,11 @@ def test_tiny_contrast_fragment_cannot_displace_major_mass():
  regs={"torso":[R(220,(30,30,40)),R(4,(255,0,0),1.0)]}
  out=select_perceptual_regions(regs,masks,{"torso":(30,30,40)},budget=1)
  assert out[0].region.area==220
+
+def test_region_budget_limits_single_part_monopoly():
+ masks={k:np.ones((20,20),bool) for k in ("torso","hair","head","left_arm")}
+ regs={k:[R(40+i,(30+i*10,40,50),.3) for i in range(6)] for k in masks}
+ out=select_perceptual_regions(regs,masks,{k:(30,40,50) for k in masks},budget=8)
+ counts={k:sum(x.part==k for x in out) for k in masks}
+ assert max(counts.values())<=3
+ assert len([k for k,v in counts.items() if v])>=3
