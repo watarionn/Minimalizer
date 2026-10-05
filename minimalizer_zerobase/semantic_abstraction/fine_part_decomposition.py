@@ -190,7 +190,10 @@ def promote_fine_identity_parts(
         if parent_masks is not None:
             if proposal.parent_part_id not in parent_masks:
                 continue
-            authority=np.asarray(parent_masks[proposal.parent_part_id]).astype(bool)\n            if proposal.category in ("eyewear","headwear") and proposal.parent_part_id=="head" and "hair" in parent_masks:\n                authority |= np.asarray(parent_masks["hair"]).astype(bool)\n            valid,_reason=validate_fine_part_proposal(proposal,authority,face_mask=face_mask)
+            authority=np.asarray(parent_masks[proposal.parent_part_id]).astype(bool)
+            if proposal.category in ("eyewear","headwear") and proposal.parent_part_id=="head" and "hair" in parent_masks:
+                authority |= np.asarray(parent_masks["hair"]).astype(bool)
+            valid,_reason=validate_fine_part_proposal(proposal,authority,face_mask=face_mask)
             if not valid:
                 continue
         counts[proposal.category]=counts.get(proposal.category,0)+1
