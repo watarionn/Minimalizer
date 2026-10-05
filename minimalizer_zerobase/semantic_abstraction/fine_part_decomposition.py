@@ -135,12 +135,39 @@ def observe_fine_identity_parts(
     return tuple(proposals)
 
 
-def promote_fine_identity_parts(
-    plan: AbstractionPlan,
-    proposals: tuple[FinePartProposal,...],
+def validate_fine_part_proposal(
+    proposal: FinePartProposal,
+    parent_mask: np.ndarray,
     *,
-    minimum_confidence: float=.60,
-) -> AbstractionPlan:
+    face_mask: np.ndarray | None = None,
+) -> tuple[bool, str]:
+    mask=np.asarray(proposal.mask).astype(bool)
+    parent=np.asarray(parent_mask).astype(bool)
+    if mask.shape != parent.shape:
+        return False,"shape_mismatch"
+    area=int(mask.sum()); parent_area=max(1,int(parent.sum()))
+    if area < 6:
+        return False,"too_small"
+    outside=int((mask&~parent).sum())
+    if outside/max(area,1) > .08:
+        return False,"outside_parent"
+    ratio=area/parent_area
+    limits={
+        "eyewear":(.002,.16),"headwear":(.01,.55),"hair_front":(.03,.80),"hair_side":(.03,.90),
+        "collar":(.01,.45),"tie_or_neckwear":(.002,.30),"major_accessory":(.01,1.0),
+    }
+    lo,hi=limits.get(proposal.category,(.0,1.0))
+    if not (lo <= ratio <= hi):
+        return False,"parent_area_ratio"
+    if proposal.category=="eyewear" and face_mask is not None and np.any(face_mask):
+        face=np.asarray(face_mask).astype(bool)
+        near=cv2.dilate(face.astype(np.uint8),cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))).astype(bool)
+        if int((mask&near).sum())/area < .08:
+            return False,"not_near_face"
+    return True,"ok"
+
+
+def promote_fine_identity_parts(\n    plan: AbstractionPlan,\n    proposals: tuple[FinePartProposal,...],\n    *,\n    parent_masks: Mapping[str,np.ndarray] | None=None,\n    face_mask: np.ndarray | None=None,\n    minimum_confidence: float=.60,\n) -> AbstractionPlan:
     """Promote observer evidence only under an existing non-suppressed semantic parent."""
     parents={p.id:p for p in plan.parts}
     additions=[]
@@ -151,8 +178,7 @@ def promote_fine_identity_parts(
         parent=parents.get(proposal.parent_part_id)
         if parent is None or parent.abstraction_policy is AbstractionPolicy.SUPPRESS:
             continue
-        if proposal.confidence < minimum_confidence or not np.any(proposal.mask):
-            continue
+        if proposal.confidence < minimum_confidence or not np.any(proposal.mask):\n            continue\n        if parent_masks is not None:\n            if proposal.parent_part_id not in parent_masks:\n                continue\n            valid,_reason=validate_fine_part_proposal(proposal,parent_masks[proposal.parent_part_id],face_mask=face_mask)\n            if not valid:\n                continue
         counts[proposal.category]=counts.get(proposal.category,0)+1
         suffix=counts[proposal.category]
         pid=proposal.category if suffix==1 else f"{proposal.category}:{suffix}"
