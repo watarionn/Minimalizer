@@ -83,7 +83,9 @@ def observe_eyewear_structure(
             # The contour center must stay in the upper-face worn zone, not deep inside facial features.
             if cy>fy+.34*fh: continue
             # Paired worn structures should remain near the face span; reject remote hair ornaments/strands.
-            if cx<fx-.35*fw or cx>fx+1.35*fw: continue\n            # Paired lens/frame structures are laterally oriented; tall narrow closed hair loops are not.\n            if h>w*1.35: continue
+            if cx<fx-.35*fw or cx>fx+1.35*fw: continue
+            # Paired lens/frame structures are laterally oriented; tall narrow closed hair loops are not.
+            if h>w*1.35: continue
             perimeter=max(1.0,float(cv2.arcLength(contour,True)))
             closure=min(1.0,4*np.pi*max(area,1.0)/(perimeter*perimeter))
             labels[comp]=next_label
