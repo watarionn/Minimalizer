@@ -161,7 +161,9 @@ def validate_fine_part_proposal(
         return False,"parent_area_ratio"
     if proposal.category=="eyewear" and face_mask is not None and np.any(face_mask):
         face=np.asarray(face_mask).astype(bool)
-        near=cv2.dilate(face.astype(np.uint8),cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))).astype(bool)
+        fx,fy,fw,fh=cv2.boundingRect(face.astype(np.uint8))
+        yy,xx=np.indices(face.shape)
+        near=((yy>=max(0,fy-int(.8*fh)))&(yy<=fy+int(.35*fh))&(xx>=fx-int(.55*fw))&(xx<=fx+int(1.55*fw)))
         if int((mask&near).sum())/area < .08:
             return False,"not_near_face"
     return True,"ok"
