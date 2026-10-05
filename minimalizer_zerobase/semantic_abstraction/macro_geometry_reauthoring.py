@@ -2,7 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 import cv2,numpy as np
 
-MACRO_GEOMETRY_VERSION="sa7.24-v1"\nMAX_EXPANSION_RATIO=1.12\nMIN_SOURCE_COVERAGE=.65
+MACRO_GEOMETRY_VERSION="sa7.24-v1"
+MAX_EXPANSION_RATIO=1.12
+MIN_SOURCE_COVERAGE=.65
 
 @dataclass(frozen=True)
 class MacroGeometryPrimitive:
