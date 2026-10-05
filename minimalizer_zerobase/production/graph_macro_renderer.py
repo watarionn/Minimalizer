@@ -5,6 +5,7 @@ from minimalizer_zerobase.structure.graph import StructuralLayoutGraph
 from minimalizer_zerobase.production.semantic_contour import semantic_contour
 from minimalizer_zerobase.production.part_color_regions import extract_part_color_regions
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
+from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -48,10 +49,12 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["accessory"])}"/>')
  # Compose region evidence across semantic-part boundaries. Semantic masks remain authority.
  active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory") if allocations.get(r,0)>0 and r in masks}
- rg=build_cross_part_region_graph(rgb,active,max_regions_per_part=3)
- for _,region_mask,region_rgb,region_area,members in composed_regions(rg):
-  pts=_contour_polygon(region_mask,14)
-  if not pts: continue
-  col="#%02x%02x%02x"%region_rgb
-  chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
+ # Edge-aware proposals supply internal structure while semantic masks remain authority.
+ for role in ("lower_body","torso","left_arm","right_arm","head","hair","accessory"):
+  if role not in active: continue
+  for region in propose_edge_regions(rgb,active[role],cell_size=8,max_regions=6):
+   pts=_contour_polygon(region.mask,14)
+   if not pts: continue
+   col="#%02x%02x%02x"%region.rgb
+   chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
  chunks.append("</svg>");return "".join(chunks)
