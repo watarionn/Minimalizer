@@ -80,15 +80,8 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    pts=_contour_polygon(cmask,14)
    if pts:
     col="#%02x%02x%02x"%crgb;chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
- # Reserve dominant source-derived color masses before sparse detail motifs.
- # Explicit semantic paint authority: body base -> garment -> limbs -> head/hair.
- # This prevents a late torso mass from painting over sleeve/arm structure.
- for role in ("lower_body","torso","major_clothing","left_arm","right_arm","hair"):
-  if role not in masks:continue
-  cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
-  for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
-   pts=_contour_polygon(mass,12)
-   if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({mrgb[0]},{mrgb[1]},{mrgb[2]})"/>')
+ # Primitive budget compression: global masses + garment panels supersede the older
+ # generic major-color layer, avoiding repeated near-identical polygons.
  # Large garment panels sit above generic masses and below collar/accent details.
  if garment_mask is not None:
   for panel,prgb in garment_panels(rgb,garment_mask,max_panels=4,min_ratio=.065):
