@@ -250,3 +250,18 @@ def reserve_identity_accents(rgb:np.ndarray,authority:np.ndarray,*,max_accents:i
   rows.append((score,mm,tuple(int(v) for v in col)))
  rows.sort(key=lambda z:(-z[0],z[2]))
  return tuple((mm,col) for _,mm,col in rows[:max_accents])
+
+def silhouette_mass(mask:np.ndarray,*,bands:int=5)->np.ndarray:
+ """Recompose a semantic silhouette into broad horizontal masses while staying inside authority."""
+ m=np.asarray(mask,bool)
+ if not np.any(m):return m.copy()
+ y,x=np.where(m);y0,y1=int(y.min()),int(y.max())+1
+ out=np.zeros_like(m)
+ edges=np.linspace(y0,y1,bands+1).astype(int)
+ for a,b in zip(edges[:-1],edges[1:]):
+  yy,xx=np.where(m[a:b])
+  if not len(xx):continue
+  lo=int(np.quantile(xx,.08));hi=int(np.quantile(xx,.92))
+  band=np.zeros_like(m);band[a:b,lo:hi+1]=1
+  out|=band&m
+ return out
