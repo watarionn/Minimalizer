@@ -21,8 +21,9 @@ def test_independent_region_and_structural_agreement_promotes():
 
 def test_confidence_alone_without_independent_role_fails_closed():
     _,h,ha,f,s=_fixture()
+    empty=type(s)(np.zeros_like(h),np.zeros_like(h),np.zeros_like(h),np.zeros_like(h),0,False)
     a=EyewearObserverEvidence("sam:a",s.mask,.99,"region");b=EyewearObserverEvidence("sam:b",s.mask,.99,"region")
-    r=fuse_eyewear_evidence(s,(a,b),head_mask=h,hair_mask=ha,face_mask=f)
+    r=fuse_eyewear_evidence(empty,(a,b),head_mask=h,hair_mask=ha,face_mask=f)
     assert not r.promoted and r.reason=="insufficient_independent_roles"
 
 
