@@ -5,8 +5,12 @@ already-computed Golden Gap result into Rinka Event Envelope v1.
 """
 from __future__ import annotations
 from datetime import datetime, timezone
+from hashlib import sha256
 from typing import Any, Mapping
-from uuid import uuid4
+
+def _stable_id(prefix: str, *parts: str) -> str:
+    material="\x1f".join(parts).encode("utf-8")
+    return prefix+sha256(material).hexdigest()[:32]
 
 def build_golden_evaluated_event(
     report: Mapping[str, Any],
@@ -22,6 +26,8 @@ def build_golden_evaluated_event(
     case_id=report.get("case_id")
     if not isinstance(case_id,str) or not case_id:
         raise ValueError("Golden Gap report requires case_id")
+    if not isinstance(run_id,str) or not run_id:
+        raise ValueError("Golden Gap event requires run_id")
     gate=report.get("gate")
     if gate not in {"PASS","FAIL"}:
         raise ValueError("Golden Gap report requires PASS/FAIL gate")
@@ -42,8 +48,8 @@ def build_golden_evaluated_event(
     elif delta>0: verdict="improved"
     elif delta<0: verdict="regressed"
     else: verdict="unchanged"
-    eid=event_id or "evt_"+uuid4().hex
-    corr=correlation_id or "corr_"+uuid4().hex
+    eid=event_id or _stable_id("evt_","minimalizer.golden.evaluated",run_id,case_id)
+    corr=correlation_id or _stable_id("corr_","minimalizer.golden",run_id)
     return {
       "spec_version":"rinka.event/1.0",
       "event_id":eid,
