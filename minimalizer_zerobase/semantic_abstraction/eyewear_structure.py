@@ -121,9 +121,10 @@ def observe_eyewear_structure(
     lx1=lbox[0]+lbox[2];rx0=rbox[0]
     y0=max(lbox[1],rbox[1]);y1=min(lbox[1]+lbox[3],rbox[1]+rbox[3])
     bridge=np.zeros_like(face)
-    if rx0>lx1 and y1>y0:
+    if y1>y0:
         cy=(y0+y1)//2;th=max(1,radius)
-        bridge[max(0,cy-th):min(face.shape[0],cy+th+1),lx1:rx0+1]=True
+        xa=min(lx1,rx0);xb=max(lx1,rx0)
+        bridge[max(0,cy-th):min(face.shape[0],cy+th+1),xa:xb+1]=True
         bridge&=authority
 
     source_support=float(((lm|rm)&(contrast>=10)).sum()/max(1,int((lm|rm).sum())))
