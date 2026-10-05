@@ -81,7 +81,9 @@ def observe_eyewear_structure(
             if int(comp.sum())<8: continue
             cy=y+.5*h;cx=x+.5*w
             # The contour center must stay in the upper-face worn zone, not deep inside facial features.
-            if cy>fy+.34*fh: continue\n            # Paired worn structures should remain near the face span; reject remote hair ornaments/strands.\n            if cx<fx-.35*fw or cx>fx+1.35*fw: continue
+            if cy>fy+.34*fh: continue
+            # Paired worn structures should remain near the face span; reject remote hair ornaments/strands.
+            if cx<fx-.35*fw or cx>fx+1.35*fw: continue
             perimeter=max(1.0,float(cv2.arcLength(contour,True)))
             closure=min(1.0,4*np.pi*max(area,1.0)/(perimeter*perimeter))
             labels[comp]=next_label
