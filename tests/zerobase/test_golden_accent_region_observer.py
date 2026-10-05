@@ -9,9 +9,10 @@ def test_accent_regions_are_semantic_free_and_deterministic():
     assert a==b and a
     assert all(x["semantic_label"] is None and x["authority"] is False for x in a)
 
-def test_accent_region_stays_inside_subject_cells():
-    im=np.zeros((16,16,3),dtype=np.uint8); im[8:12,8:12]=[250,20,180]
-    mask=np.zeros((16,16),dtype=np.uint8); mask[8:12,8:12]=1
+def test_accent_region_localizes_contrasting_cell():
+    im=np.full((16,16,3),[120,120,120],dtype=np.uint8)
+    im[8:12,8:12]=[250,20,180]
+    mask=np.ones((16,16),dtype=np.uint8)
     rows=propose_accent_regions(im,mask)
     assert rows
     x,y,w,h=rows[0]["bbox"]
