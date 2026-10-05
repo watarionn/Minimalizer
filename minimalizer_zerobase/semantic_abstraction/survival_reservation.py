@@ -48,7 +48,7 @@ def reserve_semantic_survival_signatures(
     subject = np.zeros((h, w), dtype=bool)
     for mask in masks.values():
         subject |= mask
-    subject_area = max(1, int(subject.sum()))
+    subject_area = max(1, h * w)
     rows: list[SurvivalReservation] = []
 
     for part_id in sorted(masks):
