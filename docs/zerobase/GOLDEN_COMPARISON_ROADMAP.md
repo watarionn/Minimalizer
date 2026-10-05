@@ -223,3 +223,21 @@ Full NPZ evidence, contact sheet, rembg masks, report, and input manifest are pr
 Binding/adoption remains HOLD. The original G8 freeze did not include per-character semantic feature manifests. Creating those after seeing this blind run would leak outcome knowledge into the benchmark. The gap and prevention rule are recorded in `docs/incidents/INC-20261005-golden-blind-manifest-freeze-gap.md`.
 
 No human labels were substituted and no post-outcome tuning was performed.
+
+
+## G9 Pre-frozen Blind Semantic Template
+
+G9 repairs the evaluation-order gap found after the first G8 observer run. A generic semantic evaluation template is now frozen before any fresh blind corpus membership is selected.
+
+Frozen template: `benchmarks/golden/blind/GBLIND_GENERIC_V1.semantic.json`
+SHA-256: `8933fbcda7d7723f7ce21ba8d1aed118b0c8a0295297368359a2ad9554e1ccc0`
+
+The template contains only the four roles already supported by the frozen Grounded-SAM observer: hair, face-skin, limb, and accessory. It contains no character names, colors, coordinates, source paths, Golden images, or post-outcome knowledge. Fresh cases may vary only in case ID and sealed source hash; semantic policy is inherited mechanically.
+
+Validation:
+- focused G9 template tests: 3 passed
+- full `tests/zerobase`: 358 passed
+- `git diff --check`: PASS
+- template SHA-256 frozen before fresh source selection: PASS
+
+Next: select and seal a fresh Golden-free multi-character corpus without changing this template, then execute exactly once through frozen observer -> binder -> production bridge -> authorized geometry -> same renderer.

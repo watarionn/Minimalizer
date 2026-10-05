@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "case_id": "GBLIND_GENERIC_V1",
+  "features": [
+    {"id":"hair","semantic_role":"hair","disposition":"required","importance":"identity_critical","palette_role":"primary","compression_policy":"preserve"},
+    {"id":"face_skin","semantic_role":"face-skin","disposition":"optional","importance":"supporting","palette_role":"neutral","compression_policy":"symbolic"},
+    {"id":"limb","semantic_role":"limb","disposition":"optional","importance":"supporting","palette_role":"secondary","compression_policy":"symbolic"},
+    {"id":"accessory","semantic_role":"accessory","disposition":"optional","importance":"important","palette_role":"accent","compression_policy":"symbolic"}
+  ],
+  "relations": [],
+  "evaluation_regions": [
+    {"id":"generic_identity","feature_ids":["hair","face_skin","limb","accessory"]}
+  ]
+}
