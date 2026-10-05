@@ -187,7 +187,8 @@ def fit_authorized_geometry(
             "fitter_may_decide_semantics": False,
             "golden_raster_used": False,
             "repeated_budget_geometry": "deterministic_in_bbox_decomposition",
-            "mask_descriptor_used": True,\n            "mask_topology_fitting": "deterministic_4x4_occupied_cell_band",
+            "mask_descriptor_used": True,
+            "mask_topology_fitting": "deterministic_4x4_occupied_cell_band",
         },
     )
 
