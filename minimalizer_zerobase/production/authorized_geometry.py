@@ -48,6 +48,39 @@ def _feature_bbox(
     return x + left, y + top, w - left - right, h - top - bottom
 
 
+def _descriptor_profile(mask: Mapping[str, Any]) -> tuple[list[float], list[float]] | None:
+    descriptor = mask.get("mask_descriptor")
+    if not isinstance(descriptor, Mapping) or descriptor.get("grid") != [4, 4]:
+        return None
+    occ = descriptor.get("occupancy")
+    if not isinstance(occ, list) or len(occ) != 4 or any(not isinstance(r, list) or len(r) != 4 for r in occ):
+        return None
+    rows = [sum(max(0.0, float(v)) for v in row) for row in occ]
+    cols = [sum(max(0.0, float(occ[y][x])) for y in range(4)) for x in range(4)]
+    if sum(rows) <= 0:
+        return None
+    return rows, cols
+
+
+def _topology_bbox(mask: Mapping[str, Any], bbox: tuple[float,float,float,float], ordinal: int) -> tuple[float,float,float,float]:
+    """Use only coarse authorized occupancy to choose a deterministic occupied cell band."""
+    profile = _descriptor_profile(mask)
+    if profile is None:
+        return bbox
+    descriptor = mask["mask_descriptor"]["occupancy"]
+    cells = [(float(descriptor[y][x]), x, y) for y in range(4) for x in range(4) if float(descriptor[y][x]) > 0]
+    if not cells:
+        return bbox
+    cells.sort(key=lambda t: (-t[0], t[2], t[1]))
+    _, gx, gy = cells[ordinal % len(cells)]
+    ax,ay,aw,ah=bbox
+    cw,ch=aw/4,ah/4
+    # two-cell footprint preserves abstraction while following occupied topology
+    x=ax+max(0,gx-0.5)*cw; y=ay+max(0,gy-0.5)*ch
+    w=min(aw-(x-ax),2*cw); h=min(ah-(y-ay),2*ch)
+    return x,y,max(cw,w),max(ch,h)
+
+
 def _descriptor_bias(mask: Mapping[str, Any]) -> tuple[float, float]:
     descriptor = mask.get("mask_descriptor")
     if not isinstance(descriptor, Mapping) or descriptor.get("grid") != [4, 4]:
@@ -117,7 +150,7 @@ def fit_authorized_geometry(
             raise AuthorizedGeometryError(f"missing palette assignment: {feature_id}")
 
         authority_box = _bbox(semantic_masks[feature_id])
-        x, y, w, h = _feature_bbox(authority_box, int(ordinal), feature_counts[feature_id])
+        x, y, w, h = _feature_bbox(_topology_bbox(semantic_masks[feature_id], authority_box, int(ordinal)), int(ordinal), feature_counts[feature_id])
         bx, by = _descriptor_bias(semantic_masks[feature_id])
         ax, ay, aw, ah = authority_box
         dx, dy = bx * aw * .35, by * ah * .35
@@ -155,6 +188,7 @@ def fit_authorized_geometry(
             "golden_raster_used": False,
             "repeated_budget_geometry": "deterministic_in_bbox_decomposition",
             "mask_descriptor_used": True,
+            "mask_topology_fitting": "deterministic_4x4_occupied_cell_band",
         },
     )
 
