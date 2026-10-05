@@ -1,0 +1,48 @@
+from __future__ import annotations
+from typing import Any, Mapping
+import numpy as np
+
+class PaletteRoleError(RuntimeError):
+    pass
+
+def _hex(rgb: np.ndarray) -> str:
+    v=np.clip(np.rint(rgb),0,255).astype(np.uint8)
+    return "#%02x%02x%02x"%tuple(int(x) for x in v)
+
+def extract_authorized_palette(
+    image: np.ndarray,
+    semantic_masks: Mapping[str, Mapping[str, Any]],
+    *,
+    bins_per_channel: int = 8,
+) -> dict[str,str]:
+    """Deterministic dominant-color extraction inside authorized feature regions.
+
+    Semantic ownership comes only from semantic_masks. Color extraction cannot
+    add/relabel features and uses no Golden raster or learned model.
+    """
+    rgb=np.asarray(image)
+    if rgb.ndim!=3 or rgb.shape[2]!=3 or rgb.dtype!=np.uint8:
+        raise PaletteRoleError("image must be uint8 RGB")
+    if bins_per_channel < 2 or bins_per_channel > 16:
+        raise PaletteRoleError("bins_per_channel must be in [2,16]")
+    out={}
+    H,W,_=rgb.shape
+    for fid in sorted(semantic_masks):
+        mask=semantic_masks[fid]
+        if mask.get("authorized") is not True:
+            raise PaletteRoleError(f"semantic mask is not authorized: {fid}")
+        box=mask.get("bbox")
+        if not isinstance(box,(list,tuple)) or len(box)!=4:
+            raise PaletteRoleError(f"authorized semantic mask requires bbox: {fid}")
+        x,y,w,h=[int(round(float(v))) for v in box]
+        x0,y0=max(0,x),max(0,y);x1,y1=min(W,x+w),min(H,y+h)
+        pixels=rgb[y0:y1,x0:x1].reshape(-1,3)
+        if pixels.size==0:
+            raise PaletteRoleError(f"empty authorized region: {fid}")
+        q=np.minimum((pixels.astype(np.int32)*bins_per_channel)//256,bins_per_channel-1)
+        keys=q[:,0]*bins_per_channel*bins_per_channel+q[:,1]*bins_per_channel+q[:,2]
+        counts=np.bincount(keys,minlength=bins_per_channel**3)
+        winner=int(np.flatnonzero(counts==counts.max())[0])
+        chosen=pixels[keys==winner]
+        out[fid]=_hex(np.median(chosen,axis=0))
+    return out
