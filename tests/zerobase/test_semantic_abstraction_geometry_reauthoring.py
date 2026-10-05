@@ -131,4 +131,4 @@ def test_body_identity_accents_are_bounded() -> None:
     lower = [p for p in scene.primitives if p.primitive_id.startswith("semantic:lower_body-accent:")]
     assert len(torso) <= 2
     assert len(lower) <= 2
-    assert scene.provenance["body_identity_accents_max"]["torso"] == 2
+    assert scene.provenance["survival_reservation_budget"] == 8
