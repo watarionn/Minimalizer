@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_G10_FRESH_20261005",
+  "status": "SEALED_BEFORE_FIRST_OBSERVER_RUN",
+  "source_archive": {
+    "name": "HoloMenImages.zip",
+    "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9"
+  },
+  "evaluation_template": {
+    "path": "benchmarks/golden/blind/GBLIND_GENERIC_V1.semantic.json",
+    "sha256": "8933fbcda7d7723f7ce21ba8d1aed118b0c8a0295297368359a2ad9554e1ccc0"
+  },
+  "production_baseline": {
+    "main_sha": "525708c60bbcce5370bb6507810b6a9b0ba384a0",
+    "includes": [
+      "effective authorized primitive budget",
+      "4x4 mask occupancy descriptor",
+      "deterministic authorized palette extraction"
+    ]
+  },
+  "selection_rule": {
+    "candidate_rule": "archive members whose basename contains list_thumb and extension is png/jpg/jpeg",
+    "exclude_previous_g8_and_g9_basenames": true,
+    "ordering": "ascending source SHA-256 hex digest",
+    "take": 5,
+    "visual_inspection_used": false
+  },
+  "golden_images": false,
+  "input_bundle_sha256": "9da291c28c71889abff63979ce8e17ef93429d803ac6ecdaa1b8be1b01b77f63",
+  "cases": [
+    {
+      "case_id": "g10_natsuiro_matsuri",
+      "filename": "g10_natsuiro_matsuri.png",
+      "source_path": "HoloMenImages/夏色まつり（Natsuiro Matsuri）/Natsuiro-Matsuri_list_thumb.png",
+      "sha256": "1a0e49ebecca6eb729854bc4b24508c4773d8707e471eae446a87e63e94ca905",
+      "has_golden": false
+    },
+    {
+      "case_id": "g10_koseki_bijou",
+      "filename": "g10_koseki_bijou.png",
+      "source_path": "HoloMenImages/古石ビジュー（Koseki Bijou）/Koseki-Bijou_list_thumb.png",
+      "sha256": "1c7de78603de1bcf871c70a186dd40413a655e0339e3abf4ac414a1bde1e9f54",
+      "has_golden": false
+    },
+    {
+      "case_id": "g10_inugami_korone",
+      "filename": "g10_inugami_korone.png",
+      "source_path": "HoloMenImages/戌神ころね（Inugami Korone）/Inugami-Korone_list_thumb.png",
+      "sha256": "24b1dff222a77a121ffdb16cd426255ecce27ff502c2788da5d6286f290190b9",
+      "has_golden": false
+    },
+    {
+      "case_id": "g10_kikirara_vivi",
+      "filename": "g10_kikirara_vivi.png",
+      "source_path": "HoloMenImages/綺々羅々ヴィヴィ（Kikirara Vivi）/Kikirara-Vivi_list_thumb.png",
+      "sha256": "25f7ab0dc7636b92011fb45aa3c069ba2969c462184868f4cd363c15a5560214",
+      "has_golden": false
+    },
+    {
+      "case_id": "g10_himemori_luna",
+      "filename": "g10_himemori_luna.png",
+      "source_path": "HoloMenImages/姫森ルーナ（Himemori Luna）/Himemori-Luna_list_thumb.png",
+      "sha256": "2a82ae93731ee4087184fdd083aedd8d1348cbb4a2f1b046c6c059ef1a6a9007",
+      "has_golden": false
+    }
+  ],
+  "first_observer_run_performed": false
+}
