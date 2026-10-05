@@ -13,6 +13,8 @@ from minimalizer_zerobase.production.structural_motifs import (
 )
 from .ir import AbstractionPlan, AbstractionPolicy
 from .survival_reservation import reserve_semantic_survival_signatures
+from .identity_binding import bind_required_identity_features, bind_observed_identity_structures, required_identity_budget
+from .identity_structure_observer import observe_identity_structures
 
 
 def _median_hex(rgb: np.ndarray, mask: np.ndarray) -> str:
@@ -142,6 +144,8 @@ def semantic_reauthor_scene(
     policies = _policy_map(plan)
     primitives: list[ComposedPrimitive] = []
     z = 0
+    required_bindings = bind_required_identity_features(plan, masks)
+    binding_by_parent = {binding.parent_part_id: binding for binding in required_bindings}
 
     primitives.append(
         _primitive(
@@ -232,7 +236,8 @@ def semantic_reauthor_scene(
             z += 1
 
     if allowed("hair"):
-        for index, mass in enumerate(_hair_masses(masks["hair"], 3)):
+        hair_authority = binding_by_parent.get("hair").mask if "hair" in binding_by_parent else np.asarray(masks["hair"]).astype(bool)
+        for index, mass in enumerate(_hair_masses(hair_authority, 3)):
             points = _coarse_hull(mass, 8)
             if not points:
                 continue
@@ -252,25 +257,19 @@ def semantic_reauthor_scene(
         head_authority = np.asarray(masks["head"]).astype(bool)
         if "face" in masks:
             head_authority &= ~np.asarray(masks["face"]).astype(bool)
-        for index, (accent, color) in enumerate(
-            reserve_identity_accents(
-                image,
-                head_authority,
-                max_accents=2,
-                min_ratio=0.0015,
-                max_ratio=0.12,
-            )
-        ):
-            points = _coarse_hull(accent, 6)
+        observed = observe_identity_structures(image, head_authority, max_structures=3)
+        observed_bindings = bind_observed_identity_structures(plan, "head", observed)
+        for binding in observed_bindings:
+            points = _coarse_hull(binding.mask, 8)
             if not points:
                 continue
             primitives.append(
                 _primitive(
-                    f"semantic:head-accent:{index}",
+                    f"semantic:{binding.binding_id}",
                     "head",
                     "convex_polygon",
                     {"points": points},
-                    _rgb_hex(tuple(int(v) for v in color)),
+                    _median_hex(image, binding.mask),
                     z,
                 )
             )
@@ -304,7 +303,7 @@ def semantic_reauthor_scene(
         z += 1
 
     if allowed("major_clothing"):
-        clothing = np.asarray(masks["major_clothing"]).astype(bool)
+        clothing = binding_by_parent.get("major_clothing").mask if "major_clothing" in binding_by_parent else np.asarray(masks["major_clothing"]).astype(bool)
         masses = major_color_masses(
             image,
             clothing,
@@ -347,7 +346,8 @@ def semantic_reauthor_scene(
             z += 1
 
     if allowed("accessory_or_held_object"):
-        points = _coarse_hull(masks["accessory_or_held_object"], 6)
+        accessory_authority = binding_by_parent.get("accessory_or_held_object").mask if "accessory_or_held_object" in binding_by_parent else np.asarray(masks["accessory_or_held_object"]).astype(bool)
+        points = _coarse_hull(accessory_authority, 6)
         if points:
             primitives.append(
                 _primitive(
@@ -379,5 +379,8 @@ def semantic_reauthor_scene(
             "head_identity_accents_exclude_face": True,
             "survival_reservation_budget": 8,
             "survival_reservation_source": "source_pixels+authorized_semantic_masks",
+            "required_identity_budget": required_identity_budget(required_bindings),
+            "required_identity_roles": [binding.semantic_role for binding in required_bindings],
+            "observed_identity_authority": "observer proposal + SemanticPart authorization",
         },
     )
