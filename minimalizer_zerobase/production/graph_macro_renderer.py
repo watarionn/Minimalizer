@@ -61,7 +61,9 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   pts=_contour_polygon(masks["hair"],20)
   if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["hair"])}"/>')
  # Global subject masses establish the large visual composition before garment/detail layers.
- global_parts={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","major_clothing") if r in masks}
+ # Facial details are forbidden: head keeps its semantic base silhouette only.
+ # Identity features around the head must arrive through separate semantic roles such as hair/accessory.
+ global_parts={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","hair","major_clothing") if r in masks}
  for _,gm,gcol in global_mass_regions(rgb,global_parts,min_subject_ratio=.022,max_regions=12):
   pts=_contour_polygon(gm,14)
   if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({gcol[0]},{gcol[1]},{gcol[2]})"/>')
@@ -75,7 +77,7 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  # Reserve dominant source-derived color masses before sparse detail motifs.
  # Explicit semantic paint authority: body base -> garment -> limbs -> head/hair.
  # This prevents a late torso mass from painting over sleeve/arm structure.
- for role in ("lower_body","torso","major_clothing","left_arm","right_arm","head","hair"):
+ for role in ("lower_body","torso","major_clothing","left_arm","right_arm","hair"):
   if role not in masks:continue
   cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
   for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
