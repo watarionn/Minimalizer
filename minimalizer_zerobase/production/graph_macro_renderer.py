@@ -98,7 +98,8 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
    pts=_contour_polygon(sleeve,10)
    if pts: chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,sleeve)}"/>')
  # Compose region evidence across semantic-part boundaries. Semantic masks remain authority.
- active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","head","hair","accessory","major_clothing") if allocations.get(r,0)>0 and r in masks}
+ # Head is intentionally excluded from internal detail proposals: facial features are forbidden.
+ active={r:masks[r] for r in ("lower_body","torso","left_arm","right_arm","hair","accessory","major_clothing") if allocations.get(r,0)>0 and r in masks}
  # Edge-aware candidates compete under one perceptual budget; semantic masks remain authority.
  candidates={}
  for role in active:
