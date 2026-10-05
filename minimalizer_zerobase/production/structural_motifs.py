@@ -265,3 +265,15 @@ def silhouette_mass(mask:np.ndarray,*,bands:int=5)->np.ndarray:
   band=np.zeros_like(m);band[a:b,lo:hi+1]=1
   out|=band&m
  return out
+
+def coarse_part_block(mask:np.ndarray,*,bands:int=3,inner_q:float=.18)->np.ndarray:
+ """Compress a semantic part into a few broad source-bounded blocks."""
+ m=np.asarray(mask,bool)
+ if not np.any(m):return m.copy()
+ y,x=np.where(m);out=np.zeros_like(m);edges=np.linspace(y.min(),y.max()+1,bands+1).astype(int)
+ for a,b in zip(edges[:-1],edges[1:]):
+  yy,xx=np.where(m[a:b])
+  if len(xx)<3:continue
+  lo=int(np.quantile(xx,inner_q));hi=int(np.quantile(xx,1-inner_q))
+  z=np.zeros_like(m);z[a:b,lo:hi+1]=1;out|=z&m
+ return out
