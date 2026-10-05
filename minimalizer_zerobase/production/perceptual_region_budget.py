@@ -10,6 +10,7 @@ class BudgetedRegion:
  region:EdgeRegion
  score:float
  major:bool
+ accent:bool
 
 _DEFAULT_IMPORTANCE={"torso":1.30,"hair":1.25,"head":1.15,"accessory":1.20,"lower_body":1.0,"left_arm":.90,"right_arm":.90}
 
@@ -30,18 +31,23 @@ def select_perceptual_regions(regions:Mapping[str,Sequence[EdgeRegion]],part_mas
    subject_ratio=r.area/subject;part_ratio=r.area/parea
    major=subject_ratio>=major_ratio or part_ratio>=.34
    contrast=_contrast(r.rgb,base)
+   accent=(.004<=part_ratio<=.14 and contrast>=.20 and r.edge_boundary>=.08)
    # Area establishes mass; contrast/edge rescue identity accents without letting tiny fragments dominate.
    score=imp.get(part,1.0)*(1.8*np.sqrt(subject_ratio)+.75*np.sqrt(part_ratio)+.65*contrast+.20*min(1.0,r.edge_boundary))
-   rows.append(BudgetedRegion(part,r,float(score),major))
+   rows.append(BudgetedRegion(part,r,float(score),major,accent))
  majors=sorted((x for x in rows if x.major),key=lambda x:(-x.score,x.part,-x.region.area,x.region.rgb))
- minors=sorted((x for x in rows if not x.major),key=lambda x:(-x.score,x.part,-x.region.area,x.region.rgb))
+ accents=sorted((x for x in rows if x.accent and not x.major),key=lambda x:(-x.score,x.part,-x.region.area,x.region.rgb))
+ minors=sorted((x for x in rows if not x.major and not x.accent),key=lambda x:(-x.score,x.part,-x.region.area,x.region.rgb))
  # Preserve at most one guaranteed major per part before global competition.
  guaranteed=[];seen=set()
  for x in majors:
   if x.part not in seen: guaranteed.append(x);seen.add(x.part)
- chosen=guaranteed[:budget]
+ accent_slots=min(max(1,budget//4),len(accents)) if budget>=4 else 0
+ chosen=guaranteed[:max(0,budget-accent_slots)]
+ for x in accents[:accent_slots]:
+  if len(chosen)<budget:chosen.append(x)
  chosen_ids={(x.part,id(x.region)) for x in chosen}
- for x in majors+minors:
+ for x in majors+accents+minors:
   if len(chosen)>=budget:break
   key=(x.part,id(x.region))
   if key not in chosen_ids:chosen.append(x);chosen_ids.add(key)
