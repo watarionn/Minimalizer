@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_G10_FRESH_20261005",
+  "status": "FIRST_UNTUNED_RUN_COMPLETE",
+  "canonical_main_sha": "97c4d364f15687eced0e3be3e63937b98e01af83",
+  "input_bundle_sha256": "9da291c28c71889abff63979ce8e17ef93429d803ac6ecdaa1b8be1b01b77f63",
+  "artifact_bundle_sha256": "f859a44091e59d6eda306c770f3a79c230e174cad39967aa7b106833101a1d4e",
+  "observer": {
+    "case_count": 5,
+    "mean_elapsed_seconds": 0.567438819957897,
+    "max_peak_cuda_memory_mb": 1378.61328125,
+    "zero_area_cases": {
+      "hair": [],
+      "face-skin": [],
+      "limb": [],
+      "accessory": []
+    },
+    "oversize_rejection_count": 7
+  },
+  "pipeline": {
+    "binder_unresolved_case_count": 0,
+    "bridge_ready_case_count": 5,
+    "rendered_case_count": 5,
+    "primitive_count_each": 12,
+    "authorized_palette_api": true,
+    "golden_used": false,
+    "manual_semantic_labels_used": false,
+    "diffmin_enabled": false
+  },
+  "post_result_tuning": false
+}
