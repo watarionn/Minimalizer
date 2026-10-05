@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "GBLIND_G9_FRESH_20261005",
+  "status": "SEALED_BEFORE_FIRST_OBSERVER_RUN",
+  "source_archive": {
+    "name": "HoloMenImages.zip",
+    "sha256": "ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9"
+  },
+  "evaluation_template": {
+    "path": "benchmarks/golden/blind/GBLIND_GENERIC_V1.semantic.json",
+    "sha256": "8933fbcda7d7723f7ce21ba8d1aed118b0c8a0295297368359a2ad9554e1ccc0",
+    "frozen_on_main_before_selection": "f2a991be7a107d8a5a2b351ef9a56c8cc26938e3"
+  },
+  "observer": {
+    "provider": "phase-e-grounded-sam",
+    "model": "IDEA-Research/grounding-dino-tiny+facebook/sam-vit-base",
+    "active_threshold": 0.20,
+    "configuration_changes_after_selection": false
+  },
+  "selection_rule": {
+    "candidate_rule": "archive members whose basename contains list_thumb and extension is png/jpg/jpeg",
+    "exclude_previous_g8_basenames": ["AZKi_list_thumb.png","IRyS_list_thumb.png","Gawr-Gura_list_thumb.png","Ceres-Fauna_list_thumb.png","Nanashi-Mumei_list_thumb.png"],
+    "ordering": "ascending source SHA-256 hex digest",
+    "take": 5,
+    "visual_inspection_used": false
+  },
+  "golden_images": false,
+  "cases": [
+    {"case_id":"g9_isaki_riona","source_path":"HoloMenImages/響咲リオナ（Isaki Riona）/Isaki-Riona_list_thumb.png","sha256":"0315a85ed59d536144dd459c2fcdc0530151a003ff7cae13eeded56aeaa16a9e","has_golden":false},
+    {"case_id":"g9_cecilia_immergreen","source_path":"HoloMenImages/セシリア・イマーグリーン（Cecilia Immergreen）/Cecilia-Immergreen_list_thumb.png","sha256":"056e929006f969d179501f20e1950fb09bcfb0586f6b5439f6f07e1061a4b89d","has_golden":false},
+    {"case_id":"g9_takanashi_kiara","source_path":"HoloMenImages/小鳥遊キアラ（Takanashi Kiara）/Takanashi-Kiara_list_thumb.png","sha256":"0a61aa525f5ee326f6e77129de3ec13c2111df388555c69479317b425c7ae79a","has_golden":false},
+    {"case_id":"g9_nakiri_ayame","source_path":"HoloMenImages/百鬼あやめ（Nakiri Ayame）/Nakiri-Ayame_list_thumb.png","sha256":"140c7bfb7984daff67a0457ebb63a0bbb1c5a41147d9431f526e94de9d73979d","has_golden":false},
+    {"case_id":"g9_nekomata_okayu","source_path":"HoloMenImages/猫又おかゆ（Nekomata Okayu）/Nekomata-Okayu_list_thumb.png","sha256":"186ab075bd5cf574ad870eb1851a956303420bc268a5477dc4dd9d849c2126b5","has_golden":false}
+  ],
+  "first_observer_run_performed": false
+}
