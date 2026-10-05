@@ -262,3 +262,20 @@ Validation before first observer execution:
 - observer runs on fresh corpus: zero
 
 Next: after this seal is merged to main, execute the first and only untuned frozen-observer run, then bind the inherited generic manifest and continue to production candidate rendering.
+
+
+## G9 Generic Geometry Improvement Loop
+
+The sealed G9 observer evidence was reused without rerunning Grounded-SAM.
+
+1. Effective-budget correction (PR #90): repeated primitives no longer collapse onto identical geometry. All five cases changed and reached 12/12 distinct geometry signatures while remaining inside authorized feature bboxes.
+2. Mask-shape descriptor (PR #91): the frozen observer derives a deterministic 4x4 occupancy descriptor from the same thresholded mask used for bbox evidence. Binder preserves it, and AuthorizedGeometry uses only a coarse centroid bias clamped inside existing authority. No new semantics are introduced.
+3. G9 v3 rerender: all five cases changed from v2; all four generic features in every case carried the descriptor. No observer rerun, Golden raster, manual labels, or case-specific tuning.
+
+Preserved artifacts:
+- Google Drive `chatGPT及びCodex用/Minimalizer/GBLIND_G9_FRESH_20261005_geometry_v2.zip`
+  SHA-256 `6c13b48abc96af242818b234a096140811994dbf82992f657abdbc924ca6f36d`
+- Google Drive `chatGPT及びCodex用/Minimalizer/GBLIND_G9_FRESH_20261005_geometry_v3.zip`
+  SHA-256 `efcc282830c264b9378f9093069e3b5dad587136289198aed41c16cd03412c4c`
+
+Next generic bottleneck: replace the temporary bbox-median palette adapter with a reviewed deterministic palette-role extraction contract, then run a fresh blind generalization suite rather than tuning G9 retroactively.
