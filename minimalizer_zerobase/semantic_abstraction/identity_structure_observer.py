@@ -51,6 +51,28 @@ def observe_identity_structures(
             continue
         confidence=min(1.0,.45+density*3.0+min(ratio,.12))
         rows.append((confidence,pixel_area,x,y,w,h,component,density,ratio))
+    # Add medium-scale coherent color regions as observer evidence. Color alone is
+    # never authority; promotion still requires an authorized SemanticPart parent.
+    parent_median=np.median(image[authority],axis=0).astype(float)
+    quant=(image//48).astype(np.int32)
+    packed=(quant[:,:,0]<<16)|(quant[:,:,1]<<8)|quant[:,:,2]
+    for key in np.unique(packed[authority]):
+        color_mask=((packed==key)&authority).astype(np.uint8)
+        ccount,clabels,cstats,_=cv2.connectedComponentsWithStats(color_mask,8)
+        for label in range(1,ccount):
+            x,y,w,h,area=(int(v) for v in cstats[label])
+            ratio=area/total
+            if not (.002 <= ratio <= .14) or w < 4 or h < 3:
+                continue
+            component=clabels==label
+            color=np.median(image[component],axis=0).astype(float)
+            contrast=float(np.linalg.norm(color-parent_median))
+            if contrast < 42.0:
+                continue
+            boundary=cv2.morphologyEx(component.astype(np.uint8),cv2.MORPH_GRADIENT,np.ones((3,3),np.uint8))>0
+            density=float(edges[component].sum()/max(1,area))
+            confidence=min(1.0,.48+min(contrast/255.0,.35)+min(ratio,.08)+min(float(boundary.sum())/max(1,area)*.04,.08))
+            rows.append((confidence,area,x,y,w,h,component,density,ratio))
     rows.sort(key=lambda r:(-r[0],-r[1],r[3],r[2]))
     return tuple(
         IdentityStructureEvidence(
