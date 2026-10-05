@@ -59,3 +59,35 @@ def clothing_authority(torso:np.ndarray,major_clothing:np.ndarray|None)->np.ndar
  """Union clothing evidence while retaining semantic ownership boundaries upstream."""
  t=np.asarray(torso,bool)
  return t.copy() if major_clothing is None else (t|np.asarray(major_clothing,bool))
+
+def boundary_band(a:np.ndarray,b:np.ndarray,*,radius:int=2)->np.ndarray:
+ """Pixels of a touching semantic boundary, expanded only inside their union."""
+ aa=np.asarray(a,bool);bb=np.asarray(b,bool);h,w=aa.shape
+ def dilate(m):
+  p=np.pad(m,1);o=m.copy()
+  for dy,dx in ((0,1),(1,0),(1,2),(2,1)):o|=p[dy:dy+h,dx:dx+w]
+  return o
+ da,db=aa.copy(),bb.copy()
+ for _ in range(max(1,radius)):da=dilate(da);db=dilate(db)
+ return (da&db)&(aa|bb)
+
+def collar_motif(mask:np.ndarray,head_mask:np.ndarray)->np.ndarray:
+ """Upper-central garment structure nearest the head/neck attachment."""
+ m=np.asarray(mask,bool);head=np.asarray(head_mask,bool)
+ if not np.any(m) or not np.any(head):return np.zeros_like(m)
+ band=boundary_band(m,head,radius=4)&m
+ if not np.any(band):
+  ys,xs=np.where(m);cut=np.quantile(ys,.28);band=m&(np.indices(m.shape)[0]<=cut)
+ # Keep central upper structure rather than shoulder-wide noise.
+ ys,xs=np.where(m);cx=float(xs.mean());span=max(1.,float(xs.max()-xs.min()+1))
+ xgrid=np.indices(m.shape)[1]
+ return band&(np.abs(xgrid-cx)<=span*.28)
+
+def sleeve_boundary_motifs(torso:np.ndarray,left_arm:np.ndarray|None,right_arm:np.ndarray|None)->tuple[np.ndarray,...]:
+ """Return sparse garment/arm attachment bands for sleeve readability."""
+ t=np.asarray(torso,bool);out=[]
+ for arm in (left_arm,right_arm):
+  if arm is None:continue
+  b=boundary_band(t,np.asarray(arm,bool),radius=3)
+  if np.any(b):out.append(b)
+ return tuple(out)
