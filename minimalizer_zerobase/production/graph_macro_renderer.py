@@ -3,6 +3,7 @@ from typing import Mapping
 import numpy as np
 from minimalizer_zerobase.structure.graph import StructuralLayoutGraph
 from minimalizer_zerobase.production.semantic_contour import semantic_contour
+from minimalizer_zerobase.production.part_color_regions import extract_part_color_regions
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -44,4 +45,12 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   pts=_contour_polygon(masks["accessory"],12)
   if rel and pts:
    chunks.append(f'<polygon points="{pts}" fill="{_median(rgb,masks["accessory"])}"/>')
+ # Intra-part regions are overlays, not new semantic authorities.
+ for role in ("lower_body","torso","left_arm","right_arm","head","hair","accessory"):
+  if allocations.get(role,0)<1 or role not in masks: continue
+  for region in extract_part_color_regions(rgb,masks[role],max_regions=3):
+   pts=_contour_polygon(region.mask,12)
+   if not pts: continue
+   col="#%02x%02x%02x"%region.rgb
+   chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
  chunks.append("</svg>");return "".join(chunks)
