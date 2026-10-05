@@ -9,8 +9,8 @@ def _fixture():
     rgb = np.full((64, 64, 3), (170, 150, 130), np.uint8)
     torso = np.zeros((64, 64), bool)
     torso[12:48, 16:48] = True
-    rgb[20:26, 22:30] = (20, 40, 45)
-    rgb[34:40, 34:42] = (75, 145, 210)
+    rgb[20:28, 22:30] = (20, 40, 45)
+    rgb[34:42, 34:42] = (75, 145, 210)
     return rgb, {"torso": torso}
 
 
