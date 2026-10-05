@@ -7,7 +7,7 @@ from minimalizer_zerobase.production.part_color_regions import extract_part_colo
 from minimalizer_zerobase.production.cross_part_region_graph import build_cross_part_region_graph, composed_regions
 from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_regions, propose_contrast_subregions
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
-from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions
+from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -114,6 +114,12 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
   if not pts: continue
   col="#%02x%02x%02x"%item.region.rgb
   chunks.append(f'<polygon points="{pts}" fill="{col}"/>')
+ # Required-feature reservation: restore compact high-contrast garment identity accents last.
+ if garment_mask is not None:
+  for accent,argb in reserve_identity_accents(rgb,garment_mask,max_accents=3):
+   accent=_strengthened_accent_mask(accent,garment_mask,target_ratio=1.18)
+   pts=_contour_polygon(accent,12)
+   if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({argb[0]},{argb[1]},{argb[2]})"/>')
  # Foreground semantic ownership is restored last for graph-authorized accessories.
  if allocations.get("accessory",0)>0 and "accessory" in masks:
   rel=[r for r in graph.relations if r.source_part=="accessory_or_held_object" and r.relation_kind=="attached_to"]
