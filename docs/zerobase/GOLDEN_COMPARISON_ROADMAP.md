@@ -241,3 +241,24 @@ Validation:
 - template SHA-256 frozen before fresh source selection: PASS
 
 Next: select and seal a fresh Golden-free multi-character corpus without changing this template, then execute exactly once through frozen observer -> binder -> production bridge -> authorized geometry -> same renderer.
+
+
+## G9 Fresh Blind Corpus Seal
+
+A fresh five-character corpus was selected only after the G9 generic semantic template had been frozen on main. No candidate image was visually inspected for selection. Selection is deterministic: consider archive `list_thumb` PNG/JPG/JPEG members, exclude the five previous G8 basenames, sort by source SHA-256 ascending, take the first five.
+
+Sealed cases: Isaki Riona, Cecilia Immergreen, Takanashi Kiara, Nakiri Ayame, and Nekomata Okayu.
+
+Corpus manifest: `benchmarks/golden/blind/GBLIND_G9_FRESH_20261005.json`
+Corpus manifest SHA-256: `d5fa283982e1fc003f4d09c58bb5b64222b9f8c52c50804be1dd9ddab8b0ae45`
+Source archive SHA-256: `ef5c0e7a79640dda6b955adc24971dabc6d2b2797949142640f3c0f72b1352e9`
+Pre-frozen evaluation template SHA-256: `8933fbcda7d7723f7ce21ba8d1aed118b0c8a0295297368359a2ad9554e1ccc0`
+
+Validation before first observer execution:
+- focused G9 freeze tests: 6 passed
+- full `tests/zerobase`: 361 passed
+- `git diff --check`: PASS
+- source selection visual inspection: none
+- observer runs on fresh corpus: zero
+
+Next: after this seal is merged to main, execute the first and only untuned frozen-observer run, then bind the inherited generic manifest and continue to production candidate rendering.
