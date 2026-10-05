@@ -60,27 +60,33 @@ def propose_edge_regions(rgb:np.ndarray,part_mask:np.ndarray,*,cell_size:int=8,m
  return tuple(rows[:max_regions])
 
 def propose_contrast_subregions(rgb:np.ndarray,part_mask:np.ndarray,*,max_regions:int=4,min_area_ratio:float=.004,max_area_ratio:float=.12)->tuple[EdgeRegion,...]:
- """Preserve compact connected colors that would otherwise dissolve into a superpixel representative."""
+ """Preserve compact minority-color islands before superpixel representative-color collapse."""
  a=np.asarray(rgb,np.uint8);pm=np.asarray(part_mask,bool);total=int(pm.sum())
  if total==0:return ()
- base=np.median(a[pm].astype(float),axis=0)
- d=np.sqrt(np.sum((a.astype(float)-base)**2,axis=2))
- vals=d[pm];threshold=max(52.0,float(np.percentile(vals,75)))
- cand=pm&(d>=threshold);h,w=pm.shape;seen=np.zeros((h,w),bool);edge=edge_map(a);out=[]
+ # Coarse color bins estimate local rarity without naming any hue.
+ q=(a//32).astype(np.int16)
+ vals=q[pm];keys,counts=np.unique(vals,axis=0,return_counts=True)
+ freq={tuple(k):int(n) for k,n in zip(keys,counts)}
+ cand=np.zeros(pm.shape,bool)
+ for y,x in zip(*np.where(pm)):
+  ratio=freq[tuple(q[y,x])]/total
+  if ratio<=.14:cand[y,x]=1
+ h,w=pm.shape;seen=np.zeros((h,w),bool);edge=edge_map(a);out=[]
  for sy,sx in zip(*np.where(cand)):
   if seen[sy,sx]:continue
   stack=[(sy,sx)];seen[sy,sx]=1;pts=[]
   while stack:
-   y,x=stack.pop();pts.append((y,x));seed=a[y,x].astype(float)
+   y,x=stack.pop();pts.append((y,x))
    for ny,nx in ((y-1,x),(y,x-1),(y,x+1),(y+1,x)):
     if 0<=ny<h and 0<=nx<w and cand[ny,nx] and not seen[ny,nx]:
-     if np.linalg.norm(a[ny,nx].astype(float)-seed)<=64:
+     if np.linalg.norm(a[ny,nx].astype(float)-a[y,x].astype(float))<=72:
       seen[ny,nx]=1;stack.append((ny,nx))
   ratio=len(pts)/total
   if not(min_area_ratio<=ratio<=max_area_ratio):continue
   m=np.zeros((h,w),bool);yy,xx=zip(*pts);m[yy,xx]=1
   col=tuple(int(v) for v in np.median(a[m],axis=0))
-  contrast=float(np.linalg.norm(np.asarray(col,float)-base))
-  out.append((contrast,EdgeRegion(m,col,len(pts),float(edge[m].mean()))))
+  chroma=float(max(col)-min(col))/255.0
+  rarity=1.0-freq.get(tuple((np.asarray(col)//32).astype(int)),total)/total
+  out.append((rarity+.35*chroma,EdgeRegion(m,col,len(pts),float(edge[m].mean()))))
  out.sort(key=lambda x:(-x[0],-x[1].area,x[1].rgb))
  return tuple(x[1] for x in out[:max_regions])
