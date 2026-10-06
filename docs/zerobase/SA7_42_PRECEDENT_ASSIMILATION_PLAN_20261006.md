@@ -1,9 +1,9 @@
-> **CURRENT-STATE NOTICE (2026-10-06):** SA7 is complete and PB2 / SA2 Evidence Adapter Backport is merged and verified. The canonical continuation point is now **PB3 / SA3 Importance & Policy Backport**. This document remains the adopted cross-phase precedent map.
+> **CURRENT-STATE NOTICE (2026-10-06):** SA7 is complete, PB2 / SA2 Evidence Adapter Backport is complete, and PB3 / SA3 Importance & Policy Backport is merged and verified. The canonical continuation point is now **PB4 / SA4 Semantic Debug Board Backport**. This document remains the adopted cross-phase precedent map.
 
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
-Canonical continuation: PB3 / SA3 Importance & Policy Backport
+Canonical continuation: PB4 / SA4 Semantic Debug Board Backport
 
 ## Purpose
 
@@ -367,4 +367,4 @@ Instead:
 
 Current execution point is:
 
-**PB3 / SA3 Importance & Policy Backport**
+**PB4 / SA4 Semantic Debug Board Backport**
