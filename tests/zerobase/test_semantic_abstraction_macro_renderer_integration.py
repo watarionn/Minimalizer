@@ -21,3 +21,23 @@ def test_identity_accent_is_recomposed_last():
  r=replace_macro_roles(s,(macro("hair"),macro("major_clothing")),{"hair":"#222","major_clothing":"#333"})
  accent=next(p for p in r.scene.primitives if p.primitive_id=="identity-accent-goggle")
  assert accent.z_order==max(p.z_order for p in r.scene.primitives)
+
+
+def test_residual_layers_get_explicit_ids():
+    base=macro("hair")
+    residual=MacroGeometryPrimitive(
+        "hair",
+        np.array([[6,6],[8,6],[7,8]]),
+        3,
+        3,
+        layer_kind="residual",
+        component_index=4,
+    )
+    r=replace_macro_roles(
+        scene(),
+        (base,residual,macro("major_clothing")),
+        {"hair":"#222","major_clothing":"#333"},
+    )
+    ids={p.primitive_id for p in r.scene.primitives}
+    assert "semantic-macro:hair:0" in ids
+    assert "semantic-macro-residual:hair:4" in ids
