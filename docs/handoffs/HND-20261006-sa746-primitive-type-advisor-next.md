@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.46 Primitive-Type Advisor Research Handoff
 
 Date: 2026-10-06
-Status: SA7.45 COMPLETE / SA7.46 NEXT
+Status: SA7.46 COMPLETE / SUPERSEDED BY SA7.47 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-sa747-layer-occlusion-evidence-next.md`.
 
 SA7.45 implementation:
 - PR #180
@@ -19,7 +19,7 @@ Canonical SA7.45 record:
 Latest adopted visual baseline remains:
 `a60aaa12ff22c2f6384a598442964710ce939d87`
 
-## SA7.46 Primitive-Type Advisor Research — NEXT
+## SA7.46 Primitive-Type Advisor Research — COMPLETE
 
 Goal:
 absorb StarVector's semantic primitive-selection idea without granting a VLM/LLM direct production geometry authority.
