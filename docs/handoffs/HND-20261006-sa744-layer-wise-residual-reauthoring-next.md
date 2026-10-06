@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.44 Layer-wise Residual Re-authoring Handoff
 
 Date: 2026-10-06
-Status: SA7.43 COMPLETE / SA7.44 NEXT
+Status: SA7.44 COMPLETE / SUPERSEDED BY SA7.45 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-sa745-semantic-retention-observer-next.md`.
 
 SA7.43 implementation:
 - PR #178
@@ -72,7 +72,7 @@ Drive:
 Folder ID:
 `1amzsvY0wU47BlsDHK5ivQGjqSwL_YTsS`
 
-## SA7.44 Layer-wise Residual Re-authoring — NEXT
+## SA7.44 Layer-wise Residual Re-authoring — COMPLETE
 
 ### Goal
 
@@ -191,6 +191,8 @@ These are planning anchors only. SA7.44 evidence may refine the order.
 
 ## Current state declaration
 
-The canonical continuation point is:
+SA7.44 is complete. The canonical continuation point is:
 
-**SA7.44 Layer-wise Residual Re-authoring**
+**SA7.45 Semantic Retention Observer**
+
+Current handoff: `docs/handoffs/HND-20261006-sa745-semantic-retention-observer-next.md`.
