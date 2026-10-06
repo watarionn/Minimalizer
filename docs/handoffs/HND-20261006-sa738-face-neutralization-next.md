@@ -4,7 +4,7 @@ Date: 2026-10-06
 Status: SA7.37 MERGED / SA7.38 DIAGNOSIS IN PROGRESS
 Repository: watarionn/Minimalizer
 Canonical branch: main
-Current main SHA: `7b01deca662fa99765f1b163bf60d5e1a00dcef6`
+Latest implementation SHA before handoff-only docs: `7b01deca662fa99765f1b163bf60d5e1a00dcef6`\nRestart from current `main` after this handoff is merged.
 Latest adopted visual baseline: `a60aaa12ff22c2f6384a598442964710ce939d87` (Silhouette Proportion Recomposition)
 Visual baseline has NOT changed since that commit.
 
