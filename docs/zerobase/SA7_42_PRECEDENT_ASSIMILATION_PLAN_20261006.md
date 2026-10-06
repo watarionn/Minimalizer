@@ -277,6 +277,83 @@ evaluate whether semantic primitive-type suggestions improve deterministic gramm
 
 Use LayerPeeler-style layer reasoning and SuperSVG region evidence to improve SemanticPart decomposition and occlusion understanding.
 
+## Post-SA7 Precedent Backport Pass — ADOPTED EXECUTION ORDER
+
+After SA7 Geometry Re-authoring is fully closed, do **not** jump directly into SA8 implementation.
+
+Run a deliberate bottom-up precedent backport pass starting from SA2 so that the earlier observation/policy/debug/safety layers can absorb the research knowledge discovered during SA7.
+
+This is a focused augmentation pass, not a historical rewrite.
+
+### Execution order after SA7 closeout
+
+1. **PB2 / SA2 Evidence Adapter Backport**
+   - SuperSVG
+   - LayerPeeler
+   - LIVE
+   - Add region/layer/disconnected-component/occlusion evidence while preserving observer-only authority.
+   - Preserve provenance between observed evidence and promoted production authority.
+
+2. **PB3 / SA3 Importance & Policy Backport**
+   - CLIPasso
+   - CLIPascene
+   - StarVector advisor
+   - Add semantic-retention/removal-impact diagnostics.
+   - Primitive-type suggestions remain advisor-only until converted into explicit deterministic rules.
+
+3. **PB4 / SA4 Semantic Debug Board Backport**
+   - CLIPasso / CLIPascene
+   - SuperSVG
+   - LayerPeeler
+   - Surface why evidence survived, merged, simplified, or was rejected.
+   - Clearly distinguish observer evidence, advisor output, and production decisions.
+
+4. **PB5 / SA5 Face Neutralization Compatibility Audit**
+   - Do not replace the SA7.38 face raster safety contract.
+   - Only add precedent-derived diagnostics where they cannot weaken Forbidden Face Detail = 0.00%.
+   - This may be a no-op implementation stage if no safe improvement is justified.
+
+5. **PB6 / SA6 Anatomy / Occlusion Evidence Backport**
+   - LayerPeeler
+   - SuperSVG
+   - Add optional occlusion/region evidence around anatomy and topology.
+   - Existing anatomy/topology authority remains canonical.
+   - This may remain observer-only if promotion cannot be proven safe.
+
+6. **PB7 / SA7 Review**
+   - No broad reimplementation.
+   - Confirm SA7.42-SA7.47 already contain the intended geometry-side precedent assimilation.
+   - Only close gaps discovered by PB2-PB6.
+
+7. **SA8 Palette Role Adapter**
+   - Proceed as the next normal phase, now using the backported evidence stack.
+   - Integrate AdaVec / LIVE / LayerPeeler concepts from the beginning.
+
+8. **SA9 Semantic Golden Teacher**
+   - Integrate CLIPasso / CLIPascene / StarVector evaluation concepts from the beginning.
+   - Golden remains teacher/evaluation authority, never production raster authority.
+
+9. **SA10 Expanded Regression Gate**
+   - Integrate semantic-retention, adaptive-complexity, component-survival, and primitive-economy diagnostics.
+   - Existing hard gates remain individually visible and cannot be hidden by aggregate scores.
+
+### Gate before leaving the backport pass
+
+Before beginning SA8:
+- PB2-PB6 must each be classified as IMPLEMENTED, OBSERVER-ONLY, or NO-OP-BY-DESIGN;
+- all changed stages must pass focused tests and ZeroBase;
+- no backport may weaken Feature Survival, face, anatomy, topology, source-authority, expansion, or overlap guards;
+- all new observer/advisor provenance must be inspectable from the debug/evaluation path;
+- the canonical production path must remain deterministic.
+
+### Decision
+
+The canonical high-level order is now:
+
+**Finish SA7 -> Post-SA7 Backport PB2 -> PB3 -> PB4 -> PB5 -> PB6 -> PB7 review -> SA8 -> SA9 -> SA10**
+
+This ordering supersedes any implied plan to jump directly from SA7 closeout to SA8.
+
 ## Decision
 
 Do not reopen SA2-SA10 as broad rewrites.
