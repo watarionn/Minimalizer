@@ -76,3 +76,19 @@ def test_canonical_gate_rejects_empty_face_mask():
             subject_mask=subject,
             face_mask=face,
         )
+
+
+def test_canonical_gate_report_serializes_missing_signatures():
+    import json
+    source, baseline, current, subject, face = _images()
+    current[8:24, 8:24] = [240, 220, 200]
+    report = evaluate_canonical_hard_gate(
+        adopted_baseline_rgb=baseline,
+        current_rgb=current,
+        source_rgb=source,
+        subject_mask=subject,
+        face_mask=face,
+    )
+    payload = report.to_dict()
+    assert report.missing_count == len(report.missing_signatures)
+    assert isinstance(json.dumps(payload), str)
