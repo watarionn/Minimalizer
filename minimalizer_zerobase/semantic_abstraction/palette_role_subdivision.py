@@ -5,7 +5,7 @@ import cv2,numpy as np
 PALETTE_SUBDIVISION_VERSION="sa7.30-v1"
 MAX_ROLES_PER_PART=3
 MIN_ROLE_RATIO=.10
-MIN_COMPONENT_RATIO=.04
+MIN_COMPONENT_RATIO=.025
 
 @dataclass(frozen=True)
 class PaletteRoleMass:
