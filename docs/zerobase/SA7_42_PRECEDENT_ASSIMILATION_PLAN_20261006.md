@@ -1,9 +1,9 @@
-> **CURRENT-STATE NOTICE (2026-10-06):** SA7.42 Multi-Component Background Field Geometry and SA7.43 Adaptive Primitive Budget are complete. The canonical continuation point is now **SA7.44 Layer-wise Residual Re-authoring**. This document remains the adopted cross-phase precedent map; historical SA7.42 execution wording below is retained as design history.
+> **CURRENT-STATE NOTICE (2026-10-06):** SA7 Geometry Re-authoring is complete through SA7.47 and the SA7 Closeout / Integration Gate has passed. The canonical continuation point is now **PB2 / SA2 Evidence Adapter Backport**. This document remains the adopted cross-phase precedent map.
 
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
-Canonical continuation: SA7.44 Layer-wise Residual Re-authoring
+Canonical continuation: PB2 / SA2 Evidence Adapter Backport
 
 ## Purpose
 
@@ -367,4 +367,4 @@ Instead:
 
 Current execution point is:
 
-**SA7.44 Layer-wise Residual Re-authoring**
+**PB2 / SA2 Evidence Adapter Backport**
