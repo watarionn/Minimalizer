@@ -240,6 +240,7 @@ def allocate_adaptive_primitive_budget(
     allocated = {item.role: item.minimum for item in evidence}
     remaining = global_cap - minimum_total
 
+    total_source_area = sum(item.source_area for item in evidence)
     marginal: list[tuple[float, str, int]] = []
     for item in evidence:
         demand = min(
@@ -248,7 +249,10 @@ def allocate_adaptive_primitive_budget(
         )
         for ordinal in range(item.minimum, demand):
             area = item.component_areas[ordinal]
-            support = area / max(1, item.source_area)
+            # Compete for the global cap using source support in one shared
+            # reference frame. Per-role ratios would incorrectly make a tiny
+            # second component tie a much larger component from another role.
+            support = area / max(1, total_source_area)
             score = float(importance.get(item.role, 1.0)) * support
             marginal.append((score, item.role, ordinal))
 
