@@ -1,3 +1,5 @@
+> **CURRENT-STATE NOTICE (2026-10-06):** SA7.42 Multi-Component Background Field Geometry and SA7.43 Adaptive Primitive Budget are complete. The canonical continuation point is now **SA7.44 Layer-wise Residual Re-authoring**. This document remains the adopted cross-phase precedent map; historical SA7.42 execution wording below is retained as design history.
+
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
