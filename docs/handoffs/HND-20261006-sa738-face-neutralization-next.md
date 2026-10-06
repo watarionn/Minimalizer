@@ -1,18 +1,20 @@
+> **SUPERSEDED CURRENT-STATE NOTICE (2026-10-06):** SA7.38 was subsequently completed, followed by SA7.39, SA7.40, and SA7.41. The canonical continuation point is now **SA7.42 Multi-Component Background Field Geometry**. For restart instructions, read `docs/handoffs/HND-20261006-sa742-background-multicomponent-next.md`. The remainder of this file is retained as historical SA7.38 context only.
+
 # HND-20261006 Minimalizer SA7.38 Face Neutralization Handoff
 
 Date: 2026-10-06
-Status: SA7.37 MERGED / SA7.38 DIAGNOSIS IN PROGRESS
+Status: HISTORICAL SA7.38 SNAPSHOT / SUPERSEDED BY SA7.42 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
-Latest implementation SHA before handoff-only docs: `7b01deca662fa99765f1b163bf60d5e1a00dcef6`\nRestart from current `main` after this handoff is merged.
+Historical implementation SHA at original handoff: `7b01deca662fa99765f1b163bf60d5e1a00dcef6`\nCurrent restart instructions: `docs/handoffs/HND-20261006-sa742-background-multicomponent-next.md`.
 Latest adopted visual baseline: `a60aaa12ff22c2f6384a598442964710ce939d87` (Silhouette Proportion Recomposition)
 Visual baseline has NOT changed since that commit.
 
-## Restart rule
+## Historical restart rule
 
-Continue from current `main`. Do not continue from older SA7.29/33/34/37 experiment branches.
+This section describes the original SA7.38 restart state and is no longer current. Do not restart from SA7.38. Continue from current `main` using `docs/handoffs/HND-20261006-sa742-background-multicomponent-next.md`.
 
-SA7.38 has no implementation branch yet. The next chat should create a fresh branch from current main after reading this handoff.
+Do not continue from older SA7.29/33/34/37 experiment branches.
 
 ## Non-negotiable rules
 
@@ -153,9 +155,9 @@ Contents verified through Drive connector:
 
 Four-way ID: `1YgBpJOKaY6m4Qhd_tmtX3WgAsxLoYhWu`
 
-## SA7.38 Face Neutralization Path Reconciliation — IN PROGRESS
+## SA7.38 Face Neutralization Path Reconciliation — COMPLETE (historical diagnosis below)
 
-No production code has been changed yet.
+The following diagnosis was captured before implementation. SA7.38 was later completed; the canonical completion record is `docs/zerobase/SA7_38_FACE_NEUTRALIZATION_RECONCILIATION_20261006.md`.
 
 ### Confirmed diagnosis
 
@@ -239,7 +241,7 @@ Target Drive path:
 
 Cloud-side preservation verified through the Drive connector.\n\n- folder ID: `1Uju-tex7SEnGXtbYtYx77ahUbOmsaCKo`\n- `GC001_sa738_face_diagnosis.json`: `19MH8REp2tlsNygklVwSTabw9rhpW_ix5`\n- `GC001_sa738_face_polygon_probe.json`: `1QnVYqnRUOAvShAkq2aGU0SXMEmfuQUHH`
 
-## Recommended SA7.38 implementation direction
+## Historical SA7.38 implementation direction (completed)
 
 Goal:
 restore final image-level Forbidden Face Detail to 0.00% without reintroducing eye-like geometry.
@@ -305,7 +307,7 @@ SA7.38 diagnostics:
 `C:\Work\Temp\macro-gc001\semantic_abstraction\GC001_sa738_face_diagnosis.json`
 `C:\Work\Temp\macro-gc001\semantic_abstraction\GC001_sa738_face_polygon_probe.json`
 
-## Immediate next action
+## Historical SA7.38 immediate next action (completed)
 
 1. Verify SA7.38 Drive folder/file IDs.
 2. Create fresh branch `feature/semantic-abstraction-sa738-face-surface` from current main.
