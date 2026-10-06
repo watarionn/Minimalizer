@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.42 Multi-Component Background Field Geometry Handoff
 
 Date: 2026-10-06
-Status: SA7.41 COMPLETE / SA7.42 NEXT
+Status: SA7.42 COMPLETE / SUPERSEDED BY SA7.43 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main` after this handoff is merged.
+This handoff is now a completed SA7.42 historical record. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-sa743-adaptive-primitive-budget-next.md`.
 
 Latest completed behavior/evaluation stage before this handoff:
 - SA7.41 commit: `a36d7602f22d045677ac5e38ac1429dc9b2b500e`
@@ -136,7 +136,7 @@ Deferred/backported homes:
 
 Do not broadly reopen completed stages. Preserve their contracts and add focused observer/schema backports or later SA7.x stages.
 
-## SA7.42 Multi-Component Background Field Geometry — NEXT
+## SA7.42 Multi-Component Background Field Geometry — COMPLETE
 
 Goal:
 allow one source palette cluster to contribute multiple major disconnected background fields without weakening existing semantic safety guards.
@@ -158,7 +158,29 @@ Initial GC001 target:
 - additionally represent the three major omitted safe components identified in SA7.41
 - do not include the tiny black fragments or sub-threshold 266 px orange fragment
 
-## Suggested implementation order
+## SA7.42 completion result
+
+Implementation:
+- PR #177
+- merge SHA: `e6f464c53a924655e1f6dfd84a19ffcc4a09d63b`
+- canonical report: `docs/zerobase/SA7_42_MULTI_COMPONENT_BACKGROUND_FIELD_GEOMETRY_20261006.md`
+
+Verification:
+- focused background tests: 14/14 PASS
+- ZeroBase: 631/631 PASS
+- compileall: PASS
+- git diff --check: PASS
+- fresh SA7.35 hard gate: Feature Survival missing=0, Forbidden Face Detail=0.00%, PASS
+- actual four-way reviewed
+- visual adoption: HOLD because Browser fallback v12 remains stronger overall
+
+Drive preservation:
+- folder: `SA7_42_20261006_HOLD`
+- folder ID: `1bothhAkj3rIOlQhX3CJFMKxueA9iTNtj`
+
+SA7.42 recovered all three major background components diagnosed in SA7.41 while preserving the existing 3% threshold and zero subject overlap.
+
+## Historical implementation order
 
 1. Create a fresh SA7.42 branch/worktree from current main.
 2. Refactor background extraction so palette clusters and connected output fields are separate concepts.
@@ -183,8 +205,8 @@ Initial GC001 target:
 
 ## Current state declaration
 
-As of this handoff, the canonical continuation point is:
+SA7.42 is complete. The canonical continuation point is:
 
-**SA7.42 Multi-Component Background Field Geometry**
+**SA7.43 Adaptive Primitive Budget**
 
-SA7.38 is historical completed work and must not be used as the restart point.
+Current handoff: `docs/handoffs/HND-20261006-sa743-adaptive-primitive-budget-next.md`.
