@@ -237,7 +237,7 @@ Local/generated:
 Target Drive path:
 `chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA7_38_20261006_IN_PROGRESS`
 
-At handoff creation time the files were copied to the mounted Drive path. The next chat MUST verify the cloud folder/file IDs through the Drive connector before treating preservation as complete.
+Cloud-side preservation verified through the Drive connector.\n\n- folder ID: `1Uju-tex7SEnGXtbYtYx77ahUbOmsaCKo`\n- `GC001_sa738_face_diagnosis.json`: `19MH8REp2tlsNygklVwSTabw9rhpW_ix5`\n- `GC001_sa738_face_polygon_probe.json`: `1QnVYqnRUOAvShAkq2aGU0SXMEmfuQUHH`
 
 ## Recommended SA7.38 implementation direction
 
