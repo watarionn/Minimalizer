@@ -1,9 +1,9 @@
-> **CURRENT-STATE NOTICE (2026-10-06):** SA7 is complete and PB2, PB3, and PB4 are merged and verified. The canonical continuation point is now **PB5 / SA5 Face Neutralization Compatibility Audit**. This document remains the adopted cross-phase precedent map.
+> **CURRENT-STATE NOTICE (2026-10-06):** SA7 is complete and PB2 through PB5 are merged and verified. PB5 closed as NO-OP-BY-DESIGN + COMPATIBILITY PASS while preserving SA7.38 face authority unchanged. The canonical continuation point is now **PB6 / SA6 Anatomy / Occlusion Evidence Backport**. This document remains the adopted cross-phase precedent map.
 
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
-Canonical continuation: PB5 / SA5 Face Neutralization Compatibility Audit
+Canonical continuation: PB6 / SA6 Anatomy / Occlusion Evidence Backport
 
 ## Purpose
 
@@ -367,4 +367,4 @@ Instead:
 
 Current execution point is:
 
-**PB5 / SA5 Face Neutralization Compatibility Audit**
+**PB6 / SA6 Anatomy / Occlusion Evidence Backport**
