@@ -8,10 +8,11 @@ from minimalizer_zerobase.evaluation.forbidden_face_detail_gate import (
     forbidden_face_detail_ratio,
 )
 from minimalizer_zerobase.production.feature_survival_gate import (
+    FeatureSignature,
     source_supported_feature_survival_report,
 )
 
-CANONICAL_HARD_GATE_VERSION = "sa7.35-v1"
+CANONICAL_HARD_GATE_VERSION = "sa7.35-v2"
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class CanonicalHardGateReport:
     survival_pass: bool
     required_signature_count: int
     missing_count: int
+    missing_signatures: tuple[FeatureSignature, ...]
     forbidden_face_detail_ratio: float
     forbidden_face_pass: bool
     pass_gate: bool
@@ -82,6 +84,7 @@ def evaluate_canonical_hard_gate(
         survival_pass=survival.pass_gate,
         required_signature_count=len(survival.baseline),
         missing_count=len(survival.missing),
+        missing_signatures=survival.missing,
         forbidden_face_detail_ratio=face_ratio,
         forbidden_face_pass=face_pass,
         pass_gate=passed,
