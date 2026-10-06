@@ -1,21 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
-from itertools import combinations
 from typing import Mapping
 
-import cv2
 import numpy as np
+
+from minimalizer_zerobase.analyzers.structured_mask_evidence import (
+    MaskRelationKind as LayerRelation,
+    observe_mask_relations,
+)
 
 
 LAYER_OCCLUSION_VERSION = "sa7.47-v1"
-
-
-class LayerRelation(str, Enum):
-    OVERLAP = "OVERLAP"
-    TOUCHING = "TOUCHING"
-    DISJOINT = "DISJOINT"
 
 
 @dataclass(frozen=True)
@@ -68,34 +64,6 @@ class LayerOcclusionReport:
         }
 
 
-def _contact_pixels(a: np.ndarray, b: np.ndarray) -> int:
-    kernel = np.ones((3, 3), np.uint8)
-    da = cv2.dilate(a.astype(np.uint8), kernel) > 0
-    db = cv2.dilate(b.astype(np.uint8), kernel) > 0
-    return int(((da & b) | (db & a)).sum())
-
-
-def _direction(
-    role_a: str,
-    role_b: str,
-    relation: LayerRelation,
-    z_order: Mapping[str, int] | None,
-) -> tuple[str | None, str | None, str]:
-    if relation is LayerRelation.DISJOINT:
-        return None, None, "not_applicable"
-    if z_order is None:
-        return None, None, "unavailable"
-    if role_a not in z_order or role_b not in z_order:
-        return None, None, "partial_canonical_z_order"
-    za = int(z_order[role_a])
-    zb = int(z_order[role_b])
-    if za == zb:
-        return None, None, "ambiguous_equal_canonical_z_order"
-    if za > zb:
-        return role_a, role_b, "canonical_z_order_observation"
-    return role_b, role_a, "canonical_z_order_observation"
-
-
 def observe_layer_occlusion(
     role_masks: Mapping[str, np.ndarray],
     *,
@@ -103,67 +71,32 @@ def observe_layer_occlusion(
 ) -> LayerOcclusionReport:
     """Describe source mask relations without changing layer authority.
 
-    Direction is never inferred from overlap alone. When supplied, canonical
-    z-order is observed and recorded as provenance rather than modified.
+    SA7.47 now consumes the generic PB2/SA2 mask-relation observer so the
+    evidence primitive lives at the lower analyzer boundary rather than being
+    rediscovered inside semantic abstraction.
     """
-    normalized = {
-        role: np.asarray(mask).astype(bool)
-        for role, mask in sorted(role_masks.items())
-    }
-    if not normalized:
-        raise ValueError("role_masks must not be empty")
-
-    shapes = {mask.shape for mask in normalized.values()}
-    if len(shapes) != 1:
-        raise ValueError("role mask shape mismatch")
-
-    if role_z_order is not None:
-        unknown = set(role_z_order) - set(normalized)
-        if unknown:
-            raise ValueError(
-                "z-order references unknown roles: "
-                + ", ".join(sorted(unknown))
-            )
-
-    relations: list[LayerRelationEvidence] = []
-    for role_a, role_b in combinations(sorted(normalized), 2):
-        a = normalized[role_a]
-        b = normalized[role_b]
-        area_a = int(a.sum())
-        area_b = int(b.sum())
-        overlap = int((a & b).sum())
-        contact = _contact_pixels(a, b)
-
-        if overlap > 0:
-            relation = LayerRelation.OVERLAP
-        elif contact > 0:
-            relation = LayerRelation.TOUCHING
-        else:
-            relation = LayerRelation.DISJOINT
-
-        front, back, direction_source = _direction(
-            role_a,
-            role_b,
-            relation,
-            role_z_order,
+    normalized_roles = tuple(sorted(role_masks))
+    observations = observe_mask_relations(
+        role_masks,
+        role_z_order=role_z_order,
+    )
+    relations = tuple(
+        LayerRelationEvidence(
+            role_a=row.role_a,
+            role_b=row.role_b,
+            relation=row.relation,
+            overlap_pixels=row.overlap_pixels,
+            overlap_ratio_a=row.overlap_ratio_a,
+            overlap_ratio_b=row.overlap_ratio_b,
+            boundary_contact_pixels=row.boundary_contact_pixels,
+            front_role=row.front_role,
+            back_role=row.back_role,
+            direction_source=row.direction_source,
         )
-        relations.append(
-            LayerRelationEvidence(
-                role_a=role_a,
-                role_b=role_b,
-                relation=relation,
-                overlap_pixels=overlap,
-                overlap_ratio_a=overlap / max(1, area_a),
-                overlap_ratio_b=overlap / max(1, area_b),
-                boundary_contact_pixels=contact,
-                front_role=front,
-                back_role=back,
-                direction_source=direction_source,
-            )
-        )
-
+        for row in observations
+    )
     return LayerOcclusionReport(
-        roles=tuple(sorted(normalized)),
-        relations=tuple(relations),
+        roles=normalized_roles,
+        relations=relations,
         z_order_observed=role_z_order is not None,
     )
