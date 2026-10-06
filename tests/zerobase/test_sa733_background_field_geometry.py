@@ -1,5 +1,5 @@
 import cv2,numpy as np
-from minimalizer_zerobase.semantic_abstraction.background_field_geometry import *
+from minimalizer_zerobase.semantic_abstraction.background_field_geometry import *\nfrom minimalizer_zerobase.semantic_abstraction.background_field_geometry import _coarsest_safe_polygon
 def test_background_fields_never_overlap_subject():
  im=np.zeros((40,40,3),np.uint8);im[:]=[20,30,40];s=np.zeros((40,40),bool);s[10:30,14:26]=1;im[:,20:]=[180,90,30]
  rows=reauthor_background_fields(im,s)
