@@ -31,3 +31,20 @@ def test_stage_records_adaptive_budget_provenance():
         row["role"]: row["allocated_primitives"]
         for row in budget["entries"]
     }=={"hair":1,"major_clothing":1}
+
+
+def test_stage_records_residual_layer_provenance():
+    semantic = masks()
+    semantic["hair"][2:5,15:19] = 1
+    result = apply_semantic_macro_stage(
+        scene(),
+        semantic,
+        {"hair":"#222","major_clothing":"#333"},
+        global_primitive_budget=2,
+        residual_global_cap=2,
+    )
+    residual = result.scene.provenance["semantic_residual_layers"]
+    assert residual["version"] == "sa7.44-v1"
+    assert residual["global_cap"] == 2
+    assert residual["selected_count"] <= 2
+    assert result.scene.provenance["semantic_macro_stage"] == "sa7.44-v1"
