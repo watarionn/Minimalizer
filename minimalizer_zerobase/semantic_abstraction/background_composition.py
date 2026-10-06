@@ -31,4 +31,4 @@ def observe_background_composition(rgb:np.ndarray,subject_mask:np.ndarray)->Back
  # Boundary complexity normalized by subject area.
  edge=cv2.morphologyEx(s.astype(np.uint8),cv2.MORPH_GRADIENT,np.ones((3,3),np.uint8))>0
  boundary=float(edge.sum()/n)
- return BackgroundComposition(bg,bbox,area,border_bg,neg,color,boundary)
+ return BackgroundComposition(bg,bbox,area,border_bg,neg,color,palette,boundary)
