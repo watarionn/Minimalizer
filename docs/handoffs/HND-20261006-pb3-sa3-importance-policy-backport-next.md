@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer PB3 / SA3 Importance & Policy Backport
 
 Date: 2026-10-06
-Status: PB2 COMPLETE / PB3 NEXT
+Status: PB3 COMPLETE / SUPERSEDED BY PB4 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-pb4-sa4-semantic-debug-board-backport-next.md`.
 
 PB2 implementation:
 - PR #183
@@ -43,7 +43,7 @@ Verification on exact merged main:
 Classification:
 **IMPLEMENTED + OBSERVER-ONLY**
 
-## PB3 / SA3 Importance & Policy Backport — NEXT
+## PB3 / SA3 Importance & Policy Backport — COMPLETE
 
 Primary precedents:
 - CLIPasso
@@ -205,4 +205,4 @@ PB4 will visualize why PB2/PB3 evidence was retained, merged, suggested for omis
 
 The canonical continuation point is:
 
-**PB3 / SA3 Importance & Policy Backport**
+**PB4 / SA4 Semantic Debug Board Backport**
