@@ -186,9 +186,9 @@ def analyze_primitive_geometry(
 
     # This is evidence, not a new renderer selector. It provides an explicit,
     # deterministic comparison point for external StarVector-style advice.
-    if aspect >= 5.0 and extent <= 0.45:
+    if aspect >= 8.0:
         family = "line"
-    elif aspect >= 3.0 and extent <= 0.75:
+    elif aspect >= 3.0:
         family = "ribbon"
     elif ellipse_iou >= 0.88 and solidity >= 0.90:
         family = "ellipse"
