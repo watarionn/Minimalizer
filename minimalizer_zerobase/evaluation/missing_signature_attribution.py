@@ -9,10 +9,15 @@ import numpy as np
 from minimalizer_zerobase.production.feature_survival_gate import (
     FeatureSignature,
     extract_feature_signatures,
-    _signature_distance,
 )
 
 MISSING_SIGNATURE_ATTRIBUTION_VERSION = "sa7.36-v1"
+
+
+def _signature_distance(a: FeatureSignature, b: FeatureSignature) -> float:
+    cd = np.linalg.norm(np.asarray(a.rgb, float) - np.asarray(b.rgb, float)) / 441.673
+    sd = ((a.cx - b.cx) ** 2 + (a.cy - b.cy) ** 2) ** .5 / 1.414214
+    return float(.72 * cd + .28 * sd)
 
 
 @dataclass(frozen=True)
@@ -42,7 +47,6 @@ class MissingSignatureAttribution:
 
 def _quantized_rgb(image: np.ndarray, step: int = 32) -> np.ndarray:
     a = np.asarray(image, dtype=np.uint8)
-    # Use integer widening before addition so 255 stays 255 instead of wrapping.
     q = (a.astype(np.int16) // step) * step + step // 2
     return np.minimum(255, q).astype(np.uint8)
 
@@ -87,13 +91,7 @@ def attribute_missing_signature(
 ) -> MissingSignatureAttribution:
     """Map one canonical missing signature back to source semantic evidence.
 
-    This is evaluation evidence only. It uses the original source image,
-    source-derived subject mask, and source semantic masks. Golden is absent.
-
-    The missing baseline signature is first matched to the nearest source
-    signature under the same color/spatial metric as Feature Survival. The
-    nearest connected source component for that source signature is then
-    intersected with semantic masks to expose likely semantic ownership.
+    Evaluation evidence only. Golden is deliberately absent.
     """
     source = np.asarray(source_rgb, dtype=np.uint8)
     subject = np.asarray(subject_mask, dtype=bool)
@@ -106,7 +104,10 @@ def attribute_missing_signature(
     if not np.any(subject):
         raise ValueError("subject mask is empty")
 
-    masks = {role: np.asarray(mask, dtype=bool) for role, mask in semantic_masks.items()}
+    masks = {
+        role: np.asarray(mask, dtype=bool)
+        for role, mask in semantic_masks.items()
+    }
     if any(mask.shape != (h, w) for mask in masks.values()):
         raise ValueError("semantic mask shape mismatch")
 
@@ -118,9 +119,7 @@ def attribute_missing_signature(
         source_signatures,
         key=lambda candidate: _signature_distance(missing_signature, candidate),
     )
-    source_distance = float(
-        _signature_distance(missing_signature, source_signature)
-    )
+    source_distance = _signature_distance(missing_signature, source_signature)
     if source_distance > match_threshold:
         raise ValueError("missing signature is not source-supported")
 
