@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.43 Adaptive Primitive Budget Handoff
 
 Date: 2026-10-06
-Status: SA7.42 COMPLETE / SA7.43 NEXT
+Status: SA7.43 COMPLETE / SUPERSEDED BY SA7.44 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now a completed SA7.43 historical record. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-sa744-layer-wise-residual-reauthoring-next.md`.
 
 SA7.42 implementation merge:
 - PR #177
@@ -62,7 +62,7 @@ Drive:
 Folder ID:
 `1bothhAkj3rIOlQhX3CJFMKxueA9iTNtj`
 
-## SA7.43 Adaptive Primitive Budget — NEXT
+## SA7.43 Adaptive Primitive Budget — COMPLETE
 
 ### Goal
 
@@ -128,6 +128,33 @@ The objective is not "more primitives". It is to spend geometry where the source
 9. Generate actual four-way and compare to v12.
 10. Preserve all evidence before any visual adoption decision.
 
+## SA7.43 completion result
+
+Implementation:
+- PR #178
+- merge SHA: `217c9c366661735a3d01d1352e5bb23ab0dbaacb`
+- canonical report: `docs/zerobase/SA7_43_ADAPTIVE_PRIMITIVE_BUDGET_20261006.md`
+
+GC001 adaptive allocation:
+- hair: 1
+- major_clothing: 3
+- unused global capacity: 1
+
+Verification:
+- focused tests: 17/17 PASS
+- ZeroBase: 641/641 PASS
+- compileall: PASS
+- git diff --check: PASS
+- fresh SA7.35 hard gate: PASS
+- Feature Survival missing=0
+- Forbidden Face Detail=0.00%
+- actual four-way and SA7.42 -> SA7.43 delta reviewed
+- visual adoption: HOLD
+
+Drive preservation:
+- folder: `SA7_43_20261006_HOLD`
+- folder ID: `1amzsvY0wU47BlsDHK5ivQGjqSwL_YTsS`
+
 ## Deferred precedent stages
 
 After SA7.43, current research queue remains:
@@ -149,6 +176,8 @@ These names are planning anchors, not permission to skip validation or force imp
 
 ## Current state declaration
 
-The canonical continuation point is:
+SA7.43 is complete. The canonical continuation point is:
 
-**SA7.43 Adaptive Primitive Budget**
+**SA7.44 Layer-wise Residual Re-authoring**
+
+Current handoff: `docs/handoffs/HND-20261006-sa744-layer-wise-residual-reauthoring-next.md`.
