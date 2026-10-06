@@ -9,6 +9,7 @@ from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_r
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
 from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass
 from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard
+from minimalizer_zerobase.production.palette_budget_regions import propose_palette_budget_regions
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -113,7 +114,8 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  for role in active:
   structural=list(propose_edge_regions(rgb,active[role],cell_size=8,max_regions=6))
   contrast=list(propose_contrast_subregions(rgb,active[role],max_regions=4))
-  candidates[role]=tuple(structural+contrast)
+  palette=list(propose_palette_budget_regions(rgb,active[role],role,palette_role_budget=3,primitive_budget=3))
+  candidates[role]=tuple(structural+contrast+palette)
  base={role:tuple(int(v) for v in np.median(np.asarray(rgb)[active[role]],axis=0)) for role in active if np.any(active[role])}
  selected=select_perceptual_regions(candidates,active,base,budget=12)
  for item in selected:
