@@ -1,0 +1,28 @@
+name: PB6 validation
+
+on:
+  push:
+    branches:
+      - pb6-sa6-anatomy-occlusion-diagnostic
+
+jobs:
+  pb6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - name: Focused PB6 and authority regression
+        run: >-
+          python -m pytest
+          tests/zerobase/test_pb6_anatomy_occlusion_diagnostic.py
+          tests/zerobase/test_semantic_abstraction_anatomy_guard.py
+          tests/zerobase/test_structured_mask_evidence.py
+          tests/zerobase/test_sa747_layer_occlusion_evidence.py
+          -q
+      - name: Full ZeroBase
+        run: python -m pytest tests/zerobase -q
+      - name: Compile
+        run: python -m compileall -q minimalizer_zerobase
