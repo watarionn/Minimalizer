@@ -13,3 +13,10 @@ def test_deterministic_fields():
 def test_small_background_returns_empty():
  im=np.zeros((10,10,3),np.uint8);s=np.ones((10,10),bool);s[:2,:2]=0
  assert reauthor_background_fields(im,s)==()
+
+def test_adaptive_contour_preserves_subject_concavity():
+ im=np.full((80,80,3),[180,90,30],np.uint8)
+ s=np.zeros((80,80),bool);s[15:65,28:52]=1;s[28:52,52:65]=1
+ rows=reauthor_background_fields(im,s,max_fields=1)
+ assert rows and rows[0].subject_overlap==0
+ assert len(rows[0].polygon)>=3
