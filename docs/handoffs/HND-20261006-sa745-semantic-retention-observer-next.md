@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.45 Semantic Retention Observer Handoff
 
 Date: 2026-10-06
-Status: SA7.44 COMPLETE / SA7.45 NEXT
+Status: SA7.45 COMPLETE / SUPERSEDED BY SA7.46 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-sa746-primitive-type-advisor-next.md`.
 
 SA7.44 implementation:
 - PR #179
@@ -57,7 +57,7 @@ Drive:
 Folder ID:
 `1leDBjSuG3hSkKbgHJPRPn0lHJpTUK-C7`
 
-## SA7.45 Semantic Retention Observer — NEXT
+## SA7.45 Semantic Retention Observer — COMPLETE
 
 ### Goal
 
@@ -138,6 +138,8 @@ SA7.45 should unify these into an inspectable semantic-retention report rather t
 
 ## Current state declaration
 
-The canonical continuation point is:
+SA7.45 is complete. The canonical continuation point is:
 
-**SA7.45 Semantic Retention Observer**
+**SA7.46 Primitive-Type Advisor Research**
+
+Current handoff: `docs/handoffs/HND-20261006-sa746-primitive-type-advisor-next.md`.
