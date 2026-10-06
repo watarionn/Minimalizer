@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer SA7.47 Layer / Occlusion Evidence Research Handoff
 
 Date: 2026-10-06
-Status: SA7.46 COMPLETE / SA7.47 NEXT
+Status: SA7.47 COMPLETE / SUPERSEDED BY PB2 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-pb2-sa2-evidence-adapter-backport-next.md`.
 
 SA7.46 implementation:
 - PR #181
@@ -16,7 +16,7 @@ SA7.46 implementation:
 Canonical SA7.46 record:
 `docs/zerobase/SA7_46_PRIMITIVE_TYPE_ADVISOR_RESEARCH_20261006.md`
 
-## SA7.47 Layer / Occlusion Evidence Research — NEXT
+## SA7.47 Layer / Occlusion Evidence Research — COMPLETE
 
 Goal:
 absorb LayerPeeler / SuperSVG layer reasoning as observer evidence without replacing canonical anatomy/topology or render z-order authority.
