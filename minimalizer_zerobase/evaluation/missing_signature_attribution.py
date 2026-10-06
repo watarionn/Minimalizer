@@ -9,7 +9,7 @@ import numpy as np
 from minimalizer_zerobase.production.feature_survival_gate import (
     FeatureSignature,
     extract_feature_signatures,
-    feature_signature_distance,
+    _signature_distance,
 )
 
 MISSING_SIGNATURE_ATTRIBUTION_VERSION = "sa7.36-v1"
@@ -116,10 +116,10 @@ def attribute_missing_signature(
 
     source_signature = min(
         source_signatures,
-        key=lambda candidate: feature_signature_distance(missing_signature, candidate),
+        key=lambda candidate: _signature_distance(missing_signature, candidate),
     )
     source_distance = float(
-        feature_signature_distance(missing_signature, source_signature)
+        _signature_distance(missing_signature, source_signature)
     )
     if source_distance > match_threshold:
         raise ValueError("missing signature is not source-supported")
