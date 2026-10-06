@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer PB2 / SA2 Evidence Adapter Backport
 
 Date: 2026-10-06
-Status: SA7 COMPLETE / PB2 NEXT
+Status: PB2 COMPLETE / SUPERSEDED BY PB3 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-pb3-sa3-importance-policy-backport-next.md`.
 
 SA7 closeout:
 `docs/zerobase/SA7_CLOSEOUT_INTEGRATION_GATE_20261006.md`
@@ -24,7 +24,7 @@ Do not jump directly to SA8.
 Order:
 PB2 -> PB3 -> PB4 -> PB5 -> PB6 -> PB7 review -> SA8 -> SA9 -> SA10
 
-## PB2 / SA2 Evidence Adapter Backport
+## PB2 / SA2 Evidence Adapter Backport — COMPLETE
 
 Primary precedents:
 - SuperSVG
@@ -115,4 +115,4 @@ Expected classification:
 
 The canonical continuation point is:
 
-**PB2 / SA2 Evidence Adapter Backport**
+**PB3 / SA3 Importance & Policy Backport**
