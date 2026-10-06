@@ -9,6 +9,7 @@ from minimalizer_zerobase.production.semantic_edge_regions import propose_edge_r
 from minimalizer_zerobase.production.perceptual_region_budget import select_perceptual_regions
 from minimalizer_zerobase.production.structural_motifs import arm_axis_band, clothing_major_regions, two_segment_arm_masks, clothing_authority, collar_motif, sleeve_boundary_motifs, sleeve_forearm_masses, collar_shape_segments, major_color_masses, garment_panels, global_mass_regions, reserve_identity_accents, silhouette_mass
 from minimalizer_zerobase.semantic_abstraction.semantic_render_guard import build_semantic_render_guard
+from minimalizer_zerobase.production.palette_role_candidates import propose_palette_role_candidates
 
 def _median(rgb,mask):
  p=np.asarray(rgb)[np.asarray(mask).astype(bool)]
@@ -86,11 +87,19 @@ def render_graph_macro_svg(rgb:np.ndarray, masks:Mapping[str,np.ndarray], graph:
  # Explicit semantic paint authority: body base -> garment -> limbs -> head/hair.
  # This prevents a late torso mass from painting over sleeve/arm structure.
  for role in ("lower_body","torso","major_clothing","left_arm","right_arm","hair"):
-  if role not in masks:continue
-  cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
-  for mass,mrgb in major_color_masses(rgb,masks[role],max_masses=cap,min_ratio=.085):
-   pts=_contour_polygon(mass,12)
-   if pts: chunks.append(f'<polygon points="{pts}" fill="rgb({mrgb[0]},{mrgb[1]},{mrgb[2]})"/>')
+  if role not in masks or allocations.get(role,0)<1:continue
+  palette_cap=3 if role in ("hair","torso","major_clothing","lower_body") else 2
+  primitive_cap=6 if role in ("hair","torso","major_clothing","lower_body") else 4
+  for candidate in propose_palette_role_candidates(
+   rgb,masks[role],role,
+   palette_role_budget=palette_cap,
+   primitive_budget=primitive_cap,
+   min_role_ratio=.085,
+  ):
+   pts=_contour_polygon(candidate.mask,12)
+   if pts:
+    mrgb=candidate.rgb
+    chunks.append(f'<polygon points="{pts}" fill="rgb({mrgb[0]},{mrgb[1]},{mrgb[2]})"/>')
  # Large garment panels sit above generic masses and below collar/accent details.
  if garment_mask is not None:
   for panel,prgb in garment_panels(rgb,garment_mask,max_panels=4,min_ratio=.065):
