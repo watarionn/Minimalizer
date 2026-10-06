@@ -11,7 +11,7 @@ from minimalizer_zerobase.analyzers.structured_mask_evidence import (
     observe_mask_relations,
 )
 
-from .ir import AbstractionPlan, TopologyConstraint
+from .ir import AbstractionPlan
 
 
 PB6_DIAGNOSTIC_VERSION = "pb6-v1"
