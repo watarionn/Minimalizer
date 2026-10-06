@@ -10,7 +10,7 @@ from minimalizer_zerobase.render import SvgRenderer
 
 from .background_field_geometry import BackgroundFieldPrimitive, reauthor_background_fields
 
-BACKGROUND_SCENE_STAGE_VERSION = "sa7.34-v1"
+BACKGROUND_SCENE_STAGE_VERSION = "sa7.42-v1"
 BackgroundMode = Literal["field_polygons", "bbox_frame", "preserve_existing"]
 
 
@@ -80,9 +80,9 @@ def _field_primitives(fields: tuple[BackgroundFieldPrimitive, ...]) -> tuple[Com
             raise ValueError("unsafe background field overlaps subject")
         out.append(
             ComposedPrimitive(
-                primitive_id=f"semantic-background-field:{field.role_index}",
+                primitive_id=f"semantic-background-field:{field.cluster_index}:{field.component_index}",
                 source_region_id="background",
-                selected_candidate_id=f"semantic-background:{BACKGROUND_SCENE_STAGE_VERSION}:field:{field.role_index}",
+                selected_candidate_id=f"semantic-background:{BACKGROUND_SCENE_STAGE_VERSION}:field:{field.cluster_index}:{field.component_index}",
                 primitive_type="convex_polygon",
                 parameters={"points": [[float(x), float(y)] for x, y in field.polygon]},
                 fill_ref=_hex(field.rgb),
@@ -161,6 +161,10 @@ def apply_background_scene_stage(
             "background_scene_stage": BACKGROUND_SCENE_STAGE_VERSION,
             "background_scene_mode": mode,
             "background_generated_count": len(placed),
+            "background_palette_cluster_count": len(
+                {field.cluster_index for field in fields}
+            ),
+            "background_component_count": len(fields),
             "background_replaced_existing": sum(
                 1 for p in scene.primitives if p.source_region_id == "background"
             ),
