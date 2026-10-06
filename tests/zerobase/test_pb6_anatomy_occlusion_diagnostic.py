@@ -45,7 +45,7 @@ def test_required_attachment_touch_is_supporting_without_mutating_plan() -> None
     before = plan.to_dict()
     report = build_anatomy_occlusion_diagnostic(
         plan=plan,
-        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 4, 8)},
+        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 3, 8)},
     )
     row = _relation(report, "left_arm", "torso")
     assert row.compatibility is AnatomyRelationCompatibility.SUPPORTING
@@ -97,7 +97,7 @@ def test_anatomy_guard_pass_remains_independent_of_diagnostic() -> None:
     plan = _plan()
     report = build_anatomy_occlusion_diagnostic(
         plan=plan,
-        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 4, 8)},
+        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 3, 8)},
     )
     assert _relation(report, "left_arm", "torso").compatibility is AnatomyRelationCompatibility.SUPPORTING
     assert anatomy_integrity_gate(plan, plan).passed is True
@@ -111,7 +111,7 @@ def test_observer_support_cannot_rescue_guard_failure_or_missing_topology() -> N
     ))
     report = build_anatomy_occlusion_diagnostic(
         plan=baseline,
-        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 4, 8)},
+        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 3, 8)},
     )
     assert _relation(report, "left_arm", "torso").compatibility is AnatomyRelationCompatibility.SUPPORTING
     result = anatomy_integrity_gate(baseline, candidate)
@@ -133,7 +133,7 @@ def test_observer_cannot_create_or_rescue_missing_anatomy_part() -> None:
 
 def test_mapping_order_is_deterministic_and_inputs_are_not_mutated() -> None:
     plan = _plan()
-    masks_a = {"torso": _mask(3, 8, 4, 8), "left_arm": _mask(3, 8, 1, 3), "hair": _mask(0, 3, 4, 7)}
+    masks_a = {"torso": _mask(3, 8, 3, 8), "left_arm": _mask(3, 8, 1, 3), "hair": _mask(0, 3, 4, 7)}
     masks_b = dict(reversed(list(masks_a.items())))
     snapshots = {key: value.copy() for key, value in masks_a.items()}
     first = build_anatomy_occlusion_diagnostic(plan=plan, role_masks=masks_a).to_dict()
@@ -152,7 +152,7 @@ def test_suppressed_anatomy_still_fails_despite_diagnostic() -> None:
     ))
     build_anatomy_occlusion_diagnostic(
         plan=baseline,
-        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 4, 8)},
+        role_masks={"left_arm": _mask(3, 8, 1, 3), "torso": _mask(3, 8, 3, 8)},
     )
     result = anatomy_integrity_gate(baseline, candidate)
     assert result.passed is False
