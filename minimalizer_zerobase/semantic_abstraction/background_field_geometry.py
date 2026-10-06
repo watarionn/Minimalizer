@@ -24,6 +24,7 @@ class BackgroundFieldPrimitive:
     rgb: tuple[int, int, int]
     source_area: int
     retained_area: int
+    render_area: int
     source_coverage: float
     expansion_ratio: float
     subject_overlap: int
@@ -37,6 +38,7 @@ class _BackgroundFieldCandidate:
     rgb: tuple[int, int, int]
     source_area: int
     retained_area: int
+    render_area: int
     source_coverage: float
     expansion_ratio: float
     subject_overlap: int
@@ -240,7 +242,8 @@ def reauthor_background_fields(
                     polygon=polygon,
                     rgb=color,
                     source_area=source_area,
-                    retained_area=render_area,
+                    retained_area=retained,
+                    render_area=render_area,
                     source_coverage=coverage,
                     expansion_ratio=expansion,
                     subject_overlap=overlap,
@@ -261,6 +264,7 @@ def reauthor_background_fields(
             rgb=candidate.rgb,
             source_area=candidate.source_area,
             retained_area=candidate.retained_area,
+            render_area=candidate.render_area,
             source_coverage=candidate.source_coverage,
             expansion_ratio=candidate.expansion_ratio,
             subject_overlap=candidate.subject_overlap,
