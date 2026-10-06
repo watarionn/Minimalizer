@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install -r requirements.txt
+      - run: python -m pip install -r requirements.txt scikit-image
       - name: Focused PB6 and authority regression
         run: >-
           python -m pytest
