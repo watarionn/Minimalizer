@@ -11,7 +11,9 @@ from minimalizer_zerobase.production.feature_survival_gate import (
     extract_feature_signatures,
 )
 
-MISSING_SIGNATURE_ATTRIBUTION_VERSION = "sa7.36-v1"
+MISSING_SIGNATURE_ATTRIBUTION_VERSION = "sa7.36-v2"
+MIN_COMPONENT_FRACTION_OF_MISSING = .10
+MIN_COMPONENT_PIXELS = 4
 
 
 def _signature_distance(a: FeatureSignature, b: FeatureSignature) -> float:
@@ -31,12 +33,11 @@ class RoleOverlap:
 class MissingSignatureAttribution:
     version: str
     missing_signature: FeatureSignature
-    source_signature: FeatureSignature
-    source_signature_distance: float
+    source_support_signature: FeatureSignature
+    source_support_distance: float
+    component_signature: FeatureSignature
+    component_distance: float
     source_component_area: int
-    source_component_cx: float
-    source_component_cy: float
-    component_distance_to_source_signature: float
     role_overlaps: tuple[RoleOverlap, ...]
     primary_role: str | None
     primary_overlap_ratio: float
@@ -51,34 +52,42 @@ def _quantized_rgb(image: np.ndarray, step: int = 32) -> np.ndarray:
     return np.minimum(255, q).astype(np.uint8)
 
 
-def _nearest_component(
-    mask: np.ndarray,
-    *,
-    target_cx: float,
-    target_cy: float,
-) -> tuple[np.ndarray, int, float, float, float]:
-    h, w = mask.shape
-    count, labels, stats, centroids = cv2.connectedComponentsWithStats(
-        mask.astype(np.uint8), 8
+def _component_candidates(
+    source: np.ndarray,
+    subject: np.ndarray,
+    missing_signature: FeatureSignature,
+) -> tuple[tuple[FeatureSignature, np.ndarray, int], ...]:
+    h, w = subject.shape
+    subject_area = max(1, int(subject.sum()))
+    minimum_area = max(
+        MIN_COMPONENT_PIXELS,
+        int(round(missing_signature.area_ratio * subject_area * MIN_COMPONENT_FRACTION_OF_MISSING)),
     )
-    if count <= 1:
-        raise ValueError("source-supported signature has no connected source component")
 
-    candidates = []
-    for label in range(1, count):
-        area = int(stats[label, cv2.CC_STAT_AREA])
-        if area <= 0:
-            continue
-        cx = float(centroids[label][0] / max(1, w - 1))
-        cy = float(centroids[label][1] / max(1, h - 1))
-        distance = float(((cx - target_cx) ** 2 + (cy - target_cy) ** 2) ** .5)
-        candidates.append((distance, -area, label, area, cx, cy))
+    quantized = _quantized_rgb(source)
+    colors = np.unique(quantized[subject].reshape(-1, 3), axis=0)
+    rows = []
 
-    if not candidates:
-        raise ValueError("source-supported signature has no usable source component")
+    for color in colors:
+        raw = np.all(quantized == color, axis=2) & subject
+        count, labels, stats, centroids = cv2.connectedComponentsWithStats(
+            raw.astype(np.uint8), 8
+        )
+        for label in range(1, count):
+            area = int(stats[label, cv2.CC_STAT_AREA])
+            if area < minimum_area:
+                continue
+            cx = float(centroids[label][0] / max(1, w - 1))
+            cy = float(centroids[label][1] / max(1, h - 1))
+            signature = FeatureSignature(
+                tuple(int(v) for v in color),
+                float(area / subject_area),
+                cx,
+                cy,
+            )
+            rows.append((signature, labels == label, area))
 
-    distance, _, label, area, cx, cy = min(candidates)
-    return labels == label, area, cx, cy, distance
+    return tuple(rows)
 
 
 def attribute_missing_signature(
@@ -91,7 +100,10 @@ def attribute_missing_signature(
 ) -> MissingSignatureAttribution:
     """Map one canonical missing signature back to source semantic evidence.
 
-    Evaluation evidence only. Golden is deliberately absent.
+    The canonical source-signature test first proves that the missing adopted-
+    baseline signature is supported by the source under the same gate metric.
+    Semantic ownership is then localized with connected quantized-color
+    components instead of an aggregate color centroid. Golden is absent.
     """
     source = np.asarray(source_rgb, dtype=np.uint8)
     subject = np.asarray(subject_mask, dtype=bool)
@@ -115,23 +127,31 @@ def attribute_missing_signature(
     if not source_signatures:
         raise ValueError("source has no feature signatures")
 
-    source_signature = min(
+    support_signature = min(
         source_signatures,
         key=lambda candidate: _signature_distance(missing_signature, candidate),
     )
-    source_distance = _signature_distance(missing_signature, source_signature)
-    if source_distance > match_threshold:
+    support_distance = _signature_distance(missing_signature, support_signature)
+    if support_distance > match_threshold:
         raise ValueError("missing signature is not source-supported")
 
-    quantized = _quantized_rgb(source)
-    target = np.asarray(source_signature.rgb, dtype=np.uint8)
-    support = np.all(quantized == target, axis=2) & subject
+    components = _component_candidates(source, subject, missing_signature)
+    if not components:
+        raise ValueError("no source component is large enough for attribution")
 
-    component, area, cx, cy, component_distance = _nearest_component(
-        support,
-        target_cx=source_signature.cx,
-        target_cy=source_signature.cy,
+    component_signature, component, area = min(
+        components,
+        key=lambda row: (
+            _signature_distance(missing_signature, row[0]),
+            -row[2],
+            row[0].rgb,
+            row[0].cy,
+            row[0].cx,
+        ),
     )
+    component_distance = _signature_distance(missing_signature, component_signature)
+    if component_distance > match_threshold:
+        raise ValueError("no source component matches the missing signature")
 
     overlaps = []
     for role in sorted(masks):
@@ -147,12 +167,11 @@ def attribute_missing_signature(
     return MissingSignatureAttribution(
         version=MISSING_SIGNATURE_ATTRIBUTION_VERSION,
         missing_signature=missing_signature,
-        source_signature=source_signature,
-        source_signature_distance=source_distance,
+        source_support_signature=support_signature,
+        source_support_distance=support_distance,
+        component_signature=component_signature,
+        component_distance=component_distance,
         source_component_area=area,
-        source_component_cx=cx,
-        source_component_cy=cy,
-        component_distance_to_source_signature=component_distance,
         role_overlaps=overlap_tuple,
         primary_role=primary.role if primary else None,
         primary_overlap_ratio=primary.ratio if primary else 0.0,
