@@ -157,3 +157,36 @@ def test_suppressed_anatomy_still_fails_despite_diagnostic() -> None:
     result = anatomy_integrity_gate(baseline, candidate)
     assert result.passed is False
     assert result.suppressed_parts == ("left_arm",)
+
+
+def test_positional_topology_is_insufficient_from_touching_alone() -> None:
+    plan = AbstractionPlan(parts=(
+        SemanticPart(id="head", category="head",
+                     topology_constraints=(TopologyConstraint("above", "torso", True),)),
+        SemanticPart(id="torso", category="torso"),
+    ))
+    report = build_anatomy_occlusion_diagnostic(
+        plan=plan,
+        role_masks={"head": _mask(1, 4, 3, 7), "torso": _mask(4, 8, 3, 7)},
+    )
+    row = _relation(report, "head", "torso")
+    assert row.compatibility is AnatomyRelationCompatibility.INSUFFICIENT_EVIDENCE
+    assert row.production_authority is False
+
+
+def test_required_overlap_needs_actual_overlap() -> None:
+    plan = AbstractionPlan(parts=(
+        SemanticPart(id="hair", category="hair",
+                     topology_constraints=(TopologyConstraint("overlaps", "head", True),)),
+        SemanticPart(id="head", category="head"),
+    ))
+    supporting = build_anatomy_occlusion_diagnostic(
+        plan=plan,
+        role_masks={"hair": _mask(1, 5, 3, 7), "head": _mask(2, 6, 4, 8)},
+    )
+    conflict = build_anatomy_occlusion_diagnostic(
+        plan=plan,
+        role_masks={"hair": _mask(1, 4, 3, 7), "head": _mask(4, 7, 3, 7)},
+    )
+    assert _relation(supporting, "hair", "head").compatibility is AnatomyRelationCompatibility.SUPPORTING
+    assert _relation(conflict, "hair", "head").compatibility is AnatomyRelationCompatibility.POTENTIAL_CONFLICT
