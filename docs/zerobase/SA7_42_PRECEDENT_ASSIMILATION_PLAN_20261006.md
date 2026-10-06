@@ -1,9 +1,9 @@
-> **CURRENT-STATE NOTICE (2026-10-06):** SA7 Geometry Re-authoring is complete through SA7.47 and the SA7 Closeout / Integration Gate has passed. The canonical continuation point is now **PB2 / SA2 Evidence Adapter Backport**. This document remains the adopted cross-phase precedent map.
+> **CURRENT-STATE NOTICE (2026-10-06):** SA7 is complete and PB2 / SA2 Evidence Adapter Backport is merged and verified. The canonical continuation point is now **PB3 / SA3 Importance & Policy Backport**. This document remains the adopted cross-phase precedent map.
 
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
-Canonical continuation: PB2 / SA2 Evidence Adapter Backport
+Canonical continuation: PB3 / SA3 Importance & Policy Backport
 
 ## Purpose
 
@@ -367,4 +367,4 @@ Instead:
 
 Current execution point is:
 
-**PB2 / SA2 Evidence Adapter Backport**
+**PB3 / SA3 Importance & Policy Backport**
