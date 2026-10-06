@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer PB4 / SA4 Semantic Debug Board Backport
 
 Date: 2026-10-06
-Status: PB3 COMPLETE / PB4 NEXT
+Status: PB4 COMPLETE / SUPERSEDED BY PB5 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-pb5-sa5-face-neutralization-compatibility-audit-next.md`.
 
 PB3 implementation:
 - PR #184
@@ -45,7 +45,7 @@ Verification on exact merged implementation main `fd62415a42f881d0b70a0177f2d2f7
 - compileall: PASS
 - git diff --check: PASS
 
-## PB4 / SA4 Semantic Debug Board Backport — NEXT
+## PB4 / SA4 Semantic Debug Board Backport — COMPLETE
 
 Primary precedents:
 - CLIPasso / CLIPascene
@@ -216,4 +216,4 @@ PB5 should not replace the SA7.38 face raster safety contract. It should only ch
 
 The canonical continuation point is:
 
-**PB4 / SA4 Semantic Debug Board Backport**
+**PB5 / SA5 Face Neutralization Compatibility Audit**
