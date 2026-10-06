@@ -1,9 +1,9 @@
 name: PB6 validation
 
 on:
-  push:
+  pull_request:
     branches:
-      - pb6-sa6-anatomy-occlusion-diagnostic
+      - main
 
 jobs:
   pb6:
