@@ -89,7 +89,7 @@ def test_rejects_polygon_outside_semantic_role():
         apply_required_semantic_mass_scene(scene, (reservation,), {"torso": torso})
 
 
-def test_rejects_overlapping_reservations():
+def test_allows_deterministic_same_role_overlap():
     scene = VectorScene(30, 30, (_scene_primitive(),), {})
     torso = np.zeros((30, 30), dtype=bool)
     torso[5:25, 5:25] = True
@@ -97,5 +97,28 @@ def test_rejects_overlapping_reservations():
         _reservation("torso", [(8, 8), (16, 8), (16, 16), (8, 16)]),
         _reservation("torso", [(12, 12), (20, 12), (20, 20), (12, 20)], rgb=(200, 20, 20)),
     )
-    with pytest.raises(ValueError, match="overlap"):
-        apply_required_semantic_mass_scene(scene, rows, {"torso": torso})
+    result = apply_required_semantic_mass_scene(scene, rows, {"torso": torso})
+    added = [
+        p for p in result.scene.primitives
+        if p.primitive_id.startswith("required-semantic-mass:")
+    ]
+    assert len(added) == 2
+    assert added[0].z_order < added[1].z_order
+
+
+def test_rejects_cross_role_overlap():
+    scene = VectorScene(30, 30, (_scene_primitive(),), {})
+    torso = np.zeros((30, 30), dtype=bool)
+    arm = np.zeros((30, 30), dtype=bool)
+    torso[5:25, 5:25] = True
+    arm[5:25, 5:25] = True
+    rows = (
+        _reservation("torso", [(8, 8), (16, 8), (16, 16), (8, 16)]),
+        _reservation("right_arm", [(12, 12), (20, 12), (20, 20), (12, 20)], rgb=(200, 20, 20)),
+    )
+    with pytest.raises(ValueError, match="across semantic roles"):
+        apply_required_semantic_mass_scene(
+            scene,
+            rows,
+            {"torso": torso, "right_arm": arm},
+        )
