@@ -26,17 +26,22 @@ def observe_palette_role_masses(rgb:np.ndarray,part_mask:np.ndarray,semantic_par
  if img.ndim!=3 or img.shape[2]!=3 or mask.shape!=img.shape[:2]:raise ValueError("shape mismatch")
  n=int(mask.sum())
  if n<16:return ()
- # Deterministic source-only Lab quantization. No Golden/v12 input.
+ # Deterministic source-only Lab clustering. Fixed seed and criteria; no Golden/v12 input.
  lab=cv2.cvtColor(img.astype(np.uint8),cv2.COLOR_RGB2LAB)
- vals=lab[mask].astype(np.int16)
- q=(vals//32).astype(np.int16)
- keys,counts=np.unique(q,axis=0,return_counts=True)
- order=sorted(range(len(keys)),key=lambda i:(-int(counts[i]),tuple(int(x) for x in keys[i])))
+ vals=lab[mask].astype(np.float32)
+ k=min(max_roles,max(1,n//64))
+ cv2.setRNGSeed(730)
+ criteria=(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,30,.5)
+ _,labels,centers=cv2.kmeans(vals,k,None,criteria,1,cv2.KMEANS_PP_CENTERS)
+ labels=labels.reshape(-1)
+ counts=np.bincount(labels,minlength=k)
+ order=sorted(range(k),key=lambda i:(-int(counts[i]),tuple(float(x) for x in centers[i])))
  out=[]
- for i in order:
-  ratio=float(counts[i]/n)
+ yy,xx=np.where(mask)
+ for cluster in order:
+  ratio=float(counts[cluster]/n)
   if ratio<MIN_ROLE_RATIO:continue
-  cell=np.all((lab//32)==keys[i],axis=2)&mask
+  cell=np.zeros_like(mask,dtype=bool); sel=labels==cluster; cell[yy[sel],xx[sel]]=True
   comp=_largest_component(cell)
   if int(comp.sum())/n<MIN_COMPONENT_RATIO:continue
   color=tuple(int(x) for x in np.median(img[comp],axis=0))
