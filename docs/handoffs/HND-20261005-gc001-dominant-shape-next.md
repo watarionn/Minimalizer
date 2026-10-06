@@ -1,4 +1,4 @@
-# HND-20261005 Minimalizer GC001 Visual Development Handoff
+> **Superseded restart pointer (2026-10-06):** For current work, read `docs/handoffs/HND-20261006-sa738-face-neutralization-next.md` first. This older handoff remains historical context only.\n\n# HND-20261005 Minimalizer GC001 Visual Development Handoff
 
 ## Canonical restart point
 - Repository: watarionn/Minimalizer
