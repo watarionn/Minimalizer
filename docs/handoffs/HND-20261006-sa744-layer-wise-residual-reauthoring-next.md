@@ -162,6 +162,24 @@ SA7.44 must preserve:
 13. Compare against Browser fallback v12.
 14. Preserve evidence in Drive before any adoption decision.
 
+## Post-SA7 execution order
+
+After SA7.44-SA7.47 and SA7 closeout are complete, do not jump directly to SA8.
+
+Run the adopted Post-SA7 Precedent Backport Pass:
+- PB2: SA2 Evidence Adapter
+- PB3: SA3 Importance / Policy
+- PB4: SA4 Semantic Debug Board
+- PB5: SA5 Face compatibility audit
+- PB6: SA6 Anatomy / Occlusion evidence
+- PB7: SA7 integration review
+- then SA8 -> SA9 -> SA10
+
+Canonical plan:
+`docs/zerobase/SA7_42_PRECEDENT_ASSIMILATION_PLAN_20261006.md`
+
+Each backport stage must end as IMPLEMENTED, OBSERVER-ONLY, or NO-OP-BY-DESIGN and preserve all existing hard gates.
+
 ## Deferred next stages
 
 Current research queue after SA7.44:
