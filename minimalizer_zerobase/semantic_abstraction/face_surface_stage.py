@@ -120,7 +120,7 @@ def apply_face_surface_stage(
                 f"semantic-face:{FACE_SURFACE_STAGE_VERSION}:surface:{index}"
             ),
             primitive_type="convex_polygon",
-            parameters={"points": [[x, y] for x, y in polygon]},
+            parameters={"points": [[x, y] for x, y in polygon], "shape_rendering": "crispEdges"},
             fill_ref=fill_ref,
             z_order=z + index,
         )
