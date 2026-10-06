@@ -36,6 +36,8 @@ class MacroGeometryPrimitive:
     polygon: np.ndarray
     source_area: int
     retained_area: int
+    layer_kind: str = "base"
+    component_index: int | None = None
 
 
 def _masses(mask: np.ndarray, limit: int) -> tuple[np.ndarray, ...]:
@@ -145,6 +147,7 @@ def _primitive_for_mass(
         polygon=polygon2,
         source_area=source_n,
         retained_area=final_n,
+        layer_kind="base",
     )
 
 

@@ -12,9 +12,13 @@ from .macro_geometry_reauthoring import (
     reauthor_macro_geometry_with_budget,
 )
 from .macro_renderer_integration import MacroRenderResult, replace_macro_roles
+from .residual_layer_reauthoring import (
+    DEFAULT_RESIDUAL_GLOBAL_CAP,
+    reauthor_residual_layers,
+)
 
 
-CANONICAL_MACRO_STAGE_VERSION = "sa7.43-v1"
+CANONICAL_MACRO_STAGE_VERSION = "sa7.44-v1"
 
 
 def apply_semantic_macro_stage(
@@ -23,6 +27,7 @@ def apply_semantic_macro_stage(
     palette: Mapping[str, str],
     *,
     global_primitive_budget: int = DEFAULT_MACRO_GLOBAL_CAP,
+    residual_global_cap: int = DEFAULT_RESIDUAL_GLOBAL_CAP,
 ) -> MacroRenderResult:
     required = ("hair", "major_clothing")
     missing = [role for role in required if role not in semantic_masks]
@@ -45,9 +50,22 @@ def apply_semantic_macro_stage(
         clothing_mask=semantic_masks["major_clothing"],
         global_primitive_budget=global_primitive_budget,
     )
+
+    role_masks = {
+        "hair": np.asarray(semantic_masks["hair"]).astype(bool),
+        "major_clothing": np.asarray(
+            semantic_masks["major_clothing"]
+        ).astype(bool),
+    }
+    residuals, residual_report = reauthor_residual_layers(
+        role_masks,
+        macros,
+        global_cap=residual_global_cap,
+    )
+
     result = replace_macro_roles(
         scene,
-        macros,
+        tuple(macros) + tuple(residuals),
         dict(palette),
         require_roles=required,
     )
@@ -55,6 +73,7 @@ def apply_semantic_macro_stage(
         **result.scene.provenance,
         "semantic_macro_stage": CANONICAL_MACRO_STAGE_VERSION,
         "semantic_macro_budget": budget.to_dict(),
+        "semantic_residual_layers": residual_report.to_dict(),
     }
     output = VectorScene(
         result.scene.width,
