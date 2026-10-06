@@ -35,6 +35,7 @@ def evaluate_golden_gap(
     dimension_scores: Mapping[str, Any],
     feature_local_evidence: Mapping[str, Any] | None = None,
     allowed_feature_ids: set[str] | None = None,
+    semantic_retention_report: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if feature_survival_report.get("case_id") != case_id:
         raise GoldenGapError("feature survival case_id mismatch")
@@ -70,6 +71,14 @@ def evaluate_golden_gap(
             "authoritative": False,
         })
 
+    retention = None
+    if semantic_retention_report is not None:
+        if semantic_retention_report.get("authoritative") is not False:
+            raise GoldenGapError("semantic retention observer must be non-authoritative")
+        if semantic_retention_report.get("can_override_hard_fail") is not False:
+            raise GoldenGapError("semantic retention observer cannot override hard fail")
+        retention = dict(semantic_retention_report)
+
     diagnostic_mean = sum(scores.values()) / len(scores)
     return {
         "schema_version": "1.0",
@@ -82,6 +91,9 @@ def evaluate_golden_gap(
         "diagnostic_mean_can_override_hard_fail": False,
         "feature_local_evidence": local_rows,
         "feature_local_evidence_is_authority": False,
+        "semantic_retention": retention,
+        "semantic_retention_is_authority": False,
+        "semantic_retention_can_override_hard_fail": False,
     }
 
 
