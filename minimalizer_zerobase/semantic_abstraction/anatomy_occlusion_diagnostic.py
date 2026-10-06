@@ -93,6 +93,11 @@ def _required_constraints(plan: AbstractionPlan) -> dict[frozenset[str], tuple[s
     return {key: tuple(sorted(values)) for key, values in rows.items()}
 
 
+def _relation_kind(constraint: str) -> str:
+    _, relation, _ = constraint.split(":", 2)
+    return relation.removeprefix("inverse:")
+
+
 def _compatibility(
     *,
     role_a: str,
@@ -101,10 +106,17 @@ def _compatibility(
     constraints: tuple[str, ...],
 ) -> AnatomyRelationCompatibility:
     anatomy_pair = role_a in _ANATOMY_ROLES and role_b in _ANATOMY_ROLES
-    if constraints:
+    relation_kinds = {_relation_kind(item) for item in constraints}
+    if "overlaps" in relation_kinds:
+        if relation is MaskRelationKind.OVERLAP:
+            return AnatomyRelationCompatibility.SUPPORTING
+        return AnatomyRelationCompatibility.POTENTIAL_CONFLICT
+    if "attached_to" in relation_kinds:
         if relation in {MaskRelationKind.TOUCHING, MaskRelationKind.OVERLAP}:
             return AnatomyRelationCompatibility.SUPPORTING
         return AnatomyRelationCompatibility.POTENTIAL_CONFLICT
+    if constraints:
+        return AnatomyRelationCompatibility.INSUFFICIENT_EVIDENCE
     if relation is MaskRelationKind.OVERLAP:
         return AnatomyRelationCompatibility.INSUFFICIENT_EVIDENCE
     if anatomy_pair:
