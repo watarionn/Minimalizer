@@ -1,3 +1,5 @@
+> **SA7.35 correction (2026-10-06):** Historical hard-gate values copied from the SA7.2 report are superseded. Fresh evaluation with the canonical SA7.35 path gives source-supported Feature Survival **FAIL (missing=3)** and Forbidden Facial Detail **14.4622% FAIL** for this candidate family. The previous missing=0 / 0.00% values must not be used for visual-adoption claims. See `SA7_35_HARD_GATE_RECONCILIATION_20261006.md`.
+
 # SA7.34 Background Multi-field Scene Integration / Hole-safe Composition — 2026-10-06
 
 Status: CANONICAL SCENE INTEGRATION PASS / VISUAL ADOPTION HOLD
