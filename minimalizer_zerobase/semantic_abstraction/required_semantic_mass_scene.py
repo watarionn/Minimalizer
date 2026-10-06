@@ -76,7 +76,7 @@ def apply_required_semantic_mass_scene(
             protected_union |= mask
 
     validated: list[tuple[RequiredSemanticMass, np.ndarray]] = []
-    occupied = np.zeros(expected_shape, dtype=bool)
+    occupied_by_role: dict[str, np.ndarray] = {}
 
     for reservation in reservations:
         if reservation.role not in allowed_roles:
@@ -105,13 +105,22 @@ def apply_required_semantic_mass_scene(
                 f"reservation polygon overlaps protected semantic roles: {protected} pixels"
             )
 
-        overlap = int((raster & occupied).sum())
-        if overlap:
+        cross_role_overlap = 0
+        for other_role, other_mask in occupied_by_role.items():
+            if other_role == reservation.role:
+                continue
+            cross_role_overlap += int((raster & other_mask).sum())
+        if cross_role_overlap:
             raise ValueError(
-                f"reservation polygons overlap each other: {overlap} pixels"
+                "reservation polygons overlap across semantic roles: "
+                f"{cross_role_overlap} pixels"
             )
 
-        occupied |= raster
+        if reservation.role not in occupied_by_role:
+            occupied_by_role[reservation.role] = np.zeros(
+                expected_shape, dtype=bool
+            )
+        occupied_by_role[reservation.role] |= raster
         validated.append((reservation, raster))
 
     kept = tuple(scene.primitives)
