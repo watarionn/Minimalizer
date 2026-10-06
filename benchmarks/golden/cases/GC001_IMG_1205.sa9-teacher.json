@@ -1,0 +1,52 @@
+{
+  "schema_version": "sa9.2-v1",
+  "case_id": "GC001_IMG_1205",
+  "source": "reviewed-evaluation-evidence",
+  "production_authority": false,
+  "mapping_policy": {
+    "feature_manifest_is_not_production_role_authority": true,
+    "golden_pixels_used": false,
+    "golden_coordinates_used": false,
+    "golden_masks_used": false,
+    "golden_colors_used": false,
+    "golden_geometry_used": false
+  },
+  "production_roles": [
+    "accessory_or_held_object",
+    "face_skin",
+    "hair",
+    "left_arm",
+    "left_leg",
+    "major_clothing",
+    "right_arm",
+    "right_leg"
+  ],
+  "annotations": [
+    {
+      "role": "hair",
+      "decision": "REAUTHORED",
+      "rationale": "SA7.43 coarse semantic macro geometry explicitly reconstructs hair as source-authorized macro geometry; SA7.44 preserves that base authority.",
+      "evidence": [
+        "docs/zerobase/SA7_43_ADAPTIVE_PRIMITIVE_BUDGET_20261006.md",
+        "docs/zerobase/SA7_44_LAYER_WISE_RESIDUAL_REAUTHORING_20261006.md"
+      ]
+    },
+    {
+      "role": "major_clothing",
+      "decision": "REAUTHORED",
+      "rationale": "SA7.43 reconstructs major_clothing as coarse source-authorized macro geometry and SA7.44 adds source-supported residual re-authoring layers inside the same role.",
+      "evidence": [
+        "docs/zerobase/SA7_43_ADAPTIVE_PRIMITIVE_BUDGET_20261006.md",
+        "docs/zerobase/SA7_44_LAYER_WISE_RESIDUAL_REAUTHORING_20261006.md"
+      ]
+    }
+  ],
+  "unresolved_roles": {
+    "accessory_or_held_object": "No reviewed evidence distinguishes SURVIVED vs SIMPLIFIED vs REAUTHORED at the production-role level.",
+    "face_skin": "Face-neutralization safety evidence does not by itself establish one of the four Golden teacher decisions.",
+    "left_arm": "No reviewed role-level Golden decision evidence.",
+    "left_leg": "No reviewed role-level Golden decision evidence.",
+    "right_arm": "SA7.36 proves a missing source-supported mass at one historical candidate, but does not establish the final four-way teacher decision.",
+    "right_leg": "No reviewed role-level Golden decision evidence."
+  }
+}
