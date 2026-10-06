@@ -35,3 +35,22 @@ Later phases may consume these decisions but must not erase their inspectable br
 No user-blocking decision remains.
 Phase 6 may consume importance values and decision provenance for Palette & Material reduction.
 Material/color evidence must remain independent from preservation importance and must not rewrite Phase 5 rationale.
+
+
+## 2026-10-06 PB3 backport
+
+After SA7 closeout and PB2, the importance layer received a separate observer/advisor-only diagnostic expansion.
+
+PB3 can attach:
+- PB2 component identity/support;
+- optional semantic removal/merge impact from real `SemanticRetentionReport` artifacts;
+- existing semantic/identity role context;
+- optional primitive-advisor agreement;
+- explicit non-authoritative recommendation evidence.
+
+PB3 deliberately does **not** modify `ImportanceEngine` scoring/tiers or Phase 8 protect/keep/prune policy.
+
+When per-component semantic-impact evidence is unavailable, PB3 returns `insufficient-evidence` rather than inferring deletion from size/support.
+
+Canonical record:
+`PB3_SA3_IMPORTANCE_POLICY_BACKPORT_20261006.md`
