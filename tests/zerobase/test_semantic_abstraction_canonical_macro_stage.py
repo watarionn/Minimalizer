@@ -14,3 +14,20 @@ def test_missing_scene_authority_fails():
  with pytest.raises(ValueError):apply_semantic_macro_stage(s,masks(),{"hair":"#222","major_clothing":"#333"})
 def test_missing_mask_fails():
  with pytest.raises(ValueError):apply_semantic_macro_stage(scene(),{"hair":masks()["hair"]},{"hair":"#222","major_clothing":"#333"})
+
+
+def test_stage_records_adaptive_budget_provenance():
+    result=apply_semantic_macro_stage(
+        scene(),
+        masks(),
+        {"hair":"#222","major_clothing":"#333"},
+        global_primitive_budget=2,
+    )
+    budget=result.scene.provenance["semantic_macro_budget"]
+    assert budget["version"]=="sa7.43-v1"
+    assert budget["global_cap"]==2
+    assert budget["allocated_total"]==2
+    assert {
+        row["role"]: row["allocated_primitives"]
+        for row in budget["entries"]
+    }=={"hair":1,"major_clothing":1}
