@@ -3,7 +3,7 @@
 # SA7.42 Precedent Assimilation Plan — 2026-10-06
 
 Status: ADOPTED CROSS-PHASE INTEGRATION PLAN
-Canonical continuation: SA7.42 Multi-Component Background Field Geometry
+Canonical continuation: SA7.44 Layer-wise Residual Re-authoring
 
 ## Purpose
 
@@ -365,6 +365,6 @@ Instead:
 4. promote successful ideas through focused later SA7.x stages;
 5. update the long-term architecture so future implementations know the correct conceptual home of each idea.
 
-Current execution point remains:
+Current execution point is:
 
-**SA7.42 Multi-Component Background Field Geometry**
+**SA7.44 Layer-wise Residual Re-authoring**
