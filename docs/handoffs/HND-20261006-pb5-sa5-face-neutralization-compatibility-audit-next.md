@@ -1,13 +1,13 @@
 # HND-20261006 Minimalizer PB5 / SA5 Face Neutralization Compatibility Audit
 
 Date: 2026-10-06
-Status: PB4 COMPLETE / PB5 NEXT
+Status: PB5 COMPLETE / SUPERSEDED BY PB6 HANDOFF
 Repository: watarionn/Minimalizer
 Canonical branch: main
 
 ## Canonical restart point
 
-Restart from current `main`.
+This handoff is now historical. For current work, restart from current `main` and read `docs/handoffs/HND-20261006-pb6-sa6-anatomy-occlusion-evidence-backport-next.md`.
 
 PB4 implementation:
 - PR #185
@@ -46,7 +46,7 @@ Verification on exact merged implementation main `b82387d7b30e9b0459cfd2abe87d6a
 - compileall: PASS
 - git diff --check: PASS
 
-## PB5 / SA5 Face Neutralization Compatibility Audit — NEXT
+## PB5 / SA5 Face Neutralization Compatibility Audit — COMPLETE
 
 Primary objective:
 prove that the precedent-derived PB2/PB3/PB4 observer/debug stack coexists with canonical face neutralization without weakening the image-level face safety contract.
@@ -163,4 +163,4 @@ PB6 will reuse PB2/PB4 layer relation evidence around anatomy/topology while pre
 
 The canonical continuation point is:
 
-**PB5 / SA5 Face Neutralization Compatibility Audit**
+**PB6 / SA6 Anatomy / Occlusion Evidence Backport**
