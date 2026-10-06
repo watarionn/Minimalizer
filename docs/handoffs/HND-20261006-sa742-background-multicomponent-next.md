@@ -113,6 +113,29 @@ SA7.41 commit:
 Canonical record:
 `docs/zerobase/SA7_41_BACKGROUND_RESIDUAL_FIELD_ATTRIBUTION_20261006.md`
 
+
+## Precedent assimilation plan
+
+The external visual-abstraction precedents are intentionally mapped across SA2-SA10 rather than treated as SA7.42-only tricks.
+
+Canonical plan:
+`docs/zerobase/SA7_42_PRECEDENT_ASSIMILATION_PLAN_20261006.md`
+
+Immediate SA7.42 synthesis:
+- LIVE: multiple disconnected source-supported components may remain separate layers
+- AdaVec: palette-cluster count and rendered-field/geometry budget are separate
+- Primitive / Geometrize: bounded marginal-value candidate selection under hard guards
+- CLIPascene: simplicity remains an explicit objective, so not every source fragment should survive
+
+Deferred/backported homes:
+- SuperSVG / LayerPeeler -> SA2 evidence/layer decomposition
+- CLIPasso / CLIPascene -> SA3/SA9/SA10 semantic-retention observer/evaluation
+- StarVector -> SA7 primitive-type advisor research only
+- AdaVec / LIVE / Primitive / Geometrize -> broader SA7 geometry re-authoring
+- AdaVec / LIVE / LayerPeeler -> SA8 palette/layer role separation
+
+Do not broadly reopen completed stages. Preserve their contracts and add focused observer/schema backports or later SA7.x stages.
+
 ## SA7.42 Multi-Component Background Field Geometry — NEXT
 
 Goal:
