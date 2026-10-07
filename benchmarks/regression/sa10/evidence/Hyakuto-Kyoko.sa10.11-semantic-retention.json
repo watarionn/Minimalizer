@@ -1,0 +1,49 @@
+{
+  "artifact_version": "sa10.11-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b"
+  },
+  "case_id": "Hyakuto-Kyoko",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.7552631073534017,
+    "global_similarity": 0.7463599204556993,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.7641662942511042,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.7552631073534017,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.5283325906006657,
+    "coarse_patch_cosine": 0.4824470756575465,
+    "global_cosine": 0.4927198409113984,
+    "research_score": 0.5051501104327205
+  },
+  "observer_artifact_version": "sa10.9-v1",
+  "structural_source_repair": {
+    "applied": true,
+    "repaired_parts": [
+      "head",
+      "left_arm",
+      "torso"
+    ],
+    "production_candidate_sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b"
+  }
+}
