@@ -1,0 +1,20 @@
+{
+  "artifact_version": "sa10.13-v1",
+  "case_id": "Hyakuto-Kyoko",
+  "production_candidate_sha256": "84022e48e13ed7a80f8e3425d085d311e3ab7c86fcb28278ba079e182a33646a",
+  "face_raster_guard": {
+    "changed_face_pixels": 4808,
+    "changed_outside_face_pixels": 0,
+    "face_pixels": 4808,
+    "fill_rgb": [
+      251,
+      226,
+      220
+    ],
+    "version": "sa7.38-v1"
+  },
+  "source_only": true,
+  "golden_used_for_inference": false,
+  "browser_v12_used_for_inference": false,
+  "generated_or_inpainted_pixel_count": 0
+}

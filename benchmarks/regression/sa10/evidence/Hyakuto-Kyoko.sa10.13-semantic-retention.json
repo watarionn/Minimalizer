@@ -1,0 +1,39 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "84022e48e13ed7a80f8e3425d085d311e3ab7c86fcb28278ba079e182a33646a"
+  },
+  "case_id": "Hyakuto-Kyoko",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.7637557534622893,
+    "global_similarity": 0.7559539433916813,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.7715575635328973,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.7637557534622893,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.5431151245625652,
+    "coarse_patch_cosine": 0.49943731538951397,
+    "global_cosine": 0.5119078867833622,
+    "research_score": 0.5215864437961566
+  }
+}

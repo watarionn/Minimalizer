@@ -1,0 +1,110 @@
+{
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source": {
+    "path": "Juufuutei-Raden_stylecal_source.png",
+    "width": 512,
+    "height": 512,
+    "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3"
+  },
+  "determinism_sha256": "f5e6ed30048508d6e36734d37685ec5557798c2ff827fa3792bbf8068db64961",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "AVAILABLE",
+      "value": 0.9295234636673059
+    },
+    "adaptive_complexity": {
+      "status": "AVAILABLE",
+      "value": 0.4
+    },
+    "component_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "Hair macro generation dropped the only allocated mass because fallback expansion was 1.2861805086653162, above the 1.12 safety limit; SA10.5 therefore keeps the component frame unavailable."
+    },
+    "primitive_economy": {
+      "status": "UNAVAILABLE",
+      "reason": "Hair macro generation dropped the only allocated mass because fallback expansion was 1.2861805086653162, above the 1.12 safety limit; SA10.5 therefore keeps the emitted/budget frame mismatch unavailable."
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "required_signature_count": 9,
+      "missing_count": 0
+    },
+    "forbidden_face_detail": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "ratio": 0
+    },
+    "anatomy": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "topology": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "source_authority": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.987733,
+    "phase14_identity_feature_retention": 0.975258,
+    "phase14_primitive_economy_not_sa10": 0.46153846153846156,
+    "dino_spatial_research_score_not_sa10": 0.8518994921474494,
+    "actual_emission_component_representation": 0.5,
+    "actual_emission_primitive_support": 1,
+    "emission_realization_ratio": 0.5,
+    "structural_repair_parts": [
+      "head"
+    ],
+    "structural_missing_relations_after": 0,
+    "forbidden_face_detail_ratio": 0,
+    "adopted_baseline_candidate_bytes_equal": true,
+    "face_raster_guard_changed_face_pixels": 1413,
+    "face_raster_guard_changed_outside_face_pixels": 0,
+    "face_raster_guard_fill_rgb": [
+      194,
+      178,
+      175
+    ]
+  },
+  "provenance": {
+    "phase4_masks": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_04/part_masks",
+    "phase14_artifact": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_14/14_case_evaluation.json",
+    "phase14_output_sha256": "db655f3cf1b2acac603e7855bcbefd1a92c6f95225ddca69fd21d923f1f8bb42",
+    "semantic_retention_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.13-semantic-retention.json",
+    "macro_alignment_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.9-macro-alignment.json",
+    "sa10_measurement": "SA10.13 source-only face raster guard plus immutable SA10.12 baseline-bound hard-gate rerun",
+    "production_candidate_sha256": "576a7baa1cf2dcf1a3254fb7daecefb1f5520dc8833294924077ba8ef98ab4b5",
+    "hard_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.13-hard-evidence.json",
+    "adopted_baseline_record": "benchmarks/regression/sa10/baselines/Juufuutei-Raden_stylecal_source.sa10.12-adoption.json",
+    "feature_survival_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.12-feature-survival.json",
+    "forbidden_face_detail_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.12-forbidden-face-detail.json",
+    "face_raster_guard_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.13-face-raster-guard.json",
+    "visual_hard_gate_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.13-visual-hard-gate.json"
+  }
+}

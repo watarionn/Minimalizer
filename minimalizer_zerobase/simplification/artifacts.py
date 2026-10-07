@@ -10,6 +10,9 @@ import cv2
 import numpy as np
 
 from minimalizer_zerobase.composition.artifacts import BACKGROUND_COLOR
+from minimalizer_zerobase.semantic_abstraction.face_raster_guard import (
+    apply_face_raster_guard,
+)
 
 from .style import SimplificationCandidate, StyleSimplificationResult
 
@@ -32,9 +35,34 @@ def _canonical_json_sha256(payload: dict[str, Any]) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _decode_image(path: Path, flags: int) -> np.ndarray:
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    encoded = np.fromfile(path, dtype=np.uint8)
+    image = cv2.imdecode(encoded, flags)
+    if image is None:
+        raise ValueError(f"unable to decode image artifact: {path}")
+    return image
+
+
+def _read_source_rgb(path: Path) -> np.ndarray:
+    image = _decode_image(path, cv2.IMREAD_UNCHANGED)
+    if image.ndim != 3:
+        raise ValueError("Phase 12 canonical source must be RGB/RGBA")
+    if image.shape[2] == 4:
+        return cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+    if image.shape[2] == 3:
+        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    raise ValueError("Phase 12 canonical source must have 3 or 4 channels")
+
+
 def _write_rgb_png(path: Path, rgb: np.ndarray) -> None:
-    if not cv2.imwrite(str(path), cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)):
-        raise OSError(f"failed to write PNG artifact: {path}")
+    encoded_ok, encoded = cv2.imencode(
+        ".png", cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    )
+    if not encoded_ok:
+        raise OSError(f"failed to encode PNG artifact: {path}")
+    encoded.tofile(path)
 
 
 def _render(
@@ -161,8 +189,8 @@ def write_phase12_artifacts(
         or int(source_contract.get("height", 0)) != result.height
     ):
         raise ValueError("Phase 12 source dimensions must match Phase 11")
-    source_image = cv2.imread(str(source_path), cv2.IMREAD_UNCHANGED)
-    if source_image is None or source_image.shape[:2] != (result.height, result.width):
+    source_rgb = _read_source_rgb(source_path)
+    if source_rgb.shape[:2] != (result.height, result.width):
         raise ValueError("Phase 12 canonical source is missing or dimensionally invalid")
     phase11_inputs = _verified_phase11_inputs(phase11_dir, phase11_stage)
     phase4_inputs = None
@@ -195,25 +223,52 @@ def write_phase12_artifacts(
     )
     _write_rgb_png(before_path, _baseline_render(result))
     by_name = {item.name: item for item in result.candidates}
-    _write_rgb_png(
-        conservative_path,
-        _candidate_render(result, by_name["conservative"]),
+
+    face_mask = None
+    if phase4_dir is not None:
+        face_mask_path = phase4_dir / "part_masks" / "face.png"
+        face_mask = _decode_image(face_mask_path, cv2.IMREAD_GRAYSCALE) > 0
+        if face_mask.shape != (result.height, result.width):
+            raise ValueError("Phase 12 face raster guard mask shape mismatch")
+
+    def guarded(rgb: np.ndarray):
+        if face_mask is None:
+            return rgb, None
+        report = apply_face_raster_guard(rgb, source_rgb, face_mask)
+        return report.rgb, report.to_dict()
+
+    conservative_rgb, conservative_guard = guarded(
+        _candidate_render(result, by_name["conservative"])
     )
-    _write_rgb_png(
-        aggressive_path,
-        _candidate_render(result, by_name["aggressive"]),
+    aggressive_rgb, aggressive_guard = guarded(
+        _candidate_render(result, by_name["aggressive"])
     )
+    _write_rgb_png(conservative_path, conservative_rgb)
+    _write_rgb_png(aggressive_path, aggressive_rgb)
+
     selected = result.selected
-    final_rgb = (
-        _candidate_render(result, selected)
-        if selected is not None
-        else _baseline_render(result)
-    )
+    if selected is None:
+        final_rgb, final_guard = guarded(_baseline_render(result))
+    elif selected.name == "conservative":
+        final_rgb, final_guard = conservative_rgb, conservative_guard
+    elif selected.name == "aggressive":
+        final_rgb, final_guard = aggressive_rgb, aggressive_guard
+    else:
+        raise ValueError(f"unexpected Phase 12 selected profile: {selected.name}")
     _write_rgb_png(final_path, final_rgb)
     _write_rgb_png(removed_path, _removed_overlay(result, selected))
     shutil.copyfile(final_path, preview_path)
+
+    artifact_metrics = dict(result.validation)
+    if final_guard is not None:
+        artifact_metrics["face_raster_guard"] = final_guard
     metrics_path.write_text(
-        json.dumps(result.validation, ensure_ascii=False, indent=2, sort_keys=True),
+        json.dumps(
+            artifact_metrics,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        ),
         encoding="utf-8",
     )
 
@@ -259,8 +314,22 @@ def write_phase12_artifacts(
             "inpainting": "forbidden",
             "hidden_completion": "forbidden",
             "structural_source_repair": "phase04-part-masks-only-when-bound",
+            "face_raster_guard": "source-rgb-plus-phase04-face-mask-only",
         },
-        "metrics": result.validation,
+        "raster_safety": {
+            "face_raster_guard": {
+                "enabled": face_mask is not None,
+                "conservative": conservative_guard,
+                "aggressive": aggressive_guard,
+                "selected": final_guard,
+                "changed_outside_face_pixels": (
+                    None
+                    if final_guard is None
+                    else final_guard["changed_outside_face_pixels"]
+                ),
+            }
+        },
+        "metrics": artifact_metrics,
         "outputs": outputs,
     }
     stage_path.write_text(
