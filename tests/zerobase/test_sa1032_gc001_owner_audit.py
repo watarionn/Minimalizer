@@ -5,6 +5,9 @@ class OwnerAuditTests(unittest.TestCase):
     def test_explicit_owners_pass(self):
         rows = [{"owner": o} for o in ("face", "hair", "left_arm", "right_arm")]
         self.assertEqual(audit_records(rows)["status"], "OWNER_AUDIT_PASS")
+    def test_phase11_semantic_owner(self):
+        rows = [{"semantic_part_id": o} for o in ("face", "hair", "left_arm", "right_arm")]
+        self.assertEqual(audit_records(rows)["status"], "OWNER_AUDIT_PASS")
     def test_no_color_inference(self):
         rows = [{"color": "#ffffff"} for _ in range(4)]
         self.assertEqual(audit_records(rows)["status"], "HOLD_OWNER_PROVENANCE")
