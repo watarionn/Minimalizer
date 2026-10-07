@@ -7,7 +7,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 import cv2
-import numpy as np
+
+from minimalizer_zerobase.image_io import read_cv_image
 
 from minimalizer_zerobase.core.serialization import CanonicalModel
 
@@ -136,15 +137,6 @@ def _load_stage(case_dir: Path, phase: int) -> tuple[Path, dict[str, Any]]:
     return phase_dir, stage
 
 
-def _decode_image_unicode_safe(path: Path) -> np.ndarray | None:
-    try:
-        encoded = np.fromfile(path, dtype=np.uint8)
-    except OSError:
-        return None
-    if encoded.size == 0:
-        return None
-    return cv2.imdecode(encoded, cv2.IMREAD_UNCHANGED)
-
 def _validate_source_contract(
     stages: dict[int, dict[str, Any]],
     source_path: Path,
@@ -185,7 +177,7 @@ def _validate_source_contract(
         raise StageContractBridgeError(
             "source file SHA does not match the canonical stage source"
         )
-    source_image = _decode_image_unicode_safe(source_path)
+    source_image = read_cv_image(source_path, cv2.IMREAD_UNCHANGED)
     if source_image is None:
         raise StageContractBridgeError(
             "source file cannot be decoded as an image"
