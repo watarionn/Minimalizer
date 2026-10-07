@@ -1,0 +1,59 @@
+{
+  "artifact_version": "sa10.12-v1",
+  "binding": {
+    "adoption_transaction_id": "sa10.12-adopt-hyakuto-kyoko-20261007-v1",
+    "baseline_artifact_id": "1DEIloGhLYw3-iVSpCnEa1wd1Uep9Yi4-",
+    "baseline_artifact_sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b",
+    "baseline_origin": "SA10.11 reviewed Phase12 production candidate preserved in canonical Google Drive",
+    "binding_passed": true,
+    "candidate_artifact_sha256": "84022e48e13ed7a80f8e3425d085d311e3ab7c86fcb28278ba079e182a33646a",
+    "candidate_bytes_equal_baseline": false,
+    "candidate_self_reference_forbidden": true,
+    "case_id": "Hyakuto-Kyoko",
+    "evaluation_transaction_id": "sa10.14-regression-hyakuto-kyoko-20261007-v1",
+    "production_inference_allowed": false,
+    "review_evidence": [
+      "docs/zerobase/SA10_11_STRUCTURAL_HARD_FAIL_REPAIR_20261007.md",
+      "drive:1DEIloGhLYw3-iVSpCnEa1wd1Uep9Yi4-",
+      "phase14:machine-pass",
+      "phase14:human-visual-pass",
+      "phase14:determinism-pass"
+    ],
+    "reviewer": "Rinka",
+    "same_transaction": false,
+    "source_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "version": "sa10.12-v1"
+  },
+  "boundary": {
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false,
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "canonical_hard_gate": {
+    "forbidden_face_detail_ratio": 0.0,
+    "forbidden_face_pass": true,
+    "missing_count": 0,
+    "missing_signatures": [],
+    "pass_gate": true,
+    "required_signature_count": 17,
+    "survival_pass": true,
+    "version": "sa7.35-v2"
+  },
+  "case_id": "Hyakuto-Kyoko",
+  "feature_survival": {
+    "missing_count": 0,
+    "missing_signatures": [],
+    "passed": true,
+    "required_signature_count": 17,
+    "status": "AVAILABLE"
+  },
+  "forbidden_face_detail": {
+    "passed": true,
+    "ratio": 0.0,
+    "status": "AVAILABLE"
+  }
+}
