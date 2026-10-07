@@ -1,0 +1,59 @@
+{
+  "artifact_version": "sa10.12-v1",
+  "binding": {
+    "adoption_transaction_id": "sa10.16-adopt-ouro-kronii-20261007-v1",
+    "baseline_artifact_id": "108Btyt4F9sZPUGE34XQ_t-pIVMmXJy7L",
+    "baseline_artifact_sha256": "baf3011657b6481a3d23c975d75db64334a735562718d7967cdd3c0165313544",
+    "baseline_origin": "SA10.16 fresh-case first reviewed Phase12 production candidate preserved in canonical Google Drive",
+    "binding_passed": true,
+    "candidate_artifact_sha256": "baf3011657b6481a3d23c975d75db64334a735562718d7967cdd3c0165313544",
+    "candidate_bytes_equal_baseline": true,
+    "candidate_self_reference_forbidden": true,
+    "case_id": "Ouro-Kronii",
+    "evaluation_transaction_id": "sa10.16-regression-ouro-kronii-20261007-v1",
+    "production_inference_allowed": false,
+    "review_evidence": [
+      "drive:108Btyt4F9sZPUGE34XQ_t-pIVMmXJy7L",
+      "drive:1KCdNBv74b1o0Z994siWAls1RyltqjG89",
+      "phase14:machine-pass",
+      "phase14:human-visual-pass",
+      "phase14:determinism-pass"
+    ],
+    "reviewer": "Rinka",
+    "same_transaction": false,
+    "source_sha256": "30dc6b9f3e65813bb32a08264714405a33d14ea15f091b2a4b80efa66b2372ca",
+    "version": "sa10.12-v1"
+  },
+  "boundary": {
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false,
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "canonical_hard_gate": {
+    "forbidden_face_detail_ratio": 0,
+    "forbidden_face_pass": true,
+    "missing_count": 0,
+    "missing_signatures": [],
+    "pass_gate": true,
+    "required_signature_count": 15,
+    "survival_pass": true,
+    "version": "sa7.35-v2"
+  },
+  "case_id": "Ouro-Kronii",
+  "feature_survival": {
+    "missing_count": 0,
+    "missing_signatures": [],
+    "passed": true,
+    "required_signature_count": 15,
+    "status": "AVAILABLE"
+  },
+  "forbidden_face_detail": {
+    "passed": true,
+    "ratio": 0,
+    "status": "AVAILABLE"
+  }
+}

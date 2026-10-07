@@ -1,0 +1,39 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a"
+  },
+  "case_id": "Hoshimachi-Suisei",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.825681250707786,
+    "global_similarity": 0.8358669375679392,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.8154955638476328,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.825681250707786,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Hoshimachi-Suisei_list_thumb.png",
+    "sha256": "ac01edc64c72292ecb6f294e85611e2396de585843d5271bd8680b1c35c4f449"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.6309911146455881,
+    "coarse_patch_cosine": 0.5983723066747189,
+    "global_cosine": 0.6717338751358786,
+    "research_score": 0.6277230839538419
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "artifact_version": "sa10.16-v1",
+  "case_id": "Hoshimachi-Suisei",
+  "production_candidate_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+  "face_raster_guard": {
+    "changed_face_pixels": 4218,
+    "changed_outside_face_pixels": 0,
+    "face_pixels": 4218,
+    "fill_rgb": [
+      254,
+      222,
+      214
+    ],
+    "version": "sa7.38-v1"
+  },
+  "source_only": true,
+  "golden_used_for_inference": false,
+  "browser_v12_used_for_inference": false,
+  "generated_or_inpainted_pixel_count": 0
+}

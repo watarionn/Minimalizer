@@ -1,0 +1,171 @@
+{
+  "adopted_baseline": {
+    "adoption_transaction_id": "sa10.16-adopt-nekomata-okayu-20261007-v1",
+    "baseline_artifact_id": "1rXe1cvjNqlkalss77BMuBoqPDbKrLtoz",
+    "baseline_artifact_sha256": "ffd8199ce602eeea74ad4d8e40d13ed04575555c5daa3cf0d1e391a316fa83dd",
+    "binding_passed": true,
+    "evaluation_transaction_id": "sa10.16-regression-nekomata-okayu-20261007-v1",
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "artifact_version": "sa10.14-v1",
+  "boundary": {
+    "adopted_baseline_production_inference_allowed": false,
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "diagnostics_can_override_hard_fail": false,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false
+  },
+  "candidate_sha256": "ffd8199ce602eeea74ad4d8e40d13ed04575555c5daa3cf0d1e391a316fa83dd",
+  "case_id": "Nekomata-Okayu",
+  "diagnostics": {
+    "actual_emission_support": {
+      "actual_component_representation_ratio": 0.6,
+      "actual_primitive_support_ratio": 1,
+      "allocated_primitives": 4,
+      "authoritative": false,
+      "diagnostic_only": true,
+      "emission_realization_ratio": 0.75,
+      "emitted_primitives": 3,
+      "maps_to_sa10_component_survival": false,
+      "maps_to_sa10_primitive_economy": false,
+      "represented_components": 3,
+      "roles": [
+        {
+          "allocated_primitives": 1,
+          "emitted_primitives": 0,
+          "represented_components": 0,
+          "role": "hair",
+          "source_components": 1,
+          "source_supported_primitives": 0
+        },
+        {
+          "allocated_primitives": 3,
+          "emitted_primitives": 3,
+          "represented_components": 3,
+          "role": "major_clothing",
+          "source_components": 4,
+          "source_supported_primitives": 3
+        }
+      ],
+      "source_components": 5,
+      "source_supported_primitives": 3,
+      "version": "sa10.10-v1"
+    },
+    "case_diagnostics": {
+      "adaptive_complexity": {
+        "reason": "No explicit SA10 adaptive-budget evidence was produced for Nekomata-Okayu fresh admission.",
+        "status": "UNAVAILABLE"
+      },
+      "component_survival": {
+        "reason": "No explicit SA10.5 component-survival evidence was produced for Nekomata-Okayu; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "primitive_economy": {
+        "reason": "No explicit SA10.5 primitive-economy evidence was produced for Nekomata-Okayu; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "semantic_retention": {
+        "status": "AVAILABLE",
+        "value": 0.8200394367607636
+      },
+      "teacher_coverage": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for Nekomata-Okayu.",
+        "status": "UNAVAILABLE"
+      },
+      "teacher_primitive_disagreements": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for Nekomata-Okayu.",
+        "status": "UNAVAILABLE"
+      }
+    },
+    "semantic_retention": {
+      "authoritative": false,
+      "can_override_hard_fail": false,
+      "status": "AVAILABLE",
+      "value": 0.8200394367607636
+    }
+  },
+  "evidence_links": {
+    "baseline_binding_passed": true,
+    "baseline_matches_adoption": true,
+    "baseline_not_production_input": true,
+    "baseline_separate_transaction": true,
+    "candidate_matches_case": true,
+    "candidate_matches_dino": true,
+    "candidate_matches_face_guard": true,
+    "candidate_matches_hard_evidence": true,
+    "candidate_matches_visual_gate": true,
+    "candidate_self_reference_forbidden": true,
+    "face_guard_no_generation": true,
+    "face_guard_outside_unchanged": true,
+    "face_guard_source_only": true,
+    "source_matches_adoption": true,
+    "source_matches_case": true,
+    "source_matches_dino": true,
+    "source_matches_hard_evidence": true,
+    "source_matches_phase14": true,
+    "source_matches_visual_gate": true,
+    "visual_gate_transaction_matches": true
+  },
+  "evidence_versions": {
+    "face_raster_guard": "sa10.16-v1",
+    "hard_evidence": "sa10.10-v1",
+    "phase14_schema": "1.0",
+    "semantic_retention": "sa10.9-v1",
+    "visual_hard_gate": "sa10.12-v1"
+  },
+  "hard_evidence": [
+    {
+      "name": "feature_survival",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "forbidden_face_detail",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "anatomy",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "topology",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "source_authority",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_machine",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_human_visual",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "determinism",
+      "passed": true,
+      "status": "AVAILABLE"
+    }
+  ],
+  "pass_transaction": true,
+  "phase14_evidence": {
+    "determinism_pass": true,
+    "determinism_sha256": "826b76e802a0dbd987f330687e0185049ccf6401bead332ebb2b22d5c075c0f5",
+    "human_visual_pass": true,
+    "machine_pass": true,
+    "phase14_pass": true
+  },
+  "source_sha256": "186ab075bd5cf574ad870eb1851a956303420bc268a5477dc4dd9d849c2126b5",
+  "transaction_id": "sa10.16-regression-nekomata-okayu-20261007-v1"
+}

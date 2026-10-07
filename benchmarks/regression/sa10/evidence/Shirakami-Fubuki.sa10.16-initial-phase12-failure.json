@@ -1,0 +1,30 @@
+{
+  "artifact_version": "sa10.16-initial-failure-v1",
+  "case_id": "Shirakami-Fubuki",
+  "phase": 12,
+  "pass": false,
+  "passing_candidate_count": 0,
+  "selected_profile": null,
+  "candidate_failures": [
+    {
+      "profile": "conservative",
+      "pass": false,
+      "missing_visible_parts": [
+        "neck"
+      ],
+      "silhouette_iou": 0.989719,
+      "critical_part_failures": [],
+      "critical_part_iou_failures": []
+    },
+    {
+      "profile": "aggressive",
+      "pass": false,
+      "missing_visible_parts": [
+        "neck"
+      ],
+      "silhouette_iou": 0.988612,
+      "critical_part_failures": [],
+      "critical_part_iou_failures": []
+    }
+  ]
+}

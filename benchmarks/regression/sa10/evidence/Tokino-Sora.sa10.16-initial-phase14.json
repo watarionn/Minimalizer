@@ -1,0 +1,314 @@
+{
+  "case_id": "Tokino-Sora",
+  "details": {
+    "collapse_failures": [],
+    "fragmentation": {
+      "component_count": 22,
+      "tiny_component_area_threshold": 9,
+      "tiny_component_count": 0
+    },
+    "identity_features": {
+      "accessory_or_held_object": 1.0,
+      "face": 0.950048,
+      "hair": 0.992229
+    },
+    "major_color_mass": {
+      "accessory_or_held_object": {
+        "final_median_rgb": [
+          102,
+          58,
+          59
+        ],
+        "lab_distance": 1.4142135381698608,
+        "score": 0.9823223307728768,
+        "source_median_rgb": [
+          100,
+          57,
+          59
+        ]
+      },
+      "face": {
+        "final_median_rgb": [
+          251,
+          230,
+          224
+        ],
+        "lab_distance": 14.866068840026855,
+        "score": 0.8141741394996643,
+        "source_median_rgb": [
+          245,
+          212,
+          208
+        ]
+      },
+      "hair": {
+        "final_median_rgb": [
+          142,
+          117,
+          118
+        ],
+        "lab_distance": 41.24318313598633,
+        "score": 0.4844602108001709,
+        "source_median_rgb": [
+          123,
+          72,
+          73
+        ]
+      },
+      "left_arm": {
+        "final_median_rgb": [
+          194,
+          193,
+          204
+        ],
+        "lab_distance": 29.017236709594727,
+        "score": 0.6372845411300659,
+        "source_median_rgb": [
+          226,
+          224,
+          235
+        ]
+      },
+      "lower_body": {
+        "final_median_rgb": [
+          242,
+          228,
+          224
+        ],
+        "lab_distance": 64.0078125,
+        "score": 0.19990234375000004,
+        "source_median_rgb": [
+          174,
+          159,
+          156
+        ]
+      },
+      "major_clothing": {
+        "final_median_rgb": [
+          117,
+          111,
+          122
+        ],
+        "lab_distance": 39.16631317138672,
+        "score": 0.5104210853576661,
+        "source_median_rgb": [
+          158,
+          150,
+          144
+        ]
+      },
+      "right_arm": {
+        "final_median_rgb": [
+          211,
+          199,
+          205
+        ],
+        "lab_distance": 14.03566837310791,
+        "score": 0.8245541453361511,
+        "source_median_rgb": [
+          228,
+          216,
+          218
+        ]
+      },
+      "torso": {
+        "final_median_rgb": [
+          182,
+          180,
+          187
+        ],
+        "lab_distance": 44.05678176879883,
+        "score": 0.4492902278900146,
+        "source_median_rgb": [
+          232,
+          227,
+          237
+        ]
+      }
+    },
+    "oversized_blocks": [],
+    "part_layout": {
+      "accessory_or_held_object": {
+        "bbox_iou": 1.0,
+        "centroid_displacement_ratio": 0.0016095797277330512,
+        "centroid_score": 0.9865868356022246,
+        "score": 0.9932934178011124
+      },
+      "face": {
+        "bbox_iou": 0.9011541876294762,
+        "centroid_displacement_ratio": 0.0027578384755209697,
+        "centroid_score": 0.9770180127039919,
+        "score": 0.9390861001667341
+      },
+      "hair": {
+        "bbox_iou": 0.88970293054998,
+        "centroid_displacement_ratio": 0.008143014322767619,
+        "centroid_score": 0.9321415473102699,
+        "score": 0.9109222389301249
+      },
+      "left_arm": {
+        "bbox_iou": 0.8192771084337349,
+        "centroid_displacement_ratio": 0.0027057686995957337,
+        "centroid_score": 0.9774519275033688,
+        "score": 0.8983645179685519
+      },
+      "lower_body": {
+        "bbox_iou": 0.9468085106382979,
+        "centroid_displacement_ratio": 0.002071083446853656,
+        "centroid_score": 0.9827409712762195,
+        "score": 0.9647747409572587
+      },
+      "major_clothing": {
+        "bbox_iou": 0.9822120163142201,
+        "centroid_displacement_ratio": 5.343985123712187e-05,
+        "centroid_score": 0.9995546679063573,
+        "score": 0.9908833421102887
+      },
+      "right_arm": {
+        "bbox_iou": 0.7533333333333333,
+        "centroid_displacement_ratio": 0.001105855643804862,
+        "centroid_score": 0.9907845363016261,
+        "score": 0.8720589348174796
+      },
+      "torso": {
+        "bbox_iou": 0.9732620320855615,
+        "centroid_displacement_ratio": 0.001458476023062535,
+        "centroid_score": 0.9878460331411455,
+        "score": 0.9805540326133535
+      }
+    }
+  },
+  "determinism": {
+    "first_evaluation_sha256": "d4e39b5aefad7784815086f39959b12c835718f8bb1e06e307d126d62b5613e1",
+    "method": "repeat-pure-evaluation-canonical-json-sha256",
+    "passed": true,
+    "second_evaluation_sha256": "d4e39b5aefad7784815086f39959b12c835718f8bb1e06e307d126d62b5613e1"
+  },
+  "failure_policy": "Any machine or human visual failure wins. A numeric PASS cannot override human visual FAIL.",
+  "human_visual_qa": {
+    "criteria": {
+      "catastrophic_block_failure_absence": true,
+      "major_feature_retention": true,
+      "minimal_style_consistency": true,
+      "pose_readability": true,
+      "same_subject_recognizability": true
+    },
+    "failed_criteria": [],
+    "note": "SA10.16 initial Tokino-Sora baseline review passed before adoption.",
+    "passed": true,
+    "phase13_first_bad_stage_id": null,
+    "phase13_review_status": "pass",
+    "reviewer": "Rinka",
+    "status": "pass"
+  },
+  "machine_checks": {
+    "determinism": {
+      "expected": true,
+      "passed": true,
+      "value": true
+    },
+    "face_hair_torso_collapse": {
+      "expected": false,
+      "passed": true,
+      "value": false
+    },
+    "fragmentation_penalty": {
+      "maximum": 0.2,
+      "passed": true,
+      "value": 0.0
+    },
+    "identity_feature_retention": {
+      "minimum": 0.9,
+      "passed": true,
+      "value": 0.950048
+    },
+    "major_color_mass_consistency": {
+      "minimum": 0.65,
+      "passed": false,
+      "value": 0.6128011280670762
+    },
+    "oversized_block_penalty": {
+      "maximum": 0.1,
+      "passed": true,
+      "value": 0.0
+    },
+    "part_layout_mean": {
+      "minimum": 0.85,
+      "passed": true,
+      "value": 0.943742165670613
+    },
+    "part_layout_min": {
+      "minimum": 0.5,
+      "passed": true,
+      "value": 0.8720589348174796
+    },
+    "phase12_machine_guard": {
+      "expected": true,
+      "passed": true,
+      "value": true
+    },
+    "primitive_economy": {
+      "minimum": 0.1,
+      "passed": true,
+      "value": 0.7246376811594203
+    },
+    "silhouette_preservation": {
+      "minimum": 0.96,
+      "passed": true,
+      "value": 0.982989
+    }
+  },
+  "machine_pass": false,
+  "pass": false,
+  "phase": 14,
+  "phase12": {
+    "baseline_primitive_count": 69,
+    "baseline_vertex_count": 767,
+    "primitive_count": 19,
+    "selected_profile": "aggressive",
+    "selection_rule": "fewest-primitives-then-highest-silhouette-then-fewest-vertices",
+    "vertex_count": 636
+  },
+  "phase13": {
+    "first_machine_bad_stage_id": null,
+    "human_first_bad_stage_id": null,
+    "human_review_status": "pass",
+    "pass": true
+  },
+  "policy": {
+    "collapse_minimum_iou": 0.75,
+    "collapse_minimum_recall": 0.85,
+    "color_delta_normalizer": 80.0,
+    "layout_displacement_tolerance_ratio": 0.12,
+    "maximum_fragmentation_penalty": 0.2,
+    "maximum_oversized_block_penalty": 0.1,
+    "minimum_identity_feature_retention": 0.9,
+    "minimum_major_color_mass_score": 0.65,
+    "minimum_part_layout_mean": 0.85,
+    "minimum_part_layout_min": 0.5,
+    "minimum_primitive_economy": 0.1,
+    "minimum_silhouette_iou": 0.96,
+    "oversized_part_expansion_ratio": 1.15,
+    "tiny_component_area_ratio": 0.00015
+  },
+  "schema_version": "1.0",
+  "scores": {
+    "face_hair_torso_collapse": false,
+    "fragmentation_penalty": 0.0,
+    "identity_feature_retention": 0.950048,
+    "major_color_mass_consistency": 0.6128011280670762,
+    "major_color_mass_max_lab_distance": 64.0078125,
+    "oversized_block_penalty": 0.0,
+    "part_layout_consistency_mean": 0.943742165670613,
+    "part_layout_consistency_min": 0.8720589348174796,
+    "primitive_economy": 0.7246376811594203,
+    "silhouette_preservation": 0.982989,
+    "vertex_change_ratio": 0.1707953063885267
+  },
+  "source": {
+    "height": 340,
+    "path": "Tokino-Sora_list_thumb.png",
+    "sha256": "fdbea110e8ec44fa8231dc601d840b9117c2a5d09ab86c3d00716db3f5a3dda7",
+    "width": 340
+  }
+}

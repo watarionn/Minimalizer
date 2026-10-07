@@ -1,0 +1,286 @@
+{
+  "artifact_version": "sa10.16-taxonomy-v1",
+  "screened_case_count": 8,
+  "screened_cases": [
+    {
+      "case_id": "Fuwawa-Abyssgard",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": false,
+      "phase13_first_bad_stage": "07",
+      "phase14_machine_pass": false,
+      "phase14_human_pass": false,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "structural_decomposition",
+          "stage": "phase07",
+          "code": "dominant_pale_mass_merge",
+          "detail": "Ear/face remain readable, but light hair, white clothing, and torso merge into a dominant pale mass beginning at Phase7."
+        },
+        {
+          "category": "phase14_visual_machine",
+          "stage": "phase14",
+          "code": "fragmentation_penalty",
+          "value": 0.26666666666666666,
+          "limit": 0.2
+        },
+        {
+          "category": "phase14_visual_machine",
+          "stage": "phase14",
+          "code": "human_visual_fail"
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/Fuwawa-Abyssgard.sa10.16-initial-phase13.json",
+        "benchmarks/regression/sa10/evidence/Fuwawa-Abyssgard.sa10.16-initial-phase14.json"
+      ],
+      "baseline_adopted": false
+    },
+    {
+      "case_id": "La-Darknesss",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": false,
+      "phase14_human_pass": true,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "phase14_visual_machine",
+          "stage": "phase14",
+          "code": "fragmentation_penalty",
+          "value": 0.4339622641509434,
+          "limit": 0.2
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/La-Darknesss.sa10.16-initial-phase14.json"
+      ],
+      "baseline_adopted": false
+    },
+    {
+      "case_id": "Nekomata-Okayu",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": true,
+      "phase14_human_pass": true,
+      "admitted": true,
+      "transaction_path": "benchmarks/regression/sa10/transactions/Nekomata-Okayu.sa10.16-transaction.json",
+      "transaction_canonical_payload_sha256": "c82d986fa343824bf88bda8822782295e8724f76f83194ed838803c987defbfa",
+      "failures": [],
+      "baseline_adopted": true
+    },
+    {
+      "case_id": "Kaela-Kovalskia",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": false,
+      "phase14_human_pass": true,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "phase14_visual_machine",
+          "stage": "phase14",
+          "code": "fragmentation_penalty",
+          "value": 0.29545454545454547,
+          "limit": 0.2
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/Kaela-Kovalskia.sa10.16-initial-phase14.json"
+      ],
+      "baseline_adopted": false
+    },
+    {
+      "case_id": "Ouro-Kronii",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": true,
+      "phase14_human_pass": true,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "topology_anatomy",
+          "stage": "sa10_hard_evidence",
+          "code": "missing_required_relation",
+          "relation": "neck:attached_to:face"
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/Ouro-Kronii.sa10.16-initial-hard-evidence.json"
+      ],
+      "baseline_adopted": true
+    },
+    {
+      "case_id": "Shirakami-Fubuki",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": false,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "feature_survival",
+          "stage": "phase12",
+          "code": "missing_visible_part",
+          "part": "neck",
+          "note": "This is Phase12 visible-part survival, not a promoted SA10.12 Feature Survival hard-gate result."
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/Shirakami-Fubuki.sa10.16-initial-phase12-failure.json"
+      ],
+      "baseline_adopted": false
+    },
+    {
+      "case_id": "Tokino-Sora",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": false,
+      "phase14_human_pass": true,
+      "admitted": false,
+      "failures": [
+        {
+          "category": "phase14_visual_machine",
+          "stage": "phase14",
+          "code": "major_color_mass_consistency",
+          "value": 0.6128011280670762,
+          "minimum": 0.65
+        }
+      ],
+      "evidence": [
+        "benchmarks/regression/sa10/evidence/Tokino-Sora.sa10.16-initial-phase14.json"
+      ],
+      "baseline_adopted": false
+    },
+    {
+      "case_id": "Hoshimachi-Suisei",
+      "source_kind": "fresh",
+      "phase12_pipeline_pass": true,
+      "phase13_human_pass": true,
+      "phase14_machine_pass": true,
+      "phase14_human_pass": true,
+      "admitted": true,
+      "transaction_path": "benchmarks/regression/sa10/transactions/Hoshimachi-Suisei.sa10.16-transaction.json",
+      "transaction_canonical_payload_sha256": "a62e3d9d7d698721d2a27984287783ab4ab3ae951f8aa9eaf5b51b07680abf6b",
+      "failures": [],
+      "baseline_adopted": true
+    }
+  ],
+  "category_summary": {
+    "runtime_environment_blockers": {
+      "count": 0,
+      "cases": [],
+      "note": "SA10.15 runtime fixes held across SA10.16 screening."
+    },
+    "unicode_path_io": {
+      "count": 0,
+      "cases": [],
+      "note": "Shared Unicode-safe source reader held across all SA10.16 Drive-backed cases."
+    },
+    "structural_decomposition": {
+      "count": 1,
+      "cases": [
+        "Fuwawa-Abyssgard"
+      ]
+    },
+    "topology_anatomy": {
+      "count": 1,
+      "cases": [
+        "Ouro-Kronii"
+      ],
+      "anatomy_failures": 0,
+      "topology_failures": 1
+    },
+    "feature_survival": {
+      "count": 1,
+      "cases": [
+        "Shirakami-Fubuki"
+      ],
+      "note": "Phase12 visible-part survival failure; not silently relabeled as canonical SA10.12 Feature Survival."
+    },
+    "forbidden_face_detail": {
+      "count": 0,
+      "cases": []
+    },
+    "provenance_source_authority": {
+      "count": 0,
+      "cases": []
+    },
+    "phase14_visual_machine": {
+      "count": 4,
+      "cases": [
+        "Fuwawa-Abyssgard",
+        "La-Darknesss",
+        "Kaela-Kovalskia",
+        "Tokino-Sora"
+      ],
+      "clusters": {
+        "fragmentation_penalty": [
+          "Fuwawa-Abyssgard",
+          "La-Darknesss",
+          "Kaela-Kovalskia"
+        ],
+        "major_color_mass_consistency": [
+          "Tokino-Sora"
+        ],
+        "human_visual_fail": [
+          "Fuwawa-Abyssgard"
+        ]
+      }
+    },
+    "diagnostic_only_gaps": {
+      "count": 2,
+      "cases": [
+        "Nekomata-Okayu",
+        "Hoshimachi-Suisei"
+      ],
+      "detail": "Admitted fresh cases keep SA9 Teacher and explicit SA10.5 component/primitive diagnostics UNAVAILABLE; actual-emission evidence remains diagnostic-only."
+    }
+  },
+  "repair_priority": [
+    {
+      "priority": 1,
+      "cluster": "fragmentation_penalty",
+      "case_count": 3,
+      "policy": "generic repair research only; do not raise Phase14 maximum fragmentation threshold"
+    },
+    {
+      "priority": 2,
+      "cluster": "phase07_mass_merge",
+      "case_count": 1,
+      "policy": "separate Fuwawa mass-reconstruction root cause from fragmentation symptoms"
+    },
+    {
+      "priority": 3,
+      "cluster": "topology_relation_loss",
+      "case_count": 1,
+      "policy": "repair generic neck/face topology preservation without case-specific geometry"
+    },
+    {
+      "priority": 4,
+      "cluster": "visible_part_survival",
+      "case_count": 1,
+      "policy": "repair generic neck survival before any gate relaxation"
+    },
+    {
+      "priority": 5,
+      "cluster": "major_color_mass_consistency",
+      "case_count": 1,
+      "policy": "investigate palette/mass retention; do not lower Phase14 minimum"
+    }
+  ],
+  "boundaries": {
+    "aggregate_quality_score": false,
+    "threshold_calibration": false,
+    "diagnostics_can_override_hard_fail": false,
+    "case_specific_production_logic": false,
+    "production_code_changed_in_sa1016": false,
+    "failures_preserved_before_repair": true,
+    "failed_transactions_not_in_pass_set": true,
+    "baseline_adoption_is_not_pass_authority": true
+  }
+}

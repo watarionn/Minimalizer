@@ -1,0 +1,126 @@
+{
+  "case_id": "Fuwawa-Abyssgard",
+  "first_bad_stage_rule": "Human review identifies the earliest visually broken stage. Later-stage correction must not hide that root cause.",
+  "first_machine_bad_stage_id": null,
+  "human_review": {
+    "first_bad_stage_id": "07",
+    "note": "SA10.16 initial Fuwawa human FAIL: earliest visual break at Phase7 masses, where light hair/white clothing/torso become a dominant pale mass and body-part readability degrades.",
+    "status": "fail"
+  },
+  "phase": 13,
+  "schema_version": "1.0",
+  "stage_order": [
+    "input",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12"
+  ],
+  "stages": [
+    {
+      "artifact_name": "Fuwawa-Abyssgard_list_thumb.png",
+      "label": "INPUT",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": null,
+      "sha256": "8aa1aac1d72b45a4aa05a876b4eb2da4a0361b3c1a616ed8f0d8f50037e2cdc9",
+      "stage_id": "input"
+    },
+    {
+      "artifact_name": "03_subject_overlay.png",
+      "label": "SUBJECT",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": 3,
+      "sha256": "a6b575d9dcb62bf49d319d0f585c8491add9534d550731350c9f69bf3bf5f6d8",
+      "stage_id": "03"
+    },
+    {
+      "artifact_name": "04_part_overlay.png",
+      "label": "PARTS",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": 4,
+      "sha256": "2b07679f1030f940dc00692e9a4b79342b0d3fb27b42390a8b4296e561da1b25",
+      "stage_id": "04"
+    },
+    {
+      "artifact_name": "05_structure_graph_overlay.png",
+      "label": "GRAPH",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 5,
+      "sha256": "05a0c9fb7a2bcf92ea4dcb82af55e3cfe0a30e6b01734bed81f4536dd268f7c6",
+      "stage_id": "05"
+    },
+    {
+      "artifact_name": "06_region_binding.png",
+      "label": "BINDING",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 6,
+      "sha256": "2c1a322a7384fbda4834527eb9782f4ce460e8a6db5de328161f8a2fdb259cc8",
+      "stage_id": "06"
+    },
+    {
+      "artifact_name": "07_mass_blocks.png",
+      "label": "MASSES",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 7,
+      "sha256": "b633a5e24ba43b6035e44a5c37d009e49ee90afe63d6a54bc7050b424dc6327c",
+      "stage_id": "07"
+    },
+    {
+      "artifact_name": "08_pruned_masses.png",
+      "label": "PRUNE",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 8,
+      "sha256": "e02a0dda0ecf9e4056fd8616c302f737b62f16abb150ce0e155c74e09cd0c830",
+      "stage_id": "08"
+    },
+    {
+      "artifact_name": "09_palette_preview.png",
+      "label": "PALETTE",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 9,
+      "sha256": "7724e7ba1821a363ccb056e999de77d64673a3b75c3b56a3f056c723a4b6b5c4",
+      "stage_id": "09"
+    },
+    {
+      "artifact_name": "10_selected_primitives.png",
+      "label": "PRIMITIVES",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 10,
+      "sha256": "6eebd5a2a6679cc4f9d88dd9d23ce52d63a883ffadfe72e11402d48f7b71ebcb",
+      "stage_id": "10"
+    },
+    {
+      "artifact_name": "11_composed_minimal.png",
+      "label": "COMPOSED",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 11,
+      "sha256": "13480400c5876aebfd7ff17f8c8fe37539c2371c753e63d0baea552bc6c46f85",
+      "stage_id": "11"
+    },
+    {
+      "artifact_name": "12_final.png",
+      "label": "FINAL",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 12,
+      "sha256": "e5d0d0a7df952da08835c919322994d6abc46a564b393bb2fc087c615325211c",
+      "stage_id": "12"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "ffd8199ce602eeea74ad4d8e40d13ed04575555c5daa3cf0d1e391a316fa83dd"
+  },
+  "case_id": "Nekomata-Okayu",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.8200394367607636,
+    "global_similarity": 0.833047804173451,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.8070310693480762,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.8200394367607636,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Nekomata-Okayu_list_thumb.png",
+    "sha256": "186ab075bd5cf574ad870eb1851a956303420bc268a5477dc4dd9d849c2126b5"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.6140621535632075,
+    "coarse_patch_cosine": 0.5704771243035793,
+    "global_cosine": 0.6660956083469026,
+    "research_score": 0.6092140842790766
+  }
+}

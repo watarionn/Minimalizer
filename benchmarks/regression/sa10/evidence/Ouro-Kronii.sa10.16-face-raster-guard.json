@@ -1,0 +1,20 @@
+{
+  "artifact_version": "sa10.16-v1",
+  "case_id": "Ouro-Kronii",
+  "production_candidate_sha256": "baf3011657b6481a3d23c975d75db64334a735562718d7967cdd3c0165313544",
+  "face_raster_guard": {
+    "changed_face_pixels": 3917,
+    "changed_outside_face_pixels": 0,
+    "face_pixels": 3917,
+    "fill_rgb": [
+      255,
+      230,
+      217
+    ],
+    "version": "sa7.38-v1"
+  },
+  "source_only": true,
+  "golden_used_for_inference": false,
+  "browser_v12_used_for_inference": false,
+  "generated_or_inpainted_pixel_count": 0
+}

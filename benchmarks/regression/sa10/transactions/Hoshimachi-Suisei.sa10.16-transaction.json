@@ -1,0 +1,171 @@
+{
+  "adopted_baseline": {
+    "adoption_transaction_id": "sa10.16-adopt-hoshimachi-suisei-20261007-v1",
+    "baseline_artifact_id": "1LfGdATG5GyfHRojb7hKecKVSDFYKZFWS",
+    "baseline_artifact_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+    "binding_passed": true,
+    "evaluation_transaction_id": "sa10.16-regression-hoshimachi-suisei-20261007-v1",
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "artifact_version": "sa10.14-v1",
+  "boundary": {
+    "adopted_baseline_production_inference_allowed": false,
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "diagnostics_can_override_hard_fail": false,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false
+  },
+  "candidate_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+  "case_id": "Hoshimachi-Suisei",
+  "diagnostics": {
+    "actual_emission_support": {
+      "actual_component_representation_ratio": 0.375,
+      "actual_primitive_support_ratio": 1.0,
+      "allocated_primitives": 4,
+      "authoritative": false,
+      "diagnostic_only": true,
+      "emission_realization_ratio": 0.75,
+      "emitted_primitives": 3,
+      "maps_to_sa10_component_survival": false,
+      "maps_to_sa10_primitive_economy": false,
+      "represented_components": 3,
+      "roles": [
+        {
+          "allocated_primitives": 1,
+          "emitted_primitives": 0,
+          "represented_components": 0,
+          "role": "hair",
+          "source_components": 1,
+          "source_supported_primitives": 0
+        },
+        {
+          "allocated_primitives": 3,
+          "emitted_primitives": 3,
+          "represented_components": 3,
+          "role": "major_clothing",
+          "source_components": 7,
+          "source_supported_primitives": 3
+        }
+      ],
+      "source_components": 8,
+      "source_supported_primitives": 3,
+      "version": "sa10.10-v1"
+    },
+    "case_diagnostics": {
+      "adaptive_complexity": {
+        "reason": "No explicit SA10 adaptive-budget evidence was produced for Hoshimachi-Suisei fresh admission.",
+        "status": "UNAVAILABLE"
+      },
+      "component_survival": {
+        "reason": "No explicit SA10.5 component-survival evidence was produced for Hoshimachi-Suisei; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "primitive_economy": {
+        "reason": "No explicit SA10.5 primitive-economy evidence was produced for Hoshimachi-Suisei; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "semantic_retention": {
+        "status": "AVAILABLE",
+        "value": 0.825681250707786
+      },
+      "teacher_coverage": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for Hoshimachi-Suisei.",
+        "status": "UNAVAILABLE"
+      },
+      "teacher_primitive_disagreements": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for Hoshimachi-Suisei.",
+        "status": "UNAVAILABLE"
+      }
+    },
+    "semantic_retention": {
+      "authoritative": false,
+      "can_override_hard_fail": false,
+      "status": "AVAILABLE",
+      "value": 0.825681250707786
+    }
+  },
+  "evidence_links": {
+    "baseline_binding_passed": true,
+    "baseline_matches_adoption": true,
+    "baseline_not_production_input": true,
+    "baseline_separate_transaction": true,
+    "candidate_matches_case": true,
+    "candidate_matches_dino": true,
+    "candidate_matches_face_guard": true,
+    "candidate_matches_hard_evidence": true,
+    "candidate_matches_visual_gate": true,
+    "candidate_self_reference_forbidden": true,
+    "face_guard_no_generation": true,
+    "face_guard_outside_unchanged": true,
+    "face_guard_source_only": true,
+    "source_matches_adoption": true,
+    "source_matches_case": true,
+    "source_matches_dino": true,
+    "source_matches_hard_evidence": true,
+    "source_matches_phase14": true,
+    "source_matches_visual_gate": true,
+    "visual_gate_transaction_matches": true
+  },
+  "evidence_versions": {
+    "face_raster_guard": "sa10.16-v1",
+    "hard_evidence": "sa10.10-v1",
+    "phase14_schema": "1.0",
+    "semantic_retention": "sa10.9-v1",
+    "visual_hard_gate": "sa10.12-v1"
+  },
+  "hard_evidence": [
+    {
+      "name": "feature_survival",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "forbidden_face_detail",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "anatomy",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "topology",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "source_authority",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_machine",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_human_visual",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "determinism",
+      "passed": true,
+      "status": "AVAILABLE"
+    }
+  ],
+  "pass_transaction": true,
+  "phase14_evidence": {
+    "determinism_pass": true,
+    "determinism_sha256": "55e7c22c670a7d1925bc6cfa580ff61b008874a3af74502ca885a53ec6d9e793",
+    "human_visual_pass": true,
+    "machine_pass": true,
+    "phase14_pass": true
+  },
+  "source_sha256": "ac01edc64c72292ecb6f294e85611e2396de585843d5271bd8680b1c35c4f449",
+  "transaction_id": "sa10.16-regression-hoshimachi-suisei-20261007-v1"
+}
