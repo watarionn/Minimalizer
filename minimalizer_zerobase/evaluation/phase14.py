@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from minimalizer_zerobase.composition.semantic import rasterize_primitive_candidate
 from minimalizer_zerobase.evaluation.structural_hard_evidence import evaluate_structural_hard_evidence
 from minimalizer_zerobase.evaluation.source_shape_evidence import evaluate_source_shape_evidence, vtracer_backend_status
+from minimalizer_zerobase.evaluation.saliency_perceptual import evaluate_saliency_perceptual
 
 
 CRITICAL_LAYOUT_PARTS = (
@@ -534,6 +535,10 @@ def _evaluate_once(
     source_outer = np.logical_or.reduce(list(phase4_masks.values()))
     candidate_outer = np.logical_or.reduce(list(selected_masks.values()))
     shape_evidence = evaluate_source_shape_evidence(source_outer, candidate_outer)
+    candidate_rgb = np.zeros_like(source_rgb)
+    for primitive, mask, _ in primitive_masks:
+        candidate_rgb[mask] = np.asarray(primitive.get("palette_color_rgb", (0, 0, 0)), dtype=np.uint8)
+    saliency_evidence = evaluate_saliency_perceptual(source_rgb, candidate_rgb, phase4_masks)
 
     baseline_primitives = max(
         int(metrics.get("baseline_primitive_count", 0)),
@@ -681,6 +686,7 @@ def _evaluate_once(
             "source_silhouette": structural.source_silhouette,
             "structural_topology": structural.to_dict()["topology"],
             "source_shape_evidence": shape_evidence,
+            "saliency_perceptual": saliency_evidence,
             "vectorization_backend": vtracer_backend_status(),
         },
         "machine_checks": checks,
