@@ -7,8 +7,6 @@ from pathlib import Path
 
 import cv2
 
-from minimalizer_zerobase.image_io import read_cv_image
-
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
