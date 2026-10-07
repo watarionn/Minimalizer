@@ -8,6 +8,7 @@ import numpy as np
 
 from minimalizer_zerobase.composition.semantic import rasterize_primitive_candidate
 from .structural_source_repair import apply_structural_source_repair
+from .animeseg_source_constraints import source_bound_detail_groups
 
 
 UNBOUND_PART = "__unbound__"
@@ -128,6 +129,7 @@ class StyleSimplificationPolicy:
     lower_body_epsilon_cap: float = 0.0025
     torso_epsilon_cap: float = 0.004
     major_clothing_epsilon_cap: float = 0.0011
+    animeseg_source_detail_geometry: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         def profile(item: SimplificationProfile) -> dict[str, Any]:
@@ -223,6 +225,7 @@ class StyleSimplificationPolicy:
             "micro_fragment_policy": "drop-only-after-part-level-coverage-gate",
             "hole_preservation": "contour-tree-even-odd",
             "generated_pixels": "forbidden-outside-rasterized-deterministic-geometry",
+            "animeseg_source_detail_geometry": self.animeseg_source_detail_geometry,
         }
 
 
@@ -2074,6 +2077,7 @@ def simplify_composed_scene(
     policy: StyleSimplificationPolicy | None = None,
     source_rgba: np.ndarray | None = None,
     source_part_masks: Mapping[str, np.ndarray] | None = None,
+    animeseg_source_constraints: Mapping[str, Any] | None = None,
 ) -> StyleSimplificationResult:
     policy = policy or StyleSimplificationPolicy()
     if composition_payload.get("validation", {}).get("pass") is not True:
@@ -2102,6 +2106,9 @@ def simplify_composed_scene(
     groups = _source_guided_lower_body_groups(
         groups, source_rgba, shape, policy
     )
+    if policy.animeseg_source_detail_geometry and source_rgba is not None and animeseg_source_constraints is not None:
+        groups.extend(source_bound_detail_groups(dict(animeseg_source_constraints), source_rgba))
+        groups.sort(key=lambda item: int(item["first_order"]))
     repair_report = {
         "version": "sa10.11-v1",
         "applied": False,

@@ -129,6 +129,27 @@ def test_policy_declares_visual_gate() -> None:
     assert policy["generated_pixels"] == "forbidden-outside-rasterized-deterministic-geometry"
 
 
+def test_animeseg_detail_geometry_is_opt_in_and_fail_closed_by_existing_gates() -> None:
+    source = np.zeros((100, 100, 4), dtype=np.uint8)
+    source[..., :3] = (20, 20, 24)
+    source[..., 3] = 255
+    masks = {name: np.zeros((100, 100), dtype=bool) for name in (
+        "hair_main", "face", "left_eye", "right_eye", "left_eyebrow",
+        "right_eyebrow", "nose", "mouth")}
+    masks["left_eye"][30:34, 40:45] = True
+    source[masks["left_eye"], :3] = (240, 240, 240)
+    constraints = {"masks": masks, "authority": False}
+    plain = simplify_composed_scene(_payload(), source_rgba=source)
+    opt = simplify_composed_scene(
+        _payload(), source_rgba=source,
+        policy=StyleSimplificationPolicy(animeseg_source_detail_geometry=True),
+        animeseg_source_constraints=constraints,
+    )
+    assert not any("animeseg-" in str(p.get("source_guided_kind")) for p in plain.selected.primitives)
+    assert opt.validation["pass"] is True
+    assert any("animeseg-left_eye" in str(p.get("source_guided_kind")) for p in opt.selected.primitives)
+
+
 def test_phase12_source_guided_lower_body_recovers_large_planes() -> None:
     payload = _payload()
     payload["primitives_back_to_front"].append(

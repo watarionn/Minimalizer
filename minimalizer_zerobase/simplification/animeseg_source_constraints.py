@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import cv2
 from PIL import Image
 
 CLASS_NAMES = ("background", "skin", "face", "hair_main", "left_eye",
@@ -19,6 +20,9 @@ CLASS_NAMES = ("background", "skin", "face", "hair_main", "left_eye",
 CLASS_RGB = ((0, 0, 0), (255, 220, 180), (100, 150, 255), (255, 0, 0),
              (0, 255, 255), (255, 255, 0), (150, 255, 0), (0, 255, 100),
              (255, 140, 0), (255, 0, 150), (180, 0, 255), (128, 128, 0))
+DETAIL_CLASSES = {"hair_main": "hair", "face": "face", "left_eye": "face",
+                  "right_eye": "face", "left_eyebrow": "face",
+                  "right_eyebrow": "face", "nose": "face", "mouth": "face"}
 
 
 def _sha256(path: Path) -> str:
@@ -78,6 +82,41 @@ def build_source_constraints_from_files(source: Path, animeseg_mask: Path,
     result["source_sha256"] = _sha256(source)
     result["animeseg_mask_sha256"] = _sha256(animeseg_mask)
     return result
+
+
+def source_bound_detail_groups(constraints: dict[str, Any], source_rgba: np.ndarray,
+                               *, minimum_pixels: int = 3,
+                               epsilon_px: float = 0.0) -> list[dict[str, Any]]:
+    """Create optional polygon groups from source-clipped observed masks."""
+    source = np.asarray(source_rgba)
+    if source.ndim != 3 or source.shape[2] != 4 or source.dtype != np.uint8:
+        raise ValueError("source_rgba must be uint8 HxWx4")
+    masks = constraints.get("masks")
+    if not isinstance(masks, dict):
+        raise ValueError("source constraints must contain masks")
+    groups = []
+    for class_name, owner in DETAIL_CLASSES.items():
+        mask = np.asarray(masks.get(class_name), dtype=bool)
+        if mask.shape != source.shape[:2]:
+            raise ValueError(f"AnimeSeg detail mask shape mismatch: {class_name}")
+        if int(mask.sum()) < minimum_pixels:
+            continue
+        color = tuple(int(v) for v in np.median(source[mask, :3], axis=0).astype(np.uint8))
+        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        components = []
+        for contour in sorted(contours, key=lambda c: (-cv2.contourArea(c), tuple(c[0, 0]))):
+            if cv2.contourArea(contour) <= 0:
+                continue
+            approx = cv2.approxPolyDP(contour, float(epsilon_px), True)
+            if len(approx) >= 3:
+                components.append([[float(x), float(y)] for x, y in approx[:, 0, :]])
+        if components:
+            groups.append({"part": owner, "color": color, "mask": mask.copy(),
+                           "source_ids": [], "source_actions": {"protect"},
+                           "source_evidence_refs": [f"animeseg:{class_name}"],
+                           "source_guided_kind": f"animeseg-{class_name}-detail",
+                           "first_order": 100000 + CLASS_NAMES.index(class_name)})
+    return groups
 
 
 derive_source_constraints = build_source_constraints

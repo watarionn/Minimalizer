@@ -1,7 +1,7 @@
 import numpy as np
 
 from minimalizer_zerobase.simplification.animeseg_source_constraints import (
-    CLASS_RGB, build_source_constraints,
+    CLASS_RGB, build_source_constraints, source_bound_detail_groups,
 )
 
 
@@ -30,3 +30,19 @@ def test_invalid_shape_fails_closed():
         assert "HxWx4" in str(exc)
     else:
         raise AssertionError("invalid source shape must fail")
+
+
+def test_detail_groups_are_source_colored_and_source_alpha_bound():
+    source = np.zeros((8, 8, 4), dtype=np.uint8)
+    source[..., :3] = (10, 20, 30)
+    source[..., 3] = 255
+    source[2:5, 2:5, :3] = (200, 100, 50)
+    source[2, 2, 3] = 0
+    mask = np.zeros((8, 8, 3), dtype=np.uint8)
+    mask[2:5, 2:5] = CLASS_RGB[4]
+    constraints = build_source_constraints(source, mask)
+    groups = source_bound_detail_groups(constraints, source, minimum_pixels=3)
+    assert len(groups) == 1
+    assert groups[0]["part"] == "face"
+    assert groups[0]["color"] == (200, 100, 50)
+    assert not groups[0]["mask"][2, 2]  # transparent source pixel is excluded
