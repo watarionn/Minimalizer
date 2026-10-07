@@ -100,3 +100,32 @@ def test_structural_repair_does_not_touch_valid_structure():
     for before, after in zip(groups, repaired):
         assert before["part"] == after["part"]
         assert np.array_equal(before["mask"], after["mask"])
+
+
+def test_structural_support_only_is_not_visible_in_phase12_render():
+    from minimalizer_zerobase.simplification.artifacts import _render
+
+    shape = (20, 20)
+    support = np.zeros(shape, dtype=bool)
+    support[2:18, 2:18] = True
+    visible = np.zeros(shape, dtype=bool)
+    visible[8:12, 8:12] = True
+    primitives = (
+        {
+            "primitive_id": "support",
+            "palette_color_rgb": [255, 0, 0],
+            "structural_support_only": True,
+        },
+        {
+            "primitive_id": "visible",
+            "palette_color_rgb": [10, 20, 30],
+        },
+    )
+    rendered = _render(
+        width=20,
+        height=20,
+        primitives=primitives,
+        masks={"support": support, "visible": visible},
+    )
+    assert tuple(rendered[3, 3]) != (255, 0, 0)
+    assert tuple(rendered[9, 9]) == (10, 20, 30)
