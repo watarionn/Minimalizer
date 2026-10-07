@@ -51,3 +51,22 @@ def test_sa1026_vtracer_rejects_semantic_pixels_outside_immutable_source():
         "status": "no-op",
         "reason": "authorized_mask_outside_immutable_source",
     }
+
+
+def test_sa1026_backend_status_isolated_without_parent_import():
+    status = vtracer_backend_status()
+    assert status["isolated"] is True
+    assert status["license_boundary"] == "MIT OR Apache-2.0"
+
+
+def test_sa1026_worker_nonzero_is_fallback_noop(monkeypatch):
+    import subprocess
+    from minimalizer_zerobase.refine import vtracer_subprocess
+    class Completed:
+        returncode = 17
+        stderr = "native crash"
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: Completed())
+    result = vtracer_subprocess.run_vtracer_isolated(np.ones((4, 4), np.uint8))
+    assert result["status"] == "fallback_noop"
+    assert result["reason"] == "nonzero"
+    assert result["isolated"] is True

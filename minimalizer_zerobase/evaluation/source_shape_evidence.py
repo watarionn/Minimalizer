@@ -61,15 +61,11 @@ def evaluate_source_shape_evidence(source_mask: np.ndarray, candidate_mask: np.n
 
 
 def vtracer_backend_status() -> dict[str, Any]:
-    """Report optional VTracer availability; importing it is never required."""
-    try:
-        import vtracer  # type: ignore
-    except ImportError:
-        return {"name": "vtracer", "available": False, "optional": True,
-                "license_boundary": "MIT OR Apache-2.0", "reason": "not installed"}
+    """Report the isolated backend without importing its native extension."""
+    from minimalizer_zerobase.refine.vtracer_subprocess import LICENSE_BOUNDARY
     return {"name": "vtracer", "available": True, "optional": True,
-            "version": getattr(vtracer, "__version__", "unknown"),
-            "license_boundary": "MIT OR Apache-2.0", "authority": False}
+            "isolated": True, "license_boundary": LICENSE_BOUNDARY,
+            "authority": False}
 
 
 def generate_vtracer_candidate(
@@ -106,11 +102,6 @@ def generate_vtracer_candidate(
     base["authorized_semantic_mask_sha256"] = hashlib.sha256(
         authorized.tobytes()
     ).hexdigest()
-    if not status["available"]:
-        return {**base, "status": "unavailable", "reason": "optional_backend_unavailable"}
-    return {
-        **base,
-        "status": "no-op",
-        "reason": "tranche1_adapter_only",
-        "next_step": "wire_backend_to_authorized_mask_without_renderer_authority",
-    }
+    from minimalizer_zerobase.refine.vtracer_subprocess import run_vtracer_isolated
+    result = run_vtracer_isolated(authorized)
+    return {**base, **result, "authorized_semantic_mask_sha256": base["authorized_semantic_mask_sha256"]}
