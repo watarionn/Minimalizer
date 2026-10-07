@@ -21,6 +21,16 @@ def binary_mask(path: Path) -> np.ndarray:
     raise ValueError("RGB image has no explicit mask or alpha; refuse color-based inference")
 
 
+def topology(mask: np.ndarray) -> tuple[int, int]:
+    contours, hierarchy = cv2.findContours(
+        mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
+    )
+    if hierarchy is None:
+        return (0, 0)
+    parents = hierarchy[0][:, 3]
+    return (int(np.count_nonzero(parents == -1)), int(np.count_nonzero(parents != -1)))
+
+
 def compare_masks(source: np.ndarray, candidate: np.ndarray) -> dict:
     if source.shape != candidate.shape or source.ndim != 2:
         raise ValueError("mask canvas mismatch")
@@ -34,6 +44,9 @@ def compare_masks(source: np.ndarray, candidate: np.ndarray) -> dict:
         "intersection_pixels": intersection,
         "union_pixels": union,
         "iou": intersection / union,
+        "source_topology": list(topology(source)),
+        "candidate_topology": list(topology(candidate)),
+        "topology_pass": topology(source) == topology(candidate),
         "source_missing_pixels": int(np.count_nonzero(source & ~candidate)),
         "candidate_excess_pixels": int(np.count_nonzero(candidate & ~source)),
     }
@@ -53,7 +66,7 @@ def main() -> None:
         candidate = compare_masks(source, binary_mask(args.candidate_mask))
         result["candidate"] = candidate
         result["delta_iou"] = candidate["iou"] - baseline["iou"]
-        result["status"] = "IMPROVED" if result["delta_iou"] > 1e-9 else "NO_PROVEN_IMPROVEMENT"
+        result["status"] = ("IMPROVED_DIAGNOSTIC_ONLY" if result["delta_iou"] > 1e-9 and candidate["topology_pass"] else "HOLD_NO_SAFE_IMPROVEMENT")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))
