@@ -1,0 +1,290 @@
+{
+  "artifact_version": "sa10.8-v1",
+  "boundary": {
+    "aggregate_quality_score": false,
+    "calibrated_thresholds": false,
+    "gc001_threshold_derivation": false,
+    "hard_failures_individually_visible": true,
+    "unavailable_evidence_preserved": true
+  },
+  "case_count": 2,
+  "cases": [
+    {
+      "case_id": "Hyakuto-Kyoko",
+      "context_metrics": {
+        "phase14_identity_feature_retention": 0.963008,
+        "phase14_primitive_economy_not_sa10": 0.8037974683544304,
+        "phase14_silhouette_preservation": 0.981039
+      },
+      "determinism_sha256": "169d1511cabbd55c36a748f8c9acfe7d144ed0d75566dbd7b21ee7a9bdf4c467",
+      "diagnostics": [
+        {
+          "name": "semantic_retention",
+          "reason": "The preserved real DINOv3 score predates the final Phase14 31-primitive output, so it is not reused across an output revision.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "adaptive_complexity",
+          "reason": null,
+          "status": "AVAILABLE",
+          "value": 0.8
+        },
+        {
+          "name": "component_survival",
+          "reason": null,
+          "status": "AVAILABLE",
+          "value": 0.5714285714285714
+        },
+        {
+          "name": "primitive_economy",
+          "reason": null,
+          "status": "AVAILABLE",
+          "value": 1
+        },
+        {
+          "name": "teacher_coverage",
+          "reason": "No reviewed SA9 Golden Teacher annotation exists for this case.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "teacher_primitive_disagreements",
+          "reason": "No reviewed SA9 Golden Teacher annotation exists for this case.",
+          "status": "UNAVAILABLE",
+          "value": null
+        }
+      ],
+      "hard_evidence": [
+        {
+          "name": "feature_survival",
+          "passed": null,
+          "reason": "No SA7.35 Feature Survival signature report is preserved for this Phase14 case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "forbidden_face_detail",
+          "passed": null,
+          "reason": "No SA7.35 forbidden-face-detail report is preserved for this Phase14 case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "anatomy",
+          "passed": null,
+          "reason": "Phase14 collapse/layout checks are not silently re-labeled as the SA10 anatomy hard gate.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "topology",
+          "passed": null,
+          "reason": "No standalone SA10 topology hard-gate report is preserved for this case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "source_authority",
+          "passed": null,
+          "reason": "The source is SHA-bound, but provenance binding is not silently promoted to the SA10 source-authority hard gate.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "phase14_machine",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        },
+        {
+          "name": "phase14_human_visual",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        },
+        {
+          "name": "determinism",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        }
+      ],
+      "provenance": {
+        "hair_mask_sha256": "efa760bb1e6f9ecff50a0ee9fe6617bd98e12bcfe8e4a53ec760ced75f70f31e",
+        "major_clothing_mask_sha256": "09f03042cb042090382f944b67719ec976e1fe4b7dde1cc5494ccff2c5d4aeaa",
+        "phase14_artifact": "artifacts/zerobase2/Hyakuto-Kyoko/phase_14/14_case_evaluation.json",
+        "phase4_stage": "docs/zerobase/diagnostics/phase04/Hyakuto-Kyoko/stage.json",
+        "sa10_measurement": "fresh SA10.8 role-mask remeasurement with sa7.43 macro geometry + sa10.5 support measurement"
+      },
+      "source": {
+        "height": 340,
+        "path": "Hyakuto-Kyoko_list_thumb.png",
+        "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+        "width": 340
+      }
+    },
+    {
+      "case_id": "Juufuutei-Raden_stylecal_source",
+      "context_metrics": {
+        "phase14_identity_feature_retention": 0.975258,
+        "phase14_primitive_economy_not_sa10": 0.46153846153846156,
+        "phase14_silhouette_preservation": 0.984893
+      },
+      "determinism_sha256": "2fb98dbbf1ff3dc316b81f2eda562e530b3ba5abdd6b50e2fe4041edf944c7d3",
+      "diagnostics": [
+        {
+          "name": "semantic_retention",
+          "reason": "No frozen DINOv3 report is preserved for the exact 512x512 Phase14 source/output pair.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "adaptive_complexity",
+          "reason": "No persisted SA7.43 adaptive-budget artifact exists for this exact 512x512 source chain.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "component_survival",
+          "reason": "Fresh SA10.8 support measurement failed closed because emitted macro primitive count did not match the SA7.43 budget frame for hair.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "primitive_economy",
+          "reason": "Fresh SA10.8 support measurement failed closed because emitted macro primitive count did not match the SA7.43 budget frame for hair.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "teacher_coverage",
+          "reason": "No reviewed SA9 Golden Teacher annotation exists for this case.",
+          "status": "UNAVAILABLE",
+          "value": null
+        },
+        {
+          "name": "teacher_primitive_disagreements",
+          "reason": "No reviewed SA9 Golden Teacher annotation exists for this case.",
+          "status": "UNAVAILABLE",
+          "value": null
+        }
+      ],
+      "hard_evidence": [
+        {
+          "name": "feature_survival",
+          "passed": null,
+          "reason": "No SA7.35 Feature Survival signature report is preserved for this Phase14 case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "forbidden_face_detail",
+          "passed": null,
+          "reason": "No SA7.35 forbidden-face-detail report is preserved for this Phase14 case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "anatomy",
+          "passed": null,
+          "reason": "Phase14 collapse/layout checks are not silently re-labeled as the SA10 anatomy hard gate.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "topology",
+          "passed": null,
+          "reason": "No standalone SA10 topology hard-gate report is preserved for this case.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "source_authority",
+          "passed": null,
+          "reason": "The source is SHA-bound, but provenance binding is not silently promoted to the SA10 source-authority hard gate.",
+          "status": "UNAVAILABLE"
+        },
+        {
+          "name": "phase14_machine",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        },
+        {
+          "name": "phase14_human_visual",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        },
+        {
+          "name": "determinism",
+          "passed": true,
+          "reason": null,
+          "status": "AVAILABLE"
+        }
+      ],
+      "provenance": {
+        "phase14_artifact": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_14/14_case_evaluation.json",
+        "phase4_masks": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_04/part_masks",
+        "sa10_measurement": "fresh SA10.8 role-mask measurement attempt; component/economy failed closed on primitive-frame mismatch"
+      },
+      "source": {
+        "height": 512,
+        "path": "Juufuutei-Raden_stylecal_source.png",
+        "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3",
+        "width": 512
+      }
+    }
+  ],
+  "distributions": {
+    "adaptive_complexity": {
+      "available_count": 1,
+      "max": 0.8,
+      "min": 0.8,
+      "unavailable_count": 1,
+      "values": [
+        {
+          "case_id": "Hyakuto-Kyoko",
+          "value": 0.8
+        }
+      ]
+    },
+    "component_survival": {
+      "available_count": 1,
+      "max": 0.5714285714285714,
+      "min": 0.5714285714285714,
+      "unavailable_count": 1,
+      "values": [
+        {
+          "case_id": "Hyakuto-Kyoko",
+          "value": 0.5714285714285714
+        }
+      ]
+    },
+    "primitive_economy": {
+      "available_count": 1,
+      "max": 1,
+      "min": 1,
+      "unavailable_count": 1,
+      "values": [
+        {
+          "case_id": "Hyakuto-Kyoko",
+          "value": 1
+        }
+      ]
+    },
+    "semantic_retention": {
+      "available_count": 0,
+      "max": null,
+      "min": null,
+      "unavailable_count": 2,
+      "values": []
+    },
+    "teacher_coverage": {
+      "available_count": 0,
+      "max": null,
+      "min": null,
+      "unavailable_count": 2,
+      "values": []
+    },
+    "teacher_primitive_disagreements": {
+      "available_count": 0,
+      "max": null,
+      "min": null,
+      "unavailable_count": 2,
+      "values": []
+    }
+  }
+}
