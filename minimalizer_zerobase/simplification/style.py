@@ -1820,14 +1820,17 @@ def _candidate_for_profile(
         preserve_clothing_plane = group["part"] == "major_clothing"
         preserve_accessory_plane = group["part"] == "accessory_or_held_object"
         preserve_tiny_critical_plane = (
-            owner_counts.get(group["part"], 0) >= 32
-            or (
-                group["part"] in policy.critical_parts
-                and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
-            )
-            or (
-                group["part"] in {"left_arm", "right_arm"}
-                and len(group["source_ids"]) >= 12
+            not source_guided_kind.startswith("structural-source-repair-")
+            and (
+                owner_counts.get(group["part"], 0) >= 32
+                or (
+                    group["part"] in policy.critical_parts
+                    and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+                )
+                or (
+                    group["part"] in {"left_arm", "right_arm"}
+                    and len(group["source_ids"]) >= 12
+                )
             )
         )
         preserve_source_detail_plane = (
