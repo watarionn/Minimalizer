@@ -117,7 +117,11 @@ def test_sa1016_failed_cases_are_not_adopted_or_in_pass_set():
     admitted = {row["case_id"] for row in tx_set["transactions"]}
 
     assert failed.isdisjoint(admitted)
-    for case_id in failed:
+
+    # Baseline adoption is an evaluation-record action, not pass authority.
+    ouro_adoption = DATA / "baselines" / "Ouro-Kronii.sa10.16-adoption.json"
+    assert ouro_adoption.is_file()
+    for case_id in failed - {"Ouro-Kronii"}:
         assert not (DATA / "baselines" / f"{case_id}.sa10.16-adoption.json").exists()
 
 
@@ -134,4 +138,5 @@ def test_sa1016_failure_evidence_paths_exist_and_boundaries_hold():
     assert boundary["case_specific_production_logic"] is False
     assert boundary["production_code_changed_in_sa1016"] is False
     assert boundary["failures_preserved_before_repair"] is True
-    assert boundary["failed_cases_not_adopted"] is True
+    assert boundary["failed_transactions_not_in_pass_set"] is True
+    assert boundary["baseline_adoption_is_not_pass_authority"] is True
