@@ -8,6 +8,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from .omission import ImportanceOmissionResult
 
 
@@ -167,7 +169,7 @@ def write_phase8_artifacts(
         phase7_inputs[name] = expected_sha
     phase7_inputs["stage.json"] = _sha256_file(phase7_dir / "stage.json")
 
-    source_bgr = cv2.imread(str(source_path), cv2.IMREAD_COLOR)
+    source_bgr = read_cv_image(source_path, cv2.IMREAD_COLOR)
     if source_bgr is None:
         raise ValueError("Phase 8 could not read the canonical source image")
     source_rgb = cv2.cvtColor(source_bgr, cv2.COLOR_BGR2RGB)
