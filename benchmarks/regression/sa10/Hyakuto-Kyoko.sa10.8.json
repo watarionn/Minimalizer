@@ -1,0 +1,82 @@
+{
+  "case_id": "Hyakuto-Kyoko",
+  "source": {
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+  },
+  "determinism_sha256": "169d1511cabbd55c36a748f8c9acfe7d144ed0d75566dbd7b21ee7a9bdf4c467",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "UNAVAILABLE",
+      "reason": "The preserved real DINOv3 score predates the final Phase14 31-primitive output, so it is not reused across an output revision."
+    },
+    "adaptive_complexity": {
+      "status": "AVAILABLE",
+      "value": 0.8
+    },
+    "component_survival": {
+      "status": "AVAILABLE",
+      "value": 0.5714285714285714
+    },
+    "primitive_economy": {
+      "status": "AVAILABLE",
+      "value": 1
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 Feature Survival signature report is preserved for this Phase14 case."
+    },
+    "forbidden_face_detail": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 forbidden-face-detail report is preserved for this Phase14 case."
+    },
+    "anatomy": {
+      "status": "UNAVAILABLE",
+      "reason": "Phase14 collapse/layout checks are not silently re-labeled as the SA10 anatomy hard gate."
+    },
+    "topology": {
+      "status": "UNAVAILABLE",
+      "reason": "No standalone SA10 topology hard-gate report is preserved for this case."
+    },
+    "source_authority": {
+      "status": "UNAVAILABLE",
+      "reason": "The source is SHA-bound, but provenance binding is not silently promoted to the SA10 source-authority hard gate."
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.981039,
+    "phase14_identity_feature_retention": 0.963008,
+    "phase14_primitive_economy_not_sa10": 0.8037974683544304
+  },
+  "provenance": {
+    "phase4_stage": "docs/zerobase/diagnostics/phase04/Hyakuto-Kyoko/stage.json",
+    "hair_mask_sha256": "efa760bb1e6f9ecff50a0ee9fe6617bd98e12bcfe8e4a53ec760ced75f70f31e",
+    "major_clothing_mask_sha256": "09f03042cb042090382f944b67719ec976e1fe4b7dde1cc5494ccff2c5d4aeaa",
+    "phase14_artifact": "artifacts/zerobase2/Hyakuto-Kyoko/phase_14/14_case_evaluation.json",
+    "sa10_measurement": "fresh SA10.8 role-mask remeasurement with sa7.43 macro geometry + sa10.5 support measurement"
+  }
+}
