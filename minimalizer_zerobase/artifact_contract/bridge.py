@@ -8,6 +8,8 @@ from typing import Any
 
 import cv2
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from minimalizer_zerobase.core.serialization import CanonicalModel
 
 from .contracts import (
@@ -175,7 +177,7 @@ def _validate_source_contract(
         raise StageContractBridgeError(
             "source file SHA does not match the canonical stage source"
         )
-    source_image = cv2.imread(str(source_path), cv2.IMREAD_UNCHANGED)
+    source_image = read_cv_image(source_path, cv2.IMREAD_UNCHANGED)
     if source_image is None:
         raise StageContractBridgeError(
             "source file cannot be decoded as an image"

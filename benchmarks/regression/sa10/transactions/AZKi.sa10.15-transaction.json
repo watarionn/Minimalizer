@@ -1,0 +1,171 @@
+{
+  "adopted_baseline": {
+    "adoption_transaction_id": "sa10.15-adopt-azki-20261007-v1",
+    "baseline_artifact_id": "10uCMHPD4O05YHrE_rGUSnR5t6SeEV_J0",
+    "baseline_artifact_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+    "binding_passed": true,
+    "evaluation_transaction_id": "sa10.15-regression-azki-20261007-v1",
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "artifact_version": "sa10.14-v1",
+  "boundary": {
+    "adopted_baseline_production_inference_allowed": false,
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "diagnostics_can_override_hard_fail": false,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false
+  },
+  "candidate_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+  "case_id": "AZKi",
+  "diagnostics": {
+    "actual_emission_support": {
+      "actual_component_representation_ratio": 0.75,
+      "actual_primitive_support_ratio": 1,
+      "allocated_primitives": 4,
+      "authoritative": false,
+      "diagnostic_only": true,
+      "emission_realization_ratio": 0.75,
+      "emitted_primitives": 3,
+      "maps_to_sa10_component_survival": false,
+      "maps_to_sa10_primitive_economy": false,
+      "represented_components": 3,
+      "roles": [
+        {
+          "allocated_primitives": 1,
+          "emitted_primitives": 1,
+          "represented_components": 1,
+          "role": "hair",
+          "source_components": 1,
+          "source_supported_primitives": 1
+        },
+        {
+          "allocated_primitives": 3,
+          "emitted_primitives": 2,
+          "represented_components": 2,
+          "role": "major_clothing",
+          "source_components": 3,
+          "source_supported_primitives": 2
+        }
+      ],
+      "source_components": 4,
+      "source_supported_primitives": 3,
+      "version": "sa10.10-v1"
+    },
+    "case_diagnostics": {
+      "adaptive_complexity": {
+        "reason": "No explicit SA10 adaptive-budget evidence was produced for the fresh AZKi admission transaction.",
+        "status": "UNAVAILABLE"
+      },
+      "component_survival": {
+        "reason": "No explicit SA10.5 component-survival evidence contract was produced for the fresh AZKi admission transaction; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "primitive_economy": {
+        "reason": "No explicit SA10.5 primitive-economy evidence contract was produced for the fresh AZKi admission transaction; actual-emission evidence remains separate.",
+        "status": "UNAVAILABLE"
+      },
+      "semantic_retention": {
+        "status": "AVAILABLE",
+        "value": 0.8350633040526145
+      },
+      "teacher_coverage": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for AZKi.",
+        "status": "UNAVAILABLE"
+      },
+      "teacher_primitive_disagreements": {
+        "reason": "No reviewed SA9 Golden Teacher annotation exists for AZKi.",
+        "status": "UNAVAILABLE"
+      }
+    },
+    "semantic_retention": {
+      "authoritative": false,
+      "can_override_hard_fail": false,
+      "status": "AVAILABLE",
+      "value": 0.8350633040526145
+    }
+  },
+  "evidence_links": {
+    "baseline_binding_passed": true,
+    "baseline_matches_adoption": true,
+    "baseline_not_production_input": true,
+    "baseline_separate_transaction": true,
+    "candidate_matches_case": true,
+    "candidate_matches_dino": true,
+    "candidate_matches_face_guard": true,
+    "candidate_matches_hard_evidence": true,
+    "candidate_matches_visual_gate": true,
+    "candidate_self_reference_forbidden": true,
+    "face_guard_no_generation": true,
+    "face_guard_outside_unchanged": true,
+    "face_guard_source_only": true,
+    "source_matches_adoption": true,
+    "source_matches_case": true,
+    "source_matches_dino": true,
+    "source_matches_hard_evidence": true,
+    "source_matches_phase14": true,
+    "source_matches_visual_gate": true,
+    "visual_gate_transaction_matches": true
+  },
+  "evidence_versions": {
+    "face_raster_guard": "sa10.15-v1",
+    "hard_evidence": "sa10.10-v1",
+    "phase14_schema": "1.0",
+    "semantic_retention": "sa10.9-v1",
+    "visual_hard_gate": "sa10.12-v1"
+  },
+  "hard_evidence": [
+    {
+      "name": "feature_survival",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "forbidden_face_detail",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "anatomy",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "topology",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "source_authority",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_machine",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "phase14_human_visual",
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    {
+      "name": "determinism",
+      "passed": true,
+      "status": "AVAILABLE"
+    }
+  ],
+  "pass_transaction": true,
+  "phase14_evidence": {
+    "determinism_pass": true,
+    "determinism_sha256": "b587e84b73ff95ca095412906d9897e616959e7a917d836cbb854af2e7e35141",
+    "human_visual_pass": true,
+    "machine_pass": true,
+    "phase14_pass": true
+  },
+  "source_sha256": "571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d",
+  "transaction_id": "sa10.15-regression-azki-20261007-v1"
+}

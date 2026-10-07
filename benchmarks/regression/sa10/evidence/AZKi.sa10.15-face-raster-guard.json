@@ -1,0 +1,20 @@
+{
+  "artifact_version": "sa10.15-v1",
+  "case_id": "AZKi",
+  "production_candidate_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+  "face_raster_guard": {
+    "changed_face_pixels": 5568,
+    "changed_outside_face_pixels": 0,
+    "face_pixels": 5568,
+    "fill_rgb": [
+      251,
+      219,
+      215
+    ],
+    "version": "sa7.38-v1"
+  },
+  "source_only": true,
+  "golden_used_for_inference": false,
+  "browser_v12_used_for_inference": false,
+  "generated_or_inpainted_pixel_count": 0
+}

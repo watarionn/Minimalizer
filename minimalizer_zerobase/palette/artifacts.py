@@ -8,6 +8,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from .consolidation import PaletteConsolidationResult
 
 
@@ -145,7 +147,7 @@ def write_phase9_artifacts(
         phase8_dir, phase8_stage, consumer="Phase 8"
     )
 
-    source_bgr = cv2.imread(str(source_path), cv2.IMREAD_COLOR)
+    source_bgr = read_cv_image(source_path, cv2.IMREAD_COLOR)
     if source_bgr is None:
         raise ValueError("Phase 9 could not read the canonical source image")
     if source_bgr.shape[:2] != (result.height, result.width):

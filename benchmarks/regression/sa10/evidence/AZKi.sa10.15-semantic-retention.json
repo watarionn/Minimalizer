@@ -1,0 +1,39 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c"
+  },
+  "case_id": "AZKi",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.8350633040526145,
+    "global_similarity": 0.8533560463023525,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.8167705618028767,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.8350633040526145,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "AZKi_list_thumb.png",
+    "sha256": "571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.6335411360677408,
+    "coarse_patch_cosine": 0.585575656965375,
+    "global_cosine": 0.7067120926047058,
+    "research_score": 0.6313874096893057
+  }
+}

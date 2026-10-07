@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
 from minimalizer_zerobase.palette import (
     PaletteConsolidationPolicy,
@@ -49,7 +51,7 @@ def main() -> int:
         str(phase7_dir / "07_mass_labels.png"),
         cv2.IMREAD_UNCHANGED,
     )
-    source_bgr = cv2.imread(str(args.source), cv2.IMREAD_COLOR)
+    source_bgr = read_cv_image(args.source, cv2.IMREAD_COLOR)
     if mass_labels is None or source_bgr is None:
         raise ValueError("Phase 9 could not read source or Phase 7 labels")
     source_rgb = cv2.cvtColor(source_bgr, cv2.COLOR_BGR2RGB)

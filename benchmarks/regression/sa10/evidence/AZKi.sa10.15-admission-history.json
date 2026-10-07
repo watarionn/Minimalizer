@@ -1,0 +1,44 @@
+{
+  "artifact_version": "sa10.15-admission-history-v1",
+  "case_id": "AZKi",
+  "source_sha256": "571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d",
+  "blockers": [
+    {
+      "stage": "runtime-bootstrap",
+      "status": "RESOLVED",
+      "cause": "Initial run used C:\\Python314 without optional rtmlib; existing project .venv already contained rtmlib.",
+      "resolution": "Use the existing Minimalizer project .venv; no package installation required.",
+      "case_specific": false
+    },
+    {
+      "stage": "phase04",
+      "status": "RESOLVED",
+      "cause": "OpenCV HoughLinesP returned a singleton-axis layout that made lines[:, 0] yield scalar numpy.int32 values.",
+      "resolution": "Normalize Hough output generically to N x 4 when element count is divisible by four; malformed counts fail closed.",
+      "case_specific": false
+    },
+    {
+      "stage": "provenance-bridge",
+      "status": "RESOLVED",
+      "cause": "cv2.imread could not decode the canonical source through a Japanese Windows Drive path.",
+      "resolution": "Use numpy.fromfile plus cv2.imdecode through the shared Unicode-safe reader.",
+      "case_specific": false
+    },
+    {
+      "stage": "phase08-phase12-source-io",
+      "status": "RESOLVED",
+      "cause": "Several production artifact writers/runners still used cv2.imread directly for canonical source paths.",
+      "resolution": "Route canonical source reads in Phase8-12 production paths through the shared Unicode-safe reader.",
+      "case_specific": false
+    },
+    {
+      "stage": "phase12-runner-bootstrap",
+      "status": "RESOLVED",
+      "cause": "The newly added project import appeared before repo-root sys.path bootstrap.",
+      "resolution": "Move project imports after repo-root path registration.",
+      "case_specific": false
+    }
+  ],
+  "hard_evidence_failure_observed": false,
+  "final_transaction_passed": true
+}

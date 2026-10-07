@@ -1,0 +1,22 @@
+{
+  "version": "sa10.12-v1",
+  "case_id": "AZKi",
+  "source_sha256": "571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d",
+  "baseline_artifact_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+  "baseline_origin": "SA10.15 fresh-case first reviewed Phase12 production candidate preserved in canonical Google Drive",
+  "baseline_artifact_id": "10uCMHPD4O05YHrE_rGUSnR5t6SeEV_J0",
+  "review_status": "ADOPTED",
+  "reviewer": "Rinka",
+  "review_evidence": [
+    "drive:10uCMHPD4O05YHrE_rGUSnR5t6SeEV_J0",
+    "drive:1gkr4zatMUCsdGJv3GqDaOsHQO7vpbujx",
+    "phase14:machine-pass",
+    "phase14:human-visual-pass",
+    "phase14:determinism-pass"
+  ],
+  "adoption_transaction_id": "sa10.15-adopt-azki-20261007-v1",
+  "immutable_record": true,
+  "evaluation_baseline_allowed": true,
+  "production_inference_allowed": false,
+  "candidate_self_reference_forbidden": true
+}

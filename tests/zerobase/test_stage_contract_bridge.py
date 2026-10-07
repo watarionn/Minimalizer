@@ -942,3 +942,18 @@ def test_bridge_can_extend_verified_chain_through_phase14(tmp_path: Path) -> Non
     assert "phase13:13_stage_index.json" in parent_ids
     assert "phase13:13_debug_board.png" in parent_ids
     assert "source" in parent_ids
+
+
+def test_bridge_accepts_unicode_source_copy_path(tmp_path: Path) -> None:
+    case_dir, source_path = _make_case(tmp_path)
+    unicode_source = tmp_path / "日本語ソース.png"
+    unicode_source.write_bytes(source_path.read_bytes())
+
+    result = bridge_stage_contracts(
+        case_dir,
+        unicode_source,
+        output_dir=tmp_path / "bridge-unicode-source",
+    )
+
+    assert result.gate_result.passed is True
+    assert result.run_manifest.run_id == "case-a:phase03-06"

@@ -10,6 +10,7 @@ from minimalizer_zerobase.parts.artifacts import write_phase4_artifacts
 from minimalizer_zerobase.parts.decomposition import (
     PART_NAMES,
     _detect_vivid_torso_accent,
+    _normalize_hough_lines,
     _rescue_bright_face_side_hair_strands,
     _rescue_face_side_hair_strands,
     decompose_semantic_parts,
@@ -509,3 +510,22 @@ def test_bright_hair_rescue_chroma_guard_rejects_pale_face_adjacent_region():
             np.linalg.norm(candidate_lab[1:] - hair_lab[1:])
         )
         assert chroma_distance > 6.0
+
+
+def test_hough_line_shape_normalization_accepts_runtime_singleton_layouts():
+    standard = np.asarray([[[1, 2, 3, 4]], [[5, 6, 7, 8]]], dtype=np.int32)
+    transposed_single = np.asarray([[1], [2], [3], [4]], dtype=np.int32)
+
+    normalized_standard = _normalize_hough_lines(standard)
+    normalized_transposed = _normalize_hough_lines(transposed_single)
+
+    assert normalized_standard.shape == (2, 4)
+    assert normalized_standard.tolist() == [[1, 2, 3, 4], [5, 6, 7, 8]]
+    assert normalized_transposed.shape == (1, 4)
+    assert normalized_transposed.tolist() == [[1, 2, 3, 4]]
+
+
+def test_hough_line_shape_normalization_fails_closed_on_malformed_count():
+    malformed = np.asarray([1, 2, 3], dtype=np.int32)
+    normalized = _normalize_hough_lines(malformed)
+    assert normalized.shape == (0, 4)

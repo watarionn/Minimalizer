@@ -1,0 +1,59 @@
+{
+  "artifact_version": "sa10.12-v1",
+  "binding": {
+    "adoption_transaction_id": "sa10.15-adopt-azki-20261007-v1",
+    "baseline_artifact_id": "10uCMHPD4O05YHrE_rGUSnR5t6SeEV_J0",
+    "baseline_artifact_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+    "baseline_origin": "SA10.15 fresh-case first reviewed Phase12 production candidate preserved in canonical Google Drive",
+    "binding_passed": true,
+    "candidate_artifact_sha256": "59248bc5da37acf77bba6fe47f88728bc245f4f7153cbc72a6e68a72d13c768c",
+    "candidate_bytes_equal_baseline": true,
+    "candidate_self_reference_forbidden": true,
+    "case_id": "AZKi",
+    "evaluation_transaction_id": "sa10.15-regression-azki-20261007-v1",
+    "production_inference_allowed": false,
+    "review_evidence": [
+      "drive:10uCMHPD4O05YHrE_rGUSnR5t6SeEV_J0",
+      "drive:1gkr4zatMUCsdGJv3GqDaOsHQO7vpbujx",
+      "phase14:machine-pass",
+      "phase14:human-visual-pass",
+      "phase14:determinism-pass"
+    ],
+    "reviewer": "Rinka",
+    "same_transaction": false,
+    "source_sha256": "571aacc7c08e7625c2390897f691d9d734c8317c0605c9a92b64d9469917230d",
+    "version": "sa10.12-v1"
+  },
+  "boundary": {
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false,
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "canonical_hard_gate": {
+    "forbidden_face_detail_ratio": 0,
+    "forbidden_face_pass": true,
+    "missing_count": 0,
+    "missing_signatures": [],
+    "pass_gate": true,
+    "required_signature_count": 10,
+    "survival_pass": true,
+    "version": "sa7.35-v2"
+  },
+  "case_id": "AZKi",
+  "feature_survival": {
+    "missing_count": 0,
+    "missing_signatures": [],
+    "passed": true,
+    "required_signature_count": 10,
+    "status": "AVAILABLE"
+  },
+  "forbidden_face_detail": {
+    "passed": true,
+    "ratio": 0,
+    "status": "AVAILABLE"
+  }
+}
