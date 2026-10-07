@@ -17,6 +17,8 @@ class ContourProposal:
     points_xy: tuple[tuple[int, int], ...]
     source_iou: float
     vertices: int
+    existing_source_iou: float
+    candidate_existing_iou: float
 
 
 def propose_existing_contour(
@@ -26,6 +28,7 @@ def propose_existing_contour(
     *,
     vertex_budget: int = 16,
     min_iou: float = 0.90,
+    require_improvement: bool = False,
 ) -> ContourProposal | None:
     """Suggest a simplified contour without adding geometry or changing ownership.
 
@@ -82,5 +85,14 @@ def propose_existing_contour(
     iou = float(np.count_nonzero(raster_bool & b) / union) if union else 0.0
     if iou < min_iou:
         return None
+    existing_union = np.count_nonzero(a | b)
+    existing_iou = float(np.count_nonzero(a & b) / existing_union)
+    candidate_existing_union = np.count_nonzero(raster_bool | a)
+    candidate_existing_iou = float(
+        np.count_nonzero(raster_bool & a) / candidate_existing_union
+    )
+    # A no-op candidate must never be mistaken for a quality improvement.
+    if require_improvement and iou <= existing_iou + 1e-9:
+        return None
     points = tuple((int(p[0][0]), int(p[0][1])) for p in candidate)
-    return ContourProposal(owner, points, iou, len(points))
+    return ContourProposal(owner, points, iou, len(points), existing_iou, candidate_existing_iou)
