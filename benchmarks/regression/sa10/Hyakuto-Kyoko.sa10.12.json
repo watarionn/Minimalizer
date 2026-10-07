@@ -1,0 +1,104 @@
+{
+  "case_id": "Hyakuto-Kyoko",
+  "source": {
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+  },
+  "determinism_sha256": "b52efcf059a4a14e76e3961b113696baba7c26b7286defd0ea296076bad0f738",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "AVAILABLE",
+      "value": 0.7552631073534017
+    },
+    "adaptive_complexity": {
+      "status": "AVAILABLE",
+      "value": 0.8
+    },
+    "component_survival": {
+      "status": "AVAILABLE",
+      "value": 0.5714285714285714
+    },
+    "primitive_economy": {
+      "status": "AVAILABLE",
+      "value": 1
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "required_signature_count": 17,
+      "missing_count": 0
+    },
+    "forbidden_face_detail": {
+      "status": "AVAILABLE",
+      "passed": false,
+      "ratio": 0.058444259567387684
+    },
+    "anatomy": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "topology": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "source_authority": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.990792,
+    "phase14_identity_feature_retention": 0.963008,
+    "phase14_primitive_economy_not_sa10": 0.8354430379746836,
+    "dino_spatial_research_score_not_sa10": 0.5051501104327205,
+    "actual_emission_component_representation": 0.5714285714285714,
+    "actual_emission_primitive_support": 1,
+    "emission_realization_ratio": 1,
+    "structural_repair_parts": [
+      "head",
+      "left_arm",
+      "torso"
+    ],
+    "structural_missing_relations_after": 0,
+    "forbidden_face_detail_ratio": 0.058444259567387684,
+    "adopted_baseline_candidate_bytes_equal": true
+  },
+  "provenance": {
+    "phase4_stage": "docs/zerobase/diagnostics/phase04/Hyakuto-Kyoko/stage.json",
+    "hair_mask_sha256": "efa760bb1e6f9ecff50a0ee9fe6617bd98e12bcfe8e4a53ec760ced75f70f31e",
+    "major_clothing_mask_sha256": "09f03042cb042090382f944b67719ec976e1fe4b7dde1cc5494ccff2c5d4aeaa",
+    "phase14_artifact": "artifacts/zerobase2/Hyakuto-Kyoko/phase_14/14_case_evaluation.json",
+    "phase14_output_sha256": "ef3dd1b21c6a3b671ffd7f74523c66016fac1d35b6fd2c4b35d1d33b4767c6c3",
+    "semantic_retention_evidence": "benchmarks/regression/sa10/evidence/Hyakuto-Kyoko.sa10.11-semantic-retention.json",
+    "sa10_measurement": "SA10.12 separate baseline adoption transaction plus fresh candidate visual hard-gate backfill",
+    "production_candidate_sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b",
+    "hard_evidence": "benchmarks/regression/sa10/evidence/Hyakuto-Kyoko.sa10.12-hard-evidence.json",
+    "adopted_baseline_record": "benchmarks/regression/sa10/baselines/Hyakuto-Kyoko.sa10.12-adoption.json",
+    "feature_survival_evidence": "benchmarks/regression/sa10/evidence/Hyakuto-Kyoko.sa10.12-feature-survival.json",
+    "forbidden_face_detail_evidence": "benchmarks/regression/sa10/evidence/Hyakuto-Kyoko.sa10.12-forbidden-face-detail.json"
+  }
+}
