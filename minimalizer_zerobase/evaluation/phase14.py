@@ -14,6 +14,11 @@ from minimalizer_zerobase.composition.semantic import rasterize_primitive_candid
 from minimalizer_zerobase.evaluation.structural_hard_evidence import evaluate_structural_hard_evidence
 from minimalizer_zerobase.evaluation.source_shape_evidence import evaluate_source_shape_evidence, vtracer_backend_status
 from minimalizer_zerobase.evaluation.saliency_perceptual import evaluate_saliency_perceptual
+from minimalizer_zerobase.evaluation.material_topology import (
+    TINY_COMPONENT_AREA_RATIO,
+    canonical_material_mask,
+    tiny_component_area_threshold,
+)
 
 
 CRITICAL_LAYOUT_PARTS = (
@@ -52,7 +57,7 @@ class Phase14EvaluationPolicy:
     layout_displacement_tolerance_ratio: float = 0.12
     color_delta_normalizer: float = 80.0
     oversized_part_expansion_ratio: float = 1.15
-    tiny_component_area_ratio: float = 0.00015
+    tiny_component_area_ratio: float = TINY_COMPONENT_AREA_RATIO
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -156,6 +161,7 @@ def _selected_part_masks(
     width: int,
     height: int,
     source_part_masks: dict[str, np.ndarray] | None = None,
+    material_threshold: int | None = None,
 ) -> tuple[dict[str, np.ndarray], list[tuple[dict[str, Any], np.ndarray, str]]]:
     part_masks: dict[str, np.ndarray] = {}
     primitive_masks: list[tuple[dict[str, Any], np.ndarray, str]] = []
@@ -166,7 +172,13 @@ def _selected_part_masks(
             and source_part_masks is not None
             and part in source_part_masks
         ):
-            mask = np.asarray(source_part_masks[part]).astype(bool).copy()
+            # Source replay preserves Phase 12's authority/provenance, but its
+            # pixels still enter evaluation through the shared material-topology
+            # contract.  Raw Phase 4 specks must not become Phase 14 fragments.
+            mask = canonical_material_mask(
+                source_part_masks[part],
+                tiny_component_area_threshold=material_threshold,
+            )
         else:
             mask = rasterize_primitive_candidate(
                 primitive,
@@ -362,10 +374,9 @@ def _fragmentation_penalty(
     subject_area: int,
     policy: Phase14EvaluationPolicy,
 ) -> tuple[float, dict[str, int]]:
-    tiny_threshold = max(
-        8,
-        int(round(subject_area * policy.tiny_component_area_ratio)),
-    )
+    if policy.tiny_component_area_ratio != TINY_COMPONENT_AREA_RATIO:
+        raise ValueError("Phase14 tiny component policy is canonical and immutable")
+    tiny_threshold = tiny_component_area_threshold(subject_area)
     component_count = 0
     tiny_count = 0
     for _, mask, _ in primitive_masks:
@@ -495,16 +506,18 @@ def _evaluate_once(
         raise ValueError("Phase 14 requires Phase 12 primitive metrics")
 
     phase4_masks = _phase4_masks(case_dir)
+    subject_mask = _read_mask(
+        case_dir / "phase_03" / "03_subject_mask.png"
+    )
+    subject_area = int(np.count_nonzero(subject_mask))
+    material_threshold = tiny_component_area_threshold(subject_area)
     selected_masks, primitive_masks = _selected_part_masks(
         primitives,
         width=width,
         height=height,
         source_part_masks=phase4_masks,
+        material_threshold=material_threshold,
     )
-    subject_mask = _read_mask(
-        case_dir / "phase_03" / "03_subject_mask.png"
-    )
-    subject_area = int(np.count_nonzero(subject_mask))
 
     layout_mean, layout_min, layout_parts = _layout_metrics(
         phase4_masks,
@@ -617,6 +630,13 @@ def _evaluate_once(
             "value": structural.source_anatomy,
             "expected": True,
             "passed": structural.anatomy_pass and structural.source_silhouette["passed"],
+        },
+        "source_topology": {
+            "value": structural.to_dict()["topology"],
+            "expected": True,
+            "passed": structural.topology_pass,
+            "authority": "hard",
+            "note": "material semantic-part and semantic-union topology must match source-owned masks",
         },
         "source_shape_evidence": {
             "value": shape_evidence.get("match_shapes_i1"),

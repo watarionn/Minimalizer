@@ -5,18 +5,26 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
+TINY_COMPONENT_AREA_RATIO = 0.00015
+TINY_COMPONENT_AREA_MINIMUM = 8
 
-def canonical_material_mask(mask: np.ndarray) -> np.ndarray:
+
+def tiny_component_area_threshold(subject_area: int | float) -> int:
+    return max(TINY_COMPONENT_AREA_MINIMUM, int(round(float(subject_area) * TINY_COMPONENT_AREA_RATIO)))
+
+def canonical_material_mask(mask: np.ndarray, *, tiny_component_area_threshold: int | None = None) -> np.ndarray:
     """Remove owner-local segmentation specks and pinholes only.
 
-    Components and enclosed holes at or above 0.1% of the owner's foreground
-    area (with a 2-pixel floor) remain material topology.  Border-connected
-    background is never treated as a hole.
+    Components and enclosed holes smaller than the canonical Phase14 threshold
+    are segmentation noise. Border-connected background is never a hole.
     """
     binary = (np.asarray(mask) > 0).astype(np.uint8)
     if binary.ndim != 2:
         raise ValueError("material masks must be 2D")
-    cutoff = max(2, int(round(int(binary.sum()) * 0.001)))
+    cutoff = (tiny_component_area_threshold if tiny_component_area_threshold is not None
+              else globals()["tiny_component_area_threshold"](int(binary.sum())))
+    if cutoff < 1:
+        raise ValueError("tiny_component_area_threshold must be positive")
     count, labels, stats, _ = cv2.connectedComponentsWithStats(binary, 8)
     cleaned = np.zeros_like(binary)
     for label in range(1, count):

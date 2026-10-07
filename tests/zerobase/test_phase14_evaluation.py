@@ -13,6 +13,12 @@ from minimalizer_zerobase.evaluation import (
     evaluate_phase14_case,
     write_phase14_artifacts,
 )
+from minimalizer_zerobase.evaluation.material_topology import tiny_component_area_threshold
+from minimalizer_zerobase.evaluation.phase14 import (
+    Phase14EvaluationPolicy,
+    _fragmentation_penalty,
+    _selected_part_masks,
+)
 
 
 def _sha(path: Path) -> str:
@@ -51,6 +57,40 @@ def _mask_from_points(
         fill=255,
     )
     return np.asarray(image) > 0
+
+
+def test_phase14_source_replay_uses_material_topology_for_fragmentation() -> None:
+    """Phase 14 and the Phase 12 diagnostic must measure the same material mask."""
+    shape = (100, 100)
+    source = np.zeros(shape, dtype=bool)
+    source[30:70, 35:65] = True
+    source[2, 2] = True
+    source[4, 4] = True
+    threshold = tiny_component_area_threshold(int(shape[0] * shape[1]))
+    primitive = {
+        "primitive_id": "torso-replay",
+        "composition_part": "torso",
+        "semantic_part_id": "torso",
+        "source_mask_replay": True,
+    }
+
+    selected, primitive_masks = _selected_part_masks(
+        [primitive],
+        width=shape[1],
+        height=shape[0],
+        source_part_masks={"torso": source},
+        material_threshold=threshold,
+    )
+
+    assert int(selected["torso"].sum()) == 40 * 30
+    penalty, detail = _fragmentation_penalty(
+        primitive_masks,
+        subject_area=int(shape[0] * shape[1]),
+        policy=Phase14EvaluationPolicy(),
+    )
+    assert detail["component_count"] == 1
+    assert detail["tiny_component_count"] == 0
+    assert penalty == 0.0
 
 
 def _make_case(tmp_path: Path) -> tuple[Path, Path]:
@@ -263,6 +303,7 @@ def test_phase14_machine_human_and_determinism_pass(tmp_path: Path) -> None:
 
     assert result["pass"] is True
     assert result["machine_pass"] is True
+    assert result["machine_checks"]["source_topology"]["passed"] is True
     assert result["human_visual_qa"]["passed"] is True
     assert result["determinism"]["passed"] is True
     assert result["scores"]["silhouette_preservation"] == 0.99

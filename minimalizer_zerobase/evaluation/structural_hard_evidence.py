@@ -8,6 +8,7 @@ import cv2
 from minimalizer_zerobase.evaluation.material_topology import (
     canonical_material_mask,
     mask_topology,
+    tiny_component_area_threshold,
 )
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
@@ -55,17 +56,19 @@ def _topology_evidence(masks: Mapping[str, np.ndarray]) -> dict:
         if name not in _NON_SEMANTIC_TOPOLOGY_PARTS
     }
     raw_per_part = {name: _mask_topology(mask) for name, mask in semantic_masks.items()}
-    canonical_masks = {
-        name: _canonical_material_mask(mask) for name, mask in semantic_masks.items()
-    }
-    per_part = {name: _mask_topology(mask) for name, mask in canonical_masks.items()}
     semantic_values = [np.asarray(mask, dtype=bool) for mask in semantic_masks.values()]
     all_union = (
         np.logical_or.reduce(semantic_values)
         if semantic_values
         else np.zeros((1, 1), dtype=bool)
     )
-    union = _canonical_material_mask(all_union)
+    material_threshold = tiny_component_area_threshold(int(all_union.sum()))
+    canonical_masks = {
+        name: _canonical_material_mask(mask, tiny_component_area_threshold=material_threshold)
+        for name, mask in semantic_masks.items()
+    }
+    per_part = {name: _mask_topology(mask) for name, mask in canonical_masks.items()}
+    union = _canonical_material_mask(all_union, tiny_component_area_threshold=material_threshold)
     non_semantic = {
         name: {
             "coverage_role": _coverage_role(name),
@@ -82,6 +85,7 @@ def _topology_evidence(masks: Mapping[str, np.ndarray]) -> dict:
         "raw_union": _mask_topology(all_union),
         "non_semantic_coverage": non_semantic,
         "semantic_union_definition": "union of semantic-owner masks only",
+        "tiny_component_area_threshold": material_threshold,
     }
 
 

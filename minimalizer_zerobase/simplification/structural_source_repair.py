@@ -7,6 +7,7 @@ import cv2
 from minimalizer_zerobase.evaluation.material_topology import (
     canonical_material_mask,
     mask_topology,
+    tiny_component_area_threshold,
 )
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
@@ -87,7 +88,6 @@ def _required_relation_keys(graph) -> set[tuple[str, str, str]]:
         and row.source_part != "unknown"
         and row.target_part != "unknown"
     }
-
 def _median_source_color(
     source_rgba: np.ndarray,
     mask: np.ndarray,
@@ -135,6 +135,9 @@ def apply_structural_source_repair(
 
     source_masks = _normalize_source_masks(source_part_masks, shape)
     current_masks = _group_part_masks(groups, shape)
+    source_semantic_values = [source_masks[name] for name in PART_NAMES if name not in {"unknown", "__unbound__"}]
+    source_subject_union = np.logical_or.reduce(source_semantic_values) if source_semantic_values else np.zeros(shape, dtype=bool)
+    material_threshold = tiny_component_area_threshold(int(source_subject_union.sum()))
     owner_parts = {
         str(group.get("part") or "")
         for group in groups
@@ -176,10 +179,32 @@ def apply_structural_source_repair(
             part == "unknown" and part not in owner_parts
         ):
             continue
-        if _topology(_canonical_material_mask(source_masks[part])) != _topology(
-            _canonical_material_mask(current_masks[part])
+        if _topology(_canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)) != _topology(
+            _canonical_material_mask(current_masks[part], tiny_component_area_threshold=material_threshold)
         ):
             topology_repair_parts.add(part)
+    semantic_parts = [
+        part for part in PART_NAMES
+        if part != "unknown" and np.any(source_masks[part]) and part in owner_parts
+    ]
+    source_semantic_union = (
+        np.logical_or.reduce([source_masks[part] for part in semantic_parts])
+        if semantic_parts else np.zeros(shape, dtype=bool)
+    )
+    current_semantic_union = (
+        np.logical_or.reduce([current_masks[part] for part in semantic_parts])
+        if semantic_parts else np.zeros(shape, dtype=bool)
+    )
+    source_material_union = _canonical_material_mask(
+        source_semantic_union, tiny_component_area_threshold=material_threshold
+    )
+    current_material_union = _canonical_material_mask(
+        current_semantic_union, tiny_component_area_threshold=material_threshold
+    )
+    union_topology_mismatch = _topology(source_material_union) != _topology(current_material_union)
+    if union_topology_mismatch:
+        topology_repair_parts.update(semantic_parts)
+
     if boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
         missing_edge = source_edge & ~current_union
         for part in PART_NAMES:
@@ -230,8 +255,10 @@ def apply_structural_source_repair(
             )
 
     for part in sorted(topology_repair_parts):
-        if _topology(_canonical_material_mask(source_masks[part])) != _topology(
-            _canonical_material_mask(current_masks[part])
+        if union_topology_mismatch:
+            reasons.setdefault(part, []).append("source_semantic_union_topology_mismatch")
+        if _topology(_canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)) != _topology(
+            _canonical_material_mask(current_masks[part], tiny_component_area_threshold=material_threshold)
         ):
             reasons.setdefault(part, []).append("source_topology_mismatch")
         elif boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
@@ -258,7 +285,7 @@ def apply_structural_source_repair(
 
     output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
     for part in repaired_parts:
-        source_mask = _canonical_material_mask(source_masks[part])
+        source_mask = _canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)
         existing = [group for group in groups if group.get("part") == part]
         if existing:
             # The repaired extent is owned by the immutable Phase 4 source
