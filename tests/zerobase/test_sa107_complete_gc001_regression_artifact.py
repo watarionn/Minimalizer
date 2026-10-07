@@ -85,3 +85,21 @@ def test_authoritative_component_evidence_fails_closed():
     values["component_economy"]["authoritative"] = True
     with pytest.raises(ValueError):
         build_complete_gc001_regression_artifact(**values)
+
+
+def test_canonical_semantic_observer_bundle_uses_candidate():
+    values = _inputs()
+    report = values["semantic_retention"]
+    values["semantic_retention"] = {
+        "observer_contract": "sa7.45-v1",
+        "production_output_changed": False,
+        "baseline_stage": "SA7.43",
+        "candidate_stage": "SA7.44",
+        "baseline": {**report, "semantic_retention_score": 0.7290167936939369},
+        "candidate": report,
+        "delta": 0.0008504826196752413,
+        "hard_gate_override_allowed": False,
+    }
+    artifact = build_complete_gc001_regression_artifact(**values)
+    diagnostics = {d["name"]: d for d in artifact["regression_gate"]["diagnostics"]}
+    assert diagnostics["semantic_retention"]["value"] == pytest.approx(0.7298672763136121)
