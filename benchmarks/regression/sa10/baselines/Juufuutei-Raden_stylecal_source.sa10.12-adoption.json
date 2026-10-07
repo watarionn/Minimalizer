@@ -1,0 +1,22 @@
+{
+  "version": "sa10.12-v1",
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source_sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3",
+  "baseline_artifact_sha256": "a31acc69a055e4144484939a510f06dee61379e426dc0b39751f4a5cf90dd07f",
+  "baseline_origin": "SA10.11 reviewed Phase12 production candidate preserved in canonical Google Drive",
+  "baseline_artifact_id": "1xfuLMuLjGLFEieug_pRFL8zJMxdtekoD",
+  "review_status": "ADOPTED",
+  "reviewer": "Rinka",
+  "review_evidence": [
+    "docs/zerobase/SA10_11_STRUCTURAL_HARD_FAIL_REPAIR_20261007.md",
+    "drive:1xfuLMuLjGLFEieug_pRFL8zJMxdtekoD",
+    "phase14:machine-pass",
+    "phase14:human-visual-pass",
+    "phase14:determinism-pass"
+  ],
+  "adoption_transaction_id": "sa10.12-adopt-juufuutei-raden-20261007-v1",
+  "immutable_record": true,
+  "evaluation_baseline_allowed": true,
+  "production_inference_allowed": false,
+  "candidate_self_reference_forbidden": true
+}
