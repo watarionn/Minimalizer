@@ -1,0 +1,104 @@
+{
+  "case_id": "Hoshimachi-Suisei",
+  "source": {
+    "path": "Hoshimachi-Suisei_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "sha256": "ac01edc64c72292ecb6f294e85611e2396de585843d5271bd8680b1c35c4f449"
+  },
+  "determinism_sha256": "55e7c22c670a7d1925bc6cfa580ff61b008874a3af74502ca885a53ec6d9e793",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "AVAILABLE",
+      "value": 0.825681250707786
+    },
+    "adaptive_complexity": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10 adaptive-budget evidence was produced for Hoshimachi-Suisei fresh admission."
+    },
+    "component_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10.5 component-survival evidence was produced for Hoshimachi-Suisei; actual-emission evidence remains separate."
+    },
+    "primitive_economy": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10.5 primitive-economy evidence was produced for Hoshimachi-Suisei; actual-emission evidence remains separate."
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for Hoshimachi-Suisei."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for Hoshimachi-Suisei."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "required_signature_count": 16,
+      "missing_count": 0
+    },
+    "forbidden_face_detail": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "ratio": 0
+    },
+    "anatomy": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "topology": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "source_authority": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.986028,
+    "phase14_identity_feature_retention": 0.950674,
+    "phase14_primitive_economy_not_sa10": 0.736842105263158,
+    "dino_spatial_research_score_not_sa10": 0.6277230839538419,
+    "actual_emission_component_representation": 0.375,
+    "actual_emission_primitive_support": 1,
+    "emission_realization_ratio": 0.75,
+    "structural_repair_parts": [
+      "head"
+    ],
+    "structural_missing_relations_after": 0,
+    "forbidden_face_detail_ratio": 0,
+    "adopted_baseline_candidate_bytes_equal": true,
+    "face_raster_guard_changed_face_pixels": 4218,
+    "face_raster_guard_changed_outside_face_pixels": 0,
+    "face_raster_guard_fill_rgb": [
+      254,
+      222,
+      214
+    ]
+  },
+  "provenance": {
+    "production_candidate_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+    "adopted_baseline_record": "benchmarks/regression/sa10/baselines/Hoshimachi-Suisei.sa10.16-adoption.json",
+    "semantic_retention_evidence": "benchmarks/regression/sa10/evidence/Hoshimachi-Suisei.sa10.16-semantic-retention.json",
+    "face_raster_guard_evidence": "benchmarks/regression/sa10/evidence/Hoshimachi-Suisei.sa10.16-face-raster-guard.json",
+    "visual_hard_gate_evidence": "benchmarks/regression/sa10/evidence/Hoshimachi-Suisei.sa10.16-visual-hard-gate.json",
+    "hard_evidence": "benchmarks/regression/sa10/evidence/Hoshimachi-Suisei.sa10.16-structural-hard-evidence.json",
+    "sa10_measurement": "SA10.16 fresh-case admission after reviewed baseline adoption; all hard evidence independently measured."
+  }
+}
