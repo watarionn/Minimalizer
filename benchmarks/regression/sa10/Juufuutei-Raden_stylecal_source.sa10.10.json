@@ -1,0 +1,89 @@
+{
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source": {
+    "path": "Juufuutei-Raden_stylecal_source.png",
+    "width": 512,
+    "height": 512,
+    "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3"
+  },
+  "determinism_sha256": "2fb98dbbf1ff3dc316b81f2eda562e530b3ba5abdd6b50e2fe4041edf944c7d3",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "AVAILABLE",
+      "value": 0.914517616858495
+    },
+    "adaptive_complexity": {
+      "status": "AVAILABLE",
+      "value": 0.4
+    },
+    "component_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "Hair macro generation dropped the only allocated mass because fallback expansion was 1.2861805086653162, above the 1.12 safety limit; SA10.5 therefore keeps the component frame unavailable."
+    },
+    "primitive_economy": {
+      "status": "UNAVAILABLE",
+      "reason": "Hair macro generation dropped the only allocated mass because fallback expansion was 1.2861805086653162, above the 1.12 safety limit; SA10.5 therefore keeps the emitted/budget frame mismatch unavailable."
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 Feature Survival signature report is preserved for this Phase14 case."
+    },
+    "forbidden_face_detail": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 forbidden-face-detail report is preserved for this Phase14 case."
+    },
+    "anatomy": {
+      "status": "AVAILABLE",
+      "passed": false
+    },
+    "topology": {
+      "status": "AVAILABLE",
+      "passed": false
+    },
+    "source_authority": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.984893,
+    "phase14_identity_feature_retention": 0.975258,
+    "phase14_primitive_economy_not_sa10": 0.46153846153846156,
+    "dino_spatial_research_score_not_sa10": 0.5577777938009946,
+    "actual_emission_component_representation": 0.5,
+    "actual_emission_primitive_support": 1,
+    "emission_realization_ratio": 0.5
+  },
+  "provenance": {
+    "phase4_masks": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_04/part_masks",
+    "phase14_artifact": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_14/14_case_evaluation.json",
+    "phase14_output_sha256": "db655f3cf1b2acac603e7855bcbefd1a92c6f95225ddca69fd21d923f1f8bb42",
+    "semantic_retention_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.10-semantic-retention.json",
+    "macro_alignment_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.9-macro-alignment.json",
+    "sa10_measurement": "SA10.10 corrected production-candidate DINOv3 plus fresh provenance/anatomy/topology hard evidence and actual-emission diagnostic",
+    "production_candidate_sha256": "9911795a0a87a0d227c9b43a86bec8497ca47e6cce60c1ef048027e3fb527c1d",
+    "hard_evidence": "benchmarks/regression/sa10/evidence/Juufuutei-Raden_stylecal_source.sa10.10-hard-evidence.json"
+  }
+}
