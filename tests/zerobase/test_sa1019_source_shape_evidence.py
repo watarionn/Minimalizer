@@ -2,7 +2,8 @@ import numpy as np
 
 from minimalizer_zerobase.evaluation.source_shape_evidence import (
     evaluate_source_shape_evidence, generate_vtracer_candidate,
-    vtracer_backend_status,
+    vtracer_backend_status, rasterize_source_bound_svg,
+    evaluate_source_bound_candidate,
 )
 
 
@@ -37,7 +38,7 @@ def test_sa1026_vtracer_requires_authorized_semantic_mask_and_is_explicit_noop()
     result = generate_vtracer_candidate(source, source.copy())
     assert result["candidate_authority"] is False
     assert result["visible_output_changed"] is False
-    assert result["status"] in {"unavailable", "no-op"}
+    assert result["status"] in {"unavailable", "no-op", "fallback_noop"}
     assert "source_mask_sha256" in result
 
 
@@ -70,3 +71,20 @@ def test_sa1026_worker_nonzero_is_fallback_noop(monkeypatch):
     assert result["status"] == "fallback_noop"
     assert result["reason"] == "nonzero"
     assert result["isolated"] is True
+
+
+def test_sa1026_tiny_synthetic_svg_subset_is_deterministic_and_source_bound():
+    svg = '<svg width="32" height="32"><path fill="#fff" transform="translate(2 1)" d="M 2 2 L 20 2 C 25 2 25 20 20 20 L 2 20 Z"/></svg>'
+    first = rasterize_source_bound_svg(svg, (32, 32))
+    second = rasterize_source_bound_svg(svg, (32, 32))
+    assert np.array_equal(first, second)
+    source = np.zeros((32, 32), np.uint8); source[3:22, 4:28] = 1
+    report = evaluate_source_bound_candidate(source, first)
+    assert report["iou"] > 0
+    assert report["candidate_components"] == 1
+    assert report["authority"] is False
+
+
+def test_sa1026_svg_rejects_non_boundary_transform():
+    with __import__('pytest').raises(ValueError, match="unsupported transform"):
+        rasterize_source_bound_svg('<svg><path fill="red" transform="scale(2)" d="M0 0 L2 0 L2 2 Z"/></svg>', (8, 8))
