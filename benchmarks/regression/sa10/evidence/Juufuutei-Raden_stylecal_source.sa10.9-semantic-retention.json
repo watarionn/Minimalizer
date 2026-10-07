@@ -1,0 +1,36 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "preview.png",
+    "sha256": "db655f3cf1b2acac603e7855bcbefd1a92c6f95225ddca69fd21d923f1f8bb42"
+  },
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "grid_shape": [7, 7],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.8159690921150953,
+    "global_similarity": 0.8725163181780999,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.7594218660520907,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.8159690921150953,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Juufuutei-Raden_stylecal_source.png",
+    "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.5188437355112057,
+    "coarse_patch_cosine": 0.5008331015706062,
+    "global_cosine": 0.7450326363561995,
+    "research_score": 0.5577777938009946
+  }
+}
