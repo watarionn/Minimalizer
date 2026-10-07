@@ -43,6 +43,7 @@ class StructuralHardEvidenceReport:
     candidate_topology_validation: dict
     anatomy_pass: bool
     topology_pass: bool
+    missing_required_relations: tuple[str, ...]
     version: str = SA10_STRUCTURAL_HARD_EVIDENCE_VERSION
 
     def to_dict(self) -> dict:
@@ -58,6 +59,7 @@ class StructuralHardEvidenceReport:
                 "passed": self.topology_pass,
                 "source_validation": self.source_topology_validation,
                 "candidate_validation": self.candidate_topology_validation,
+                "missing_required_relations": list(self.missing_required_relations),
             },
             "phase14_metric_relabeling": False,
         }
@@ -106,10 +108,23 @@ def evaluate_structural_hard_evidence(
     )
     anatomy = anatomy_integrity_gate(baseline_plan, candidate_plan)
 
+    candidate_relations = {
+        (row.source_part, row.relation_kind, row.target_part)
+        for row in candidate_graph.relations
+    }
+    missing_required_relations = tuple(sorted(
+        f"{row.source_part}:{row.relation_kind}:{row.target_part}"
+        for row in source_graph.relations
+        if row.confidence >= 0.5
+        and (row.source_part, row.relation_kind, row.target_part)
+        not in candidate_relations
+    ))
+
     return StructuralHardEvidenceReport(
         anatomy=anatomy,
         source_topology_validation=source_validation,
         candidate_topology_validation=candidate_validation,
         anatomy_pass=anatomy.passed,
-        topology_pass=bool(source_validation["pass"] and candidate_validation["pass"]),
+        topology_pass=bool(source_validation["pass"] and candidate_validation["pass"] and not missing_required_relations),
+        missing_required_relations=missing_required_relations,
     )
