@@ -1,0 +1,140 @@
+{
+  "actual_emission_support": {
+    "actual_component_representation_ratio": 0.5714285714285714,
+    "actual_primitive_support_ratio": 1,
+    "allocated_primitives": 4,
+    "authoritative": false,
+    "diagnostic_only": true,
+    "emission_realization_ratio": 1,
+    "emitted_primitives": 4,
+    "maps_to_sa10_component_survival": false,
+    "maps_to_sa10_primitive_economy": false,
+    "represented_components": 4,
+    "roles": [
+      {
+        "allocated_primitives": 1,
+        "emitted_primitives": 1,
+        "represented_components": 1,
+        "role": "hair",
+        "source_components": 1,
+        "source_supported_primitives": 1
+      },
+      {
+        "allocated_primitives": 3,
+        "emitted_primitives": 3,
+        "represented_components": 3,
+        "role": "major_clothing",
+        "source_components": 6,
+        "source_supported_primitives": 3
+      }
+    ],
+    "source_components": 7,
+    "source_supported_primitives": 4,
+    "version": "sa10.10-v1"
+  },
+  "adopted_baseline": {
+    "bound": false,
+    "reason": "No canonical adopted visual baseline is bound for this Phase14 case; candidate self-reference is forbidden.",
+    "status": "UNAVAILABLE"
+  },
+  "artifact_version": "sa10.11-v1",
+  "boundary": {
+    "actual_emission_maps_to_sa10_component_survival": false,
+    "actual_emission_maps_to_sa10_primitive_economy": false,
+    "aggregate_quality_score": false,
+    "candidate_used_as_own_baseline": false,
+    "new_quality_thresholds": false,
+    "phase14_metrics_reused_as_hard_evidence": false
+  },
+  "case_id": "Hyakuto-Kyoko",
+  "hard_evidence": {
+    "anatomy": {
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    "feature_survival": {
+      "passed": null,
+      "reason": "Canonical hard gate requires a separately adopted visual baseline.",
+      "status": "UNAVAILABLE"
+    },
+    "forbidden_face_detail": {
+      "passed": null,
+      "reason": "Canonical face hard gate is part of the adopted-baseline visual contract.",
+      "status": "UNAVAILABLE"
+    },
+    "source_authority": {
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    "topology": {
+      "passed": true,
+      "status": "AVAILABLE"
+    }
+  },
+  "production_candidate": {
+    "path": "phase_12/12_final.png",
+    "sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b"
+  },
+  "source": {
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+  },
+  "source_authority_evidence": {
+    "actual_source_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "expected_source_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "passed": true,
+    "provenance_artifact_count": 86,
+    "provenance_gate_passed": true,
+    "source_hash_match": true,
+    "status": "AVAILABLE",
+    "version": "sa10.10-v1"
+  },
+  "structural_hard_evidence": {
+    "anatomy": {
+      "details": {
+        "extreme_bbox_change": [],
+        "missing_parts": [],
+        "missing_topology": [],
+        "pass": true,
+        "suppressed_parts": []
+      },
+      "passed": true,
+      "status": "AVAILABLE"
+    },
+    "phase14_metric_relabeling": false,
+    "topology": {
+      "candidate_validation": {
+        "isolated_major_parts": [],
+        "missing_accessory_attachment": false,
+        "missing_arm_attachments": [],
+        "missing_core_relations": [],
+        "occlusion_cycle_count": 0,
+        "pass": true
+      },
+      "missing_required_relations": [],
+      "passed": true,
+      "source_validation": {
+        "isolated_major_parts": [],
+        "missing_accessory_attachment": false,
+        "missing_arm_attachments": [],
+        "missing_core_relations": [],
+        "occlusion_cycle_count": 0,
+        "pass": true
+      },
+      "status": "AVAILABLE"
+    },
+    "version": "sa10.10-v1"
+  },
+  "evaluator_artifact_version": "sa10.10-v1",
+  "structural_source_repair": {
+    "applied": true,
+    "repaired_parts": [
+      "head",
+      "left_arm",
+      "torso"
+    ],
+    "missing_required_relations_after": [],
+    "anatomy_pass": true,
+    "topology_pass": true
+  }
+}
