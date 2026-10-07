@@ -1,0 +1,22 @@
+{
+  "version": "sa10.12-v1",
+  "case_id": "Hyakuto-Kyoko",
+  "source_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+  "baseline_artifact_sha256": "294a77a025656391a76b35cbb2fdb7f8f59c0e176e8433a1da0ca1fa5299065b",
+  "baseline_origin": "SA10.11 reviewed Phase12 production candidate preserved in canonical Google Drive",
+  "baseline_artifact_id": "1DEIloGhLYw3-iVSpCnEa1wd1Uep9Yi4-",
+  "review_status": "ADOPTED",
+  "reviewer": "Rinka",
+  "review_evidence": [
+    "docs/zerobase/SA10_11_STRUCTURAL_HARD_FAIL_REPAIR_20261007.md",
+    "drive:1DEIloGhLYw3-iVSpCnEa1wd1Uep9Yi4-",
+    "phase14:machine-pass",
+    "phase14:human-visual-pass",
+    "phase14:determinism-pass"
+  ],
+  "adoption_transaction_id": "sa10.12-adopt-hyakuto-kyoko-20261007-v1",
+  "immutable_record": true,
+  "evaluation_baseline_allowed": true,
+  "production_inference_allowed": false,
+  "candidate_self_reference_forbidden": true
+}
