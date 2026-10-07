@@ -55,6 +55,9 @@ class RegressionTransactionReport:
     source_sha256: str
     candidate_sha256: str
     hard_evidence: tuple[dict[str, Any], ...]
+    adopted_baseline: Mapping[str, Any]
+    phase14_evidence: Mapping[str, Any]
+    evidence_versions: Mapping[str, Any]
     diagnostics: Mapping[str, Any]
     evidence_links: Mapping[str, bool]
     pass_transaction: bool
@@ -67,6 +70,9 @@ class RegressionTransactionReport:
             "source_sha256": self.source_sha256,
             "candidate_sha256": self.candidate_sha256,
             "hard_evidence": [dict(row) for row in self.hard_evidence],
+            "adopted_baseline": dict(self.adopted_baseline),
+            "phase14_evidence": dict(self.phase14_evidence),
+            "evidence_versions": dict(self.evidence_versions),
             "diagnostics": dict(self.diagnostics),
             "evidence_links": dict(self.evidence_links),
             "pass_transaction": self.pass_transaction,
@@ -239,6 +245,33 @@ def build_regression_transaction(
         if fixture.get("status") != "AVAILABLE" or fixture.get("passed") is not row["passed"]:
             raise ValueError(f"case fixture hard-evidence mismatch: {row['name']}")
 
+    adopted_baseline = {
+        "baseline_artifact_id": record.baseline_artifact_id,
+        "baseline_artifact_sha256": record.baseline_artifact_sha256,
+        "adoption_transaction_id": record.adoption_transaction_id,
+        "evaluation_transaction_id": binding.get("evaluation_transaction_id"),
+        "binding_passed": binding.get("binding_passed") is True,
+        "same_transaction": binding.get("same_transaction") is True,
+        "production_inference_allowed": False,
+    }
+    phase14_evidence = {
+        "machine_pass": phase14_machine["passed"],
+        "human_visual_pass": phase14_human["passed"],
+        "determinism_pass": determinism["passed"],
+        "determinism_sha256": _sha(
+            "phase14 determinism sha256",
+            phase14.get("determinism", {}).get("first_evaluation_sha256"),
+        ),
+        "phase14_pass": phase14.get("pass") is True,
+    }
+    evidence_versions = {
+        "visual_hard_gate": visual_hard_gate.get("artifact_version"),
+        "hard_evidence": hard_evidence.get("artifact_version"),
+        "semantic_retention": semantic_retention.get("artifact_version"),
+        "face_raster_guard": face_raster_guard.get("artifact_version"),
+        "phase14_schema": phase14.get("schema_version"),
+    }
+
     diagnostics = {
         "semantic_retention": {
             "status": semantic.get("status"),
@@ -263,6 +296,9 @@ def build_regression_transaction(
         source_sha256=source_sha,
         candidate_sha256=candidate_sha,
         hard_evidence=hard,
+        adopted_baseline=adopted_baseline,
+        phase14_evidence=phase14_evidence,
+        evidence_versions=evidence_versions,
         diagnostics=diagnostics,
         evidence_links=links,
         pass_transaction=pass_transaction,
