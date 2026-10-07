@@ -1,0 +1,39 @@
+{
+  "artifact_version": "sa10.9-v1",
+  "candidate": {
+    "path": "12_final.png",
+    "sha256": "baf3011657b6481a3d23c975d75db64334a735562718d7967cdd3c0165313544"
+  },
+  "case_id": "Ouro-Kronii",
+  "grid_shape": [
+    7,
+    7
+  ],
+  "hard_gate_override_allowed": false,
+  "model": "facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+  "production_output_changed": false,
+  "semantic_retention": {
+    "authoritative": false,
+    "can_override_hard_fail": false,
+    "fidelity_score": 0.8065288533514741,
+    "global_similarity": 0.8274418418243562,
+    "observer": "dinov3-convnext-tiny",
+    "patch_similarity": 0.785615864878592,
+    "reasons": [],
+    "role_similarity": {},
+    "semantic_retention_score": 0.8065288533514741,
+    "simplicity_score": null,
+    "status": "AVAILABLE",
+    "version": "sa7.45-v1"
+  },
+  "source": {
+    "path": "Ouro-Kronii_list_thumb.png",
+    "sha256": "30dc6b9f3e65813bb32a08264714405a33d14ea15f091b2a4b80efa66b2372ca"
+  },
+  "spatial": {
+    "aligned_patch_cosine": 0.5712317167496195,
+    "coarse_patch_cosine": 0.530394715256989,
+    "global_cosine": 0.6548836836487125,
+    "research_score": 0.5736691596070174
+  }
+}
