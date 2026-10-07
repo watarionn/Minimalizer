@@ -1819,14 +1819,19 @@ def _candidate_for_profile(
         working = raw_mask
         preserve_clothing_plane = group["part"] == "major_clothing"
         preserve_accessory_plane = group["part"] == "accessory_or_held_object"
+        small_critical_part = (
+            group["part"] in policy.critical_parts
+            and part_pixels
+            <= max(256, policy.minimum_visible_part_pixels * 32)
+        )
         preserve_tiny_critical_plane = (
             not source_guided_kind.startswith("structural-source-repair-")
             and (
-                owner_counts.get(group["part"], 0) >= 32
-                or (
+                (
                     group["part"] in policy.critical_parts
-                    and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+                    and owner_counts.get(group["part"], 0) >= 32
                 )
+                or small_critical_part
                 or (
                     group["part"] in {"left_arm", "right_arm"}
                     and len(group["source_ids"]) >= 12
@@ -1950,10 +1955,12 @@ def _candidate_for_profile(
         if preserve_tiny_critical_plane:
             exact_mask = group["mask"].astype(bool)
             exact_iou = _iou(exact_mask, mask)
-            if exact_iou < 0.98 or len(group["source_ids"]) >= 12:
+            if small_critical_part and exact_iou < 0.98:
                 # Fail closed to the observed Phase 11 geometry for tiny
                 # identity-critical parts when polygon simplification itself
-                # would erase too much of the part.
+                # would erase too much of the complete small part. Larger
+                # high-cardinality owners use the part-level recall/IoU gates
+                # below so micro-fragments cannot force raw primitive replay.
                 source_records = [
                     item
                     for item in baseline_primitives
