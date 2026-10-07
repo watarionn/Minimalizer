@@ -57,6 +57,22 @@ def _region_score(evidence: dict) -> float | None:
     return None if value is None else float(value)
 
 
+def _protected_region_worsening(before: dict, after: dict, threshold: float) -> bool:
+    """Reject a candidate when any available protected region materially regresses.
+
+    The aggregate is observer-only evidence and is intentionally not consulted.
+    """
+    before_rows = before.get("regions", {})
+    after_rows = after.get("regions", {})
+    for name, row in before_rows.items():
+        old = row.get("score")
+        new = after_rows.get(name, {}).get("score")
+        if row.get("available") and old is not None and new is not None:
+            if float(new) < float(old) - threshold:
+                return True
+    return False
+
+
 def run_constrained_diffvg(
     scene: VectorScene,
     *,
@@ -99,11 +115,20 @@ def run_constrained_diffvg(
         after_region = evaluate_saliency_perceptual(source_rgb, candidate_rgb(candidate), source_masks)
         sb, sa = _shape_score(before_shape), _shape_score(after_shape)
         rb, ra = _region_score(before_region), _region_score(after_region)
+        region_improved = any(
+            before_region.get("regions", {}).get(name, {}).get("score") is not None
+            and after_region.get("regions", {}).get(name, {}).get("score") is not None
+            and after_region["regions"][name]["score"] > before_region["regions"][name]["score"] + policy.min_region_improvement
+            for name in before_region.get("regions", {})
+        )
+        protected_worsened = _protected_region_worsening(
+            before_region, after_region, policy.min_region_improvement)
         improved = ((sa is not None and sb is not None and sa > sb + policy.min_shape_improvement)
-                    or (ra is not None and rb is not None and ra > rb + policy.min_region_improvement))
-        accepted = bool(hard.anatomy_pass and hard.topology_pass and improved)
+                    or region_improved)
+        accepted = bool(hard.anatomy_pass and hard.topology_pass and improved and not protected_worsened)
         reason = "accepted-hard-gates-and-evidence-improved" if accepted else (
             "hard-gate-regression-rollback" if not (hard.anatomy_pass and hard.topology_pass)
+            else "protected-region-worsening-rollback" if protected_worsened
             else "no-source-shape-or-region-improvement-rollback")
         results.append(ProposalResult(str(index), accepted, not accepted, reason, sb, sa, rb, ra,
                                       bool(hard.anatomy_pass and hard.topology_pass)))

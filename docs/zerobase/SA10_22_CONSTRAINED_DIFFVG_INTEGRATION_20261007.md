@@ -19,9 +19,11 @@ reported as an optimized candidate.
 
 ## Verification
 
-- `tests/zerobase/test_sa1022_constrained_diffvg.py`: 4 passed
+- `tests/zerobase/test_sa1022_constrained_diffvg.py`: 5 passed
 - Synthetic coverage: safe contour move, arm detachment rollback,
-  topology-breaking large move rollback, unavailable diffvg fallback
+  topology-breaking large move rollback, unavailable diffvg fallback,
+  protected-region worsening rollback
+- `tests/zerobase`: 881 passed
 - `python -m compileall -q minimalizer_zerobase`: PASS
 - `git diff --check`: PASS
 

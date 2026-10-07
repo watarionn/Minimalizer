@@ -66,3 +66,22 @@ def test_face_rounding_topology_break_is_rolled_back(monkeypatch):
     scene = _scene(); source = _masks(scene)
     result = _run(scene, source, GeometryProposal("arm", {"bbox": [0, 0, 20, 20]}))
     assert result.proposals[0].rollback
+
+
+def test_protected_region_worsening_rolls_back_even_if_another_region_improves(monkeypatch):
+    monkeypatch.setattr("minimalizer_zerobase.refine.constrained_diffvg.backend_available", lambda _: True)
+    scene = _scene(); source = _masks(scene)
+    source_rgb = np.zeros((20, 20, 3), np.uint8)
+    source_rgb[source["left_arm"]] = 255
+    source_rgb[source["torso"]] = 170
+    calls = {"count": 0}
+    def candidate_rgb(candidate):
+        calls["count"] += 1
+        image = _rgb(candidate)
+        image[_masks(candidate)["torso"]] = 170 if calls["count"] == 1 else 0
+        return image
+    result = run_constrained_diffvg(scene, source_masks=source, candidate_masks=_masks,
+                                    source_rgb=source_rgb, candidate_rgb=candidate_rgb,
+                                    proposals=(GeometryProposal("arm", {"bbox": [4, 4, 4, 4]}),))
+    assert result.proposals[0].rollback
+    assert result.proposals[0].reason == "protected-region-worsening-rollback"

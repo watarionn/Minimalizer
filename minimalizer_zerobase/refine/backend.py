@@ -1,17 +1,23 @@
 from __future__ import annotations
-from typing import Protocol
-import torch
+
+from typing import TYPE_CHECKING, Protocol
+import importlib.util
+
+if TYPE_CHECKING:
+    import torch
 
 class DifferentiableRasterBackend(Protocol):
-    def rectangle(self, bbox: torch.Tensor, width: int, height: int) -> torch.Tensor: ...
-    def ellipse(self, params: torch.Tensor, width: int, height: int) -> torch.Tensor: ...
+    def rectangle(self, bbox: "torch.Tensor", width: int, height: int) -> "torch.Tensor": ...
+    def ellipse(self, params: "torch.Tensor", width: int, height: int) -> "torch.Tensor": ...
 
 class TorchSoftRasterBackend:
     """Research-only analytic rasterizer used to validate the optimizer boundary."""
     def __init__(self, sharpness: float = 0.35):
+        import torch
         self.sharpness = float(sharpness)
 
     def _grid(self, width: int, height: int, ref: torch.Tensor):
+        import torch
         y = torch.arange(height, dtype=ref.dtype, device=ref.device) + 0.5
         x = torch.arange(width, dtype=ref.dtype, device=ref.device) + 0.5
         return torch.meshgrid(y, x, indexing="ij")
@@ -32,9 +38,7 @@ class TorchSoftRasterBackend:
 
 def backend_available(name: str) -> bool:
     if name == "diffvg":
-        try:
-            import pydiffvg  # type: ignore # noqa: F401
-        except ImportError:
-            return False
-        return True
-    return name == "torch-soft"
+        return importlib.util.find_spec("pydiffvg") is not None
+    if name == "torch-soft":
+        return importlib.util.find_spec("torch") is not None
+    return False
