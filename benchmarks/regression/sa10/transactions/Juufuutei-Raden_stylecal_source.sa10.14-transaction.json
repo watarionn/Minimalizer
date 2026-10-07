@@ -14,7 +14,7 @@
   "diagnostics": {
     "actual_emission_support": {
       "actual_component_representation_ratio": 0.5,
-      "actual_primitive_support_ratio": 1.0,
+      "actual_primitive_support_ratio": 1,
       "allocated_primitives": 2,
       "authoritative": false,
       "diagnostic_only": true,
@@ -144,5 +144,28 @@
   ],
   "pass_transaction": true,
   "source_sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3",
-  "transaction_id": "sa10.14-regression-juufuutei-raden-20261007-v1"
+  "transaction_id": "sa10.14-regression-juufuutei-raden-20261007-v1",
+  "adopted_baseline": {
+    "baseline_artifact_id": "1xfuLMuLjGLFEieug_pRFL8zJMxdtekoD",
+    "baseline_artifact_sha256": "a31acc69a055e4144484939a510f06dee61379e426dc0b39751f4a5cf90dd07f",
+    "adoption_transaction_id": "sa10.12-adopt-juufuutei-raden-20261007-v1",
+    "evaluation_transaction_id": "sa10.14-regression-juufuutei-raden-20261007-v1",
+    "binding_passed": true,
+    "same_transaction": false,
+    "production_inference_allowed": false
+  },
+  "phase14_evidence": {
+    "machine_pass": true,
+    "human_visual_pass": true,
+    "determinism_pass": true,
+    "determinism_sha256": "f5e6ed30048508d6e36734d37685ec5557798c2ff827fa3792bbf8068db64961",
+    "phase14_pass": true
+  },
+  "evidence_versions": {
+    "visual_hard_gate": "sa10.12-v1",
+    "hard_evidence": "sa10.10-v1",
+    "semantic_retention": "sa10.9-v1",
+    "face_raster_guard": "sa10.13-v1",
+    "phase14_schema": "1.0"
+  }
 }
