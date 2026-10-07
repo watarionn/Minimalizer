@@ -26,6 +26,31 @@ _FACE_HEAD_AREA_RATIO = (0.55, 1.80)
 _OUTER_BOUNDARY_MIN_RECALL = 0.90
 
 
+def _mask_topology(mask: np.ndarray) -> dict:
+    """Return source-derived 8-connected component/hole/Euler evidence."""
+    binary = (np.asarray(mask) > 0).astype(np.uint8)
+    components, _, _, _ = cv2.connectedComponentsWithStats(binary, 8)
+    padded = cv2.copyMakeBorder(binary, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
+    background, _, _, _ = cv2.connectedComponentsWithStats(1 - padded, 8)
+    component_count = max(0, int(components) - 1)
+    hole_count = max(0, int(background) - 1)
+    return {
+        "components": component_count,
+        "holes": hole_count,
+        "euler_characteristic": component_count - hole_count,
+    }
+
+
+def _topology_evidence(masks: Mapping[str, np.ndarray]) -> dict:
+    per_part = {name: _mask_topology(mask) for name, mask in sorted(masks.items())}
+    union = np.logical_or.reduce(list(masks.values())) if masks else np.zeros((1, 1), dtype=bool)
+    return {"per_part": per_part, "union": _mask_topology(union)}
+
+
+def _relation_key(row) -> tuple[str, str, str]:
+    return (row.source_part, row.relation_kind, row.target_part)
+
+
 def _normalize_masks(
     masks: Mapping[str, np.ndarray],
     *,
@@ -51,6 +76,10 @@ class StructuralHardEvidenceReport:
     missing_required_relations: tuple[str, ...]
     source_anatomy: dict
     source_silhouette: dict
+    source_topology: dict
+    candidate_topology: dict
+    topology_mismatches: tuple[str, ...]
+    missing_source_relations: tuple[str, ...]
     version: str = SA10_STRUCTURAL_HARD_EVIDENCE_VERSION
 
     def to_dict(self) -> dict:
@@ -67,6 +96,10 @@ class StructuralHardEvidenceReport:
                 "source_validation": self.source_topology_validation,
                 "candidate_validation": self.candidate_topology_validation,
                 "missing_required_relations": list(self.missing_required_relations),
+                "source_evidence": self.source_topology,
+                "candidate_evidence": self.candidate_topology,
+                "mismatches": list(self.topology_mismatches),
+                "missing_source_relations": list(self.missing_source_relations),
             },
             "phase14_metric_relabeling": False,
             "source_anatomy": self.source_anatomy,
@@ -177,6 +210,24 @@ def evaluate_structural_hard_evidence(
         and (row.source_part, row.relation_kind, row.target_part)
         not in candidate_relations
     ))
+    source_topology = _topology_evidence(source)
+    candidate_topology = _topology_evidence(candidate)
+    topology_mismatches = tuple(sorted(
+        f"{name}:{field}:{source_topology['per_part'][name][field]}!={candidate_topology['per_part'][name][field]}"
+        for name in source_topology["per_part"]
+        for field in ("components", "holes", "euler_characteristic")
+        if source_topology["per_part"][name][field] != candidate_topology["per_part"][name][field]
+    ))
+    topology_mismatches += tuple(sorted(
+        f"union:{field}:{source_topology['union'][field]}!={candidate_topology['union'][field]}"
+        for field in ("components", "holes", "euler_characteristic")
+        if source_topology["union"][field] != candidate_topology["union"][field]
+    ))
+    missing_source_relations = tuple(sorted(
+        f"{row.source_part}:{row.relation_kind}:{row.target_part}"
+        for row in source_graph.relations
+        if row.confidence >= 0.5 and _relation_key(row) not in candidate_relations
+    ))
     source_anatomy, source_silhouette = _source_bound_geometry(source, candidate)
 
     return StructuralHardEvidenceReport(
@@ -184,8 +235,17 @@ def evaluate_structural_hard_evidence(
         source_topology_validation=source_validation,
         candidate_topology_validation=candidate_validation,
         anatomy_pass=anatomy.passed,
-        topology_pass=bool(source_validation["pass"] and candidate_validation["pass"] and not missing_required_relations),
+        topology_pass=bool(
+            source_validation["pass"] and candidate_validation["pass"]
+            and not missing_required_relations
+            and not topology_mismatches
+            and not missing_source_relations
+        ),
         missing_required_relations=missing_required_relations,
         source_anatomy=source_anatomy,
         source_silhouette=source_silhouette,
+        source_topology=source_topology,
+        candidate_topology=candidate_topology,
+        topology_mismatches=topology_mismatches,
+        missing_source_relations=missing_source_relations,
     )
