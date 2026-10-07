@@ -1,0 +1,62 @@
+{
+  "artifact_version": "sa10.12-v1",
+  "binding": {
+    "adoption_transaction_id": "sa10.16-adopt-hoshimachi-suisei-20261007-v1",
+    "baseline_artifact_id": "1LfGdATG5GyfHRojb7hKecKVSDFYKZFWS",
+    "baseline_artifact_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+    "baseline_origin": "SA10.16 fresh-case first reviewed Phase12 production candidate preserved in canonical Google Drive",
+    "binding_passed": true,
+    "candidate_artifact_sha256": "1b1b6d4f8d0c669bc2e59bc2db636bab027093b6c1cbad22ee2d821d71b7616a",
+    "candidate_bytes_equal_baseline": true,
+    "candidate_self_reference_forbidden": true,
+    "case_id": "Hoshimachi-Suisei",
+    "evaluation_transaction_id": "sa10.16-regression-hoshimachi-suisei-20261007-v1",
+    "production_inference_allowed": false,
+    "review_evidence": [
+      "drive:1LfGdATG5GyfHRojb7hKecKVSDFYKZFWS",
+      "drive:1q0AL8vwU4MNbX57OOvG0uqDFSM04NOFQ",
+      "phase14:machine-pass",
+      "phase14:human-visual-pass",
+      "phase14:determinism-pass",
+      "sa10-hard-evidence:anatomy-pass",
+      "sa10-hard-evidence:topology-pass",
+      "sa10-hard-evidence:source-authority-pass"
+    ],
+    "reviewer": "Rinka",
+    "same_transaction": false,
+    "source_sha256": "ac01edc64c72292ecb6f294e85611e2396de585843d5271bd8680b1c35c4f449",
+    "version": "sa10.12-v1"
+  },
+  "boundary": {
+    "aggregate_quality_score": false,
+    "browser_v12_used_for_inference": false,
+    "candidate_self_reference_forbidden": true,
+    "golden_used_for_inference": false,
+    "new_quality_thresholds": false,
+    "production_inference_allowed": false,
+    "same_transaction": false
+  },
+  "canonical_hard_gate": {
+    "forbidden_face_detail_ratio": 0,
+    "forbidden_face_pass": true,
+    "missing_count": 0,
+    "missing_signatures": [],
+    "pass_gate": true,
+    "required_signature_count": 16,
+    "survival_pass": true,
+    "version": "sa7.35-v2"
+  },
+  "case_id": "Hoshimachi-Suisei",
+  "feature_survival": {
+    "missing_count": 0,
+    "missing_signatures": [],
+    "passed": true,
+    "required_signature_count": 16,
+    "status": "AVAILABLE"
+  },
+  "forbidden_face_detail": {
+    "passed": true,
+    "ratio": 0,
+    "status": "AVAILABLE"
+  }
+}
