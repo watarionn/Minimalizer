@@ -1,0 +1,104 @@
+{
+  "case_id": "Nekomata-Okayu",
+  "source": {
+    "path": "Nekomata-Okayu_list_thumb.png",
+    "width": 340,
+    "height": 340,
+    "sha256": "186ab075bd5cf574ad870eb1851a956303420bc268a5477dc4dd9d849c2126b5"
+  },
+  "determinism_sha256": "826b76e802a0dbd987f330687e0185049ccf6401bead332ebb2b22d5c075c0f5",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "AVAILABLE",
+      "value": 0.8200394367607636
+    },
+    "adaptive_complexity": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10 adaptive-budget evidence was produced for Nekomata-Okayu fresh admission."
+    },
+    "component_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10.5 component-survival evidence was produced for Nekomata-Okayu; actual-emission evidence remains separate."
+    },
+    "primitive_economy": {
+      "status": "UNAVAILABLE",
+      "reason": "No explicit SA10.5 primitive-economy evidence was produced for Nekomata-Okayu; actual-emission evidence remains separate."
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for Nekomata-Okayu."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for Nekomata-Okayu."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "required_signature_count": 14,
+      "missing_count": 0
+    },
+    "forbidden_face_detail": {
+      "status": "AVAILABLE",
+      "passed": true,
+      "ratio": 0
+    },
+    "anatomy": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "topology": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "source_authority": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.98858,
+    "phase14_identity_feature_retention": 0.969124,
+    "phase14_primitive_economy_not_sa10": 0.8497109826589595,
+    "dino_spatial_research_score_not_sa10": 0.6092140842790766,
+    "actual_emission_component_representation": 0.6,
+    "actual_emission_primitive_support": 1,
+    "emission_realization_ratio": 0.75,
+    "structural_repair_parts": [
+      "head"
+    ],
+    "structural_missing_relations_after": 0,
+    "forbidden_face_detail_ratio": 0,
+    "adopted_baseline_candidate_bytes_equal": true,
+    "face_raster_guard_changed_face_pixels": 4348,
+    "face_raster_guard_changed_outside_face_pixels": 0,
+    "face_raster_guard_fill_rgb": [
+      245,
+      224,
+      226
+    ]
+  },
+  "provenance": {
+    "production_candidate_sha256": "ffd8199ce602eeea74ad4d8e40d13ed04575555c5daa3cf0d1e391a316fa83dd",
+    "adopted_baseline_record": "benchmarks/regression/sa10/baselines/Nekomata-Okayu.sa10.16-adoption.json",
+    "semantic_retention_evidence": "benchmarks/regression/sa10/evidence/Nekomata-Okayu.sa10.16-semantic-retention.json",
+    "face_raster_guard_evidence": "benchmarks/regression/sa10/evidence/Nekomata-Okayu.sa10.16-face-raster-guard.json",
+    "visual_hard_gate_evidence": "benchmarks/regression/sa10/evidence/Nekomata-Okayu.sa10.16-visual-hard-gate.json",
+    "hard_evidence": "benchmarks/regression/sa10/evidence/Nekomata-Okayu.sa10.16-structural-hard-evidence.json",
+    "sa10_measurement": "SA10.16 fresh-case admission after reviewed baseline adoption; all hard evidence independently measured."
+  }
+}
