@@ -197,3 +197,21 @@ The temporary verification workflow was removed after success and is not part of
 SA10.14 is complete.
 
 The non-GC001 hard-gate chain is now reproducible as a deterministic, auditable transaction for Kyoko and Raden. The next step should expand the transaction protocol to a fresh third case before considering any cross-case calibration.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_14_20261007_REGRESSION_TRANSACTION`
+
+Drive folder ID:
+`1IpOrHujnVkM3ecuI-GKFV4VVw_ylAaGE`
+
+The folder was created through the Drive API under the existing canonical `Semantic_Abstraction` parent. No Japanese parent path was created from the local mount.
+
+Drive API read-back verified all 8 preserved artifacts:
+- 2 SA10.14 transaction JSONs;
+- 2 SA10.14 visual hard-gate reports;
+- 2 fresh structural / source-authority hard-evidence reports;
+- 1 SA10.14 transaction-set JSON;
+- 1 SA10.14 closeout document.
