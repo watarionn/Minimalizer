@@ -89,3 +89,13 @@ def test_sa1025_unknown_residual_is_excluded_from_semantic_union_topology():
     assert report.topology_pass is True
     assert report.source_topology["union"] == report.candidate_topology["union"]
     assert report.candidate_topology["non_semantic_coverage"]["unknown"]["excluded_from_semantic_topology"] is True
+
+
+def test_sa1025_semantic_material_union_mismatch_is_topology_hard_fail():
+    source = _masks()
+    candidate = {key: value.copy() for key, value in source.items()}
+    candidate["right_arm"][:] = False
+    candidate["right_arm"][0:11, 0:6] = True
+    report = evaluate_structural_hard_evidence(source_masks=source, candidate_masks=candidate)
+    assert report.topology_pass is False
+    assert any(item.startswith("union:") for item in report.topology_mismatches)

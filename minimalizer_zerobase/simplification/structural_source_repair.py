@@ -8,8 +8,36 @@ import cv2
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import build_structural_layout_graph
 
+# Keep the artifact schema identifier stable for SA10.24 consumers; SA10.25
+# changes the authority semantics without changing the serialized contract.
 STRUCTURAL_REPAIR_VERSION = "sa10.24-v1"
 _OUTER_BOUNDARY_MIN_RECALL = 0.90
+
+
+def _canonical_material_mask(mask: np.ndarray) -> np.ndarray:
+    """Drop segmentation-scale specks/pinholes, retaining material topology.
+
+    The cutoff is image-relative and owner-local.  It is deliberately applied
+    before both topology comparison and source replay so candidate generation
+    and hard-evidence evaluation share the same authority.
+    """
+    binary = (np.asarray(mask) > 0).astype(np.uint8)
+    if binary.ndim != 2:
+        raise ValueError("material masks must be 2D")
+    cutoff = max(2, int(round(int(binary.sum()) * 0.001)))
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(binary, 8)
+    cleaned = np.zeros_like(binary)
+    for label in range(1, count):
+        if int(stats[label, cv2.CC_STAT_AREA]) >= cutoff:
+            cleaned[labels == label] = 1
+    padded = cv2.copyMakeBorder(cleaned, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(1 - padded, 8)
+    for label in range(1, count):
+        x, y, w, h, area = stats[label]
+        enclosed = x > 0 and y > 0 and x + w < padded.shape[1] and y + h < padded.shape[0]
+        if enclosed and int(area) < cutoff:
+            cleaned[labels[1:-1, 1:-1] == label] = 1
+    return cleaned.astype(bool)
 
 
 def _topology(mask: np.ndarray) -> tuple[int, int, int]:
@@ -167,7 +195,9 @@ def apply_structural_source_repair(
             part == "unknown" and part not in owner_parts
         ):
             continue
-        if _topology(source_masks[part]) != _topology(current_masks[part]):
+        if _topology(_canonical_material_mask(source_masks[part])) != _topology(
+            _canonical_material_mask(current_masks[part])
+        ):
             topology_repair_parts.add(part)
     if boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
         missing_edge = source_edge & ~current_union
@@ -219,7 +249,9 @@ def apply_structural_source_repair(
             )
 
     for part in sorted(topology_repair_parts):
-        if _topology(source_masks[part]) != _topology(current_masks[part]):
+        if _topology(_canonical_material_mask(source_masks[part])) != _topology(
+            _canonical_material_mask(current_masks[part])
+        ):
             reasons.setdefault(part, []).append("source_topology_mismatch")
         elif boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
             reasons.setdefault(part, []).append(
@@ -245,7 +277,7 @@ def apply_structural_source_repair(
 
     output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
     for part in repaired_parts:
-        source_mask = source_masks[part].copy()
+        source_mask = _canonical_material_mask(source_masks[part])
         existing = [group for group in groups if group.get("part") == part]
         if existing:
             # The repaired extent is owned by the immutable Phase 4 source
