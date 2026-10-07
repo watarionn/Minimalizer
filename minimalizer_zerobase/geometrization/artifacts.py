@@ -8,6 +8,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from .part_aware import FAMILY_ORDER, PartAwareGeometrizationResult
 
 
@@ -140,7 +142,7 @@ def write_phase10_artifacts(
     phase7_inputs = _verified_declared_outputs(phase7_dir, phase7_stage, consumer="Phase 7")
     phase8_inputs = _verified_declared_outputs(phase8_dir, phase8_stage, consumer="Phase 8")
     phase9_inputs = _verified_declared_outputs(phase9_dir, phase9_stage, consumer="Phase 9")
-    source_image = cv2.imread(str(source_path), cv2.IMREAD_UNCHANGED)
+    source_image = read_cv_image(source_path, cv2.IMREAD_UNCHANGED)
     if source_image is None or source_image.shape[:2] != (result.height, result.width):
         raise ValueError("Phase 10 canonical source image is missing or dimensionally invalid")
 
