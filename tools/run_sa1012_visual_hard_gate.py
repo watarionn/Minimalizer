@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -28,18 +29,22 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _rgb(path: Path):
-    image = cv2.imread(str(path), cv2.IMREAD_COLOR)
-    if image is None:
+def _decode(path: Path, flags: int):
+    if not path.is_file():
         raise FileNotFoundError(path)
-    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    encoded = np.fromfile(path, dtype=np.uint8)
+    image = cv2.imdecode(encoded, flags)
+    if image is None:
+        raise ValueError(f"unable to decode image: {path}")
+    return image
+
+
+def _rgb(path: Path):
+    return cv2.cvtColor(_decode(path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
 
 
 def _mask(path: Path):
-    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        raise FileNotFoundError(path)
-    return image > 0
+    return _decode(path, cv2.IMREAD_GRAYSCALE) > 0
 
 
 def main() -> int:
