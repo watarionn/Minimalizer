@@ -329,6 +329,7 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
         await file.close()
     elapsed_ms = (perf_counter() - started) * 1000.0
     metrics = summary["phase12_metrics"]
+    source = summary["source"]
     return Response(
         content=result,
         media_type="image/png",
@@ -342,6 +343,11 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             "X-Minimalizer-Provenance": "reviewed-sa10-phase3-12+phase14-gate",
             "X-Minimalizer-ZeroBase2-Profile": str(summary["selected_profile"]),
             "X-Minimalizer-ZeroBase2-SHA256": str(summary["final_sha256"]),
+            "X-Minimalizer-Input-SHA256": str(source["sha256"]),
+            "X-Minimalizer-Input-RGB-SHA256": str(source["rgb_sha256"]),
+            "X-Minimalizer-Input-Alpha-SHA256": str(source["alpha_sha256"] or "none"),
+            "X-Minimalizer-Input-Size": f'{source["width"]}x{source["height"]}',
+            "X-Minimalizer-Input-Bytes": str(source["bytes"]),
             "X-Minimalizer-Shape-Count": str(metrics["primitive_count"]),
             "X-Minimalizer-Processing-Ms": f"{elapsed_ms:.1f}",
             "X-Minimalizer-Rollback-Available": str(decision.rollback_available).lower(),
