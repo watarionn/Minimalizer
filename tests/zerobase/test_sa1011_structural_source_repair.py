@@ -135,6 +135,43 @@ def test_sa1024_does_not_repair_when_source_boundary_and_topology_match():
     assert repaired
 
 
+def test_sa1024_repairs_visible_hair_and_clothing_owner_topology_generically():
+    masks = _source_masks()
+    groups = _groups(masks)
+    for part in ("hair", "major_clothing"):
+        row = next(item for item in groups if item["part"] == part)
+        row["mask"][:] = False
+        row["mask"][2:4, 2:4] = True
+
+    repaired, report = apply_structural_source_repair(
+        groups,
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+
+    assert {"hair", "major_clothing"} <= set(report["repaired_parts"])
+    assert np.array_equal(_union(repaired, "hair"), masks["hair"])
+    assert np.array_equal(_union(repaired, "major_clothing"), masks["major_clothing"])
+    assert report["unreplayable_parts"] == []
+
+
+def test_sa1024_reports_unknown_without_phase12_owner_as_unreplayable():
+    masks = _source_masks()
+    masks["unknown"][30:34, 20:24] = True
+    repaired, report = apply_structural_source_repair(
+        _groups(masks),
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+
+    assert report["unreplayable_parts"] == ["unknown"]
+    assert "unknown" not in report["repaired_parts"]
+    assert report["applied"] is False
+    assert len(repaired) == len(_groups(masks))
+
+
 def test_structural_support_only_is_not_visible_in_phase12_render():
     from minimalizer_zerobase.simplification.artifacts import _render
 

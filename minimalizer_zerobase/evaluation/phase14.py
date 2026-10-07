@@ -155,16 +155,24 @@ def _selected_part_masks(
     *,
     width: int,
     height: int,
+    source_part_masks: dict[str, np.ndarray] | None = None,
 ) -> tuple[dict[str, np.ndarray], list[tuple[dict[str, Any], np.ndarray, str]]]:
     part_masks: dict[str, np.ndarray] = {}
     primitive_masks: list[tuple[dict[str, Any], np.ndarray, str]] = []
     for primitive in primitives:
-        mask = rasterize_primitive_candidate(
-            primitive,
-            width=width,
-            height=height,
-        )
         part = _part_name(primitive)
+        if (
+            primitive.get("source_mask_replay") is True
+            and source_part_masks is not None
+            and part in source_part_masks
+        ):
+            mask = np.asarray(source_part_masks[part]).astype(bool).copy()
+        else:
+            mask = rasterize_primitive_candidate(
+                primitive,
+                width=width,
+                height=height,
+            )
         if part not in part_masks:
             part_masks[part] = np.zeros((height, width), dtype=bool)
         part_masks[part] |= mask
@@ -491,6 +499,7 @@ def _evaluate_once(
         primitives,
         width=width,
         height=height,
+        source_part_masks=phase4_masks,
     )
     subject_mask = _read_mask(
         case_dir / "phase_03" / "03_subject_mask.png"

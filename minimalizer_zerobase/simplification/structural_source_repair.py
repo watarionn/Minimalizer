@@ -131,6 +131,12 @@ def apply_structural_source_repair(
         for group in groups
         if str(group.get("part") or "") in PART_NAMES
     }
+    unreplayable_parts = tuple(sorted(
+        part for part in PART_NAMES
+        if part == "unknown"
+        and np.any(source_masks[part])
+        and part not in owner_parts
+    ))
     source_graph = build_structural_layout_graph(source_masks)
     current_graph = build_structural_layout_graph(current_masks)
 
@@ -234,6 +240,7 @@ def apply_structural_source_repair(
             "baseline_graph_pass": bool(current_graph.to_dict()["validation"]["pass"]),
             "source_outer_boundary_recall_before": boundary_recall,
             "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
+            "unreplayable_parts": list(unreplayable_parts),
         }
 
     output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
@@ -301,4 +308,5 @@ def apply_structural_source_repair(
         "repaired_graph_pass": bool(repaired_graph.to_dict()["validation"]["pass"]),
         "source_outer_boundary_recall_before": boundary_recall,
         "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
+        "unreplayable_parts": list(unreplayable_parts),
     }
