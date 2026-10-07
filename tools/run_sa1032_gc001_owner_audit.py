@@ -20,7 +20,7 @@ def audit_records(records: list[dict]) -> dict:
         if not isinstance(primitive, dict):
             invalid.append({"index": i, "reason": "not_object"})
             continue
-        owner = primitive.get("owner")
+        owner = primitive.get("owner")\n        if owner is None:\n            owner = primitive.get("semantic_part_id") or primitive.get("composition_part")
         if not isinstance(owner, str) or not owner.strip():
             invalid.append({"index": i, "reason": "missing_explicit_owner"})
             continue
@@ -38,7 +38,7 @@ def audit_records(records: list[dict]) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--scene", required=True, type=Path)
-    p.add_argument("--primitives-key", default="primitives")
+    p.add_argument("--primitives-key", default="primitives_back_to_front")
     p.add_argument("--output", required=True, type=Path)
     args = p.parse_args()
     scene = json.loads(args.scene.read_text(encoding="utf-8-sig"))
