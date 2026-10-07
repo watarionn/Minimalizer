@@ -1,0 +1,34 @@
+{
+  "artifact_version": "sa10.15-set-v1",
+  "transaction_count": 3,
+  "transactions": [
+    {
+      "case_id": "AZKi",
+      "path": "benchmarks/regression/sa10/transactions/AZKi.sa10.15-transaction.json",
+      "pass_transaction": true,
+      "canonical_payload_sha256": "6de7831f3ddc8e33e0031ca91c271b6656124c677fe5ee3800d708021537a34c"
+    },
+    {
+      "case_id": "Hyakuto-Kyoko",
+      "path": "benchmarks/regression/sa10/transactions/Hyakuto-Kyoko.sa10.14-transaction.json",
+      "pass_transaction": true,
+      "canonical_payload_sha256": "41e1400c8a7f88b950f006aa520e5626df2b68bb1c113d3ee8ff2bce5b46c79c"
+    },
+    {
+      "case_id": "Juufuutei-Raden_stylecal_source",
+      "path": "benchmarks/regression/sa10/transactions/Juufuutei-Raden_stylecal_source.sa10.14-transaction.json",
+      "pass_transaction": true,
+      "canonical_payload_sha256": "5e2bb0ef5f309fe415002cafd49ecdca69fbbf8e18bfc3d8a7b45ecf185f4738"
+    }
+  ],
+  "pass_set": true,
+  "boundary": {
+    "aggregate_quality_score": false,
+    "hard_failures_individually_visible": true,
+    "diagnostics_can_override_hard_fail": false,
+    "calibrated_thresholds": false,
+    "canonical_payload_hashing": true,
+    "fresh_case_required": true,
+    "case_specific_production_logic": false
+  }
+}
