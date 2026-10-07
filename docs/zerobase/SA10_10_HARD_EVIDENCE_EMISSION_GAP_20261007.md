@@ -75,3 +75,19 @@ SHA-256:
 `5dc7d7a549e978980ccc234b2955610c8aa90a7bab417e698df6cba140acec18`
 
 No aggregate score or new calibration threshold was added.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_10_20261007_HARD_EVIDENCE`
+
+Drive folder ID:
+`1TAPioNcv6T_c4KbvK7F3V08-KgtMXw0U`
+
+Drive API readback verified all five artifacts:
+- corrected Kyoko semantic retention
+- corrected Raden semantic retention
+- Kyoko hard evidence
+- Raden hard evidence
+- SA10.10 cross-case matrix
