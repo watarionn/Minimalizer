@@ -50,7 +50,7 @@ def build_complete_gc001_regression_artifact(
 
     report = build_expanded_regression_gate(
         hard_gate=hard_gate,
-        semantic_retention_score=semantic_retention.get("semantic_retention_score"),
+        semantic_retention_score=semantic_report.get("semantic_retention_score"),
         adaptive_complexity_ratio=adaptive_ratio,
         component_survival_ratio=component_survival,
         primitive_economy_ratio=primitive_economy,
