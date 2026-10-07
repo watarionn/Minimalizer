@@ -1939,6 +1939,13 @@ def _candidate_for_profile(
         }
         if group.get("source_guided_kind"):
             record["source_guided_kind"] = str(group["source_guided_kind"])
+        if (
+            str(group.get("source_guided_kind") or "").startswith(
+                "structural-source-repair-"
+            )
+            and group["part"] in policy.support_only_parts
+        ):
+            record["structural_support_only"] = True
         mask = rasterize_primitive_candidate(record, width=width, height=height)
         if preserve_tiny_critical_plane:
             exact_mask = group["mask"].astype(bool)
