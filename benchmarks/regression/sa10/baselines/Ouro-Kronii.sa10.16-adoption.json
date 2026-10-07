@@ -1,0 +1,22 @@
+{
+  "version": "sa10.12-v1",
+  "case_id": "Ouro-Kronii",
+  "source_sha256": "30dc6b9f3e65813bb32a08264714405a33d14ea15f091b2a4b80efa66b2372ca",
+  "baseline_artifact_sha256": "baf3011657b6481a3d23c975d75db64334a735562718d7967cdd3c0165313544",
+  "baseline_origin": "SA10.16 fresh-case first reviewed Phase12 production candidate preserved in canonical Google Drive",
+  "baseline_artifact_id": "108Btyt4F9sZPUGE34XQ_t-pIVMmXJy7L",
+  "review_status": "ADOPTED",
+  "reviewer": "Rinka",
+  "review_evidence": [
+    "drive:108Btyt4F9sZPUGE34XQ_t-pIVMmXJy7L",
+    "drive:1KCdNBv74b1o0Z994siWAls1RyltqjG89",
+    "phase14:machine-pass",
+    "phase14:human-visual-pass",
+    "phase14:determinism-pass"
+  ],
+  "adoption_transaction_id": "sa10.16-adopt-ouro-kronii-20261007-v1",
+  "immutable_record": true,
+  "evaluation_baseline_allowed": true,
+  "production_inference_allowed": false,
+  "candidate_self_reference_forbidden": true
+}
