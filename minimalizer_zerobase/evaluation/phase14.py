@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from minimalizer_zerobase.composition.semantic import rasterize_primitive_candidate
 from minimalizer_zerobase.evaluation.structural_hard_evidence import evaluate_structural_hard_evidence
+from minimalizer_zerobase.evaluation.source_shape_evidence import evaluate_source_shape_evidence, vtracer_backend_status
 
 
 CRITICAL_LAYOUT_PARTS = (
@@ -530,6 +531,9 @@ def _evaluate_once(
         source_masks=phase4_masks,
         candidate_masks=selected_masks,
     )
+    source_outer = np.logical_or.reduce(list(phase4_masks.values()))
+    candidate_outer = np.logical_or.reduce(list(selected_masks.values()))
+    shape_evidence = evaluate_source_shape_evidence(source_outer, candidate_outer)
 
     baseline_primitives = max(
         int(metrics.get("baseline_primitive_count", 0)),
@@ -599,6 +603,12 @@ def _evaluate_once(
             "value": structural.source_anatomy,
             "expected": True,
             "passed": structural.anatomy_pass and structural.source_silhouette["passed"],
+        },
+        "source_shape_evidence": {
+            "value": shape_evidence.get("match_shapes_i1"),
+            "passed": True,
+            "authority": False,
+            "note": "evidence-only; source/anatomy/topology hard gates remain authoritative",
         },
         "primitive_economy": {
             "value": primitive_economy,
@@ -670,6 +680,8 @@ def _evaluate_once(
             "source_anatomy": structural.source_anatomy,
             "source_silhouette": structural.source_silhouette,
             "structural_topology": structural.to_dict()["topology"],
+            "source_shape_evidence": shape_evidence,
+            "vectorization_backend": vtracer_backend_status(),
         },
         "machine_checks": checks,
         "machine_pass": machine_pass,
