@@ -111,6 +111,7 @@ def evaluate_structural_hard_evidence(
     candidate_relations = {
         (row.source_part, row.relation_kind, row.target_part)
         for row in candidate_graph.relations
+        if row.confidence >= 0.5
     }
     missing_required_relations = tuple(sorted(
         f"{row.source_part}:{row.relation_kind}:{row.target_part}"
