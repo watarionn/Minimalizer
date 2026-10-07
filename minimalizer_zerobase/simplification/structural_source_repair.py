@@ -114,6 +114,7 @@ def apply_structural_source_repair(
     current_relations = {
         (row.source_part, row.relation_kind, row.target_part)
         for row in current_graph.relations
+        if row.confidence >= 0.5
     }
     missing_relations = tuple(sorted(source_required - current_relations))
 
@@ -137,15 +138,30 @@ def apply_structural_source_repair(
             )
 
     for source_part, relation, target_part in missing_relations:
-        if source_part in ANATOMY_PARTS and np.any(source_masks[source_part]):
-            repair_part = source_part
-        elif target_part in ANATOMY_PARTS and np.any(source_masks[target_part]):
-            repair_part = target_part
-        else:
-            continue
-        reasons.setdefault(repair_part, []).append(
-            f"missing_topology:{source_part}:{relation}:{target_part}"
-        )
+        source_present = bool(np.any(current_masks.get(source_part, False)))
+        target_present = bool(np.any(current_masks.get(target_part, False)))
+        repair_parts: list[str] = []
+        if (
+            source_part in ANATOMY_PARTS
+            and np.any(source_masks[source_part])
+            and not source_present
+        ):
+            repair_parts.append(source_part)
+        if (
+            target_part in ANATOMY_PARTS
+            and np.any(source_masks[target_part])
+            and not target_present
+        ):
+            repair_parts.append(target_part)
+        if source_present and target_present:
+            if source_part in ANATOMY_PARTS and np.any(source_masks[source_part]):
+                repair_parts.append(source_part)
+            if target_part in ANATOMY_PARTS and np.any(source_masks[target_part]):
+                repair_parts.append(target_part)
+        for repair_part in sorted(set(repair_parts)):
+            reasons.setdefault(repair_part, []).append(
+                f"missing_required_topology:{source_part}:{relation}:{target_part}"
+            )
 
     repaired_parts = tuple(sorted(reasons))
     if not repaired_parts:
@@ -204,6 +220,7 @@ def apply_structural_source_repair(
     repaired_relations = {
         (row.source_part, row.relation_kind, row.target_part)
         for row in repaired_graph.relations
+        if row.confidence >= 0.5
     }
     missing_after = tuple(sorted(source_required - repaired_relations))
     return output, {
