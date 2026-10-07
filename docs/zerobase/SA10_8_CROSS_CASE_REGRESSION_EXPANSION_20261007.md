@@ -95,8 +95,20 @@ Canonical fixtures:
 - `benchmarks/regression/sa10/Hyakuto-Kyoko.sa10.8.json`
 - `benchmarks/regression/sa10/Juufuutei-Raden_stylecal_source.sa10.8.json`
 
-Expected canonical matrix SHA-256:
+Generated artifact:
+- `benchmarks/regression/sa10/SA10_8_cross_case_matrix.json`
+
+Canonical matrix SHA-256:
 `5b3d45884f8a4f83834b80cadd16009607786beb93733ee09ee48954022d727d`
+
+Read-back verification:
+- fixture -> generator -> committed artifact: exact match
+
+Focused verification:
+- SA10.8 cross-case matrix tests: 4/4 PASS
+
+GitHub Actions:
+- no PR workflow/status checks are configured for this commit, so no CI PASS is claimed.
 
 ## Interpretation
 
