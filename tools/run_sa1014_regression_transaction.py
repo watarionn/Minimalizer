@@ -51,9 +51,11 @@ def main() -> int:
         face_raster_guard=_load(args.face_raster_guard),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(report.to_dict(), indent=2, sort_keys=True) + "\n"
-    args.output.write_text(payload, encoding="utf-8")
-    print(hashlib.sha256(payload.encode("utf-8")).hexdigest())
+    payload = (json.dumps(report.to_dict(), indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    args.output.write_bytes(payload)
+    print(hashlib.sha256(payload).hexdigest())
     return 0 if report.pass_transaction else 2
 
 
