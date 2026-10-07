@@ -102,6 +102,39 @@ def test_structural_repair_does_not_touch_valid_structure():
         assert np.array_equal(before["mask"], after["mask"])
 
 
+def test_sa1024_repairs_source_topology_mutation_and_reports_boundary_recall():
+    masks = _source_masks()
+    groups = _groups(masks)
+    # Erode an outer-owned arm while preserving a deceptively large union.
+    broken = next(row for row in groups if row["part"] == "left_arm")
+    broken["mask"][96, 82:103] = False
+    repaired, report = apply_structural_source_repair(
+        groups,
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+
+    assert report["version"] == "sa10.24-v1"
+    assert "left_arm" in report["repaired_parts"]
+    assert "source_topology_mismatch" in report["reasons"]["left_arm"]
+    assert report["source_outer_boundary_recall_before"] == 1.0
+    assert np.array_equal(_union(repaired, "left_arm"), masks["left_arm"])
+
+
+def test_sa1024_does_not_repair_when_source_boundary_and_topology_match():
+    masks = _source_masks()
+    repaired, report = apply_structural_source_repair(
+        _groups(masks),
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+    assert report["source_outer_boundary_recall_before"] == 1.0
+    assert report["applied"] is False
+    assert repaired
+
+
 def test_structural_support_only_is_not_visible_in_phase12_render():
     from minimalizer_zerobase.simplification.artifacts import _render
 

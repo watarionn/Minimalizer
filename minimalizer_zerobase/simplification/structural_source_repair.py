@@ -3,12 +3,31 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+import cv2
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import build_structural_layout_graph
 
-STRUCTURAL_REPAIR_VERSION = "sa10.11-v1"
+STRUCTURAL_REPAIR_VERSION = "sa10.24-v1"
 ANATOMY_PARTS = ("head", "torso", "left_arm", "right_arm", "lower_body")
+_OUTER_BOUNDARY_MIN_RECALL = 0.90
+
+
+def _topology(mask: np.ndarray) -> tuple[int, int, int]:
+    binary = np.asarray(mask, dtype=np.uint8)
+    components, _, _, _ = cv2.connectedComponentsWithStats(binary, 8)
+    padded = cv2.copyMakeBorder(binary, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
+    background, _, _, _ = cv2.connectedComponentsWithStats(1 - padded, 8)
+    components = max(0, int(components) - 1)
+    holes = max(0, int(background) - 1)
+    return components, holes, components - holes
+
+
+def _outer_boundary(mask: np.ndarray) -> np.ndarray:
+    return cv2.morphologyEx(
+        np.asarray(mask, dtype=np.uint8), cv2.MORPH_GRADIENT,
+        np.ones((3, 3), np.uint8),
+    ).astype(bool)
 
 
 def _bbox_area(mask: np.ndarray) -> float | None:
@@ -118,6 +137,29 @@ def apply_structural_source_repair(
     }
     missing_relations = tuple(sorted(source_required - current_relations))
 
+    # SA10.24: a high aggregate silhouette score can hide boundary erosion or
+    # component/hole mutations inside a semantic owner.  Mark only the
+    # source-owned parts implicated by the hard evidence for deterministic
+    # source replay; do not relax the evaluator thresholds.
+    source_union = np.logical_or.reduce(list(source_masks.values()))
+    current_union = np.logical_or.reduce(list(current_masks.values()))
+    source_edge = _outer_boundary(source_union)
+    current_edge = _outer_boundary(current_union)
+    boundary_recall = float(np.count_nonzero(source_edge & current_edge)) / max(
+        int(source_edge.sum()), 1
+    )
+    topology_repair_parts: set[str] = set()
+    for part in PART_NAMES:
+        if part == "unknown" or not np.any(source_masks[part]):
+            continue
+        if _topology(source_masks[part]) != _topology(current_masks[part]):
+            topology_repair_parts.add(part)
+    if boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
+        missing_edge = source_edge & ~current_union
+        for part in PART_NAMES:
+            if part != "unknown" and np.any(source_masks[part] & missing_edge):
+                topology_repair_parts.add(part)
+
     reasons: dict[str, list[str]] = {}
     for part in ANATOMY_PARTS:
         source = source_masks[part]
@@ -163,6 +205,14 @@ def apply_structural_source_repair(
                 f"missing_required_topology:{source_part}:{relation}:{target_part}"
             )
 
+    for part in sorted(topology_repair_parts):
+        if _topology(source_masks[part]) != _topology(current_masks[part]):
+            reasons.setdefault(part, []).append("source_topology_mismatch")
+        elif boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
+            reasons.setdefault(part, []).append(
+                f"source_outer_boundary_recall={boundary_recall:.6f}"
+            )
+
     repaired_parts = tuple(sorted(reasons))
     if not repaired_parts:
         return [dict(group) for group in groups], {
@@ -175,6 +225,8 @@ def apply_structural_source_repair(
             ],
             "source_graph_pass": bool(source_graph.to_dict()["validation"]["pass"]),
             "baseline_graph_pass": bool(current_graph.to_dict()["validation"]["pass"]),
+            "source_outer_boundary_recall_before": boundary_recall,
+            "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
         }
 
     output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
@@ -239,4 +291,6 @@ def apply_structural_source_repair(
         "source_graph_pass": bool(source_graph.to_dict()["validation"]["pass"]),
         "baseline_graph_pass": bool(current_graph.to_dict()["validation"]["pass"]),
         "repaired_graph_pass": bool(repaired_graph.to_dict()["validation"]["pass"]),
+        "source_outer_boundary_recall_before": boundary_recall,
+        "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
     }
