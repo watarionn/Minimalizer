@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Mapping
 
 import numpy as np
+import cv2
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.semantic_abstraction.anatomy_guard import (
@@ -18,7 +19,11 @@ from minimalizer_zerobase.structure.graph import (
     graph_validation,
 )
 
-SA10_STRUCTURAL_HARD_EVIDENCE_VERSION = "sa10.10-v1"
+SA10_STRUCTURAL_HARD_EVIDENCE_VERSION = "sa10.18-v1"
+_ARM_MIN_RECALL = 0.50
+_FACE_HEAD_MIN_BBOX_IOU = 0.70
+_FACE_HEAD_AREA_RATIO = (0.55, 1.80)
+_OUTER_BOUNDARY_MIN_RECALL = 0.90
 
 
 def _normalize_masks(
@@ -44,6 +49,8 @@ class StructuralHardEvidenceReport:
     anatomy_pass: bool
     topology_pass: bool
     missing_required_relations: tuple[str, ...]
+    source_anatomy: dict
+    source_silhouette: dict
     version: str = SA10_STRUCTURAL_HARD_EVIDENCE_VERSION
 
     def to_dict(self) -> dict:
@@ -62,7 +69,57 @@ class StructuralHardEvidenceReport:
                 "missing_required_relations": list(self.missing_required_relations),
             },
             "phase14_metric_relabeling": False,
+            "source_anatomy": self.source_anatomy,
+            "source_silhouette": self.source_silhouette,
         }
+
+
+def _bbox(mask):
+    ys, xs = np.where(mask)
+    return None if len(xs) == 0 else (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+
+
+def _bbox_iou(a, b):
+    if a is None or b is None:
+        return 0.0
+    x0, y0 = max(a[0], b[0]), max(a[1], b[1])
+    x1, y1 = min(a[2], b[2]), min(a[3], b[3])
+    inter = max(0, x1 - x0) * max(0, y1 - y0)
+    union = (a[2]-a[0])*(a[3]-a[1]) + (b[2]-b[0])*(b[3]-b[1]) - inter
+    return float(inter / max(union, 1))
+
+
+def _source_bound_geometry(source, candidate):
+    anatomy, failures = {}, []
+    for part in ("left_arm", "right_arm"):
+        src = source[part]
+        if not np.any(src):
+            anatomy[part] = {"source_visible": False, "passed": True}
+            continue
+        recall = int(np.count_nonzero(src & candidate[part])) / max(int(src.sum()), 1)
+        passed = recall >= _ARM_MIN_RECALL
+        anatomy[part] = {"source_visible": True, "recall": recall, "minimum": _ARM_MIN_RECALL, "passed": passed}
+        if not passed:
+            failures.append(f"{part}:source-visible-part-disappearance")
+    for part in ("face", "head"):
+        src = source[part]
+        if not np.any(src):
+            continue
+        cand = candidate[part]
+        ratio = int(cand.sum()) / max(int(src.sum()), 1)
+        iou = _bbox_iou(_bbox(src), _bbox(cand))
+        passed = bool(cand.any() and iou >= _FACE_HEAD_MIN_BBOX_IOU and _FACE_HEAD_AREA_RATIO[0] <= ratio <= _FACE_HEAD_AREA_RATIO[1])
+        anatomy[part] = {"source_visible": True, "bbox_iou": iou, "minimum_bbox_iou": _FACE_HEAD_MIN_BBOX_IOU, "area_ratio": ratio, "area_ratio_range": list(_FACE_HEAD_AREA_RATIO), "passed": passed}
+        if not passed:
+            failures.append(f"{part}:source-geometry-drift")
+    anatomy["failures"], anatomy["passed"] = failures, not failures
+    source_outer = np.logical_or.reduce(list(source.values()))
+    candidate_outer = np.logical_or.reduce(list(candidate.values()))
+    kernel = np.ones((3, 3), np.uint8)
+    source_edge = cv2.morphologyEx(source_outer.astype(np.uint8), cv2.MORPH_GRADIENT, kernel).astype(bool)
+    candidate_edge = cv2.morphologyEx(candidate_outer.astype(np.uint8), cv2.MORPH_GRADIENT, kernel).astype(bool)
+    recall = int(np.count_nonzero(source_edge & candidate_edge)) / max(int(source_edge.sum()), 1)
+    return anatomy, {"source_boundary_pixels": int(source_edge.sum()), "candidate_boundary_pixels": int(candidate_edge.sum()), "boundary_recall": recall, "minimum_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL, "passed": recall >= _OUTER_BOUNDARY_MIN_RECALL}
 
 
 def evaluate_structural_hard_evidence(
@@ -120,6 +177,7 @@ def evaluate_structural_hard_evidence(
         and (row.source_part, row.relation_kind, row.target_part)
         not in candidate_relations
     ))
+    source_anatomy, source_silhouette = _source_bound_geometry(source, candidate)
 
     return StructuralHardEvidenceReport(
         anatomy=anatomy,
@@ -128,4 +186,6 @@ def evaluate_structural_hard_evidence(
         anatomy_pass=anatomy.passed,
         topology_pass=bool(source_validation["pass"] and candidate_validation["pass"] and not missing_required_relations),
         missing_required_relations=missing_required_relations,
+        source_anatomy=source_anatomy,
+        source_silhouette=source_silhouette,
     )

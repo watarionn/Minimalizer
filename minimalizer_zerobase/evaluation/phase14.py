@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from minimalizer_zerobase.composition.semantic import rasterize_primitive_candidate
+from minimalizer_zerobase.evaluation.structural_hard_evidence import evaluate_structural_hard_evidence
 
 
 CRITICAL_LAYOUT_PARTS = (
@@ -525,6 +526,10 @@ def _evaluate_once(
         part_metrics,
         policy=policy,
     )
+    structural = evaluate_structural_hard_evidence(
+        source_masks=phase4_masks,
+        candidate_masks=selected_masks,
+    )
 
     baseline_primitives = max(
         int(metrics.get("baseline_primitive_count", 0)),
@@ -589,6 +594,11 @@ def _evaluate_once(
             "value": collapse,
             "expected": False,
             "passed": not collapse,
+        },
+        "source_anatomy": {
+            "value": structural.source_anatomy,
+            "expected": True,
+            "passed": structural.anatomy_pass and structural.source_silhouette["passed"],
         },
         "primitive_economy": {
             "value": primitive_economy,
@@ -657,6 +667,9 @@ def _evaluate_once(
             "oversized_blocks": oversized_rows,
             "fragmentation": fragmentation_detail,
             "collapse_failures": collapse_failures,
+            "source_anatomy": structural.source_anatomy,
+            "source_silhouette": structural.source_silhouette,
+            "structural_topology": structural.to_dict()["topology"],
         },
         "machine_checks": checks,
         "machine_pass": machine_pass,
