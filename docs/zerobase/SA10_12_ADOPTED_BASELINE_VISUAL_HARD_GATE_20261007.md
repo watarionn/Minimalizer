@@ -200,3 +200,24 @@ Covered:
 SA10.12 is complete.
 
 The missing visual hard-gate evidence has been legitimately backfilled. The only newly exposed visual hard failure in the two non-GC001 cases is forbidden face detail. SA10.13 should repair face neutralization at the production-candidate level, then rerun the same baseline-bound hard gate.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_12_20261007_BASELINE_VISUAL_HARD_GATE`
+
+Drive folder ID:
+`1zo_nTfgcPMbd0CEKjl1yjwDKszrOA1GG`
+
+The folder was created through the Drive API under the existing canonical Semantic_Abstraction parent. No new Japanese parent path was created through the local mount.
+
+Drive API read-back verified all 15 preserved artifacts:
+- 2 adoption records;
+- 2 Feature Survival reports;
+- 2 forbidden-face-detail reports;
+- 2 combined hard-evidence reports;
+- 2 SA10.12 fixtures;
+- 2 fresh Phase12 final PNGs;
+- 2 fresh Phase14 evaluation JSONs;
+- 1 cross-case matrix.
