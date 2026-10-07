@@ -187,3 +187,14 @@ Drive API readback verified:
 SA10.9 is complete.
 
 The next problem is not threshold calibration. The remaining work is to backfill explicit non-GC001 hard evidence and decide how an actual-emission component/economy diagnostic should coexist with the existing budget-aligned SA10.5 contract.
+
+
+## Superseded semantic-retention correction — SA10.10
+
+The SA10.9 non-GC001 DINO measurements used Phase14 `preview.png` as the candidate. Phase14 `preview.png` is the evaluation sheet, not the Minimalizer production image. Those two semantic-retention values are therefore superseded.
+
+SA10.10 remeasures against the canonical production candidate `phase_12/12_final.png` with exact candidate SHA binding:
+- Hyakuto-Kyoko: 0.7709177748262631
+- Juufuutei-Raden_stylecal_source: 0.914517616858495
+
+See `SA10_10_HARD_EVIDENCE_EMISSION_GAP_20261007.md`.
