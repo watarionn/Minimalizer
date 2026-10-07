@@ -1,0 +1,20 @@
+{
+  "artifact_version": "sa10.16-v1",
+  "case_id": "Nekomata-Okayu",
+  "production_candidate_sha256": "ffd8199ce602eeea74ad4d8e40d13ed04575555c5daa3cf0d1e391a316fa83dd",
+  "face_raster_guard": {
+    "changed_face_pixels": 4348,
+    "changed_outside_face_pixels": 0,
+    "face_pixels": 4348,
+    "fill_rgb": [
+      245,
+      224,
+      226
+    ],
+    "version": "sa7.38-v1"
+  },
+  "source_only": true,
+  "golden_used_for_inference": false,
+  "browser_v12_used_for_inference": false,
+  "generated_or_inpainted_pixel_count": 0
+}
