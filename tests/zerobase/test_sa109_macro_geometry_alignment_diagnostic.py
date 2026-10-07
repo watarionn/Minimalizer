@@ -66,3 +66,21 @@ def test_regular_source_is_aligned():
     assert report.aligned is True
     assert all(role.status == "ALIGNED" for role in report.roles)
     assert report.authoritative is False
+
+
+def test_hollow_mass_reports_expansion_drop_reason():
+    hair = np.zeros((120, 120), bool)
+    hair[10:90, 10:90] = True
+    hair[30:70, 30:70] = False
+    clothing = _mask(boxes=((20, 95, 100, 115),))
+    report = diagnose_macro_geometry_alignment(
+        hair_mask=hair,
+        clothing_mask=clothing,
+        global_primitive_budget=5,
+    )
+    hair_row = next(role for role in report.roles if role.role == "hair")
+    assert hair_row.status == "PRIMITIVE_GENERATION_DROP"
+    assert hair_row.drop_details
+    assert hair_row.drop_details[0].reason == "EXPANSION_EXCEEDED"
+    assert hair_row.drop_details[0].expansion_ratio > 1.12
+    assert hair_row.drop_details[0].source_coverage >= 0.65
