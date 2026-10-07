@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -85,3 +86,38 @@ def test_sa1014_teacher_and_raden_emission_boundaries_remain_explicit():
     assert actual["emission_realization_ratio"] == 0.5
     assert actual["maps_to_sa10_component_survival"] is False
     assert actual["maps_to_sa10_primitive_economy"] is False
+
+
+def test_sa1014_transaction_set_hashes_canonical_payloads():
+    tx_set = _load(DATA / "SA10_14_transaction_set.json")
+    assert tx_set["pass_set"] is True
+    assert tx_set["boundary"]["aggregate_quality_score"] is False
+    assert tx_set["boundary"]["canonical_payload_hashing"] is True
+    for row in tx_set["transactions"]:
+        payload = _load(ROOT / row["path"])
+        canonical = (
+            json.dumps(payload, indent=2, sort_keys=True) + "\n"
+        ).encode("utf-8")
+        assert hashlib.sha256(canonical).hexdigest() == row["canonical_payload_sha256"]
+        assert payload["pass_transaction"] is True
+
+
+def test_sa1014_transactions_are_self_describing():
+    for case_id in ("Hyakuto-Kyoko", "Juufuutei-Raden_stylecal_source"):
+        payload = _load(TX / f"{case_id}.sa10.14-transaction.json")
+        baseline = payload["adopted_baseline"]
+        phase14 = payload["phase14_evidence"]
+        versions = payload["evidence_versions"]
+        assert baseline["binding_passed"] is True
+        assert baseline["same_transaction"] is False
+        assert baseline["production_inference_allowed"] is False
+        assert phase14["machine_pass"] is True
+        assert phase14["human_visual_pass"] is True
+        assert phase14["determinism_pass"] is True
+        assert phase14["phase14_pass"] is True
+        assert len(phase14["determinism_sha256"]) == 64
+        assert versions["visual_hard_gate"] == "sa10.12-v1"
+        assert versions["hard_evidence"] == "sa10.10-v1"
+        assert versions["semantic_retention"] == "sa10.9-v1"
+        assert versions["face_raster_guard"] == "sa10.13-v1"
+        assert versions["phase14_schema"] == "1.0"
