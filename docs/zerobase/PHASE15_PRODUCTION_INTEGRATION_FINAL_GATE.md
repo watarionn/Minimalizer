@@ -30,3 +30,11 @@ Required evidence: real-browser standard-button smoke, ZeroBase2 route evidence,
 - artifacts/phase15_production/15_production_compare_board.png
 - artifacts/phase15_production/15_zerobase2_api_headers_311.txt
 - artifacts/phase15_production/15_zerobase2_api_output_311.png
+
+## 2026-10-07 Owner Best-Quality Promotion
+
+- Owner production now prefers ZeroBase2 without requiring the old opt-in flag.
+- Route order is ZeroBase2 BEST -> Local Minimalizer 2.0 HIGH -> Browser Fallback v12 FALLBACK.
+- Browser fallback remains available for public availability but is never presented as best quality.
+- Local Worker carries a tracked Phase 14 authorization manifest bound to the original closure SHA-256.
+- Production completion requires deployed Local Worker /health to report active_production_route=zerobase2 and a real-image response to expose X-Minimalizer-Route: zerobase2.

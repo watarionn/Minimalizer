@@ -49,6 +49,10 @@ def test_health_reports_cold_runtime_without_eager_warmup():
     assert response.json()["shading_flatten_sr"] == 45
     assert response.json()["shading_flatten_guard"] is True
     assert response.json()["semantic_geometric_mass"] is True
+    assert response.json()["best_quality_route"] == "zerobase2"
+    assert response.json()["best_quality_profile"] == "reviewed-sa10"
+    assert response.json()["active_production_route"] == "zerobase2"
+    assert response.json()["zerobase2_authorized"] is True
 
 
 def test_local_worker_rejects_untrusted_browser_origin():
@@ -104,6 +108,8 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
     assert response.status_code == 200
     assert response.content == b"fake-png"
     assert response.headers["x-minimalizer-compute"] == "local-worker"
+    assert response.headers["x-minimalizer-quality-tier"] == "high"
+    assert response.headers["x-minimalizer-engine"] == "minimalizer2-local"
     assert response.headers["x-minimalizer-analysis"] == "rembg+rtmlib"
     assert response.headers["x-minimalizer-layered-person"] == "true"
     assert response.headers["x-minimalizer-geometry-mass"] == "true"
@@ -216,6 +222,7 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
         lambda path: (
             b"png-bytes",
             {
+                "semantic_profile": "reviewed-sa10",
                 "selected_profile": "conservative",
                 "final_sha256": "abc123",
                 "phase12_metrics": {"primitive_count": 14},
@@ -230,6 +237,10 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
         )
     assert response.status_code == 200
     assert response.headers["x-minimalizer-route"] == "zerobase2"
+    assert response.headers["x-minimalizer-quality-tier"] == "best"
+    assert response.headers["x-minimalizer-engine"] == "zerobase2-reviewed-sa10-phase12"
+    assert response.headers["x-minimalizer-semantic-profile"] == "reviewed-sa10"
+    assert response.headers["x-minimalizer-provenance"] == "reviewed-sa10-phase3-12+phase14-gate"
     assert response.headers["x-minimalizer-rollback-available"] == "true"
     assert response.headers["x-minimalizer-zerobase2-profile"] == "conservative"
 

@@ -13,7 +13,6 @@ ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT))
 
 from minimalize_engine.v2.analysis_guidance import AnalysisGuidance
-from minimalize_engine.v2.person_parts import build_person_part_partition
 from minimalize_engine.v2.mediapipe_guidance import (
     MediaPipeSemanticConfig,
     build_mediapipe_semantic_guide,
@@ -25,8 +24,19 @@ from minimalize_engine.v2.rtmlib_guidance import (
     create_rtmlib_wholebody,
 )
 from minimalizer_zerobase.parts.artifacts import write_phase4_artifacts
-from minimalizer_zerobase.parts.decomposition import decompose_semantic_parts
+from minimalizer_zerobase.production.profile import reviewed_sa10_enabled
 from minimalizer_zerobase.subject.artifacts import sha256_file
+
+if reviewed_sa10_enabled():
+    from minimalizer_zerobase.reviewed_sa10.person_parts import (
+        build_person_part_partition,
+    )
+    from minimalizer_zerobase.reviewed_sa10.parts_decomposition import (
+        decompose_semantic_parts,
+    )
+else:
+    from minimalize_engine.v2.person_parts import build_person_part_partition
+    from minimalizer_zerobase.parts.decomposition import decompose_semantic_parts
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,6 +69,7 @@ def case_id(path: Path) -> str:
 
 def main() -> int:
     args = parse_args()
+    reviewed_profile = reviewed_sa10_enabled()
     structural_config = RtmlibStructuralConfig(
         mode=args.rtmlib_mode,
         device=args.rtmlib_device,
@@ -83,8 +94,16 @@ def main() -> int:
         "rtmlib_mode": args.rtmlib_mode,
         "rtmlib_device": args.rtmlib_device,
         "face_locator": "structure-face-locator-v1",
-        "hair_growth": "seed-color-connected-v5-with-hair-like-unknown-component-rescue",
-        "accessory_detection": "peripheral-linear-or-vivid-near-torso-accent-v3-with-secondary-shoulder-recovery",
+        "hair_growth": (
+            "seed-color-connected-v2-with-optional-mediapipe-guard"
+            if reviewed_profile
+            else "seed-color-connected-v5-with-hair-like-unknown-component-rescue"
+        ),
+        "accessory_detection": (
+            "peripheral-linear-or-vivid-accent-v1"
+            if reviewed_profile
+            else "peripheral-linear-or-vivid-near-torso-accent-v3-with-secondary-shoulder-recovery"
+        ),
         "overlap_policy": "appearance-over-structural-for-display",
         "semantic_hint_provider": (
             "mediapipe" if semantic_segmenter is not None else "none"

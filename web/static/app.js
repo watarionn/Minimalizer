@@ -126,9 +126,9 @@ function refreshEngineBadge() {
   {
     const workerName = localWorkerDisplayName();
     const labels = {
-      enabled: `${workerName}優先`,
-      checking: `${workerName}接続確認中`,
-      ready: `${workerName}接続済み`,
+      enabled: `${workerName} · ZeroBase2 BEST優先`,
+      checking: `${workerName} · BEST接続確認中`,
+      ready: `${workerName} · ZeroBase2 BEST接続済み`,
       fallback: browserFallbackEnabled() ? "Browser fallback" : "Fallback disabled",
     };
     parts.push(labels[state.localWorkerStatus] || `${workerName}優先`);
@@ -191,7 +191,7 @@ function updateModeUi() {
       ? "背景と色ファミリーを整理し、特徴色 v5でColor Stripを生成中…"
       : "代表色と特徴色を評価してColor Stripを生成中…";
   } else {
-    elements.modeDescription.textContent = "現在の高精度Minimalizer 2.0でミニマル化します。方式を選ぶ必要はありません。";
+    elements.modeDescription.textContent = "現時点の最高品質ZeroBase2を優先し、通らない画像はローカル高精度Minimalizer 2.0へ安全にフォールバックします。";
     elements.resultTitle.textContent = "ミニマル化結果";
     elements.minimalizeButton.textContent = "ミニマル化";
     elements.processingTitle.textContent = "ミニマル化しています";
@@ -395,49 +395,73 @@ async function requestBrowserColorStrip(outputFormat) {
 async function requestStandardV2() {
   if (browserFallbackForced()) {
     const response = await requestBrowserFallback();
-    return { response, compute: "browser", fallbackReason: "forced-browser" };
+    return { response, compute: "browser", fallbackReason: "forced-browser", qualityTier: "fallback" };
   }
+
   let fallbackReason = "";
-  {
-    const probe = await probeLocalWorker();
-    if (probe.ready) {
-      try {
-        const response = await fetchLocalWorker("/api/zerobase2/minimalize", {
-          method: "POST",
-          body: buildV2FormData(),
-        });
-        if (response.ok || response.status === 400 || response.status === 415) {
-          state.localWorkerStatus = "ready";
-          refreshEngineBadge();
-          return { response, compute: "local-worker", fallbackReason: "" };
-        }
-        if (response.status === 422 && response.headers.get("x-minimalizer-failure-class") === "quality-gate") {
-          state.localWorkerStatus = "ready";
-          refreshEngineBadge();
-          const failedStage = response.headers.get("x-minimalizer-failed-stage") || "quality-gate";
-          fallbackReason = `zerobase2-${failedStage}`;
-        } else {
-          fallbackReason = `worker-${response.status}`;
-        }
-      } catch (error) {
-        fallbackReason = error instanceof DOMException && error.name === "AbortError"
-          ? "timeout"
-          : "permission-or-offline";
+  const probe = await probeLocalWorker();
+  if (probe.ready) {
+    try {
+      const response = await fetchLocalWorker("/api/zerobase2/minimalize", {
+        method: "POST",
+        body: buildV2FormData(),
+      });
+      if (response.ok || response.status === 400 || response.status === 415) {
+        state.localWorkerStatus = "ready";
+        refreshEngineBadge();
+        return { response, compute: "local-worker", fallbackReason: "", qualityTier: "best" };
       }
-    } else {
-      fallbackReason = probe.reason;
+      if (response.status === 422 && response.headers.get("x-minimalizer-failure-class") === "quality-gate") {
+        const failedStage = response.headers.get("x-minimalizer-failed-stage") || "quality-gate";
+        fallbackReason = `zerobase2-${failedStage}`;
+      } else {
+        fallbackReason = `zerobase2-${response.status}`;
+      }
+    } catch (error) {
+      fallbackReason = error instanceof DOMException && error.name === "AbortError"
+        ? "zerobase2-timeout"
+        : "zerobase2-unavailable";
     }
-    state.localWorkerStatus = "fallback";
-    state.localWorkerFallbackReason = fallbackReason;
-    refreshEngineBadge();
-    setStatus(localWorkerFallbackMessage(fallbackReason), true);
+
+    try {
+      const response = await fetchLocalWorker("/api/v2/minimalize", {
+        method: "POST",
+        body: buildV2FormData(),
+      });
+      if (response.ok || response.status === 400 || response.status === 415) {
+        state.localWorkerStatus = "ready";
+        state.localWorkerFallbackReason = fallbackReason;
+        refreshEngineBadge();
+        return { response, compute: "local-worker", fallbackReason, qualityTier: "high" };
+      }
+      fallbackReason = `${fallbackReason ? `${fallbackReason};` : ""}local-v2-${response.status}`;
+    } catch (error) {
+      const reason = error instanceof DOMException && error.name === "AbortError"
+        ? "local-v2-timeout"
+        : "local-v2-unavailable";
+      fallbackReason = `${fallbackReason ? `${fallbackReason};` : ""}${reason}`;
+    }
+  } else {
+    fallbackReason = probe.reason;
   }
+
+  state.localWorkerStatus = "fallback";
+  state.localWorkerFallbackReason = fallbackReason;
+  refreshEngineBadge();
+
   if (!browserFallbackEnabled()) {
-    throw new Error("Browser fallbackが無効です。Local Workerを有効にするか、Browser fallbackを有効にしてください。");
+    throw new Error(
+      "最高品質Local Workerを使用できません。Local Workerを起動するか、明示的にBrowser fallbackを有効にしてください。",
+    );
   }
+
+  setStatus(
+    `${localWorkerFallbackMessage(fallbackReason)} 最高品質経路ではないため、結果品質は下がります。`,
+    true,
+  );
   try {
     const response = await requestBrowserFallback();
-    return { response, compute: "browser", fallbackReason };
+    return { response, compute: "browser", fallbackReason, qualityTier: "fallback" };
   } catch (error) {
     const detail = error instanceof Error ? error.message : "unknown browser error";
     throw new Error(`Browser fallbackに失敗しました。 ${detail}`);
@@ -525,6 +549,8 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const responseMode = response.headers.get("x-minimalizer-mode");
       const responseRoute = response.headers.get("x-minimalizer-route");
       const v2Contract = response.headers.get("x-minimalizer-v2-contract-version");
+      const qualityTier = response.headers.get("x-minimalizer-quality-tier");
+      const engineName = response.headers.get("x-minimalizer-engine");
       const shapes = response.headers.get("x-minimalizer-shape-count");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
@@ -535,11 +561,11 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const modeLabel = responseMode === "color_strip"
         ? "Color Strip"
         : responseRoute === "zerobase2"
-          ? "Minimalizer ZeroBase2"
+          ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? "Minimalizer Browser Fallback v12"
+            ? "Minimalizer Browser Fallback v12 · FALLBACK"
             : v2Contract
-              ? "Minimalizer 2.0 Local"
+              ? "Minimalizer 2.0 Local · HIGH"
               : "Minimalizer";
 
       const colorOptionLabel = responseMode === "color_strip"
@@ -556,6 +582,8 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.resultMeta.textContent = [
         modeLabel,
         computeLabel,
+        engineName || "",
+        qualityTier ? `quality=${qualityTier}` : "",
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
         colorOptionLabel,
         size || "",
@@ -570,18 +598,21 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         setStatus(`${label}を保存しました。`);
       }
     } else {
-      const completionMessage = colorStrip
-        ? "Color Stripが完成しました。"
-        : computeRoute === "local-worker"
-          ? localWorkerMode() === "tailscale"
-            ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
-            : "ローカル高精度Workerでミニマル化が完了しました。"
-          : "Browser fallback v12でミニマル化が完了しました。";
-      const routeWarning = computeRoute === "browser" && Boolean(fallbackReason);
-      if (fallbackReason.startsWith("zerobase2-")) {
-        setStatus("Local Workerへの接続は成功しましたが、この画像はZeroBase2品質Gateを通過しなかったためBrowser fallbackで処理しました。", false);
+      if (colorStrip) {
+        setStatus("Color Stripが完成しました。");
+      } else if (computeRoute === "local-worker" && response.headers.get("x-minimalizer-route") === "zerobase2") {
+        setStatus("現時点の最高品質 ZeroBase2 でミニマル化が完了しました。");
+      } else if (computeRoute === "local-worker") {
+        const prefix = fallbackReason
+          ? `ZeroBase2を使用できなかったため (${fallbackReason})、`
+          : "";
+        setStatus(`${prefix}ローカル高精度Minimalizer 2.0でミニマル化が完了しました。`);
+      } else {
+        setStatus(
+          `Browser fallback v12で処理しました (${fallbackReason || "local-worker-unavailable"})。最高品質経路ではありません。`,
+          true,
+        );
       }
-      setStatus(completionMessage, routeWarning);
     }
   } catch (error) {
     if (preview && !state.resultBlob) {
@@ -682,8 +713,8 @@ refreshEngineBadge();
 {
   setStatus(
     localWorkerMode() === "tailscale"
-      ? "Tailscale Local Worker優先モードです。携帯のTailscaleを接続した状態でミニマル化してください。"
-      : "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
+      ? "Tailscale経由で最高品質ZeroBase2を優先します。携帯のTailscaleを接続した状態でミニマル化してください。"
+      : "最高品質ZeroBase2をLocal Workerで優先します。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
   );
 }
 

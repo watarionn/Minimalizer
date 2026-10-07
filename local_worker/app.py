@@ -30,6 +30,7 @@ from minimalize_engine.v2 import (
 )
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
 from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
+from minimalizer_zerobase.production.profile import REVIEWED_SA10_PROFILE
 logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
@@ -48,6 +49,14 @@ SHADING_FLATTEN_GUARD = os.getenv(
 GEOMETRIC_MASS_ENABLED = os.getenv(
     "MINIMALIZER_LOCAL_GEOMETRIC_MASS", "1"
 ).strip().lower() not in {"0", "false", "no", "off"}
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+TRACKED_PHASE14_AUTHORIZATION = (
+    REPO_ROOT
+    / "config"
+    / "production"
+    / "zerobase2_phase14_authorization.json"
+)
 
 DEFAULT_ORIGINS = (
     "https://cf278796.cloudfree.jp",
@@ -205,10 +214,21 @@ async def guard_browser_origin(request: Request, call_next):
 def health():
     ready = _rembg_session is not None and _rtmlib_model is not None
     status = "ready" if ready else ("degraded" if _runtime_error else "cold")
+    try:
+        route_decision = _zerobase2_route_decision()
+        active_route = route_decision.active_route
+        zerobase2_authorized = route_decision.zerobase_authorized
+    except Exception:
+        active_route = "minimalizer2"
+        zerobase2_authorized = False
     return {
         "status": status,
         "worker": "local-compute-v1",
         "ready": ready,
+        "best_quality_route": ZEROBASE2_ROUTE,
+        "best_quality_profile": REVIEWED_SA10_PROFILE,
+        "active_production_route": active_route,
+        "zerobase2_authorized": zerobase2_authorized,
         "analysis_max_side": ANALYSIS_MAX_SIDE,
         "rembg_model": REMBG_MODEL,
         "rtmlib_mode": RTMLIB_MODE,
@@ -237,12 +257,17 @@ def warmup():
 
 
 def _phase14_closure_path() -> Path:
-    return Path(
-        os.getenv(
-            "MINIMALIZER_PHASE14_CLOSURE",
-            str(Path(__file__).resolve().parents[1] / "artifacts" / "phase14_closure" / "14_phase_gate_summary.json"),
-        )
+    configured = os.getenv("MINIMALIZER_PHASE14_CLOSURE")
+    if configured:
+        return Path(configured)
+
+    local_closure = (
+        REPO_ROOT / "artifacts" / "phase14_closure" / "14_phase_gate_summary.json"
     )
+    if local_closure.is_file():
+        return local_closure
+
+    return TRACKED_PHASE14_AUTHORIZATION
 
 
 def _zerobase2_route_decision():
@@ -259,7 +284,11 @@ def _run_zerobase2(input_path: Path):
     from tools.run_zerobase2_shadow_pipeline import run_zerobase2_shadow_pipeline
 
     with TemporaryDirectory(prefix="minimalizer-zerobase2-production-") as output_root:
-        summary = run_zerobase2_shadow_pipeline(input_path, output_root)
+        summary = run_zerobase2_shadow_pipeline(
+            input_path,
+            output_root,
+            semantic_profile=REVIEWED_SA10_PROFILE,
+        )
         final_path = Path(summary["final_path"])
         return final_path.read_bytes(), summary
 
@@ -307,6 +336,10 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             "Content-Disposition": 'attachment; filename="minimalized.png"',
             "X-Minimalizer-Mode": "zerobase2",
             "X-Minimalizer-Route": ZEROBASE2_ROUTE,
+            "X-Minimalizer-Quality-Tier": "best",
+            "X-Minimalizer-Engine": "zerobase2-reviewed-sa10-phase12",
+            "X-Minimalizer-Semantic-Profile": str(summary["semantic_profile"]),
+            "X-Minimalizer-Provenance": "reviewed-sa10-phase3-12+phase14-gate",
             "X-Minimalizer-ZeroBase2-Profile": str(summary["selected_profile"]),
             "X-Minimalizer-ZeroBase2-SHA256": str(summary["final_sha256"]),
             "X-Minimalizer-Shape-Count": str(metrics["primitive_count"]),
@@ -369,6 +402,8 @@ async def minimalize_local(
         "Content-Disposition": f'attachment; filename="{result.filename}"',
         "X-Minimalizer-Mode": "v2-local-worker",
         "X-Minimalizer-Compute": "local-worker",
+        "X-Minimalizer-Quality-Tier": "high",
+        "X-Minimalizer-Engine": "minimalizer2-local",
         "X-Minimalizer-Analysis": "rembg+rtmlib",
         "X-Minimalizer-Layered-Person": "true",
         "X-Minimalizer-Geometry-Mass": str(

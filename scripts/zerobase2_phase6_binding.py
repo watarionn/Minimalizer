@@ -12,13 +12,19 @@ from PIL import Image
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT))
 
-from minimalizer_zerobase.binding import (
-    BindingPolicy,
-    build_region_bindings,
-    write_phase6_artifacts,
-)
-from minimalizer_zerobase.parts.decomposition import PART_NAMES
+from minimalizer_zerobase.binding import write_phase6_artifacts
+from minimalizer_zerobase.production.profile import reviewed_sa10_enabled
 from minimalizer_zerobase.subject.artifacts import sha256_file
+
+if reviewed_sa10_enabled():
+    from minimalizer_zerobase.reviewed_sa10.binding_region import (
+        BindingPolicy,
+        build_region_bindings,
+    )
+    from minimalizer_zerobase.reviewed_sa10.parts_decomposition import PART_NAMES
+else:
+    from minimalizer_zerobase.binding import BindingPolicy, build_region_bindings
+    from minimalizer_zerobase.parts.decomposition import PART_NAMES
 
 
 def parse_args() -> argparse.Namespace:
@@ -95,6 +101,7 @@ def _verify_phase5(
 
 def main() -> int:
     args = parse_args()
+    reviewed_profile = reviewed_sa10_enabled()
     policy = BindingPolicy(
         n_segments=args.n_segments,
         compactness=args.compactness,
@@ -105,8 +112,16 @@ def main() -> int:
         "region_provider": "skimage.segmentation.slic",
         "region_provider_version": skimage.__version__,
         "region_provider_role": "evidence-only",
-        "binding_authority": "multi-evidence-with-clean-child-semantic-split-override",
-        "semantic_boundary_policy": "split-with-strong-child-evidence-override-v3",
+        "binding_authority": (
+            "multi-evidence-with-parent-ambiguity-inheritance"
+            if reviewed_profile
+            else "multi-evidence-with-clean-child-semantic-split-override"
+        ),
+        "semantic_boundary_policy": (
+            "split-with-parent-ambiguity-inheritance-v2"
+            if reviewed_profile
+            else "split-with-strong-child-evidence-override-v3"
+        ),
         "graph_context_policy": "decision-support-with-spatial-corroboration",
         "boundary_geometry_policy": "independent-spatial-decision-support",
         "color_policy": "score-support-never-sole-binding-authority",
