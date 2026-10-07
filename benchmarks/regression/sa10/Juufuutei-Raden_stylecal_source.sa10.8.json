@@ -1,0 +1,80 @@
+{
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source": {
+    "path": "Juufuutei-Raden_stylecal_source.png",
+    "width": 512,
+    "height": 512,
+    "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3"
+  },
+  "determinism_sha256": "2fb98dbbf1ff3dc316b81f2eda562e530b3ba5abdd6b50e2fe4041edf944c7d3",
+  "diagnostics": {
+    "semantic_retention": {
+      "status": "UNAVAILABLE",
+      "reason": "No frozen DINOv3 report is preserved for the exact 512x512 Phase14 source/output pair."
+    },
+    "adaptive_complexity": {
+      "status": "UNAVAILABLE",
+      "reason": "No persisted SA7.43 adaptive-budget artifact exists for this exact 512x512 source chain."
+    },
+    "component_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "Fresh SA10.8 support measurement failed closed because emitted macro primitive count did not match the SA7.43 budget frame for hair."
+    },
+    "primitive_economy": {
+      "status": "UNAVAILABLE",
+      "reason": "Fresh SA10.8 support measurement failed closed because emitted macro primitive count did not match the SA7.43 budget frame for hair."
+    },
+    "teacher_coverage": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    },
+    "teacher_primitive_disagreements": {
+      "status": "UNAVAILABLE",
+      "reason": "No reviewed SA9 Golden Teacher annotation exists for this case."
+    }
+  },
+  "hard_evidence": {
+    "feature_survival": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 Feature Survival signature report is preserved for this Phase14 case."
+    },
+    "forbidden_face_detail": {
+      "status": "UNAVAILABLE",
+      "reason": "No SA7.35 forbidden-face-detail report is preserved for this Phase14 case."
+    },
+    "anatomy": {
+      "status": "UNAVAILABLE",
+      "reason": "Phase14 collapse/layout checks are not silently re-labeled as the SA10 anatomy hard gate."
+    },
+    "topology": {
+      "status": "UNAVAILABLE",
+      "reason": "No standalone SA10 topology hard-gate report is preserved for this case."
+    },
+    "source_authority": {
+      "status": "UNAVAILABLE",
+      "reason": "The source is SHA-bound, but provenance binding is not silently promoted to the SA10 source-authority hard gate."
+    },
+    "phase14_machine": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "phase14_human_visual": {
+      "status": "AVAILABLE",
+      "passed": true
+    },
+    "determinism": {
+      "status": "AVAILABLE",
+      "passed": true
+    }
+  },
+  "context_metrics": {
+    "phase14_silhouette_preservation": 0.984893,
+    "phase14_identity_feature_retention": 0.975258,
+    "phase14_primitive_economy_not_sa10": 0.46153846153846156
+  },
+  "provenance": {
+    "phase4_masks": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_04/part_masks",
+    "phase14_artifact": "artifacts/phase12_style_calibration_pipeline/Juufuutei-Raden_stylecal_source/phase_14/14_case_evaluation.json",
+    "sa10_measurement": "fresh SA10.8 role-mask measurement attempt; component/economy failed closed on primitive-frame mismatch"
+  }
+}
