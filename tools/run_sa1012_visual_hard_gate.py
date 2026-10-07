@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 import hashlib
 import json
 import sys
@@ -84,13 +85,7 @@ def main() -> int:
             "required_signature_count": report.required_signature_count,
             "missing_count": report.missing_count,
             "missing_signatures": [
-                signature.to_dict()
-                if hasattr(signature, "to_dict")
-                else {
-                    "position": list(signature.position),
-                    "color": list(signature.color),
-                }
-                for signature in report.missing_signatures
+                asdict(signature) for signature in report.missing_signatures
             ],
         },
         "forbidden_face_detail": {
