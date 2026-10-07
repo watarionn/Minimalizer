@@ -46,6 +46,8 @@ def _render(
 ) -> np.ndarray:
     canvas = np.full((height, width, 3), BACKGROUND_COLOR, dtype=np.uint8)
     for item in primitives:
+        if item.get("structural_support_only") is True:
+            continue
         primitive_id = str(item["primitive_id"])
         canvas[masks[primitive_id]] = np.asarray(
             item["palette_color_rgb"], dtype=np.uint8
