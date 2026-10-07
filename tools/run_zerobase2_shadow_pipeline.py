@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from minimalize_engine.io.image_loader import load_image_bundle
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
 from minimalizer_zerobase.production.profile import (
     CURRENT_PROFILE,
@@ -91,6 +92,16 @@ def run_zerobase2_shadow_pipeline(
         raise ValueError(f"unsupported Minimalizer semantic profile: {semantic_profile}")
     if not source.is_file():
         raise ValueError(f"ZeroBase2 shadow source is missing: {source}")
+
+    loaded_source = load_image_bundle(source)
+    source_height, source_width = loaded_source.rgb.shape[:2]
+    source_rgb_sha256 = hashlib.sha256(loaded_source.rgb.tobytes()).hexdigest()
+    source_alpha_sha256 = (
+        hashlib.sha256(loaded_source.alpha.tobytes()).hexdigest()
+        if loaded_source.alpha is not None
+        else None
+    )
+
     output_root.mkdir(parents=True, exist_ok=True)
     case_dir = output_root / _case_id(source)
     python = sys.executable
@@ -209,6 +220,11 @@ def run_zerobase2_shadow_pipeline(
         "source": {
             "path": source.name,
             "sha256": _sha256(source),
+            "bytes": source.stat().st_size,
+            "width": source_width,
+            "height": source_height,
+            "rgb_sha256": source_rgb_sha256,
+            "alpha_sha256": source_alpha_sha256,
         },
         "case_id": case_dir.name,
         "case_dir": str(case_dir),

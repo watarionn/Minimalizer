@@ -552,6 +552,11 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const qualityTier = response.headers.get("x-minimalizer-quality-tier");
       const engineName = response.headers.get("x-minimalizer-engine");
       const shapes = response.headers.get("x-minimalizer-shape-count");
+      const inputSha = response.headers.get("x-minimalizer-input-sha256");
+      const inputRgbSha = response.headers.get("x-minimalizer-input-rgb-sha256");
+      const inputAlphaSha = response.headers.get("x-minimalizer-input-alpha-sha256");
+      const inputSize = response.headers.get("x-minimalizer-input-size");
+      const inputBytes = response.headers.get("x-minimalizer-input-bytes");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
       const colorSelectionMode = response.headers.get("x-minimalizer-color-selection-mode");
@@ -585,6 +590,11 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         engineName || "",
         qualityTier ? `quality=${qualityTier}` : "",
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
+        inputSize ? `src=${inputSize}` : "",
+        inputBytes ? `bytes=${inputBytes}` : "",
+        inputSha ? `file=${inputSha.slice(0, 12)}` : "",
+        inputRgbSha ? `rgb=${inputRgbSha.slice(0, 12)}` : "",
+        inputAlphaSha ? `alpha=${inputAlphaSha === "none" ? "none" : inputAlphaSha.slice(0, 12)}` : "",
         colorOptionLabel,
         size || "",
       ].filter(Boolean).join(" · ");

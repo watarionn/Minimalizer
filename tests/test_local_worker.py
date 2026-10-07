@@ -225,6 +225,14 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
                 "semantic_profile": "reviewed-sa10",
                 "selected_profile": "conservative",
                 "final_sha256": "abc123",
+                "source": {
+                    "sha256": "filehash",
+                    "bytes": 123,
+                    "width": 340,
+                    "height": 340,
+                    "rgb_sha256": "rgbhash",
+                    "alpha_sha256": "alphahash",
+                },
                 "phase12_metrics": {"primitive_count": 14},
             },
         ),
@@ -243,6 +251,11 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
     assert response.headers["x-minimalizer-provenance"] == "reviewed-sa10-phase3-12+phase14-gate"
     assert response.headers["x-minimalizer-rollback-available"] == "true"
     assert response.headers["x-minimalizer-zerobase2-profile"] == "conservative"
+    assert response.headers["x-minimalizer-input-sha256"] == "filehash"
+    assert response.headers["x-minimalizer-input-rgb-sha256"] == "rgbhash"
+    assert response.headers["x-minimalizer-input-alpha-sha256"] == "alphahash"
+    assert response.headers["x-minimalizer-input-size"] == "340x340"
+    assert response.headers["x-minimalizer-input-bytes"] == "123"
 
 
 def test_zerobase2_endpoint_fails_closed_when_not_authorized(monkeypatch):
