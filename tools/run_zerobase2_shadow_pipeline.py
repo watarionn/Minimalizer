@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -16,6 +17,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
+from minimalizer_zerobase.production.profile import (
+    CURRENT_PROFILE,
+    REVIEWED_SA10_PROFILE,
+    SUPPORTED_SEMANTIC_PROFILES,
+)
 
 
 def _case_id(path: Path) -> str:
@@ -44,11 +50,14 @@ class ShadowStageResult:
     provenance_artifact_count: int | None
 
 
-def _run(command: list[str]) -> float:
+def _run(command: list[str], *, semantic_profile: str) -> float:
     started = perf_counter()
+    environment = os.environ.copy()
+    environment["MINIMALIZER_SEMANTIC_PROFILE"] = semantic_profile
     completed = subprocess.run(
         command,
         cwd=ROOT,
+        env=environment,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -73,9 +82,13 @@ def _run(command: list[str]) -> float:
 def run_zerobase2_shadow_pipeline(
     source_path: str | Path,
     output_root: str | Path,
+    *,
+    semantic_profile: str = CURRENT_PROFILE,
 ) -> dict[str, Any]:
     source = Path(source_path).resolve()
     output_root = Path(output_root).resolve()
+    if semantic_profile not in SUPPORTED_SEMANTIC_PROFILES:
+        raise ValueError(f"unsupported Minimalizer semantic profile: {semantic_profile}")
     if not source.is_file():
         raise ValueError(f"ZeroBase2 shadow source is missing: {source}")
     output_root.mkdir(parents=True, exist_ok=True)
@@ -142,7 +155,7 @@ def run_zerobase2_shadow_pipeline(
     started = perf_counter()
     stage_results: list[ShadowStageResult] = []
     for phase, command in stage_commands:
-        elapsed_ms = _run(command)
+        elapsed_ms = _run(command, semantic_profile=semantic_profile)
         stage_path = case_dir / f"phase_{phase:02d}" / "stage.json"
         if not stage_path.is_file():
             raise RuntimeError(
@@ -192,6 +205,7 @@ def run_zerobase2_shadow_pipeline(
     return {
         "schema_version": "1.0",
         "mode": "zerobase2-shadow",
+        "semantic_profile": semantic_profile,
         "source": {
             "path": source.name,
             "sha256": _sha256(source),
@@ -230,6 +244,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=ROOT / "artifacts" / "phase15_shadow",
     )
+    parser.add_argument(
+        "--profile",
+        choices=SUPPORTED_SEMANTIC_PROFILES,
+        default=CURRENT_PROFILE,
+    )
     parser.add_argument("--summary", type=Path)
     return parser.parse_args()
 
@@ -239,6 +258,7 @@ def main() -> int:
     summary = run_zerobase2_shadow_pipeline(
         args.source,
         args.output_root,
+        semantic_profile=args.profile,
     )
     if args.summary is not None:
         args.summary.parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +270,7 @@ def main() -> int:
         json.dumps(
             {
                 "mode": summary["mode"],
+                "semantic_profile": summary["semantic_profile"],
                 "case_id": summary["case_id"],
                 "final_sha256": summary["final_sha256"],
                 "selected_profile": summary["selected_profile"],

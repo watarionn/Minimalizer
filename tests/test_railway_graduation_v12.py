@@ -159,3 +159,15 @@ def test_local_worker_origin_is_configured_outside_repository():
     assert "public-origin.txt" in setter
     assert "LOCALAPPDATA" in setter
     assert "https://" in setter
+
+
+def test_owner_best_quality_route_orders_zerobase2_before_local_v2_and_browser():
+    source = APP_JS.read_text(encoding="utf-8")
+    zero = source.index('fetchLocalWorker("/api/zerobase2/minimalize"')
+    local_v2 = source.index('fetchLocalWorker("/api/v2/minimalize"')
+    browser = source.index("await requestBrowserFallback()", zero)
+    assert zero < local_v2 < browser
+    assert "Minimalizer ZeroBase2 · BEST" in source
+    assert "Minimalizer 2.0 Local · HIGH" in source
+    assert "Minimalizer Browser Fallback v12 · FALLBACK" in source
+    assert "最高品質経路ではありません" in source

@@ -12,11 +12,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
-from minimalizer_zerobase.importance import (
-    OmissionPolicy,
-    evaluate_importance_omission,
-    write_phase8_artifacts,
-)
+from minimalizer_zerobase.importance import write_phase8_artifacts
+from minimalizer_zerobase.production.profile import reviewed_sa10_enabled
+
+if reviewed_sa10_enabled():
+    from minimalizer_zerobase.reviewed_sa10.importance_omission import (
+        OmissionPolicy,
+        evaluate_importance_omission,
+    )
+else:
+    from minimalizer_zerobase.importance import OmissionPolicy, evaluate_importance_omission
 
 
 def parse_args() -> argparse.Namespace:

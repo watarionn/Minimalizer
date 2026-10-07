@@ -11,11 +11,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
-from minimalizer_zerobase.composition import (
-    CompositionPolicy,
-    compose_semantic_scene,
-    write_phase11_artifacts,
-)
+from minimalizer_zerobase.composition import write_phase11_artifacts
+from minimalizer_zerobase.production.profile import reviewed_sa10_enabled
+
+if reviewed_sa10_enabled():
+    from minimalizer_zerobase.reviewed_sa10.composition_semantic import (
+        CompositionPolicy,
+        compose_semantic_scene,
+    )
+else:
+    from minimalizer_zerobase.composition import CompositionPolicy, compose_semantic_scene
 
 
 def parse_args() -> argparse.Namespace:

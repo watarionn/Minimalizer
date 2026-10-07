@@ -12,11 +12,19 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
-from minimalizer_zerobase.geometrization import (
-    PartAwareGeometrizationPolicy,
-    geometrize_parts,
-    write_phase10_artifacts,
-)
+from minimalizer_zerobase.geometrization import write_phase10_artifacts
+from minimalizer_zerobase.production.profile import reviewed_sa10_enabled
+
+if reviewed_sa10_enabled():
+    from minimalizer_zerobase.reviewed_sa10.geometrization_part_aware import (
+        PartAwareGeometrizationPolicy,
+        geometrize_parts,
+    )
+else:
+    from minimalizer_zerobase.geometrization import (
+        PartAwareGeometrizationPolicy,
+        geometrize_parts,
+    )
 
 
 def parse_args() -> argparse.Namespace:
