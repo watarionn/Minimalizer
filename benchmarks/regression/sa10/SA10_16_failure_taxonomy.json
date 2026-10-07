@@ -34,7 +34,8 @@
       "evidence": [
         "benchmarks/regression/sa10/evidence/Fuwawa-Abyssgard.sa10.16-initial-phase13.json",
         "benchmarks/regression/sa10/evidence/Fuwawa-Abyssgard.sa10.16-initial-phase14.json"
-      ]
+      ],
+      "baseline_adopted": false
     },
     {
       "case_id": "La-Darknesss",
@@ -55,7 +56,8 @@
       ],
       "evidence": [
         "benchmarks/regression/sa10/evidence/La-Darknesss.sa10.16-initial-phase14.json"
-      ]
+      ],
+      "baseline_adopted": false
     },
     {
       "case_id": "Nekomata-Okayu",
@@ -67,7 +69,8 @@
       "admitted": true,
       "transaction_path": "benchmarks/regression/sa10/transactions/Nekomata-Okayu.sa10.16-transaction.json",
       "transaction_canonical_payload_sha256": "c82d986fa343824bf88bda8822782295e8724f76f83194ed838803c987defbfa",
-      "failures": []
+      "failures": [],
+      "baseline_adopted": true
     },
     {
       "case_id": "Kaela-Kovalskia",
@@ -88,7 +91,8 @@
       ],
       "evidence": [
         "benchmarks/regression/sa10/evidence/Kaela-Kovalskia.sa10.16-initial-phase14.json"
-      ]
+      ],
+      "baseline_adopted": false
     },
     {
       "case_id": "Ouro-Kronii",
@@ -108,7 +112,8 @@
       ],
       "evidence": [
         "benchmarks/regression/sa10/evidence/Ouro-Kronii.sa10.16-initial-hard-evidence.json"
-      ]
+      ],
+      "baseline_adopted": true
     },
     {
       "case_id": "Shirakami-Fubuki",
@@ -126,7 +131,8 @@
       ],
       "evidence": [
         "benchmarks/regression/sa10/evidence/Shirakami-Fubuki.sa10.16-initial-phase12-failure.json"
-      ]
+      ],
+      "baseline_adopted": false
     },
     {
       "case_id": "Tokino-Sora",
@@ -147,7 +153,8 @@
       ],
       "evidence": [
         "benchmarks/regression/sa10/evidence/Tokino-Sora.sa10.16-initial-phase14.json"
-      ]
+      ],
+      "baseline_adopted": false
     },
     {
       "case_id": "Hoshimachi-Suisei",
@@ -159,7 +166,8 @@
       "admitted": true,
       "transaction_path": "benchmarks/regression/sa10/transactions/Hoshimachi-Suisei.sa10.16-transaction.json",
       "transaction_canonical_payload_sha256": "a62e3d9d7d698721d2a27984287783ab4ab3ae951f8aa9eaf5b51b07680abf6b",
-      "failures": []
+      "failures": [],
+      "baseline_adopted": true
     }
   ],
   "category_summary": {
@@ -272,6 +280,7 @@
     "case_specific_production_logic": false,
     "production_code_changed_in_sa1016": false,
     "failures_preserved_before_repair": true,
-    "failed_cases_not_adopted": true
+    "failed_transactions_not_in_pass_set": true,
+    "baseline_adoption_is_not_pass_authority": true
   }
 }
