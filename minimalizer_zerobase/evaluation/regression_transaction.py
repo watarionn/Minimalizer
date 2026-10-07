@@ -165,6 +165,7 @@ def build_regression_transaction(
         "candidate_matches_face_guard": candidate_sha == guard_candidate_sha,
         "baseline_matches_adoption": visual_baseline_sha == record.baseline_artifact_sha256,
         "baseline_binding_passed": binding.get("binding_passed") is True,
+        "visual_gate_transaction_matches": binding.get("evaluation_transaction_id") == tx,
         "baseline_separate_transaction": binding.get("same_transaction") is False,
         "baseline_not_production_input": binding.get("production_inference_allowed") is False,
         "candidate_self_reference_forbidden": binding.get("candidate_self_reference_forbidden") is True,
