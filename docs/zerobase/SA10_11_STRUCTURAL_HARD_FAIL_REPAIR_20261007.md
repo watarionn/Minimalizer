@@ -220,6 +220,8 @@ Canonical folder:
 Drive folder ID:
 `1zeYpnPL-ur-Zn6GWc2-ejuI64k7jUuM1`
 
+Drive API read-back verified all 11 files.
+
 Preservation set:
 - two repaired Phase12 final PNGs;
 - two Phase12 JSONs;
