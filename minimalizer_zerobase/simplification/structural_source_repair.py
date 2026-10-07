@@ -9,7 +9,6 @@ from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import build_structural_layout_graph
 
 STRUCTURAL_REPAIR_VERSION = "sa10.24-v1"
-ANATOMY_PARTS = ("head", "torso", "left_arm", "right_arm", "lower_body")
 _OUTER_BOUNDARY_MIN_RECALL = 0.90
 
 
@@ -75,7 +74,8 @@ def _required_relation_keys(graph) -> set[tuple[str, str, str]]:
         (row.source_part, row.relation_kind, row.target_part)
         for row in graph.relations
         if row.confidence >= 0.5
-        and (row.source_part in ANATOMY_PARTS or row.target_part in ANATOMY_PARTS)
+        and row.source_part != "unknown"
+        and row.target_part != "unknown"
     }
 
 
@@ -126,6 +126,11 @@ def apply_structural_source_repair(
 
     source_masks = _normalize_source_masks(source_part_masks, shape)
     current_masks = _group_part_masks(groups, shape)
+    owner_parts = {
+        str(group.get("part") or "")
+        for group in groups
+        if str(group.get("part") or "") in PART_NAMES
+    }
     source_graph = build_structural_layout_graph(source_masks)
     current_graph = build_structural_layout_graph(current_masks)
 
@@ -150,20 +155,26 @@ def apply_structural_source_repair(
     )
     topology_repair_parts: set[str] = set()
     for part in PART_NAMES:
-        if part == "unknown" or not np.any(source_masks[part]):
+        # Unknown has no semantic authority by itself.  It may be replayed
+        # only when Phase 12 actually emitted an owner group for it.
+        if not np.any(source_masks[part]) or (
+            part == "unknown" and part not in owner_parts
+        ):
             continue
         if _topology(source_masks[part]) != _topology(current_masks[part]):
             topology_repair_parts.add(part)
     if boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
         missing_edge = source_edge & ~current_union
         for part in PART_NAMES:
-            if part != "unknown" and np.any(source_masks[part] & missing_edge):
+            if np.any(source_masks[part] & missing_edge) and (
+                part != "unknown" or part in owner_parts
+            ):
                 topology_repair_parts.add(part)
 
     reasons: dict[str, list[str]] = {}
-    for part in ANATOMY_PARTS:
+    for part in PART_NAMES:
         source = source_masks[part]
-        if not np.any(source):
+        if not np.any(source) or (part == "unknown" and part not in owner_parts):
             continue
         current = current_masks[part]
         if not np.any(current):
@@ -183,22 +194,18 @@ def apply_structural_source_repair(
         source_present = bool(np.any(current_masks.get(source_part, False)))
         target_present = bool(np.any(current_masks.get(target_part, False)))
         repair_parts: list[str] = []
-        if (
-            source_part in ANATOMY_PARTS
-            and np.any(source_masks[source_part])
-            and not source_present
-        ):
+        if np.any(source_masks[source_part]) and source_part != "unknown" and not source_present:
             repair_parts.append(source_part)
         if (
-            target_part in ANATOMY_PARTS
-            and np.any(source_masks[target_part])
+            np.any(source_masks[target_part])
+            and target_part != "unknown"
             and not target_present
         ):
             repair_parts.append(target_part)
         if source_present and target_present:
-            if source_part in ANATOMY_PARTS and np.any(source_masks[source_part]):
+            if source_part != "unknown" and np.any(source_masks[source_part]):
                 repair_parts.append(source_part)
-            if target_part in ANATOMY_PARTS and np.any(source_masks[target_part]):
+            if target_part != "unknown" and np.any(source_masks[target_part]):
                 repair_parts.append(target_part)
         for repair_part in sorted(set(repair_parts)):
             reasons.setdefault(repair_part, []).append(
@@ -234,11 +241,12 @@ def apply_structural_source_repair(
         source_mask = source_masks[part].copy()
         existing = [group for group in groups if group.get("part") == part]
         if existing:
-            dominant = max(
-                existing,
-                key=lambda group: int(np.count_nonzero(np.asarray(group["mask"]))),
-            )
-            color = tuple(int(value) for value in dominant["color"])
+            # The repaired extent is owned by the immutable Phase 4 source
+            # mask.  Do not spread a surviving Phase 11 fragment's palette
+            # color over that extent; it can turn a topology repair into a
+            # major-color-mass failure.  Source median is deterministic and
+            # keeps color evidence tied to the same owner as the mask.
+            color = _median_source_color(image, source_masks[part])
             source_ids = list(dict.fromkeys(
                 str(value)
                 for group in existing

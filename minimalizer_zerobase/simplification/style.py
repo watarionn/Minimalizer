@@ -1944,6 +1944,15 @@ def _candidate_for_profile(
         }
         if group.get("source_guided_kind"):
             record["source_guided_kind"] = str(group["source_guided_kind"])
+        # A structural repair is an evidence-bound source replay, not a new
+        # approximation target.  Keep the exact source-owned mask as the
+        # candidate/render mask; the polygon remains the deterministic export
+        # description, but it must not be allowed to change components, holes,
+        # or Euler characteristic during a second rasterization.
+        source_replay = source_guided_kind.startswith("structural-source-repair-")
+        if source_replay:
+            record["source_mask_replay"] = True
+            record["source_mask_owner"] = group["part"]
         if (
             str(group.get("source_guided_kind") or "").startswith(
                 "structural-source-repair-"
@@ -1952,6 +1961,8 @@ def _candidate_for_profile(
         ):
             record["structural_support_only"] = True
         mask = rasterize_primitive_candidate(record, width=width, height=height)
+        if source_replay:
+            mask = group["mask"].astype(bool).copy()
         if preserve_tiny_critical_plane:
             exact_mask = group["mask"].astype(bool)
             exact_iou = _iou(exact_mask, mask)

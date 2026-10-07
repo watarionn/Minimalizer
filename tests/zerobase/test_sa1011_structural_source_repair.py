@@ -162,3 +162,34 @@ def test_structural_support_only_is_not_visible_in_phase12_render():
     )
     assert tuple(rendered[3, 3]) != (255, 0, 0)
     assert tuple(rendered[9, 9]) == (10, 20, 30)
+
+
+def test_structural_repair_candidate_replays_exact_source_mask_and_source_color():
+    from minimalizer_zerobase.simplification.style import (
+        StyleSimplificationPolicy,
+        _candidate_for_profile,
+    )
+
+    masks = _source_masks()
+    groups, report = apply_structural_source_repair(
+        _groups(masks, drop_head=True, break_left_arm=True),
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+    policy = StyleSimplificationPolicy()
+    candidate = _candidate_for_profile(
+        profile=policy.conservative,
+        groups=groups,
+        baseline_part_masks=masks,
+        baseline_silhouette=np.logical_or.reduce(list(masks.values())),
+        reference_basis={name: "phase04-source-repair" for name in masks},
+        baseline_primitives=tuple(),
+        width=120,
+        height=160,
+        policy=policy,
+    )
+    repaired = next(item for item in candidate.primitives if item["composition_part"] == "head")
+    assert repaired["source_mask_replay"] is True
+    assert np.array_equal(candidate.primitive_masks[repaired["primitive_id"]], masks["head"])
+    assert tuple(repaired["palette_color_rgb"]) == (100, 110, 120)
