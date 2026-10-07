@@ -65,6 +65,7 @@ def _bundle():
             "baseline_artifact_sha256": BASELINE_SHA,
             "candidate_artifact_sha256": CANDIDATE_SHA,
             "binding_passed": True,
+            "evaluation_transaction_id": "tx-1",
             "same_transaction": False,
             "production_inference_allowed": False,
             "candidate_self_reference_forbidden": True,
