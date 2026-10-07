@@ -15,6 +15,8 @@ class SourceContourTests(unittest.TestCase):
         self.assertIsNotNone(p)
         self.assertGreaterEqual(p.source_iou, 0.90)
         self.assertTrue(np.array_equal(m, original))
+        self.assertAlmostEqual(p.existing_source_iou, 1.0)
+        self.assertIsNone(propose_existing_contour("hair", m, m, require_improvement=True))
 
     def test_hole_fails_closed(self):
         m = np.zeros((64, 64), np.uint8)
@@ -25,6 +27,17 @@ class SourceContourTests(unittest.TestCase):
     def test_missing_part_fails_closed(self):
         m = np.zeros((32, 32), np.uint8)
         self.assertIsNone(propose_existing_contour("face", m, m))
+
+    def test_multi_island_fails_closed(self):
+        m = np.zeros((64, 64), np.uint8)
+        cv2.rectangle(m, (5, 5), (15, 15), 1, -1)
+        cv2.rectangle(m, (35, 35), (50, 50), 1, -1)
+        self.assertIsNone(propose_existing_contour("hair", m, m))
+
+    def test_mismatched_shapes_fails_closed(self):
+        a = np.ones((32, 32), np.uint8)
+        b = np.ones((33, 32), np.uint8)
+        self.assertIsNone(propose_existing_contour("face", a, b))
 
     def test_non_face_hair_rejected(self):
         m = np.ones((16, 16), np.uint8)
