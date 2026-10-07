@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 from minimalizer_zerobase.composition.semantic import rasterize_primitive_candidate
+from .structural_source_repair import apply_structural_source_repair
 
 
 UNBOUND_PART = "__unbound__"
@@ -55,6 +56,9 @@ class StyleSimplificationPolicy:
     minimum_visible_part_pixels: int = 8
     support_only_parts: tuple[str, ...] = ("head",)
     minimum_support_only_part_pixels: int = 64
+    structural_source_repair: bool = True
+    structural_minimum_bbox_area_ratio: float = 0.35
+    structural_maximum_bbox_area_ratio: float = 2.8
     source_guided_lower_body: bool = True
     source_guided_foot: bool = True
     source_guided_face: bool = True
@@ -142,6 +146,9 @@ class StyleSimplificationPolicy:
             "minimum_visible_part_pixels": self.minimum_visible_part_pixels,
             "support_only_parts": list(self.support_only_parts),
             "minimum_support_only_part_pixels": self.minimum_support_only_part_pixels,
+            "structural_source_repair": self.structural_source_repair,
+            "structural_minimum_bbox_area_ratio": self.structural_minimum_bbox_area_ratio,
+            "structural_maximum_bbox_area_ratio": self.structural_maximum_bbox_area_ratio,
             "source_guided_lower_body": self.source_guided_lower_body,
             "source_guided_foot": self.source_guided_foot,
             "source_guided_face": self.source_guided_face,
@@ -1720,6 +1727,7 @@ def _candidate_for_profile(
     groups: list[dict[str, Any]],
     baseline_part_masks: dict[str, np.ndarray],
     baseline_silhouette: np.ndarray,
+    reference_basis: Mapping[str, str] | None = None,
     baseline_primitives: tuple[dict[str, Any], ...],
     width: int,
     height: int,
@@ -1763,6 +1771,8 @@ def _candidate_for_profile(
             )
             group_min_area = accessory_min_area
         source_guided_kind = str(group.get("source_guided_kind") or "")
+        if source_guided_kind.startswith("structural-source-repair-"):
+            group_min_area = 2
         if source_guided_kind in {
             "hair-crown-light-plane",
             "hair-light-merged-plane",
@@ -1810,19 +1820,23 @@ def _candidate_for_profile(
         preserve_clothing_plane = group["part"] == "major_clothing"
         preserve_accessory_plane = group["part"] == "accessory_or_held_object"
         preserve_tiny_critical_plane = (
-            owner_counts.get(group["part"], 0) >= 32
-            or (
-                group["part"] in policy.critical_parts
-                and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
-            )
-            or (
-                group["part"] in {"left_arm", "right_arm"}
-                and len(group["source_ids"]) >= 12
+            not source_guided_kind.startswith("structural-source-repair-")
+            and (
+                owner_counts.get(group["part"], 0) >= 32
+                or (
+                    group["part"] in policy.critical_parts
+                    and part_pixels <= max(256, policy.minimum_visible_part_pixels * 32)
+                )
+                or (
+                    group["part"] in {"left_arm", "right_arm"}
+                    and len(group["source_ids"]) >= 12
+                )
             )
         )
         preserve_source_detail_plane = (
             source_guided_kind.startswith("hair-")
             or source_guided_kind == "wrist-skin-overlay"
+            or source_guided_kind.startswith("structural-source-repair-")
             or source_guided_kind
             in {
                 "lower-body-light-foot-opening-plane",
@@ -1855,7 +1869,9 @@ def _candidate_for_profile(
             epsilon_ratio = profile.epsilon_ratio
             if preserve_tiny_critical_plane:
                 epsilon_ratio = min(epsilon_ratio, 0.0005)
-            if source_guided_kind == "hair-crown-light-plane":
+            if source_guided_kind.startswith("structural-source-repair-"):
+                epsilon_ratio = 0.0
+            elif source_guided_kind == "hair-crown-light-plane":
                 epsilon_ratio = policy.hair_crown_epsilon_ratio
             elif source_guided_kind == "hair-local-contrast-plane":
                 epsilon_ratio = policy.hair_local_contrast_epsilon_ratio
@@ -1917,11 +1933,19 @@ def _candidate_for_profile(
             "palette_color_rgb": list(group["color"]),
             "source_primitive_ids": list(group["source_ids"]),
             "source_phase8_actions": sorted(group["source_actions"]),
+            "source_evidence_refs": list(group.get("source_evidence_refs", ())),
             "phase12_profile": profile.name,
             "raster_index": int(group["first_order"]),
         }
         if group.get("source_guided_kind"):
             record["source_guided_kind"] = str(group["source_guided_kind"])
+        if (
+            str(group.get("source_guided_kind") or "").startswith(
+                "structural-source-repair-"
+            )
+            and group["part"] in policy.support_only_parts
+        ):
+            record["structural_support_only"] = True
         mask = rasterize_primitive_candidate(record, width=width, height=height)
         if preserve_tiny_critical_plane:
             exact_mask = group["mask"].astype(bool)
@@ -1968,6 +1992,7 @@ def _candidate_for_profile(
         part_iou = _iou(reference, candidate)
         pixels = int(np.count_nonzero(reference))
         part_metrics[part] = {
+            "reference_basis": (reference_basis or {}).get(part, "phase11"),
             "baseline_pixels": pixels,
             "candidate_pixels": int(np.count_nonzero(candidate)),
             "recall": round(recall, 6),
@@ -2025,6 +2050,7 @@ def simplify_composed_scene(
     *,
     policy: StyleSimplificationPolicy | None = None,
     source_rgba: np.ndarray | None = None,
+    source_part_masks: Mapping[str, np.ndarray] | None = None,
 ) -> StyleSimplificationResult:
     policy = policy or StyleSimplificationPolicy()
     if composition_payload.get("validation", {}).get("pass") is not True:
@@ -2053,12 +2079,46 @@ def simplify_composed_scene(
     groups = _source_guided_lower_body_groups(
         groups, source_rgba, shape, policy
     )
+    repair_report = {
+        "version": "sa10.11-v1",
+        "applied": False,
+        "repaired_parts": [],
+        "reasons": {},
+    }
+    reference_part_masks = dict(baseline_part_masks)
+    reference_basis = {part: "phase11" for part in baseline_part_masks}
+    reference_silhouette = baseline_silhouette
+    if (
+        policy.structural_source_repair
+        and source_rgba is not None
+        and source_part_masks is not None
+    ):
+        groups, repair_report = apply_structural_source_repair(
+            groups,
+            source_rgba=source_rgba,
+            source_part_masks=source_part_masks,
+            shape=shape,
+            minimum_bbox_area_ratio=policy.structural_minimum_bbox_area_ratio,
+            maximum_bbox_area_ratio=policy.structural_maximum_bbox_area_ratio,
+        )
+        for part in repair_report.get("repaired_parts", ()):
+            if part in source_part_masks:
+                mask = np.asarray(source_part_masks[part]).astype(bool)
+                if mask.shape != shape:
+                    raise ValueError(f"Phase 12 structural source mask shape mismatch: {part}")
+                reference_part_masks[part] = mask
+                reference_basis[part] = "phase04-source-repair"
+        reference_silhouette = _union(
+            list(reference_part_masks.values()),
+            shape,
+        )
     candidates = tuple(
         _candidate_for_profile(
             profile=profile,
             groups=groups,
-            baseline_part_masks=baseline_part_masks,
-            baseline_silhouette=baseline_silhouette,
+            baseline_part_masks=reference_part_masks,
+            baseline_silhouette=reference_silhouette,
+            reference_basis=reference_basis,
             baseline_primitives=baseline_primitives,
             width=width,
             height=height,
@@ -2090,6 +2150,7 @@ def simplify_composed_scene(
         "semantic_owner_reinterpretation": False,
         "selection_rule": "fewest-primitives-then-highest-silhouette-then-fewest-vertices",
         "human_visual_gate_required": True,
+        "structural_source_repair": repair_report,
     }
     return StyleSimplificationResult(
         width=width,

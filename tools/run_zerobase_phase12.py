@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from minimalizer_zerobase.artifact_contract import bridge_stage_contracts
+from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.simplification import (
     StyleSimplificationPolicy,
     simplify_composed_scene,
@@ -36,8 +37,10 @@ def _load_json(path: Path) -> dict:
 
 def main() -> int:
     args = parse_args()
+    phase4_dir = args.case_dir / "phase_04"
     phase11_dir = args.case_dir / "phase_11"
     composition_payload = _load_json(phase11_dir / "11_composition.json")
+    phase4_stage = _load_json(phase4_dir / "stage.json")
     phase11_stage = _load_json(phase11_dir / "stage.json")
     policy = StyleSimplificationPolicy()
     source_raw = cv2.imread(str(args.source), cv2.IMREAD_UNCHANGED)
@@ -49,8 +52,20 @@ def main() -> int:
         source_rgba = cv2.cvtColor(source_raw, cv2.COLOR_BGRA2RGBA)
     else:
         source_rgba = cv2.cvtColor(source_raw, cv2.COLOR_BGR2RGB)
+    source_part_masks = {}
+    for name in PART_NAMES:
+        mask = cv2.imread(
+            str(phase4_dir / "part_masks" / f"{name}.png"),
+            cv2.IMREAD_GRAYSCALE,
+        )
+        if mask is None:
+            raise ValueError(f"unable to read Phase 4 structural source mask: {name}")
+        source_part_masks[name] = mask > 0
     result = simplify_composed_scene(
-        composition_payload, policy=policy, source_rgba=source_rgba
+        composition_payload,
+        policy=policy,
+        source_rgba=source_rgba,
+        source_part_masks=source_part_masks,
     )
     output_dir = args.output_dir or args.case_dir / "phase_12"
     stage = write_phase12_artifacts(
@@ -60,6 +75,8 @@ def main() -> int:
         output_dir,
         config=policy.to_dict(),
         phase11_stage=phase11_stage,
+        phase4_dir=phase4_dir,
+        phase4_stage=phase4_stage,
     )
     bridge = None
     if output_dir.resolve() == (args.case_dir / "phase_12").resolve():

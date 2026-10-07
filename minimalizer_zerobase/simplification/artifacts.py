@@ -46,6 +46,8 @@ def _render(
 ) -> np.ndarray:
     canvas = np.full((height, width, 3), BACKGROUND_COLOR, dtype=np.uint8)
     for item in primitives:
+        if item.get("structural_support_only") is True:
+            continue
         primitive_id = str(item["primitive_id"])
         canvas[masks[primitive_id]] = np.asarray(
             item["palette_color_rgb"], dtype=np.uint8
@@ -95,6 +97,26 @@ def _removed_overlay(
     return canvas
 
 
+def _verified_phase4_inputs(
+    phase4_dir: Path, phase4_stage: dict[str, Any]
+) -> dict[str, str]:
+    outputs = phase4_stage.get("outputs")
+    if not isinstance(outputs, dict) or not outputs:
+        raise ValueError("Phase 12 structural repair requires declared Phase 4 outputs")
+    verified: dict[str, str] = {}
+    for name, expected_sha in sorted(outputs.items()):
+        if not name.startswith("part_masks/"):
+            continue
+        path = phase4_dir / name
+        if not path.is_file() or _sha256_file(path) != expected_sha:
+            raise ValueError(f"Phase 12 Phase 4 input SHA mismatch: {name}")
+        verified[name] = expected_sha
+    if not verified:
+        raise ValueError("Phase 12 structural repair requires Phase 4 part masks")
+    verified["stage.json"] = _sha256_file(phase4_dir / "stage.json")
+    return verified
+
+
 def _verified_phase11_inputs(
     phase11_dir: Path, phase11_stage: dict[str, Any]
 ) -> dict[str, str]:
@@ -119,9 +141,12 @@ def write_phase12_artifacts(
     *,
     config: dict[str, Any],
     phase11_stage: dict[str, Any],
+    phase4_dir: str | Path | None = None,
+    phase4_stage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     source_path = Path(source_path)
     phase11_dir = Path(phase11_dir)
+    phase4_dir = Path(phase4_dir) if phase4_dir is not None else None
     output_dir = Path(output_dir)
     source_contract = phase11_stage.get("source")
     if not isinstance(source_contract, dict):
@@ -140,6 +165,13 @@ def write_phase12_artifacts(
     if source_image is None or source_image.shape[:2] != (result.height, result.width):
         raise ValueError("Phase 12 canonical source is missing or dimensionally invalid")
     phase11_inputs = _verified_phase11_inputs(phase11_dir, phase11_stage)
+    phase4_inputs = None
+    if phase4_dir is not None or phase4_stage is not None:
+        if phase4_dir is None or phase4_stage is None:
+            raise ValueError("Phase 12 Phase 4 structural input requires dir and stage")
+        if phase4_stage.get("source", {}).get("sha256") != source_sha:
+            raise ValueError("Phase 12 source SHA must match Phase 4")
+        phase4_inputs = _verified_phase4_inputs(phase4_dir, phase4_stage)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     data_path = output_dir / "12_simplification.json"
@@ -204,7 +236,10 @@ def write_phase12_artifacts(
         "producer": "minimalizer-zerobase2-phase12",
         "producer_version": "0.1",
         "source": source_contract,
-        "inputs": {"phase11": phase11_inputs},
+        "inputs": {
+            **({"phase4": phase4_inputs} if phase4_inputs is not None else {}),
+            "phase11": phase11_inputs,
+        },
         "config": config,
         "config_sha256": _canonical_json_sha256(config),
         "coordinate_space": result.to_dict()["coordinate_space"],
@@ -223,6 +258,7 @@ def write_phase12_artifacts(
             "generation": "forbidden",
             "inpainting": "forbidden",
             "hidden_completion": "forbidden",
+            "structural_source_repair": "phase04-part-masks-only-when-bound",
         },
         "metrics": result.validation,
         "outputs": outputs,
