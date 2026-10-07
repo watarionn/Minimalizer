@@ -6,6 +6,7 @@ geometry, and its result cannot override SA10.18 structural hard gates.
 from __future__ import annotations
 
 from typing import Any
+import hashlib
 
 import cv2
 import numpy as np
@@ -69,3 +70,47 @@ def vtracer_backend_status() -> dict[str, Any]:
     return {"name": "vtracer", "available": True, "optional": True,
             "version": getattr(vtracer, "__version__", "unknown"),
             "license_boundary": "MIT OR Apache-2.0", "authority": False}
+
+
+def generate_vtracer_candidate(
+    source_mask: np.ndarray,
+    authorized_semantic_mask: np.ndarray | None = None,
+) -> dict[str, Any]:
+    """Return a source-bound VTracer tranche-1 candidate record.
+
+    Tranche 1 is deliberately an adapter boundary, not a renderer.  The
+    source mask is immutable evidence and the optional backend may only see a
+    semantic mask that was already authorized upstream.  Missing backend,
+    missing authorization, shape mismatch, or pixels outside the source all
+    fail closed with an explicit no-op; no visible pixels are generated.
+    """
+    source = np.asarray(source_mask, dtype=bool)
+    status = vtracer_backend_status()
+    base = {
+        "schema_version": "sa10.26-vtracer-candidate-v1",
+        "backend": status,
+        "candidate_authority": False,
+        "visible_output_changed": False,
+        "rollback": False,
+        "source_mask_sha256": hashlib.sha256(source.tobytes()).hexdigest(),
+    }
+    if source.ndim != 2:
+        return {**base, "status": "no-op", "reason": "invalid_source_mask"}
+    if authorized_semantic_mask is None:
+        return {**base, "status": "no-op", "reason": "semantic_authorization_required"}
+    authorized = np.asarray(authorized_semantic_mask, dtype=bool)
+    if authorized.shape != source.shape:
+        return {**base, "status": "no-op", "reason": "mask_shape_mismatch"}
+    if np.any(authorized & ~source):
+        return {**base, "status": "no-op", "reason": "authorized_mask_outside_immutable_source"}
+    base["authorized_semantic_mask_sha256"] = hashlib.sha256(
+        authorized.tobytes()
+    ).hexdigest()
+    if not status["available"]:
+        return {**base, "status": "unavailable", "reason": "optional_backend_unavailable"}
+    return {
+        **base,
+        "status": "no-op",
+        "reason": "tranche1_adapter_only",
+        "next_step": "wire_backend_to_authorized_mask_without_renderer_authority",
+    }
