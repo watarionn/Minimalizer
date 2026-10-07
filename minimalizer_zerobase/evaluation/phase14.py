@@ -167,16 +167,19 @@ def _selected_part_masks(
     primitive_masks: list[tuple[dict[str, Any], np.ndarray, str]] = []
     for primitive in primitives:
         part = _part_name(primitive)
+        replay_owner = primitive.get("source_mask_owner")
+        if not isinstance(replay_owner, str) or not replay_owner:
+            replay_owner = part
         if (
             primitive.get("source_mask_replay") is True
             and source_part_masks is not None
-            and part in source_part_masks
+            and replay_owner in source_part_masks
         ):
             # Source replay preserves Phase 12's authority/provenance, but its
             # pixels still enter evaluation through the shared material-topology
             # contract.  Raw Phase 4 specks must not become Phase 14 fragments.
             mask = canonical_material_mask(
-                source_part_masks[part],
+                source_part_masks[replay_owner],
                 tiny_component_area_threshold=material_threshold,
             )
         else:

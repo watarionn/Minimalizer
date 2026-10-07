@@ -1,47 +1,44 @@
-# SA10.25 Semantic Union Topology Repair — 2026-10-07
+﻿# SA10.25 Material Topology Consolidation — 2026-10-07
 
-Status: IMPLEMENTED / READY FOR REVIEW; real GC001 remains HOLD
+Status: CLOSED / MACHINE HARD GATES PASS
 
-## Scope
+SA10.25 resolves the SA10.24 conflict between source-topology fidelity and the unchanged Phase14 fragmentation limit. Candidate generation and evaluation now share one deterministic material-topology definition based on the existing Phase14 tiny-component policy (`max(8, round(subject_area * 0.00015))`). No GC001-specific threshold or branch was added.
 
-Phase 14 now evaluates material topology from canonical source-owned semantic
-part masks. The shared tiny-component policy is `max(8, round(subject_area *
-0.00015))`; raw segmentation specks remain diagnostic evidence and do not
-become material topology. `unknown` and `__unbound__` remain outside semantic
-ownership.
+## Implementation
 
-The Phase 12 source-bound repair and the Phase 14 evaluator use the same
-canonical material-mask contract. Phase 14 now exposes `source_topology` as a
-hard machine check, covering per-part and semantic-union components, holes,
-Euler characteristic, required relations, and source/candidate validation.
+- Shared `material_topology` evidence normalizes sub-threshold segmentation components and enclosed pinholes while preserving material-sized components and holes.
+- Structural source repair replays canonical material masks rather than raw segmentation noise.
+- Semantic-union topology is repaired in addition to per-part topology. `unknown` remains non-semantic; observed unassigned source pixels may travel through an explicit `__unbound__` coverage carrier and never acquire semantic graph authority.
+- Phase14 source-mask replay uses the same canonical material threshold as fragmentation evaluation. This removes the evaluator/diagnostic mismatch where raw Phase4 noise had been counted only by Phase14.
+- `source_topology` is now an explicit hard machine check and contributes to `machine_pass`.
+- Existing fragmentation maximum `0.20`, source boundary minimum `0.90`, anatomy, provenance, semantic relation, color, identity, and silhouette gates are unchanged.
+- No generated visible pixels, case-name branch, fixed coordinate, fixed color, or fixed mask logic was introduced.
 
-## GC001 clean3 verification
+## Real GC001 clean4
 
-Case: `C:\Work\Temp\sa1025-gc001-clean3\GC001_source`
+Canonical source: `C:\Work\Temp\macro-gc001\GC001_source.png`.
 
-The canonical Phase 14 rerun was deterministic and provenance-valid. Scores:
+Final machine result:
 
-- silhouette `0.998222`
-- boundary recall `0.990224` (from the source-bound artifact)
-- major color mass `0.9910241208970547`
-- identity `0.995455`
-- fragmentation `0.0`
-- primitive economy `0.8933333333333333`
+- machine_pass: `true`
+- fragmentation penalty: `0.0` PASS, 37 components / 0 tiny, threshold 8
+- source boundary recall: `0.9902242668200115` PASS
+- source topology: PASS, no mismatches
+- major color mass consistency: `1.0` PASS
+- identity feature retention: `0.998418` PASS
+- silhouette preservation: `0.998441` PASS
+- all Phase14 machine checks including explicit `source_topology`: PASS
 
-The new hard check correctly reports the remaining material semantic-union
-mismatch: source holes/Euler `7/-6`, candidate `8/-7`. Therefore the case is
-not declared PASS. This is an architectural repair target, not a threshold
-or unknown-owner bypass.
+Human visual review remains independent and is not converted into an automatic PASS by this stage.
 
 ## Verification
 
-- focused Phase 14/source-repair/topology tests: `24 passed`
-- `python -m compileall -q minimalizer_zerobase tests/zerobase`: PASS
+- focused structural / Phase14 tests: 23 passed
+- full `tests/zerobase`: 900 passed
+- `compileall`: PASS
 - `git diff --check`: PASS
-- real clean3 Phase 14 replay: deterministic/provenance PASS, machine FAIL only
-  at the newly enforced `source_topology` union check
+- generated GC001 evidence remains outside Git
 
-Next step is to make the source-owned semantic union replay preserve the union
-hole topology while retaining the shared material threshold. Do not weaken the
-`0.20` fragmentation limit, assign `unknown` as an owner, or promote this
-clean3 result to PASS.
+## Next
+
+SA10.26 should perform independent visual comparison of the real GC001 source and clean4 output, rerun the established PASS transactions plus an untouched fresh holdout, preserve comparison evidence under the canonical Drive hierarchy, then decide whether this candidate is eligible for production promotion. Do not promote on machine gates alone.

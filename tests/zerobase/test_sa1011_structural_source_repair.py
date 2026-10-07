@@ -133,6 +133,7 @@ def test_sa1024_does_not_repair_when_source_boundary_and_topology_match():
     )
     assert report["source_outer_boundary_recall_before"] == 1.0
     assert report["applied"] is False
+    assert not [group for group in repaired if group["part"] == "__unbound__"]
     assert repaired
 
 
@@ -194,8 +195,13 @@ def test_sa1024_reports_unknown_without_phase12_owner_as_unreplayable():
 
     assert report["unreplayable_parts"] == ["unknown"]
     assert "unknown" not in report["repaired_parts"]
-    assert report["applied"] is False
-    assert len(repaired) == len(_groups(masks))
+    assert report["applied"] is True
+    carrier = [group for group in repaired if group["part"] == "__unbound__"]
+    assert len(carrier) == 1
+    assert carrier[0]["source_guided_kind"] == "observed-unassigned-source-coverage"
+    assert carrier[0]["source_mask_owner"] == "unknown"
+    assert carrier[0]["coverage_role"] == "observed-unassigned"
+    assert len(repaired) == len(_groups(masks)) + 1
 
 
 def test_structural_support_only_is_not_visible_in_phase12_render():

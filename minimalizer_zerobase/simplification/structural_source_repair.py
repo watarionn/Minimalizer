@@ -267,7 +267,11 @@ def apply_structural_source_repair(
             )
 
     repaired_parts = tuple(sorted(reasons))
-    if not repaired_parts:
+    unknown_carrier_mask = _canonical_material_mask(
+        source_masks["unknown"], tiny_component_area_threshold=material_threshold
+    )
+    has_unknown_carrier = bool(np.any(unknown_carrier_mask))
+    if not repaired_parts and not has_unknown_carrier:
         return [dict(group) for group in groups], {
             "version": STRUCTURAL_REPAIR_VERSION,
             "applied": False,
@@ -283,7 +287,7 @@ def apply_structural_source_repair(
             "unreplayable_parts": list(unreplayable_parts),
         }
 
-    output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
+    output = [dict(group) for group in groups if group.get("part") not in repaired_parts and group.get("part") != "__unbound__"]
     for part in repaired_parts:
         source_mask = _canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)
         existing = [group for group in groups if group.get("part") == part]
@@ -320,6 +324,41 @@ def apply_structural_source_repair(
                 "source_evidence_refs": (f"phase04:part_masks/{part}.png",),
             }
         )
+
+    # `unknown` is not a semantic owner, but observed pixels must not vanish
+    # from coverage accounting.  Emit one deterministic unbound carrier whose
+    # replay owner remains the Phase 4 `unknown` mask.  This is deliberately
+    # kept outside PART_NAMES so it cannot acquire semantic graph authority.
+    if has_unknown_carrier:
+        existing_unbound = [
+            group for group in groups if group.get("part") == "__unbound__"
+        ]
+        source_ids = list(dict.fromkeys(
+            str(value)
+            for group in existing_unbound
+            for value in group.get("source_ids", ())
+        ))
+        source_actions = sorted({
+            str(value)
+            for group in existing_unbound
+            for value in group.get("source_actions", ())
+        })
+        existing_orders = [int(group["first_order"]) for group in existing_unbound]
+        all_orders = [int(group["first_order"]) for group in groups]
+        carrier_order = min(existing_orders) if existing_orders else (max(all_orders) + 1 if all_orders else 0)
+        output.append({
+            "part": "__unbound__",
+            "color": _median_source_color(image, source_masks["unknown"]),
+            "mask": unknown_carrier_mask,
+            "source_ids": source_ids,
+            "source_actions": source_actions,
+            "first_order": carrier_order,
+            "source_guided_kind": "observed-unassigned-source-coverage",
+            "source_evidence_refs": ("phase04:part_masks/unknown.png",),
+            "source_mask_replay": True,
+            "source_mask_owner": "unknown",
+            "coverage_role": "observed-unassigned",
+        })
 
     output.sort(key=lambda item: (int(item["first_order"]), str(item["part"])))
     repaired_masks = _group_part_masks(output, shape)

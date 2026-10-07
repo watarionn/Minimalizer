@@ -1949,10 +1949,15 @@ def _candidate_for_profile(
         # candidate/render mask; the polygon remains the deterministic export
         # description, but it must not be allowed to change components, holes,
         # or Euler characteristic during a second rasterization.
-        source_replay = source_guided_kind.startswith("structural-source-repair-")
+        source_replay = bool(
+            group.get("source_mask_replay")
+            or source_guided_kind.startswith("structural-source-repair-")
+        )
         if source_replay:
             record["source_mask_replay"] = True
-            record["source_mask_owner"] = group["part"]
+            record["source_mask_owner"] = str(group.get("source_mask_owner") or group["part"])
+        if group.get("coverage_role"):
+            record["coverage_role"] = str(group["coverage_role"])
         if (
             str(group.get("source_guided_kind") or "").startswith(
                 "structural-source-repair-"
