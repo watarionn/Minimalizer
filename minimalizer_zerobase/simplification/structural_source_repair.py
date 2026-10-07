@@ -3,12 +3,41 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+import cv2
+from minimalizer_zerobase.evaluation.material_topology import (
+    canonical_material_mask,
+    mask_topology,
+    tiny_component_area_threshold,
+)
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import build_structural_layout_graph
 
-STRUCTURAL_REPAIR_VERSION = "sa10.11-v1"
-ANATOMY_PARTS = ("head", "torso", "left_arm", "right_arm", "lower_body")
+# Keep the artifact schema identifier stable for SA10.24 consumers; SA10.25
+# changes the authority semantics without changing the serialized contract.
+STRUCTURAL_REPAIR_VERSION = "sa10.25-v1"
+_OUTER_BOUNDARY_MIN_RECALL = 0.90
+
+
+_canonical_material_mask = canonical_material_mask
+
+
+def _topology(mask: np.ndarray) -> tuple[int, int, int]:
+    evidence = mask_topology(mask)
+    return (
+        evidence["components"],
+        evidence["holes"],
+        evidence["euler_characteristic"],
+    )
+
+
+
+
+def _outer_boundary(mask: np.ndarray) -> np.ndarray:
+    return cv2.morphologyEx(
+        np.asarray(mask, dtype=np.uint8), cv2.MORPH_GRADIENT,
+        np.ones((3, 3), np.uint8),
+    ).astype(bool)
 
 
 def _bbox_area(mask: np.ndarray) -> float | None:
@@ -56,10 +85,9 @@ def _required_relation_keys(graph) -> set[tuple[str, str, str]]:
         (row.source_part, row.relation_kind, row.target_part)
         for row in graph.relations
         if row.confidence >= 0.5
-        and (row.source_part in ANATOMY_PARTS or row.target_part in ANATOMY_PARTS)
+        and row.source_part != "unknown"
+        and row.target_part != "unknown"
     }
-
-
 def _median_source_color(
     source_rgba: np.ndarray,
     mask: np.ndarray,
@@ -107,6 +135,20 @@ def apply_structural_source_repair(
 
     source_masks = _normalize_source_masks(source_part_masks, shape)
     current_masks = _group_part_masks(groups, shape)
+    source_semantic_values = [source_masks[name] for name in PART_NAMES if name not in {"unknown", "__unbound__"}]
+    source_subject_union = np.logical_or.reduce(source_semantic_values) if source_semantic_values else np.zeros(shape, dtype=bool)
+    material_threshold = tiny_component_area_threshold(int(source_subject_union.sum()))
+    owner_parts = {
+        str(group.get("part") or "")
+        for group in groups
+        if str(group.get("part") or "") in PART_NAMES
+    }
+    unreplayable_parts = tuple(sorted(
+        part for part in PART_NAMES
+        if part == "unknown"
+        and np.any(source_masks[part])
+        and part not in owner_parts
+    ))
     source_graph = build_structural_layout_graph(source_masks)
     current_graph = build_structural_layout_graph(current_masks)
 
@@ -118,10 +160,63 @@ def apply_structural_source_repair(
     }
     missing_relations = tuple(sorted(source_required - current_relations))
 
+    # SA10.24: a high aggregate silhouette score can hide boundary erosion or
+    # component/hole mutations inside a semantic owner.  Mark only the
+    # source-owned parts implicated by the hard evidence for deterministic
+    # source replay; do not relax the evaluator thresholds.
+    source_union = np.logical_or.reduce(list(source_masks.values()))
+    current_union = np.logical_or.reduce(list(current_masks.values()))
+    source_edge = _outer_boundary(source_union)
+    current_edge = _outer_boundary(current_union)
+    boundary_recall = float(np.count_nonzero(source_edge & current_edge)) / max(
+        int(source_edge.sum()), 1
+    )
+    topology_repair_parts: set[str] = set()
+    for part in PART_NAMES:
+        # Unknown has no semantic authority by itself.  It may be replayed
+        # only when Phase 12 actually emitted an owner group for it.
+        if not np.any(source_masks[part]) or (
+            part == "unknown" and part not in owner_parts
+        ):
+            continue
+        if _topology(_canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)) != _topology(
+            _canonical_material_mask(current_masks[part], tiny_component_area_threshold=material_threshold)
+        ):
+            topology_repair_parts.add(part)
+    semantic_parts = [
+        part for part in PART_NAMES
+        if part != "unknown" and np.any(source_masks[part]) and part in owner_parts
+    ]
+    source_semantic_union = (
+        np.logical_or.reduce([source_masks[part] for part in semantic_parts])
+        if semantic_parts else np.zeros(shape, dtype=bool)
+    )
+    current_semantic_union = (
+        np.logical_or.reduce([current_masks[part] for part in semantic_parts])
+        if semantic_parts else np.zeros(shape, dtype=bool)
+    )
+    source_material_union = _canonical_material_mask(
+        source_semantic_union, tiny_component_area_threshold=material_threshold
+    )
+    current_material_union = _canonical_material_mask(
+        current_semantic_union, tiny_component_area_threshold=material_threshold
+    )
+    union_topology_mismatch = _topology(source_material_union) != _topology(current_material_union)
+    if union_topology_mismatch:
+        topology_repair_parts.update(semantic_parts)
+
+    if boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
+        missing_edge = source_edge & ~current_union
+        for part in PART_NAMES:
+            if np.any(source_masks[part] & missing_edge) and (
+                part != "unknown" or part in owner_parts
+            ):
+                topology_repair_parts.add(part)
+
     reasons: dict[str, list[str]] = {}
-    for part in ANATOMY_PARTS:
+    for part in PART_NAMES:
         source = source_masks[part]
-        if not np.any(source):
+        if not np.any(source) or (part == "unknown" and part not in owner_parts):
             continue
         current = current_masks[part]
         if not np.any(current):
@@ -141,30 +236,42 @@ def apply_structural_source_repair(
         source_present = bool(np.any(current_masks.get(source_part, False)))
         target_present = bool(np.any(current_masks.get(target_part, False)))
         repair_parts: list[str] = []
-        if (
-            source_part in ANATOMY_PARTS
-            and np.any(source_masks[source_part])
-            and not source_present
-        ):
+        if np.any(source_masks[source_part]) and source_part != "unknown" and not source_present:
             repair_parts.append(source_part)
         if (
-            target_part in ANATOMY_PARTS
-            and np.any(source_masks[target_part])
+            np.any(source_masks[target_part])
+            and target_part != "unknown"
             and not target_present
         ):
             repair_parts.append(target_part)
         if source_present and target_present:
-            if source_part in ANATOMY_PARTS and np.any(source_masks[source_part]):
+            if source_part != "unknown" and np.any(source_masks[source_part]):
                 repair_parts.append(source_part)
-            if target_part in ANATOMY_PARTS and np.any(source_masks[target_part]):
+            if target_part != "unknown" and np.any(source_masks[target_part]):
                 repair_parts.append(target_part)
         for repair_part in sorted(set(repair_parts)):
             reasons.setdefault(repair_part, []).append(
                 f"missing_required_topology:{source_part}:{relation}:{target_part}"
             )
 
+    for part in sorted(topology_repair_parts):
+        if union_topology_mismatch:
+            reasons.setdefault(part, []).append("source_semantic_union_topology_mismatch")
+        if _topology(_canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)) != _topology(
+            _canonical_material_mask(current_masks[part], tiny_component_area_threshold=material_threshold)
+        ):
+            reasons.setdefault(part, []).append("source_topology_mismatch")
+        elif boundary_recall < _OUTER_BOUNDARY_MIN_RECALL:
+            reasons.setdefault(part, []).append(
+                f"source_outer_boundary_recall={boundary_recall:.6f}"
+            )
+
     repaired_parts = tuple(sorted(reasons))
-    if not repaired_parts:
+    unknown_carrier_mask = _canonical_material_mask(
+        source_masks["unknown"], tiny_component_area_threshold=material_threshold
+    )
+    has_unknown_carrier = bool(np.any(unknown_carrier_mask))
+    if not repaired_parts and not has_unknown_carrier:
         return [dict(group) for group in groups], {
             "version": STRUCTURAL_REPAIR_VERSION,
             "applied": False,
@@ -175,18 +282,22 @@ def apply_structural_source_repair(
             ],
             "source_graph_pass": bool(source_graph.to_dict()["validation"]["pass"]),
             "baseline_graph_pass": bool(current_graph.to_dict()["validation"]["pass"]),
+            "source_outer_boundary_recall_before": boundary_recall,
+            "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
+            "unreplayable_parts": list(unreplayable_parts),
         }
 
-    output = [dict(group) for group in groups if group.get("part") not in repaired_parts]
+    output = [dict(group) for group in groups if group.get("part") not in repaired_parts and group.get("part") != "__unbound__"]
     for part in repaired_parts:
-        source_mask = source_masks[part].copy()
+        source_mask = _canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)
         existing = [group for group in groups if group.get("part") == part]
         if existing:
-            dominant = max(
-                existing,
-                key=lambda group: int(np.count_nonzero(np.asarray(group["mask"]))),
-            )
-            color = tuple(int(value) for value in dominant["color"])
+            # The repaired extent is owned by the immutable Phase 4 source
+            # mask.  Do not spread a surviving Phase 11 fragment's palette
+            # color over that extent; it can turn a topology repair into a
+            # major-color-mass failure.  Source median is deterministic and
+            # keeps color evidence tied to the same owner as the mask.
+            color = _median_source_color(image, source_masks[part])
             source_ids = list(dict.fromkeys(
                 str(value)
                 for group in existing
@@ -214,6 +325,41 @@ def apply_structural_source_repair(
             }
         )
 
+    # `unknown` is not a semantic owner, but observed pixels must not vanish
+    # from coverage accounting.  Emit one deterministic unbound carrier whose
+    # replay owner remains the Phase 4 `unknown` mask.  This is deliberately
+    # kept outside PART_NAMES so it cannot acquire semantic graph authority.
+    if has_unknown_carrier:
+        existing_unbound = [
+            group for group in groups if group.get("part") == "__unbound__"
+        ]
+        source_ids = list(dict.fromkeys(
+            str(value)
+            for group in existing_unbound
+            for value in group.get("source_ids", ())
+        ))
+        source_actions = sorted({
+            str(value)
+            for group in existing_unbound
+            for value in group.get("source_actions", ())
+        })
+        existing_orders = [int(group["first_order"]) for group in existing_unbound]
+        all_orders = [int(group["first_order"]) for group in groups]
+        carrier_order = min(existing_orders) if existing_orders else (max(all_orders) + 1 if all_orders else 0)
+        output.append({
+            "part": "__unbound__",
+            "color": _median_source_color(image, source_masks["unknown"]),
+            "mask": unknown_carrier_mask,
+            "source_ids": source_ids,
+            "source_actions": source_actions,
+            "first_order": carrier_order,
+            "source_guided_kind": "observed-unassigned-source-coverage",
+            "source_evidence_refs": ("phase04:part_masks/unknown.png",),
+            "source_mask_replay": True,
+            "source_mask_owner": "unknown",
+            "coverage_role": "observed-unassigned",
+        })
+
     output.sort(key=lambda item: (int(item["first_order"]), str(item["part"])))
     repaired_masks = _group_part_masks(output, shape)
     repaired_graph = build_structural_layout_graph(repaired_masks)
@@ -239,4 +385,7 @@ def apply_structural_source_repair(
         "source_graph_pass": bool(source_graph.to_dict()["validation"]["pass"]),
         "baseline_graph_pass": bool(current_graph.to_dict()["validation"]["pass"]),
         "repaired_graph_pass": bool(repaired_graph.to_dict()["validation"]["pass"]),
+        "source_outer_boundary_recall_before": boundary_recall,
+        "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
+        "unreplayable_parts": list(unreplayable_parts),
     }
