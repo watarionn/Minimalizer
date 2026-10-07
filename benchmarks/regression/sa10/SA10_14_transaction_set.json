@@ -1,0 +1,25 @@
+{
+  "artifact_version": "sa10.14-set-v1",
+  "transaction_count": 2,
+  "transactions": [
+    {
+      "case_id": "Hyakuto-Kyoko",
+      "path": "benchmarks/regression/sa10/transactions/Hyakuto-Kyoko.sa10.14-transaction.json",
+      "sha256": "501af6a55280437107b763e5079180fe505c766d4e84d9f626d9ea9b5650bec1",
+      "pass_transaction": true
+    },
+    {
+      "case_id": "Juufuutei-Raden_stylecal_source",
+      "path": "benchmarks/regression/sa10/transactions/Juufuutei-Raden_stylecal_source.sa10.14-transaction.json",
+      "sha256": "eedea7dca27c54ee134239d47f11b1bf5471edf75a34885de2d35e0031f42998",
+      "pass_transaction": true
+    }
+  ],
+  "pass_set": true,
+  "boundary": {
+    "aggregate_quality_score": false,
+    "hard_failures_individually_visible": true,
+    "diagnostics_can_override_hard_fail": false,
+    "calibrated_thresholds": false
+  }
+}
