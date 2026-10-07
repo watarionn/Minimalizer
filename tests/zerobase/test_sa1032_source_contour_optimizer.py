@@ -12,7 +12,7 @@ class ExistingContourOptimizerTests(unittest.TestCase):
         return existing, source
     def decide(self, **overrides):
         a,b = self.masks()
-        kwargs = dict(owner="face",existing_mask=a,source_mask=b,existing_primitive_count=1,proposed_primitive_count=1,existing_material="#fff",proposed_material="#fff")
+        kwargs = dict(owner="face",existing_mask=a,source_mask=b,existing_primitive_count=1,proposed_primitive_count=1,existing_material="#fff",proposed_material="#fff",minimum_existing_iou=0.80)
         kwargs.update(overrides)
         return optimize_existing_owner_contour(**kwargs)
     def test_only_research_candidate(self):
