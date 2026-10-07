@@ -16,6 +16,17 @@ def _load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _semantic_payload(source: Mapping[str, Any]) -> Mapping[str, Any]:
+    candidate = source.get("candidate")
+    if isinstance(candidate, Mapping):
+        if source.get("production_output_changed") is not False:
+            raise ValueError("semantic observer bundle changed production output")
+        if source.get("hard_gate_override_allowed") is not False:
+            raise ValueError("semantic observer bundle cannot override hard gate")
+        return candidate
+    return source
+
+
 def build_complete_gc001_regression_artifact(
     *,
     hard_gate: Mapping[str, Any],
@@ -24,9 +35,10 @@ def build_complete_gc001_regression_artifact(
     teacher_evaluation: Mapping[str, Any],
     component_economy: Mapping[str, Any],
 ) -> dict[str, Any]:
-    if semantic_retention.get("authoritative") is not False:
+    semantic_report = _semantic_payload(semantic_retention)
+    if semantic_report.get("authoritative") is not False:
         raise ValueError("semantic retention must be non-authoritative")
-    if semantic_retention.get("can_override_hard_fail") is not False:
+    if semantic_report.get("can_override_hard_fail") is not False:
         raise ValueError("semantic retention cannot override hard fail")
 
     teacher_authority = teacher_evaluation.get("authority", {})
