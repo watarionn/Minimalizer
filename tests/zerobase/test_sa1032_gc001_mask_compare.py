@@ -12,6 +12,15 @@ class MaskComparisonTests(unittest.TestCase):
         r = compare_masks(a, b)
         self.assertEqual(r["source_missing_pixels"], 1)
         self.assertEqual(r["iou"], 0.5)
+    def test_topology_change_detected(self):
+        source = np.zeros((24, 24), bool)
+        source[2:22, 2:22] = True
+        candidate = source.copy()
+        candidate[8:14, 8:14] = False
+        result = compare_masks(source, candidate)
+        self.assertFalse(result["topology_pass"])
+        self.assertNotEqual(result["source_topology"], result["candidate_topology"])
+
     def test_mismatch_rejected(self):
         with self.assertRaises(ValueError):
             compare_masks(np.ones((2, 2), bool), np.ones((3, 3), bool))
