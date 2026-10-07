@@ -73,7 +73,7 @@ Canonical folder:
 Drive folder ID:
 `1-jV5ReW50t5T3p8IQiVS2IbOKQUlxSm1`
 
-The artifact set is copied into the Google Drive desktop sync path. API readback should be treated as the final preservation verification boundary.
+Drive API readback verified the complete artifact set:\n- `GC001_sa107_complete_regression.json`\n- `GC001_sa106_component_economy.json`\n- `GC001_sa9_teacher_evaluation.json`\n- `GC001_sa106_role_masks/` containing `hair.png`, `major_clothing.png`, and `manifest.json`.\n\nPreservation verification: PASS.
 
 ## Decision
 
