@@ -93,7 +93,7 @@ def _bundle():
         "source": {"sha256": SOURCE_SHA},
         "machine_pass": True,
         "human_visual_qa": {"passed": True},
-        "determinism": {"passed": True},
+        "determinism": {"passed": True, "first_evaluation_sha256": "e" * 64},
         "pass": True,
     }
     semantic = {
