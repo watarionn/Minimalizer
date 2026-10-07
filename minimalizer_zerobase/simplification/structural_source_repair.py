@@ -4,50 +4,32 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 import cv2
+from minimalizer_zerobase.evaluation.material_topology import (
+    canonical_material_mask,
+    mask_topology,
+)
 
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.structure.graph import build_structural_layout_graph
 
 # Keep the artifact schema identifier stable for SA10.24 consumers; SA10.25
 # changes the authority semantics without changing the serialized contract.
-STRUCTURAL_REPAIR_VERSION = "sa10.24-v1"
+STRUCTURAL_REPAIR_VERSION = "sa10.25-v1"
 _OUTER_BOUNDARY_MIN_RECALL = 0.90
 
 
-def _canonical_material_mask(mask: np.ndarray) -> np.ndarray:
-    """Drop segmentation-scale specks/pinholes, retaining material topology.
-
-    The cutoff is image-relative and owner-local.  It is deliberately applied
-    before both topology comparison and source replay so candidate generation
-    and hard-evidence evaluation share the same authority.
-    """
-    binary = (np.asarray(mask) > 0).astype(np.uint8)
-    if binary.ndim != 2:
-        raise ValueError("material masks must be 2D")
-    cutoff = max(2, int(round(int(binary.sum()) * 0.001)))
-    count, labels, stats, _ = cv2.connectedComponentsWithStats(binary, 8)
-    cleaned = np.zeros_like(binary)
-    for label in range(1, count):
-        if int(stats[label, cv2.CC_STAT_AREA]) >= cutoff:
-            cleaned[labels == label] = 1
-    padded = cv2.copyMakeBorder(cleaned, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
-    count, labels, stats, _ = cv2.connectedComponentsWithStats(1 - padded, 8)
-    for label in range(1, count):
-        x, y, w, h, area = stats[label]
-        enclosed = x > 0 and y > 0 and x + w < padded.shape[1] and y + h < padded.shape[0]
-        if enclosed and int(area) < cutoff:
-            cleaned[labels[1:-1, 1:-1] == label] = 1
-    return cleaned.astype(bool)
+_canonical_material_mask = canonical_material_mask
 
 
 def _topology(mask: np.ndarray) -> tuple[int, int, int]:
-    binary = np.asarray(mask, dtype=np.uint8)
-    components, _, _, _ = cv2.connectedComponentsWithStats(binary, 8)
-    padded = cv2.copyMakeBorder(binary, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
-    background, _, _, _ = cv2.connectedComponentsWithStats(1 - padded, 8)
-    components = max(0, int(components) - 1)
-    holes = max(0, int(background) - 1)
-    return components, holes, components - holes
+    evidence = mask_topology(mask)
+    return (
+        evidence["components"],
+        evidence["holes"],
+        evidence["euler_characteristic"],
+    )
+
+
 
 
 def _outer_boundary(mask: np.ndarray) -> np.ndarray:
@@ -105,7 +87,6 @@ def _required_relation_keys(graph) -> set[tuple[str, str, str]]:
         and row.source_part != "unknown"
         and row.target_part != "unknown"
     }
-
 
 def _median_source_color(
     source_rgba: np.ndarray,

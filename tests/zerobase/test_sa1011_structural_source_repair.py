@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from minimalizer_zerobase.evaluation.material_topology import canonical_material_mask
 from minimalizer_zerobase.parts.decomposition import PART_NAMES
 from minimalizer_zerobase.simplification.structural_source_repair import (
     apply_structural_source_repair,
@@ -115,7 +116,7 @@ def test_sa1024_repairs_source_topology_mutation_and_reports_boundary_recall():
         shape=(160, 120),
     )
 
-    assert report["version"] == "sa10.24-v1"
+    assert report["version"] == "sa10.25-v1"
     assert "left_arm" in report["repaired_parts"]
     assert "source_topology_mismatch" in report["reasons"]["left_arm"]
     assert report["source_outer_boundary_recall_before"] == 1.0
@@ -154,6 +155,31 @@ def test_sa1024_repairs_visible_hair_and_clothing_owner_topology_generically():
     assert np.array_equal(_union(repaired, "hair"), masks["hair"])
     assert np.array_equal(_union(repaired, "major_clothing"), masks["major_clothing"])
     assert report["unreplayable_parts"] == []
+
+
+def test_sa1025_source_replay_consolidates_tiny_owned_components():
+    masks = _source_masks()
+    # A segmentation speck is source-owned but below the material cutoff.
+    masks["major_clothing"][1, 1] = True
+    groups = _groups(masks)
+    row = next(item for item in groups if item["part"] == "major_clothing")
+    row["mask"][:] = False
+    row["mask"][1, 1] = True
+
+    repaired, report = apply_structural_source_repair(
+        groups,
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+
+    assert report["applied"] is True
+    replayed = _union(repaired, "major_clothing")
+    assert replayed is not None
+    assert not replayed[1, 1]
+    assert np.count_nonzero(replayed) == np.count_nonzero(
+        canonical_material_mask(masks["major_clothing"])
+    )
 
 
 def test_sa1024_reports_unknown_without_phase12_owner_as_unreplayable():
