@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Mapping
@@ -41,9 +41,20 @@ def _mask_topology(mask: np.ndarray) -> dict:
     }
 
 
+_NON_SEMANTIC_TOPOLOGY_PARTS = frozenset({"unknown", "__unbound__"})
+
 def _topology_evidence(masks: Mapping[str, np.ndarray]) -> dict:
-    per_part = {name: _mask_topology(mask) for name, mask in sorted(masks.items())}
-    union = np.logical_or.reduce(list(masks.values())) if masks else np.zeros((1, 1), dtype=bool)
+    semantic_masks = {
+        name: mask
+        for name, mask in sorted(masks.items())
+        if name not in _NON_SEMANTIC_TOPOLOGY_PARTS
+    }
+    per_part = {name: _mask_topology(mask) for name, mask in semantic_masks.items()}
+    union = (
+        np.logical_or.reduce(list(semantic_masks.values()))
+        if semantic_masks
+        else np.zeros((1, 1), dtype=bool)
+    )
     return {"per_part": per_part, "union": _mask_topology(union)}
 
 
