@@ -26,6 +26,40 @@ _FACE_HEAD_AREA_RATIO = (0.55, 1.80)
 _OUTER_BOUNDARY_MIN_RECALL = 0.90
 
 
+def _canonical_material_mask(mask: np.ndarray) -> np.ndarray:
+    """Normalize segmentation noise while preserving material topology.
+
+    A one-pixel speck or pin-hole is not a material component/hole.  Larger
+    components and holes are retained, including disconnected anatomy that
+    must remain visible.  The area cutoff is derived only from the mask area
+    and is therefore deterministic and independent of part ordering.
+    """
+    binary = (np.asarray(mask) > 0).astype(np.uint8)
+    if binary.ndim != 2:
+        raise ValueError("material masks must be 2D")
+    foreground_area = int(binary.sum())
+    cutoff = max(2, int(round(foreground_area * 0.001)))
+
+    components, labels, stats, _ = cv2.connectedComponentsWithStats(binary, 8)
+    cleaned = np.zeros_like(binary)
+    for label in range(1, components):
+        if int(stats[label, cv2.CC_STAT_AREA]) >= cutoff:
+            cleaned[labels == label] = 1
+
+    # Work on the padded background so only enclosed holes are considered.
+    padded = cv2.copyMakeBorder(cleaned, 1, 1, 1, 1, cv2.BORDER_CONSTANT)
+    background_count, background_labels, background_stats, _ = (
+        cv2.connectedComponentsWithStats(1 - padded, 8)
+    )
+    for label in range(1, background_count):
+        # Border-connected background is not a hole.
+        x, y, w, h, area = background_stats[label]
+        touches_border = x == 0 or y == 0 or x + w == padded.shape[1] or y + h == padded.shape[0]
+        if not touches_border and int(area) < cutoff:
+            cleaned[background_labels[1:-1, 1:-1] == label] = 1
+    return cleaned.astype(bool)
+
+
 def _mask_topology(mask: np.ndarray) -> dict:
     """Return source-derived 8-connected component/hole/Euler evidence."""
     binary = (np.asarray(mask) > 0).astype(np.uint8)
@@ -43,19 +77,55 @@ def _mask_topology(mask: np.ndarray) -> dict:
 
 _NON_SEMANTIC_TOPOLOGY_PARTS = frozenset({"unknown", "__unbound__"})
 
+
+def _coverage_role(name: str) -> str:
+    """Describe why a non-semantic mask exists in the source contract."""
+    if name == "unknown":
+        # Phase 4 unknown is subject & ~assigned: observed evidence with no
+        # semantic owner, never an owner that Phase 11 may be required to
+        # reproduce.
+        return "observed-unassigned"
+    if name == "__unbound__":
+        return "observed-unassigned"
+    return "semantic-owner"
+
 def _topology_evidence(masks: Mapping[str, np.ndarray]) -> dict:
     semantic_masks = {
         name: mask
         for name, mask in sorted(masks.items())
         if name not in _NON_SEMANTIC_TOPOLOGY_PARTS
     }
-    per_part = {name: _mask_topology(mask) for name, mask in semantic_masks.items()}
+    raw_per_part = {name: _mask_topology(mask) for name, mask in semantic_masks.items()}
+    canonical_masks = {
+        name: _canonical_material_mask(mask) for name, mask in semantic_masks.items()
+    }
+    per_part = {name: _mask_topology(mask) for name, mask in canonical_masks.items()}
     union = (
-        np.logical_or.reduce(list(semantic_masks.values()))
+        np.logical_or.reduce(list(canonical_masks.values()))
         if semantic_masks
         else np.zeros((1, 1), dtype=bool)
     )
-    return {"per_part": per_part, "union": _mask_topology(union)}
+    non_semantic = {
+        name: {
+            "coverage_role": _coverage_role(name),
+            "pixel_count": int(np.count_nonzero(mask)),
+            "excluded_from_semantic_topology": True,
+        }
+        for name, mask in sorted(masks.items())
+        if name in _NON_SEMANTIC_TOPOLOGY_PARTS
+    }
+    raw_union = (
+        np.logical_or.reduce(list(semantic_masks.values()))
+        if semantic_masks else np.zeros((1, 1), dtype=bool)
+    )
+    return {
+        "per_part": per_part,
+        "union": _mask_topology(union),
+        "raw_per_part": raw_per_part,
+        "raw_union": _mask_topology(raw_union),
+        "non_semantic_coverage": non_semantic,
+        "semantic_union_definition": "union of semantic-owner masks only",
+    }
 
 
 def _relation_key(row) -> tuple[str, str, str]:

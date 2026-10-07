@@ -91,6 +91,25 @@ def test_structural_hard_evidence_fails_if_required_arm_disappears():
     assert report.topology_pass is False
 
 
+def test_phase4_unknown_is_observed_unassigned_not_semantic_topology_owner():
+    source = _person_masks()
+    source["unknown"][4:9, 4:11] = True
+    candidate = {name: mask.copy() for name, mask in source.items()}
+    candidate["unknown"][:] = False
+    report = evaluate_structural_hard_evidence(
+        source_masks=source,
+        candidate_masks=candidate,
+    )
+    topology = report.to_dict()["topology"]
+    assert topology["source_evidence"]["non_semantic_coverage"]["unknown"] == {
+        "coverage_role": "observed-unassigned",
+        "pixel_count": 35,
+        "excluded_from_semantic_topology": True,
+    }
+    assert all(not item.startswith("unknown:") for item in topology["mismatches"])
+    assert report.topology_pass is True
+
+
 def test_actual_emission_diagnostic_does_not_reinterpret_sa105():
     hair = np.zeros((120, 120), bool)
     hair[10:90, 10:90] = True
