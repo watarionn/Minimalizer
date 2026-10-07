@@ -8,6 +8,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from minimalizer_zerobase.image_io import read_cv_image
+
 from .semantic import SemanticCompositionResult, UNBOUND_PART
 
 
@@ -147,7 +149,7 @@ def write_phase11_artifacts(
     phase10_inputs = _verified_declared_outputs(
         phase10_dir, phase10_stage, consumer="Phase 10"
     )
-    source_image = cv2.imread(str(source_path), cv2.IMREAD_UNCHANGED)
+    source_image = read_cv_image(source_path, cv2.IMREAD_UNCHANGED)
     if source_image is None or source_image.shape[:2] != (result.height, result.width):
         raise ValueError("Phase 11 canonical source image is missing or dimensionally invalid")
 
