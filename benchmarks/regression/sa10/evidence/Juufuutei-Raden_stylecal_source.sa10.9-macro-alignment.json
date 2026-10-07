@@ -1,0 +1,66 @@
+{
+  "aligned": false,
+  "authoritative": false,
+  "budget": {
+    "allocated_total": 2,
+    "entries": [
+      {
+        "allocated_primitives": 1,
+        "complexity_score": 1.18245,
+        "contour_vertices": 22,
+        "hard_maximum": 3,
+        "major_component_areas": [8886],
+        "major_component_count": 1,
+        "reasons": ["required_minimum_reserved", "major_components=1", "no_additional_major_component_demand"],
+        "required_minimum": 1,
+        "role": "hair",
+        "source_area": 8701
+      },
+      {
+        "allocated_primitives": 1,
+        "complexity_score": 1.234602,
+        "contour_vertices": 27,
+        "hard_maximum": 3,
+        "major_component_areas": [3523],
+        "major_component_count": 1,
+        "reasons": ["required_minimum_reserved", "major_components=1", "no_additional_major_component_demand"],
+        "required_minimum": 1,
+        "role": "major_clothing",
+        "source_area": 3362
+      }
+    ],
+    "global_cap": 5,
+    "unallocated": 3,
+    "version": "sa7.43-v1"
+  },
+  "roles": [
+    {
+      "allocated_primitives": 1,
+      "drop_details": [
+        {
+          "expansion_ratio": 1.2861805086653162,
+          "mass_index": 0,
+          "reason": "EXPANSION_EXCEEDED",
+          "source_coverage": 0.9401305424262886
+        }
+      ],
+      "dropped_mass_indices": [0],
+      "emitted_primitives": 0,
+      "major_component_count": 1,
+      "mass_candidates": 1,
+      "role": "hair",
+      "status": "PRIMITIVE_GENERATION_DROP"
+    },
+    {
+      "allocated_primitives": 1,
+      "drop_details": [],
+      "dropped_mass_indices": [],
+      "emitted_primitives": 1,
+      "major_component_count": 1,
+      "mass_candidates": 1,
+      "role": "major_clothing",
+      "status": "ALIGNED"
+    }
+  ],
+  "version": "sa10.9-v1"
+}
