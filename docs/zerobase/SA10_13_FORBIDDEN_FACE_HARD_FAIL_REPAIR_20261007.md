@@ -205,3 +205,26 @@ Covered:
 SA10.13 is complete.
 
 The current Kyoko/Raden non-GC001 hard-evidence set is fully available and passing except for intentionally separate SA9 Teacher diagnostics. The next step is to integrate these independently-visible hard reports into a reproducible production regression transaction and expand coverage without introducing aggregate authority.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_13_20261007_FORBIDDEN_FACE_REPAIR`
+
+Drive folder ID:
+`1C04kwWeBglGf6JlC0MqjdEQ_6GvTPK55`
+
+The folder was created through the Drive API under the existing canonical Semantic_Abstraction parent. No Japanese parent folder was created from the local mount.
+
+Drive API read-back verified all 19 preserved artifacts:
+- 2 repaired Phase12 final PNGs;
+- 2 Phase12 metrics JSONs;
+- 2 Phase12 stage JSONs;
+- 2 Phase14 evaluation JSONs;
+- 2 baseline-bound visual hard-gate reports;
+- 2 FaceRasterGuard evidence reports;
+- 2 combined hard-evidence reports;
+- 2 exact-output DINO evidence reports;
+- 2 SA10.13 regression fixtures;
+- 1 cross-case matrix.
