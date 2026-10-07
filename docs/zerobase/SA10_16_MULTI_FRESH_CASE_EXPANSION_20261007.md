@@ -298,3 +298,27 @@ SA10.16 is complete.
 The real PASS transaction cohort is now five cases, and a concrete failure taxonomy exists across eight fresh screened cases.
 
 The evidence is not yet sufficient to justify calibration. The next step is a taxonomy-driven generic repair of the repeated fragmentation cluster while keeping the Phase14 fragmentation threshold unchanged.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_16_20261007_MULTI_FRESH_CASE`
+
+Drive folder ID:
+`1GT0ZYtPvlMgEyfJBoTXIeismvSJmfW1L`
+
+Drive API read-back verified all 54 preserved artifacts.
+
+The preserved set includes:
+- eight fresh source images;
+- reviewed baseline artifacts for admitted/evaluated cases;
+- fresh evaluation outputs for Nekomata-Okayu and Hoshimachi-Suisei;
+- visual hard-gate, structural/source-authority, DINO, FaceRasterGuard, fixtures, and passing transactions;
+- initial failed-case finals where a Phase12 final existed;
+- raw/compact failure evidence for Fuwawa, La+, Kaela, Ouro, Fubuki, and Tokino;
+- five-case transaction set;
+- SA10.16 failure taxonomy;
+- SA10.16 closeout document.
+
+No artifact was preserved outside the canonical `chatGPT及びCodex用` hierarchy.
