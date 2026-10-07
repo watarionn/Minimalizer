@@ -27,3 +27,7 @@ The replay completed Phase 5–12 with provenance gates passing. Phase 6 reporte
 - No malformed candidate was promoted as BEST. Production promotion remains false.
 
 This is an honest real-source HOLD, not a threshold relaxation. The next repair must be fail-local at the candidate silhouette/topology boundary; SA10.19/21 scores cannot clear the SA10.18/20 failure.
+
+## SA10.23 clean3 rerun
+
+The current clean from-scratch replay is at `C:\Work\Temp\sa1023-gc001-clean3\GC001_source` and uses the requested source SHA. It selected `aggressive` with final SHA256 `e40dcaea49e2bcb876a0c2b46d4247c4ae45d36eb01f76ee0bab4c41f71d9aa3`. The evidence transaction recorded SA10.18 **FAIL** (silhouette IoU `0.8777365819`, topology changed), SA10.20 boundary/topology **FAIL**, SA10.19 observer `0.0371794910`, SA10.21 observer aggregate `0.7429500231`, and no candidate authorization or production promotion.
