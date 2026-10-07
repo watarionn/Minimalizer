@@ -327,6 +327,14 @@ def _line_mask(shape: tuple[int, int], a: tuple[int, int], b: tuple[int, int], t
     return out.astype(bool)
 
 
+def _normalize_hough_lines(lines: np.ndarray) -> np.ndarray:
+    """Normalize OpenCV HoughLinesP outputs to deterministic N x 4 rows."""
+    array = np.asarray(lines)
+    if array.size == 0 or array.size % 4 != 0:
+        return np.empty((0, 4), dtype=np.int32)
+    return array.reshape(-1, 4)
+
+
 def _detect_peripheral_linear_accessory(
     rgb: np.ndarray,
     subject: np.ndarray,
@@ -355,7 +363,7 @@ def _detect_peripheral_linear_accessory(
         return None
 
     best: tuple[float, np.ndarray] | None = None
-    for row in lines[:, 0]:
+    for row in _normalize_hough_lines(lines):
         x1, y1, x2, y2 = [int(v) for v in row]
         length = float(np.hypot(x2 - x1, y2 - y1))
         mx, my = (x1 + x2) * 0.5, (y1 + y2) * 0.5
