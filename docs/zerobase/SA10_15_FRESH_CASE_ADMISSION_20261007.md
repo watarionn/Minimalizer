@@ -306,3 +306,34 @@ SA10.15 is complete.
 A third real, previously unused non-GC001 case passed the same hard-gate transaction protocol after only generic runtime / I/O robustness repairs.
 
 Three passing cases are still too few to justify threshold calibration. SA10.16 should expand fresh-case coverage and build a failure taxonomy before any calibration proposal.
+
+
+## Drive preservation
+
+Canonical folder:
+`chatGPT及びCodex用/Minimalizer/Differentiable Minimalization Research/Golden_Comparison/GC001_IMG_1205/Semantic_Abstraction/SA10_15_20261007_FRESH_CASE_AZKI`
+
+Drive folder ID:
+`1gScyuEbvg6ewB2SF8JaxaiIExLlabx-x`
+
+The source was uploaded through the Drive API before local execution.
+
+Drive API read-back verified all 18 preserved artifacts:
+- source image;
+- reviewed baseline PNG;
+- baseline Phase14 JSON;
+- baseline summary;
+- fresh evaluation PNG;
+- fresh Phase12 metrics;
+- fresh Phase14 JSON;
+- fresh evaluation summary;
+- adopted-baseline record;
+- visual hard-gate report;
+- structural/source-authority hard-evidence report;
+- exact-output DINO report;
+- FaceRasterGuard evidence;
+- admission-history report;
+- SA10.15 case fixture;
+- AZKi regression transaction;
+- three-case transaction set;
+- SA10.15 closeout document.
