@@ -27,9 +27,9 @@ def main():
     for n in ("root","prior","out"):ap.add_argument("--"+n,type=Path,required=True)
     a=ap.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True)
     source,_,_=load_assets(a.root);masks,_=load_observed_masks()
-    _,fringe=extract(source,masks)
+    missing,fringe=extract(source,masks)
     old_hair=masks["hair"]&masks["subject"]
-    derived=old_hair|fringe
+    derived=old_hair|missing
     newly=derived&~old_hair
     if int(newly.sum())!=390:raise ValueError("unexpected added source hair")
     rgba=np.zeros((340,340,4),np.uint8);rgba[:,:,3]=derived.astype(np.uint8)*255
