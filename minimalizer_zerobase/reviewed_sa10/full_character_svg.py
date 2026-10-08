@@ -79,8 +79,10 @@ def _contour_mask_svg(
         # SVG can represent tiny components without pretending they are polygons.
         valid_path=""
     else:
-        valid_path='<path d="'+" ".join(valid)+
-                   '" fill="#ffffff" fill-rule="evenodd" shape-rendering="crispEdges"/>'
+        valid_path=(
+            '<path d="'+" ".join(valid)+
+            '" fill="#ffffff" fill-rule="evenodd" shape-rendering="crispEdges"/>'
+        )
     # Even-odd full rings first, degenerate spans after. This is a browser
     # research approximation to OpenCV drawContours inclusive fill; no parity
     # is claimed or silently inferred from shape existence.
