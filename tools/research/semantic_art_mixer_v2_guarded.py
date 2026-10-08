@@ -155,7 +155,8 @@ def compose_guarded(recipe, original: Image.Image, assets, tie_mask):
       "final_selected_ink_pixels":ink_selected_pixels,
       "outline": "observed vsketch sparse ink, manual subject gate (not automatic silhouette)",
       "face": "single original observed skin color, no eyes/nose/mouth drawn",
-      "no_generated_pixels": True,
+      "flat_face_uses_source_observed_color_only": True,
+      "neural_image_generation_used": False,
     }
     return unguarded_before,guarded_locked,metrics,face
 
