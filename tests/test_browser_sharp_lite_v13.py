@@ -27,8 +27,8 @@ def test_sharp_lite_opt_in_contract_and_unchanged_profiles():
     engine = ENGINE.read_text(encoding="utf-8")
     assert 'browserFallbackQualityParam === "sharp"' in app
     # The opt-in quality family can expand without changing the Sharp contract.
-    assert 'return quality === "exact" || quality === "sharp" || quality === "shape" ? quality : "lite"' in app
-    assert 'browserFallbackQualityProfile() === "sharp"' in app
+    assert '["exact", "sharp", "shape", "facet"].includes(quality) ? quality : "lite"' in app
+    assert '["sharp", "shape", "facet"].includes(browserFallbackQualityProfile())' in app
     assert 'browserFallbackQualityProfile() === "exact"' in app
     assert 'structuralMode: browserFallbackStructuralMode()' in app
     assert 'canonicalContourLite: browserFallbackCanonicalContourLite()' in app
