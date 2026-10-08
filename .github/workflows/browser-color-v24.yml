@@ -8,6 +8,7 @@ on:
       - "tests/test_browser_color_region_v24.py"
       - "tools/run_browser_color_v24_chrome.py"
       - "tools/analyze_browser_color_v24.py"
+      - "tools/package_browser_color_v24.py"
       - ".github/workflows/browser-color-v24.yml"
   workflow_dispatch:
 
@@ -32,7 +33,7 @@ jobs:
         run: |
           node --check web/static/browser-fallback.js
           node --check web/static/app.js
-          python -m py_compile tools/run_browser_color_v24_chrome.py tools/analyze_browser_color_v24.py
+          python -m py_compile tools/run_browser_color_v24_chrome.py tools/analyze_browser_color_v24.py tools/package_browser_color_v24.py
       - name: Verify v24 and inherited regressions
         run: |
           python -m pytest tests/test_browser_color_region_v24.py tests/test_browser_plane_v23.py tests/test_browser_auto_gated_v22.py tests/test_browser_targeted_v21.py tests/test_browser_donor_distribution_v20.py tests/test_browser_merge_diagnostic_v19.py tests/test_browser_near_v18.py tests/test_browser_selective_v17.py tests/test_browser_facet_v15.py tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
