@@ -9,7 +9,7 @@ from minimalizer_zerobase.reviewed_sa10.semantic_apparel_material_planes import 
 )
 
 
-def test_case() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _fixture_case() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     rgb = np.full((120, 120, 3), [238, 238, 238], np.uint8)
     parent = np.zeros((120, 120), bool)
     parent[20:110, 5:95] = True
@@ -24,7 +24,7 @@ def test_case() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 class SemanticUniformMaterialTests(unittest.TestCase):
     def test_shirt_and_dark_panels_and_tie_are_geometry(self):
-        source, parent, protected = test_case()
+        source, parent, protected = _fixture_case()
         result = propose_source_uniform_panels(
             source_rgb=source, parent_visible=parent,
             protected=protected, parent_primitive_id="original-lowerbody",
@@ -63,7 +63,7 @@ class SemanticUniformMaterialTests(unittest.TestCase):
         self.assertTrue(np.any(new != original))
 
     def test_skip_when_no_green_tie(self):
-        source, parent, protected = test_case()
+        source, parent, protected = _fixture_case()
         source[20:110, 46:57] = [25, 32, 65]
         self.assertIsNone(propose_source_uniform_panels(
             source_rgb=source, parent_visible=parent,
@@ -71,7 +71,7 @@ class SemanticUniformMaterialTests(unittest.TestCase):
         ))
 
     def test_skip_when_no_white_shirt_panels(self):
-        source, parent, protected = test_case()
+        source, parent, protected = _fixture_case()
         source[26:73, 22:43] = [25, 32, 65]
         source[26:73, 60:83] = [25, 32, 65]
         self.assertIsNone(propose_source_uniform_panels(
@@ -80,7 +80,7 @@ class SemanticUniformMaterialTests(unittest.TestCase):
         ))
 
     def test_invalid_polygon_material_cannot_render(self):
-        source, parent, protected = test_case()
+        source, parent, protected = _fixture_case()
         panels,_ = propose_source_uniform_panels(
             source_rgb=source, parent_visible=parent,
             protected=protected, parent_primitive_id="lowerbody",
@@ -95,7 +95,7 @@ class SemanticUniformMaterialTests(unittest.TestCase):
             material_polygon_mask(wrong, parent_visible=parent, protected=protected)
 
     def test_wrong_material_layers_rejected(self):
-        source,parent,protected = test_case()
+        source,parent,protected = _fixture_case()
         panels,_ = propose_source_uniform_panels(
             source_rgb=source,parent_visible=parent,
             protected=protected,parent_primitive_id="lowerbody",
@@ -113,7 +113,7 @@ class SemanticUniformMaterialTests(unittest.TestCase):
             )
 
     def test_deterministic_source_derived_plan(self):
-        source,parent,protected = test_case()
+        source,parent,protected = _fixture_case()
         a=propose_source_uniform_panels(
             source_rgb=source,parent_visible=parent,
             protected=protected,parent_primitive_id="lowerbody",
