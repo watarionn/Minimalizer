@@ -3332,7 +3332,25 @@
       maxRegionColorError: 8,
       protectedMinAreaFraction: 0.002,
       maxBoundaryColorDelta: 16,
+      // V21: a named donor/recipient pair may bypass ONLY the area cap.
+      // It must still be same-palette, compact and satisfy all other gates.
+      targetedPair: null,
+      maxTargetDonorFraction: 0.06,
     }, settings || {});
+    const target = config.targetedPair;
+    if (target !== null) {
+      if (!Number.isInteger(target?.donorId) ||
+          !Number.isInteger(target?.recipientId) ||
+          target.donorId < 0 || target.recipientId < 0 ||
+          target.donorId === target.recipientId ||
+          config.allowNearPalette !== false ||
+          config.maxMerges !== 1 ||
+          !Number.isFinite(config.maxTargetDonorFraction) ||
+          config.maxTargetDonorFraction <= 0 ||
+          config.maxTargetDonorFraction > 0.06) {
+        throw new Error("V21 targeted merge requires one explicit same-palette pair, one transaction, and <=6% donor cap.");
+      }
+    }
     const base = hierarchy.built.components;
     const labels = hierarchy.built.componentIds;
     const owners = base.map((component, id) => ({
@@ -3345,6 +3363,9 @@
     let applied = 0, evaluated = 0, rejected = 0;
     let candidateNearPalette = 0, rejectedColorFidelity = 0;
     let cumulativeRecolored = 0;
+    let matchedTarget = false;
+    let targetStatus = target === null ? "not_requested" : "not_found";
+    let chosenTarget = null;
     const rejectReasons={incompatiblePalette:0,donorAreaOrAspect:0,protectedArea:0,paletteDistance:0,recolorBudget:0,regionColorError:0,sourceColorDistance:0,boundaryWeakOrShort:0};
     // V20 records independent gate outcomes for the *same unmodified* pair.
     // The probe is research-only and never changes merge acceptance.
@@ -3378,11 +3399,30 @@
         const [aId,bId]=key.split(":").map(Number);
         const a=owners[aId],b=owners[bId];
         if(!a?.active||!b?.active) {rejected+=1;continue;}
+        if(target && !(
+          (aId === target.donorId && bId === target.recipientId) ||
+          (bId === target.donorId && aId === target.recipientId)
+        )) continue;
+        if(target) {
+          matchedTarget = true;
+          targetStatus = "preflight_rejected";
+        }
         const crossPalette = a.paletteId!==b.paletteId;
         if(crossPalette&&!config.allowNearPalette){rejected+=1;rejectReasons.incompatiblePalette+=1;continue;}
+        if(target && crossPalette) {
+          targetStatus = "palette_rejected";
+          rejected+=1;
+          rejectReasons.incompatiblePalette+=1;
+          continue;
+        }
         if(crossPalette) candidateNearPalette+=1;
         const small=a.count<=b.count?a:b;
         const large=small===a?b:a;
+        if(target && (small.id !== target.donorId || large.id !== target.recipientId)) {
+          targetStatus = "orientation_rejected";
+          rejected+=1;
+          continue;
+        }
         if(candidateGeometry!==null) {
           const boxWidth=small.maxX-small.minX+1;
           const boxHeight=small.maxY-small.minY+1;
@@ -3421,7 +3461,13 @@
             gates,
           });
         }
-        if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;rejectReasons.donorAreaOrAspect+=1;continue;}
+        const allowedFraction = target ? config.maxTargetDonorFraction : config.maxSmallFraction;
+        if(small.count/total>allowedFraction||!validShape(small)) {
+          rejected+=1;
+          rejectReasons.donorAreaOrAspect+=1;
+          if(target) targetStatus = "area_or_shape_rejected";
+          continue;
+        }
         const paletteDistance=Math.hypot(...small.paletteRgb.map((v,i)=>v-large.paletteRgb[i]));
         if(crossPalette) {
           let reason=null;
@@ -3443,26 +3489,32 @@
       possible.sort((a,b)=>a.area-b.area||a.colorDelta-b.colorDelta
         ||b.shared-a.shared||a.source-b.source||a.target-b.target);
       if(!possible.length) break;
-      const winner=possible[0],source=owners[winner.source],target=owners[winner.target];
+      const winner=possible[0],source=owners[winner.source],recipient=owners[winner.target];
+      if(target) {
+        chosenTarget={donorId:winner.source,recipientId:winner.target,
+          donorPixels:source.count,sourceColorDistance:winner.colorDelta,
+          samePalette:!winner.crossPalette};
+        targetStatus="pre_raster_accepted";
+      }
       if(winner.crossPalette)cumulativeRecolored+=source.count;
-      const combined=source.count+target.count;
-      target.rgb=target.rgb.map((v,j)=>Math.round((v*target.count+source.rgb[j]*source.count)/combined));
-      target.count=combined;
-      target.minX=Math.min(target.minX,source.minX);
-      target.minY=Math.min(target.minY,source.minY);
-      target.maxX=Math.max(target.maxX,source.maxX);
-      target.maxY=Math.max(target.maxY,source.maxY);
-      target.borderTouches+=source.borderTouches;
-      target.pixels.push(...source.pixels);
-      mergedFrom[target.id].push(...mergedFrom[source.id]);
+      const combined=source.count+recipient.count;
+      recipient.rgb=recipient.rgb.map((v,j)=>Math.round((v*recipient.count+source.rgb[j]*source.count)/combined));
+      recipient.count=combined;
+      recipient.minX=Math.min(recipient.minX,source.minX);
+      recipient.minY=Math.min(recipient.minY,source.minY);
+      recipient.maxX=Math.max(recipient.maxX,source.maxX);
+      recipient.maxY=Math.max(recipient.maxY,source.maxY);
+      recipient.borderTouches+=source.borderTouches;
+      recipient.pixels.push(...source.pixels);
+      mergedFrom[recipient.id].push(...mergedFrom[source.id]);
       source.active=false;
-      for(const pixel of source.pixels)ownerOf[pixel]=target.id;
+      for(const pixel of source.pixels)ownerOf[pixel]=recipient.id;
       applied+=1;
     }
     if(applied===0) return {
       hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0,
         candidateNearPalette,rejectedColorFidelity,rejectReasons,
-        candidateGeometry},
+        candidateGeometry,matchedTarget,targetStatus,chosenTarget},
     };
     const retained=owners.filter(x=>x.active).sort((a,b)=>a.id-b.id);
     const finalLabels=new Int32Array(total);finalLabels.fill(-1);
@@ -3490,7 +3542,7 @@
       },
       metrics:{applied,evaluated,rejected,changedPixels:cumulativeRecolored,
         candidateNearPalette,rejectedColorFidelity,rejectReasons,
-        candidateGeometry},
+        candidateGeometry,matchedTarget,targetStatus,chosenTarget},
     };
   }
 
@@ -3612,7 +3664,8 @@
     );
     let selectedHierarchy = hierarchy;
     let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0,
-      candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{},candidateGeometry:null};
+      candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{},candidateGeometry:null,
+      matchedTarget:false,targetStatus:"not_requested",chosenTarget:null};
     if (config.selectiveRegionMerge === true) {
       const selective = mergeAcceptedPaletteRegions(hierarchy,palette,width,height,config.selectiveMergeOptions);
       selectedHierarchy = selective.hierarchy;
@@ -3704,6 +3757,9 @@
         selectiveMergeColorRejections: selectiveMergeMetrics.rejectedColorFidelity,
         selectiveMergeRejectReasons: selectiveMergeMetrics.rejectReasons,
         selectiveMergeCandidateGeometry: selectiveMergeMetrics.candidateGeometry,
+        targetedMergeMatched: selectiveMergeMetrics.matchedTarget,
+        targetedMergeStatus: selectiveMergeMetrics.targetStatus,
+        targetedMergeChoice: selectiveMergeMetrics.chosenTarget,
         selectiveMergeRenderGate: "not_needed",
         selectiveMergeRenderChangedPixels: 0,
         cutObjective: hierarchy.cutObjective,
@@ -3758,9 +3814,15 @@
           selectiveMergeColorRejections:selectiveMergeMetrics.rejectedColorFidelity,
           selectiveMergeRejectReasons:selectiveMergeMetrics.rejectReasons,
           selectiveMergeCandidateGeometry:selectiveMergeMetrics.candidateGeometry,
+          targetedMergeMatched:selectiveMergeMetrics.matchedTarget,
+          targetedMergeStatus:"raster_rejected:"+verified.reason,
+          targetedMergeChoice:selectiveMergeMetrics.chosenTarget,
           selectiveMergeRenderGate:"rejected:"+verified.reason,
           selectiveMergeRenderChangedPixels:verified.changedPixels};
         return base;
+      }
+      if(config.selectiveMergeOptions?.targetedPair) {
+        result.metrics.targetedMergeStatus="raster_pass";
       }
       result.metrics.selectiveMergeRenderGate="pass";
       result.metrics.selectiveMergeRenderChangedPixels=verified.changedPixels;
@@ -4069,6 +4131,7 @@
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
       "X-Minimalizer-Selective-Merges": String(analysis.metrics.selectiveMergeApplied),
+      "X-Minimalizer-Targeted-Merge-Gate": String(analysis.metrics.targetedMergeStatus),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4134,6 +4197,9 @@
         selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
         selectiveMergeRejectReasons: analysis.metrics.selectiveMergeRejectReasons,
         selectiveMergeCandidateGeometry: analysis.metrics.selectiveMergeCandidateGeometry,
+        targetedMergeMatched: analysis.metrics.targetedMergeMatched,
+        targetedMergeStatus: analysis.metrics.targetedMergeStatus,
+        targetedMergeChoice: analysis.metrics.targetedMergeChoice,
         selectiveMergeRenderGate: analysis.metrics.selectiveMergeRenderGate,
         selectiveMergeRenderChangedPixels: analysis.metrics.selectiveMergeRenderChangedPixels || 0,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
