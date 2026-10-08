@@ -389,6 +389,7 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
+    qualityProfileOverride: browserFallbackQualityProfile() === "mass" ? "mass" : null,
     hierarchyTargetMin: browserFallbackQualityProfile() === "mass" ? 18 : 24,
     hierarchyTargetMax: browserFallbackQualityProfile() === "mass" ? 30 : 40,
     geometryMode: browserFallbackQualityProfile() === "mass" ? "facet-safe"
