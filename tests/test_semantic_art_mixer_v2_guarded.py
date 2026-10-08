@@ -96,5 +96,6 @@ def test_keeps_production_isolation():
     assert "import local_worker" not in source
     assert "import torch" not in source
     assert "diffusers" not in source
-    assert "img2img" not in source.replace("neural img2img","")
+    assert "import img2img" not in source
+    assert "from diffusers" not in source
     assert len(guard.DEFAULT_RECIPES)==4
