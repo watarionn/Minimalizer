@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "auto") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "auto");
 } else if (browserFallbackQualityParam === "near") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "near");
 } else if (browserFallbackQualityParam === "selective") {
@@ -26,7 +28,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return ["exact", "sharp", "shape", "facet", "selective", "near"].includes(quality) ? quality : "lite";
+  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -36,7 +38,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return ["sharp", "shape", "facet", "selective", "near"].includes(browserFallbackQualityProfile());
+  return ["sharp", "shape", "facet", "selective", "near", "auto"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -391,10 +393,13 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
+    autoSelectiveMerge: browserFallbackQualityProfile() === "auto",
+    autoMergeOptions: browserFallbackQualityProfile() === "auto"
+      ? { maxCandidates: 4, maxDonorFraction: 0.06 } : undefined,
     selectiveRegionMerge: ["selective","near"].includes(browserFallbackQualityProfile()),
     selectiveMergeOptions: browserFallbackQualityProfile() === "near"
       ? { allowNearPalette: true, maxMerges: 1, captureCandidateGeometry: true } : { allowNearPalette: false, maxMerges: 1 },
-    geometryMode: ["selective", "near"].includes(browserFallbackQualityProfile()) ? "facet-safe"
+    geometryMode: ["selective", "near", "auto"].includes(browserFallbackQualityProfile()) ? "facet-safe"
       : browserFallbackQualityProfile() === "facet" ? "facet-safe"
       : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
@@ -595,7 +600,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? browserQualityProfile === "near"
+            ? browserQualityProfile === "auto"
+              ? "Minimalizer Browser Fallback v12 · AUTO (research)"
+              : browserQualityProfile === "near"
               ? "Minimalizer Browser Fallback v12 · NEAR (research)"
               : browserQualityProfile === "selective"
                 ? "Minimalizer Browser Fallback v12 · SELECTIVE (research)"

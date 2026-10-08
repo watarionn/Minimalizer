@@ -3546,6 +3546,79 @@
     };
   }
 
+
+  // V22 read-only ranking. Source-local IDs are labels, never hard-coded identities.
+  // Only a SAME-PALETTE pair passing every v21 gate except the size cap may
+  // enter the one-at-a-time render-and-rollback trial queue.
+  function rankAutomaticPaletteMergeCandidates(rows, options) {
+    const cfg=Object.assign({maxCandidates:4,maxDonorFraction:0.06},options||{});
+    if(!Number.isInteger(cfg.maxCandidates)||cfg.maxCandidates<1||cfg.maxCandidates>6
+       ||!Number.isFinite(cfg.maxDonorFraction)
+       ||cfg.maxDonorFraction<=0||cfg.maxDonorFraction>0.06) {
+      throw Error("V22 automatic candidate bounds invalid.");
+    }
+    const verified=rows.filter(r=>r && !r.crossPalette
+      && Number.isInteger(r.donorId) && Number.isInteger(r.recipientId)
+      && r.donorId!==r.recipientId
+      && r.donorAreaFraction>0
+      && r.donorAreaFraction<=cfg.maxDonorFraction
+      && r.gates && Object.keys(r.gates).every(k=>k==="area"||r.gates[k]===true));
+    verified.sort((a,b)=>
+      a.sourceRgbDistance-b.sourceRgbDistance
+      ||b.sharedPerimeterFraction-a.sharedPerimeterFraction
+      ||a.donorPixels-b.donorPixels
+      ||a.donorId-b.donorId||a.recipientId-b.recipientId);
+    return verified.slice(0,cfg.maxCandidates).map(r=>({
+      donorId:r.donorId,recipientId:r.recipientId,
+      donorPixels:r.donorPixels,sourceRgbDistance:r.sourceRgbDistance,
+      contactFraction:r.sharedPerimeterFraction,
+    }));
+  }
+
+  // A color-only thin-feature detector. Four-connected, exact-color blobs with
+  // low rectangle occupancy and long spatial reach include isolated diagonal
+  // accessories (e.g. a staff), without any character-specific prompt or ROI.
+  function protectThinColorComponents(basePixels,width,height) {
+    const total=width*height;
+    const visited=new Uint8Array(total);
+    const mask=new Uint8Array(total);
+    const same=(a,b)=>basePixels[4*a]===basePixels[4*b]
+      &&basePixels[4*a+1]===basePixels[4*b+1]
+      &&basePixels[4*a+2]===basePixels[4*b+2];
+    let protectedComponents=0;
+    for(let start=0;start<total;start+=1) {
+      if(visited[start]) continue;
+      visited[start]=1;
+      const list=[start],queue=[start];
+      let cursor=0;
+      let minX=start%width,maxX=minX,minY=Math.floor(start/width),maxY=minY;
+      while(cursor<queue.length) {
+        const i=queue[cursor++],x=i%width,y=Math.floor(i/width);
+        if(x<minX)minX=x;if(x>maxX)maxX=x;
+        if(y<minY)minY=y;if(y>maxY)maxY=y;
+        const around=[x>0?i-1:-1,x+1<width?i+1:-1,
+          y>0?i-width:-1,y+1<height?i+width:-1];
+        for(const j of around) {
+          if(j<0||visited[j]||!same(i,j))continue;
+          visited[j]=1;queue.push(j);list.push(j);
+        }
+      }
+      const bw=maxX-minX+1,bh=maxY-minY+1;
+      const fill=list.length/(bw*bh);
+      // Strict geometric and occupancy gates. Diagonal thin lines can have
+      // nearly square bounding boxes, hence no width/height aspect rule.
+      const thin=list.length>=12&&list.length<=total*0.035
+        &&Math.max(bw,bh)>=35
+        &&Math.min(bw,bh)<=Math.ceil(Math.min(width,height)*0.40)
+        &&fill<=0.35;
+      if(thin) {
+        for(const i of list)mask[i]=1;
+        protectedComponents+=1;
+      }
+    }
+    return {mask,protectedComponents};
+  }
+
   // Render-space verification, independent of the proposed label-area budget.
   // Reject geometry/paint changes that exceed any pixel, RGB or color-mass bound.
   function compareRegionRenderFidelity(baselineShapes, candidateShapes, width, height, options) {
@@ -3554,7 +3627,8 @@
       maxSilhouetteChangedPixels:0,
       maxProtectedChangedPixels:0,
       protectedRects:[],
-      protectedColors:[]},options||{});
+      protectedColors:[],
+      protectThinComponents:false},options||{});
     const raster=typeof globalThis!=="undefined" && globalThis.MinimalizerOpenCvRaster;
     if(!raster||typeof raster.renderShapesRgba!=="function")
       return {pass:false,reason:"raster_missing",changedPixels:0};
@@ -3562,7 +3636,9 @@
     const newPixels=raster.renderShapesRgba(candidateShapes,width,height,1,1,2);
     if(oldPixels.length!==width*height*4||oldPixels.length!==newPixels.length)
       return {pass:false,reason:"invalid_raster",changedPixels:0};
-    let changed=0,mae=0,silhouetteChanged=0,protectedChanged=0;
+    const thin=cfg.protectThinComponents
+      ? protectThinColorComponents(oldPixels,width,height) : null;
+    let changed=0,mae=0,silhouetteChanged=0,protectedChanged=0,thinChanged=0;
     const massDelta=new Map();
     for(let p=0;p<oldPixels.length;p+=4){
       const before=oldPixels[p]+","+oldPixels[p+1]+","+oldPixels[p+2];
@@ -3572,6 +3648,7 @@
         massDelta.set(before,(massDelta.get(before)||0)-1);
         massDelta.set(after,(massDelta.get(after)||0)+1);
         if((before==="255,255,255")!==(after==="255,255,255")) silhouetteChanged+=1;
+        if(thin?.mask[p/4])thinChanged+=1;
         if(cfg.protectedRects.some(rect => {
           const x=(p/4)%width;
           const y=Math.floor((p/4)/width);
@@ -3593,15 +3670,23 @@
       &&maxMassDelta/(width*height)<=cfg.maxColorMassDeltaFraction;
     const protectionPass=silhouetteChanged<=cfg.maxSilhouetteChangedPixels
       &&protectedChanged<=cfg.maxProtectedChangedPixels
-      &&colorProtected;
+      &&thinChanged===0&&colorProtected;
     const pass=limitsPass&&protectionPass;
     return {pass,reason:pass?"pass":protectionPass?"render_delta":"protected_feature",
       changedPixels:changed,changedFraction,rgbMAE,maxColorMassDelta:maxMassDelta,
-      silhouetteChanged,protectedChanged,colorProtected};
+      silhouetteChanged,protectedChanged,colorProtected,thinChanged,
+      protectedThinComponents:thin?.protectedComponents||0};
   }
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if(config.autoSelectiveMerge === true && (
+      config.selectiveRegionMerge === true
+      ||config.structuralMode!=="l0-lite-jacobi"
+      ||config.canonicalContourLite!==true
+      ||config.geometryMode!=="facet-safe"
+      ||config.selectiveMergeOptions?.allowNearPalette===true
+    ))throw Error("V22 automatic profile requires unchanged Facet preprocessing and same-palette donors.");
     if (config.selectiveRegionMerge === true && (
       config.structuralMode !== "l0-lite-jacobi"
       || config.canonicalContourLite !== true
@@ -3681,6 +3766,57 @@
       height,
       config,
     );
+    if(config.autoSelectiveMerge===true) {
+      // No pair is selected during collection (area cap zero), even if several
+      // same-color regions are otherwise eligible. The accepted Facet baseline
+      // is computed once per source and retained for fail-closed fallback.
+      const review=mergeAcceptedPaletteRegions(hierarchy,palette,width,height,{
+        maxMerges:1,maxSmallFraction:0,captureCandidateGeometry:true,
+        allowNearPalette:false,
+      });
+      const candidates=rankAutomaticPaletteMergeCandidates(
+        review.metrics.candidateGeometry||[],config.autoMergeOptions);
+      const baseline=analyzeRgba(rgba,width,height,{
+        ...config,autoSelectiveMerge:false,selectiveRegionMerge:false
+      });
+      const attempts=[];
+      for(const entry of candidates) {
+        const trial=analyzeRgba(rgba,width,height,{
+          ...config,autoSelectiveMerge:false,selectiveRegionMerge:true,
+          selectiveMergeOptions:{
+            maxMerges:1,allowNearPalette:false,maxTargetDonorFraction:0.06,
+            targetedPair:{donorId:entry.donorId,recipientId:entry.recipientId},
+          },
+          selectiveRenderGuard:{
+            maxChangedPixelFraction:0.0015,
+            maxRgbMeanAbsoluteError:0.30,
+            maxColorMassDeltaFraction:0.0015,
+            maxSilhouetteChangedPixels:0,
+            maxProtectedChangedPixels:0,
+            protectThinComponents:true,
+          },
+        });
+        const ok=trial.metrics.selectiveMergeApplied===1
+          &&trial.metrics.targetedMergeStatus==="raster_pass"
+          &&trial.metrics.vertexCount<baseline.metrics.vertexCount;
+        attempts.push({...entry,reason:trial.metrics.targetedMergeStatus,
+          changedPixels:trial.metrics.selectiveMergeRenderChangedPixels,
+          vertexDelta:trial.metrics.vertexCount-baseline.metrics.vertexCount,
+          accepted:ok});
+        if(ok) {
+          trial.metrics.autoMergeStatus="accepted";
+          trial.metrics.autoMergeCandidates=candidates.length;
+          trial.metrics.autoMergeAttempts=attempts;
+          trial.metrics.autoMergeSelected={donorId:entry.donorId,recipientId:entry.recipientId};
+          return trial;
+        }
+      }
+      baseline.metrics.autoMergeStatus="fallback";
+      baseline.metrics.autoMergeCandidates=candidates.length;
+      baseline.metrics.autoMergeAttempts=attempts;
+      baseline.metrics.autoMergeSelected=null;
+      return baseline;
+    }
     let selectedHierarchy = hierarchy;
     let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0,
       candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{},candidateGeometry:null,
@@ -3768,6 +3904,10 @@
         subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: selectedHierarchy.selectedCount,
+        autoMergeStatus: "not_requested",
+        autoMergeCandidates: 0,
+        autoMergeAttempts: [],
+        autoMergeSelected: null,
         selectiveMergeApplied: selectiveMergeMetrics.applied,
         selectiveMergeEvaluated: selectiveMergeMetrics.evaluated,
         selectiveMergeRejected: selectiveMergeMetrics.rejected,
@@ -4136,7 +4276,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4157,6 +4297,8 @@
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
       "X-Minimalizer-Selective-Merges": String(analysis.metrics.selectiveMergeApplied),
       "X-Minimalizer-Targeted-Merge-Gate": String(analysis.metrics.targetedMergeStatus),
+      "X-Minimalizer-Auto-Merge-Gate": String(analysis.metrics.autoMergeStatus),
+      "X-Minimalizer-Auto-Merge-Candidates": String(analysis.metrics.autoMergeCandidates),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4182,7 +4324,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4217,6 +4359,10 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        autoMergeStatus: analysis.metrics.autoMergeStatus,
+        autoMergeCandidates: analysis.metrics.autoMergeCandidates,
+        autoMergeAttempts: analysis.metrics.autoMergeAttempts,
+        autoMergeSelected: analysis.metrics.autoMergeSelected,
         selectiveMergeRecoloredPixels: analysis.metrics.selectiveMergeRecoloredPixels,
         selectiveMergeNearPaletteCandidates: analysis.metrics.selectiveMergeNearPaletteCandidates,
         selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
@@ -4305,6 +4451,8 @@
       repairCanonicalPaletteRelationships,
       consolidateCanonicalPalette,
       mergeAcceptedPaletteRegions,
+      rankAutomaticPaletteMergeCandidates,
+      protectThinColorComponents,
       compareRegionRenderFidelity,
       analyzeRgba,
       renderAnalysis,
