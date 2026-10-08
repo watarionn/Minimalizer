@@ -1,0 +1,1315 @@
+{
+  "schema": "sa10.33-phase7-full-scene-authority-v1",
+  "provenance": {
+    "source_contract": true,
+    "policy_config_sha256_equal": true,
+    "selected_profile_equal": true,
+    "selected_serialized_records_equal": true,
+    "preview_bytes_sha256_valid": true,
+    "scene_bytes_sha256_valid": true,
+    "selected_render_preview_pixel_equal": true,
+    "selected_name": "aggressive",
+    "selected_primitive_count": 11,
+    "source_hash": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "preview_pixel_delta": 0,
+    "guard_changed_outside_face_pixels": 0
+  },
+  "owner_audit": {
+    "primitive_count": 11,
+    "explicit_owner_counts": {
+      "accessory_or_held_object": 1,
+      "face": 1,
+      "hair": 1,
+      "head": 1,
+      "left_arm": 1,
+      "lower_body": 1,
+      "major_clothing": 1,
+      "neck": 1,
+      "right_arm": 1,
+      "torso": 1
+    },
+    "unbound_primitive_count": 1,
+    "missing_required_owners": [],
+    "invalid_records": [],
+    "status": "OWNER_AUDIT_PASS"
+  },
+  "parts": {
+    "face": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 4937,
+        "observed_pixels": 4937,
+        "intersection_pixels": 4937,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "source_to_export": {
+        "reference_pixels": 4937,
+        "observed_pixels": 4939,
+        "intersection_pixels": 4932,
+        "missing_pixels": 5,
+        "excess_pixels": 7,
+        "xor_pixels": 12,
+        "iou": 0.9975728155339806,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 4937,
+        "observed_pixels": 4939,
+        "intersection_pixels": 4932,
+        "missing_pixels": 5,
+        "excess_pixels": 7,
+        "xor_pixels": 12,
+        "iou": 0.9975728155339806,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 4937,
+        "observed_pixels": 4937,
+        "intersection_pixels": 4937,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 4937,
+        "observed_pixels": 4939,
+        "intersection_pixels": 4932,
+        "missing_pixels": 5,
+        "excess_pixels": 7,
+        "xor_pixels": 12,
+        "iou": 0.9975728155339806,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 1,
+        "damaged_components": [],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 1,
+        "damaged_components": [
+          {
+            "area": 4937,
+            "overlap_pixels": 4932,
+            "lost_pixels": 5,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              128,
+              109,
+              87,
+              73
+            ]
+          }
+        ],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": true,
+      "primitive_id": "phase12-aggressive-0003",
+      "source_mask_replay": true,
+      "ring_count": 1,
+      "component_count": 1,
+      "status": "RESEARCH_DIAGNOSTIC_ONLY"
+    },
+    "hair": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 14536,
+        "observed_pixels": 14513,
+        "intersection_pixels": 14513,
+        "missing_pixels": 23,
+        "excess_pixels": 0,
+        "xor_pixels": 23,
+        "iou": 0.9984177215189873,
+        "reference_topology": {
+          "components": 18,
+          "holes": 9,
+          "euler_characteristic": 9
+        },
+        "observed_topology": {
+          "components": 4,
+          "holes": 9,
+          "euler_characteristic": -5
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "source_to_export": {
+        "reference_pixels": 14536,
+        "observed_pixels": 14613,
+        "intersection_pixels": 14461,
+        "missing_pixels": 75,
+        "excess_pixels": 152,
+        "xor_pixels": 227,
+        "iou": 0.9845452069716776,
+        "reference_topology": {
+          "components": 18,
+          "holes": 9,
+          "euler_characteristic": 9
+        },
+        "observed_topology": {
+          "components": 4,
+          "holes": 6,
+          "euler_characteristic": -2
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 14513,
+        "observed_pixels": 14613,
+        "intersection_pixels": 14461,
+        "missing_pixels": 52,
+        "excess_pixels": 152,
+        "xor_pixels": 204,
+        "iou": 0.9860893283327651,
+        "reference_topology": {
+          "components": 4,
+          "holes": 9,
+          "euler_characteristic": -5
+        },
+        "observed_topology": {
+          "components": 4,
+          "holes": 6,
+          "euler_characteristic": -2
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 14513,
+        "observed_pixels": 14513,
+        "intersection_pixels": 14513,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 4,
+          "holes": 9,
+          "euler_characteristic": -5
+        },
+        "observed_topology": {
+          "components": 4,
+          "holes": 9,
+          "euler_characteristic": -5
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 14513,
+        "observed_pixels": 14613,
+        "intersection_pixels": 14461,
+        "missing_pixels": 52,
+        "excess_pixels": 152,
+        "xor_pixels": 204,
+        "iou": 0.9860893283327651,
+        "reference_topology": {
+          "components": 4,
+          "holes": 9,
+          "euler_characteristic": -5
+        },
+        "observed_topology": {
+          "components": 4,
+          "holes": 6,
+          "euler_characteristic": -2
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 18,
+        "damaged_components": [
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              93,
+              26,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              240,
+              75,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              242,
+              79,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              81,
+              93,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              104,
+              120,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              243,
+              87,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              81,
+              99,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              240,
+              67,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              241,
+              72,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              253,
+              130,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              254,
+              121,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              256,
+              132,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              258,
+              133,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              306,
+              216,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 14,
+        "fully_missing_pixels": 23,
+        "fully_missing_below_threshold_count": 14,
+        "fully_missing_below_threshold_pixels": 23
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 18,
+        "damaged_components": [
+          {
+            "area": 14467,
+            "overlap_pixels": 14415,
+            "lost_pixels": 52,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              82,
+              0,
+              225,
+              276
+            ]
+          },
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              93,
+              26,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              240,
+              75,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 3,
+            "overlap_pixels": 0,
+            "lost_pixels": 3,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              242,
+              79,
+              1,
+              3
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              81,
+              93,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              104,
+              120,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              243,
+              87,
+              1,
+              2
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              81,
+              99,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              240,
+              67,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              241,
+              72,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              253,
+              130,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              254,
+              121,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              256,
+              132,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              258,
+              133,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              306,
+              216,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 14,
+        "fully_missing_pixels": 23,
+        "fully_missing_below_threshold_count": 14,
+        "fully_missing_below_threshold_pixels": 23
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": false,
+      "primitive_id": "phase12-aggressive-0000",
+      "source_mask_replay": true,
+      "ring_count": 9,
+      "component_count": 4,
+      "status": "RESEARCH_DIAGNOSTIC_ONLY"
+    },
+    "left_arm": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 2715,
+        "observed_pixels": 2697,
+        "intersection_pixels": 2697,
+        "missing_pixels": 18,
+        "excess_pixels": 0,
+        "xor_pixels": 18,
+        "iou": 0.9933701657458563,
+        "reference_topology": {
+          "components": 10,
+          "holes": 1,
+          "euler_characteristic": 9
+        },
+        "observed_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "source_to_export": {
+        "reference_pixels": 2715,
+        "observed_pixels": 2705,
+        "intersection_pixels": 2688,
+        "missing_pixels": 27,
+        "excess_pixels": 17,
+        "xor_pixels": 44,
+        "iou": 0.9838945827232797,
+        "reference_topology": {
+          "components": 10,
+          "holes": 1,
+          "euler_characteristic": 9
+        },
+        "observed_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 2697,
+        "observed_pixels": 2705,
+        "intersection_pixels": 2688,
+        "missing_pixels": 9,
+        "excess_pixels": 17,
+        "xor_pixels": 26,
+        "iou": 0.9904200442151806,
+        "reference_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "observed_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 2697,
+        "observed_pixels": 2697,
+        "intersection_pixels": 2697,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "observed_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 2697,
+        "observed_pixels": 2705,
+        "intersection_pixels": 2688,
+        "missing_pixels": 9,
+        "excess_pixels": 17,
+        "xor_pixels": 26,
+        "iou": 0.9904200442151806,
+        "reference_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "observed_topology": {
+          "components": 3,
+          "holes": 1,
+          "euler_characteristic": 2
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 10,
+        "damaged_components": [
+          {
+            "area": 5,
+            "overlap_pixels": 0,
+            "lost_pixels": 5,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              269,
+              219,
+              5,
+              2
+            ]
+          },
+          {
+            "area": 4,
+            "overlap_pixels": 0,
+            "lost_pixels": 4,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              264,
+              217,
+              4,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              278,
+              221,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              286,
+              217,
+              2,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              296,
+              222,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              299,
+              221,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              262,
+              216,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 7,
+        "fully_missing_pixels": 18,
+        "fully_missing_below_threshold_count": 7,
+        "fully_missing_below_threshold_pixels": 18
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 10,
+        "damaged_components": [
+          {
+            "area": 2641,
+            "overlap_pixels": 2632,
+            "lost_pixels": 9,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              230,
+              222,
+              65,
+              118
+            ]
+          },
+          {
+            "area": 5,
+            "overlap_pixels": 0,
+            "lost_pixels": 5,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              269,
+              219,
+              5,
+              2
+            ]
+          },
+          {
+            "area": 4,
+            "overlap_pixels": 0,
+            "lost_pixels": 4,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              264,
+              217,
+              4,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              278,
+              221,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              286,
+              217,
+              2,
+              2
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              296,
+              222,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 2,
+            "overlap_pixels": 0,
+            "lost_pixels": 2,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              299,
+              221,
+              2,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              262,
+              216,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 7,
+        "fully_missing_pixels": 18,
+        "fully_missing_below_threshold_count": 7,
+        "fully_missing_below_threshold_pixels": 18
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": false,
+      "primitive_id": "phase12-aggressive-0007",
+      "source_mask_replay": true,
+      "ring_count": 4,
+      "component_count": 3,
+      "status": "OBSERVED_ONLY"
+    },
+    "right_arm": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 6486,
+        "observed_pixels": 6486,
+        "intersection_pixels": 6486,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "source_to_export": {
+        "reference_pixels": 6486,
+        "observed_pixels": 6482,
+        "intersection_pixels": 6475,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9972277837671338,
+        "reference_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 6486,
+        "observed_pixels": 6482,
+        "intersection_pixels": 6475,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9972277837671338,
+        "reference_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 6486,
+        "observed_pixels": 6486,
+        "intersection_pixels": 6486,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 6486,
+        "observed_pixels": 6482,
+        "intersection_pixels": 6475,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9972277837671338,
+        "reference_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 2,
+          "euler_characteristic": -1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 1,
+        "damaged_components": [],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 1,
+        "damaged_components": [
+          {
+            "area": 6486,
+            "overlap_pixels": 6475,
+            "lost_pixels": 11,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              0,
+              226,
+              109,
+              114
+            ]
+          }
+        ],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": true,
+      "primitive_id": "phase12-aggressive-0002",
+      "source_mask_replay": true,
+      "ring_count": 2,
+      "component_count": 1,
+      "status": "OBSERVED_ONLY"
+    }
+  },
+  "global": {
+    "source_to_render": {
+      "reference_pixels": 55043,
+      "observed_pixels": 54876,
+      "intersection_pixels": 54865,
+      "missing_pixels": 178,
+      "excess_pixels": 11,
+      "xor_pixels": 189,
+      "iou": 0.9965670069386421,
+      "reference_topology": {
+        "components": 1,
+        "holes": 9,
+        "euler_characteristic": -8
+      },
+      "observed_topology": {
+        "components": 2,
+        "holes": 21,
+        "euler_characteristic": -19
+      },
+      "topology_pass": false,
+      "exact": false
+    },
+    "global_anatomy_gate": {
+      "schema_version": "sa10.18-source-silhouette-anatomy-gate-v1",
+      "gate": "FAIL",
+      "hard_failures": [
+        "source_topology_changed"
+      ],
+      "can_override_hard_fail": false,
+      "source_evidence": {
+        "mask_pixels": 55043,
+        "topology": [
+          1,
+          9
+        ]
+      },
+      "candidate_evidence": {
+        "mask_pixels": 54876,
+        "topology": [
+          2,
+          21
+        ]
+      },
+      "metrics": {
+        "silhouette_iou": 0.9965670069386421,
+        "fragmentation_penalty": 0
+      },
+      "policy": {
+        "silhouette_iou_minimum": 0.96,
+        "fragmentation_threshold": 0.2,
+        "vectorization_authority": false,
+        "shape_matching_authority": false,
+        "topology_preservation_hard": true,
+        "saliency_perceptual_observer_only": true
+      }
+    },
+    "historical_sa1030_match": {
+      "source_mask_pixels": true,
+      "candidate_mask_pixels": true,
+      "source_topology": true,
+      "candidate_topology": true,
+      "iou": true
+    }
+  },
+  "zorder": {
+    "pre_face_guard_owner_visibility": {
+      "__unbound__": {
+        "raw_pixels": 1860,
+        "visible_pixels": 1860,
+        "occluded_pixels": 0
+      },
+      "accessory_or_held_object": {
+        "raw_pixels": 217,
+        "visible_pixels": 217,
+        "occluded_pixels": 0
+      },
+      "face": {
+        "raw_pixels": 4937,
+        "visible_pixels": 4937,
+        "occluded_pixels": 0
+      },
+      "hair": {
+        "raw_pixels": 14513,
+        "visible_pixels": 14513,
+        "occluded_pixels": 0
+      },
+      "left_arm": {
+        "raw_pixels": 2697,
+        "visible_pixels": 2697,
+        "occluded_pixels": 0
+      },
+      "lower_body": {
+        "raw_pixels": 12625,
+        "visible_pixels": 12625,
+        "occluded_pixels": 0
+      },
+      "major_clothing": {
+        "raw_pixels": 3727,
+        "visible_pixels": 3727,
+        "occluded_pixels": 0
+      },
+      "neck": {
+        "raw_pixels": 2001,
+        "visible_pixels": 2001,
+        "occluded_pixels": 0
+      },
+      "right_arm": {
+        "raw_pixels": 6486,
+        "visible_pixels": 6486,
+        "occluded_pixels": 0
+      },
+      "torso": {
+        "raw_pixels": 5813,
+        "visible_pixels": 5813,
+        "occluded_pixels": 0
+      }
+    },
+    "uncovered_canvas_pixels": 60724,
+    "painted_union_pixels": 54876,
+    "face_guard_is_post_zorder": true
+  },
+  "serialized_export_drift_owners": [
+    "face",
+    "hair",
+    "left_arm",
+    "right_arm"
+  ],
+  "source_topology_drift_owners": [
+    "hair",
+    "left_arm"
+  ],
+  "reproduction_pass": true,
+  "hard_blockers": [
+    "OWNER_SOURCE_TOPOLOGY_DRIFT",
+    "SERIALIZED_VECTOR_RENDER_DRIFT",
+    "UNVERIFIED_MULTICASE_AND_HUMAN_VISUAL_GATE",
+    "source_topology_changed"
+  ],
+  "promotion_authorized": false,
+  "status": "RESEARCH_COMPLETE_NO_GO",
+  "safety": {
+    "generative_pixels": 0,
+    "input_pixel_edit": false,
+    "scene_mutation": false,
+    "arm_geometry_mutation": false,
+    "canonical_material_cleaning_only_diagnostic": true,
+    "requires_visual_review": true,
+    "requires_independent_cases": true
+  }
+}
