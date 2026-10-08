@@ -1,7 +1,8 @@
 """Opt-in local Minimalizer CPU-job admission through Rinka Resource Manager.
 
-Off by default: switching a live worker without validation would be unsafe.
-When MINIMALIZER_RRM_MODE=enforce, an unavailable gate fails closed.
+On Windows, guarded admissions are enabled for newly started workers.
+The existing running worker must never be restarted during active requests.
+Set MINIMALIZER_RRM_MODE=off only for explicit rollback.
 Only the compute section holds the slot, not the always-on web server.
 """
 from __future__ import annotations
@@ -34,7 +35,7 @@ def _guard_factory():
 
 @contextmanager
 def compute_slot(route: str):
-    mode = os.environ.get("MINIMALIZER_RRM_MODE", "off").strip().lower()
+    mode = os.environ.get("MINIMALIZER_RRM_MODE", "enforce" if os.name == "nt" else "off").strip().lower()
     if mode == "off":
         yield
         return
