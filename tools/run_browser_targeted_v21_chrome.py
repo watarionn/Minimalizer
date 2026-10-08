@@ -1,0 +1,231 @@
+"""Test five v20-measured same-color pairs separately in actual Chrome using v21 rollback."""
+from __future__ import annotations
+import argparse
+import base64
+import json
+import shutil
+import threading
+import time
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+    def translate_path(self, path):
+        if path.split('?')[0] in ('/', '/index.html'):
+            return str(Path(self.directory) / 'static' / 'index.html')
+        return super().translate_path(path)
+
+def compare(root: Path, source: Path, output: Path):
+    output.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, output / "source.png")
+    handler = partial(QuietHandler, directory=str(root / "web"))
+    http = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=http.serve_forever, daemon=True).start()
+    options = webdriver.ChromeOptions()
+    for option in ("--headless=new", "--no-sandbox", "--disable-gpu",
+                   "--disable-extensions", "--disable-dev-shm-usage",
+                   "--window-size=900,900",
+                   "--user-data-dir=" + str(output / "chrome-profile")):
+        options.add_argument(option)
+    driver = None
+    try:
+        driver = webdriver.Chrome(options=options)
+        driver.set_page_load_timeout(60)
+        driver.get(f"http://127.0.0.1:{http.server_port}/index.html?browserFallback=force&browserFallbackQuality=near")
+        WebDriverWait(driver, 45).until(
+            lambda d: d.execute_script(
+                "return !!(window.MinimalizerBrowserFallback && "
+                "window.MinimalizerCanonicalContour && "
+                "window.MinimalizerOpenCvRaster)"))
+        print("V20_BROWSER_RUNTIME", driver.capabilities.get("browserVersion"), flush=True)
+        ui=driver.execute_script("return {profile:browserFallbackQualityProfile(), structural:browserFallbackStructuralMode(), canonical:browserFallbackCanonicalContourLite(), forced:browserFallbackForced()}")
+        print("V20_UI_ROUTE",ui,flush=True)
+        assert ui == {"profile":"near","structural":"l0-lite-jacobi","canonical":True,"forced":True},ui
+        b64 = base64.b64encode(source.read_bytes()).decode("ascii")
+        driver.execute_script("""
+const raw=atob(arguments[0]);
+const binary=new Uint8Array(raw.length);
+for(let i=0;i<raw.length;i++) binary[i]=raw.charCodeAt(i);
+window.__geoSourceFile=new File([binary], 'Kyoko.png', {type:'image/png'});
+window.__geoRuns={};
+window.__geoRun=async function(name,opts){
+ window.__geoRuns[name]={status:'running'};
+ try{
+  const result=await window.MinimalizerBrowserFallback.minimalizeFile(window.__geoSourceFile,opts);
+  const blob=await result.response.blob();
+  const data=await new Promise((resolve,reject)=>{
+    const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob);
+  });
+  window.__geoRuns[name]={
+    status:'ok',headers:Object.fromEntries(result.response.headers.entries()),
+    metadata:result.metadata, png:data.substring(data.indexOf(',')+1)
+  };
+ }catch(e){
+  window.__geoRuns[name]={status:'error',error:String(e),stack:String(e.stack)};
+ }
+};""", b64)
+        # Independent runs share the same golden input and subject guidance.
+        # Four distinct donor regions, but five explicitly directed pairs.
+        name=source.name
+        if name == "GC001_source.png":
+            pairs=[(14,17),(18,15),(18,19)]
+            protected={
+                "protectedColors":[[149,211,27]],
+                "protectedRects":[{"x0":90,"y0":263,"x1":112,"y1":290}],
+                "maxSilhouetteChangedPixels":0,
+                "maxProtectedChangedPixels":0,
+            }
+        elif name == "Shirogane-Noel_list_thumb.png":
+            pairs=[(16,24),(34,27)]
+            # The v21 initial trial changed 161 pixels on the thin dark-brown
+            # staff (x4-54, y108-215); protect that salient object explicitly.
+            protected={
+                "maxSilhouetteChangedPixels":0,
+                "maxProtectedChangedPixels":0,
+                "protectedColors":[[68,37,36]],
+                "protectedRects":[{"x0":0,"y0":100,"x1":60,"y1":225}],
+            }
+        elif name == "Ichijou-Ririka_list_thumb.png":
+            pairs=[]
+            protected={"maxSilhouetteChangedPixels":0}
+        else:
+            raise ValueError("Unrecognized golden source: " + name)
+        cases = {
+            "facet": {"structuralMode":"l0-lite-jacobi",
+                      "canonicalContourLite":True,"geometryMode":"facet-safe"},
+            "near": {"structuralMode":"l0-lite-jacobi",
+                     "canonicalContourLite":True,"geometryMode":"facet-safe",
+                     "selectiveRegionMerge":True,
+                     "selectiveMergeOptions":{"allowNearPalette":True,
+                                              "maxMerges":1,
+                                              "captureCandidateGeometry":True}},
+        }
+        for donor,recipient in pairs:
+            cases[f"pair_{donor}_{recipient}"]={
+                "structuralMode":"l0-lite-jacobi",
+                "canonicalContourLite":True,
+                "geometryMode":"facet-safe",
+                "selectiveRegionMerge":True,
+                "selectiveMergeOptions":{
+                    "allowNearPalette":False,
+                    "maxMerges":1,
+                    "maxTargetDonorFraction":0.06,
+                    "targetedPair":{"donorId":donor,"recipientId":recipient},
+                },
+                "selectiveRenderGuard":protected,
+            }
+        if not pairs:
+            cases["pair_missing_999_998"]={
+                "structuralMode":"l0-lite-jacobi",
+                "canonicalContourLite":True,
+                "geometryMode":"facet-safe",
+                "selectiveRegionMerge":True,
+                "selectiveMergeOptions":{
+                    "allowNearPalette":False,"maxMerges":1,
+                    "maxTargetDonorFraction":0.06,
+                    "targetedPair":{"donorId":999,"recipientId":998},
+                },
+                "selectiveRenderGuard":protected,
+            }
+        shared = {"analysisMaxSide":400,"workMaxSide":400,"maxShapes":40,"slicIterations":10,"paletteTarget":8}
+        all_results = {}
+        for name, spec in cases.items():
+            print("START", name, flush=True)
+            started = time.monotonic()
+            driver.execute_script("window.__geoRun(arguments[0],arguments[1])", name, {**shared,**spec})
+            WebDriverWait(driver, 180, poll_frequency=1).until(
+                lambda d: d.execute_script(
+                    "return window.__geoRuns[arguments[0]]?.status !== 'running'",name))
+            payload = driver.execute_script(
+                "const r=window.__geoRuns[arguments[0]];delete window.__geoRuns[arguments[0]];return r;", name)
+            if payload.get("status") != "ok":
+                print("ERROR", name, payload, flush=True)
+                raise RuntimeError(str(payload))
+            (output / f"{name}.png").write_bytes(base64.b64decode(payload.pop("png")))
+            payload["wallSeconds"]=round(time.monotonic()-started,2)
+            all_results[name]=payload
+            metric=payload["metadata"]
+            print("DONE",name,"seconds",payload["wallSeconds"],
+                  "shapes",metric.get("shapeCount"),"vertices",metric.get("vertexCount"),
+                  "contour",metric.get("contourMethod"),
+                  "simplifier",metric.get("contourSimplifier"),
+                  "subject",metric.get("subjectGuided"),
+                  "iou",metric.get("contourMinRegionIoU"),flush=True)
+        # Call the real app.js requestBrowserFallback route as the final integration gate.
+        # The query parameter on this page forces BrowserFallback and enables Sharp.
+        driver.set_script_timeout(120)
+        ui = driver.execute_async_script("""
+const done=arguments[arguments.length-1];
+try {
+  state.file=window.__geoSourceFile;
+  requestBrowserFallback().then(async(response)=>{
+    const headers=Object.fromEntries(response.headers.entries());
+    const blob=await response.blob();
+    const reader=new FileReader();
+    reader.onload=()=>done({status:'ok',headers,png:reader.result.split(',')[1]});
+    reader.onerror=()=>done({status:'error',error:'FileReader failed'});
+    reader.readAsDataURL(blob);
+  }).catch(err=>done({status:'error',error:String(err)}));
+} catch(e) { done({status:'error',error:String(e)}); }
+""")
+        if ui.get("status") != "ok":
+            raise RuntimeError("Actual app.js v20 research request failed: " + str(ui))
+        ui_png=base64.b64decode(ui.pop("png"))
+        ui_exact_match=ui_png == (output / "near.png").read_bytes()
+        ui_headers=ui["headers"]
+        if ui_headers.get("x-minimalizer-browser-quality-profile") != "near":
+            raise RuntimeError("v20 app route did not select near: " + str(ui_headers))
+        if ui_headers.get("x-minimalizer-contour-method") != "canonical-shared-chain":
+            raise RuntimeError("App route was not shared-boundary: " + str(ui_headers))
+        if ui_headers.get("x-minimalizer-raster-method") != "opencv-fillpoly-2x":
+            raise RuntimeError("App route raster mismatch: " + str(ui_headers))
+        if not ui_exact_match:
+            raise RuntimeError("App route Near PNG differs from direct Near")
+        print("V21_EXISTING_UI_NEAR_PASS", ui_exact_match,flush=True)
+        all_results["uiVerification"] = {
+            "profile": "near",
+            "forcedBrowserRoute": True,
+            "pngPixelAndByteExactToDirectNear": ui_exact_match,
+            "headers": ui_headers,
+        }
+        records=all_results["near"]["metadata"].get("selectiveMergeCandidateGeometry")
+        assert isinstance(records,list) and len(records)>0, "v20 probe was not captured"
+        assert all_results["near"]["metadata"]["selectiveMergeApplied"]==0
+        print("V21_REFERENCE_ADJACENCY_RECORDS",len(records),flush=True)
+        for trial, info in all_results.items():
+            if not trial.startswith("pair_"):
+                continue
+            m=info["metadata"]
+            print("V21_TARGET_TRIAL",name,trial,
+                  "matched",m["targetedMergeMatched"],
+                  "status",m["targetedMergeStatus"],
+                  "merges",m["selectiveMergeApplied"],
+                  "regions",m["shapeCount"],
+                  "vertices",m["vertexCount"],
+                  "rasterGate",m["selectiveMergeRenderGate"],
+                  "rasterChanged",m["selectiveMergeRenderChangedPixels"],flush=True)
+            if trial.startswith("pair_missing"):
+                assert not m["targetedMergeMatched"]
+                assert m["targetedMergeStatus"]=="not_found"
+        with (output / "metrics.json").open("w", encoding="utf-8") as f:
+            json.dump(all_results, f, indent=2, ensure_ascii=False)
+        print("OUTPUT",output,flush=True)
+        return all_results
+    finally:
+        if driver is not None:
+            driver.quit()
+        http.shutdown()
+        http.server_close()
+
+if __name__ == "__main__":
+    p=argparse.ArgumentParser()
+    p.add_argument("--root",type=Path,required=True)
+    p.add_argument("--source",type=Path,required=True)
+    p.add_argument("--out",type=Path,required=True)
+    a=p.parse_args()
+    compare(a.root.resolve(),a.source.resolve(),a.out.resolve())
