@@ -153,6 +153,35 @@ class Sa1038VectorMaskBrowserTests(unittest.TestCase):
                     parent_outline_stroke=3.0,
                 )
 
+    def test_exact_source_top_row_only_stroke_is_counted_and_broad_stroke_forbidden(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            outer,candidate,evidence=make_authority(root)
+            result=prepare_vector_mask(
+                original_outer_scene=outer,
+                simplified_apparel_scene=candidate,
+                simplified_apparel_metrics=evidence,
+                output_dir=root/"selective",
+                signed_top_edge_stroke=1.25,
+                signed_top_edge_y_shift=1.0,
+            )
+            text=(root/"selective"/"source_bound_vector_mask.svg").read_text("utf-8")
+            self.assertIn('stroke-width="1.25"',text)
+            self.assertTrue(result["svg_signed_top_edge_top_row_exact_replay_verified"])
+            self.assertEqual(result["svg_signed_top_edge_count"],1)
+            self.assertEqual(result["svg_signed_top_edge_reused_endpoint_occurrences"],2)
+            self.assertEqual(result["svg_parent_outline_stroke_paint_passes"],0)
+            self.assertFalse(result["production_promotion_authorized"])
+            with self.assertRaises(ValueError):
+                prepare_vector_mask(
+                    original_outer_scene=outer,
+                    simplified_apparel_scene=candidate,
+                    simplified_apparel_metrics=evidence,
+                    output_dir=root/"forbidden",
+                    signed_top_edge_stroke=1.25,
+                    parent_outline_stroke=1.25,
+                )
+
     def test_without_real_chrome_execution_no_fake_pass(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)
