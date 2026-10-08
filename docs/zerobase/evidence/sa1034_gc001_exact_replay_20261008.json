@@ -243,6 +243,8 @@
   "selected_name": "aggressive",
   "baseline_primitive_count": 11,
   "provenance_owner_audit": "OWNER_AUDIT_PASS",
+  "phase11_composition_sha256": "327fe2bc561f094e2e9b513c0a74ce34536730de866ced30857f263fd018881c",
+  "phase04_masks_verified_against_manifest": true,
   "original_scene_sha256": "7525b409fcaf66a9955680b9f1cb5e61db185b7178ec4a32c31a6eb4fa8e9aef",
   "original_preview_sha256": "d4dda2c6269c9fe0ebe6996b1a3646b65d145b3f55874ea52727b89e2695d483",
   "candidate_vector_scene_sha256": "1b8fc418f23eb1fce7bd41d120851355ec7a549bac3e8c55498fca7108d959bc",
