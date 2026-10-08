@@ -30,6 +30,7 @@ from minimalize_engine.v2 import (
 )
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
 from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
+from local_worker.rrm_admission import RRMAdmissionDenied, compute_slot
 from minimalizer_zerobase.production.profile import REVIEWED_SA10_PROFILE
 logger = logging.getLogger(__name__)
 
@@ -315,7 +316,10 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
             try:
-                result, summary = _run_zerobase2(input_path)
+                with compute_slot("zerobase2"):
+                    result, summary = _run_zerobase2(input_path)
+            except RRMAdmissionDenied as exc:
+                raise HTTPException(status_code=429, detail="Local compute is waiting for resources.", headers={"Retry-After": "10", "X-Minimalizer-RRM": exc.reason}) from exc
             except Exception as exc:
                 logger.exception("ZeroBase2 production minimalization failed")
                 detail = str(exc)
@@ -381,11 +385,14 @@ async def minimalize_local(
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
             try:
-                result, selection = _run_high_quality(
-                    input_path,
-                    preset=preset,
-                    include_facets=include_facets,
-                )
+                with compute_slot("v2"):
+                    result, selection = _run_high_quality(
+                        input_path,
+                        preset=preset,
+                        include_facets=include_facets,
+                    )
+            except RRMAdmissionDenied as exc:
+                raise HTTPException(status_code=429, detail="Local compute is waiting for resources.", headers={"Retry-After": "10", "X-Minimalizer-RRM": exc.reason}) from exc
             except HTTPException:
                 raise
             except Exception as exc:
