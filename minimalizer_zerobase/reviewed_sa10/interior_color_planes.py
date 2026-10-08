@@ -109,7 +109,7 @@ def propose_interior_plane(
     *, owner: str, parent_primitive_id: str, source_rgb: np.ndarray,
     owner_mask: np.ndarray, parent_palette_rgb: list[int],
     protected_mask: np.ndarray, min_pixels: int = 120,
-    minimum_owner_fraction: float = 0.035, maximum_owner_fraction: float = 0.57,
+    minimum_owner_fraction: float = 0.05, maximum_owner_fraction: float = 0.30,
     minimum_owner_mse_reduction: float = 0.075, maximum_vertices: int = 28,
 ) -> tuple[dict, np.ndarray] | None:
     """One eligible existing-owner subplane, accepted only on raw source LAB MSE."""
