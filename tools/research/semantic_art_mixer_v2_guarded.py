@@ -203,7 +203,9 @@ def main():
         prev.save(before,optimize=True)
         guarded.save(after,optimize=True)
         Image.fromarray(np.uint8(face)*255,"L").save(maskfile,optimize=True)
-        gallery_rows.extend([("ORIGINAL / GC001" if idx==0 else "V1 / "+name,orig_file if idx==0 else before),
+        # Repeat ORIGINAL per recipe so each comparison row contains exactly
+        # the same reference, its legacy output and the newly guarded result.
+        gallery_rows.extend([("ORIGINAL / GC001",orig_file),
                              ("V1 / "+name,before),
                              ("GUARDED / "+name,after)])
         records.append({"id":name,"recipe":recipe,"metrics":metrics,
