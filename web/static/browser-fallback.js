@@ -3822,8 +3822,14 @@
     };
     if(config.selectiveRegionMerge===true && selectiveMergeMetrics.applied>0) {
       const base=analyzeRgba(rgba,width,height,{...config,selectiveRegionMerge:false});
-      const verified=compareRegionRenderFidelity(
-        base.shapes,result.shapes,width,height,config.selectiveRenderGuard);
+      // A fewer-region output is not a geometry improvement when it adds vertices.
+      // Gate only v21's explicit large donor experiment; existing v17/v18 are unchanged.
+      const noGeometryGain=Boolean(config.selectiveMergeOptions?.targetedPair)
+        && result.metrics.vertexCount>=base.metrics.vertexCount;
+      const verified=noGeometryGain
+        ? {pass:false,reason:"no_vertex_gain",changedPixels:0}
+        : compareRegionRenderFidelity(
+            base.shapes,result.shapes,width,height,config.selectiveRenderGuard);
       if(!verified.pass) {
         base.metrics={...base.metrics,
           selectiveMergeApplied:0,
