@@ -15,7 +15,7 @@ After v20's geometry distribution found five **specific** large donor/recipient 
 - It requires exact donor and recipient IDs, real adjacency, donor as the smaller component, both regions having the **same accepted palette ID**, `allowNearPalette=false`, `maxMerges=1`. The only bypass is **donor area** for the explicitly named pair, capped independently at **6%** of the full analysis raster. No global area-cap relaxation.
 - Min side, aspect, source RGB closeness, shared edge and shared-perimeter ratio gates remain enforced. Palette entries and representative color assignments are held fixed. No new pixels/colors are generated.
 - After building shared contours, compare the single proposed output to an unchanged Facet baseline at the same resolution using the real 2x OpenCV-compatible raster. Pass only when changed pixels ≤0.15%, global RGB MAE ≤0.30 and max single-color mass difference ≤0.15%.
-- Additional v21 protection: **white/nonwhite silhouette preservation** (zero changed), optional exact-color mass preservation, zero altered pixels inside designated protected rectangles (Kyoko left sleeve ROI x90..111, y263..289; Kyoko representative green RGB(149,211,27) mass fixed). All fall back to the baseline when a check fails.
+- Additional v21 protection: **white/nonwhite silhouette preservation** (zero changed), optional exact-color mass preservation, zero altered pixels inside designated protected rectangles (Kyoko left sleeve ROI x90..111, y263..289 and green RGB(149,211,27) mass fixed; Noel dark-brown staff ROI x0..59, y100..224 and RGB(68,37,36) mass fixed). All fall back to the baseline when a check fails.
 - **No-vertex-gain gate**: a targeted pair that does not reduce total rendered vertices is rolled back even if its pixel deltas happen to be tolerable. Other v17/v18 modes are unaffected by this research-only rule.
 - `targetedMergeStatus`, `targetedMergeMatched`, `targetedMergeChoice`, and raster rejection reasons allow failures to be verified rather than silently accepted.
 - A failed trial returns the baseline regions and PNG exactly. No change to `main` or public frontend.
@@ -29,18 +29,18 @@ Chrome headless executed the actual `MinimalizerBrowserFallback.minimalizeFile` 
 | Kyoko | donor 14 → recipient 17 | **PASS** | 39 | 1377 → **1366** | **3** |
 | Kyoko | donor 18 → recipient 15 | **REJECT / no vertex gain** | 40 | 1377 → 1377 | **0** (exact rollback) |
 | Kyoko | donor 18 → recipient 19 | **PASS** | 39 | 1377 → **1357** | **56** |
-| Shirogane Noel | donor 16 → recipient 24 | **PASS** | 39 | 1232 → **1206** | **161** |
+| Shirogane Noel | donor 16 → recipient 24 | **REJECT / protected staff** | 40 | 1232 → 1232 | **0** (exact rollback; tentative change was 161px on the staff) |
 | Shirogane Noel | donor 34 → recipient 27 | **REJECT / rendered difference** | 40 | 1232 → 1232 | **0** (exact rollback; tentative change was 552px) |
 | Ichijou Ririka | nonexistent donor 999 → recipient 998 (negative test) | **NOT FOUND** | 40 | 880 → 880 | **0** |
 
 **Important:** these are five separately tested proposals. Kyoko donor 18 is shared by two competing proposals; they were **not** applied together. The count 39 represents one merge per experiment, not a validated globally applicable 37-region model.
 
-Three individual trial merges produced a smaller polygon/vertex graph and each passed protected color, silhouette and real raster difference checks. Two failed candidates were automatically rolled back, and the Ririka invalid-ID control left the golden PNG unchanged. Kyoko representative green RGB(149,211,27) remains **1,994 px across the full output** (not a hand-segmented tie mask), and sleeve pixel (95,275) remains RGB(65,66,74).
+Two individual Kyoko trial merges produced a smaller polygon/vertex graph and passed protected color, silhouette and real raster difference checks. Three candidates were automatically rolled back, and the Ririka invalid-ID control left the golden PNG unchanged. Kyoko representative green RGB(149,211,27) remains **1,994 px across the full output** (not a hand-segmented tie mask), and sleeve pixel (95,275) remains RGB(65,66,74).
 
 ## Interpretation and limitations
 
 - This is the **first measured nonzero region-merge success** following v17/v18/v19's three zero-merge studies. It confirms targeted same-palette border elimination can be guarded by actual rendered fidelity and rolled back when unsafe.
-- Accepted changes were **3, 56 and 161 pixels**, so final appearance is nearly unchanged. Fewer shape records/vertices **does not yet prove a visibly more intentional, straight geometric design**; the comparison montage shows most quality characteristics are shared with v15. Do not overpromise image aesthetics.
+- Accepted changes were **3 and 56 pixels**, so final appearance is nearly unchanged. Fewer shape records/vertices **does not yet prove a visibly more intentional, straight geometric design**; the comparison montage shows most quality characteristics are shared with v15. Do not overpromise image aesthetics.
 - The selected IDs are **specific to these three source images and this segmentation**. A production algorithm would need stable automatic candidate discovery, label-ID-independent ranking, protected feature ROIs, per-merge rollback and multi-source golden gates. Do not blindly hardcode these IDs into a user-facing quality mode.
 - Current white/nonwhite silhouette check detects white-background transitions, not every semantic silhouette feature; additional visual contour tests are still needed before release.
 - No comparison to official 3D references, no facial reconstruction, no training or GPU usage.
@@ -53,4 +53,11 @@ Three individual trial merges produced a smaller polygon/vertex graph and each p
 - Chrome benchmark `tools/run_browser_targeted_v21_chrome.py`, six-image report and diagnostics `tools/analyze_browser_targeted_v21.py`.
 - [Google Drive v21 experiment evidence](https://drive.google.com/drive/folders/1gd5zjNFO6W92O5nR3J_LZHvHjhLmIiRO) under `chatGPT及びCodex用/Minimalizer`, including input images, six individual trial PNGs, golden baselines, comparison and amplified-change montages, JSON/CSV scores, and executable scripts. Save and verify files after this document.
 
-**Ship gate: HOLD.** Three successful guarded one-pair experiments are research gains, not a complete visual-quality release. Next, v22 may rank and trial fresh candidates based on measured geometry without relying on per-image IDs, always enforcing per-candidate raster and color/silhouette constraints; then use multi-character golden visual review before considering a production deployment. If the artwork's overall visual geometry is still inadequate, pivot from merely reducing same-color internal partitions to restructuring major color planes.
+**Ship gate: HOLD.** Two successful guarded one-pair experiments are research gains, not a complete visual-quality release. Next, v22 may rank and trial fresh candidates based on measured geometry without relying on per-image IDs, always enforcing per-candidate raster and color/silhouette constraints; then use multi-character golden visual review before considering a production deployment. If the artwork's overall visual geometry is still inadequate, pivot from merely reducing same-color internal partitions to restructuring major color planes.
+
+
+## Visual review correction and guard strengthening
+
+The initial Noel donor16→recipient24 candidate was **provisionally accepted** with a 26-vertex reduction and 161 changed pixels (below the global 0.15% threshold). Examining the highlighted change mask located those 161 pixels almost entirely on Noel's **thin dark-brown staff**, x4..54 and y108..215. Representative palette color shifts included RGB(172,171,178)→RGB(68,37,36). Even though the global pixel budget and white-background silhouette were satisfied, altering this distinctive accessory was not acceptable.
+
+The trial harness was revised to protect the complete staff rectangle x0..59,y100..224 and exact staff-brown RGB(68,37,36) mass. Under this stronger rule the Noel candidate is **raster_rejected:protected_feature**, and final output is byte-for-byte the original Facet. This correction is a key finding: global changed-pixel rate alone is insufficient for meaningful thin-feature fidelity. The comparison artifact/metrics must reflect the **final re-run**, not the provisional run. v21 therefore has **2 passing Kyoko candidates, 3 rejected Noel/Kyoko candidates, and 1 correctly missing Ririka negative control**.
