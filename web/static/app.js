@@ -10,14 +10,25 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "sharp") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "sharp");
 } else if (browserFallbackQualityParam === "lite") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "lite");
 }
 
+function browserFallbackQualityProfile() {
+  const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
+  return quality === "exact" || quality === "sharp" ? quality : "lite";
+}
+
 function browserFallbackStructuralMode() {
-  return window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY) === "exact"
+  return browserFallbackQualityProfile() === "exact"
     ? "spectral-exact"
     : "l0-lite-jacobi";
+}
+
+function browserFallbackCanonicalContourLite() {
+  return browserFallbackQualityProfile() === "sharp";
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -371,6 +382,7 @@ async function requestBrowserFallback() {
     slicIterations: 10,
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
+    canonicalContourLite: browserFallbackCanonicalContourLite(),
   });
   return result.response;
 }
@@ -563,12 +575,15 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
+      const browserQualityProfile = response.headers.get("x-minimalizer-browser-quality-profile");
       const modeLabel = responseMode === "color_strip"
         ? "Color Strip"
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? "Minimalizer Browser Fallback v12 · FALLBACK"
+            ? browserQualityProfile === "sharp"
+              ? "Minimalizer Browser Fallback v12 · SHARP LITE (experimental)"
+              : "Minimalizer Browser Fallback v12 · FALLBACK"
             : v2Contract
               ? "Minimalizer 2.0 Local · HIGH"
               : "Minimalizer";

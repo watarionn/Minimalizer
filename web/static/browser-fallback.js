@@ -3317,6 +3317,17 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (config.canonicalContourLite === true) {
+      const contourAvailable = typeof globalThis !== "undefined"
+        && globalThis.MinimalizerCanonicalContour
+        && typeof globalThis.MinimalizerCanonicalContour.simplifyLabels === "function";
+      const rasterAvailable = typeof globalThis !== "undefined"
+        && globalThis.MinimalizerOpenCvRaster
+        && typeof globalThis.MinimalizerOpenCvRaster.renderShapesRgba === "function";
+      if (!contourAvailable || !rasterAvailable) {
+        throw new Error("Sharp Lite requires shared-boundary contour and OpenCV-compatible raster modules.");
+      }
+    }
     const lab = rgbaToLab(rgba, width, height);
     let structuralRgba;
     let structuralPreprocess = "l0-lite-jacobi";
@@ -3762,6 +3773,8 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
+      "X-Minimalizer-Browser-Quality-Profile": config.canonicalContourLite === true
+        ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
       "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
       "X-Minimalizer-Raster-Method": rasterMethod,
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
@@ -3799,6 +3812,8 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
+        qualityProfile: config.canonicalContourLite === true
+          ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
         contourMinRegionIoU: analysis.metrics.contourMinRegionIoU,
         contourOriginalVertexCount: analysis.metrics.contourOriginalVertexCount,
         contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,
