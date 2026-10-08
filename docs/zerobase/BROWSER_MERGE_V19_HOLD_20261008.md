@@ -55,7 +55,7 @@ All six older Lite/Sharp/Shape/Facet/Selective/Exact PNGs were SHA256 byte-ident
 
 - Isolated v19 + v18 + v17 + v15 + v14 + v13 + v12 extended regression: **49 passed**.
 - JavaScript syntax and branch build parsing: PASS.
-- CI workflow result: see Actions run on PR #230 (record verified result after completion).
+- GitHub Actions **6/6 PASS** on the latest code-bearing commit of PR #230: v19, v18, v17, v15, v14 and v13 workflows. The later documentation-only commit does not change runtime behavior.
 - Research quality: **HOLD_NO_GEOMETRY_GAIN**. PR #230 stays Draft; no production deployment, no main merge.
 - No bypass of v16 rejection. No lowering of default region count; no changes to production Facet v15.
 
