@@ -3408,13 +3408,13 @@
           targetStatus = "preflight_rejected";
         }
         const crossPalette = a.paletteId!==b.paletteId;
-        if(crossPalette&&!config.allowNearPalette){rejected+=1;rejectReasons.incompatiblePalette+=1;continue;}
         if(target && crossPalette) {
           targetStatus = "palette_rejected";
           rejected+=1;
           rejectReasons.incompatiblePalette+=1;
           continue;
         }
+        if(crossPalette&&!config.allowNearPalette){rejected+=1;rejectReasons.incompatiblePalette+=1;continue;}
         if(crossPalette) candidateNearPalette+=1;
         const small=a.count<=b.count?a:b;
         const large=small===a?b:a;
