@@ -65,6 +65,22 @@ class RealGC001ContourTests(unittest.TestCase):
         self.assertEqual(result["research_candidates"], 0)
         self.assertEqual(result["parts"]["left_arm"]["status"], "OBSERVE_ONLY_PROTECTED_ARM")
 
+    def test_standalone_part_topology_hard_stop(self):
+        owners = ("face", "hair", "left_arm", "right_arm")
+        records = [polygon(owner) for owner in owners]
+        scene = {
+            "coordinate_space": {"pixel_width": 24, "pixel_height": 24},
+            "selected_name": "aggressive",
+            "candidates": [{"name": "aggressive", "metrics": {"primitive_count": 4}, "primitives": records}],
+        }
+        masks = {p["semantic_part_id"]: rasterize_primitive(p, (24, 24)) for p in records}
+        masks["hair"] = masks["hair"].copy()
+        masks["hair"][8:12, 8:12] = False
+        result = evaluate(scene, masks)
+        self.assertEqual(result["status"], "HOLD_PART_TOPOLOGY_CHANGED")
+        self.assertEqual(result["part_topology_hard_failures"], ["hair"])
+        self.assertFalse(result["promotion_authorized"])
+
     def test_selected_count_disagreement_fails(self):
         p = polygon("face")
         scene = {
