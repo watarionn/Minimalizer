@@ -1158,6 +1158,33 @@
   // guarded edits. No vertex moves or new colors: a candidate only replaces two
   // adjacent segments with their shared straight chord. The same canonical arc is
   // used on both sides of every color region.
+  // Long polygon sides can be split into several short collinear edges.
+  // Evaluate supporting *runs*, not just the immediately adjacent edges:
+  // otherwise a meaningful square corner with short neighboring segments
+  // would be mistaken for a removable stair notch.
+  function facetSupportingRunLength(points, index, direction, tolerance) {
+    const neighbor = index + direction;
+    if (neighbor < 0 || neighbor >= points.length) return 0;
+    const origin = points[index];
+    const axis = points[neighbor];
+    const ux = axis[0] - origin[0], uy = axis[1] - origin[1];
+    const norm = Math.hypot(ux, uy);
+    if (norm <= 0) return 0;
+    let total = 0;
+    let cursor = index;
+    while (cursor + direction >= 0 && cursor + direction < points.length) {
+      const a = points[cursor], b = points[cursor + direction];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const length = Math.hypot(dx, dy);
+      if (length <= 0) break;
+      const delta = Math.atan2(Math.abs(ux * dy - uy * dx), ux * dx + uy * dy);
+      if (delta > tolerance) break;
+      total += length;
+      cursor += direction;
+    }
+    return total;
+  }
+
   function facetCandidateEdits(points, rawPoints, config) {
     if (points.length <= 2) return [];
     const originalIndices = [];
@@ -1180,8 +1207,16 @@
       const len1 = Math.hypot(ux, uy), len2 = Math.hypot(vx, vy);
       if (len1 <= 0 || len2 <= 0) continue;
       const bend = Math.atan2(Math.abs(ux * vy - uy * vx), ux * vx + uy * vy);
-      if (bend >= protectedAngle && Math.min(len1, len2) >= config.cornerProtectArmMinPx) {
-        continue;
+      if (bend >= protectedAngle) {
+        const leftSupport = facetSupportingRunLength(
+          points, i, -1, config.facetPreferAngleDegrees * Math.PI / 180
+        );
+        const rightSupport = facetSupportingRunLength(
+          points, i, 1, config.facetPreferAngleDegrees * Math.PI / 180
+        );
+        if (Math.min(leftSupport, rightSupport) >= config.cornerProtectArmMinPx) {
+          continue;
+        }
       }
       let maximum = 0;
       let safeCorridor = true;
@@ -1465,6 +1500,7 @@
       simplifyOpenChain,
       planarLineCandidate,
       cornerAwareLineCandidate,
+      facetSupportingRunLength,
       facetCandidateEdits,
       refineFacetChain,
       candidateChainIntersectionFree,
