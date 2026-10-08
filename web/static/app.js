@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "facet") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "facet");
 } else if (browserFallbackQualityParam === "shape") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "shape");
 } else if (browserFallbackQualityParam === "sharp") {
@@ -20,7 +22,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return quality === "exact" || quality === "sharp" || quality === "shape" ? quality : "lite";
+  return ["exact", "sharp", "shape", "facet"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -30,7 +32,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return browserFallbackQualityProfile() === "sharp" || browserFallbackQualityProfile() === "shape";
+  return ["sharp", "shape", "facet"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -385,7 +387,8 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
-    geometryMode: browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
+    geometryMode: browserFallbackQualityProfile() === "facet" ? "facet-safe"
+      : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
   return result.response;
 }
@@ -584,8 +587,10 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? browserQualityProfile === "shape"
-              ? "Minimalizer Browser Fallback v12 · SHAPE (experimental)"
+            ? browserQualityProfile === "facet"
+              ? "Minimalizer Browser Fallback v12 · FACET (experimental)"
+              : browserQualityProfile === "shape"
+                ? "Minimalizer Browser Fallback v12 · SHAPE (experimental)"
               : browserQualityProfile === "sharp"
                 ? "Minimalizer Browser Fallback v12 · SHARP LITE (experimental)"
               : "Minimalizer Browser Fallback v12 · FALLBACK"
