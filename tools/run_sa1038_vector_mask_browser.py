@@ -307,15 +307,27 @@ def render_and_verify_chrome(*, output_dir: Path, chrome_executable: Path) -> di
         )
     # Version output may be missing on packaged Windows Chrome. Record both
     # executable identity and byte hash instead of fabricating a version.
-    version=subprocess.run(
-        [str(chrome_executable),"--version"],capture_output=True,timeout=10,
-        check=False
-    )
+    try:
+        version=subprocess.run(
+            [str(chrome_executable),"--version"],capture_output=True,timeout=2,
+            check=False
+        )
+        version_stdout=version.stdout.decode("utf-8","replace").strip()
+        version_exit_code=version.returncode
+        version_probe_status="OK" if version.returncode==0 else "NONZERO_EXIT"
+    except subprocess.TimeoutExpired:
+        # Windows packaged Chrome can hang when launched with --version
+        # without a console. Browser validity is proven by the actual
+        # headless screenshot and executable SHA, NOT this optional probe.
+        version_stdout=""
+        version_exit_code=None
+        version_probe_status="TIMEOUT_OPTIONAL"
     execution={
         "schema":"sa10.38-real-chrome-execution-v1",
         "chrome_binary_sha256":_digest(chrome_executable),
-        "chrome_version_stdout":version.stdout.decode("utf-8","replace").strip(),
-        "chrome_version_exit_code":version.returncode,
+        "chrome_version_stdout":version_stdout,
+        "chrome_version_probe_status":version_probe_status,
+        "chrome_version_exit_code":version_exit_code,
         "chrome_run_exit_code":run.returncode,
         "html_sha256":html_hash,
         "svg_sha256":svg_hash,
