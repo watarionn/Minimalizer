@@ -294,3 +294,41 @@ def test_zerobase2_endpoint_fails_closed_when_not_authorized(monkeypatch):
     assert response.status_code == 503
     assert response.headers["x-minimalizer-route"] == "minimalizer2"
 
+
+
+def test_private_tailnet_owner_gate(monkeypatch):
+    monkeypatch.setenv("MINIMALIZER_LOCAL_OWNER_LOGIN", "owner@example.test")
+    target = {"Host": "device.example.ts.net:28765"}
+    with TestClient(worker.app) as client:
+        no_login = client.get("/health", headers=target)
+        other = client.get("/health", headers={**target, "Tailscale-User-Login": "other@example.test"})
+        tagged = client.get("/health", headers={**target, "X-Forwarded-For": "100.64.1.99"})
+        owner = client.get("/health", headers={**target, "Tailscale-User-Login": "owner@example.test"})
+        direct = client.get("/health", headers={"Host": "127.0.0.1:28764"})
+    assert no_login.status_code == 403
+    assert other.status_code == 403
+    assert tagged.status_code == 403
+    assert owner.status_code == 200
+    assert direct.status_code == 200
+
+
+def test_private_owner_gate_fail_closed_without_config(monkeypatch):
+    monkeypatch.delenv("MINIMALIZER_LOCAL_OWNER_LOGIN", raising=False)
+    monkeypatch.setattr(worker, "_private_owner_login", lambda: "")
+    with TestClient(worker.app) as client:
+        response = client.get("/health", headers={
+            "Host": "device.example.ts.net:28765",
+            "Tailscale-User-Login": "unknown@example.test"
+        })
+    assert response.status_code == 403
+
+
+def test_private_owner_gate_blocks_forwarded_identity_with_loopback_host(monkeypatch):
+    monkeypatch.setenv("MINIMALIZER_LOCAL_OWNER_LOGIN", "owner@example.test")
+    with TestClient(worker.app) as client:
+        response = client.get("/health", headers={
+            "Host": "127.0.0.1:28764",
+            "X-Forwarded-Proto": "https",
+            "Tailscale-User-Login": "other@example.test",
+        })
+    assert response.status_code == 403

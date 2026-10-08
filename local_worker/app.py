@@ -5,6 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Lock
+import hmac
 from time import perf_counter
 import logging
 import os
@@ -207,6 +208,39 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+
+def _private_owner_login() -> str:
+    """Identity stored outside GitHub (or supplied by a local environment variable)."""
+    direct = os.getenv("MINIMALIZER_LOCAL_OWNER_LOGIN", "").strip()
+    if direct:
+        return direct.lower()
+    home = os.getenv("LOCALAPPDATA")
+    if not home:
+        return ""
+    path = Path(home) / "Minimalizer" / "config" / "owner-login.txt"
+    try:
+        return path.read_text(encoding="utf-8-sig").strip().lower()
+    except OSError:
+        return ""
+
+
+@app.middleware("http")
+async def guard_tailscale_owner(request: Request, call_next):
+    """Deny private Serve traffic from other tailnet users, including tagged nodes."""
+    hostname = request.headers.get("host", "").split(":", 1)[0].lower()
+    forwarded = any(request.headers.get(header) for header in (
+        "x-forwarded-for", "x-forwarded-proto", "x-forwarded-host", "tailscale-user-login"
+    ))
+    # Direct loopback (and Starlette's testserver) remains available for
+    # local health/admin. This server must never bind to a public/LAN address.
+    local_direct = hostname in {"127.0.0.1", "localhost", "testserver"} and not forwarded
+    if not local_direct:
+        approved = _private_owner_login()
+        supplied = request.headers.get("tailscale-user-login", "").strip().lower()
+        if not approved or not supplied or not hmac.compare_digest(approved, supplied):
+            return JSONResponse(status_code=403, content={"detail": "Private LocalWorker access denied."})
+    return await call_next(request)
 
 
 @app.middleware("http")
