@@ -110,7 +110,9 @@ def assemble(src,masks,features,full_path,fg_path):
     owned=np.zeros(owner.shape,dtype=bool)
     tie=observed_tie_mask(src)
     owned|=tie
-    owned|=face
+    # Fringe/hair must remain visible even where the coarse face mask overlaps.
+    # Reserve only visible nonhair skin, never reserve hair under the face.
+    owned|=(face & ~hair)
     regions={}
     for role in priority:
         incoming=masks[role]&owner&~owned
