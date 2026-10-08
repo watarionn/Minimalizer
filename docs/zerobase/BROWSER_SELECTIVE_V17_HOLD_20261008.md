@@ -49,7 +49,7 @@ The no-op result shows that same-palette adjacency is too strict on the real sam
 
 ## Evidence and repeatability
 
-- [Google Drive v17 evidence](https://drive.google.com/drive/folders/1Vy9IQ-OEGh2Eo6tD17qXxeYv8xFk7iO) under `chatGPT及びCodex用/Minimalizer`.
+- [Google Drive v17 evidence](https://drive.google.com/drive/folders/1oXwr6I4ma0pZXGU4VpRC5dv4mPAIA5wG) under `chatGPT及びCodex用/Minimalizer`.
 - Three-source montage, machine metrics, raw source+all six profile PNG/metrics archive, diagnostic report, Chrome harness and evidence generator.
 - Reusable GitHub Chrome benchmark: `tools/run_browser_selective_v17_chrome_compare.py`.
 - Parent baseline production remains [Facet v15 handoff](../handoffs/HND-20261008-BROWSER_FACET_V15_PRODUCTION.md). This work must not change it.
