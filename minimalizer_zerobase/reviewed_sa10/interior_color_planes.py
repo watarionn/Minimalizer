@@ -12,6 +12,8 @@ from typing import Any, Mapping
 import cv2
 import numpy as np
 
+from minimalizer_zerobase.composition.artifacts import BACKGROUND_COLOR
+
 # In particular, FACE, LEFT_ARM, RIGHT_ARM and UNKNOWN are never edited.
 INTERIOR_ELIGIBLE_OWNERS = frozenset(("hair", "torso", "major_clothing", "lower_body"))
 PROTECTED_OWNERS = frozenset(("face", "left_arm", "right_arm"))
@@ -201,7 +203,7 @@ def propose_interior_plane(
 def render_with_interior_planes(
     *, primitives: list[dict], primitive_masks: Mapping[str, np.ndarray],
     planes: list[dict], protected_mask: np.ndarray,
-    background_rgb: tuple[int, int, int] = (235, 235, 235),
+    background_rgb: tuple[int, int, int] = BACKGROUND_COLOR,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Paint at parent's z-order, preserving original silhouette and protected RGB."""
     if not primitives or len(set(p["primitive_id"] for p in primitives)) != len(primitives):
