@@ -3619,6 +3619,95 @@
     return {mask,protectedComponents};
   }
 
+
+  // V24 explicit source-color boundary proposal, separate from geometry-only modes.
+  // Reassign existing source pixels between adjacent existing regions. Never create
+  // a new label or RGB color. Probe gates use unchanged source-to-palette distances.
+  function refineColorPlaneOwnership(built, palette, rgba, width, height, options) {
+    const cfg=Object.assign({
+      maxMoves:32, minGainSquared:2500, lowerYFraction:0.33,
+      minDonorPixels:150, minRecipientPixels:150,
+    },options||{});
+    if(!Number.isInteger(cfg.maxMoves)||cfg.maxMoves<1||cfg.maxMoves>64
+      ||!Number.isFinite(cfg.minGainSquared)||cfg.minGainSquared<0
+      ||!Number.isFinite(cfg.lowerYFraction)||cfg.lowerYFraction<0
+      ||cfg.lowerYFraction>1)throw Error("Invalid v24 region ownership bounds.");
+    const labels=built.componentIds;
+    const area=width*height;
+    const donorSizes=built.components.map(c=>c.count);
+    const bestMoves=[];
+    const sq=(index,color)=>{
+      const p=index*4;
+      return (rgba[p]-color[0])**2+(rgba[p+1]-color[1])**2
+        +(rgba[p+2]-color[2])**2;
+    };
+    for(let y=Math.floor(height*cfg.lowerYFraction);y<height;y++) {
+      for(let x=1;x<width-1;x++){
+        const i=y*width+x;
+        const donor=labels[i];
+        if(donor<0||donorSizes[donor]<cfg.minDonorPixels)continue;
+        const donorColor=palette.colors[donor];
+        const right=i+1,left=i-1,up=i-width,down=i+width;
+        const others=[left,right,...(y>0?[up]:[]),...(y<height-1?[down]:[])];
+        const donorNeighbors=others.filter(j=>labels[j]===donor).length;
+        // Conservative: endpoint-only changes. Never break a branching
+        // source region or an isolated thin line by stealing its interior.
+        if(donorNeighbors!==3)continue;
+        const colors=new Set(others.map(j=>labels[j]).filter(id=>id!==donor&&id>=0));
+        if(colors.size!==1)continue;
+        const recipient=[...colors][0];
+        if(donorSizes[recipient]<cfg.minRecipientPixels)continue;
+        const recipientColor=palette.colors[recipient];
+        if(!recipientColor||!donorColor)continue;
+        const before=sq(i,donorColor),after=sq(i,recipientColor);
+        const gain=before-after;
+        if(gain<cfg.minGainSquared)continue;
+        bestMoves.push({pixel:i,x,y,donor,recipient,gain,before,after});
+      }
+    }
+    bestMoves.sort((a,b)=>b.gain-a.gain||a.pixel-b.pixel);
+    const newLabels=new Int32Array(labels);
+    const touched=new Set();
+    const accepted=[];
+    for(const move of bestMoves) {
+      if(accepted.length>=cfg.maxMoves)break;
+      if(touched.has(move.pixel)||newLabels[move.pixel]!==move.donor)continue;
+      const x=move.x,y=move.y;
+      const adjacent=[move.pixel-1,move.pixel+1,...(y>0?[move.pixel-width]:[]),
+        ...(y+1<height?[move.pixel+width]:[])];
+      if(adjacent.filter(j=>newLabels[j]===move.donor).length!==3
+        ||adjacent.filter(j=>newLabels[j]===move.recipient).length!==1)continue;
+      newLabels[move.pixel]=move.recipient;
+      donorSizes[move.donor]-=1;donorSizes[move.recipient]+=1;
+      touched.add(move.pixel);
+      accepted.push(move);
+    }
+    if(!accepted.length)return {built,metrics:{candidates:bestMoves.length,movedPixels:0,
+      sourceRgbErrorReduction:0,moves:[]}};
+    const updated=built.components.map(c=>({...c,pixels:[],
+      minX:width,minY:height,maxX:0,maxY:0,borderTouches:0}));
+    for(let i=0;i<area;i++){
+      const id=newLabels[i],component=updated[id];
+      if(!component)throw Error("v24 invalid component index");
+      const x=i%width,y=Math.floor(i/width);
+      component.pixels.push(i);
+      component.minX=Math.min(x,component.minX);
+      component.maxX=Math.max(x,component.maxX);
+      component.minY=Math.min(y,component.minY);
+      component.maxY=Math.max(y,component.maxY);
+      if(x===0||y===0||x===width-1||y===height-1)
+        component.borderTouches+=1;
+    }
+    for(const component of updated){
+      if(!component.pixels.length)throw Error("v24 would erase a region");
+      component.count=component.pixels.length;
+    }
+    return {built:{components:updated,componentIds:newLabels},
+      metrics:{candidates:bestMoves.length,movedPixels:accepted.length,
+        sourceRgbErrorReduction:accepted.reduce((v,m)=>v+m.gain,0),
+        moves:accepted}};
+  }
+
   // Render-space verification, independent of the proposed label-area budget.
   // Reject geometry/paint changes that exceed any pixel, RGB or color-mass bound.
   function compareRegionRenderFidelity(baselineShapes, candidateShapes, width, height, options) {
@@ -3834,6 +3923,19 @@
       selectiveMergeMetrics = selective.metrics;
     }
 
+    let colorPlaneMetrics={candidates:0,movedPixels:0,sourceRgbErrorReduction:0,moves:[]};
+    if(config.colorPlaneRefine===true) {
+      if(config.structuralMode!=="l0-lite-jacobi"
+        ||config.canonicalContourLite!==true
+        ||config.geometryMode!=="facet-safe"
+        ||config.selectiveRegionMerge===true||config.autoSelectiveMerge===true) {
+        throw Error("V24 color plane requires unchanged Facet structure.");
+      }
+      const refinement=refineColorPlaneOwnership(
+        selectedHierarchy.built,palette,rgba,width,height,config.colorPlaneOptions);
+      colorPlaneMetrics=refinement.metrics;
+      selectedHierarchy={...selectedHierarchy,built:refinement.built};
+    }
     let canonicalContour = null;
     if (
       (config.structuralMode === "spectral-exact" || config.canonicalContourLite === true)
@@ -3910,6 +4012,11 @@
         subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: selectedHierarchy.selectedCount,
+        colorPlaneQualityGate: "not_requested",
+        colorPlaneCandidates: colorPlaneMetrics.candidates,
+        colorPlaneMovedPixels: colorPlaneMetrics.movedPixels,
+        colorPlaneSourceErrorReduction: colorPlaneMetrics.sourceRgbErrorReduction,
+        colorPlaneMoves: colorPlaneMetrics.moves,
         planeQualityGate: "not_requested",
         planeQualityChangedPixels: 0,
         planeVertexReduction: 0,
@@ -3969,6 +4076,35 @@
           : (shapes.length > 0 ? Math.min(...shapes.map((shape) => shape.contourIoU)) : 1),
       },
     };
+    if(config.colorPlaneRefine===true) {
+      const baseline=analyzeRgba(rgba,width,height,{
+        ...config,colorPlaneRefine:false,geometryMode:"facet-safe"
+      });
+      if(colorPlaneMetrics.movedPixels===0) {
+        baseline.metrics.colorPlaneQualityGate="rejected:no_candidate";
+        baseline.metrics.colorPlaneCandidates=colorPlaneMetrics.candidates;
+        return baseline;
+      }
+      const guarded=compareRegionRenderFidelity(
+        baseline.shapes,result.shapes,width,height,{
+          maxChangedPixelFraction:0.003,
+          maxRgbMeanAbsoluteError:0.55,
+          maxColorMassDeltaFraction:0.002,
+          maxSilhouetteChangedPixels:0,
+          maxProtectedChangedPixels:0,
+          protectThinComponents:true,
+        });
+      if(!guarded.pass||result.metrics.contourMinRegionIoU<0.90){
+        baseline.metrics.colorPlaneQualityGate="rejected:"+(guarded.pass?"topology":guarded.reason);
+        baseline.metrics.colorPlaneCandidates=colorPlaneMetrics.candidates;
+        baseline.metrics.colorPlaneTrialMovedPixels=colorPlaneMetrics.movedPixels;
+        baseline.metrics.colorPlaneTrialChangedPixels=guarded.changedPixels;
+        return baseline;
+      }
+      result.metrics.colorPlaneQualityGate="pass";
+      result.metrics.colorPlaneRenderChangedPixels=guarded.changedPixels;
+      return result;
+    }
     if(config.geometryMode==="plane-safe") {
       if(config.structuralMode!=="l0-lite-jacobi"
           ||config.canonicalContourLite!==true
@@ -4316,7 +4452,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4340,6 +4476,7 @@
       "X-Minimalizer-Auto-Merge-Gate": String(analysis.metrics.autoMergeStatus),
       "X-Minimalizer-Auto-Merge-Candidates": String(analysis.metrics.autoMergeCandidates),
       "X-Minimalizer-Plane-Quality-Gate": String(analysis.metrics.planeQualityGate),
+      "X-Minimalizer-Color-Plane-Gate": String(analysis.metrics.colorPlaneQualityGate),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4365,7 +4502,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4400,6 +4537,12 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        colorPlaneQualityGate: analysis.metrics.colorPlaneQualityGate,
+        colorPlaneMovedPixels: analysis.metrics.colorPlaneMovedPixels,
+        colorPlaneCandidates: analysis.metrics.colorPlaneCandidates,
+        colorPlaneSourceErrorReduction: analysis.metrics.colorPlaneSourceErrorReduction,
+        colorPlaneMoves: analysis.metrics.colorPlaneMoves,
+        colorPlaneRenderChangedPixels: analysis.metrics.colorPlaneRenderChangedPixels,
         planeQualityGate: analysis.metrics.planeQualityGate,
         planeQualityChangedPixels: analysis.metrics.planeQualityChangedPixels,
         planeVertexReduction: analysis.metrics.planeVertexReduction,
@@ -4497,6 +4640,7 @@
       mergeAcceptedPaletteRegions,
       rankAutomaticPaletteMergeCandidates,
       protectThinColorComponents,
+      refineColorPlaneOwnership,
       compareRegionRenderFidelity,
       analyzeRgba,
       renderAnalysis,
