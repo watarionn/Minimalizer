@@ -3,36 +3,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="画像をシンプルな図形や色のストリップへ変換する Minimalizer Web">
-  <title>Minimalizer Public</title>
-  <link rel="stylesheet" href="static/styles.css">
-  <link rel="stylesheet" href="static/color-strip.css">
-  <script src="static/opencv-lab-lut.js" defer></script>
-  <script src="static/opencv-area-resize.js" defer></script>
-  <script src="static/spectral-fft.js" defer></script>
-  <script src="static/opencv-fill-raster.js" defer></script>
-  <script src="static/canonical-contour.js" defer></script>
-  <script src="static/pillow-lanczos.js" defer></script>
-  <script type="module" src="static/browser-subject.js"></script>
-  <script src="static/browser-fallback.js" defer></script>
-  <script src="static/browser-feature-palette.js" defer></script>
-  <script src="static/browser-color-strip.js" defer></script>
-  <script src="static/public-route.js" defer></script>
-  <script src="static/app.js" defer></script>
+  <title>Minimalizer Local</title>
+  <meta name="theme-color" content="#17191b">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/local-static/icon.svg">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/color-strip.css">
+  <script src="/static/browser-feature-palette.js" defer></script>
+  <script src="/static/browser-color-strip.js" defer></script>
+  <script src="/local-static/local-route.js" defer></script>
+  <script src="/static/app.js" defer></script>
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="./" aria-label="Minimalizer ホーム">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span>Minimalizer Public</span>
+      <span>Minimalizer Local</span>
     </a>
-    <span class="engine-badge" id="engine-badge">Browser</span>
+    <span class="engine-badge" id="engine-badge">LocalWorker</span>
   </header>
 
   <main class="page-shell">
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow">IMAGE → MINIMAL GRAPHIC</p>
       <h1 id="page-title">画像を、必要なかたちだけに。</h1>
-      <p class="hero-copy">画像を選んで「ミニマル化」を押すだけ。ブラウザ内だけで画像をミニマル化します。</p>
+      <p class="hero-copy">画像を選んで「ミニマル化」を押すだけ。本人専用LocalWorkerで高品質のミニマル化を行います。</p>
     </section>
 
     <section class="workspace" aria-label="Minimalizer ワークスペース">
@@ -172,7 +168,7 @@
   </main>
 
   <footer class="site-footer">
-    <span>Minimalizer Public</span>
+    <span>Minimalizer Local</span>
   </footer>
 </body>
 </html>

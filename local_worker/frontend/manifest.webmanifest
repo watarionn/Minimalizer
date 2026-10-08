@@ -1,0 +1,19 @@
+{
+  "name": "Minimalizer Local",
+  "short_name": "Minimalizer Local",
+  "description": "本人専用LocalWorkerミニマル化PWA",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#17191b",
+  "theme_color": "#17191b",
+  "icons": [
+    {
+      "src": "/local-static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

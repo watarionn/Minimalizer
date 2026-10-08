@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "web/static/browser-fallback.js"
 CONTOUR = ROOT / "web/static/canonical-contour.js"
 RASTER = ROOT / "web/static/opencv-fill-raster.js"
-APP = ROOT / "web/static/app.js"
+APP = ROOT / "web/static/public-route.js"
 
 
 def _node(source: str) -> dict:
@@ -25,11 +25,10 @@ def _node(source: str) -> dict:
 def test_shape_opt_in_keeps_other_profiles_and_metadata():
     app = APP.read_text(encoding="utf-8")
     engine = ENGINE.read_text(encoding="utf-8")
-    assert 'browserFallbackQualityParam === "shape"' in app
-    assert 'browserFallbackQualityProfile() === "shape"' in app
-    assert 'browserFallbackCanonicalContourLite()' in app
-    assert 'browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline"' in app
-    assert 'SHAPE (experimental)' in app
+    assert '"shape"' in app
+    assert 'canonicalContourLite: ["sharp", "shape", "facet"].includes(p)' in app
+    assert 'p === "shape" ? "corner-aware" : "baseline"' in app
+    assert 'Minimalizer Public' in app
     assert 'geometryMode: "baseline"' in engine
     assert "cornerPrunedVertices" in engine
     assert 'X-Minimalizer-Contour-Geometry-Mode' in engine
