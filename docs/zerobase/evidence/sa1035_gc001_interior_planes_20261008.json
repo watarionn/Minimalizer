@@ -1,0 +1,268 @@
+{
+  "schema": "sa10.35-internal-color-evaluation-v1",
+  "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "outer_scene_original_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+  "source_stage04_provenance_verified": true,
+  "original_adaptive_preview_sha256_verified": true,
+  "original_adaptive_preview_pixels_equal": true,
+  "outer_primitive_count_before": 11,
+  "outer_primitive_count_after": 11,
+  "external_geometry_changed": false,
+  "outer_raw_topology_gate": "PASS",
+  "outer_silhouette_iou": 0.9982763313072667,
+  "observed_source_colors_only": true,
+  "source_bitmap_painted": false,
+  "no_face_eyes_mouth_rendered": true,
+  "face_and_both_arms_unchanged": true,
+  "pixels_changed_outside_outer_silhouette": 0,
+  "pixels_changed_outside_interior_subplanes": 0,
+  "interior_subplane_count": 3,
+  "new_geometric_subpaths_counted": 3,
+  "total_painted_geometric_elements_estimate": 14,
+  "interior_subplane_vertices": 28,
+  "interior_edited_pixels": 2566,
+  "candidate_color_lab_mse_before": 6850.981229,
+  "candidate_color_lab_mse_after": 6242.480658,
+  "eligible_color_mse_improvement_ratio": 0.088819,
+  "owner_reports": {
+    "hair": {
+      "owner_pixels": 14605,
+      "source_lab_mse_before": 3584.06217,
+      "source_lab_mse_after": 3105.570969,
+      "lab_mse_relative_improvement": 0.133505,
+      "added_interior_planes": 1
+    },
+    "lower_body": {
+      "owner_pixels": 12640,
+      "source_lab_mse_before": 10413.737896,
+      "source_lab_mse_after": 10413.737896,
+      "lab_mse_relative_improvement": 0,
+      "added_interior_planes": 0
+    },
+    "torso": {
+      "owner_pixels": 5828,
+      "source_lab_mse_before": 7485.390185,
+      "source_lab_mse_after": 5471.00103,
+      "lab_mse_relative_improvement": 0.269109,
+      "added_interior_planes": 1
+    },
+    "major_clothing": {
+      "owner_pixels": 3741,
+      "source_lab_mse_before": 6576.364074,
+      "source_lab_mse_after": 5594.835338,
+      "lab_mse_relative_improvement": 0.149251,
+      "added_interior_planes": 1
+    }
+  },
+  "planes": [
+    {
+      "schema": "sa10.35-source-grounded-interior-planes-v1",
+      "owner": "torso",
+      "parent_primitive_id": "phase12-aggressive-0004",
+      "points": [
+        [
+          201,
+          208
+        ],
+        [
+          195,
+          205
+        ],
+        [
+          185,
+          221
+        ],
+        [
+          151,
+          221
+        ],
+        [
+          144,
+          211
+        ],
+        [
+          131,
+          222
+        ],
+        [
+          126,
+          234
+        ],
+        [
+          181,
+          235
+        ]
+      ],
+      "observed_rgb": [
+        238,
+        236,
+        237
+      ],
+      "parent_palette_rgb": [
+        177,
+        91,
+        80
+      ],
+      "source_provenance": "input-image-original-rgb-inside-existing-owner",
+      "additional_geometric_subpath": true,
+      "source_bitmap_overlay": false,
+      "face_or_arm_repaint": false,
+      "plane_area_pixels": 1063,
+      "owner_area_pixels": 5828,
+      "area_fraction_of_owner": 0.182395,
+      "polygon_vertex_count": 8,
+      "before_lab_mse": 7492.858099,
+      "after_lab_mse": 5478.468943,
+      "relative_lab_mse_reduction": 0.268841,
+      "source_rgb_pixel_sha256": "028ecf465ef57e6ab3704fa06e96979903c12a1d4304d17bc2f56efb4ccef3b9"
+    },
+    {
+      "schema": "sa10.35-source-grounded-interior-planes-v1",
+      "owner": "hair",
+      "parent_primitive_id": "phase12-aggressive-0000",
+      "points": [
+        [
+          159,
+          37
+        ],
+        [
+          142,
+          40
+        ],
+        [
+          145,
+          52
+        ],
+        [
+          141,
+          63
+        ],
+        [
+          118,
+          86
+        ],
+        [
+          113,
+          83
+        ],
+        [
+          118,
+          68
+        ],
+        [
+          107,
+          66
+        ],
+        [
+          105,
+          76
+        ],
+        [
+          113,
+          88
+        ],
+        [
+          123,
+          91
+        ],
+        [
+          140,
+          79
+        ],
+        [
+          148,
+          60
+        ],
+        [
+          163,
+          62
+        ],
+        [
+          169,
+          58
+        ]
+      ],
+      "observed_rgb": [
+        220,
+        221,
+        221
+      ],
+      "parent_palette_rgb": [
+        239,
+        129,
+        48
+      ],
+      "source_provenance": "input-image-original-rgb-inside-existing-owner",
+      "additional_geometric_subpath": true,
+      "source_bitmap_overlay": false,
+      "face_or_arm_repaint": false,
+      "plane_area_pixels": 1072,
+      "owner_area_pixels": 14605,
+      "area_fraction_of_owner": 0.0734,
+      "polygon_vertex_count": 15,
+      "before_lab_mse": 3582.124341,
+      "after_lab_mse": 3104.44875,
+      "relative_lab_mse_reduction": 0.13335,
+      "source_rgb_pixel_sha256": "840ce3842b9fb6be4bcfc0bf98a32214cb84cd262c6de572954f34c47f74f5a3"
+    },
+    {
+      "schema": "sa10.35-source-grounded-interior-planes-v1",
+      "owner": "major_clothing",
+      "parent_primitive_id": "phase12-aggressive-0005",
+      "points": [
+        [
+          125,
+          243
+        ],
+        [
+          178,
+          244
+        ],
+        [
+          181,
+          237
+        ],
+        [
+          127,
+          236
+        ],
+        [
+          125,
+          237
+        ]
+      ],
+      "observed_rgb": [
+        234,
+        234,
+        233
+      ],
+      "parent_palette_rgb": [
+        201,
+        100,
+        103
+      ],
+      "source_provenance": "input-image-original-rgb-inside-existing-owner",
+      "additional_geometric_subpath": true,
+      "source_bitmap_overlay": false,
+      "face_or_arm_repaint": false,
+      "plane_area_pixels": 445,
+      "owner_area_pixels": 3741,
+      "area_fraction_of_owner": 0.118952,
+      "polygon_vertex_count": 5,
+      "before_lab_mse": 6576.364074,
+      "after_lab_mse": 5594.835338,
+      "relative_lab_mse_reduction": 0.149251,
+      "source_rgb_pixel_sha256": "42e07ed346c83e6c1e52ce9dd9009307ec883c403914292b0b7384c45e3776f5"
+    }
+  ],
+  "original_outer_vector_budget_pass": false,
+  "browser_svg_clip_path_parity_verified": false,
+  "human_visual_review": "PENDING",
+  "production_promotion_authorized": false,
+  "status": "RESEARCH_COLOR_IMPROVED_BUT_HOLD",
+  "hard_blockers": [
+    "ORIGINAL_OUTER_VERTEX_BUDGET_FAILED",
+    "BROWSER_SVG_CLIP_PATH_PARITY_NOT_VERIFIED",
+    "HUMAN_VISUAL_REVIEW_NOT_APPROVED"
+  ]
+}
