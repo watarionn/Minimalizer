@@ -83,7 +83,7 @@ window.__geoRun=async function(name,opts){
             "color": {"structuralMode":"l0-lite-jacobi",
                      "canonicalContourLite":True,"geometryMode":"facet-safe",
                      "colorPlaneRefine":True,
-                     "colorPlaneOptions":{"maxMoves":32,"minGainSquared":2500,"lowerYFraction":0.33}},
+                     "colorPlaneOptions":{"maxMoves":1,"minGainSquared":2500,"lowerYFraction":0.33}},
         }
         shared = {"analysisMaxSide":400,"workMaxSide":400,"maxShapes":40,"slicIterations":10,"paletteTarget":8}
         all_results = {}
