@@ -94,8 +94,19 @@ def make_svg(paths,output:Path):
 
 
 def render_svg_preview(svg: Path, png: Path):
-    import cairosvg
-    cairosvg.svg2png(url=str(svg),write_to=str(png),output_width=680,output_height=680)
+    try:
+        import cairosvg
+        cairosvg.svg2png(url=str(svg),write_to=str(png),output_width=680,output_height=680)
+    except ImportError:
+        # Reuse already-isolated pure rendering adapter, never add a dependency
+        # to the Minimalizer production Worker.
+        import os,sys
+        isolated=Path(os.environ.get("LOCALAPPDATA",""))/"Minimalizer/research/resvg-py-0.5.0"
+        if not isolated.is_dir():
+            raise RuntimeError("Neither CairoSVG nor isolated resvg preview is available")
+        sys.path.insert(0,str(isolated))
+        import resvg_py
+        png.write_bytes(resvg_py.svg_to_bytes(svg_path=str(svg),width=680,height=680))
     im=Image.open(png).convert("RGBA")
     if im.size!=(680,680):
         raise AssertionError("Preview dimensions wrong")
