@@ -13,7 +13,7 @@ def test_pixel_cell_closed_path_on_original_footprint():
     assert data.startswith("M ")
     assert " Z" in data
     assert contours>=1 and vertices>=4
-    assert ".5" in data
+    assert ".25" in data and ".75" in data  # doubled OpenCV pixel-grid coordinates
 
 def test_svg_is_source_hair_only(tmp_path):
     mask=np.zeros((340,340),dtype=bool)
