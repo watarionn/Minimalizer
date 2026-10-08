@@ -16,6 +16,7 @@ from copy import deepcopy
 from hashlib import sha256
 import json
 from pathlib import Path
+import subprocess
 
 import cv2
 import numpy as np
@@ -272,6 +273,65 @@ def prepare_vector_mask(
     return metrics
 
 
+
+def render_and_verify_chrome(*, output_dir: Path, chrome_executable: Path) -> dict:
+    """Launch the actual Chromium executable before comparing signed pixels."""
+    output_dir=output_dir.resolve()
+    chrome_executable=chrome_executable.resolve()
+    input_html=output_dir/"source_bound_vector_mask.html"
+    input_svg=output_dir/"source_bound_vector_mask.svg"
+    if not chrome_executable.is_file() or not input_html.is_file() or not input_svg.is_file():
+        raise ValueError("actual Chrome binary and both signed vector assets required")
+    report=_load(output_dir/"svg_material_parity_metrics.json")
+    if report.get("schema")!=SCHEMA:
+        raise ValueError("invalid browser probe schema")
+    html_hash=_digest(input_html)
+    svg_hash=_digest(input_svg)
+    screenshot=output_dir/"actual_chrome_headless.png"
+    # Chromium is launched with a fresh isolated user data directory; never
+    # open the user's normal Chrome profile or access network images.
+    argv=[
+        str(chrome_executable), "--headless=new", "--disable-gpu",
+        "--no-first-run","--no-default-browser-check","--disable-extensions",
+        "--hide-scrollbars","--force-device-scale-factor=1",
+        "--window-size=800,600",
+        f"--user-data-dir={output_dir/'chrome-isolated-profile'}",
+        f"--screenshot={screenshot}", input_html.as_uri(),
+    ]
+    run=subprocess.run(
+        argv,capture_output=True,timeout=40,check=False
+    )
+    if run.returncode!=0 or not screenshot.is_file():
+        raise ValueError(
+            f"real headless Chrome did not produce a verified screenshot: exit {run.returncode}"
+        )
+    # Version output may be missing on packaged Windows Chrome. Record both
+    # executable identity and byte hash instead of fabricating a version.
+    version=subprocess.run(
+        [str(chrome_executable),"--version"],capture_output=True,timeout=10,
+        check=False
+    )
+    execution={
+        "schema":"sa10.38-real-chrome-execution-v1",
+        "chrome_binary_sha256":_digest(chrome_executable),
+        "chrome_version_stdout":version.stdout.decode("utf-8","replace").strip(),
+        "chrome_version_exit_code":version.returncode,
+        "chrome_run_exit_code":run.returncode,
+        "html_sha256":html_hash,
+        "svg_sha256":svg_hash,
+        "screenshot_sha256":_digest(screenshot),
+        "window_size":[800,600],
+        "device_pixel_ratio":1,
+        "used_private_isolated_chrome_profile":True,
+        "browser_engine_executed":True,
+        "production_promotion_authorized":False,
+    }
+    (output_dir/"real_chrome_execution.json").write_text(
+        json.dumps(execution,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"
+    )
+    return evaluate_real_chrome(output_dir=output_dir)
+
+
 def evaluate_real_chrome(*, output_dir: Path) -> dict:
     output_dir=output_dir.resolve()
     metrics_path=output_dir/"svg_material_parity_metrics.json"
@@ -292,8 +352,25 @@ def evaluate_real_chrome(*, output_dir: Path) -> dict:
     colored_browser=np.any(browser!=background,axis=2)
     edge=cv2.Canny(cv2.cvtColor(expected,cv2.COLOR_BGR2GRAY),50,100)
     near=cv2.dilate(edge,np.ones((3,3),np.uint8))>0
+    execution_path=output_dir/"real_chrome_execution.json"
+    if execution_path.is_file():
+        execution=_load(execution_path)
+        browser_executed=(
+            execution.get("schema")=="sa10.38-real-chrome-execution-v1"
+            and execution.get("browser_engine_executed") is True
+            and execution.get("chrome_run_exit_code")==0
+            and execution.get("html_sha256")==_digest(output_dir/"source_bound_vector_mask.html")
+            and execution.get("svg_sha256")==_digest(output_dir/"source_bound_vector_mask.svg")
+            and execution.get("screenshot_sha256")==_digest(output_dir/"actual_chrome_headless.png")
+            and execution.get("used_private_isolated_chrome_profile") is True
+        )
+        if not browser_executed:
+            raise ValueError("Chrome execution evidence does not match current SVG and screenshot")
+    else:
+        browser_executed=False
     report.update({
         "browser_screenshot_verified":True,
+        "chrome_execution_provenance_verified":browser_executed,
         "chrome_canvas_pixels":[width,height],
         "browser_mismatched_rgb_pixels":int(np.count_nonzero(mismatch)),
         "browser_mismatched_rgb_pixels_strong_gt48":int(np.count_nonzero(severe>48)),
@@ -303,13 +380,14 @@ def evaluate_real_chrome(*, output_dir: Path) -> dict:
         "browser_mismatch_near_reference_edges":int(np.count_nonzero(mismatch&near)),
         "browser_mismatch_far_reference_edges":int(np.count_nonzero(mismatch&~near)),
         "exact_browser_opencv_pixel_parity":bool(not np.any(mismatch)),
-        "browser_svg_gate":"PASS" if not np.any(mismatch) else "FAIL",
+        "browser_svg_gate":"PASS" if not np.any(mismatch) and browser_executed else "FAIL",
         "production_promotion_authorized":False,
     })
     report["gate_blockers"]=([
         "BROWSER_PIXEL_PARITY_FAIL" if np.any(mismatch) else "",
         "OUTER_AND_COMBINED_GEOMETRY_BUDGET_NOT_PASSED",
         "HUMAN_VISUAL_APPROVAL_PENDING",
+        "" if browser_executed else "REAL_CHROME_EXECUTION_NOT_ATTESTED",
     ])
     report["gate_blockers"]=[x for x in report["gate_blockers"] if x]
     if not cv2.imwrite(str(output_dir/"chrome_vs_opencv_pixel_diff.png"),
@@ -333,13 +411,21 @@ def main()->None:
     p.add_argument("--apparel-metrics",type=Path)
     p.add_argument("--output-dir",type=Path,required=True)
     p.add_argument("--compare-chrome",action="store_true")
+    p.add_argument("--render-chrome",action="store_true")
+    p.add_argument("--chrome-bin",type=Path)
     p.add_argument("--parent-dx",type=float,default=-0.25)
     p.add_argument("--parent-dy",type=float,default=0.5)
     p.add_argument("--material-shift",type=float,default=0.5)
     p.add_argument("--material-stroke",type=float,default=1.0)
     p.add_argument("--hole-stroke",type=float,default=1.0)
     args=p.parse_args()
-    if args.compare_chrome:
+    if args.compare_chrome and args.render_chrome:
+        raise ValueError("choose one real Chrome execution mode")
+    if args.render_chrome:
+        if args.chrome_bin is None:
+            raise ValueError("--chrome-bin required for real Chrome launch")
+        render_and_verify_chrome(output_dir=args.output_dir,chrome_executable=args.chrome_bin)
+    elif args.compare_chrome:
         evaluate_real_chrome(output_dir=args.output_dir)
     else:
         if not args.outer_scene or not args.apparel_scene or not args.apparel_metrics:
