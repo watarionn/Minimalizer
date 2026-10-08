@@ -95,8 +95,12 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
         return _fake_export(), SimpleNamespace(score=1.0)
 
     monkeypatch.setattr(worker, "_run_high_quality", fake_run)
-    from contextlib import nullcontext
-    monkeypatch.setattr(worker, "compute_slot", lambda _route: nullcontext())
+    # Fail loudly if an HTTP image route unexpectedly calls RRM.
+    monkeypatch.setenv("MINIMALIZER_RRM_MODE", "enforce")
+    import local_worker.rrm_admission as admission
+    def fail_rrm():
+        raise AssertionError("owner PWA processing must not touch RRM")
+    monkeypatch.setattr(admission, "_guard_factory", fail_rrm)
     with TestClient(worker.app) as client:
         response = client.post(
             "/api/v2/minimalize",
@@ -235,8 +239,12 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
         rollback_available = True
 
     monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
-    from contextlib import nullcontext
-    monkeypatch.setattr(worker, "compute_slot", lambda _route: nullcontext())
+    # Fail loudly if an HTTP image route unexpectedly calls RRM.
+    monkeypatch.setenv("MINIMALIZER_RRM_MODE", "enforce")
+    import local_worker.rrm_admission as admission
+    def fail_rrm():
+        raise AssertionError("owner PWA processing must not touch RRM")
+    monkeypatch.setattr(admission, "_guard_factory", fail_rrm)
     monkeypatch.setattr(
         worker,
         "_run_zerobase2",
@@ -332,3 +340,24 @@ def test_private_owner_gate_blocks_forwarded_identity_with_loopback_host(monkeyp
             "Tailscale-User-Login": "other@example.test",
         })
     assert response.status_code == 403
+
+
+def test_local_worker_parallel_job_guard_still_active(monkeypatch):
+    """Bypassing global RRM must not permit simultaneous heavyweight jobs."""
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    assert worker._process_lock.acquire(blocking=False)
+    try:
+        with TestClient(worker.app) as client:
+            for endpoint in ("/api/zerobase2/minimalize", "/api/v2/minimalize"):
+                response = client.post(
+                    endpoint,
+                    headers={"Origin": "http://127.0.0.1:28764"},
+                    files={"file": ("sample.png", b"png-data", "image/png")},
+                )
+                assert response.status_code == 429
+                assert response.json()["detail"] == "Local Minimalizer worker is busy."
+    finally:
+        worker._process_lock.release()
