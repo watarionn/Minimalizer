@@ -399,7 +399,7 @@ async function requestBrowserFallback() {
     canonicalContourLite: browserFallbackCanonicalContourLite(),
     colorPlaneRefine: browserFallbackQualityProfile() === "color",
     colorPlaneOptions: browserFallbackQualityProfile() === "color"
-      ? {maxMoves:32,minGainSquared:2500,lowerYFraction:0.33} : undefined,
+      ? {maxMoves:1,minGainSquared:2500,lowerYFraction:0.33} : undefined,
     autoSelectiveMerge: browserFallbackQualityProfile() === "auto",
     autoMergeOptions: browserFallbackQualityProfile() === "auto"
       ? { maxCandidates: 4, maxDonorFraction: 0.06 } : undefined,
