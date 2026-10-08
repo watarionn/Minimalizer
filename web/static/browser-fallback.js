@@ -3451,6 +3451,41 @@
     };
   }
 
+  // Render-space verification, independent of the proposed label-area budget.
+  // Reject geometry/paint changes that exceed any pixel, RGB or color-mass bound.
+  function compareRegionRenderFidelity(baselineShapes, candidateShapes, width, height, options) {
+    const cfg=Object.assign({maxChangedPixelFraction:0.0015,
+      maxRgbMeanAbsoluteError:0.30,maxColorMassDeltaFraction:0.0015},options||{});
+    const raster=typeof globalThis!=="undefined" && globalThis.MinimalizerOpenCvRaster;
+    if(!raster||typeof raster.renderShapesRgba!=="function")
+      return {pass:false,reason:"raster_missing",changedPixels:0};
+    const oldPixels=raster.renderShapesRgba(baselineShapes,width,height,1,1,2);
+    const newPixels=raster.renderShapesRgba(candidateShapes,width,height,1,1,2);
+    if(oldPixels.length!==width*height*4||oldPixels.length!==newPixels.length)
+      return {pass:false,reason:"invalid_raster",changedPixels:0};
+    let changed=0,mae=0;
+    const massDelta=new Map();
+    for(let p=0;p<oldPixels.length;p+=4){
+      const before=oldPixels[p]+","+oldPixels[p+1]+","+oldPixels[p+2];
+      const after=newPixels[p]+","+newPixels[p+1]+","+newPixels[p+2];
+      if(before!==after) {
+        changed+=1;
+        massDelta.set(before,(massDelta.get(before)||0)-1);
+        massDelta.set(after,(massDelta.get(after)||0)+1);
+      }
+      for(let channel=0;channel<3;channel+=1)
+        mae+=Math.abs(oldPixels[p+channel]-newPixels[p+channel]);
+    }
+    const maxMassDelta=Math.max(0,...Array.from(massDelta.values(),Math.abs));
+    const changedFraction=changed/(width*height);
+    const rgbMAE=mae/(width*height*3);
+    const pass=changedFraction<=cfg.maxChangedPixelFraction
+      &&rgbMAE<=cfg.maxRgbMeanAbsoluteError
+      &&maxMassDelta/(width*height)<=cfg.maxColorMassDeltaFraction;
+    return {pass,reason:pass?"pass":"render_delta",changedPixels:changed,
+      changedFraction,rgbMAE,maxColorMassDelta:maxMassDelta};
+  }
+
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     if (config.selectiveRegionMerge === true && (
@@ -3598,7 +3633,7 @@
       };
     });
 
-    return {
+    const result = {
       version: VERSION,
       centers: palette.palette.map((entry) => entry.rgb),
       shapes,
@@ -3625,6 +3660,8 @@
         selectiveMergeNearPaletteCandidates: selectiveMergeMetrics.candidateNearPalette,
         selectiveMergeColorRejections: selectiveMergeMetrics.rejectedColorFidelity,
         selectiveMergeRejectReasons: selectiveMergeMetrics.rejectReasons,
+        selectiveMergeRenderGate: "not_needed",
+        selectiveMergeRenderChangedPixels: 0,
         cutObjective: hierarchy.cutObjective,
         cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
         cutMaxHeight: hierarchy.cutMaxHeight,
@@ -3664,6 +3701,26 @@
           : (shapes.length > 0 ? Math.min(...shapes.map((shape) => shape.contourIoU)) : 1),
       },
     };
+    if(config.selectiveRegionMerge===true && selectiveMergeMetrics.applied>0) {
+      const base=analyzeRgba(rgba,width,height,{...config,selectiveRegionMerge:false});
+      const verified=compareRegionRenderFidelity(
+        base.shapes,result.shapes,width,height,config.selectiveRenderGuard);
+      if(!verified.pass) {
+        base.metrics={...base.metrics,
+          selectiveMergeApplied:0,
+          selectiveMergeEvaluated:selectiveMergeMetrics.evaluated,
+          selectiveMergeRejected:selectiveMergeMetrics.rejected,
+          selectiveMergeNearPaletteCandidates:selectiveMergeMetrics.candidateNearPalette,
+          selectiveMergeColorRejections:selectiveMergeMetrics.rejectedColorFidelity,
+          selectiveMergeRejectReasons:selectiveMergeMetrics.rejectReasons,
+          selectiveMergeRenderGate:"rejected:"+verified.reason,
+          selectiveMergeRenderChangedPixels:verified.changedPixels};
+        return base;
+      }
+      result.metrics.selectiveMergeRenderGate="pass";
+      result.metrics.selectiveMergeRenderChangedPixels=verified.changedPixels;
+    }
+    return result;
   }
 
   function canvasElement(width, height) {
@@ -4111,6 +4168,7 @@
       repairCanonicalPaletteRelationships,
       consolidateCanonicalPalette,
       mergeAcceptedPaletteRegions,
+      compareRegionRenderFidelity,
       analyzeRgba,
       renderAnalysis,
     }),
