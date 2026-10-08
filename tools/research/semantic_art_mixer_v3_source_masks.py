@@ -8,6 +8,7 @@ Trials:
  A Subject only: background separated and styles clipped, no face safety.
  B Subject + Face: exact source-observed face part plane, eyes never drawn.
  C Subject + Face + Parts: preserve source-derived hair/arm/material palettes.
+ D Extended Parts: also observe neck, torso, lower body and small accessories.
 
 These are test candidates, not production Minimalizer quality authorization.
 """
@@ -30,8 +31,10 @@ from semantic_art_mixer_v2_guarded import visible_ink_mask
 
 ROOT = Path(__file__).resolve().parents[2]
 MASK_REL = Path("docs/zerobase/diagnostics")
-LABELS = ("face", "hair", "left_arm", "right_arm", "major_clothing")
-TRIALS = ("A_subject_clip", "B_face_parts_observed", "C_part_palette")
+LABELS = ("face", "hair", "left_arm", "right_arm", "major_clothing",
+          "torso", "neck", "lower_body", "accessory_or_held_object")
+TRIALS = ("A_subject_clip", "B_face_parts_observed", "C_part_palette",
+          "D_extended_parts")
 EYE_HUE_LOW, EYE_HUE_HIGH = 35, 116
 
 
@@ -219,10 +222,14 @@ def composite_trial(recipe, trial: str, original: Image.Image, assets, masks,
     raw=np.clip(raw.astype(np.float32)*(1.0-selected[:,:,None]*0.78)+
                 np.array([32,35,39],dtype=np.float32)*selected[:,:,None]*0.78,0,255).astype(np.uint8)
     part_coverage={}
-    if trial=="C_part_palette":
-        # Source-masked material planes override artistic style, yielding a
-        # faithful baseline for shoulder/arm continuity and hair silhouette.
-        for role in ("major_clothing","left_arm","right_arm","hair"):
+    if trial in ("C_part_palette", "D_extended_parts"):
+        # Source-masked material planes override artistic style. D extends
+        # ownership to core torso, neck and lower-body, after reviewing C.
+        roles = (("major_clothing","left_arm","right_arm","hair")
+                 if trial=="C_part_palette" else
+                 ("lower_body","torso","major_clothing","neck",
+                  "left_arm","right_arm","hair","accessory_or_held_object"))
+        for role in roles:
             area=masks[role]&subject&~face
             paint,palette=cached_parts[role]
             raw[area]=paint[area]
@@ -293,7 +300,8 @@ def main():
     eye_masks,eyes=identify_eyes_from_source(src,masks["face"])
     tie=observed_tie_mask(src)
     tones=face_plan(src,masks["face"],eye_masks)
-    numcolors={"major_clothing":6,"left_arm":5,"right_arm":5,"hair":7}
+    numcolors={"major_clothing":6,"left_arm":5,"right_arm":5,"hair":7,
+               "torso":7,"neck":4,"lower_body":7,"accessory_or_held_object":4}
     parts={role: source_part_palette(src,masks[role]&masks["subject"],n) for role,n in numcolors.items()}
 
     # Transparent mask previews are evidence files only and are NEVER fed back
@@ -343,7 +351,8 @@ def main():
         "trial_descriptions":{
             "A_subject_clip":"source subject mask clips Shape/Stroke/Texture; face not yet protected, deliberately poor negative control",
             "B_face_parts_observed":"same subject clip plus phase04 exact face mask and three observed skin tones; eye candidate positions only audited",
-            "C_part_palette":"subject, face and source hair/arms/uniform palette; original-derived material regions override heavy geometry"},
+            "C_part_palette":"subject, face and source hair/arms/uniform palette; original-derived material regions override heavy geometry",
+            "D_extended_parts":"same provenance plus torso, neck, lower-body and observed small accessory masks"},
         "not_auto_semantic_segmentation":True,
         "not_production_integrated":True,
         "outputs":records,
