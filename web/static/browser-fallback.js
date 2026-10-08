@@ -3319,10 +3319,10 @@
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     if (
-      config.geometryMode === "corner-aware"
+      (config.geometryMode === "corner-aware" || config.geometryMode === "facet-safe")
       && (config.canonicalContourLite !== true || config.structuralMode !== "l0-lite-jacobi")
     ) {
-      throw new Error("Shape requires Lite preprocessing with canonical shared-boundary contours.");
+      throw new Error("Geometric Shape/Facet requires Lite preprocessing with canonical shared-boundary contours.");
     }
     if (config.canonicalContourLite === true) {
       const contourAvailable = typeof globalThis !== "undefined"
@@ -3485,6 +3485,10 @@
         cornerPrunedVertices: canonicalContour ? canonicalContour.metrics.cornerPrunedVertices : 0,
         cornerPrunedChains: canonicalContour ? canonicalContour.metrics.cornerPrunedChains : 0,
         cornerRejectedCandidates: canonicalContour ? canonicalContour.metrics.cornerRejectedCandidates : 0,
+        facetRemovedVertices: canonicalContour ? canonicalContour.metrics.facetRemovedVertices : 0,
+        facetTrialCount: canonicalContour ? canonicalContour.metrics.facetTrialCount : 0,
+        facetRefinedChains: canonicalContour ? canonicalContour.metrics.facetRefinedChains : 0,
+        facetRejectedCandidates: canonicalContour ? canonicalContour.metrics.facetRejectedCandidates : 0,
         contourOriginalVertexCount: canonicalContour
           ? canonicalContour.metrics.originalVertexCount
           : vertexCount,
@@ -3785,11 +3789,13 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "corner-aware"
-        ? "shape" : config.canonicalContourLite === true
+      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "facet-safe"
+        ? "facet" : config.geometryMode === "corner-aware"
+          ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
       "X-Minimalizer-Contour-Geometry-Mode": analysis.metrics.contourGeometryMode,
       "X-Minimalizer-Contour-Corner-Pruned-Vertices": String(analysis.metrics.cornerPrunedVertices),
+      "X-Minimalizer-Contour-Facet-Removed-Vertices": String(analysis.metrics.facetRemovedVertices),
       "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
       "X-Minimalizer-Raster-Method": rasterMethod,
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
@@ -3827,13 +3833,18 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.geometryMode === "corner-aware"
-          ? "shape" : config.canonicalContourLite === true
+        qualityProfile: config.geometryMode === "facet-safe"
+          ? "facet" : config.geometryMode === "corner-aware"
+            ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
         contourGeometryMode: analysis.metrics.contourGeometryMode,
         cornerPrunedVertices: analysis.metrics.cornerPrunedVertices,
         cornerPrunedChains: analysis.metrics.cornerPrunedChains,
         cornerRejectedCandidates: analysis.metrics.cornerRejectedCandidates,
+        facetRemovedVertices: analysis.metrics.facetRemovedVertices,
+        facetTrialCount: analysis.metrics.facetTrialCount,
+        facetRefinedChains: analysis.metrics.facetRefinedChains,
+        facetRejectedCandidates: analysis.metrics.facetRejectedCandidates,
         contourMinRegionIoU: analysis.metrics.contourMinRegionIoU,
         contourOriginalVertexCount: analysis.metrics.contourOriginalVertexCount,
         contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,
