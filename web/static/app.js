@@ -10,14 +10,16 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "geo") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "geo");
 } else if (browserFallbackQualityParam === "lite") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "lite");
 }
 
 function browserFallbackStructuralMode() {
-  return window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY) === "exact"
-    ? "spectral-exact"
-    : "l0-lite-jacobi";
+  return ["exact", "geo"].includes(
+    window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY)
+  ) ? "spectral-exact" : "l0-lite-jacobi";
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -371,6 +373,8 @@ async function requestBrowserFallback() {
     slicIterations: 10,
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
+    contourSimplifier: window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY) === "geo"
+      ? "weighted-visvalingam" : "opencv-dp",
   });
   return result.response;
 }
