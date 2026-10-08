@@ -1,0 +1,61 @@
+# SA10.32 Phase 6: GC001 real contour integration research gate
+
+Date: 2026-10-08 (JST)
+Branch: `research/sa1032-svg-contour-proposals`
+PR: #223 (draft, not merged)
+
+## Scope and outcome
+
+**Phase 6 research implementation, real-image dry run and assessment: completed.**
+**Production promotion: HOLD / NO-GO.** This is a completed negative evaluation, not evidence of an improved production scene.
+
+Implemented:
+- Only existing face and hair contour proposals; no primitive creation, repainting, face-detail drawing, generated/inpainted pixels, material/owner rewrites or production-scene mutation.
+- Explicit provenance audit of the **selected Phase 12 11-primitive scene**. Do not confuse this with the 150-primitive Phase 11 baseline.
+- Raster replay of existing polygon rings at each ring depth (contour-tree even/odd), preserving declared holes. These are part-local geometry masks, **not final depth-composited preview pixels**.
+- Comparison against Phase 04 source-owned part masks, with per-owner IoU, missing/excess pixels, topology and original primitive IDs.
+- Hard rejection of owner/material/budget divergence and any unmatched topology. Protected arms are observation-only.
+- Focused pytest and GitHub Actions.
+
+## Measured GC001 selected aggressive scene (340x340)
+
+Owner audit: PASS; exactly 11 primitives, 10 explicitly bound owners (one each) and one `__unbound__` primitive. Face, hair, left and right arms are each traceable to exactly one existing primitive.
+
+| Owner | Source mask px | Selected-ring replay px | IoU | Missing source px | Excess px | Topology source -> selected | Outcome |
+|---|---:|---:|---:|---:|---:|---|---|
+| face | 4,937 | 4,939 | 0.9975728155 | 5 | 7 | (1,0) -> (1,0) | HOLD: no safe improvement |
+| hair | 14,536 | 14,421 | 0.9722789811 | 261 | 146 | (18,9) -> (4,5) | HARD FAIL: topology mismatch |
+| left_arm | 2,715 | 2,701 | 0.9824304539 | 31 | 17 | (10,1) -> (3,0) | HARD FAIL: topology mismatch; observation only |
+| right_arm | 6,486 | 6,440 | 0.9919864386 | 49 | 3 | (1,1) -> (1,1) | Observation only |
+
+Topology tuple: (connected contour components, holes) from `cv2.RETR_CCOMP`.
+
+**Eligible quality-improving face/hair proposals: 0.** Source hair topology and existing hair geometry are incompatible under the current single-contour research proposal. Existing face outline is already close to the source and no qualifying improvement was proven.
+
+The previous full-scene SA10.30 anatomy gate also failed `source_topology_changed` (source topology (1,9), candidate (2,21)). The part-local comparison does not override it.
+
+## Decision and non-negotiable gates
+
+`HOLD_PREVIOUS_GLOBAL_HARD_GATE`; promotion is false. PR #223 stays unmerged; no deployment.
+
+To resume quality improvement, source-derived contour research must **not** create missing hair islands/arm components as invented geometry, flatten holes, relabel unbound areas, or weaken topology requirements. The next research phase can:
+1. Investigate why Phase 04 owners have high component counts relative to ring replay (preserve small genuine islands/holes; classify suspected mask noise with evidence, **not** arbitrary thresholds).
+2. Inspect Phase 12 topology retention and source-mask replay without altering the protected original inputs.
+3. Evaluate any proposed change against source and selected geometry under original owner/material/primitive budget constraints and **full-scene** topology, outer boundary, silhouette, connected-arm and human-visual gates.
+4. Compare several independent test inputs only after GC001 gate holds; avoid claiming promotion from synthetic tests or a high IoU alone.
+
+## Reproducibility
+
+Source files were read in place on the authorized local test PC; no local working tree was modified.
+
+```powershell
+python tools/run_sa1032_gc001_real_contour_eval.py `
+  --simplification 'C:\Work\Temp\sa1030-gc001\baseline\12_simplification.json' `
+  --masks 'C:\Work\Temp\sa1023-gc001-clean3\GC001_source\phase_04\part_masks' `
+  --benchmark 'C:\Work\Temp\sa1030-gc001\metrics.json' `
+  --output 'C:\Work\Temp\sa1032-evidence\gc001_real_contour_eval.json'
+```
+
+Machine-readable results: [GC001 real contour evidence](evidence/sa1032_gc001_real_contour_eval_20261008.json).
+
+The relevant GitHub Actions workflow is `.github/workflows/sa1032-svg-research.yml`.
