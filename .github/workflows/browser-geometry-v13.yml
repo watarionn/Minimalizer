@@ -1,0 +1,36 @@
+name: Browser Geometry v13 Candidate
+on:
+  pull_request:
+    paths:
+      - "web/static/weighted-visvalingam.js"
+      - "web/static/canonical-contour.js"
+      - "web/static/browser-fallback.js"
+      - "web/static/app.js"
+      - "web/static/index.html"
+      - "tests/test_browser_geometry_v13.py"
+      - ".github/workflows/browser-geometry-v13.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused-geometry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python -m pip install pytest
+      - name: Check JavaScript syntax
+        run: |
+          node --check web/static/weighted-visvalingam.js
+          node --check web/static/canonical-contour.js
+          node --check web/static/browser-fallback.js
+          node --check web/static/app.js
+      - name: Check geometric candidate and fail-closed behavior
+        run: python -m pytest tests/test_browser_geometry_v13.py -q
