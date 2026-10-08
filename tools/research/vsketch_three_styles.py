@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 from xml.etree import ElementTree
@@ -137,6 +138,15 @@ def draw_style(image: np.ndarray, style: str, svg: Path, png: Path) -> dict:
 
     # Use vsketch's native SVG writer rather than manually fabricating paths.
     sketch.save(str(svg), color_mode="none")
+    # vpype exports a page size in cm. resvg_py v0.5 rejects that otherwise-valid
+    # absolute CSS unit. Rewrite only the two page-size attributes to equivalent
+    # CSS pixels; the real vsketch/vpype path geometry is left untouched.
+    svg_source = svg.read_text(encoding="utf-8")
+    svg_source, nh = re.subn(r'(?<=\s)height="[^"]+"', 'height="340px"', svg_source, count=1)
+    svg_source, nw = re.subn(r'(?<=\s)width="[^"]+"', 'width="340px"', svg_source, count=1)
+    if nh != 1 or nw != 1:
+        raise AssertionError("vsketch SVG page-size attribute not found")
+    svg.write_text(svg_source, encoding="utf-8")
     ElementTree.parse(svg)
     xml = svg.read_text(encoding="utf-8")
     if "<image" in xml.lower() or "data:image" in xml.lower():
