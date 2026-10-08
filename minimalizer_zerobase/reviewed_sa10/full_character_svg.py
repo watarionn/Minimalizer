@@ -257,7 +257,7 @@ def compile_full_character_svg(
     extra9=sum(len(p["points"]) for p in stage9_planes)
     apparel=sum(len(p["points"]) for p in garment_panels)
     summary={
-        "schema":SCHEMA,
+        "geometry_schema":SCHEMA,
         "original_source_primitive_records":len(records),
         "source_owner_rendered_count":sum(p.get("structural_support_only") is not True for p in records),
         "original_source_ring_vertices_including_support":outer,
