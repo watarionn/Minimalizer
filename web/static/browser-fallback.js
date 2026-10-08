@@ -3550,7 +3550,11 @@
   // Reject geometry/paint changes that exceed any pixel, RGB or color-mass bound.
   function compareRegionRenderFidelity(baselineShapes, candidateShapes, width, height, options) {
     const cfg=Object.assign({maxChangedPixelFraction:0.0015,
-      maxRgbMeanAbsoluteError:0.30,maxColorMassDeltaFraction:0.0015},options||{});
+      maxRgbMeanAbsoluteError:0.30,maxColorMassDeltaFraction:0.0015,
+      maxSilhouetteChangedPixels:0,
+      maxProtectedChangedPixels:0,
+      protectedRects:[],
+      protectedColors:[]},options||{});
     const raster=typeof globalThis!=="undefined" && globalThis.MinimalizerOpenCvRaster;
     if(!raster||typeof raster.renderShapesRgba!=="function")
       return {pass:false,reason:"raster_missing",changedPixels:0};
@@ -3558,7 +3562,7 @@
     const newPixels=raster.renderShapesRgba(candidateShapes,width,height,1,1,2);
     if(oldPixels.length!==width*height*4||oldPixels.length!==newPixels.length)
       return {pass:false,reason:"invalid_raster",changedPixels:0};
-    let changed=0,mae=0;
+    let changed=0,mae=0,silhouetteChanged=0,protectedChanged=0;
     const massDelta=new Map();
     for(let p=0;p<oldPixels.length;p+=4){
       const before=oldPixels[p]+","+oldPixels[p+1]+","+oldPixels[p+2];
@@ -3567,6 +3571,12 @@
         changed+=1;
         massDelta.set(before,(massDelta.get(before)||0)-1);
         massDelta.set(after,(massDelta.get(after)||0)+1);
+        if((before==="255,255,255")!==(after==="255,255,255")) silhouetteChanged+=1;
+        if(cfg.protectedRects.some(rect => {
+          const x=(p/4)%width;
+          const y=Math.floor((p/4)/width);
+          return x>=rect.x0 && x<rect.x1 && y>=rect.y0 && y<rect.y1;
+        })) protectedChanged+=1;
       }
       for(let channel=0;channel<3;channel+=1)
         mae+=Math.abs(oldPixels[p+channel]-newPixels[p+channel]);
@@ -3574,11 +3584,20 @@
     const maxMassDelta=Math.max(0,...Array.from(massDelta.values(),Math.abs));
     const changedFraction=changed/(width*height);
     const rgbMAE=mae/(width*height*3);
-    const pass=changedFraction<=cfg.maxChangedPixelFraction
+    const colorProtected=cfg.protectedColors.every(rgb=>{
+      const key=rgb.join(",");
+      return Math.abs(massDelta.get(key)||0)===0;
+    });
+    const limitsPass=changedFraction<=cfg.maxChangedPixelFraction
       &&rgbMAE<=cfg.maxRgbMeanAbsoluteError
       &&maxMassDelta/(width*height)<=cfg.maxColorMassDeltaFraction;
-    return {pass,reason:pass?"pass":"render_delta",changedPixels:changed,
-      changedFraction,rgbMAE,maxColorMassDelta:maxMassDelta};
+    const protectionPass=silhouetteChanged<=cfg.maxSilhouetteChangedPixels
+      &&protectedChanged<=cfg.maxProtectedChangedPixels
+      &&colorProtected;
+    const pass=limitsPass&&protectionPass;
+    return {pass,reason:pass?"pass":protectionPass?"render_delta":"protected_feature",
+      changedPixels:changed,changedFraction,rgbMAE,maxColorMassDelta:maxMassDelta,
+      silhouetteChanged,protectedChanged,colorProtected};
   }
 
   function analyzeRgba(rgba, width, height, options) {
