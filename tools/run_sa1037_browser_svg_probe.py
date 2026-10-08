@@ -29,16 +29,16 @@ def _rgb(color: list[int]) -> str:
     return f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}"
 
 
-def _points(points: list[list[float]]) -> str:
+def _points(points: list[list[float]], *, pixel_shift: float = 0.0) -> str:
     if not isinstance(points,list) or len(points)<3:
         raise ValueError("SVG filled polygon must have >=3 vertices")
     arr=np.asarray(points,dtype=float)
     if arr.ndim!=2 or arr.shape[1]!=2 or not np.all(np.isfinite(arr)):
         raise ValueError("invalid SVG vertex coordinates")
-    return " ".join(f"{x:g},{y:g}" for x,y in arr)
+    return " ".join(f"{x+pixel_shift:g},{y+pixel_shift:g}" for x,y in arr)
 
 
-def _owner_ring_path(parent: dict) -> tuple[str,int]:
+def _owner_ring_path(parent: dict, *, pixel_shift: float = 0.0) -> tuple[str,int]:
     rings=parent.get("parameters",{}).get("rings")
     if not isinstance(rings,list) or not rings:
         raise ValueError("existing source polygon rings not found")
@@ -51,7 +51,7 @@ def _owner_ring_path(parent: dict) -> tuple[str,int]:
         if len(p)<3:
             degenerate+=1
             continue
-        points=_points(p).split(" ")
+        points=_points(p, pixel_shift=pixel_shift).split(" ")
         subs.append("M "+" L ".join(t.replace(","," ") for t in points)+" Z")
     if not subs:
         raise ValueError("no browser-valid parent polygon rings")
@@ -59,7 +59,8 @@ def _owner_ring_path(parent: dict) -> tuple[str,int]:
 
 
 def prepare_svg(*, scene_path: Path, panels_path: Path,
-                output_dir: Path) -> dict:
+                output_dir: Path, pixel_shift: float = 0.0,
+                shape_rendering: str = "crispEdges") -> dict:
     scene=_json(scene_path)
     selection=_json(panels_path)
     records=scene["primitives_back_to_front"]
@@ -72,17 +73,21 @@ def prepare_svg(*, scene_path: Path, panels_path: Path,
     parent=parent[0]
     if not all(panel["parent_primitive_id"]==parent["primitive_id"] for panel in material):
         raise ValueError("source owner mismatch")
-    d,degenerate=_owner_ring_path(parent)
+    if not -0.5 <= pixel_shift <= 0.5 or not np.isfinite(pixel_shift):
+        raise ValueError("pixel shift must be finite and within [-0.5,+0.5]")
+    if shape_rendering not in ("crispEdges", "geometricPrecision", "auto"):
+        raise ValueError("unsupported browser geometry raster rule")
+    d,degenerate=_owner_ring_path(parent,pixel_shift=pixel_shift)
     # SVG clips the source-backed existing parent path. Tiny 1/2-point source
     # contours cannot be assumed to survive SVG even-odd fill semantics.
     svg=''.join([
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" shape-rendering="crispEdges">',
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" shape-rendering="{shape_rendering}">',
         '<defs><clipPath id="existing-lower-body" clipPathUnits="userSpaceOnUse">',
         f'<path d="{d}" clip-rule="evenodd" fill-rule="evenodd"/></clipPath></defs>',
         f'<rect x="0" y="0" width="{w}" height="{h}" fill="#ffffff"/>',
         '<g clip-path="url(#existing-lower-body)">',
         *[
-            f'<polygon points="{_points(p["points"])}" fill="{_rgb(p["color_rgb_observed"])}" />'
+            f'<polygon points="{_points(p["points"],pixel_shift=pixel_shift)}" fill="{_rgb(p["color_rgb_observed"])}" />'
             for p in material
         ],
         '</g></svg>',
@@ -112,6 +117,8 @@ def prepare_svg(*, scene_path: Path, panels_path: Path,
         "new_svg_filled_polygon_subpaths":len(material),
         "new_svg_polygon_vertices":sum(len(x["points"]) for x in material),
         "existing_parent_svg_path_ring_count":len(parent["parameters"]["rings"]),
+        "svg_pixel_shift":pixel_shift,
+        "shape_rendering":shape_rendering,
         "unrepresentable_one_or_two_point_parent_rings":degenerate,
         "source_image_or_png_embedded":False,
         "protected_masks_not_replaced_with_raster":True,
@@ -161,13 +168,16 @@ def main()->None:
     p.add_argument("--panels",type=Path)
     p.add_argument("--output-dir",type=Path,required=True)
     p.add_argument("--compare",action="store_true")
+    p.add_argument("--pixel-shift",type=float,default=0.0)
+    p.add_argument("--shape-rendering",default="crispEdges")
     args=p.parse_args()
     if args.compare:
         compare_chrome(output_dir=args.output_dir)
     else:
         if not args.scene or not args.panels:
             raise ValueError("--scene and --panels required for prepare mode")
-        prepare_svg(scene_path=args.scene,panels_path=args.panels,output_dir=args.output_dir)
+        prepare_svg(scene_path=args.scene,panels_path=args.panels,output_dir=args.output_dir,
+                    pixel_shift=args.pixel_shift,shape_rendering=args.shape_rendering)
 
 
 if __name__=="__main__":
