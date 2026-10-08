@@ -1,0 +1,64 @@
+{
+  "schema": "sa10.36-uniform-material-benchmark-v1",
+  "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "stage04_mask_sha256_verified": true,
+  "phase8_and_phase9_lineage_verified": true,
+  "phase9_baseline_pixels_exact": true,
+  "original_outer_silhouette_frozen": true,
+  "original_outer_topology_pass": true,
+  "outer_original_vertex_budget_pass": false,
+  "phase9_existing_subpaths": 3,
+  "material_subpaths_added": 5,
+  "original_outer_primitives_count": 11,
+  "total_filled_geometric_element_estimate": 19,
+  "material_extra_vertices": 36,
+  "lower_body_source_lab_mse_before": 10413.737896,
+  "lower_body_source_lab_mse_after": 4606.609019,
+  "lower_body_source_lab_mse_gain": 0.557641,
+  "lower_body_source_visible_pixels": 12640,
+  "pixels_changed_inside_source_owner": 10831,
+  "pixels_changed_outside_source_owner": 0,
+  "face_and_both_arms_pixel_exact": true,
+  "gray_block_largest_connected_before_px": 12632,
+  "gray_block_largest_connected_after_px": 476,
+  "gray_block_largest_connected_reduction": 12156,
+  "source_green_tie_pixels": 1550,
+  "green_tie_panel_area_pixels": 1615,
+  "semantic_proposal": {
+    "status": "FIVE_PROVENANCED_APPAREL_MATERIAL_SUBPATHS",
+    "parent_owner": "lower_body",
+    "panel_count": 5,
+    "source_class_areas": {
+      "dark_uniform": 4941,
+      "white_shirt": 3140,
+      "green_necktie": 1550
+    },
+    "total_extra_vertices": 36,
+    "necktie_area_ratio": 1.0419354838709678,
+    "source_necktie_bbox_x": [
+      103,
+      184
+    ],
+    "geometry_counted_as_new_filled_subpaths": true,
+    "original_parent_color_and_shape_unchanged": true
+  },
+  "apparel_materials": [
+    "dark_uniform",
+    "dark_uniform",
+    "white_shirt",
+    "white_shirt",
+    "green_necktie"
+  ],
+  "browser_svg_owner_clip_verified": false,
+  "human_visual_review": "PENDING",
+  "production_promotion_authorized": false,
+  "hard_blockers": [
+    "OUTER_VERTEX_BUDGET_STILL_FAILED",
+    "BROWSER_SVG_OWNER_CLIP_PARITY_UNVERIFIED",
+    "VISUAL_REVIEW_NOT_APPROVED"
+  ],
+  "research_status": "GRAY_BLOCK_REPLACED_RESEARCH_HOLD",
+  "baseline_image_sha256": "90869b5d99150a1173e968547e2fb145b0fb0212f08240d518b9a01de8e34fa9",
+  "candidate_image_sha256": "f7dc941348ebe70331d22b519333fdf1d2c23bb0ca09c80ce0dee752b5a7da9d",
+  "candidate_geometry_sha256": "1b6394f4852036a1f058628be088609a9d6908c4242183ac4ee557da0a4787b7"
+}
