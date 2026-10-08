@@ -45,7 +45,7 @@ Synthetic unit fixtures verified that cross-palette merges can be admitted under
 - `tests/test_browser_near_v18.py`: opt-in and safe default, synthetic near-palette acceptance, over-budget and contrast rejection.
 - Existing `test_browser_selective_v17.py`, `test_browser_facet_v15.py`, `test_browser_shape_v14.py`, `test_browser_sharp_lite_v13.py` inherited contracts updated only for additional explicit mode routing, without changing geometry/color expectations.
 - `tools/run_browser_near_v18_chrome_compare.py`: reproducible live Chrome 7-mode evaluation harness for local research site only.
-- CI: `.github/workflows/browser-near-v18.yml`. Confirm actual CI results before claiming PASS.
+- CI: `.github/workflows/browser-near-v18.yml`. **GitHub Actions 5/5 PASS** on research PR #229: Near v18, Selective v17, Facet v15, Shape v14, Sharp Lite v13. These are engineering safety checks, not evidence of real-image geometry improvement.
 - [Drive evidence folder](https://drive.google.com/drive/folders/1hHQ2sv0FiRVE77VMR1vfUWeAJWa9xeXV) under `chatGPT及びCodex用/Minimalizer`: three-source comparison montage, JSON, report and archive containing source and all seven output profiles.
 
 ## Next research gate
@@ -53,3 +53,7 @@ Synthetic unit fixtures verified that cross-palette merges can be admitted under
 Before extending into a production improvement, instrument why candidate pairs fail (size/compactness, boundary length/strength, source RGB, palette RGB, changed-area cap), and add per-candidate **render-space** baseline comparison and rollback. Region count by itself is never an acceptance criterion. Keep thin colored traits protected without drawing eyes/nose/mouth. A candidate is promoted only when at least one real character gains a simpler region with independently verified silhouette, color and border invariants, and no tested regressions.
 
 The [Facet v15 production handoff](../handoffs/HND-20261008-BROWSER_FACET_V15_PRODUCTION.md) remains authoritative for the currently deployed public quality modes. v17 and v18 are research branches.
+
+## Final review and ship decision
+
+Local extended suite **46 passed**, including v12, v13, v14, v15, v17 and v18. The three-source actual Chrome benchmark showed 0 admissible merges, no color regression and SHA256-identical Facet PNGs. Google Drive evidence files were SHA256-verified on the mounted target and independently listed through Drive. Consequently **HOLD_NO_GEOMETRY_GAIN**, PR #229 stays **Draft**, unmerged and undeployed. Public Shin production remains Facet v15.
