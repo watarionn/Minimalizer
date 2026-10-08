@@ -133,6 +133,15 @@ def run(
     guarded_candidate = apply_face_raster_guard(recolored, source, original_masks["face"])
     base = guarded_baseline.rgb
     recolored = guarded_candidate.rgb
+    old_preview_path = adaptive_dir / "phase8_adaptive_contour_preview.png"
+    if metrics.get("adaptive_preview_sha256") != _sha(old_preview_path):
+        raise ValueError("Stage8 saved preview checksum has changed")
+    old_preview = read_cv_image(old_preview_path, cv2.IMREAD_COLOR)
+    if old_preview is None or old_preview.shape != base.shape:
+        raise ValueError("Stage8 saved RGB preview missing")
+    old_preview_rgb = cv2.cvtColor(old_preview, cv2.COLOR_BGR2RGB)
+    if not np.array_equal(old_preview_rgb, base):
+        raise ValueError("reconstructed fixed exterior does not match Phase8 saved pixels")
     if guarded_candidate.changed_outside_face_pixels != 0:
         raise AssertionError("face color guard modified outside face")
     if not np.array_equal(base[protected], recolored[protected]):
@@ -179,6 +188,8 @@ def run(
         "source_sha256": hash_source,
         "outer_scene_original_sha256": _sha(selected_path),
         "source_stage04_provenance_verified": True,
+        "original_adaptive_preview_sha256_verified": True,
+        "original_adaptive_preview_pixels_equal": True,
         "outer_primitive_count_before": len(selected),
         "outer_primitive_count_after": len(selected),
         "external_geometry_changed": False,
