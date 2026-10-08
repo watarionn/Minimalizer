@@ -82,7 +82,14 @@ window.__geoRun=async function(name,opts){
             }
         elif name == "Shirogane-Noel_list_thumb.png":
             pairs=[(16,24),(34,27)]
-            protected={"maxSilhouetteChangedPixels":0}
+            # The v21 initial trial changed 161 pixels on the thin dark-brown
+            # staff (x4-54, y108-215); protect that salient object explicitly.
+            protected={
+                "maxSilhouetteChangedPixels":0,
+                "maxProtectedChangedPixels":0,
+                "protectedColors":[[68,37,36]],
+                "protectedRects":[{"x0":0,"y0":100,"x1":60,"y1":225}],
+            }
         elif name == "Ichijou-Ririka_list_thumb.png":
             pairs=[]
             protected={"maxSilhouetteChangedPixels":0}
