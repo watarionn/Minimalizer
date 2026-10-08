@@ -167,7 +167,17 @@ def analyze(case_paths: dict[str, Path], out: Path, baseline_root: Path | None) 
             key: sum(not candidate["gates"][key] for candidate in actual)
             for key in gates
         }
-        area_fail = [v for v in actual if not v["gates"]["area"]]
+        area_only_candidates=[
+            {"donorId":r["donorId"],"recipientId":r["recipientId"],
+             "donorPixels":r["donorPixels"],
+             "donorImageFraction":round(r["donorAreaFraction"],6),
+             "sameAcceptedPalette":not r["crossPalette"],
+             "sourceRgbDistance":round(r["sourceRgbDistance"],4),
+             "sharedPerimeterFraction":round(r["sharedPerimeterFraction"],4),
+             "donorBox":r["donorBox"]}
+            for r in actual if not r["gates"]["area"]
+            and all(value for key,value in r["gates"].items() if key!="area")
+        ]
         summaries[name] = {
             "sourceSHA256": sha256(folder / "source.png"),
             "facetSHA256": sha256(folder / "facet.png"),
@@ -177,6 +187,8 @@ def analyze(case_paths: dict[str, Path], out: Path, baseline_root: Path | None) 
             "neighborPairCount": len(actual),
             "firstFailingReasonCounts": near["selectiveMergeRejectReasons"],
             "independentGateFailures": gate_failures,
+            "areaOnlyCandidatePairs":area_only_candidates,
+            "distinctAreaOnlyDonorRegions":len({r["donorId"] for r in area_only_candidates}),
             "areaFailAndMinSidePass": sum(not r["gates"]["area"] and r["gates"]["minSide"]
                                          for r in actual),
             "areaFailAndAspectPass": sum(not r["gates"]["area"] and r["gates"]["aspect"]
@@ -256,7 +268,16 @@ def analyze(case_paths: dict[str, Path], out: Path, baseline_root: Path | None) 
     ])
     for scenario,count in all_scenario.items():
         header.append(f"| `{scenario}` | {count} |")
-    header.extend([
+    header.extend(["", "## Five pairs blocked only by donor area",
+                   "These are hypothetical candidates, NOT approved merges. The same donor may appear in multiple pairs.",
+                   "",
+                   "| Character | Donor id | Recipient id | Donor pixels | Share of 340x340 image | Same palette? | RGB source distance |",
+                   "| --- | ---: | ---: | ---: | ---: | --- | ---: |"])
+    for name in CASES:
+        for candidate in summaries[name]["areaOnlyCandidatePairs"]:
+            header.append(f"| {name} | {candidate['donorId']} | {candidate['recipientId']} | {candidate['donorPixels']} | {100*candidate['donorImageFraction']:.2f}% | {candidate['sameAcceptedPalette']} | {candidate['sourceRgbDistance']:.2f} |")
+    header.extend(["", "The five pairs represent at most four distinct donor regions. Their donor mass exceeds 2% of the image, so increasing a 0.15% cap to 2% yields zero candidates.",
+                   "V21 should consider fixed-palette same-color internal-boundary elimination **without source-region recoloring**, but only under a one-merge transaction plus actual raster-PNG and thin-feature fidelity gate.",
         "", "## Interpretation",
         "- The prior first-fail category `donorAreaOrAspect` hides three independent constraints. Their overlap is measured above.",
         "- The label `maxSmallFraction=0.0015` allows at most about 173 pixels in a 340×340 work raster; broad colored regions can be far larger.",
