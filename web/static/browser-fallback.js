@@ -68,6 +68,7 @@
     structuralMode: "l0-lite-jacobi",
     spectralL0BetaMax: 1.0e5,
     canonicalContourLite: false,
+    contourSimplifier: "opencv-dp",
     nativeRgbaMaxPixels: 12000000,
     sourcePixelHardLimit: 100000000,
     sourceFileByteLimit: 67108864,
@@ -3385,6 +3386,7 @@
         width,
         height,
         hierarchy.built.components.length,
+        { simplifier: config.contourSimplifier },
       );
     }
 
@@ -3462,6 +3464,7 @@
         meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
         vertexCount,
         contourMethod: canonicalContour ? canonicalContour.method : "legacy-independent-rings",
+        contourSimplifier: canonicalContour ? canonicalContour.metrics.simplifier : "legacy-independent-rings",
         contourOriginalVertexCount: canonicalContour
           ? canonicalContour.metrics.originalVertexCount
           : vertexCount,
@@ -3762,6 +3765,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
+      "X-Minimalizer-Contour-Simplifier": analysis.metrics.contourSimplifier,
       "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
       "X-Minimalizer-Raster-Method": rasterMethod,
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
@@ -3799,6 +3803,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
+        contourSimplifier: analysis.metrics.contourSimplifier,
         contourMinRegionIoU: analysis.metrics.contourMinRegionIoU,
         contourOriginalVertexCount: analysis.metrics.contourOriginalVertexCount,
         contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,
