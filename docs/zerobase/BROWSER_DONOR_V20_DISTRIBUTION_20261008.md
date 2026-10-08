@@ -1,9 +1,9 @@
 # BrowserFallback v20: donor geometry distribution and bottleneck diagnosis
 
-Date: 2026-10-08  
-Status: **RESEARCH STAGE COMPLETE; NO QUALITY GAIN; DO NOT MERGE/DEPLOY**  
-Branch: `research/browser-donor-distribution-v20-20261008`  
-Based on: held v19 draft PR #230, itself stacked on held v18/#229 and v17/#228.  
+Date: 2026-10-08
+Status: **RESEARCH STAGE COMPLETE; NO QUALITY GAIN; DO NOT MERGE/DEPLOY**
+Branch: `research/browser-donor-distribution-v20-20261008`
+Based on: held v19 draft PR #230, itself stacked on held v18/#229 and v17/#228.
 Production reference: **Facet v15**, unchanged.
 
 ## Goal
