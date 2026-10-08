@@ -1,8 +1,8 @@
 # BrowserFallback v21: explicit same-palette candidate and rendered rollback
 
-Date: 2026-10-08  
-Status: **RESEARCH PASS / PRODUCTION HOLD**. No main merge or Shin deployment.  
-Branch: `research/browser-targeted-v21-20261008`, stacked on v20 / v19 / v18 / v17 research drafts.  
+Date: 2026-10-08
+Status: **RESEARCH PASS / PRODUCTION HOLD**. No main merge or Shin deployment.
+Branch: `research/browser-targeted-v21-20261008`, stacked on v20 / v19 / v18 / v17 research drafts.
 Production canonical: verified Facet v15. This work does not alter default Lite, Sharp, Shape, Facet, Near or Exact outputs.
 
 ## Goal / scope
