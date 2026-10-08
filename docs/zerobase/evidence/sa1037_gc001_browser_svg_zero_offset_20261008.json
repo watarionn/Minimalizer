@@ -1,0 +1,24 @@
+{
+  "schema": "sa10.37-apparel-browser-svg-v1",
+  "existing_parent_owner": "lower_body",
+  "original_parent_primitive_id": "phase12-aggressive-0001",
+  "new_svg_filled_polygon_subpaths": 5,
+  "new_svg_polygon_vertices": 27,
+  "existing_parent_svg_path_ring_count": 8,
+  "unrepresentable_one_or_two_point_parent_rings": 1,
+  "source_image_or_png_embedded": false,
+  "protected_masks_not_replaced_with_raster": true,
+  "browser_screenshot_verified": true,
+  "svg_exact_parity_pass": false,
+  "production_promotion_authorized": false,
+  "browser_snapshot_crop": [
+    340,
+    340
+  ],
+  "browser_exact_rgb_differing_pixels": 568,
+  "browser_pixels_with_channel_delta_above_16": 436,
+  "browser_pixels_with_channel_delta_above_48": 431,
+  "browser_pixel_mae_rgb": 0.652413,
+  "browser_max_channel_error": 229,
+  "svg_browser_gate": "FAIL"
+}
