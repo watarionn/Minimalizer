@@ -39,7 +39,7 @@ For all three inputs, real browser route `requestBrowserFallback()` and direct S
 
 - `tests/test_browser_selective_v17.py`: new opt-in route and defaults, deterministic synthetic case with a valid same-palette compact region merging, rejection of different palette / high contrast / thin regions, exact no-op parity for unchanged inputs, and fail-closed structure/geometry paths.
 - Extended v17+v15+v14+v13+v12 suite: **43 PASSED** in isolated checkout, plus JavaScript/Python syntax checks.
-- CI: `.github/workflows/browser-selective-v17.yml`, containing JavaScript syntax, replay harness compile, new/inherited geometry tests and whitespace diff guard. Record actual CI result separately before concluding PASS.
+- CI: `.github/workflows/browser-selective-v17.yml`, containing JavaScript syntax, replay harness compile, new/inherited geometry tests and whitespace diff guard. **GitHub Actions 4/4 PASS** on research PR #228: Browser Selective v17, Browser Facet v15, Browser Shape v14, and Browser Sharp Lite v13. These certify safe operation and regression coverage, not real-image geometry improvement.
 
 ## Quality decision and next approach
 
@@ -53,3 +53,7 @@ The no-op result shows that same-palette adjacency is too strict on the real sam
 - Three-source montage, machine metrics, raw source+all six profile PNG/metrics archive, diagnostic report, Chrome harness and evidence generator.
 - Reusable GitHub Chrome benchmark: `tools/run_browser_selective_v17_chrome_compare.py`.
 - Parent baseline production remains [Facet v15 handoff](../handoffs/HND-20261008-BROWSER_FACET_V15_PRODUCTION.md). This work must not change it.
+
+## 2026-10-08 Review / Ship decision
+
+The independent Chrome benchmark, deterministic synthetic safe-merge test, inherited regressions and all four CI workflows passed. Nevertheless, all three real images showed **zero accepted merges and no visual/vertex gain**, so the correct gate is **HOLD**. PR [#228](https://github.com/watarionn/Minimalizer/pull/228) remains **Draft**, with no `main` merge and no production deployment. Preserve this as a counterexample for later source-aligned near-color selective merging.
