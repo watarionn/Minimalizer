@@ -119,7 +119,7 @@ def process_abc(original:Image.Image, masks:dict, style:Image.Image|None=None):
     union=np.logical_or.reduce(list(feature.values()))
     if np.any(changed&~union):
         raise AssertionError("B painted outside observed tiny face components")
-    if np.any((a!=src)&(face|hair)) or np.any((b!=src)&(face&~union|hair)):
+    if np.any(np.any(a!=src,axis=2)&(face|hair)) or np.any(np.any(b!=src,axis=2)&((face&~union)|hair)):
         raise AssertionError("Face geometry/fringe overwritten by a broad layer")
     # Source medoid of facial feature is NOT safe to use as missing-feature
     # background! A full suppression is impossible without observed underlay.
