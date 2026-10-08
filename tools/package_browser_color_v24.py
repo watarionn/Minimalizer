@@ -11,7 +11,7 @@ REPORT_FILES = ("v24_metrics.json", "v24_metrics.csv", "v24_report.md",
                 "v24_three_source_comparison.png", "v24_raw_images_metrics.zip")
 SCRIPT_FILES = ("run_browser_color_v24_chrome.py", "analyze_browser_color_v24.py",
                 "package_browser_color_v24.py")
-TEST_FILE = "test_browser_color_v24.py"
+TEST_FILE = "test_browser_color_region_v24.py"
 MANIFEST = "v24_evidence_manifest.json"
 
 def digest(path):
