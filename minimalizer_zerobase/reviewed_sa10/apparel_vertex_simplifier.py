@@ -14,6 +14,7 @@ from typing import Any
 import cv2
 import numpy as np
 
+from .interior_color_planes import _color_provenance, _rgb_lab
 from .semantic_apparel_material_planes import (
     MINIMUM_COLOR_PRECISION,
     MAX_NECKTIE_EXPANSION,
@@ -178,9 +179,10 @@ def optimize_apparel_polygon_vertices(
                 area = int(candidate_mask.sum())
                 if overlap / area < MINIMUM_COLOR_PRECISION[panel["material"]]:
                     continue
-                source_overlap = source[candidate_mask & source_class]
-                source_color = np.asarray(panel["color_rgb_observed"], dtype=np.uint8)
-                if not np.any(np.all(source_overlap == source_color, axis=1)):
+                new_color, lab_color = _color_provenance(
+                    source, candidate_mask & source_class
+                )
+                if np.linalg.norm(lab_color - _rgb_lab(panel["color_rgb_observed"])) > 20:
                     continue
                 if overlap + 1e-9 < minimum_class_overlap_ratio * signed_overlap[part_index]:
                     continue
@@ -195,6 +197,7 @@ def optimize_apparel_polygon_vertices(
                         continue
                 new_panels = deepcopy(working)
                 new_panels[part_index]["points"] = candidate
+                new_panels[part_index]["color_rgb_observed"] = new_color
                 try:
                     output, painted = render_source_uniform_panels(
                         base_rgb=base, panels=new_panels,
@@ -217,19 +220,21 @@ def optimize_apparel_polygon_vertices(
                 score = mse / max(old_lab_error, 1.0) + (
                     int(changed_against_signed.sum()) / max(int(owner.sum()), 1)
                 ) * 0.14
-                eligible_changes.append((score, part_index, index, candidate_mask, mse))
+                eligible_changes.append((score, part_index, index, new_color, mse))
         if not eligible_changes:
             break
         eligible_changes.sort(key=lambda x: (x[0], -len(working[x[1]]["points"]), x[1], x[2]))
-        _, chosen_part, chosen_vertex, _, _ = eligible_changes[0]
+        _, chosen_part, chosen_vertex, chosen_color, _ = eligible_changes[0]
         working[chosen_part]["points"] = (
             working[chosen_part]["points"][:chosen_vertex]
             + working[chosen_part]["points"][chosen_vertex + 1:]
         )
+        working[chosen_part]["color_rgb_observed"] = chosen_color
         accepted.append({
             "material": working[chosen_part]["material"],
             "panel_index": chosen_part,
             "removed_original_or_reindexed_vertex": chosen_vertex,
+            "palette_refit_to_source": True,
         })
     output, _ = render_source_uniform_panels(
         base_rgb=base, panels=working,
@@ -253,9 +258,10 @@ def optimize_apparel_polygon_vertices(
             np.ascontiguousarray(source[class_overlap]).tobytes()
         ).hexdigest()
         panel["sa1037_vertex_simplified"] = len(panel["points"]) < len(original[i]["points"])
-        if panel["color_rgb_observed"] not in source[class_overlap].tolist():
-            # Observed RGB may be absent from the *reduced* polygon support.
-            # Do not silently claim local palette provenance in this case.
+        if not np.any(np.all(
+            source[class_overlap] == np.asarray(panel["color_rgb_observed"]),
+            axis=1,
+        )):
             raise ValueError("observed RGB no longer grounded in selected material area")
     candidate_invalid = [
         i for i, p in enumerate(working) if not _simple_polygon(p["points"])
