@@ -179,9 +179,15 @@ def evaluate(
         result["prior_hard_failures"] = anatomy.get("hard_failures", [])
         result["prior_anatomy_gate"] = anatomy.get("gate")
     result["research_candidates"] = candidate_count
+    result["part_topology_hard_failures"] = [
+        owner for owner in PROTECTED
+        if result["parts"].get(owner, {}).get("topology_pass") is False
+    ]
     result["status"] = (
         "HOLD_PREVIOUS_GLOBAL_HARD_GATE"
         if result["prior_hard_failures"] else
+        "HOLD_PART_TOPOLOGY_CHANGED"
+        if result["part_topology_hard_failures"] else
         "HOLD_OWNER_OR_GEOMETRY"
         if owner_audit["status"] != "OWNER_AUDIT_PASS" or
         any(result["parts"].get(owner, {}).get("status", "").startswith("HOLD") for owner in PROTECTED)
