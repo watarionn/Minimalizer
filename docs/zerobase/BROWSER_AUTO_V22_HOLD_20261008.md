@@ -41,12 +41,12 @@ Noel automatically discovers 16→24 as the highest-ranked pair but **rejects th
 ## Tests and evidence
 
 - New `tests/test_browser_auto_gated_v22.py`: opt-in profile, deterministic ranking, no cross-palette/small-side/aspect/oversize suggestions, synthetic long diagonal line with automatic shape protection, and invalid configurations fail closed.
-- Full isolated Windows v12–v22 suite: **60 PASS**, JavaScript/Python syntax checks pass.
-- `.github/workflows/browser-auto-v22.yml` plus inherited v13–v21 workflows: verify run conclusions separately before claiming all CI PASS.
+- Full isolated Windows v12–v22 suite: **60 PASS**, JavaScript/Python syntax checks pass. All **9/9 GitHub Actions PASS** for Auto v22, v21, v20, v19, v18, v17, Facet v15, Shape v14 and Sharp Lite v13 on reviewed runtime revision.
+- `.github/workflows/browser-auto-v22.yml` and inherited v13–v21 workflows: **9/9 confirmed PASS**. Document-only commits are rechecked independently.
 - `tools/run_browser_auto_v22_chrome.py`: real Chrome UI/engine parity.
 - `tools/analyze_browser_auto_v22.py`: baseline SHA256, ROI/color/silhouette fidelity, trace audit, montage, report, raw archives.
 - `tools/package_browser_auto_v22.py`: source+evidence preservation with SHA256 check.
-- [Google Drive evidence folder](https://drive.google.com/drive/folders/10uAjIiEoObdHr82bBmlzGv4h5L5gqn0h) in the short canonical path `chatGPT及びCodex用/Minimalizer/AutoSelectiveV22_20261008`. The original deeply nested folder caused synchronization uncertainty; preserve only the shallow folder as the intended destination after confirming Drive API visibility. The local Drive-mounted copy has 10 files with matching SHA256; Drive API confirmation is tracked separately.
+- [Google Drive evidence folder](https://drive.google.com/drive/folders/10uAjIiEoObdHr82bBmlzGv4h5L5gqn0h) in the short canonical path `chatGPT及びCodex用/Minimalizer/AutoSelectiveV22_20261008`. **Ten of ten files confirmed through Google Drive API** in the shallow canonical folder, and also SHA256-matched byte-for-byte against the mounted local copy. The initially created overly deep duplicate folder was deleted after authoritative shallow-folder verification. No other project files were touched.
 
 ## Gate and next iteration
 
