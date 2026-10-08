@@ -6,6 +6,7 @@ on:
       - "web/static/app.js"
       - "web/static/browser-fallback.js"
       - "tests/test_browser_sharp_lite_v13.py"
+      - "tools/run_browser_sharp_lite_chrome_compare.py"
       - ".github/workflows/browser-sharp-lite-v13.yml"
   workflow_dispatch:
 
@@ -35,5 +36,7 @@ jobs:
           node --check web/static/opencv-fill-raster.js
       - name: Sharp Lite contract and palette guard
         run: python -m pytest tests/test_browser_sharp_lite_v13.py -q
+      - name: Benchmark harness syntax
+        run: python -m py_compile tools/run_browser_sharp_lite_chrome_compare.py
       - name: Diff whitespace check
         run: git diff --check origin/main...HEAD
