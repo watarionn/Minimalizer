@@ -57,6 +57,18 @@ class InteriorColorPlaneTests(unittest.TestCase):
         )
         self.assertIsNone(result)
 
+    def test_overly_large_color_repaint_is_not_a_subtle_interior_plane(self):
+        rgb = np.full((80, 80, 3), [45, 50, 55], np.uint8)
+        rgb[16:60, 16:60] = [225, 190, 83]
+        result = propose_interior_plane(
+            owner="lower_body", parent_primitive_id="lower_body",
+            source_rgb=rgb, owner_mask=self.parent,
+            parent_palette_rgb=[45, 50, 55],
+            protected_mask=np.zeros_like(self.parent),
+            min_pixels=55,
+        )
+        self.assertIsNone(result)
+
     def test_all_changes_clipped_and_face_arm_pixels_unchanged(self):
         proposal, raster = self.propose()
         mask2 = np.zeros_like(self.parent)
