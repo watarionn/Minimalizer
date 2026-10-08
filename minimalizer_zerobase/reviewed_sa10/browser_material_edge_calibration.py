@@ -128,3 +128,116 @@ def apply_material_edge_calibration(
         "opt_in_adjustments": verified,
         "production_promotion_authorized": False,
     }
+
+
+def apply_raster_neutral_vertex_nudge(
+    signed_svg: str, *,
+    original_material_panels: list[dict[str, Any]],
+    material_index: int,
+    vertex_index: int,
+    axis: int,
+    delta: float,
+    source_owner_mask: Any,
+) -> tuple[str, dict[str, Any]]:
+    """Allow one browser-only 0.5px vertex offset if raw CV2 raster is unchanged.
+
+    This does not change the canonical 27-vertex material scene. The returned
+    render-only SVG may have a subpixel-different vertex coordinate. It must
+    pass independent Chrome, owner/arm/tie and source fidelity hard gates.
+    """
+    import copy
+
+    import numpy as np
+
+    from minimalizer_zerobase.reviewed_sa10.apparel_vertex_simplifier import _simple_polygon
+    from minimalizer_zerobase.reviewed_sa10.semantic_apparel_material_planes import material_polygon_mask
+
+    if (not isinstance(material_index,int) or isinstance(material_index,bool)
+        or material_index not in range(4) or not isinstance(vertex_index,int)
+        or vertex_index<0 or axis not in (0,1) or delta not in (-0.5,0.5)):
+        raise ValueError("only non-tie existing vertices may shift exactly 0.5px")
+    if not isinstance(original_material_panels,list) or len(original_material_panels)!=5:
+        raise ValueError("five signed material polygons required")
+    if any(p.get("owner")!="lower_body" for p in original_material_panels):
+        raise ValueError("unsigned source owner")
+    owner=np.asarray(source_owner_mask).astype(bool)
+    if owner.ndim!=2 or not np.any(owner):
+        raise ValueError("signed source owner must have 2D nonempty canvas")
+    if not isinstance(signed_svg,str) or any(bad in signed_svg for bad in PROHIBITED_SVG):
+        raise ValueError("unsafe original source-bound SVG")
+    matches=list(POLYGON_TAG.finditer(signed_svg))
+    if len(matches)!=5 or signed_svg.count("<polygon ")!=5:
+        raise ValueError("exactly five signed SVG polygon paints expected")
+    original=original_material_panels[material_index]
+    raw_points=original.get("points")
+    points=np.asarray(raw_points,dtype=float)
+    if (points.ndim!=2 or points.shape[1]!=2 or vertex_index>=len(points)
+        or not np.all(np.isfinite(points)) or not _simple_polygon(points.tolist())):
+        raise ValueError("invalid signed material point index")
+    candidate_points=points.copy()
+    candidate_points[vertex_index,axis]+=delta
+    if not _simple_polygon(candidate_points.tolist()):
+        raise ValueError("candidate material contour self-intersects")
+
+    # This stronger proof is UNCLIPPED. It disallows a subpixel shape change
+    # even outside the current lower_body owner that masks might otherwise hide.
+    full=np.ones(owner.shape,dtype=bool)
+    protected=np.zeros(owner.shape,dtype=bool)
+    before=material_polygon_mask(original,parent_visible=full,protected=protected)
+    revised=copy.deepcopy(original)
+    revised["points"]=candidate_points.tolist()
+    after=material_polygon_mask(revised,parent_visible=full,protected=protected)
+    changed_pixels=int(np.count_nonzero(before^after))
+    if changed_pixels:
+        raise ValueError(
+            f"browser vertex adjustment changes {changed_pixels} authoritative OpenCV material pixels"
+        )
+    points_svg=[
+        list(map(float,xy.split(","))) for xy in matches[material_index].group(0).split('points="',1)[1].split('"',1)[0].split()
+    ]
+    if len(points_svg)!=len(points) or any(
+        abs(points_svg[i][j]-(points[i,j]+0.5))>1e-8
+        for i in range(len(points)) for j in range(2)
+    ):
+        raise ValueError("SVG vertex coordinates not traceable to original source scene at pixel centers")
+    points_svg[vertex_index][axis]+=delta
+    serialized=" ".join(
+        ",".join(f"{value:g}" for value in point) for point in points_svg
+    )
+    tag=matches[material_index]
+    original_tag=tag.group(0)
+    revised_tag=re.sub(
+        r'points="[^"]+"',f'points="{serialized}"',original_tag,count=1,
+    )
+    if revised_tag==original_tag:
+        raise AssertionError("render calibration yielded no SVG change")
+    output=signed_svg[:tag.start()]+revised_tag+signed_svg[tag.end():]
+    out_tags=list(POLYGON_TAG.finditer(output))
+    if len(out_tags)!=5 or any(
+        out_tags[i].group(0)!=matches[i].group(0)
+        for i in range(5) if i!=material_index
+    ):
+        raise AssertionError("unselected material or thin green necktie changed")
+    if POLYGON_TAG.sub("<SIGNED_MATERIAL/>",output)!=POLYGON_TAG.sub("<SIGNED_MATERIAL/>",signed_svg):
+        raise AssertionError("outer SVG mask, holes or geometry changed")
+    return output,{
+        "schema":"sa10.40-source-raster-neutral-material-vertex-v1",
+        "source_stage37_material_geometry_modified":False,
+        "rendered_svg_material_subpixel_vertex_adjustment":True,
+        "original_material_polygon_count":5,
+        "original_material_vertex_count":sum(len(p["points"]) for p in original_material_panels),
+        "new_geometric_paths":0,
+        "new_polygon_vertices":0,
+        "original_material_color_palettes_unchanged":True,
+        "green_tie_polygon_unchanged":True,
+        "existing_source_owner_mask_unchanged":True,
+        "unclipped_canonical_cv2_material_mask_changed_pixels":changed_pixels,
+        "render_only_adjustment":{
+            "material_index":material_index,
+            "vertex_index":vertex_index,
+            "axis":"xy"[axis],
+            "delta_px":delta,
+        },
+        "browser_render_gate_pending":True,
+        "production_promotion_authorized":False,
+    }
