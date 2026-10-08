@@ -1,0 +1,286 @@
+{
+  "schema": "sa10.34-topology-greedy-contour-research-v1",
+  "original_exact_source_ring_vertices": 2815,
+  "original_budget": {
+    "ring_vertices": 1412,
+    "component_vertices": 1306
+  },
+  "candidate_vertices": {
+    "ring_vertices": 2370,
+    "component_vertices": 2259
+  },
+  "accepted_edit_count": 27,
+  "reduced_ring_vertices": 445,
+  "edits": [
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 6,
+      "vertices_before": 13,
+      "vertices_after": 9,
+      "epsilon": 0.6
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 12,
+      "vertices_before": 9,
+      "vertices_after": 4,
+      "epsilon": 1.5
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 11,
+      "vertices_before": 8,
+      "vertices_after": 2,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 4,
+      "vertices_before": 6,
+      "vertices_after": 2,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 8,
+      "vertices_before": 6,
+      "vertices_after": 2,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 9,
+      "vertices_before": 6,
+      "vertices_after": 4,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 3,
+      "vertices_before": 4,
+      "vertices_after": 1,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 10,
+      "vertices_before": 4,
+      "vertices_after": 1,
+      "epsilon": 2
+    },
+    {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_ring_index": 14,
+      "vertices_before": 4,
+      "vertices_after": 1,
+      "epsilon": 2
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 3,
+      "vertices_before": 98,
+      "vertices_after": 26,
+      "epsilon": 0.75
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 4,
+      "vertices_before": 39,
+      "vertices_after": 21,
+      "epsilon": 0.5
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 0,
+      "vertices_before": 31,
+      "vertices_after": 18,
+      "epsilon": 0.75
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 9,
+      "vertices_before": 25,
+      "vertices_after": 7,
+      "epsilon": 0.6
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 10,
+      "vertices_before": 17,
+      "vertices_after": 4,
+      "epsilon": 2
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 11,
+      "vertices_before": 14,
+      "vertices_after": 4,
+      "epsilon": 2
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 12,
+      "vertices_before": 14,
+      "vertices_after": 4,
+      "epsilon": 2
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 7,
+      "vertices_before": 13,
+      "vertices_after": 3,
+      "epsilon": 2
+    },
+    {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_ring_index": 5,
+      "vertices_before": 11,
+      "vertices_after": 3,
+      "epsilon": 1.25
+    },
+    {
+      "owner": "right_arm",
+      "primitive_id": "phase12-aggressive-0002",
+      "source_ring_index": 1,
+      "vertices_before": 36,
+      "vertices_after": 21,
+      "epsilon": 0.5
+    },
+    {
+      "owner": "unknown",
+      "primitive_id": "phase12-aggressive-0004",
+      "source_ring_index": 2,
+      "vertices_before": 34,
+      "vertices_after": 18,
+      "epsilon": 0.6
+    },
+    {
+      "owner": "unknown",
+      "primitive_id": "phase12-aggressive-0004",
+      "source_ring_index": 3,
+      "vertices_before": 10,
+      "vertices_after": 6,
+      "epsilon": 1
+    },
+    {
+      "owner": "major_clothing",
+      "primitive_id": "phase12-aggressive-0006",
+      "source_ring_index": 8,
+      "vertices_before": 24,
+      "vertices_after": 20,
+      "epsilon": 0.5
+    },
+    {
+      "owner": "major_clothing",
+      "primitive_id": "phase12-aggressive-0006",
+      "source_ring_index": 7,
+      "vertices_before": 7,
+      "vertices_after": 4,
+      "epsilon": 0.75
+    },
+    {
+      "owner": "major_clothing",
+      "primitive_id": "phase12-aggressive-0006",
+      "source_ring_index": 5,
+      "vertices_before": 6,
+      "vertices_after": 4,
+      "epsilon": 0.75
+    },
+    {
+      "owner": "head",
+      "primitive_id": "phase12-aggressive-0008",
+      "source_ring_index": 0,
+      "vertices_before": 276,
+      "vertices_after": 87,
+      "epsilon": 0.6
+    },
+    {
+      "owner": "neck",
+      "primitive_id": "phase12-aggressive-0010",
+      "source_ring_index": 5,
+      "vertices_before": 11,
+      "vertices_after": 7,
+      "epsilon": 0.6
+    },
+    {
+      "owner": "neck",
+      "primitive_id": "phase12-aggressive-0010",
+      "source_ring_index": 6,
+      "vertices_before": 8,
+      "vertices_after": 6,
+      "epsilon": 0.6
+    }
+  ],
+  "raw_owner_topology_pass": true,
+  "tiny_source_islands_and_holes_preserved": true,
+  "global_anatomy": {
+    "schema_version": "sa10.18-source-silhouette-anatomy-gate-v1",
+    "gate": "PASS",
+    "hard_failures": [],
+    "can_override_hard_fail": false,
+    "source_evidence": {
+      "mask_pixels": 69454,
+      "topology": [
+        1,
+        3
+      ]
+    },
+    "candidate_evidence": {
+      "mask_pixels": 69458,
+      "topology": [
+        1,
+        3
+      ]
+    },
+    "metrics": {
+      "silhouette_iou": 0.9995681651336529,
+      "fragmentation_penalty": 0
+    },
+    "policy": {
+      "silhouette_iou_minimum": 0.96,
+      "fragmentation_threshold": 0.2,
+      "vectorization_authority": false,
+      "shape_matching_authority": false,
+      "topology_preservation_hard": true,
+      "saliency_perceptual_observer_only": true
+    }
+  },
+  "vertex_budget_pass": false,
+  "source_owned_paint_masks": true,
+  "opencv_vector_render_parity": true,
+  "svg_degenerate_rings": 13,
+  "browser_svg_parity_verified": false,
+  "human_visual_gate": "PENDING",
+  "promotion_authorized": false,
+  "blockers": [
+    "VERTEX_BUDGET_EXCEEDED",
+    "DEGENERATE_SVG_FILL_PATHS",
+    "BROWSER_SVG_RASTER_AND_HUMAN_VISUAL_GATES_PENDING"
+  ],
+  "status": "RESEARCH_ADAPTIVE_HARD_GATES_PASS_BUDGET_HOLD",
+  "original_source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "historical_baseline_silhouette_iou": 0.9995680594350217,
+  "adaptive_preview_sha256": "e6d362d05afb5d1d090b0840b32246dee1a61350d437b79ad2e970f741a4ae43",
+  "adaptive_vector_sha256": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+  "owner_material_primitive_invariants": true,
+  "input_artifacts_unchanged": true,
+  "face_guard_changed_outside_mask_pixels": 0
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "sa10.33-crosscase-gate-v1",
+  "case_count": 2,
+  "distinct_source_count": 2,
+  "duplicate_source_count": 0,
+  "crosscase_evidence_coverage": "PASS",
+  "structural_quality": "FAIL",
+  "cases": {
+    "GC001": {
+      "provenance_verified": true,
+      "full_anatomy_gate": "FAIL",
+      "source_topology": [
+        1,
+        9
+      ],
+      "render_topology": [
+        2,
+        21
+      ],
+      "silhouette_iou": 0.9965670069386421,
+      "source_topology_drift_owners": [
+        "hair",
+        "left_arm"
+      ],
+      "serialized_export_drift_owners": [
+        "face",
+        "hair",
+        "left_arm",
+        "right_arm"
+      ],
+      "owner_source_to_render_iou": {
+        "face": 1,
+        "hair": 0.9984177215189873,
+        "left_arm": 0.9933701657458563,
+        "right_arm": 1
+      },
+      "tiny_missing_component_pixels": {
+        "face": 0,
+        "hair": 23,
+        "left_arm": 18,
+        "right_arm": 0
+      }
+    },
+    "Juufuutei-Raden": {
+      "provenance_verified": true,
+      "full_anatomy_gate": "FAIL",
+      "source_topology": [
+        1,
+        3
+      ],
+      "render_topology": [
+        1,
+        8
+      ],
+      "silhouette_iou": 0.9995680594350217,
+      "source_topology_drift_owners": [
+        "hair"
+      ],
+      "serialized_export_drift_owners": [
+        "face",
+        "hair",
+        "left_arm",
+        "right_arm"
+      ],
+      "owner_source_to_render_iou": {
+        "face": 1,
+        "hair": 0.9998458930497766,
+        "left_arm": 1,
+        "right_arm": 1
+      },
+      "tiny_missing_component_pixels": {
+        "face": 0,
+        "hair": 3,
+        "left_arm": 0,
+        "right_arm": 0
+      }
+    }
+  },
+  "hard_blockers": [
+    "STRUCTURAL_OR_VECTOR_QUALITY_FAILURE",
+    "HUMAN_VISUAL_REVIEW_REQUIRED"
+  ],
+  "human_visual_review": "PENDING",
+  "promotion_authorized": false,
+  "status": "RESEARCH_COMPLETE_NO_GO"
+}

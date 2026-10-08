@@ -1,0 +1,28 @@
+{
+  "schema": "sa10.40-cv2-vs-chrome-visual-compare-v1",
+  "baseline_mismatch": 45,
+  "candidate_mismatch": 41,
+  "corrected_pixels": 6,
+  "newly_mismatched_pixels": 2,
+  "persistent_mismatch_pixels": 39,
+  "color_codes": {
+    "green_bgr": [
+      40,
+      190,
+      60
+    ],
+    "red_bgr": [
+      15,
+      10,
+      240
+    ],
+    "orange_bgr": [
+      20,
+      175,
+      240
+    ]
+  },
+  "isolated_material_browser_layers_only": true,
+  "full_character_browser_validation": false,
+  "production_promotion_authorized": false
+}

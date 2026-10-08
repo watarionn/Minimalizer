@@ -1,0 +1,27 @@
+{
+  "schema": "sa10.39-two-source-edge-correction-research-v1",
+  "gc001_source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "raden_distinct_source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "signed_chrome_previous_mismatch_pixels": 69,
+  "signed_chrome_candidate_mismatch_pixels": 56,
+  "chrome_pixel_disagreement_improvement_from_previous": 0.188406,
+  "chrome_pixel_disagreement_improvement_from_sa1037": 0.893939,
+  "remaining_occupancy_boundary_errors": 50,
+  "remaining_jointly_painted_color_boundary_errors": 6,
+  "additional_source_parent_outline_stroke_paint_passes": 1,
+  "additional_source_parent_contour_point_occurrences_counted": 152,
+  "source_owner_and_material_shape_sha_unchanged": true,
+  "independent_residual_geometry_audit_passed": true,
+  "independent_raden_control_unchanged": true,
+  "real_chrome_browser_exact_pixel_gate": "FAIL",
+  "research_gate": "PASS",
+  "research_status": "SA1039_EDGE_ATTRIBUTION_AND_CHROME_IMPROVEMENT_VERIFIED_NO_GO",
+  "production_promotion_authorized": false,
+  "release_blockers": [
+    "BROWSER_SVG_EXACT_PIXEL_PARITY_FAIL",
+    "OUTER_AND_COMBINED_GEOMETRY_VERTEX_BUDGET_FAIL",
+    "FULL_CHARACTER_CHROME_RENDER_NOT_VERIFIED",
+    "SECOND_MATCHING_UNIFORM_IMAGE_NOT_VERIFIED",
+    "HUMAN_ART_REVIEW_PENDING"
+  ]
+}

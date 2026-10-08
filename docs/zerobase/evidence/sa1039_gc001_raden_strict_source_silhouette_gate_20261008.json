@@ -1,0 +1,31 @@
+{
+  "schema": "sa10.39-two-source-selective-top-boundary-research-v1",
+  "GC001_original_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "Raden_distinct_original_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "prior_browser_pixel_mismatch_count": 69,
+  "current_browser_pixel_mismatch_count": 45,
+  "pixel_mismatch_improvement_over_SA1038": 0.347826,
+  "pixel_mismatch_improvement_over_SA1037": 0.914773,
+  "prior_off_owner_mismatched_pixels": 3,
+  "current_off_owner_mismatched_pixels": 3,
+  "source_silhouette_ownership_not_worsened": true,
+  "remaining_occupancy_boundary_errors": 39,
+  "remaining_jointly_painted_color_boundary_errors": 6,
+  "existing_signed_top_edge_stroke_passes_counted": 2,
+  "existing_signed_top_edge_reused_endpoints_counted": 4,
+  "signed_existing_geometry_and_materials_unchanged": true,
+  "independent_before_after_residual_pixel_audit_passed": true,
+  "Raden_unrelated_outfit_noop_gate": true,
+  "full_browser_exact_pixel_parity": "FAIL",
+  "research_gate": "PASS",
+  "status": "SOURCE_TOP_EDGE_GEOMETRY_CLEANUP_RESEARCH_PASS_NO_GO",
+  "production_promotion_authorized": false,
+  "unresolved_release_blockers": [
+    "BROWSER_EXACT_PIXEL_PARITY_FAIL",
+    "OUTER_SOURCE_VECTOR_BUDGET_FAIL",
+    "COMBINED_OUTER_AND_INTERIOR_GEOMETRY_BUDGET_FAIL",
+    "FULL_CHARACTER_CHROME_RENDER_UNVERIFIED",
+    "SECOND_MATCHING_GARMENT_IMAGE_MISSING",
+    "HUMAN_VISUAL_APPROVAL_PENDING"
+  ]
+}

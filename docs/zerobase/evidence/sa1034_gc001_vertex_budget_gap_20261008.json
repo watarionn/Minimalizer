@@ -1,0 +1,107 @@
+{
+  "schema": "sa10.34-vertex-gap-v1",
+  "case": "GC001",
+  "parts": [
+    {
+      "owner": "hair",
+      "id": "phase12-aggressive-0000",
+      "old_ring_vertices": 624,
+      "exact_ring_vertices": 1285,
+      "adaptive_ring_vertices": 1180,
+      "adaptive_extra_vs_old": 556,
+      "degenerate_rings": 14
+    },
+    {
+      "owner": "unknown",
+      "id": "phase12-aggressive-0006",
+      "old_ring_vertices": 97,
+      "exact_ring_vertices": 700,
+      "adaptive_ring_vertices": 632,
+      "adaptive_extra_vs_old": 535,
+      "degenerate_rings": 62
+    },
+    {
+      "owner": "major_clothing",
+      "id": "phase12-aggressive-0005",
+      "old_ring_vertices": 263,
+      "exact_ring_vertices": 520,
+      "adaptive_ring_vertices": 451,
+      "adaptive_extra_vs_old": 188,
+      "degenerate_rings": 5
+    },
+    {
+      "owner": "torso",
+      "id": "phase12-aggressive-0004",
+      "old_ring_vertices": 165,
+      "exact_ring_vertices": 353,
+      "adaptive_ring_vertices": 328,
+      "adaptive_extra_vs_old": 163,
+      "degenerate_rings": 13
+    },
+    {
+      "owner": "left_arm",
+      "id": "phase12-aggressive-0007",
+      "old_ring_vertices": 117,
+      "exact_ring_vertices": 234,
+      "adaptive_ring_vertices": 210,
+      "adaptive_extra_vs_old": 93,
+      "degenerate_rings": 7
+    },
+    {
+      "owner": "neck",
+      "id": "phase12-aggressive-0008",
+      "old_ring_vertices": 99,
+      "exact_ring_vertices": 187,
+      "adaptive_ring_vertices": 164,
+      "adaptive_extra_vs_old": 65,
+      "degenerate_rings": 8
+    },
+    {
+      "owner": "face",
+      "id": "phase12-aggressive-0003",
+      "old_ring_vertices": 46,
+      "exact_ring_vertices": 110,
+      "adaptive_ring_vertices": 110,
+      "adaptive_extra_vs_old": 64,
+      "degenerate_rings": 0
+    },
+    {
+      "owner": "right_arm",
+      "id": "phase12-aggressive-0002",
+      "old_ring_vertices": 115,
+      "exact_ring_vertices": 199,
+      "adaptive_ring_vertices": 177,
+      "adaptive_extra_vs_old": 62,
+      "degenerate_rings": 0
+    },
+    {
+      "owner": "lower_body",
+      "id": "phase12-aggressive-0001",
+      "old_ring_vertices": 124,
+      "exact_ring_vertices": 206,
+      "adaptive_ring_vertices": 153,
+      "adaptive_extra_vs_old": 29,
+      "degenerate_rings": 1
+    },
+    {
+      "owner": "accessory_or_held_object",
+      "id": "phase12-aggressive-0010",
+      "old_ring_vertices": 15,
+      "exact_ring_vertices": 40,
+      "adaptive_ring_vertices": 40,
+      "adaptive_extra_vs_old": 25,
+      "degenerate_rings": 0
+    },
+    {
+      "owner": "head",
+      "id": "phase12-aggressive-0009",
+      "old_ring_vertices": 222,
+      "exact_ring_vertices": 431,
+      "adaptive_ring_vertices": 159,
+      "adaptive_extra_vs_old": -63,
+      "degenerate_rings": 0
+    }
+  ],
+  "old_total": 1887,
+  "adaptive_total": 3604
+}

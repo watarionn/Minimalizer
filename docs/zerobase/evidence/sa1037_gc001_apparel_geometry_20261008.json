@@ -1,0 +1,97 @@
+{
+  "schema": "sa10.37-topology-locked-apparel-geometry-v1",
+  "existing_material_subpaths": 5,
+  "original_total_vertices": 36,
+  "candidate_total_vertices": 27,
+  "saved_vertices": 9,
+  "baseline_self_intersecting_panels": [
+    1
+  ],
+  "candidate_self_intersecting_panels": [],
+  "all_filled_polygons_simple": true,
+  "accepted_vertex_removals": [
+    {
+      "material": "dark_uniform",
+      "panel_index": 1,
+      "removed_original_or_reindexed_vertex": 9
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 0,
+      "removed_original_or_reindexed_vertex": 0
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 1,
+      "removed_original_or_reindexed_vertex": 1
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 1,
+      "removed_original_or_reindexed_vertex": 0
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 1,
+      "removed_original_or_reindexed_vertex": 0
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 1,
+      "removed_original_or_reindexed_vertex": 6
+    },
+    {
+      "material": "white_shirt",
+      "panel_index": 2,
+      "removed_original_or_reindexed_vertex": 4
+    },
+    {
+      "material": "white_shirt",
+      "panel_index": 2,
+      "removed_original_or_reindexed_vertex": 3
+    },
+    {
+      "material": "dark_uniform",
+      "panel_index": 0,
+      "removed_original_or_reindexed_vertex": 5
+    }
+  ],
+  "lab_mse_before": 4606.609019,
+  "lab_mse_after": 4533.667405,
+  "relative_mse_delta": -0.015834,
+  "source_color_nonregression_gate": true,
+  "material_precision_gate": true,
+  "all_five_subpaths_and_owners_unchanged": true,
+  "face_arm_protected": true,
+  "outer_silhouette_unchanged": true,
+  "necktie_source_width_protected": true,
+  "minimum_saved_vertices_target_met": true,
+  "production_promotion_authorized": false,
+  "browser_svg_raster_parity_pending": true,
+  "status": "RESEARCH_GEOMETRIC_VERTEX_REDUCTION_HOLD",
+  "case_source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "Stage04_source_masks_verified": true,
+  "Stage08_outer_sha_verified": true,
+  "Stage36_material_provenance_verified": true,
+  "Stage36_original_RGB_pixel_replay_equal": true,
+  "original_apparel_color_lab_mse": 4606.609019,
+  "optimized_apparel_color_lab_mse": 4533.667405,
+  "apparel_lab_mse_improvement_from_stage36": 0.015834,
+  "pixels_modified_outside_lower_body_owner": 0,
+  "face_left_right_arm_rgb_unchanged": true,
+  "existing_outer_primitive_count": 11,
+  "apparel_subpaths_before": 5,
+  "apparel_subpaths_after": 5,
+  "existing_outer_vector_budget_pass": false,
+  "baseline_source36_preview_sha256": "f7dc941348ebe70331d22b519333fdf1d2c23bb0ca09c80ce0dee752b5a7da9d",
+  "candidate_preview_sha256": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+  "candidate_geometry_sha256": "182ae11b2e970b566e355bbdbd492733b867d25b57382ac5c32f52f869b81b93",
+  "source_preview_comparison_sha256": "5eab3dea03d4d37cf0aa5fbf701d4884c49784a5da2857a72a525a22cdd20514",
+  "human_visual_gate": "PENDING",
+  "SVG_browser_clip_gate": "UNVERIFIED",
+  "remaining_blockers": [
+    "EXISTING_OUTER_VECTOR_BUDGET_FAILED",
+    "BROWSER_SVG_PARITY_UNVERIFIED",
+    "HUMAN_VISUAL_SIGNOFF_MISSING"
+  ]
+}

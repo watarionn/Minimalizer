@@ -1,0 +1,44 @@
+{
+  "schema": "sa10.35-two-case-interior-research-v1",
+  "case_count": 2,
+  "distinct_source_count": 2,
+  "reproducible_research_gate": "PASS",
+  "color_metrics_are_not_visual_quality": true,
+  "case_results": {
+    "GC001": {
+      "research_provenance_gate": "PASS",
+      "outer_silhouette_iou": 0.9982763313072667,
+      "outer_raw_topology_gate": "PASS",
+      "interior_subplanes": 3,
+      "subpath_vertices": 28,
+      "colors_lab_mse_improvement": 0.088819,
+      "owners": [
+        "torso",
+        "hair",
+        "major_clothing"
+      ],
+      "face_and_arms_protected": true,
+      "original_vector_budget_pass": false
+    },
+    "Juufuutei-Raden": {
+      "research_provenance_gate": "PASS",
+      "outer_silhouette_iou": 0.9995681651336529,
+      "outer_raw_topology_gate": "PASS",
+      "interior_subplanes": 1,
+      "subpath_vertices": 12,
+      "colors_lab_mse_improvement": 0.190316,
+      "owners": [
+        "hair"
+      ],
+      "face_and_arms_protected": true,
+      "original_vector_budget_pass": false
+    }
+  },
+  "hard_blockers": [
+    "ORIGINAL_OUTER_GEOMETRY_VERTEX_BUDGET_FAIL",
+    "BROWSER_SVG_CLIP_PARITY_UNVERIFIED",
+    "HUMAN_VISUAL_APPROVAL_PENDING"
+  ],
+  "promotion_authorized": false,
+  "status": "RESEARCH_INTERIOR_COMPLETE_NO_GO"
+}

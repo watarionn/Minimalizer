@@ -1,0 +1,256 @@
+{
+  "schema": "sa10.34-exact-source-contour-research-v1",
+  "primitive_count_old": 11,
+  "primitive_count_new": 11,
+  "old_vertices": {
+    "ring_vertices": 1412,
+    "component_vertices": 1306
+  },
+  "new_vertices": {
+    "ring_vertices": 2815,
+    "component_vertices": 2599
+  },
+  "budget": {
+    "ring_vertices": 1412,
+    "component_vertices": 1306
+  },
+  "vertex_budget_pass": false,
+  "source_raster_exact": true,
+  "full_anatomy": {
+    "schema_version": "sa10.18-source-silhouette-anatomy-gate-v1",
+    "gate": "PASS",
+    "hard_failures": [],
+    "can_override_hard_fail": false,
+    "source_evidence": {
+      "mask_pixels": 69454,
+      "topology": [
+        1,
+        3
+      ]
+    },
+    "candidate_evidence": {
+      "mask_pixels": 69454,
+      "topology": [
+        1,
+        3
+      ]
+    },
+    "metrics": {
+      "silhouette_iou": 1,
+      "fragmentation_penalty": 0
+    },
+    "policy": {
+      "silhouette_iou_minimum": 0.96,
+      "fragmentation_threshold": 0.2,
+      "vectorization_authority": false,
+      "shape_matching_authority": false,
+      "topology_preservation_hard": true,
+      "saliency_perceptual_observer_only": true
+    }
+  },
+  "owner_evidence": {
+    "torso": {
+      "owner": "torso",
+      "primitive_id": "phase12-aggressive-0000",
+      "source_pixels": 19163,
+      "source_mask_sha256": "549e22ab4c210143770865922d51957b401b4cc555c05b0fa57631cd2877da62",
+      "rings": 15,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 4,
+        "holes": 1,
+        "euler_characteristic": 3
+      },
+      "owner_and_material_unchanged": true
+    },
+    "hair": {
+      "owner": "hair",
+      "primitive_id": "phase12-aggressive-0001",
+      "source_pixels": 19467,
+      "source_mask_sha256": "81ad7f4c83ba6416167e20ee483a7194a70c891abca10ca78ab671ab49337df4",
+      "rings": 13,
+      "degenerate_1_or_2_point_rings": 3,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 8,
+        "holes": 5,
+        "euler_characteristic": 3
+      },
+      "owner_and_material_unchanged": true
+    },
+    "right_arm": {
+      "owner": "right_arm",
+      "primitive_id": "phase12-aggressive-0002",
+      "source_pixels": 9870,
+      "source_mask_sha256": "9af970165b48cac45464b5a6c1acae07661502dfd3340efab626d51e6d779901",
+      "rings": 2,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 2,
+        "holes": 1,
+        "euler_characteristic": 1
+      },
+      "owner_and_material_unchanged": true
+    },
+    "left_arm": {
+      "owner": "left_arm",
+      "primitive_id": "phase12-aggressive-0003",
+      "source_pixels": 10419,
+      "source_mask_sha256": "42000d87231f3b3ad0c0614d63e10a909ddf67bd6cbcf4f2580fada3863ea15a",
+      "rings": 1,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 1,
+        "holes": 1,
+        "euler_characteristic": 0
+      },
+      "owner_and_material_unchanged": true
+    },
+    "unknown": {
+      "owner": "unknown",
+      "primitive_id": "phase12-aggressive-0004",
+      "source_pixels": 445,
+      "source_mask_sha256": "7c71fdc39ef907443a5cdbd02ad2b8b99d9d099122c6a6e34a797f6739b4d1ec",
+      "rings": 5,
+      "degenerate_1_or_2_point_rings": 1,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 5,
+        "holes": 1,
+        "euler_characteristic": 4
+      },
+      "owner_and_material_unchanged": true
+    },
+    "face": {
+      "owner": "face",
+      "primitive_id": "phase12-aggressive-0005",
+      "source_pixels": 4052,
+      "source_mask_sha256": "edd718d5ab4132e169c64c8b7995221c57853ec9e2bbcf923e1a7a201576b69a",
+      "rings": 1,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 1,
+        "holes": 1,
+        "euler_characteristic": 0
+      },
+      "owner_and_material_unchanged": true
+    },
+    "major_clothing": {
+      "owner": "major_clothing",
+      "primitive_id": "phase12-aggressive-0006",
+      "source_pixels": 3771,
+      "source_mask_sha256": "41be3d57373d353c9ea4f6d37c137378b80968aea5c8b02c2231ae6eaead2afa",
+      "rings": 9,
+      "degenerate_1_or_2_point_rings": 1,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 9,
+        "holes": 1,
+        "euler_characteristic": 8
+      },
+      "owner_and_material_unchanged": true
+    },
+    "lower_body": {
+      "owner": "lower_body",
+      "primitive_id": "phase12-aggressive-0007",
+      "source_pixels": 1797,
+      "source_mask_sha256": "2d87eb92e38ff9ddbd87ee604c7fdb9ccbab0ca66c312f313956042fe25f34f4",
+      "rings": 3,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 3,
+        "holes": 1,
+        "euler_characteristic": 2
+      },
+      "owner_and_material_unchanged": true
+    },
+    "head": {
+      "owner": "head",
+      "primitive_id": "phase12-aggressive-0008",
+      "source_pixels": 14526,
+      "source_mask_sha256": "978b341aa5e4c55dbaf745faea7c4007a7d5a29459f43d0eedf5c9962a0bd32f",
+      "rings": 1,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 1,
+        "holes": 1,
+        "euler_characteristic": 0
+      },
+      "owner_and_material_unchanged": true
+    },
+    "accessory_or_held_object": {
+      "owner": "accessory_or_held_object",
+      "primitive_id": "phase12-aggressive-0009",
+      "source_pixels": 340,
+      "source_mask_sha256": "fe8525b68a5054004c72da6fb66899410b725c9f27d4401bee4295756a6778f1",
+      "rings": 1,
+      "degenerate_1_or_2_point_rings": 0,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 1,
+        "holes": 1,
+        "euler_characteristic": 0
+      },
+      "owner_and_material_unchanged": true
+    },
+    "neck": {
+      "owner": "neck",
+      "primitive_id": "phase12-aggressive-0010",
+      "source_pixels": 130,
+      "source_mask_sha256": "e8d52459fbd8922bc321d95064b22c837df3071eef7ce26b59102a95c994f31f",
+      "rings": 10,
+      "degenerate_1_or_2_point_rings": 2,
+      "raster_exact": true,
+      "raw_topology": {
+        "components": 4,
+        "holes": 2,
+        "euler_characteristic": 2
+      },
+      "owner_and_material_unchanged": true
+    }
+  },
+  "opencv_polygon_export_render_parity": true,
+  "degenerate_svg_rings": 7,
+  "browser_svg_parity_verified": false,
+  "human_visual_gate": "PENDING",
+  "promotion_authorized": false,
+  "status": "RESEARCH_TOPOLOGY_RESTORED_NO_GO",
+  "blockers": [
+    "VERTEX_BUDGET_EXCEEDED",
+    "DEGENERATE_SVG_FILL_PATHS",
+    "BROWSER_SVG_RASTER_AND_HUMAN_VISUAL_GATES_PENDING"
+  ],
+  "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "source_part_mask_sha256": {
+    "head": "539c8f4aa67e20907095a4a661518607a65e04936b533cc033a29a1d60877f99",
+    "hair": "d3ffd55d4a53454e413cacfefe99c51f03b1a14e87480432edab94a7289d7f8f",
+    "face": "d4e02dba6b046b80903f0987c336e7e391c80d4a16402bc86cd301886c4c7c44",
+    "neck": "913e8e6243d8f3546ca4d6cd45e393ec60c4d234e10305fa5ecfe98fa805aa3a",
+    "torso": "5b41889a686a17fa416b38e778b533fb1bc89d03b3400b3309d9088cf760482e",
+    "left_arm": "9368680cb975fac842d16b09a06ec7106e0f9c088e325b10f214ffca080e34b9",
+    "right_arm": "21ca6304da193976b0af5ce71ebf440cc232992c4ff6f3ba418840de2159dfbd",
+    "lower_body": "2a159a55f8a8ad7324330bba29995f3973f0d60d1c6ea45d1f6b6ef21437fe3a",
+    "major_clothing": "159b9fe19dd244b4752b082cfd90d27086ad886178c0af998a9c7c1dd25794f2",
+    "accessory_or_held_object": "18f7a307d7435894508ae3e39109d7c44c7a2e45a4cd514712c83052d41dcc0b",
+    "unknown": "cd974b5c1fca008eded08c81efc05d77bbe100540659048e5847ff384bd0886a"
+  },
+  "selected_name": "aggressive",
+  "baseline_primitive_count": 11,
+  "provenance_owner_audit": "OWNER_AUDIT_PASS",
+  "phase11_composition_sha256": "8a2fc4dcd8b3a2069d093a37dab4bc08a5915b146d36ee7fe6431a160d2b0ce2",
+  "phase04_masks_verified_against_manifest": true,
+  "original_scene_sha256": "2f0eb7d6ccee566b90d42a3d9916dab4578d20a83e745176851ddecdddd1385a",
+  "original_preview_sha256": "a3bb29ba061709433f64528c3af5cfa4ed72465817fea3865290a6390911d368",
+  "candidate_vector_scene_sha256": "2116c1068cccf686d1fa912c27b96167ffeebf4c0054a5d88ff4348f35643e06",
+  "candidate_preview_sha256": "5e3a23a3858c049bc06eaff99c9950b650eba1070cbdbb77e639cbfc3319d732",
+  "candidate_preview_source_mask_pixel_overlay": false,
+  "face_guard_changed_outside_mask_pixels": 0,
+  "preview_generated_using_official_phase12_renderer": true,
+  "original_inputs_modified": false
+}

@@ -1,0 +1,146 @@
+{
+  "schema": "sa10.35-internal-color-evaluation-v1",
+  "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "outer_scene_original_sha256": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+  "source_stage04_provenance_verified": true,
+  "original_adaptive_preview_sha256_verified": true,
+  "original_adaptive_preview_pixels_equal": true,
+  "outer_primitive_count_before": 11,
+  "outer_primitive_count_after": 11,
+  "external_geometry_changed": false,
+  "outer_raw_topology_gate": "PASS",
+  "outer_silhouette_iou": 0.9995681651336529,
+  "observed_source_colors_only": true,
+  "source_bitmap_painted": false,
+  "no_face_eyes_mouth_rendered": true,
+  "face_and_both_arms_unchanged": true,
+  "pixels_changed_outside_outer_silhouette": 0,
+  "pixels_changed_outside_interior_subplanes": 0,
+  "interior_subplane_count": 1,
+  "new_geometric_subpaths_counted": 1,
+  "total_painted_geometric_elements_estimate": 12,
+  "interior_subplane_vertices": 12,
+  "interior_edited_pixels": 2377,
+  "candidate_color_lab_mse_before": 2689.814516,
+  "candidate_color_lab_mse_after": 2177.899528,
+  "eligible_color_mse_improvement_ratio": 0.190316,
+  "owner_reports": {
+    "torso": {
+      "owner_pixels": 19183,
+      "source_lab_mse_before": 1788.371266,
+      "source_lab_mse_after": 1788.371266,
+      "lab_mse_relative_improvement": 0,
+      "added_interior_planes": 0
+    },
+    "hair": {
+      "owner_pixels": 19503,
+      "source_lab_mse_before": 3626.948572,
+      "source_lab_mse_after": 2465.71025,
+      "lab_mse_relative_improvement": 0.32017,
+      "added_interior_planes": 1
+    },
+    "major_clothing": {
+      "owner_pixels": 3773,
+      "source_lab_mse_before": 3459.822953,
+      "source_lab_mse_after": 3459.822953,
+      "lab_mse_relative_improvement": 0,
+      "added_interior_planes": 0
+    },
+    "lower_body": {
+      "owner_pixels": 1797,
+      "source_lab_mse_before": 582.100167,
+      "source_lab_mse_after": 582.100167,
+      "lab_mse_relative_improvement": 0,
+      "added_interior_planes": 0
+    }
+  },
+  "planes": [
+    {
+      "schema": "sa10.35-source-grounded-interior-planes-v1",
+      "owner": "hair",
+      "parent_primitive_id": "phase12-aggressive-0001",
+      "points": [
+        [
+          112,
+          47
+        ],
+        [
+          123,
+          48
+        ],
+        [
+          126,
+          55
+        ],
+        [
+          156,
+          50
+        ],
+        [
+          165,
+          91
+        ],
+        [
+          193,
+          87
+        ],
+        [
+          206,
+          93
+        ],
+        [
+          213,
+          118
+        ],
+        [
+          210,
+          81
+        ],
+        [
+          176,
+          41
+        ],
+        [
+          147,
+          35
+        ],
+        [
+          134,
+          47
+        ]
+      ],
+      "observed_rgb": [
+        156,
+        145,
+        143
+      ],
+      "parent_palette_rgb": [
+        58,
+        53,
+        62
+      ],
+      "source_provenance": "input-image-original-rgb-inside-existing-owner",
+      "additional_geometric_subpath": true,
+      "source_bitmap_overlay": false,
+      "face_or_arm_repaint": false,
+      "plane_area_pixels": 2377,
+      "owner_area_pixels": 19503,
+      "area_fraction_of_owner": 0.121879,
+      "polygon_vertex_count": 12,
+      "before_lab_mse": 3638.182946,
+      "after_lab_mse": 2476.944624,
+      "relative_lab_mse_reduction": 0.319181,
+      "source_rgb_pixel_sha256": "7a3fdd1b2876460d8a1583ad042fcbc9b3bd882bda0e8d617bdb558570ff632f"
+    }
+  ],
+  "original_outer_vector_budget_pass": false,
+  "browser_svg_clip_path_parity_verified": false,
+  "human_visual_review": "PENDING",
+  "production_promotion_authorized": false,
+  "status": "RESEARCH_COLOR_IMPROVED_BUT_HOLD",
+  "hard_blockers": [
+    "ORIGINAL_OUTER_VERTEX_BUDGET_FAILED",
+    "BROWSER_SVG_CLIP_PATH_PARITY_NOT_VERIFIED",
+    "HUMAN_VISUAL_REVIEW_NOT_APPROVED"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "sa10.38-real-chrome-execution-v1",
+  "chrome_binary_sha256": "6849d2982038de9f9489a7b3858f3b785b7fec06a842c93c517281d21995c8ca",
+  "chrome_version_stdout": "",
+  "chrome_version_probe_status": "TIMEOUT_OPTIONAL",
+  "chrome_version_exit_code": null,
+  "chrome_run_exit_code": 0,
+  "html_sha256": "89d3a1493428dad424615b5a2814c6d6d4e3056fe8861c34a4cdafd991a2dce9",
+  "svg_sha256": "b0eb7890cd6510966172e3c3f3dd49ddf38d86d6dc4e2f3ad2cb981e84d40716",
+  "screenshot_sha256": "319daed948ff6e7445e9687dc68111b93f79a34cdc10a52ac821a5e1ef2cd30d",
+  "window_size": [
+    800,
+    600
+  ],
+  "device_pixel_ratio": 1,
+  "used_private_isolated_chrome_profile": true,
+  "browser_engine_executed": true,
+  "production_promotion_authorized": false
+}
