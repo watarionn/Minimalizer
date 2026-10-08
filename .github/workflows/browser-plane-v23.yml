@@ -9,6 +9,7 @@ on:
       - "tests/test_browser_plane_v23.py"
       - "tools/run_browser_plane_v23_chrome.py"
       - "tools/analyze_browser_plane_v23.py"
+      - "tools/package_browser_plane_v23.py"
       - ".github/workflows/browser-plane-v23.yml"
   workflow_dispatch:
 
@@ -35,7 +36,7 @@ jobs:
           node --check web/static/canonical-contour.js
           node --check web/static/browser-fallback.js
           node --check web/static/app.js
-          python -m py_compile tools/run_browser_plane_v23_chrome.py tools/analyze_browser_plane_v23.py
+          python -m py_compile tools/run_browser_plane_v23_chrome.py tools/analyze_browser_plane_v23.py tools/package_browser_plane_v23.py
       - name: Geometry and inherited color safety tests
         run: |
           python -m pytest tests/test_browser_plane_v23.py tests/test_browser_auto_gated_v22.py tests/test_browser_targeted_v21.py tests/test_browser_donor_distribution_v20.py tests/test_browser_merge_diagnostic_v19.py tests/test_browser_near_v18.py tests/test_browser_selective_v17.py tests/test_browser_facet_v15.py tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
