@@ -7,7 +7,7 @@ import goggle_bangs_occlusion_evidence as m
 def test_two_disconnected_white_islands_remain_separate():
     rgb=np.full((340,340,3),[245,110,30],np.uint8)
     mask=np.zeros((340,340),np.uint8)
-    mask[40:43,100:103]=255;mask[40:43,115:118]=255
+    mask[40:44,100:104]=255;mask[40:44,115:119]=255
     parts,gaps=m.analyze(Image.fromarray(rgb),Image.fromarray(mask))
     assert len(parts)==2 and len(gaps)==1
     assert gaps[0]["bridge_authorized"] is False
