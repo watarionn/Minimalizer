@@ -60,7 +60,9 @@ def main():
     paths=[]
     for region,color,kind in layers:
         d,count,vertices=contours_path(region)
-        if not d:raise ValueError("Empty tone path")
+        if not d:
+            if kind=="observed-base":raise ValueError("Empty primary strand geometry")
+            continue  # Tiny source tonal island cannot form a faithful polygon
         paths.append((d,color,kind,count,vertices,region))
     prior={"full":args.prior/"repaired_bangs.svg","foreground":args.prior/"repaired_foreground.svg"}
     targets=[]
