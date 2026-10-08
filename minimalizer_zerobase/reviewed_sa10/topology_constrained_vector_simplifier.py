@@ -102,6 +102,7 @@ def adapt_exact_contours(
             if old_vertices <= 3:
                 continue
             selected = None
+            previous_mask = masks[primitive_id]
             for epsilon in epsilons:
                 points = cv2.approxPolyDP(
                     np.asarray(previous_points, dtype=np.float32).reshape(-1, 1, 2),
@@ -129,8 +130,10 @@ def adapt_exact_contours(
                         and full["metrics"]["silhouette_iou"] + 1e-12 >= minimum_global_iou):
                     selected = (points, rendered, epsilon)
                     break
+                masks[primitive_id] = previous_mask
             if selected is None:
                 rings[index]["points"] = previous_points
+                masks[primitive_id] = previous_mask
             else:
                 rings[index]["points"] = selected[0]
                 masks[primitive_id] = selected[1]
