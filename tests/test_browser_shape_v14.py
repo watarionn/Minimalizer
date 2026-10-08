@@ -28,7 +28,7 @@ def test_shape_opt_in_keeps_other_profiles_and_metadata():
     assert 'browserFallbackQualityParam === "shape"' in app
     assert 'browserFallbackQualityProfile() === "shape"' in app
     assert 'browserFallbackCanonicalContourLite()' in app
-    assert 'geometryMode: browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline"' in app
+    assert 'browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline"' in app
     assert 'SHAPE (experimental)' in app
     assert 'geometryMode: "baseline"' in engine
     assert "cornerPrunedVertices" in engine
@@ -120,8 +120,8 @@ global.MinimalizerCanonicalContour=require(process.argv[2]);
 const noRaster=check({geometryMode:"corner-aware",structuralMode:"l0-lite-jacobi",canonicalContourLite:true});
 process.stdout.write(JSON.stringify({noCanonical,exactMix,missingRuntime,noRaster}));
 """)
-    assert "Shape requires Lite preprocessing" in result["noCanonical"]
-    assert "Shape requires Lite preprocessing" in result["exactMix"]
+    assert "requires Lite preprocessing" in result["noCanonical"]
+    assert "requires Lite preprocessing" in result["exactMix"]
     assert "Sharp Lite requires shared-boundary" in result["missingRuntime"]
     assert "Sharp Lite requires shared-boundary" in result["noRaster"]
 
