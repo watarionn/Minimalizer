@@ -7,6 +7,8 @@ on:
       - "web/static/app.js"
       - "tests/test_browser_auto_gated_v22.py"
       - "tools/run_browser_auto_v22_chrome.py"
+      - "tools/analyze_browser_auto_v22.py"
+      - "tools/package_browser_auto_v22.py"
       - ".github/workflows/browser-auto-v22.yml"
   workflow_dispatch:
 
@@ -32,7 +34,7 @@ jobs:
         run: |
           node --check web/static/browser-fallback.js
           node --check web/static/app.js
-          python -m py_compile tools/run_browser_auto_v22_chrome.py
+          python -m py_compile tools/run_browser_auto_v22_chrome.py tools/analyze_browser_auto_v22.py tools/package_browser_auto_v22.py
       - name: Guard auto ranking, thin-feature detection, and prior modes
         run: |
           python -m pytest tests/test_browser_auto_gated_v22.py tests/test_browser_targeted_v21.py tests/test_browser_donor_distribution_v20.py tests/test_browser_merge_diagnostic_v19.py tests/test_browser_near_v18.py tests/test_browser_selective_v17.py tests/test_browser_facet_v15.py tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
