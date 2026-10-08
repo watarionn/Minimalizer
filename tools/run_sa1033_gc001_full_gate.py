@@ -145,7 +145,10 @@ def observe(
         parts[owner] = report
 
     source_union = np.logical_or.reduce(list(masks.values()))
-    actual_union = np.logical_or.reduce(list(primitive_masks.values()))
+    actual_union = np.logical_or.reduce([
+        primitive_masks[p["primitive_id"]]
+        for p in selected.primitives if p.get("structural_support_only") is not True
+    ])
     recorded_benchmark = _json(benchmark_path) if benchmark_path else None
     historical = recorded_benchmark.get("baseline", {}).get("anatomy", {}) if recorded_benchmark else {}
     global_gate = evaluate_source_silhouette_anatomy(source_union, actual_union, fragmentation_penalty=0.0)
