@@ -1,0 +1,45 @@
+{
+  "schema": "sa10.37-multicase-apparel-simplification-v1",
+  "source_count": 2,
+  "corrected_case_count": 1,
+  "unrelated_character_noop_count": 1,
+  "cases": {
+    "GC001": {
+      "gate": "PASS",
+      "status": "RESEARCH_GEOMETRIC_VERTEX_REDUCTION_HOLD",
+      "material_vertices_before_after": [
+        36,
+        27
+      ],
+      "self_intersection_before_after": [
+        [
+          1
+        ],
+        []
+      ],
+      "apparel_rgb_mse_improvement": 0.015834
+    },
+    "Raden": {
+      "gate": "PASS",
+      "status": "NONMATCHING_CASE_NO_OP",
+      "material_vertices_before_after": [
+        0,
+        0
+      ],
+      "self_intersection_before_after": [
+        [],
+        []
+      ],
+      "apparel_rgb_mse_improvement": 0
+    }
+  },
+  "research_gate": "PASS",
+  "failed_cases": [],
+  "production_promotion_authorized": false,
+  "open_release_gates": [
+    "OVERALL_OUTER_VERTEX_BUDGET_NOT_MET",
+    "BROWSER_SVG_CLIPPING_AND_RASTER_PARITY_NOT_PASSED",
+    "HUMAN_VISUAL_APPROVAL_REQUIRED"
+  ],
+  "status": "RESEARCH_GEOMETRY_CLEANUP_COMPLETE_NO_GO"
+}
