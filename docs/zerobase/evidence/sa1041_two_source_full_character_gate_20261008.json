@@ -1,0 +1,51 @@
+{
+  "schema": "sa10.41-two-character-full-svg-browser-research-v1",
+  "original_image_count": 2,
+  "distinct_source_sha_verified": true,
+  "source_rebuilt_full_RGB_pixel_exact_for_both": true,
+  "both_real_headless_Chrome_full_character_runs_attested": true,
+  "source_11_owner_back_to_front_and_flat_face_policy_retained": true,
+  "new_eyes_nose_mouth_generated": false,
+  "no_svg_source_bitmap_overlay": true,
+  "GC001": {
+    "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "original_source_ring_vertices": 3604,
+    "original_ring_budget_limit": 1887,
+    "combined_vertex_occurrences": 4312,
+    "micro_contour_count": 110,
+    "stage9_planes": 3,
+    "apparel_planes": 5,
+    "full_scene_RGB_differing_pixels": 3919,
+    "original_face_wrong_pixels": 140,
+    "left_arm_wrong_pixels": 206,
+    "right_arm_wrong_pixels": 199
+  },
+  "Raden": {
+    "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "original_source_ring_vertices": 2370,
+    "original_ring_budget_limit": 1412,
+    "combined_vertex_occurrences": 2976,
+    "micro_contour_count": 13,
+    "stage9_planes": 1,
+    "apparel_planes": 0,
+    "full_scene_RGB_differing_pixels": 2681,
+    "original_face_wrong_pixels": 122,
+    "left_arm_wrong_pixels": 237,
+    "right_arm_wrong_pixels": 255
+  },
+  "research_evidence_gate": "PASS",
+  "full_character_browser_exact_RGB_parity_gate": "FAIL",
+  "source_protected_face_left_right_arm_browser_gate": "FAIL",
+  "original_and_combined_vertex_budget_gate": "FAIL",
+  "second_positive_five_panel_garment_gate": "NOT_TESTED",
+  "human_visual_review": "PENDING",
+  "production_promotion_authorized": false,
+  "release_blockers": [
+    "GC001_FULL_CHARACTER_CHROME_RGB_PIXEL_PARITY_FAIL",
+    "RADEN_FULL_CHARACTER_CHROME_RGB_PIXEL_PARITY_FAIL",
+    "FACE_LEFT_RIGHT_ARM_BROWSER_BOUNDARY_PARITY_FAIL",
+    "ORIGINAL_CONTOUR_AND_COMBINED_SVG_VERTEX_BUDGET_FAIL",
+    "SECOND_INDEPENDENT_POSITIVE_FIVE_PLANE_APPAREL_IMAGE_MISSING",
+    "HUMAN_VISUAL_APPROVAL_MISSING"
+  ]
+}
