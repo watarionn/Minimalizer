@@ -37,6 +37,8 @@ GC001 is independently checked against **historical SA10.30 full-scene baseline*
 
 Raden uses separate **archived Phase04/11 diagnostics and a separately SHA-verified corpus source image**. Its Phase12 output was generated in a temporary isolated test directory for this evaluation; it is not claimed to be an earlier production deployment.
 
+**Archive limitation:** The standalone Phase12 CLI wrote complete Stage12 artifacts but then returned a nonzero exit at the all-phases contract bridge because the lightweight archived fixture did not contain a Phase03 stage manifest. The independent Phase7 observer verified the Stage04/11/12 SHA contracts, serialized primitives and preview bytes/pixels, not an end-to-end Phase03-to-12 archive replay. This remains a NO-GO research case, not a production PASS.
+
 ## Source vs actual render, per-owner
 
 | Source case | Face IoU | Hair IoU | Left arm IoU | Right arm IoU | Missing tiny source regions |
