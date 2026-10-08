@@ -112,7 +112,7 @@ def facial_micro_observations(source: Image.Image, face: np.ndarray):
     pixels=np.asarray(source.convert("RGB"),dtype=np.uint8)
     r,g,b=[pixels[:,:,i].astype(np.int16) for i in range(3)]
     yy,xx=np.mgrid[:SIZE[1],:SIZE[0]]
-    nose=(face&(xx>=160)&(xx<190)&(yy>=138)&(yy<155)&
+    nose=(face&(xx>=165)&(xx<184)&(yy>=138)&(yy<155)&
           (r-g>=19)&(r-b>=26)&(g>=139)&(r>188))
     mouth=(face&(xx>=151)&(xx<190)&(yy>=152)&(yy<164)&
            (pixels.min(axis=2)<180)&(r-g>12))
