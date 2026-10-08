@@ -3427,6 +3427,13 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (config.selectiveRegionMerge === true && (
+      config.structuralMode !== "l0-lite-jacobi"
+      || config.canonicalContourLite !== true
+      || config.geometryMode !== "facet-safe"
+    )) {
+      throw new Error("Selective region merging requires Facet geometry and Lite preprocessing.");
+    }
     if (
       (config.geometryMode === "corner-aware" || config.geometryMode === "facet-safe")
       && (config.canonicalContourLite !== true || config.structuralMode !== "l0-lite-jacobi")
