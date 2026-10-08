@@ -3680,6 +3680,12 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if(config.geometryMode==="plane-safe" && (
+      config.structuralMode!=="l0-lite-jacobi"
+      || config.canonicalContourLite!==true
+      || config.selectiveRegionMerge===true
+      || config.autoSelectiveMerge===true
+    ))throw Error("V23 plane-safe needs unmodified Facet structure.");
     if(config.autoSelectiveMerge === true && (
       config.selectiveRegionMerge === true
       ||config.structuralMode!=="l0-lite-jacobi"
