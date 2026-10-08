@@ -49,3 +49,32 @@ The attached Kyoko BrowserFallback result has wandering/jagged boundaries and bl
 6. Only then decide if experiment should become an opt-in public feature or a default; do not auto-merge or silently deploy.
 
 **Production integration remains HOLD until visual and CI gates pass.** Research artifacts and code belong to GitHub; original user images are not committed to the public repository.
+
+## Actual Kyoko / GC001 Chrome comparison: 2026-10-08 (completed)
+
+Source: previously archived `C:\\Work\\Temp\\macro-gc001\\GC001_source.png` (340x340), visually matching the user-provided Kyoko source. SHA256 `75EF1506709F65C39EA6B3501747C74423C7F2822A36D6F2FB7808C4B3F95F9E`. Not asserted byte-identical to the attachment.
+
+**Test host:** real Chrome 154.0.8037.98 with the isolated v13 branch commit `35b69a8`; static local HTTP server serving the exact repository web scripts, no Local Worker. Browser subject guidance active for all profiles. Common settings: analysisMaxSide 400, workMaxSide 400, maxShapes 40, slicIterations 10, paletteTarget 8. Same source per profile.
+
+| Metric | Lite | Exact | Geo v13 |
+| --- | ---: | ---: | ---: |
+| Shape count | 40 | 40 | 40 |
+| Rendered contour vertices | 1,409 | 1,571 | 2,303 |
+| Canonical shared vertices | N/A | 915 | 1,281 |
+| Original canonical vertices | N/A | 6,555 | 6,555 |
+| Unchanged/fallback chains | N/A | 15 | 4 |
+| Rejected candidates | N/A | 71 | 5 |
+| Minimum region IoU | 0.9496 | 0.9018 | 0.9116 |
+| Processing wall seconds | 3.90 | 13.16 | 11.89 |
+| Unique output RGB colors | 2,602 | 9 | 9 |
+| Pixel-adjacent color transitions | 13,510 | 4,609 | 4,545 |
+
+Note: the Lite RGB count includes Canvas antialiasing/intermediate pixels; Exact/Geo use fixed flat colors. These statistics compare geometry rendering, not subjective quality by themselves.
+
+Exact vs Geo changed-pixel ratio = **1.6566%**, RGB MAE = **1.3835**. Geo decreases adjacent color transitions slightly but **increases** final contour vertex count by 46.6% vs Exact (2,303 vs 1,571). It therefore fails the stated objective of clear, economical geometric regions. Human inspection of all three output PNGs confirmed remaining stair-step hair, neckline and jacket boundaries. Face-detail loss is intentional.
+
+**Decision: HOLD_NO_GEOMETRY_GAIN.** Do not merge, promote, or deploy the Geo profile. Default Lite and Exact remain as before. Keep PR #224 as draft, preserve benchmark evidence, and research constrained curvature-aware straight segment fitting on shared arcs as next candidate. Topology/IoU/fidelity hard gates stay intact.
+
+**Permanent evidence:** [Google Drive / chatGPT及びCodex用 / Minimalizer / BrowserFallback_GeometryV13_20261008](https://drive.google.com/drive/folders/1LwSrpUcGJ7Bdgwi2LmiAWqHurxLchlmq). Includes the original reference, independent PNG outputs, three four-column comparisons, metrics.json, evaluation.md, and benchmark scripts. Google Drive connector independently verified the primary output files after remote Drive sync.
+
+The result is a completed **evaluation** step, not a production-quality improvement. Future work should not claim `Geo` passes simply because the code and safety tests pass.
