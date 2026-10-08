@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "color") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "color");
 } else if (browserFallbackQualityParam === "plane") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "plane");
 } else if (browserFallbackQualityParam === "auto") {
@@ -30,7 +32,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(quality) ? quality : "lite";
+  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -40,7 +42,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(browserFallbackQualityProfile());
+  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -395,6 +397,9 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
+    colorPlaneRefine: browserFallbackQualityProfile() === "color",
+    colorPlaneOptions: browserFallbackQualityProfile() === "color"
+      ? {maxMoves:32,minGainSquared:2500,lowerYFraction:0.33} : undefined,
     autoSelectiveMerge: browserFallbackQualityProfile() === "auto",
     autoMergeOptions: browserFallbackQualityProfile() === "auto"
       ? { maxCandidates: 4, maxDonorFraction: 0.06 } : undefined,
@@ -402,7 +407,7 @@ async function requestBrowserFallback() {
     selectiveMergeOptions: browserFallbackQualityProfile() === "near"
       ? { allowNearPalette: true, maxMerges: 1, captureCandidateGeometry: true } : { allowNearPalette: false, maxMerges: 1 },
     geometryMode: browserFallbackQualityProfile() === "plane" ? "plane-safe"
-      : ["selective", "near", "auto", "plane"].includes(browserFallbackQualityProfile()) ? "facet-safe"
+      : ["selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile()) ? "facet-safe"
       : browserFallbackQualityProfile() === "facet" ? "facet-safe"
       : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
@@ -603,7 +608,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? browserQualityProfile === "plane"
+            ? browserQualityProfile === "color"
+              ? "Minimalizer Browser Fallback v12 · COLOR (research)"
+              : browserQualityProfile === "plane"
               ? "Minimalizer Browser Fallback v12 · PLANE (research)"
               : browserQualityProfile === "auto"
               ? "Minimalizer Browser Fallback v12 · AUTO (research)"
