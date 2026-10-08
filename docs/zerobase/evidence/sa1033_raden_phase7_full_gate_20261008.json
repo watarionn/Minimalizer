@@ -1,0 +1,852 @@
+{
+  "schema": "sa10.33-phase7-full-scene-authority-v1",
+  "provenance": {
+    "source_contract": true,
+    "policy_config_sha256_equal": true,
+    "selected_profile_equal": true,
+    "selected_serialized_records_equal": true,
+    "preview_bytes_sha256_valid": true,
+    "scene_bytes_sha256_valid": true,
+    "selected_render_preview_pixel_equal": true,
+    "selected_name": "aggressive",
+    "selected_primitive_count": 11,
+    "source_hash": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+    "preview_pixel_delta": 0,
+    "guard_changed_outside_face_pixels": 0
+  },
+  "owner_audit": {
+    "primitive_count": 11,
+    "explicit_owner_counts": {
+      "accessory_or_held_object": 1,
+      "face": 1,
+      "hair": 1,
+      "head": 1,
+      "left_arm": 1,
+      "lower_body": 1,
+      "major_clothing": 1,
+      "neck": 1,
+      "right_arm": 1,
+      "torso": 1
+    },
+    "unbound_primitive_count": 1,
+    "missing_required_owners": [],
+    "invalid_records": [],
+    "status": "OWNER_AUDIT_PASS"
+  },
+  "parts": {
+    "face": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 4052,
+        "observed_pixels": 4052,
+        "intersection_pixels": 4052,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "source_to_export": {
+        "reference_pixels": 4052,
+        "observed_pixels": 4059,
+        "intersection_pixels": 4048,
+        "missing_pixels": 4,
+        "excess_pixels": 11,
+        "xor_pixels": 15,
+        "iou": 0.9963081466896382,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 4052,
+        "observed_pixels": 4059,
+        "intersection_pixels": 4048,
+        "missing_pixels": 4,
+        "excess_pixels": 11,
+        "xor_pixels": 15,
+        "iou": 0.9963081466896382,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 4052,
+        "observed_pixels": 4052,
+        "intersection_pixels": 4052,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 4052,
+        "observed_pixels": 4059,
+        "intersection_pixels": 4048,
+        "missing_pixels": 4,
+        "excess_pixels": 11,
+        "xor_pixels": 15,
+        "iou": 0.9963081466896382,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 1,
+        "damaged_components": [],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 1,
+        "damaged_components": [
+          {
+            "area": 4052,
+            "overlap_pixels": 4048,
+            "lost_pixels": 4,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              132,
+              88,
+              78,
+              71
+            ]
+          }
+        ],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": true,
+      "primitive_id": "phase12-aggressive-0005",
+      "source_mask_replay": true,
+      "ring_count": 1,
+      "component_count": 1,
+      "status": "RESEARCH_DIAGNOSTIC_ONLY"
+    },
+    "hair": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 19467,
+        "observed_pixels": 19464,
+        "intersection_pixels": 19464,
+        "missing_pixels": 3,
+        "excess_pixels": 0,
+        "xor_pixels": 3,
+        "iou": 0.9998458930497766,
+        "reference_topology": {
+          "components": 8,
+          "holes": 5,
+          "euler_characteristic": 3
+        },
+        "observed_topology": {
+          "components": 5,
+          "holes": 5,
+          "euler_characteristic": 0
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "source_to_export": {
+        "reference_pixels": 19467,
+        "observed_pixels": 19538,
+        "intersection_pixels": 19434,
+        "missing_pixels": 33,
+        "excess_pixels": 104,
+        "xor_pixels": 137,
+        "iou": 0.9929998467119718,
+        "reference_topology": {
+          "components": 8,
+          "holes": 5,
+          "euler_characteristic": 3
+        },
+        "observed_topology": {
+          "components": 5,
+          "holes": 2,
+          "euler_characteristic": 3
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 19464,
+        "observed_pixels": 19538,
+        "intersection_pixels": 19434,
+        "missing_pixels": 30,
+        "excess_pixels": 104,
+        "xor_pixels": 134,
+        "iou": 0.9931520850367948,
+        "reference_topology": {
+          "components": 5,
+          "holes": 5,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 5,
+          "holes": 2,
+          "euler_characteristic": 3
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 19464,
+        "observed_pixels": 19464,
+        "intersection_pixels": 19464,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 5,
+          "holes": 5,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 5,
+          "holes": 5,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 19464,
+        "observed_pixels": 19538,
+        "intersection_pixels": 19434,
+        "missing_pixels": 30,
+        "excess_pixels": 104,
+        "xor_pixels": 134,
+        "iou": 0.9931520850367948,
+        "reference_topology": {
+          "components": 5,
+          "holes": 5,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 5,
+          "holes": 2,
+          "euler_characteristic": 3
+        },
+        "topology_pass": false,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 8,
+        "damaged_components": [
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              34,
+              80,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              66,
+              72,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              156,
+              95,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 3,
+        "fully_missing_pixels": 3,
+        "fully_missing_below_threshold_count": 3,
+        "fully_missing_below_threshold_pixels": 3
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 8,
+        "damaged_components": [
+          {
+            "area": 15356,
+            "overlap_pixels": 15332,
+            "lost_pixels": 24,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              68,
+              18,
+              199,
+              238
+            ]
+          },
+          {
+            "area": 3971,
+            "overlap_pixels": 3965,
+            "lost_pixels": 6,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              0,
+              79,
+              78,
+              80
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              34,
+              80,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              66,
+              72,
+              1,
+              1
+            ]
+          },
+          {
+            "area": 1,
+            "overlap_pixels": 0,
+            "lost_pixels": 1,
+            "missing_whole_island": true,
+            "below_canonical_threshold": true,
+            "bbox_xywh": [
+              156,
+              95,
+              1,
+              1
+            ]
+          }
+        ],
+        "fully_missing_component_count": 3,
+        "fully_missing_pixels": 3,
+        "fully_missing_below_threshold_count": 3,
+        "fully_missing_below_threshold_pixels": 3
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": false,
+      "primitive_id": "phase12-aggressive-0001",
+      "source_mask_replay": true,
+      "ring_count": 7,
+      "component_count": 5,
+      "status": "RESEARCH_DIAGNOSTIC_ONLY"
+    },
+    "left_arm": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 10419,
+        "observed_pixels": 10419,
+        "intersection_pixels": 10419,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "source_to_export": {
+        "reference_pixels": 10419,
+        "observed_pixels": 10416,
+        "intersection_pixels": 10403,
+        "missing_pixels": 16,
+        "excess_pixels": 13,
+        "xor_pixels": 29,
+        "iou": 0.9972200920245399,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 10419,
+        "observed_pixels": 10416,
+        "intersection_pixels": 10403,
+        "missing_pixels": 16,
+        "excess_pixels": 13,
+        "xor_pixels": 29,
+        "iou": 0.9972200920245399,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 10419,
+        "observed_pixels": 10419,
+        "intersection_pixels": 10419,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 10419,
+        "observed_pixels": 10416,
+        "intersection_pixels": 10403,
+        "missing_pixels": 16,
+        "excess_pixels": 13,
+        "xor_pixels": 29,
+        "iou": 0.9972200920245399,
+        "reference_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "observed_topology": {
+          "components": 1,
+          "holes": 1,
+          "euler_characteristic": 0
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 1,
+        "damaged_components": [],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 1,
+        "damaged_components": [
+          {
+            "area": 10419,
+            "overlap_pixels": 10403,
+            "lost_pixels": 16,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              247,
+              175,
+              93,
+              165
+            ]
+          }
+        ],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": true,
+      "primitive_id": "phase12-aggressive-0003",
+      "source_mask_replay": true,
+      "ring_count": 1,
+      "component_count": 1,
+      "status": "OBSERVED_ONLY"
+    },
+    "right_arm": {
+      "canonical_cutoff_pixels": 8,
+      "source_to_render": {
+        "reference_pixels": 9870,
+        "observed_pixels": 9870,
+        "intersection_pixels": 9870,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "observed_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "source_to_export": {
+        "reference_pixels": 9870,
+        "observed_pixels": 9866,
+        "intersection_pixels": 9859,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9981775842867268,
+        "reference_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "observed_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "render_to_export": {
+        "reference_pixels": 9870,
+        "observed_pixels": 9866,
+        "intersection_pixels": 9859,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9981775842867268,
+        "reference_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "observed_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "diagnostic_canonical_source_to_render": {
+        "reference_pixels": 9870,
+        "observed_pixels": 9870,
+        "intersection_pixels": 9870,
+        "missing_pixels": 0,
+        "excess_pixels": 0,
+        "xor_pixels": 0,
+        "iou": 1,
+        "reference_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "observed_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "topology_pass": true,
+        "exact": true
+      },
+      "diagnostic_canonical_source_to_export": {
+        "reference_pixels": 9870,
+        "observed_pixels": 9866,
+        "intersection_pixels": 9859,
+        "missing_pixels": 11,
+        "excess_pixels": 7,
+        "xor_pixels": 18,
+        "iou": 0.9981775842867268,
+        "reference_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "observed_topology": {
+          "components": 2,
+          "holes": 1,
+          "euler_characteristic": 1
+        },
+        "topology_pass": true,
+        "exact": false
+      },
+      "lost_source_components_in_render": {
+        "source_component_count": 2,
+        "damaged_components": [],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "lost_source_components_in_export": {
+        "source_component_count": 2,
+        "damaged_components": [
+          {
+            "area": 9581,
+            "overlap_pixels": 9570,
+            "lost_pixels": 11,
+            "missing_whole_island": false,
+            "below_canonical_threshold": false,
+            "bbox_xywh": [
+              0,
+              159,
+              103,
+              111
+            ]
+          }
+        ],
+        "fully_missing_component_count": 0,
+        "fully_missing_pixels": 0,
+        "fully_missing_below_threshold_count": 0,
+        "fully_missing_below_threshold_pixels": 0
+      },
+      "export_consistency_pass": false,
+      "raw_source_topology_pass": true,
+      "primitive_id": "phase12-aggressive-0002",
+      "source_mask_replay": true,
+      "ring_count": 2,
+      "component_count": 2,
+      "status": "OBSERVED_ONLY"
+    }
+  },
+  "global": {
+    "source_to_render": {
+      "reference_pixels": 69454,
+      "observed_pixels": 69424,
+      "intersection_pixels": 69424,
+      "missing_pixels": 30,
+      "excess_pixels": 0,
+      "xor_pixels": 30,
+      "iou": 0.9995680594350217,
+      "reference_topology": {
+        "components": 1,
+        "holes": 3,
+        "euler_characteristic": -2
+      },
+      "observed_topology": {
+        "components": 1,
+        "holes": 8,
+        "euler_characteristic": -7
+      },
+      "topology_pass": false,
+      "exact": false
+    },
+    "global_anatomy_gate": {
+      "schema_version": "sa10.18-source-silhouette-anatomy-gate-v1",
+      "gate": "FAIL",
+      "hard_failures": [
+        "source_topology_changed"
+      ],
+      "can_override_hard_fail": false,
+      "source_evidence": {
+        "mask_pixels": 69454,
+        "topology": [
+          1,
+          3
+        ]
+      },
+      "candidate_evidence": {
+        "mask_pixels": 69424,
+        "topology": [
+          1,
+          8
+        ]
+      },
+      "metrics": {
+        "silhouette_iou": 0.9995680594350217,
+        "fragmentation_penalty": 0
+      },
+      "policy": {
+        "silhouette_iou_minimum": 0.96,
+        "fragmentation_threshold": 0.2,
+        "vectorization_authority": false,
+        "shape_matching_authority": false,
+        "topology_preservation_hard": true,
+        "saliency_perceptual_observer_only": true
+      }
+    },
+    "historical_sa1030_match": null
+  },
+  "zorder": {
+    "pre_face_guard_owner_visibility": {
+      "__unbound__": {
+        "raw_pixels": 442,
+        "visible_pixels": 442,
+        "occluded_pixels": 0
+      },
+      "accessory_or_held_object": {
+        "raw_pixels": 340,
+        "visible_pixels": 340,
+        "occluded_pixels": 0
+      },
+      "face": {
+        "raw_pixels": 4052,
+        "visible_pixels": 4052,
+        "occluded_pixels": 0
+      },
+      "hair": {
+        "raw_pixels": 19464,
+        "visible_pixels": 19464,
+        "occluded_pixels": 0
+      },
+      "left_arm": {
+        "raw_pixels": 10419,
+        "visible_pixels": 10419,
+        "occluded_pixels": 0
+      },
+      "lower_body": {
+        "raw_pixels": 1797,
+        "visible_pixels": 1797,
+        "occluded_pixels": 0
+      },
+      "major_clothing": {
+        "raw_pixels": 3749,
+        "visible_pixels": 3749,
+        "occluded_pixels": 0
+      },
+      "neck": {
+        "raw_pixels": 131,
+        "visible_pixels": 131,
+        "occluded_pixels": 0
+      },
+      "right_arm": {
+        "raw_pixels": 9870,
+        "visible_pixels": 9870,
+        "occluded_pixels": 0
+      },
+      "torso": {
+        "raw_pixels": 19160,
+        "visible_pixels": 19160,
+        "occluded_pixels": 0
+      }
+    },
+    "uncovered_canvas_pixels": 46176,
+    "painted_union_pixels": 69424,
+    "face_guard_is_post_zorder": true
+  },
+  "serialized_export_drift_owners": [
+    "face",
+    "hair",
+    "left_arm",
+    "right_arm"
+  ],
+  "source_topology_drift_owners": [
+    "hair"
+  ],
+  "reproduction_pass": true,
+  "hard_blockers": [
+    "OWNER_SOURCE_TOPOLOGY_DRIFT",
+    "SERIALIZED_VECTOR_RENDER_DRIFT",
+    "UNVERIFIED_MULTICASE_AND_HUMAN_VISUAL_GATE",
+    "source_topology_changed"
+  ],
+  "promotion_authorized": false,
+  "status": "RESEARCH_COMPLETE_NO_GO",
+  "safety": {
+    "generative_pixels": 0,
+    "input_pixel_edit": false,
+    "scene_mutation": false,
+    "arm_geometry_mutation": false,
+    "canonical_material_cleaning_only_diagnostic": true,
+    "requires_visual_review": true,
+    "requires_independent_cases": true
+  }
+}
