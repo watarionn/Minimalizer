@@ -32,7 +32,6 @@ from minimalize_engine.v2 import (
 )
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
 from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
-from local_worker.rrm_admission import RRMAdmissionDenied, compute_slot
 from minimalizer_zerobase.production.profile import REVIEWED_SA10_PROFILE
 logger = logging.getLogger(__name__)
 
@@ -365,11 +364,11 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
+            # The owner-only PWA must not compete for RRM's global heavy slot
+            # or depend on its 6 GiB free-RAM admission threshold.
+            # _process_lock still enforces one active LocalWorker job.
             try:
-                with compute_slot("zerobase2"):
-                    result, summary = _run_zerobase2(input_path)
-            except RRMAdmissionDenied as exc:
-                raise HTTPException(status_code=429, detail="Local compute is waiting for resources.", headers={"Retry-After": "10", "X-Minimalizer-RRM": exc.reason}) from exc
+                result, summary = _run_zerobase2(input_path)
             except Exception as exc:
                 logger.exception("ZeroBase2 production minimalization failed")
                 detail = str(exc)
@@ -434,15 +433,14 @@ async def minimalize_local(
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
+            # Owner-only PWA image processing is excluded from RRM admission.
+            # Preserve _process_lock and the ordinary runtime error handling.
             try:
-                with compute_slot("v2"):
-                    result, selection = _run_high_quality(
-                        input_path,
-                        preset=preset,
-                        include_facets=include_facets,
-                    )
-            except RRMAdmissionDenied as exc:
-                raise HTTPException(status_code=429, detail="Local compute is waiting for resources.", headers={"Retry-After": "10", "X-Minimalizer-RRM": exc.reason}) from exc
+                result, selection = _run_high_quality(
+                    input_path,
+                    preset=preset,
+                    include_facets=include_facets,
+                )
             except HTTPException:
                 raise
             except Exception as exc:
