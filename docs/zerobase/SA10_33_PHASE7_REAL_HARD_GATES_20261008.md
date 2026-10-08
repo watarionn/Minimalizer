@@ -1,6 +1,6 @@
 # SA10.33 Phase 7: Real full-scene authority and multi-case hard gates
 
-Date: 2026-10-08 (JST)  
+Date: 2026-10-08 (JST)
 Branch: `research/sa1032-svg-contour-proposals` · PR #223 (draft, unmerged)
 
 ## Final Phase 7 assessment
