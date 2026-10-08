@@ -4066,6 +4066,7 @@
       cutCanonicalPaletteHierarchy,
       repairCanonicalPaletteRelationships,
       consolidateCanonicalPalette,
+      mergeAcceptedPaletteRegions,
       analyzeRgba,
       renderAnalysis,
     }),
