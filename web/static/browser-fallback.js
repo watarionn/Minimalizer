@@ -3943,13 +3943,20 @@
       && globalThis.MinimalizerCanonicalContour
       && typeof globalThis.MinimalizerCanonicalContour.simplifyLabels === "function"
     ) {
-      canonicalContour = globalThis.MinimalizerCanonicalContour.simplifyLabels(
-        selectedHierarchy.built.componentIds,
-        width,
-        height,
-        selectedHierarchy.built.components.length,
-        { geometryMode: config.geometryMode },
-      );
+      try {
+        canonicalContour = globalThis.MinimalizerCanonicalContour.simplifyLabels(
+          selectedHierarchy.built.componentIds,
+          width, height, selectedHierarchy.built.components.length,
+          { geometryMode: config.geometryMode },
+        );
+      } catch (error) {
+        if (config.colorPlaneRefine !== true) throw error;
+        const base = analyzeRgba(rgba,width,height,{...config,colorPlaneRefine:false});
+        base.metrics.colorPlaneQualityGate = "rejected:invalid_contour";
+        base.metrics.colorPlaneCandidates = colorPlaneMetrics.candidates;
+        base.metrics.colorPlaneTrialMovedPixels = colorPlaneMetrics.movedPixels;
+        return base;
+      }
     }
 
     let contourIoUSum = 0;
