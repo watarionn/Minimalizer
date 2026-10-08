@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "plane") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "plane");
 } else if (browserFallbackQualityParam === "auto") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "auto");
 } else if (browserFallbackQualityParam === "near") {
@@ -28,7 +30,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto"].includes(quality) ? quality : "lite";
+  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -38,7 +40,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return ["sharp", "shape", "facet", "selective", "near", "auto"].includes(browserFallbackQualityProfile());
+  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -399,7 +401,8 @@ async function requestBrowserFallback() {
     selectiveRegionMerge: ["selective","near"].includes(browserFallbackQualityProfile()),
     selectiveMergeOptions: browserFallbackQualityProfile() === "near"
       ? { allowNearPalette: true, maxMerges: 1, captureCandidateGeometry: true } : { allowNearPalette: false, maxMerges: 1 },
-    geometryMode: ["selective", "near", "auto"].includes(browserFallbackQualityProfile()) ? "facet-safe"
+    geometryMode: browserFallbackQualityProfile() === "plane" ? "plane-safe"
+      : ["selective", "near", "auto", "plane"].includes(browserFallbackQualityProfile()) ? "facet-safe"
       : browserFallbackQualityProfile() === "facet" ? "facet-safe"
       : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
@@ -600,7 +603,9 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? browserQualityProfile === "auto"
+            ? browserQualityProfile === "plane"
+              ? "Minimalizer Browser Fallback v12 · PLANE (research)"
+              : browserQualityProfile === "auto"
               ? "Minimalizer Browser Fallback v12 · AUTO (research)"
               : browserQualityProfile === "near"
               ? "Minimalizer Browser Fallback v12 · NEAR (research)"
