@@ -3316,8 +3316,124 @@
     };
   }
 
+
+  // v17: Selective region merge. Only merge two already-adjacent components
+  // using the SAME accepted palette ID. It never recomputes the palette, and
+  // never performs the unsafe global 40->30 hierarchy cut from v16.
+  function mergeAcceptedPaletteRegions(hierarchy, palette, width, height, settings) {
+    const config = Object.assign({
+      maxMerges: 2, maxSmallFraction: 0.0015,
+      maxSourceRgbDistance: 16, minSharedEdges: 5,
+      minSharedRatio: 0.18, minBoundingSide: 5,
+      maxAspectRatio: 3.0,
+    }, settings || {});
+    const base = hierarchy.built.components;
+    const labels = hierarchy.built.componentIds;
+    const owners = base.map((component, id) => ({
+      ...component, id, pixels: component.pixels.slice(),
+      rgb: component.rgb.slice(), active: true,
+      paletteId: palette.assignments[id],
+      paletteRgb: palette.colors[id].slice(),
+    }));
+    const mergedFrom = owners.map((_, id) => [id]);
+    let applied = 0, evaluated = 0, rejected = 0;
+    const total = width * height;
+    const ownerOf = new Int32Array(labels);
+
+    function neighbors() {
+      const edges = new Map();
+      function add(a,b) {
+        if (a===b) return;
+        const lo=Math.min(a,b),hi=Math.max(a,b),key=lo+":"+hi;
+        edges.set(key,(edges.get(key)||0)+1);
+      }
+      for (let y=0;y<height;y+=1) for(let x=0;x<width;x+=1) {
+        const i=y*width+x,a=ownerOf[i];
+        if(x+1<width)add(a,ownerOf[i+1]);
+        if(y+1<height)add(a,ownerOf[i+width]);
+      }
+      return edges;
+    }
+    function validShape(g) {
+      const w=g.maxX-g.minX+1,h=g.maxY-g.minY+1;
+      return Math.min(w,h)>=config.minBoundingSide
+        && Math.max(w/h,h/w)<=config.maxAspectRatio;
+    }
+    while(applied<config.maxMerges) {
+      const possible=[];
+      for(const [key,shared] of neighbors()) {
+        evaluated+=1;
+        const [aId,bId]=key.split(":").map(Number);
+        const a=owners[aId],b=owners[bId];
+        if(!a?.active||!b?.active||a.paletteId!==b.paletteId) {rejected+=1;continue;}
+        const small=a.count<=b.count?a:b;
+        const large=small===a?b:a;
+        if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;continue;}
+        const dx=small.rgb[0]-large.rgb[0],dy=small.rgb[1]-large.rgb[1],dz=small.rgb[2]-large.rgb[2];
+        const colorDelta=Math.hypot(dx,dy,dz);
+        const perimeter=2*((small.maxX-small.minX+1)+(small.maxY-small.minY+1));
+        if(colorDelta>config.maxSourceRgbDistance||shared<config.minSharedEdges
+           ||shared/perimeter<config.minSharedRatio) {rejected+=1;continue;}
+        possible.push({source:small.id,target:large.id,shared,colorDelta,area:small.count});
+      }
+      possible.sort((a,b)=>a.area-b.area||a.colorDelta-b.colorDelta
+        ||b.shared-a.shared||a.source-b.source||a.target-b.target);
+      if(!possible.length) break;
+      const winner=possible[0],source=owners[winner.source],target=owners[winner.target];
+      const combined=source.count+target.count;
+      target.rgb=target.rgb.map((v,j)=>Math.round((v*target.count+source.rgb[j]*source.count)/combined));
+      target.count=combined;
+      target.minX=Math.min(target.minX,source.minX);
+      target.minY=Math.min(target.minY,source.minY);
+      target.maxX=Math.max(target.maxX,source.maxX);
+      target.maxY=Math.max(target.maxY,source.maxY);
+      target.borderTouches+=source.borderTouches;
+      target.pixels.push(...source.pixels);
+      mergedFrom[target.id].push(...mergedFrom[source.id]);
+      source.active=false;
+      for(const pixel of source.pixels)ownerOf[pixel]=target.id;
+      applied+=1;
+    }
+    if(applied===0) return {
+      hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0},
+    };
+    const retained=owners.filter(x=>x.active).sort((a,b)=>a.id-b.id);
+    const finalLabels=new Int32Array(total);finalLabels.fill(-1);
+    const finalComponents=retained.map((group,id)=>{
+      for(const pixel of group.pixels)finalLabels[pixel]=id;
+      return {
+        id, sourceId:group.sourceId, label:id,
+        pixels:group.pixels,count:group.count,minX:group.minX,minY:group.minY,
+        maxX:group.maxX,maxY:group.maxY,borderTouches:group.borderTouches,
+        rgb:group.rgb, lab:group.lab,
+      };
+    });
+    if(finalLabels.some(x=>x<0)) throw Error("Selective region merge lost pixel coverage.");
+    return {
+      hierarchy:{
+        ...hierarchy,
+        built:{components:finalComponents,componentIds:finalLabels},
+        groups:finalComponents,
+        selectedCount:finalComponents.length,
+      },
+      palette:{
+        ...palette,
+        assignments:retained.map(g=>g.paletteId),
+        colors:retained.map(g=>g.paletteRgb.slice()),
+      },
+      metrics:{applied,evaluated,rejected,changedPixels:0},
+    };
+  }
+
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (config.selectiveRegionMerge === true && (
+      config.structuralMode !== "l0-lite-jacobi"
+      || config.canonicalContourLite !== true
+      || config.geometryMode !== "facet-safe"
+    )) {
+      throw new Error("Selective region merging requires Facet geometry and Lite preprocessing.");
+    }
     if (
       (config.geometryMode === "corner-aware" || config.geometryMode === "facet-safe")
       && (config.canonicalContourLite !== true || config.structuralMode !== "l0-lite-jacobi")
@@ -3381,7 +3497,7 @@
       height,
       config,
     );
-    const palette = consolidateCanonicalPalette(
+    let palette = consolidateCanonicalPalette(
       hierarchy.groups,
       hierarchy.built.componentIds,
       rgba,
@@ -3390,6 +3506,14 @@
       height,
       config,
     );
+    let selectedHierarchy = hierarchy;
+    let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0};
+    if (config.selectiveRegionMerge === true) {
+      const selective = mergeAcceptedPaletteRegions(hierarchy,palette,width,height,config.selectiveMergeOptions);
+      selectedHierarchy = selective.hierarchy;
+      palette = selective.palette;
+      selectiveMergeMetrics = selective.metrics;
+    }
 
     let canonicalContour = null;
     if (
@@ -3399,17 +3523,17 @@
       && typeof globalThis.MinimalizerCanonicalContour.simplifyLabels === "function"
     ) {
       canonicalContour = globalThis.MinimalizerCanonicalContour.simplifyLabels(
-        hierarchy.built.componentIds,
+        selectedHierarchy.built.componentIds,
         width,
         height,
-        hierarchy.built.components.length,
+        selectedHierarchy.built.components.length,
         { geometryMode: config.geometryMode },
       );
     }
 
     let contourIoUSum = 0;
     let vertexCount = 0;
-    const shapes = hierarchy.built.components.map((component, index) => {
+    const shapes = selectedHierarchy.built.components.map((component, index) => {
       let geometry;
       if (canonicalContour) {
         const rings = canonicalContour.loopsByRegion[index].map((ring) => (
@@ -3424,7 +3548,7 @@
       } else {
         geometry = componentGeometry(
           component,
-          hierarchy.built.componentIds,
+          selectedHierarchy.built.componentIds,
           width,
           height,
           config.contourFidelity,
@@ -3466,7 +3590,10 @@
         safeCandidateCount: hierarchy.safeCandidateCount,
         subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
-        hierarchyCutCount: hierarchy.selectedCount,
+        hierarchyCutCount: selectedHierarchy.selectedCount,
+        selectiveMergeApplied: selectiveMergeMetrics.applied,
+        selectiveMergeEvaluated: selectiveMergeMetrics.evaluated,
+        selectiveMergeRejected: selectiveMergeMetrics.rejected,
         cutObjective: hierarchy.cutObjective,
         cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
         cutMaxHeight: hierarchy.cutMaxHeight,
@@ -3789,7 +3916,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -3808,6 +3935,7 @@
       "X-Minimalizer-Safe-Merges": String(analysis.metrics.safeMergeCount),
       "X-Minimalizer-Hierarchy-Merges": String(analysis.metrics.hierarchyMergeCount),
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
+      "X-Minimalizer-Selective-Merges": String(analysis.metrics.selectiveMergeApplied),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -3833,7 +3961,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.geometryMode === "facet-safe"
+        qualityProfile: config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -3865,6 +3993,9 @@
         safeMergeCount: analysis.metrics.safeMergeCount,
         hierarchyMergeCount: analysis.metrics.hierarchyMergeCount,
         hierarchyCutCount: analysis.metrics.hierarchyCutCount,
+        selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
+        selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
+        selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
@@ -3942,6 +4073,7 @@
       cutCanonicalPaletteHierarchy,
       repairCanonicalPaletteRelationships,
       consolidateCanonicalPalette,
+      mergeAcceptedPaletteRegions,
       analyzeRgba,
       renderAnalysis,
     }),
