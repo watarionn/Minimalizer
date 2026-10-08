@@ -35,8 +35,8 @@ v23 establishes the feasibility of more ambitious **large-plane straightening tr
 
 - Isolated Windows v12–v23 regression suite: **63 PASS**, JS syntax check PASS.
 - Actual original golden PNG audit and ROI checks: **3 PASS**.
-- GitHub CI `.github/workflows/browser-plane-v23.yml` and inherited suites: check conclusions explicitly before claiming PASS.
-- Evidence location: [Google Drive v23 in chatGPT及びCodex用/Minimalizer](https://drive.google.com/drive/folders/1rAqWeEl1d7RKPs_laZVfkGg43Zc3BOQw). Includes source/Facet/Plane PNG comparison, JSON and CSV metrics, original inputs archive and reproducible Chrome scripts.
+- **GitHub Actions 10/10 PASS** on code-bearing commit `ee4e6f7cf2f2a8f9745a63327914c3fe77941629`: v23 Plane, v22 Auto, v21, v20, v19, v18, v17, Facet v15, Shape v14 and Sharp Lite v13.
+- Evidence location: [Google Drive v23 in chatGPT及びCodex用/Minimalizer](https://drive.google.com/drive/folders/1rAqWeEl1d7RKPs_laZVfkGg43Zc3BOQw). **10 files confirmed through Google Drive API** and SHA256-verified byte-for-byte on the mounted PC: original source/Facet/Plane image archive, 3-source comparison, JSON and CSV, report, test and reproducible Chrome scripts.
 
 ## Next phase (v24)
 
