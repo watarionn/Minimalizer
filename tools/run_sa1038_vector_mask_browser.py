@@ -120,6 +120,7 @@ def prepare_vector_mask(
     parent_dx: float=-0.25, parent_dy: float=0.5,
     material_shift: float=0.5, material_stroke: float=1.0,
     hole_edge_stroke: float=1.0,
+    parent_outline_stroke: float=0.0,
 ) -> dict:
     for value in (parent_dx,parent_dy,material_shift):
         if not np.isfinite(value) or abs(value)>1.0:
@@ -127,6 +128,8 @@ def prepare_vector_mask(
     for value in (material_stroke,hole_edge_stroke):
         if not np.isfinite(value) or not 0.5<=value<=1.5:
             raise ValueError("SVG stroke-width calibration limited to [0.5,1.5]px")
+    if not np.isfinite(parent_outline_stroke) or not 0.0<=parent_outline_stroke<=2.0:
+        raise ValueError("SVG parent-owner boundary stroke must be within [0,2]px")
     scene=_load(original_outer_scene)
     garment=_load(simplified_apparel_scene)
     report=_load(simplified_apparel_metrics)
@@ -172,6 +175,12 @@ def prepare_vector_mask(
                 for r in source_rings if r["depth"]%2==1]
     material_paths=[_polygon_points(p["points"],shift=material_shift) for p in apparel]
     mask_trans=f"translate({parent_dx:g} {parent_dy:g})"
+    # Optional extra white paint pass on the *existing source contour*.
+    # Count its reused contour points explicitly; it is not free geometry.
+    parent_outline_css=(
+        f' stroke="#ffffff" stroke-width="{parent_outline_stroke:g}" stroke-linejoin="round"'
+        if parent_outline_stroke>0 else ""
+    )
     head=(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" shape-rendering="crispEdges">'
@@ -180,7 +189,7 @@ def prepare_vector_mask(
         f'x="0" y="0" width="{width}" height="{height}">'
         f'<rect x="0" y="0" width="{width}" height="{height}" fill="#000000"/>'
         f'<path d="{source_filled_path}" fill="#ffffff" fill-rule="evenodd" '
-        f'transform="{mask_trans}" shape-rendering="crispEdges"/>'
+        f'transform="{mask_trans}"{parent_outline_css} shape-rendering="crispEdges"/>'
     )
     hole_svg=[
         f'<path d="{data}" fill="none" stroke="#ffffff" '
@@ -238,6 +247,12 @@ def prepare_vector_mask(
         "svg_apparel_polygon_vertices":sum(len(p["points"]) for p in apparel),
         "source_owner_svg_mask_ring_vertices":sum(len(r["points"]) for r in source_rings),
         "svg_mask_hole_boundary_stroke_paths":len(hole_paths),
+        "svg_parent_outline_stroke_px":parent_outline_stroke,
+        "svg_parent_outline_stroke_paint_passes":int(parent_outline_stroke>0),
+        "svg_parent_outline_reused_ring_point_occurrences":(
+            sum(len(r["points"]) for r in source_rings) if parent_outline_stroke>0 else 0
+        ),
+        "svg_parent_outline_extra_stroke_counted":True,
         "svg_mask_hole_boundary_stroke_vertices":sum(len(r["points"]) for r in source_rings if r["depth"]%2==1),
         "added_hole_boundary_svg_stroke_paint_passes_are_counted":True,
         **neutral,
@@ -430,6 +445,7 @@ def main()->None:
     p.add_argument("--material-shift",type=float,default=0.5)
     p.add_argument("--material-stroke",type=float,default=1.0)
     p.add_argument("--hole-stroke",type=float,default=1.0)
+    p.add_argument("--parent-outline-stroke",type=float,default=0.0)
     args=p.parse_args()
     if args.compare_chrome and args.render_chrome:
         raise ValueError("choose one real Chrome execution mode")
@@ -450,6 +466,7 @@ def main()->None:
             parent_dx=args.parent_dx,parent_dy=args.parent_dy,
             material_shift=args.material_shift,material_stroke=args.material_stroke,
             hole_edge_stroke=args.hole_stroke,
+            parent_outline_stroke=args.parent_outline_stroke,
         )
 
 
