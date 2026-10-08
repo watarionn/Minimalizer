@@ -28,6 +28,8 @@ def test_only_research_engine_exposes_target_no_global_cut_or_app_ui():
     assert 'protectedColors:[]' in engine
     assert 'browserFallbackQualityParam === "targeted"' not in app
     assert "captureCandidateGeometry: true" in app
+    assert "result.metrics.vertexCount>=base.metrics.vertexCount" in engine
+    assert '"no_vertex_gain"' in engine
     assert 'hierarchyTargetMax: 30' not in app
 
 
