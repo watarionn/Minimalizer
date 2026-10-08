@@ -166,7 +166,7 @@ def prepare_vector_mask(
     source_rings,neutral=prove_degenerate_rings_raster_neutral(
         parent,width=width,height=height,
     )
-    source_filled_path=" ".join(_path(r["points"]) for r in source_rings)
+    source_filled_path=" ".join(_path(r["points"],shift=material_shift) for r in source_rings)
     hole_paths=[_path(r["points"],shift=material_shift)
                 for r in source_rings if r["depth"]%2==1]
     material_paths=[_polygon_points(p["points"],shift=material_shift) for p in apparel]
