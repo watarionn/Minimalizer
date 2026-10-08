@@ -5,7 +5,7 @@ Scope: **BrowserFallback only**, non-local; do not alter Local Worker, ZeroBase2
 Repository: `watarionn/Minimalizer`
 Branch: `feat/browser-facet-v15-guarded-refinement-20261008`
 Development PR: [#227](https://github.com/watarionn/Minimalizer/pull/227)
-Status: **REAL-CHROME QUALITY GATE PASSED / integration-release gate separate**.
+Status: **PRODUCTION VERIFIED / Facet v15 opt-in shipped; Lite default unchanged.**
 
 ## User requirement
 
@@ -75,3 +75,10 @@ Six-column comparison sheets include source, Lite, Sharp, Shape, Facet, Exact fo
 ## Release boundary
 
 This is an explicit `facet` experimental quality profile, **not** an automatic replacement for existing Lite/Sharp/Shape/Exact. A production release must explicitly verify merge, static Shin deployment without touching unrelated files, remote public-JS byte hashes, actual live Chrome output against the accepted per-source SHA256, and persistent rollback copies. Until those checks pass, do not describe this as deployed.
+
+
+## Production closure: 2026-10-08
+
+**PRODUCTION VERIFIED as opt-in.** PR #227 merged to main at `0f83b5ad91482dc1afe766955ca53f9072c9604b`. Shin static frontend updated by backing up and binary uploading only the three changed JavaScript files. Public HTTPS responses matched release-build SHA256; ONNX and WASM MIME checks passed. Live Chrome invoked the actual `requestBrowserFallback()` route and all **five** quality profiles (`lite/sharp/shape/facet/exact`) generated PNGs **byte-identical** to the accepted 340×340 Kyoko benchmark, including Facet's 68 pruned vertices. Production defaults unchanged.
+
+Authoritative [handoff](../handoffs/HND-20261008-BROWSER_FACET_V15_PRODUCTION.md) and [Google Drive release evidence](https://drive.google.com/drive/folders/18i2iowA2XJR6vTgdx1NDRRgNAG8-a26d) supersede the earlier pre-merge/deploy HOLD language above. Rollback binaries are preserved there; rollback was not required. **No Local Worker change.**
