@@ -46,7 +46,7 @@ Noel automatically discovers 16→24 as the highest-ranked pair but **rejects th
 - `tools/run_browser_auto_v22_chrome.py`: real Chrome UI/engine parity.
 - `tools/analyze_browser_auto_v22.py`: baseline SHA256, ROI/color/silhouette fidelity, trace audit, montage, report, raw archives.
 - `tools/package_browser_auto_v22.py`: source+evidence preservation with SHA256 check.
-- [Google Drive evidence folder](https://drive.google.com/drive/folders/1GB06qmT_pe2gR-aLnGsDEUpejpTjXPTZ) under the required `chatGPT及びCodex用/Minimalizer` hierarchy.
+- [Google Drive evidence folder](https://drive.google.com/drive/folders/10uAjIiEoObdHr82bBmlzGv4h5L5gqn0h) in the short canonical path `chatGPT及びCodex用/Minimalizer/AutoSelectiveV22_20261008`. The original deeply nested folder caused synchronization uncertainty; preserve only the shallow folder as the intended destination after confirming Drive API visibility. The local Drive-mounted copy has 10 files with matching SHA256; Drive API confirmation is tracked separately.
 
 ## Gate and next iteration
 
