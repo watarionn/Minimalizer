@@ -34,3 +34,20 @@ UI integration was tested in Chrome: the experimental Mass route and direct engi
 The Chrome benchmark script lives on the development host (`_compare_browser_mass_v16.py`) and is preserved with images, metrics and source archive at [Google Drive Region Mass v16 HOLD](https://drive.google.com/drive/folders/1w_8szhjmGe5WnLhqwou7JaF7-o27darF), under the mandated `chatGPT及びCodex用/Minimalizer` hierarchy.
 
 Future work: create a baseline-relative, candidate-by-candidate region merge gate. No production quality claim for Mass v16.
+
+
+## Extended verification: Noel and Ririka (same Chrome baseline)
+
+The initial Kyoko negative result was replicated against two more previously benchmarked 340×340 sources using real Chrome 154. Same Lite/FACET structural settings; only the hierarchy cut was lowered from 40 to 30 color regions. Actual `app.js` Mass route matched direct engine PNG bytes on **all three** samples.
+
+| Source | Facet regions / vertices | Mass regions / vertices | Changed pixels vs Facet | Mass minimum contour region IoU |
+| --- | --- | --- | ---: | ---: |
+| Kyoko | 40 / 1,377 | 30 / 1,072 | **37.07%** | 0.90206 |
+| Shirogane Noel | 40 / 1,232 | 30 / 1,148 | **64.53%** | 0.91126 |
+| Ichijou Ririka | 40 / 880 | 30 / 651 | **40.83%** | 0.90074 |
+
+These show the regression is not isolated to the Kyoko input. Significant pixel/color-assignment changes occur while the minimum contour IoU still passes. The IoU is relative to each output's own region labels, so it cannot substitute for a source-aligned or accepted-baseline color/region-fidelity check.
+
+Expanded evidence is preserved alongside the initial negative Kyoko comparison in [Drive](https://drive.google.com/drive/folders/1w_8szhjmGe5WnLhqwou7JaF7-o27darF): `mass_v16_three_source_4way.png`, `mass_v16_all_cases_metrics.json`, `mass_v16_three_source_raw_outputs.zip`, and the reproducible evaluation script.
+
+**Final v16 judgment: HOLD_NO_COLOR_FIDELITY across 3 samples.** No merge and no production update of this experimental branch. Next step is an explicitly source/baseline-relative gated adjacency-merge design. Never claim that passing contour IoU makes a large-region-merge safe.
