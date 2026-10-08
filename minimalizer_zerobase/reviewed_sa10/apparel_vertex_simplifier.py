@@ -124,8 +124,12 @@ def optimize_apparel_polygon_vertices(
     for p in working:
         if p.get("owner") != "lower_body" or not p.get("source_rgb_color_provenance"):
             raise ValueError("material provenance missing")
-        if len(p.get("points", [])) < 3 or not _simple_polygon(p["points"]):
+        if len(p.get("points", [])) < 3:
             raise ValueError("invalid pre-existing material polygon")
+    baseline_invalid = [
+        i for i, p in enumerate(working) if not _simple_polygon(p["points"])
+    ]
+    # Signed SA10.36 contour may be self-touching. Never promote unresolved rings.
     original_image, _ = render_source_uniform_panels(
         base_rgb=base, panels=original,
         parent_visible=owner, protected=forbidden,
@@ -173,6 +177,10 @@ def optimize_apparel_polygon_vertices(
                 overlap = int(np.count_nonzero(candidate_mask & source_class))
                 area = int(candidate_mask.sum())
                 if overlap / area < MINIMUM_COLOR_PRECISION[panel["material"]]:
+                    continue
+                source_overlap = source[candidate_mask & source_class]
+                source_color = np.asarray(panel["color_rgb_observed"], dtype=np.uint8)
+                if not np.any(np.all(source_overlap == source_color, axis=1)):
                     continue
                 if overlap + 1e-9 < minimum_class_overlap_ratio * signed_overlap[part_index]:
                     continue
@@ -249,6 +257,9 @@ def optimize_apparel_polygon_vertices(
             # Observed RGB may be absent from the *reduced* polygon support.
             # Do not silently claim local palette provenance in this case.
             raise ValueError("observed RGB no longer grounded in selected material area")
+    candidate_invalid = [
+        i for i, p in enumerate(working) if not _simple_polygon(p["points"])
+    ]
     saved = old_vertex_count - sum(len(p["points"]) for p in working)
     ratio = current_lab_error / old_lab_error if old_lab_error else 1.
     result = {
@@ -257,6 +268,9 @@ def optimize_apparel_polygon_vertices(
         "original_total_vertices": old_vertex_count,
         "candidate_total_vertices": old_vertex_count - saved,
         "saved_vertices": saved,
+        "baseline_self_intersecting_panels": baseline_invalid,
+        "candidate_self_intersecting_panels": candidate_invalid,
+        "all_filled_polygons_simple": not candidate_invalid,
         "accepted_vertex_removals": accepted,
         "lab_mse_before": round(old_lab_error, 6),
         "lab_mse_after": round(current_lab_error, 6),
@@ -270,6 +284,11 @@ def optimize_apparel_polygon_vertices(
         "minimum_saved_vertices_target_met": saved >= minimum_saved_vertices,
         "production_promotion_authorized": False,
         "browser_svg_raster_parity_pending": True,
-        "status": "RESEARCH_GEOMETRIC_VERTEX_REDUCTION_HOLD" if saved >= minimum_saved_vertices else "HOLD_NO_SAFE_VERTEX_PRUNING",
+        "status": (
+            "RESEARCH_GEOMETRIC_VERTEX_REDUCTION_HOLD"
+            if saved >= minimum_saved_vertices and not candidate_invalid
+            else "HOLD_UNRESOLVED_SELF_INTERSECTION"
+            if candidate_invalid else "HOLD_NO_SAFE_VERTEX_PRUNING"
+        ),
     }
     return working, output, result
