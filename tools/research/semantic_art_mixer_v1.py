@@ -118,7 +118,8 @@ def observed_tie_mask(source: Image.Image, roi=TIE_ROI, min_pixels=80) -> np.nda
         raise ValueError("No source tie region detected in manual ROI")
     selected = int(np.argmax(stats[1:, cv2.CC_STAT_AREA])) + 1
     area = int(stats[selected, cv2.CC_STAT_AREA])
-    if not (min_pixels <= area <= 0.30 * (roi[2]-roi[0])*(roi[3]-roi[1])):
+    # A long necktie may legitimately occupy >30% of a narrow manual ROI.
+    if not (min_pixels <= area <= 0.70 * (roi[2]-roi[0])*(roi[3]-roi[1])):
         raise ValueError(f"Implausible source tie mask size: {area}")
     return labels == selected
 
