@@ -29,10 +29,16 @@ def scene():
 def research_planes():
     return {
         "apparel_material_polygons":[
-            {"parent_primitive_id":"source-bound-lowerbody",
+            {"schema":"sa10.36-uniform-material-panel-v1",
+             "parent_primitive_id":"source-bound-lowerbody",
+             "owner":"lower_body",
+             "material":material,
              "points":[[2,2],[9,2],[9,9],[2,9]],
              "color_rgb_observed":c}
-            for c in ([30,40,70],[31,40,70],[240,245,249],[242,244,249],[130,210,25])
+            for material,c in zip(
+                ("dark_uniform","dark_uniform","white_shirt","white_shirt","green_necktie"),
+                ([30,40,70],[31,40,70],[240,245,249],[242,244,249],[130,210,25]),
+            )
         ],
     }
 
