@@ -20,7 +20,9 @@ def audit_records(records: list[dict]) -> dict:
         if not isinstance(primitive, dict):
             invalid.append({"index": i, "reason": "not_object"})
             continue
-        owner = primitive.get("owner")\n        if owner is None:\n            owner = primitive.get("semantic_part_id") or primitive.get("composition_part")
+        owner = primitive.get("owner")
+        if owner is None:
+            owner = primitive.get("semantic_part_id") or primitive.get("composition_part")
         if not isinstance(owner, str) or not owner.strip():
             invalid.append({"index": i, "reason": "missing_explicit_owner"})
             continue
