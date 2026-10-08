@@ -1,0 +1,26 @@
+{
+  "schema": "sa10.38-two-source-browser-research-gate-v1",
+  "source_count": 2,
+  "source_sha256": {
+    "GC001": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "Juufuutei-Raden": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00"
+  },
+  "GC001_attested_real_browser_research": "PASS",
+  "Raden_unrelated_outfit_unchanged": "PASS",
+  "previous_signed_chrome_differing_pixels": 528,
+  "current_attested_chrome_differing_pixels": 69,
+  "chrome_strong_different_pixels": 51,
+  "browser_mismatch_reduction_ratio": 0.869318,
+  "one_source_micro_hole_raster_neutral_proved": true,
+  "five_source_hole_boundary_stroke_passes_accounted": true,
+  "isolated_apparel_svg_exact_pixel_parity": "FAIL",
+  "research_gate": "PASS",
+  "research_status": "SA1038_CHROME_DELTA_REDUCTION_VERIFIED_NO_GO",
+  "production_promotion_authorized": false,
+  "release_blockers": [
+    "REAL_CHROME_SVG_EXACT_PIXEL_PARITY_FAIL",
+    "ORIGINAL_AND_COMBINED_VERTEX_BUDGET_FAIL",
+    "COMPLETE_CHARACTER_BROWSER_SCENE_NOT_VERIFIED",
+    "HUMAN_VISUAL_REVIEW_PENDING"
+  ]
+}
