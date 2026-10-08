@@ -1,0 +1,119 @@
+{
+  "schema": "sa10.32-gc001-owner-contour-eval-v1",
+  "phase12_candidate": "aggressive",
+  "phase12_primitive_count": 11,
+  "owner_audit": {
+    "primitive_count": 11,
+    "explicit_owner_counts": {
+      "accessory_or_held_object": 1,
+      "face": 1,
+      "hair": 1,
+      "head": 1,
+      "left_arm": 1,
+      "lower_body": 1,
+      "major_clothing": 1,
+      "neck": 1,
+      "right_arm": 1,
+      "torso": 1
+    },
+    "unbound_primitive_count": 1,
+    "missing_required_owners": [],
+    "invalid_records": [],
+    "status": "OWNER_AUDIT_PASS"
+  },
+  "parts": {
+    "face": {
+      "source_pixels": 4937,
+      "baseline_pixels": 4939,
+      "iou": 0.9975728155339806,
+      "missing_source_pixels": 5,
+      "extra_baseline_pixels": 7,
+      "source_topology": [
+        1,
+        0
+      ],
+      "baseline_topology": [
+        1,
+        0
+      ],
+      "topology_pass": true,
+      "primitive_id": "phase12-aggressive-0003",
+      "component_count": 1,
+      "ring_count": 1,
+      "status": "HOLD",
+      "reason": "no_safe_improving_contour"
+    },
+    "hair": {
+      "source_pixels": 14536,
+      "baseline_pixels": 14421,
+      "iou": 0.97227898106525,
+      "missing_source_pixels": 261,
+      "extra_baseline_pixels": 146,
+      "source_topology": [
+        18,
+        9
+      ],
+      "baseline_topology": [
+        4,
+        5
+      ],
+      "topology_pass": false,
+      "primitive_id": "phase12-aggressive-0000",
+      "component_count": 4,
+      "ring_count": 9,
+      "status": "HOLD",
+      "reason": "source_topology_mismatch"
+    },
+    "left_arm": {
+      "source_pixels": 2715,
+      "baseline_pixels": 2701,
+      "iou": 0.9824304538799414,
+      "missing_source_pixels": 31,
+      "extra_baseline_pixels": 17,
+      "source_topology": [
+        10,
+        1
+      ],
+      "baseline_topology": [
+        3,
+        0
+      ],
+      "topology_pass": false,
+      "primitive_id": "phase12-aggressive-0007",
+      "component_count": 3,
+      "ring_count": 4,
+      "status": "OBSERVE_ONLY_PROTECTED_ARM"
+    },
+    "right_arm": {
+      "source_pixels": 6486,
+      "baseline_pixels": 6440,
+      "iou": 0.9919864385883803,
+      "missing_source_pixels": 49,
+      "extra_baseline_pixels": 3,
+      "source_topology": [
+        1,
+        1
+      ],
+      "baseline_topology": [
+        1,
+        1
+      ],
+      "topology_pass": true,
+      "primitive_id": "phase12-aggressive-0002",
+      "component_count": 1,
+      "ring_count": 2,
+      "status": "OBSERVE_ONLY_PROTECTED_ARM"
+    }
+  },
+  "prior_hard_failures": [
+    "source_topology_changed"
+  ],
+  "promotion_authorized": false,
+  "prior_anatomy_gate": "FAIL",
+  "research_candidates": 0,
+  "part_topology_hard_failures": [
+    "hair",
+    "left_arm"
+  ],
+  "status": "HOLD_PREVIOUS_GLOBAL_HARD_GATE"
+}
