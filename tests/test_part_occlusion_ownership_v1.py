@@ -9,6 +9,7 @@ def test_single_owner_priority_in_source():
     code=Path(m.__file__).read_text(encoding="utf-8")
     assert "incoming=masks[role]&owner&~owned" in code
     assert "owned|=incoming" in code
+    assert "owned|=(face & ~hair)" in code  # bangs must not be reserved as skin
     assert "residual=owner&~owned" in code
     assert "region=regions[role]" in code
     assert "np.int32" in code and "dtype=np.int64" in code
