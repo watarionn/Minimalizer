@@ -12,6 +12,15 @@ from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 
+if __package__:
+    from .minimalizer_browser_profile_lifecycle import (
+        create_browser_profile, cleanup_browser_profile,
+    )
+else:
+    from minimalizer_browser_profile_lifecycle import (
+        create_browser_profile, cleanup_browser_profile,
+    )
+
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -26,11 +35,12 @@ def compare(root: Path, source: Path, output: Path):
     handler = partial(QuietHandler, directory=str(root / "web"))
     http = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=http.serve_forever, daemon=True).start()
+    profile = create_browser_profile()
     options = webdriver.ChromeOptions()
     for option in ("--headless=new", "--no-sandbox", "--disable-gpu",
                    "--disable-extensions", "--disable-dev-shm-usage",
                    "--window-size=900,900",
-                   "--user-data-dir=" + str(output / "chrome-profile")):
+                   "--user-data-dir=" + str(profile)):
         options.add_argument(option)
     driver = None
     try:
@@ -142,10 +152,15 @@ try {
         print("OUTPUT",output,flush=True)
         return all_results
     finally:
-        if driver is not None:
-            driver.quit()
-        http.shutdown()
-        http.server_close()
+        try:
+            if driver is not None:
+                driver.quit()
+        finally:
+            try:
+                http.shutdown()
+                http.server_close()
+            finally:
+                cleanup_browser_profile(profile)
 
 if __name__ == "__main__":
     p=argparse.ArgumentParser()
