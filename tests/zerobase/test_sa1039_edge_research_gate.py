@@ -116,7 +116,19 @@ class Sa1039ResearchGateTests(unittest.TestCase):
     def test_unimproved_svg_rejected(self):
         p,c,a,r=inputs()
         bad={**c,"browser_mismatched_rgb_pixels":68}
-        self.assertEqual(decide(prior=p,current=bad,audit=a,raden=r)["research_gate"],"FAIL")
+        updated_audit={
+            **a,
+            "chrome_different_rgb_pixels":68,
+            "occupancy_differences":62,
+            "source_owner_parent_boundary":{
+                **a["source_owner_parent_boundary"],
+                "material_edge_only":43,
+            },
+        }
+        self.assertEqual(
+            decide(prior=p,current=bad,audit=updated_audit,raden=r)["research_gate"],
+            "FAIL",
+        )
 
 
 if __name__=="__main__":
