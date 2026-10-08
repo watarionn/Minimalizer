@@ -63,10 +63,16 @@ def resize_nearest(arr):
 
 def tint_overlay(base, line_painting, intensity=0.85, spatial_mask=None):
     """Use actual dark strokes as ink alpha; do not modify its geometric paths."""
-    line = rgb(line_painting).resize((W,H), Image.Resampling.LANCZOS)
-    grayscale = np.asarray(line.convert("L"), dtype=np.uint8)
+    line = line_painting.convert("RGBA").resize((W,H), Image.Resampling.LANCZOS)
+    # vsketch's resvg preview is transparent outside the black ink.
+    # RGB-conversion alone would turn those fully transparent pixels black,
+    # falsely applying ink across the entire canvas.
+    opaque_ink = np.asarray(line.getchannel("A"), dtype=np.float32) / 255.0
+    on_white = Image.new("RGBA", (W,H), "#FFFFFF")
+    on_white.alpha_composite(line)
+    grayscale = np.asarray(on_white.convert("L"), dtype=np.uint8)
     darkness = 1.0 - grayscale.astype(np.float32)/255.0
-    opacity = np.clip(darkness * intensity, 0.0, 1.0)
+    opacity = np.clip(darkness * opaque_ink * intensity, 0.0, 1.0)
     if spatial_mask is not None:
         opacity *= np.asarray(spatial_mask, dtype=np.float32)
     mask = Image.fromarray(np.uint8(np.round(opacity * 255)), mode="L")
