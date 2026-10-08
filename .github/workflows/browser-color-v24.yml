@@ -1,0 +1,39 @@
+name: Browser Color Regions v24 Research
+
+on:
+  pull_request:
+    paths:
+      - "web/static/browser-fallback.js"
+      - "web/static/app.js"
+      - "tests/test_browser_color_region_v24.py"
+      - "tools/run_browser_color_v24_chrome.py"
+      - "tools/analyze_browser_color_v24.py"
+      - ".github/workflows/browser-color-v24.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  color-research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install pytest
+      - name: Verify scripts
+        run: |
+          node --check web/static/browser-fallback.js
+          node --check web/static/app.js
+          python -m py_compile tools/run_browser_color_v24_chrome.py tools/analyze_browser_color_v24.py
+      - name: Verify v24 and inherited regressions
+        run: |
+          python -m pytest tests/test_browser_color_region_v24.py tests/test_browser_plane_v23.py tests/test_browser_auto_gated_v22.py tests/test_browser_targeted_v21.py tests/test_browser_donor_distribution_v20.py tests/test_browser_merge_diagnostic_v19.py tests/test_browser_near_v18.py tests/test_browser_selective_v17.py tests/test_browser_facet_v15.py tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
+      - run: git diff --check origin/research/browser-major-plane-v23-20261009...HEAD
