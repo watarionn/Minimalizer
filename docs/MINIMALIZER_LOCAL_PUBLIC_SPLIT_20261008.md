@@ -40,3 +40,21 @@ policy/grants should additionally restrict TCP 28765 to the owner.
 The worker needs the Tailscale HTTPS PWA origin allowlisted using existing
 external `MINIMALIZER_LOCAL_ALLOWED_ORIGINS` config. Do not put owner login,
 API keys, cookie material, or personal tailnet configuration into GitHub.
+
+## Owner Local PWA exemption from RRM global admission (2026-10-08)
+
+The authenticated MinimalizerLocal PWA has a user-approved exception from
+Rinka Resource Manager's global heavy-compute slot and the 6 GiB free-RAM
+admission threshold. Both LocalWorker HTTP image routes
+(`/api/zerobase2/minimalize` and `/api/v2/minimalize`) run without importing
+or acquiring `local_worker.rrm_admission.compute_slot`.
+
+This exemption does **not** disable LocalWorker's `_process_lock`, so only
+one image computation runs at a time; a concurrent request may still return
+429 `Local Minimalizer worker is busy.`. Errors due to real memory exhaustion
+or pipeline faults can still occur; this is not a RAM reservation.
+
+No RRM project state, global thresholds, queued/running leases, or other
+projects are changed. The standalone opt-in `rrm_admission` helper remains
+available for unrelated future non-PWA batch calls. This behavior is code-level
+and survives LocalWorker restarts without a special environment variable.
