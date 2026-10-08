@@ -70,6 +70,21 @@ def test_ephemeral_owned_profile_deleted_after_normal_run(tmp_path):
     assert root.is_dir()
 
 
+def test_locked_chrome_cache_restores_owner_tag_for_future_orphan_audit(tmp_path, monkeypatch):
+    from tools import minimalizer_browser_profile_lifecycle as lifecycle
+
+    root, profile = profiles(tmp_path)
+
+    def simulate_windows_locked_file(path):
+        # Windows rmtree can remove the tag before hitting a locked cache.
+        (path / PROFILE_SENTINEL).unlink()
+        raise PermissionError("chrome still owns cache")
+
+    monkeypatch.setattr(lifecycle.shutil, "rmtree", simulate_windows_locked_file)
+    assert cleanup_browser_profile(profile, root=root) is False
+    assert read_owned_profile(profile, root=root) is not None
+
+
 def test_unmarked_or_external_chrome_directory_never_deleted(tmp_path):
     root, profile = profiles(tmp_path)
     unrelated = tmp_path / "SomeOtherProjectChrome"
