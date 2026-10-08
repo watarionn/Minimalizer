@@ -171,6 +171,35 @@ def run(root: Path, output: Path):
                          resize_nearest(session.canvas.to_array()),
                          palette_size=len(choices),similarity_delta_e=round(session.similarity_score,3))
 
+    # Independent semantic-color preservation micro-test, not an automatic segmentation.
+    # Pin a color sampled from a green source pixel in the observed central tie region.
+    original_pixels=np.asarray(original,dtype=np.uint8)
+    hsvp=cv2.cvtColor(original_pixels,cv2.COLOR_RGB2HSV)
+    yy, xx=np.mgrid[:H,:W]
+    tie_candidates=((xx>=140)&(xx<203)&(yy>=210)&(yy<335)&
+                    (hsvp[:,:,0]>=33)&(hsvp[:,:,0]<=89)&(hsvp[:,:,1]>130)&
+                    (original_pixels[:,:,1]>original_pixels[:,:,0]*1.15))
+    ys,xs=np.where(tie_candidates)
+    if not len(xs):
+        raise AssertionError("No original green sample found in selected tie region")
+    select=int(np.argmax(original_pixels[ys,xs,1].astype(int)-original_pixels[ys,xs,0].astype(int)))
+    px,py=int(xs[select]),int(ys[select])
+    cx,cy=px//10,py//10
+    actual=tuple(int(i) for i in original_pixels[py,px,:])
+    probe=ConversionSession(image,palette,canvas_size=(34,34))
+    probe.convert("classic")
+    before=[int(n) for n in probe.canvas.to_array()[cy,cx]]
+    probe.pin(cx,cy,Color(actual,"Source-green-tie"))
+    probe.reconvert("dithered",keep_pins=True)
+    after=[int(n) for n in probe.canvas.to_array()[cy,cx]]
+    if after!=list(actual) or (cx,cy) not in probe.get_pinned_cells():
+        raise AssertionError("Pinned original tie color was not preserved across reconvert")
+    pin_record={"coordinate_source":[px,py],"coordinate_cell":[cx,cy],
+                "actual_original_rgb":list(actual),"before_rgb":before,
+                "after_rgb":after,"preserved_after_dithered_reconvert":True,
+                "not_a_semantic_segmentation":True}
+    (output/"pin_probe.json").write_text(json.dumps(pin_record,indent=2)+"\n",encoding="utf-8")
+
     # pixora official API: independent source-based mean and mode block results.
     pixel_mean=save("05_pixora_mean.png","pixora","Mean Block / 10px",
                     pixelize(str(source),algorithm=MeanBlock(pixel_size=10)),pixel_size=10)
@@ -208,6 +237,8 @@ def run(root: Path, output: Path):
         "license":{"imgrit":"BSD-3-Clause","mosaicpic":"MIT","pixora":"MIT"},
         "fusions_use_only_preexisting_observed_pixels_or_strokes":True,
         "minimalizer_production_changed":False,
+        "tie_pin_probe":pin_record,
+        "tie_pin_probe_sha256":sha(output/"pin_probe.json"),
         "records":records,
         "gallery":[{"file":f,"sha256":sha(output/f),"bytes":(output/f).stat().st_size}
                    for f in ("gallery_landscape_5x2.png","gallery_mobile_2x5.png")],
