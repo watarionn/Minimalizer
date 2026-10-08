@@ -98,7 +98,11 @@ def assemble(src,masks,features,full_path,fg_path):
     # One subject base: never a separate face-sized skin polygon.
     put(owner,skin,"subject","underlay")
     for role in ORDER:
-        region=masks[role]&owner&~face
+        # Hair overlaps the face in the original reference. Facial skin is
+        # never allowed to erase authentic fringe or hair. The hair is part
+        # geometry, not a face-cover rectangle or mask overlay.
+        region=(masks[role]&owner if role=="hair" else
+                masks[role]&owner&~face)
         if not region.any():continue
         for layer,color,kind in region_colormasks(src,region,CAP[role]):
             put(layer,color,role,kind)
