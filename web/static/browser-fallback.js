@@ -3318,6 +3318,12 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (
+      config.geometryMode === "corner-aware"
+      && (config.canonicalContourLite !== true || config.structuralMode !== "l0-lite-jacobi")
+    ) {
+      throw new Error("Shape requires Lite preprocessing with canonical shared-boundary contours.");
+    }
     if (config.canonicalContourLite === true) {
       const contourAvailable = typeof globalThis !== "undefined"
         && globalThis.MinimalizerCanonicalContour
