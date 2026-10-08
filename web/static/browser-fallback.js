@@ -4276,7 +4276,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4297,6 +4297,8 @@
       "X-Minimalizer-Hierarchy-Cut": String(analysis.metrics.hierarchyCutCount),
       "X-Minimalizer-Selective-Merges": String(analysis.metrics.selectiveMergeApplied),
       "X-Minimalizer-Targeted-Merge-Gate": String(analysis.metrics.targetedMergeStatus),
+      "X-Minimalizer-Auto-Merge-Gate": String(analysis.metrics.autoMergeStatus),
+      "X-Minimalizer-Auto-Merge-Candidates": String(analysis.metrics.autoMergeCandidates),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4322,7 +4324,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4357,6 +4359,10 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        autoMergeStatus: analysis.metrics.autoMergeStatus,
+        autoMergeCandidates: analysis.metrics.autoMergeCandidates,
+        autoMergeAttempts: analysis.metrics.autoMergeAttempts,
+        autoMergeSelected: analysis.metrics.autoMergeSelected,
         selectiveMergeRecoloredPixels: analysis.metrics.selectiveMergeRecoloredPixels,
         selectiveMergeNearPaletteCandidates: analysis.metrics.selectiveMergeNearPaletteCandidates,
         selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
