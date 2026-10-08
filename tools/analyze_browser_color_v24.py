@@ -84,7 +84,7 @@ def audit(folders,out,refdir):
         y=10+n*407
         dr.text((12,y),f"{name} | {r['status']} | vertices -{r['vertexReduction']} | {r['changedPixels']} px changed",
                 font=font,fill=(25,35,45))
-        dr.text((12,y+24),f"Facet {r['facetTimeSeconds']:.1f}s / Color {r['planeTimeSeconds']:.1f}s",font=font,fill=(55,65,75))
+        dr.text((12,y+24),f"Facet {r['facetTimeSeconds']:.1f}s / Color {r['colorTimeSeconds']:.1f}s",font=font,fill=(55,65,75))
         for col,img in enumerate((source,facet,image)):
             montage.paste(img,(12+col*350,y+54))
         print("V24_CASE",name,"status",r["status"],"saved",r["vertexReduction"],
@@ -104,7 +104,7 @@ def audit(folders,out,refdir):
            "", "| Source | Gate | Regions | Vertices saved | Changed pixels | Facet / color time |",
            "| --- | --- | ---: | ---: | ---: | --- |"]
     for row in rows:
-        lines.append(f"| {row['name']} | {row['status']} | {row['regionCount']} | {row['vertexReduction']} | {row['changedPixels']} | {row['facetTimeSeconds']:.2f}s / {row['planeTimeSeconds']:.2f}s |")
+        lines.append(f"| {row['name']} | {row['status']} | {row['regionCount']} | {row['vertexReduction']} | {row['changedPixels']} | {row['facetTimeSeconds']:.2f}s / {row['colorTimeSeconds']:.2f}s |")
     lines+=["",
             "This v24 experiment tests ONE RGB source-supported pixel ownership correction between existing adjacent regions, without new colors, palettes, or additional regions. A previous 32-pixel batch triggered malformed shared contour and was rejected; the one-pixel mode preserves valid loop topology.",
             "All real PNGs pass the external staff, green and sleeve fidelity audit and white-background silhouette check, or are rolled back byte-identically.",
