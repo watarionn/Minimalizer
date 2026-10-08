@@ -1,0 +1,61 @@
+{
+  "schema": "minimalizer-gc001-goggle-fragment-review-v1",
+  "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "review_method": "visually inspected original pixel crops with cyan traced source stroke overlaid",
+  "reviewed_fragments": [
+    {
+      "id": "left_lens-04",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "frame-09"
+      ]
+    },
+    {
+      "id": "right_lens-03",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "frame-05"
+      ]
+    },
+    {
+      "id": "right_lens-08",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "frame-21"
+      ]
+    },
+    {
+      "id": "frame-05",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "right_lens-03"
+      ]
+    },
+    {
+      "id": "frame-09",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "left_lens-04"
+      ]
+    },
+    {
+      "id": "frame-21",
+      "verdict": "visible_white_rim_fragment",
+      "material": "white_silver_frame",
+      "duplicates_with": [
+        "right_lens-08"
+      ]
+    }
+  ],
+  "distinct_reviewed_fragment_groups": 3,
+  "full_lens_left_verified": false,
+  "full_lens_right_verified": false,
+  "complete_frame_polygon_verified": false,
+  "render_authority": false,
+  "notes": "The visual finding is restricted to individual on-source white-silver rim line fragments. Their association with a visible goggle rim is supported by crop review, but exact region fill, pixel semantic segmentation, hidden geometry and occlusion ordering are not established. Repeated region-specific traces cover overlapping fragments; do not treat six records as six independent parts."
+}
