@@ -5,6 +5,7 @@
 
   const DEFAULTS = Object.freeze({
     epsilonRatio: 0.022,
+    simplifier: "opencv-dp",
     epsilonMinPx: 0.75,
     epsilonMaxPx: 18.0,
     candidateFactors: Object.freeze([1.0, 0.75, 0.50, 0.25, 0.0]),
@@ -1075,6 +1076,16 @@
 
   function simplifyLabels(labels, width, height, regionCount, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (config.simplifier !== "opencv-dp" && config.simplifier !== "weighted-visvalingam") {
+      throw new Error("Unknown contour simplifier: " + config.simplifier);
+    }
+    if (config.simplifier === "weighted-visvalingam" && (
+      typeof globalThis === "undefined"
+      || !globalThis.MinimalizerWeightedVisvalingam
+      || typeof globalThis.MinimalizerWeightedVisvalingam.simplifyOpen !== "function"
+    )) {
+      throw new Error("Geometric contour module is unavailable; refusing silent fallback.");
+    }
     const graph = buildBoundaryGraph(labels, width, height, regionCount);
     const stats = regionStats(labels, width, height, regionCount);
     const pointsByChain = graph.chains.map((chain) => (
@@ -1089,7 +1100,11 @@
       let simplified = false;
       for (const factor of config.candidateFactors) {
         const epsilon = epsilonForChain(chain, factor, config);
-        const candidate = simplifyOpenChain(chain.points, epsilon);
+        const candidate = config.simplifier === "weighted-visvalingam"
+          ? globalThis.MinimalizerWeightedVisvalingam.simplifyOpen(
+            microCleanup(chain.points), epsilon
+          )
+          : simplifyOpenChain(chain.points, epsilon);
         if (factor > 0 && candidate.length >= chain.points.length) continue;
         pointsByChain[chain.id] = candidate;
         if (
@@ -1174,6 +1189,7 @@
       metrics: {
         originalVertexCount,
         simplifiedVertexCount,
+        simplifier: config.simplifier,
         fallbackChainCount,
         rejectedCandidateCount,
         minRegionIoU: minimumIoU,
