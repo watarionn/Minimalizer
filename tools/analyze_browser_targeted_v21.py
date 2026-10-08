@@ -120,8 +120,8 @@ def evaluate(folders:dict[str,Path],out:Path,baseline:Path):
    for col,img in enumerate((src,facet,image)):
     montage.paste(img,(12+col*355,top+50))
    rownum+=1
- assert len(trials)==6 and sum(x["accepted"] for x in trials)==3
- assert sum(not x["accepted"] for x in trials)==3
+ assert len(trials)==6 and sum(x["accepted"] for x in trials)==2
+ assert sum(not x["accepted"] for x in trials)==4
  assert all(x["differentPixels"]==0 for x in trials if not x["accepted"])
  montage.save(out/"v21_five_pair_comparison.png",optimize=True)
  # Build a change-only inspection panel: changes amplified on top of each approved trial.
@@ -148,8 +148,8 @@ def evaluate(folders:dict[str,Path],out:Path,baseline:Path):
    "baseline":"verified Facet v15 40-region 340px chrome images",
    "trials":trials,
    "perCase":cases,
-   "approvedResearchCount":3,
-   "rolledBackExplicitPairCount":2,
+   "approvedResearchCount":2,
+   "rolledBackExplicitPairCount":3,
    "missingPairNegativeCount":1,
    "acceptedNotProductionClaim":True,
  }
@@ -175,15 +175,16 @@ def evaluate(folders:dict[str,Path],out:Path,baseline:Path):
  lines.extend([
  "",
  "## Outcome",
- "- 3/5 measured pairs are real **gated experimental geometry gains** (39 regions; fewer vertices and <=0.15% RGB pixel changes).",
- "- 1/5 is rolled back due to **no vertex reduction**, and 1/5 due to **rendered pixel changes exceeding the tolerance**.",
+ "- 2/5 measured pairs are real **gated experimental geometry gains** on Kyoko (39 regions; fewer vertices and <=0.15% RGB pixel changes).",
+ "- 1/5 rolled back for **no vertex reduction**, 1/5 for **rendered pixel difference**, and 1/5 for **protected staff geometry/color**.",
+ "- Important visual-review correction: Noel donor16->recipient24 initially passed global pixel thresholds with 161 changed pixels, but these were concentrated along the thin brown staff (x4..54,y108..215). It was correctly rejected after adding a dedicated staff ROI and exact-brown RGB mass guard. Never accept a candidate on global changes alone.",
  "- Ririka has no v20 candidate; a nonexistent pair is correctly ignored with byte-identical baseline.",
  "- Kyoko's dominant green RGB(149,211,27) stays 1,994 pixels, and sleeve (95,275) remains RGB(65,66,74). No white-background silhouette pixel changed in the accepted trials.",
  "- Actual app.js near UI remains bit-for-bit matched to engine (no targeted quality profile in live UI); old Facet and Near images remain byte-identical to v20.",
  "",
  "## Decision",
  "**HOLD_PRODUCTION pending visual review and v24 multi-source golden testing.** Experimental target IDs are image-dependent, not universal rules. The accepted merges affect only 3-161 pixels; they reduce shape counts and vertices but should not be over-described as dramatic visual improvement.",
- "V22 should generalize candidate selection only with full per-candidate rendered and ROI gates, and abandon the same-color merge direction if the artwork still lacks intentional straight geometric partitions.",
+ "V22 should generalize candidate selection only with full per-candidate rendered and ROI gates, including salient narrow accessories, and abandon the same-color merge direction if the artwork still lacks intentional straight geometric partitions.",
  ])
  (out/"v21_report.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
  with zipfile.ZipFile(out/"v21_repro_inputs_outputs.zip","w",
