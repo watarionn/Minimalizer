@@ -95,6 +95,8 @@ def test_local_worker_returns_high_quality_headers(monkeypatch):
         return _fake_export(), SimpleNamespace(score=1.0)
 
     monkeypatch.setattr(worker, "_run_high_quality", fake_run)
+    from contextlib import nullcontext
+    monkeypatch.setattr(worker, "compute_slot", lambda _route: nullcontext())
     with TestClient(worker.app) as client:
         response = client.post(
             "/api/v2/minimalize",
@@ -233,6 +235,8 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
         rollback_available = True
 
     monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    from contextlib import nullcontext
+    monkeypatch.setattr(worker, "compute_slot", lambda _route: nullcontext())
     monkeypatch.setattr(
         worker,
         "_run_zerobase2",
@@ -257,7 +261,7 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
     with TestClient(worker.app) as client:
         response = client.post(
             "/api/zerobase2/minimalize",
-            headers={"Origin": "https://cf278796.cloudfree.jp"},
+            headers={"Origin": "http://127.0.0.1:28764"},
             files={"file": ("sample.png", b"not-empty", "image/png")},
         )
     assert response.status_code == 200
@@ -284,7 +288,7 @@ def test_zerobase2_endpoint_fails_closed_when_not_authorized(monkeypatch):
     with TestClient(worker.app) as client:
         response = client.post(
             "/api/zerobase2/minimalize",
-            headers={"Origin": "https://cf278796.cloudfree.jp"},
+            headers={"Origin": "http://127.0.0.1:28764"},
             files={"file": ("sample.png", b"not-empty", "image/png")},
         )
     assert response.status_code == 503

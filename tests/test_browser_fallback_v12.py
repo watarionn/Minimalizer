@@ -102,27 +102,20 @@ def test_browser_fallback_v12_has_no_network_or_model_runtime_dependency():
     assert 'rtmlib' not in source.lower()
 
 
-def test_browser_fallback_is_default_after_local_without_railway_runtime():
-    source = APP_JS.read_text(encoding="utf-8")
-    assert 'minimalizer.browserFallbackMode' in source
+def test_public_browser_default_has_no_worker_or_railway_dependency():
+    source = (ROOT / "web/static/public-route.js").read_text(encoding="utf-8")
+    common = APP_JS.read_text(encoding="utf-8")
     assert 'minimalizer.browserFallbackQuality' in source
-    assert 'browserFallbackQualityParam === "exact"' in source
-    assert 'browserFallbackQualityParam === "lite"' in source
-    assert 'structuralMode: browserFallbackStructuralMode()' in source
-    assert 'browserFallbackParam === "1"' in source
-    assert 'browserFallbackParam === "force"' in source
-    assert 'browserFallbackParam === "0"' in source
-    assert 'return mode === "force" ? "force" : "after-local"' in source
     assert 'window.MinimalizerBrowserFallback' in source
-    assert 'window.MinimalizerBrowserColorStrip' in source
-    assert 'compute: "browser"' in source
-    assert 'fetch("/api/v2/minimalize"' not in source
-    assert 'fetch("/api/minimalize"' not in source
-    assert 'fetch("/health")' not in source
-    assert "Railway" not in source
-    assert 'Minimalizer Browser Fallback v12' in source
+    assert 'window.MinimalizerBrowserColorStrip' in common
+    assert 'structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi"' in source
+    assert 'canonicalContourLite: ["sharp", "shape", "facet"].includes(p)' in source
     assert 'workMaxSide: 400' in source
     assert 'slicIterations: 10' in source
+    assert '/api/' not in source + common
+    assert '127.0.0.1' not in source + common
+    assert "Railway" not in source + common
+    assert "probeLocalWorker" not in source + common
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is unavailable")

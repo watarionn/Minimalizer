@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "web/static/browser-fallback.js"
 CONTOUR = ROOT / "web/static/canonical-contour.js"
 RASTER = ROOT / "web/static/opencv-fill-raster.js"
-APP = ROOT / "web/static/app.js"
+APP = ROOT / "web/static/public-route.js"
 
 
 def _node(source: str) -> dict:
@@ -25,16 +25,14 @@ def _node(source: str) -> dict:
 def test_sharp_lite_opt_in_contract_and_unchanged_profiles():
     app = APP.read_text(encoding="utf-8")
     engine = ENGINE.read_text(encoding="utf-8")
-    assert 'browserFallbackQualityParam === "sharp"' in app
-    # The opt-in quality family can expand without changing the Sharp contract.
-    assert '["exact", "sharp", "shape", "facet"].includes(quality) ? quality : "lite"' in app
-    assert '["sharp", "shape", "facet"].includes(browserFallbackQualityProfile())' in app
-    assert 'browserFallbackQualityProfile() === "exact"' in app
-    assert 'structuralMode: browserFallbackStructuralMode()' in app
-    assert 'canonicalContourLite: browserFallbackCanonicalContourLite()' in app
+    assert '"sharp"' in app
+    assert '["exact", "sharp", "shape", "facet", "lite"]' in app
+    assert 'canonicalContourLite: ["sharp", "shape", "facet"].includes(p)' in app
+    assert 'structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi"' in app
+    assert 'geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline"' in app
     assert 'canonicalContourLite: false' in engine
     assert 'X-Minimalizer-Browser-Quality-Profile' in engine
-    assert 'SHARP LITE (experimental)' in app
+    assert 'Minimalizer Public' in app
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node unavailable")
