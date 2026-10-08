@@ -22,8 +22,8 @@ jobs:
       - name: Install focused dependencies
         run: python -m pip install numpy opencv-python-headless pytest
       - name: Focused source contour regression
-        run: python -m pytest -q tests/zerobase/test_sa1032_source_svg_contour_proposals.py tests/zerobase/test_sa1032_svg_evidence.py tests/zerobase/test_sa1032_gc001_mask_compare.py tests/zerobase/test_sa1032_gc001_owner_audit.py tests/zerobase/test_sa1032_source_contour_optimizer.py
+        run: python -m pytest -q tests/zerobase/test_sa1032_source_svg_contour_proposals.py tests/zerobase/test_sa1032_svg_evidence.py tests/zerobase/test_sa1032_gc001_mask_compare.py tests/zerobase/test_sa1032_gc001_owner_audit.py tests/zerobase/test_sa1032_source_contour_optimizer.py tests/zerobase/test_sa1032_gc001_real_contour_eval.py
       - name: Compile package
-        run: python -m compileall -q minimalizer_zerobase
+        run: python -m compileall -q minimalizer_zerobase tools/run_sa1032_gc001_owner_audit.py tools/run_sa1032_gc001_real_contour_eval.py
       - name: Whitespace validation
         run: git diff --check HEAD~1 HEAD
