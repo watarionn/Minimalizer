@@ -3607,7 +3607,7 @@
       const fill=list.length/(bw*bh);
       // Strict geometric and occupancy gates. Diagonal thin lines can have
       // nearly square bounding boxes, hence no width/height aspect rule.
-      const thin=list.length>=12&&list.length<=total*0.02
+      const thin=list.length>=12&&list.length<=total*0.035
         &&Math.max(bw,bh)>=35
         &&Math.min(bw,bh)<=Math.ceil(Math.min(width,height)*0.40)
         &&fill<=0.35;
