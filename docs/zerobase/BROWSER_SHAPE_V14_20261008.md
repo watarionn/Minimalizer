@@ -4,7 +4,7 @@ Date: 2026-10-08
 Project: **non-local BrowserFallback quality only**. This is separate from Local Worker ZeroBase2 production and semantic-anatomy research.
 Base: [Sharp Lite v13 PR #225](https://github.com/watarionn/Minimalizer/pull/225)
 Implementation: [stacked Shape v14 PR #226](https://github.com/watarionn/Minimalizer/pull/226)
-Status: **Shape candidate implemented and real-image quality gate PASS; no production merge or deployment**.
+Status: **PRODUCTION VERIFIED / opt-in Shape profile shipped; default Lite unchanged.**
 
 ## Goal and immutable product direction
 
@@ -85,3 +85,11 @@ The boundary looks more intentionally simplified and the vertex count decreases 
 ## Next work after gate
 
 Do not merge into main without integrating/reviewing parent Sharp Lite PR #225 first. Geometry may progress to straight-segment angle consistency and long flat-side snap in an isolated experiment. Keep corners, palette ownership and original shapes protected. A 0.90 minimum IoU passing by itself is insufficient to approve visually degraded outputs.
+
+## 2026-10-08 release closure (supersedes earlier HOLD/deployment-pending references)
+
+Sharp Lite PR #225 was merged into `main` (merge `f3313926c909458f90dbd7f48b26bac5e166dd8c`) and Shape v14 PR #226 was merged after retargeting `main` (merge `14657714960e639e7d669612ad19c265e0aefaea`). These are **production-shipped opt-in quality profiles**, not the new default and not Local Worker changes.
+
+The Shin static host was updated with only `canonical-contour.js`, `browser-fallback.js`, and `app.js`. Public HTTPS byte-for-byte verification succeeded, and live Chrome 154 executed original Kyoko input for **Lite, Sharp, Shape, Exact**, all producing PNGs byte-identical to previously accepted predeployment baseline outputs with browser-u2netp guidance. No rollback was required.
+
+See the authoritative [production handoff](../handoffs/HND-20261008-BROWSER_SHAPE_V14_PRODUCTION.md) and [Drive release evidence](https://drive.google.com/drive/folders/1WS4dLGFYol5VByP1bNPGMX0FwS4P9MGA) for SHA256 manifests, backups, public test output, and rollback instructions. Previous mentions of not-yet-merged / not-yet-deployed describe the development stage and are superseded by this release closure.
