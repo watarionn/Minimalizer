@@ -54,13 +54,22 @@ def _simple_polygon(points: list[list[float]]) -> bool:
             c, d = arr[j], arr[(j + 1) % n]
             o1, o2 = _cross(a, b, c), _cross(a, b, d)
             o3, o4 = _cross(c, d, a), _cross(c, d, b)
-            if (
-                abs(o1) <= 1e-9 or abs(o2) <= 1e-9
-                or abs(o3) <= 1e-9 or abs(o4) <= 1e-9
-                or (o1 > 0) != (o2 > 0) and (o3 > 0) != (o4 > 0)
-            ):
-                # Collinear far-away vertices aren't necessarily intersections,
-                # but reject the edit conservatively rather than risking a bowtie.
+            def endpoint_on_line(point: np.ndarray, start: np.ndarray, end: np.ndarray) -> bool:
+                return bool(
+                    min(start[0], end[0]) - 1e-9 <= point[0] <= max(start[0], end[0]) + 1e-9
+                    and min(start[1], end[1]) - 1e-9 <= point[1] <= max(start[1], end[1]) + 1e-9
+                )
+            crossing = (
+                (o1 > 0) != (o2 > 0) and (o3 > 0) != (o4 > 0)
+                and all(abs(v) > 1e-9 for v in (o1, o2, o3, o4))
+            )
+            touching = (
+                (abs(o1) <= 1e-9 and endpoint_on_line(c, a, b))
+                or (abs(o2) <= 1e-9 and endpoint_on_line(d, a, b))
+                or (abs(o3) <= 1e-9 and endpoint_on_line(a, c, d))
+                or (abs(o4) <= 1e-9 and endpoint_on_line(b, c, d))
+            )
+            if crossing or touching:
                 return False
     return True
 
