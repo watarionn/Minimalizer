@@ -1,0 +1,48 @@
+{
+  "schema": "sa10.36-two-source-material-review-v1",
+  "cases": {
+    "GC001": {
+      "research_gate": "PASS",
+      "status": "GRAY_BLOCK_REPLACED_RESEARCH_HOLD",
+      "added_material_subpaths": 5,
+      "owner_lab_mse_gain": 0.557641,
+      "gray_block_largest_before_after": [
+        12632,
+        476
+      ],
+      "tie_source_and_painted_area": [
+        1550,
+        1615
+      ]
+    },
+    "Juufuutei-Raden": {
+      "research_gate": "PASS",
+      "status": "PATTERN_NOT_DETECTED_HOLD",
+      "added_material_subpaths": 0,
+      "owner_lab_mse_gain": 0,
+      "gray_block_largest_before_after": [
+        950,
+        950
+      ],
+      "tie_source_and_painted_area": [
+        0,
+        0
+      ]
+    }
+  },
+  "source_count": 2,
+  "material_changed_real_cases": 1,
+  "nonmatching_cases_unchanged": 1,
+  "research_gate": "PASS",
+  "failed_cases": [],
+  "core_geometric_budget_still_failed": true,
+  "browser_svg_clip_path_verified": false,
+  "human_visual_review": "PENDING",
+  "production_promotion_authorized": false,
+  "status": "MATERIAL_RESEARCH_COMPLETE_PRODUCTION_HOLD",
+  "blockers": [
+    "EXISTING_GEOMETRIC_VERTEX_BUDGET_FAILED",
+    "BROWSER_SVG_CLIPPING_NOT_VERIFIED",
+    "HUMAN_VISUAL_APPROVAL_MISSING"
+  ]
+}
