@@ -78,3 +78,27 @@ Exact vs Geo changed-pixel ratio = **1.6566%**, RGB MAE = **1.3835**. Geo decrea
 **Permanent evidence:** [Google Drive / chatGPT及びCodex用 / Minimalizer / BrowserFallback_GeometryV13_20261008](https://drive.google.com/drive/folders/1LwSrpUcGJ7Bdgwi2LmiAWqHurxLchlmq). Includes the original reference, independent PNG outputs, three four-column comparisons, metrics.json, evaluation.md, and benchmark scripts. Google Drive connector independently verified the primary output files after remote Drive sync.
 
 The result is a completed **evaluation** step, not a production-quality improvement. Future work should not claim `Geo` passes simply because the code and safety tests pass.
+
+## User review: tie expansion / left-arm recolor root-cause ablation (2026-10-08)
+
+Following the user observation, an additional real-Chrome test split structural mode from contour mode. Same 340x340 Kyoko source, identical subject guidance / work resolution / shape budget / palette target across runs.
+
+| Test | Structural mode | Contour mode | Drawn vertices | Dominant green palette area (px) | Left sleeve RGB at (95,275) |
+| --- | --- | --- | ---: | ---: | --- |
+| Lite | l0-lite-jacobi | legacy-independent-rings | 1409 | 1873 | 65,66,74 |
+| Lite+Shared | l0-lite-jacobi | canonical-shared-chain / OpenCV DP | 1727 | 1994 | 65,66,74 |
+| Exact | spectral-exact | canonical-shared-chain / OpenCV DP | 1571 | 4111 | 32,42,80 |
+| Geo (Exact) | spectral-exact | canonical-shared-chain / weighted Visvalingam | 2303 | 4083 | 32,42,80 |
+| Geo (Lite) | l0-lite-jacobi | canonical-shared-chain / weighted Visvalingam | 2853 | 2018 | 65,66,74 |
+
+The 'green palette area' is the count of pixels with the dominant green RGB color; it is **not** an annotated/segmented necktie mask. Lite's antialiasing additionally distributes green into intermediate colors, so compare Lite+Shared with Exact most directly.
+
+**Controlled causal result:** Lite and Lite+Shared differ only in contour/raster route; the green area and sleeve color remain substantially unchanged. Lite+Shared and Exact differ only in structural preprocessor; the green palette area more than doubles and the left sleeve becomes navy. Exact and Geo (Exact) differ only in the contour algorithm; their colors remain the same. Geo (Lite) confirms keeping Lite preprocessing preserves Lite-like colors, but greatly increases vertices.
+
+Changed-pixel ratios: Lite vs Lite+Shared **4.2630%**; Lite+Shared vs Exact **42.4040%**; Lite+Shared vs Geo (Lite) **1.3157%**; Exact vs Geo (Exact) **1.6566%**.
+
+These results identify **the structural preprocessing change as the causal switch for the observed color/region regressions**. They do not yet identify whether the first altered internal stage is superpixel partitioning, subsequent region merging, or palette assignment.
+
+**Revised next candidate:** separate geometry accuracy from the structural preprocessing choice. Trial `l0-lite-jacobi` + current `canonical-shared-chain` + OpenCV-compatible fill as a **sharp Lite** opt-in. Do not automatically use `spectral-exact` merely to obtain shared-boundary vector geometry. Keep original Lite, Exact and v13 Geo behaviors untouched during evaluation, and keep Geo v13 as HOLD (drawn vertices too high).
+
+Saved comparison PNGs, expanded ablation metrics and scripts in the **same canonical Google Drive evidence folder**, [BrowserFallback_GeometryV13_20261008](https://drive.google.com/drive/folders/1LwSrpUcGJ7Bdgwi2LmiAWqHurxLchlmq). Includes full 5-mode view, upper-body and torso closeups.
