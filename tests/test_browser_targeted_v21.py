@@ -31,6 +31,9 @@ def test_only_research_engine_exposes_target_no_global_cut_or_app_ui():
     assert "result.metrics.vertexCount>=base.metrics.vertexCount" in engine
     assert '"no_vertex_gain"' in engine
     assert 'hierarchyTargetMax: 30' not in app
+    trial=(ROOT/"tools/run_browser_targeted_v21_chrome.py").read_text(encoding="utf-8")
+    assert '"protectedColors":[[68,37,36]]' in trial
+    assert '"x0":0,"y0":100,"x1":60,"y1":225' in trial
 
 
 @pytest.mark.skipif(shutil.which("node") is None,reason="Node.js unavailable")
