@@ -114,6 +114,36 @@ def prove_degenerate_rings_raster_neutral(
     }
 
 
+def _verified_owner_top_segments(parent: dict, source_rings: list[dict], *, width: int, height: int) -> tuple[list[tuple[float,float,float]],int]:
+    """Reuse only recorded horizontal top edges; prove exact top row coverage."""
+    parent_mask=rasterize_primitive_candidate(parent,width=width,height=height)
+    rows=np.flatnonzero(np.any(parent_mask,axis=1))
+    if len(rows)==0:
+        raise ValueError("empty signed owner has no top edge")
+    top=int(rows[0])
+    selected=[]
+    for ring in source_rings:
+        if ring["depth"]%2:
+            continue
+        points=ring["points"]
+        for index in range(len(points)):
+            x0,y0=points[index]
+            x1,y1=points[(index+1)%len(points)]
+            if abs(y0-top)<1e-9 and abs(y1-top)<1e-9 and abs(x0-x1)>1e-9:
+                selected.append((float(min(x0,x1)),float(max(x0,x1)),float(top)))
+    selected=sorted(set(selected))
+    if not selected:
+        raise ValueError("no signed horizontal top contour segment to replay")
+    mask_top=np.flatnonzero(parent_mask[top])
+    reconstructed=np.unique(np.concatenate([
+        np.arange(int(round(x0)),int(round(x1))+1,dtype=np.int32)
+        for x0,x1,_ in selected
+    ]))
+    if not np.array_equal(reconstructed,mask_top):
+        raise ValueError("source top-edge segments cannot reproduce canonical owner top-row pixels")
+    return selected,top
+
+
 def prepare_vector_mask(
     *, original_outer_scene: Path, simplified_apparel_scene: Path,
     simplified_apparel_metrics: Path, output_dir: Path,
@@ -121,6 +151,8 @@ def prepare_vector_mask(
     material_shift: float=0.5, material_stroke: float=1.0,
     hole_edge_stroke: float=1.0,
     parent_outline_stroke: float=0.0,
+    signed_top_edge_stroke: float=0.0,
+    signed_top_edge_y_shift: float=1.0,
 ) -> dict:
     for value in (parent_dx,parent_dy,material_shift):
         if not np.isfinite(value) or abs(value)>1.0:
@@ -130,6 +162,12 @@ def prepare_vector_mask(
             raise ValueError("SVG stroke-width calibration limited to [0.5,1.5]px")
     if not np.isfinite(parent_outline_stroke) or not 0.0<=parent_outline_stroke<=2.0:
         raise ValueError("SVG parent-owner boundary stroke must be within [0,2]px")
+    if not np.isfinite(signed_top_edge_stroke) or not 0.0<=signed_top_edge_stroke<=2.0:
+        raise ValueError("signed source top-edge stroke must be in [0,2]px")
+    if not np.isfinite(signed_top_edge_y_shift) or not 0<=signed_top_edge_y_shift<=1.5:
+        raise ValueError("source top-edge coordinate shift cannot exceed 1.5px")
+    if signed_top_edge_stroke>0 and parent_outline_stroke>0:
+        raise ValueError("cannot stack global parent outline and selective source top edge")
     scene=_load(original_outer_scene)
     garment=_load(simplified_apparel_scene)
     report=_load(simplified_apparel_metrics)
@@ -191,6 +229,20 @@ def prepare_vector_mask(
         f'<path d="{source_filled_path}" fill="#ffffff" fill-rule="evenodd" '
         f'transform="{mask_trans}"{parent_outline_css} shape-rendering="crispEdges"/>'
     )
+    if signed_top_edge_stroke>0:
+        top_segments,top_y=_verified_owner_top_segments(
+            parent,source_rings,width=width,height=height,
+        )
+    else:
+        top_segments=[]
+        top_y=None
+    top_svg=[
+        f'<path d="M {x0+material_shift:g} {y+signed_top_edge_y_shift:g} '
+        f'L {x1+material_shift:g} {y+signed_top_edge_y_shift:g}" '
+        f'fill="none" stroke="#ffffff" stroke-width="{signed_top_edge_stroke:g}" '
+        f'shape-rendering="crispEdges"/>'
+        for x0,x1,y in top_segments
+    ]
     hole_svg=[
         f'<path d="{data}" fill="none" stroke="#ffffff" '
         f'stroke-width="{hole_edge_stroke:g}" shape-rendering="crispEdges"/>'
@@ -199,7 +251,7 @@ def prepare_vector_mask(
     # Hole boundary stroke is a separate, explicitly counted SVG paint pass.
     # This mirrors OpenCV filled-contour boundary inclusion in mask semantics.
     svg=''.join([
-        head,*hole_svg,'</mask></defs>',
+        head,*hole_svg,*top_svg,'</mask></defs>',
         f'<rect x="0" y="0" width="{width}" height="{height}" fill="#ffffff"/>',
         '<g mask="url(#signed-existing-lower-body)">',
         *[
@@ -248,6 +300,14 @@ def prepare_vector_mask(
         "source_owner_svg_mask_ring_vertices":sum(len(r["points"]) for r in source_rings),
         "svg_mask_hole_boundary_stroke_paths":len(hole_paths),
         "svg_parent_outline_stroke_px":parent_outline_stroke,
+        "svg_signed_top_edge_stroke_px":signed_top_edge_stroke,
+        "svg_signed_top_edge_y_offset_px":signed_top_edge_y_shift if top_segments else None,
+        "svg_signed_top_edge_y_original":top_y,
+        "svg_signed_top_edge_count":len(top_segments),
+        "svg_signed_top_edge_reused_endpoint_occurrences":len(top_segments)*2,
+        "svg_signed_top_edge_paint_passes_are_counted":True,
+        "svg_signed_top_edge_top_row_exact_replay_verified":bool(top_segments),
+        "svg_signed_top_edge_source_segments":[[x0,x1,y] for x0,x1,y in top_segments],
         "svg_parent_outline_stroke_paint_passes":int(parent_outline_stroke>0),
         "svg_parent_outline_reused_ring_point_occurrences":(
             sum(len(r["points"]) for r in source_rings) if parent_outline_stroke>0 else 0
@@ -446,6 +506,8 @@ def main()->None:
     p.add_argument("--material-stroke",type=float,default=1.0)
     p.add_argument("--hole-stroke",type=float,default=1.0)
     p.add_argument("--parent-outline-stroke",type=float,default=0.0)
+    p.add_argument("--signed-top-edge-stroke",type=float,default=0.0)
+    p.add_argument("--signed-top-edge-y-shift",type=float,default=1.0)
     args=p.parse_args()
     if args.compare_chrome and args.render_chrome:
         raise ValueError("choose one real Chrome execution mode")
@@ -467,6 +529,8 @@ def main()->None:
             material_shift=args.material_shift,material_stroke=args.material_stroke,
             hole_edge_stroke=args.hole_stroke,
             parent_outline_stroke=args.parent_outline_stroke,
+            signed_top_edge_stroke=args.signed_top_edge_stroke,
+            signed_top_edge_y_shift=args.signed_top_edge_y_shift,
         )
 
 
