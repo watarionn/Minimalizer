@@ -3345,6 +3345,7 @@
     let applied = 0, evaluated = 0, rejected = 0;
     let candidateNearPalette = 0, rejectedColorFidelity = 0;
     let cumulativeRecolored = 0;
+    const rejectReasons={incompatiblePalette:0,donorAreaOrAspect:0,protectedArea:0,paletteDistance:0,recolorBudget:0,regionColorError:0,sourceColorDistance:0,boundaryWeakOrShort:0};
     const total = width * height;
     const ownerOf = new Int32Array(labels);
 
@@ -3375,24 +3376,26 @@
         const a=owners[aId],b=owners[bId];
         if(!a?.active||!b?.active) {rejected+=1;continue;}
         const crossPalette = a.paletteId!==b.paletteId;
-        if(crossPalette&&!config.allowNearPalette){rejected+=1;continue;}
+        if(crossPalette&&!config.allowNearPalette){rejected+=1;rejectReasons.incompatiblePalette+=1;continue;}
         if(crossPalette) candidateNearPalette+=1;
         const small=a.count<=b.count?a:b;
         const large=small===a?b:a;
-        if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;continue;}
+        if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;rejectReasons.donorAreaOrAspect+=1;continue;}
         const paletteDistance=Math.hypot(...small.paletteRgb.map((v,i)=>v-large.paletteRgb[i]));
-        if(crossPalette && (
-          small.count/total>=config.protectedMinAreaFraction
-          || paletteDistance>config.maxPaletteRgbDistance
-          || small.count+cumulativeRecolored>total*config.maxChangedPixelFraction
-          || paletteDistance>config.maxRegionColorError
-        )){rejectedColorFidelity+=1;rejected+=1;continue;}
+        if(crossPalette) {
+          let reason=null;
+          if(small.count/total>=config.protectedMinAreaFraction) reason="protectedArea";
+          else if(paletteDistance>config.maxPaletteRgbDistance) reason="paletteDistance";
+          else if(small.count+cumulativeRecolored>total*config.maxChangedPixelFraction) reason="recolorBudget";
+          else if(paletteDistance>config.maxRegionColorError) reason="regionColorError";
+          if(reason){rejectReasons[reason]+=1;rejectedColorFidelity+=1;rejected+=1;continue;}
+        }
         const dx=small.rgb[0]-large.rgb[0],dy=small.rgb[1]-large.rgb[1],dz=small.rgb[2]-large.rgb[2];
         const colorDelta=Math.hypot(dx,dy,dz);
         const perimeter=2*((small.maxX-small.minX+1)+(small.maxY-small.minY+1));
-        if((crossPalette && colorDelta>config.maxBoundaryColorDelta)
-           ||colorDelta>config.maxSourceRgbDistance||shared<config.minSharedEdges
-           ||shared/perimeter<config.minSharedRatio) {rejected+=1;continue;}
+        if((crossPalette&&colorDelta>config.maxBoundaryColorDelta)
+          ||colorDelta>config.maxSourceRgbDistance){rejected+=1;rejectReasons.sourceColorDistance+=1;continue;}
+        if(shared<config.minSharedEdges||shared/perimeter<config.minSharedRatio){rejected+=1;rejectReasons.boundaryWeakOrShort+=1;continue;}
         possible.push({source:small.id,target:large.id,shared,colorDelta,area:small.count,
           crossPalette,paletteDistance});
       }
@@ -3417,7 +3420,7 @@
     }
     if(applied===0) return {
       hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0,
-        candidateNearPalette,rejectedColorFidelity},
+        candidateNearPalette,rejectedColorFidelity,rejectReasons},
     };
     const retained=owners.filter(x=>x.active).sort((a,b)=>a.id-b.id);
     const finalLabels=new Int32Array(total);finalLabels.fill(-1);
@@ -3444,7 +3447,7 @@
         colors:retained.map(g=>g.paletteRgb.slice()),
       },
       metrics:{applied,evaluated,rejected,changedPixels:cumulativeRecolored,
-        candidateNearPalette,rejectedColorFidelity},
+        candidateNearPalette,rejectedColorFidelity,rejectReasons},
     };
   }
 
@@ -3531,7 +3534,7 @@
     );
     let selectedHierarchy = hierarchy;
     let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0,
-      candidateNearPalette:0,rejectedColorFidelity:0};
+      candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{}};
     if (config.selectiveRegionMerge === true) {
       const selective = mergeAcceptedPaletteRegions(hierarchy,palette,width,height,config.selectiveMergeOptions);
       selectedHierarchy = selective.hierarchy;
@@ -3621,6 +3624,7 @@
         selectiveMergeRecoloredPixels: selectiveMergeMetrics.changedPixels,
         selectiveMergeNearPaletteCandidates: selectiveMergeMetrics.candidateNearPalette,
         selectiveMergeColorRejections: selectiveMergeMetrics.rejectedColorFidelity,
+        selectiveMergeRejectReasons: selectiveMergeMetrics.rejectReasons,
         cutObjective: hierarchy.cutObjective,
         cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
         cutMaxHeight: hierarchy.cutMaxHeight,
@@ -4026,6 +4030,9 @@
         selectiveMergeRecoloredPixels: analysis.metrics.selectiveMergeRecoloredPixels,
         selectiveMergeNearPaletteCandidates: analysis.metrics.selectiveMergeNearPaletteCandidates,
         selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
+        selectiveMergeRejectReasons: analysis.metrics.selectiveMergeRejectReasons,
+        selectiveMergeRenderGate: analysis.metrics.selectiveMergeRenderGate,
+        selectiveMergeRenderChangedPixels: analysis.metrics.selectiveMergeRenderChangedPixels || 0,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,
