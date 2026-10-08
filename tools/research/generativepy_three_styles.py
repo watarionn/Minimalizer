@@ -45,7 +45,10 @@ def read_source(path: Path) -> np.ndarray:
 
 def region(pixels: np.ndarray, x: float, y: float, radius: int = 3) -> tuple[np.ndarray, float]:
     h, w = pixels.shape[:2]
-    xx, yy = int(round(x)), int(round(y))
+    # Gradient probes may pass beyond the image at the right or bottom edge.
+    # Clamp BEFORE slicing, otherwise an empty tile produces NaN colours.
+    xx = min(w - 1, max(0, int(round(x))))
+    yy = min(h - 1, max(0, int(round(y))))
     tile = pixels[max(0, yy-radius):min(h, yy+radius+1),
                   max(0, xx-radius):min(w, xx+radius+1)].astype(np.float32)
     alpha = tile[..., 3:4] / 255.0
