@@ -50,6 +50,15 @@ def _path(points: list[list[float]], *, shift: float = 0.0) -> str:
     return "M " + " L ".join(f"{x+shift:g} {y+shift:g}" for x,y in array) + " Z"
 
 
+
+def _polygon_points(points: list[list[float]], *, shift: float=0.0) -> str:
+    array=np.asarray(points,dtype=np.float64)
+    if array.ndim!=2 or array.shape[1]!=2 or len(array)<3 or not np.all(np.isfinite(array)):
+        raise ValueError("invalid SVG material polygon")
+    return " ".join(f"{x+shift:g},{y+shift:g}" for x,y in array)
+
+
+
 def _rgb(color: list[int]) -> str:
     if (not isinstance(color,list) or len(color)!=3
         or not all(isinstance(x,int) and 0<=x<=255 for x in color)):
@@ -160,7 +169,7 @@ def prepare_vector_mask(
     source_filled_path=" ".join(_path(r["points"]) for r in source_rings)
     hole_paths=[_path(r["points"],shift=material_shift)
                 for r in source_rings if r["depth"]%2==1]
-    material_paths=[_path(p["points"],shift=material_shift) for p in apparel]
+    material_paths=[_polygon_points(p["points"],shift=material_shift) for p in apparel]
     mask_trans=f"translate({parent_dx:g} {parent_dy:g})"
     head=(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
@@ -184,7 +193,7 @@ def prepare_vector_mask(
         f'<rect x="0" y="0" width="{width}" height="{height}" fill="#ffffff"/>',
         '<g mask="url(#signed-existing-lower-body)">',
         *[
-            f'<path d="{d}" fill="{_rgb(p["color_rgb_observed"])}" '
+            f'<polygon points="{d}" fill="{_rgb(p["color_rgb_observed"])}" '
             f'stroke="{_rgb(p["color_rgb_observed"])}" '
             f'stroke-width="{material_stroke:g}" stroke-linejoin="miter"/>'
             for p,d in zip(apparel,material_paths)
