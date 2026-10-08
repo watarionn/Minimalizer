@@ -23,6 +23,11 @@
     cornerProtectArmMinPx: 3.5,
     cornerProtectTurnDegrees: 55,
     cornerPruneMinIoUDelta: 0.004,
+    facetDeviationPx: 2.35,
+    facetMaxIoULoss: 0.0025,
+    facetTrialsPerChain: 14,
+    facetMaxRemovalsPerChain: 5,
+    facetPreferAngleDegrees: 12,
   });
 
   function pointKey(point) {
@@ -1148,10 +1153,122 @@
     return survivor.map((i) => points[i].slice());
   }
 
+
+  // Refine a rejected all-at-once polygon candidate using incremental, independently
+  // guarded edits. No vertex moves or new colors: a candidate only replaces two
+  // adjacent segments with their shared straight chord. The same canonical arc is
+  // used on both sides of every color region.
+  function facetCandidateEdits(points, rawPoints, config) {
+    if (points.length <= 2) return [];
+    const originalIndices = [];
+    let cursor = 0;
+    for (const point of points) {
+      while (cursor < rawPoints.length && !samePoint(rawPoints[cursor], point)) {
+        cursor += 1;
+      }
+      if (cursor >= rawPoints.length) return [];
+      originalIndices.push(cursor++);
+    }
+    const proposals = [];
+    const protectedAngle = config.cornerProtectTurnDegrees * Math.PI / 180;
+    const maxDeviation = config.facetDeviationPx;
+    const angleTolerance = config.facetPreferAngleDegrees * Math.PI / 180;
+    for (let i = 1; i + 1 < points.length; i += 1) {
+      const a = points[i - 1], b = points[i], c = points[i + 1];
+      const ux = b[0] - a[0], uy = b[1] - a[1];
+      const vx = c[0] - b[0], vy = c[1] - b[1];
+      const len1 = Math.hypot(ux, uy), len2 = Math.hypot(vx, vy);
+      if (len1 <= 0 || len2 <= 0) continue;
+      const bend = Math.atan2(Math.abs(ux * vy - uy * vx), ux * vx + uy * vy);
+      if (bend >= protectedAngle && Math.min(len1, len2) >= config.cornerProtectArmMinPx) {
+        continue;
+      }
+      let maximum = 0;
+      let safeCorridor = true;
+      for (let j = originalIndices[i - 1] + 1; j < originalIndices[i + 1]; j += 1) {
+        const deviation = pointSegmentDistance(rawPoints[j], a, c);
+        if (deviation > maxDeviation) {
+          safeCorridor = false;
+          break;
+        }
+        maximum = Math.max(maximum, deviation);
+      }
+      if (!safeCorridor) continue;
+      const dx = c[0] - a[0], dy = c[1] - a[1];
+      const angle = Math.atan2(dy, dx);
+      const snapped = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+      const delta = Math.abs(Math.atan2(Math.sin(angle - snapped), Math.cos(angle - snapped)));
+      const angularBonus = delta <= angleTolerance ? 0.20 : 0;
+      proposals.push({
+        index: i,
+        score: maximum + 0.004 * (len1 + len2) - angularBonus,
+        maxDeviation: maximum,
+      });
+    }
+    proposals.sort((a, b) => a.score - b.score || a.index - b.index);
+    return proposals;
+  }
+
+  function refineFacetChain(
+    points, rawPoints, chain, graph, labels, stats, pointsByChain,
+    width, height, config,
+  ) {
+    let accepted = points.map((p) => p.slice());
+    const baselineIoU = new Map();
+    for (const regionId of chain.regions) {
+      const loops = assembleRegionLoops(graph, regionId, pointsByChain);
+      const raster = rasterizeRegionLoops(loops, stats[regionId], width, height);
+      baselineIoU.set(regionId, regionMetrics(
+        stats[regionId], raster, width, labels.length, config,
+      ).iou);
+    }
+    let attempts = 0;
+    let removed = 0;
+    while (
+      accepted.length > 2
+      && attempts < config.facetTrialsPerChain
+      && removed < config.facetMaxRemovalsPerChain
+    ) {
+      const proposed = facetCandidateEdits(accepted, rawPoints, config);
+      let changed = false;
+      for (const item of proposed) {
+        if (attempts >= config.facetTrialsPerChain) break;
+        attempts += 1;
+        const candidate = accepted.filter((_, i) => i !== item.index);
+        pointsByChain[chain.id] = candidate;
+        let valid = candidateValidForRegions(
+          graph, labels, stats, pointsByChain, chain.id,
+          chain.regions, width, height, config,
+        );
+        if (valid) {
+          for (const regionId of chain.regions) {
+            const loops = assembleRegionLoops(graph, regionId, pointsByChain);
+            const raster = rasterizeRegionLoops(loops, stats[regionId], width, height);
+            const metrics = regionMetrics(stats[regionId], raster, width, labels.length, config);
+            if (metrics.iou + config.facetMaxIoULoss < baselineIoU.get(regionId)) {
+              valid = false;
+              break;
+            }
+          }
+        }
+        if (valid) {
+          accepted = candidate;
+          removed += 1;
+          changed = true;
+          break;
+        }
+        pointsByChain[chain.id] = accepted;
+      }
+      if (!changed) break;
+    }
+    pointsByChain[chain.id] = accepted;
+    return { points: accepted, removed, attempts, rejected: attempts - removed };
+  }
+
   function simplifyLabels(labels, width, height, regionCount, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const geometryMode = config.geometryMode || "baseline";
-    if (geometryMode !== "baseline" && geometryMode !== "corner-aware") {
+    if (geometryMode !== "baseline" && geometryMode !== "corner-aware" && geometryMode !== "facet-safe") {
       throw new Error("Unsupported geometry mode: " + geometryMode);
     }
     const graph = buildBoundaryGraph(labels, width, height, regionCount);
@@ -1164,6 +1281,10 @@
     let cornerPrunedChains = 0;
     let cornerPrunedVertices = 0;
     let cornerRejectedCandidates = 0;
+    let facetRemovedVertices = 0;
+    let facetTrialCount = 0;
+    let facetRejectedCandidates = 0;
+    let facetRefinedChains = 0;
 
     for (const chain of graph.chains) {
       if (chain.points.length <= 2) continue;
@@ -1216,7 +1337,7 @@
         }
       }
       pointsByChain[chain.id] = accepted;
-      if (geometryMode === "corner-aware" && accepted.length > 2) {
+      if ((geometryMode === "corner-aware" || geometryMode === "facet-safe") && accepted.length > 2) {
         const baselineRegionIoU = new Map();
         for (const regionId of chain.regions) {
           const loops = assembleRegionLoops(graph, regionId, pointsByChain);
@@ -1258,6 +1379,21 @@
           }
           cornerRejectedCandidates += 1;
           pointsByChain[chain.id] = accepted;
+        }
+      }
+      pointsByChain[chain.id] = accepted;
+      if (geometryMode === "facet-safe" && accepted.length > 2) {
+        const facet = refineFacetChain(
+          accepted, chain.points, chain, graph, labels, stats, pointsByChain,
+          width, height, config,
+        );
+        accepted = facet.points;
+        facetRemovedVertices += facet.removed;
+        facetTrialCount += facet.attempts;
+        facetRejectedCandidates += facet.rejected;
+        if (facet.removed > 0) {
+          facetRefinedChains += 1;
+          simplified = true;
         }
       }
       pointsByChain[chain.id] = accepted;
@@ -1306,6 +1442,10 @@
         cornerPrunedChains,
         cornerPrunedVertices,
         cornerRejectedCandidates,
+        facetRemovedVertices,
+        facetTrialCount,
+        facetRejectedCandidates,
+        facetRefinedChains,
         geometryMode,
         minRegionIoU: minimumIoU,
         meanRegionIoU: meanIoU,
@@ -1325,6 +1465,8 @@
       simplifyOpenChain,
       planarLineCandidate,
       cornerAwareLineCandidate,
+      facetCandidateEdits,
+      refineFacetChain,
       candidateChainIntersectionFree,
       regionStats,
       regionMetrics,
