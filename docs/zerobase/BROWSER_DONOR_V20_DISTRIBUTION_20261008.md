@@ -53,7 +53,7 @@ Do **NOT** indiscriminately loosen `maxSmallFraction`, source RGB, palette or si
 - v20 probe-focused tests cover independent width/area/aspect flags, no-probe parity, deterministic pair counting, same-palette/contrast candidates and inability to override an existing reject.
 - Isolated Windows Chrome 154 ran all three golden images, and all corresponding Facet/Near output PNGs remain SHA256-identical to previously accepted v19 outputs. Actual v20 Near browser app route equals direct engine byte-for-byte.
 - Extended v12/v13/v14/v15/v17/v18/v19/v20 regression suite: **52 passed**. JS syntax PASS.
-- GitHub Actions workflow `.github/workflows/browser-donor-v20.yml` verifies tests and syntax on the research branch. Actual result must be checked before claiming CI PASS.
+- GitHub Actions **7/7 PASS** on the code-bearing revision `2daf1edd39dc85c10313a6fd6acb27172d6c9c4a`: Donor v20, Merge v19, Near v18, Selective v17, Facet v15, Shape v14, and Sharp Lite v13. Earlier failures were caused solely by trailing spaces in this Markdown and were resolved. This documentation-only update does not alter tested runtime behavior.
 
 ## Preservation
 
