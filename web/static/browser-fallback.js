@@ -68,6 +68,7 @@
     structuralMode: "l0-lite-jacobi",
     spectralL0BetaMax: 1.0e5,
     canonicalContourLite: false,
+    geometryMode: "baseline",
     nativeRgbaMaxPixels: 12000000,
     sourcePixelHardLimit: 100000000,
     sourceFileByteLimit: 67108864,
@@ -3317,6 +3318,12 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if (
+      config.geometryMode === "corner-aware"
+      && (config.canonicalContourLite !== true || config.structuralMode !== "l0-lite-jacobi")
+    ) {
+      throw new Error("Shape requires Lite preprocessing with canonical shared-boundary contours.");
+    }
     if (config.canonicalContourLite === true) {
       const contourAvailable = typeof globalThis !== "undefined"
         && globalThis.MinimalizerCanonicalContour
@@ -3396,6 +3403,7 @@
         width,
         height,
         hierarchy.built.components.length,
+        { geometryMode: config.geometryMode },
       );
     }
 
@@ -3473,6 +3481,10 @@
         meanContourIoU: shapes.length > 0 ? contourIoUSum / shapes.length : 1,
         vertexCount,
         contourMethod: canonicalContour ? canonicalContour.method : "legacy-independent-rings",
+        contourGeometryMode: canonicalContour ? canonicalContour.metrics.geometryMode : "legacy",
+        cornerPrunedVertices: canonicalContour ? canonicalContour.metrics.cornerPrunedVertices : 0,
+        cornerPrunedChains: canonicalContour ? canonicalContour.metrics.cornerPrunedChains : 0,
+        cornerRejectedCandidates: canonicalContour ? canonicalContour.metrics.cornerRejectedCandidates : 0,
         contourOriginalVertexCount: canonicalContour
           ? canonicalContour.metrics.originalVertexCount
           : vertexCount,
@@ -3773,8 +3785,11 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.canonicalContourLite === true
-        ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
+      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "corner-aware"
+        ? "shape" : config.canonicalContourLite === true
+          ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
+      "X-Minimalizer-Contour-Geometry-Mode": analysis.metrics.contourGeometryMode,
+      "X-Minimalizer-Contour-Corner-Pruned-Vertices": String(analysis.metrics.cornerPrunedVertices),
       "X-Minimalizer-Contour-Min-IoU": analysis.metrics.contourMinRegionIoU.toFixed(4),
       "X-Minimalizer-Raster-Method": rasterMethod,
       "X-Minimalizer-Budget-Merges": String(analysis.metrics.budgetMergeCount),
@@ -3812,8 +3827,13 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.canonicalContourLite === true
-          ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
+        qualityProfile: config.geometryMode === "corner-aware"
+          ? "shape" : config.canonicalContourLite === true
+            ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
+        contourGeometryMode: analysis.metrics.contourGeometryMode,
+        cornerPrunedVertices: analysis.metrics.cornerPrunedVertices,
+        cornerPrunedChains: analysis.metrics.cornerPrunedChains,
+        cornerRejectedCandidates: analysis.metrics.cornerRejectedCandidates,
         contourMinRegionIoU: analysis.metrics.contourMinRegionIoU,
         contourOriginalVertexCount: analysis.metrics.contourOriginalVertexCount,
         contourSharedVertexCount: analysis.metrics.contourSharedVertexCount,

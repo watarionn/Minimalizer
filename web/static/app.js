@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "shape") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "shape");
 } else if (browserFallbackQualityParam === "sharp") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "sharp");
 } else if (browserFallbackQualityParam === "lite") {
@@ -18,7 +20,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return quality === "exact" || quality === "sharp" ? quality : "lite";
+  return quality === "exact" || quality === "sharp" || quality === "shape" ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -28,7 +30,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return browserFallbackQualityProfile() === "sharp";
+  return browserFallbackQualityProfile() === "sharp" || browserFallbackQualityProfile() === "shape";
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -383,6 +385,7 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
+    geometryMode: browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
   return result.response;
 }
@@ -581,8 +584,10 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
         : responseRoute === "zerobase2"
           ? "Minimalizer ZeroBase2 · BEST"
           : computeRoute === "browser"
-            ? browserQualityProfile === "sharp"
-              ? "Minimalizer Browser Fallback v12 · SHARP LITE (experimental)"
+            ? browserQualityProfile === "shape"
+              ? "Minimalizer Browser Fallback v12 · SHAPE (experimental)"
+              : browserQualityProfile === "sharp"
+                ? "Minimalizer Browser Fallback v12 · SHARP LITE (experimental)"
               : "Minimalizer Browser Fallback v12 · FALLBACK"
             : v2Contract
               ? "Minimalizer 2.0 Local · HIGH"
