@@ -81,14 +81,25 @@ def read_owned_profile(profile: Path, *, root: Path | None = None) -> dict | Non
 
 def cleanup_browser_profile(profile: Path, *, root: Path | None = None) -> bool:
     """Never remove an unmarked directory or another project's Chrome data."""
-    if read_owned_profile(profile, root=root) is None:
+    record = read_owned_profile(profile, root=root)
+    if record is None:
         return False
     try:
         shutil.rmtree(profile)
         return True
     except OSError as exc:
-        # Do not mask the benchmark's actual exception or output quality.
-        # A crashed session can later be audited with the tagged orphan tool.
+        # On Windows, an escaped Chrome child can lock one cache file.
+        # rmtree may already have deleted the owner sentinel before
+        # encountering that lock. Restore it for the later orphan audit.
+        try:
+            if profile.is_dir():
+                (profile / PROFILE_SENTINEL).write_text(
+                    json.dumps(record, sort_keys=True, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+        except OSError:
+            pass
+        # Do not hide the actual benchmark result or exception.
         print(
             f"Minimalizer browser cache cleanup postponed: {type(exc).__name__}",
             file=sys.stderr,
