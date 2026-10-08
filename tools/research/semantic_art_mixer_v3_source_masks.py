@@ -327,6 +327,27 @@ def gallery(original, outputs: list[dict], path: Path):
     sheet.save(path,optimize=True)
 
 
+def mobile_selected_gallery(selected: list[tuple[str, Path]], path: Path):
+    """Original + four D trials, two columns for phone visual evaluation."""
+    cols,side,pad,rowh=2,320,18,402
+    cellw=side+2*pad
+    rows=(len(selected)+1)//2
+    image=Image.new("RGB",(cols*cellw,95+rows*rowh),"#ECEDE9")
+    dr=ImageDraw.Draw(image)
+    dr.text((20,19),"SOURCE + FOUR PART-GUARDED STYLES",font=font(24,True),fill="#26312B")
+    dr.text((20,55),"GC001 / source geometry, face and part ownership",font=font(15),fill="#69746C")
+    for i,(label,src) in enumerate(selected):
+        x=(i%cols)*cellw
+        y=95+(i//cols)*rowh
+        dr.rounded_rectangle((x+7,y+6,x+cellw-7,y+rowh-8),
+                             fill="#FAFAF8",outline="#D2D7D0",radius=6)
+        with Image.open(src) as original:
+            tile=original.convert("RGB").resize((side,side),Image.Resampling.LANCZOS)
+        image.paste(tile,(x+pad,y+15))
+        dr.text((x+pad,y+side+34),label,font=font(15,True),fill="#26312B")
+    image.save(path,optimize=True)
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--root",type=Path,required=True)
@@ -384,6 +405,14 @@ def main():
                             "sha256":sha256(dest),"metrics":metrics})
             arr.append({"file":dest,"name":f"{idx+1:02d} {recipe['id']}",
                         "note":trial})
+    selected=[("ORIGINAL GC001",out/"00_original_GC001.png")]
+    if not selected[0][1].exists():
+        src.save(selected[0][1],optimize=True)
+    for i,recipe in enumerate(DEFAULT_RECIPES,1):
+        selected.append((f"{i:02d} {recipe['id']} / D",
+                         out/f"{i:02d}_{recipe['id']}_D_extended_parts.png"))
+    mobile=out/"gallery_D_four_styles_mobile.png"
+    mobile_selected_gallery(selected,mobile)
     atlas=out/"gallery_4recipes_4trials.png"
     gallery(src,arr,atlas)
     manifest={
@@ -404,7 +433,8 @@ def main():
         "not_auto_semantic_segmentation":True,
         "not_production_integrated":True,
         "outputs":records,
-        "gallery":{"file":atlas.name,"sha256":sha256(atlas),"bytes":atlas.stat().st_size}
+        "gallery":{"file":atlas.name,"sha256":sha256(atlas),"bytes":atlas.stat().st_size},
+        "selected_mobile_gallery":{"file":mobile.name,"sha256":sha256(mobile),"bytes":mobile.stat().st_size}
     }
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":"PASS","outputs":len(records),
