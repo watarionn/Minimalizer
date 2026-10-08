@@ -1,0 +1,25 @@
+{
+  "schema": "sa10.40-two-source-raster-neutral-material-research-v1",
+  "source_sha256_GC001": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "source_sha256_Raden": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "GC001_real_browser_material_improvement_gate": "PASS",
+  "GC001_independent_source_residual_audit_gate": "PASS",
+  "Raden_unrelated_outfit_frozen_gate": "PASS",
+  "original_source_material_raster_changed_pixels": 0,
+  "before_chrome_mismatched_pixels": 45,
+  "after_chrome_mismatched_pixels": 41,
+  "material_only_edge_mismatches_after": 27,
+  "outside_owner_draw_diff_regression_detected": false,
+  "new_svg_shapes_added": 0,
+  "original_five_color_plane_27_vertex_count_unchanged": true,
+  "research_gate": "PASS",
+  "SVG_browser_exact_pixel_parity": "FAIL",
+  "production_promotion_authorized": false,
+  "outstanding_release_blockers": [
+    "CHROME_SVG_REFERENCE_STILL_DIFFERING_PIXELS",
+    "INHERITED_TOTAL_VECTOR_VERTEX_BUDGET_FAIL",
+    "COMPLETE_CHARACTER_CHROME_OWNER_ZORDER_NOT_VALIDATED",
+    "SECOND_INDEPENDENT_POSITIVE_GARMENT_NOT_VALIDATED",
+    "HUMAN_ART_REVIEW_REQUIRED"
+  ]
+}
