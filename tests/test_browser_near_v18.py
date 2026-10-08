@@ -44,6 +44,7 @@ function run(changes){
  }))}};
  return core.mergeAcceptedPaletteRegions(copy,palette,w,h,{
  allowNearPalette:true,maxSmallFraction:.02,maxChangedPixelFraction:.02,
+ protectedMinAreaFraction:.02,
  maxRegionColorError:8,maxMerges:1,...changes
  });
 }
