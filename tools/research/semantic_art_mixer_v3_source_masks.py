@@ -101,6 +101,45 @@ def identify_eyes_from_source(source: Image.Image, face: np.ndarray):
     return masks,obs
 
 
+def facial_micro_observations(source: Image.Image, face: np.ndarray):
+    """Separate nose/mouth *candidates* from original pixels.
+
+    GC001-only manual search windows. Unlike eye colors, low-contrast anime
+    mouth strokes can split into multiple segments. Preserve ambiguity instead
+    of pretending that heuristic marks provide authoritative semantic classes.
+    These audit masks are NEVER rendered into a character.
+    """
+    pixels=np.asarray(source.convert("RGB"),dtype=np.uint8)
+    r,g,b=[pixels[:,:,i].astype(np.int16) for i in range(3)]
+    yy,xx=np.mgrid[:SIZE[1],:SIZE[0]]
+    nose=(face&(xx>=160)&(xx<190)&(yy>=138)&(yy<155)&
+          (r-g>=19)&(r-b>=26)&(g>=139)&(r>188))
+    mouth=(face&(xx>=151)&(xx<190)&(yy>=152)&(yy<164)&
+           (pixels.min(axis=2)<180)&(r-g>12))
+    output={}
+    for label,binary,min_area in (("nose",nose,18),("mouth",mouth,5)):
+        n,_,stats,centers=cv2.connectedComponentsWithStats(binary.astype(np.uint8),8)
+        detected=[]
+        for i in range(1,n):
+            area=int(stats[i,cv2.CC_STAT_AREA])
+            if area<min_area:
+                continue
+            detected.append({"bbox":[int(x) for x in stats[i,:4]],
+                             "area":area,
+                             "center":[round(float(v),2) for v in centers[i]]})
+        detected.sort(key=lambda q:(-q["area"],q["bbox"][0]))
+        output[label]={"source_observed_candidates":detected,
+                       "manual_gc001_roi":True,
+                       "authority":False,
+                       "render_permission":False}
+    if not output["nose"]["source_observed_candidates"]:
+        raise ValueError("Missing source nose-color candidate")
+    # Mouth is deliberately allowed to contain multiple disjoint strokes.
+    if not output["mouth"]["source_observed_candidates"]:
+        raise ValueError("Missing source mouth-stroke candidates")
+    return output
+
+
 def original_color_medoid(colors: np.ndarray) -> np.ndarray:
     """Choose an ACTUALLY PRESENT RGB triplet closest to the median."""
     if not len(colors):
@@ -298,6 +337,7 @@ def main():
     src,assets,existing_assets=load_assets(args.root.resolve())
     masks,mask_origin=load_observed_masks()
     eye_masks,eyes=identify_eyes_from_source(src,masks["face"])
+    micro=facial_micro_observations(src,masks["face"])
     tie=observed_tie_mask(src)
     tones=face_plan(src,masks["face"],eye_masks)
     numcolors={"major_clothing":6,"left_arm":5,"right_arm":5,"hair":7,
@@ -324,7 +364,13 @@ def main():
         cx,cy=eye["center_source_xy"]
         draw.rectangle((int(cx)-8,int(cy)-7,int(cx)+8,int(cy)+7),
                        outline=(0,200,200),width=2)
-    audit.save(out/"diagnostic_eye_observations_only.png")
+    # Mark candidate regions ONLY on this separate source audit PNG.
+    # These boxes are not composited into any of the 16 artwork results.
+    for role,color in (("nose",(240,170,35)),("mouth",(195,70,190))):
+        for item in micro[role]["source_observed_candidates"]:
+            x,y,w,h=item["bbox"]
+            draw.rectangle((x-1,y-1,x+w+1,y+h+1),outline=color,width=1)
+    audit.save(out/"diagnostic_facial_feature_candidates_only.png")
 
     records=[]
     arr=[]
@@ -338,7 +384,7 @@ def main():
                             "sha256":sha256(dest),"metrics":metrics})
             arr.append({"file":dest,"name":f"{idx+1:02d} {recipe['id']}",
                         "note":trial})
-    atlas=out/"gallery_4recipes_3trials.png"
+    atlas=out/"gallery_4recipes_4trials.png"
     gallery(src,arr,atlas)
     manifest={
         "experiment":"Semantic Art Mixer v3 / foreground-owner, face-part observer, source-material",
@@ -346,7 +392,9 @@ def main():
         "source_mask_files":mask_origin,
         "research_assets":existing_assets,
         "eye_candidates_detected":eyes,
-        "other_facial_classes":"not independently detected in this optical-only trial",
+        "other_facial_feature_candidates":micro,
+        "facial_observer_scope":"GC001-specific optical hypotheses; not general semantic model",
+        "candidate_boxes_never_rendered":True,
         "face_render_policy":"suppressed internal facial features; no fake eyes",
         "trial_descriptions":{
             "A_subject_clip":"source subject mask clips Shape/Stroke/Texture; face not yet protected, deliberately poor negative control",
@@ -360,7 +408,7 @@ def main():
     }
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":"PASS","outputs":len(records),
-          "eye_observations":len(eyes),"subject_pixels":int(masks["subject"].sum()),
+          "eye_observations":len(eyes),"nose_candidates":len(micro["nose"]["source_observed_candidates"]),"mouth_candidates":len(micro["mouth"]["source_observed_candidates"]),"subject_pixels":int(masks["subject"].sum()),
           "face_pixels":int(masks["face"].sum()),
           "background_leak":[r["metrics"]["style_leak_into_background_pixels"] for r in records],
           "face_dark":[r["metrics"]["face_dark_pixels"] for r in records],
