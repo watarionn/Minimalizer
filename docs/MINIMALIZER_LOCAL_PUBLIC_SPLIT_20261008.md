@@ -25,3 +25,18 @@ Local service worker caches only the app shell. Never cache original images, ren
 - Exact live URLs and rollout state verified after deployment.
 
 No pyfreeform package is installed by this split. The GPL and visual-style PoC are separate next-stage research.
+
+## Tailnet owner gate (hardening)
+
+The private LocalWorker also checks the Tailscale Serve `Tailscale-User-Login`
+header against one owner login, configured **outside the repository** in
+`%LOCALAPPDATA%\\Minimalizer\\config\\owner-login.txt` or via
+`MINIMALIZER_LOCAL_OWNER_LOGIN`. Unconfigured remote access fails closed.
+Loopback-only direct requests remain available for local administration.
+The worker must remain bound to `127.0.0.1:28764`; the Tailscale HTTP
+reverse proxy removes spoofed Tailscale identity headers. Tailnet access
+policy/grants should additionally restrict TCP 28765 to the owner.
+
+The worker needs the Tailscale HTTPS PWA origin allowlisted using existing
+external `MINIMALIZER_LOCAL_ALLOWED_ORIGINS` config. Do not put owner login,
+API keys, cookie material, or personal tailnet configuration into GitHub.
