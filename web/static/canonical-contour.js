@@ -18,6 +18,11 @@
     planarLineFitMinSpanDiagonalRatio: 0.03,
     planarLineFitMaxDeviationDiagonalRatio: 0.004,
     planarLineFitMinEfficiency: 0.94,
+    cornerPruneMaxDeviationPx: 1.65,
+    cornerPruneFactors: Object.freeze([1.0, 0.75, 0.50]),
+    cornerProtectArmMinPx: 3.5,
+    cornerProtectTurnDegrees: 55,
+    cornerPruneMinIoUDelta: 0.004,
   });
 
   function pointKey(point) {
@@ -1073,8 +1078,82 @@
     return output;
   }
 
+  // Local geometric cleanup after the conservative OpenCV-compatible DP pass.
+  // Only existing vertices are removed; shared arcs, color ownership and endpoints
+  // remain unchanged. Evaluate skipped *raw* contour points against the new chord,
+  // rather than relying on the already simplified intermediate vertices.
+  function cornerAwareLineCandidate(points, rawPoints, tolerance, config) {
+    if (points.length < 3 || !(tolerance > 0)) {
+      return points.map((point) => point.slice());
+    }
+    const rawIndices = [];
+    let cursor = 0;
+    for (const point of points) {
+      while (cursor < rawPoints.length && !samePoint(rawPoints[cursor], point)) {
+        cursor += 1;
+      }
+      if (cursor >= rawPoints.length) {
+        return points.map((p) => p.slice());
+      }
+      rawIndices.push(cursor);
+      cursor += 1;
+    }
+
+    const survivor = points.map((_, i) => i);
+    const protectedAngle = config.cornerProtectTurnDegrees * Math.PI / 180;
+    const rawMaxDev = tolerance;
+    // The hard work bound is deterministic. It prevents unexpectedly large
+    // inputs from turning this optional simplifier into an unbounded search.
+    const workBudget = Math.min(points.length * points.length, 150000);
+    let inspected = 0;
+
+    while (survivor.length > 2 && inspected < workBudget) {
+      let bestIndex = -1;
+      let bestScore = Infinity;
+      for (let j = 1; j + 1 < survivor.length && inspected < workBudget; j += 1) {
+        inspected += 1;
+        const ia = survivor[j - 1];
+        const ib = survivor[j];
+        const ic = survivor[j + 1];
+        const a = points[ia], b = points[ib], c = points[ic];
+        const ux = b[0] - a[0], uy = b[1] - a[1];
+        const vx = c[0] - b[0], vy = c[1] - b[1];
+        const la = Math.hypot(ux, uy), lb = Math.hypot(vx, vy);
+        if (!(la > 0 && lb > 0)) continue;
+        const bend = Math.atan2(Math.abs(ux * vy - uy * vx), ux * vx + uy * vy);
+        if (
+          bend >= protectedAngle
+          && Math.min(la, lb) >= config.cornerProtectArmMinPx
+        ) continue;
+        let highest = 0;
+        let valid = true;
+        const firstRaw = rawIndices[ia];
+        const lastRaw = rawIndices[ic];
+        for (let k = firstRaw + 1; k < lastRaw; k += 1) {
+          const dev = pointSegmentDistance(rawPoints[k], a, c);
+          if (dev > rawMaxDev) { valid = false; break; }
+          highest = Math.max(highest, dev);
+        }
+        if (!valid) continue;
+        // Favor small stair notches before longer, meaningful corners.
+        const score = highest + 0.004 * (la + lb) + 0.00001 * ib;
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = j;
+        }
+      }
+      if (bestIndex < 0) break;
+      survivor.splice(bestIndex, 1);
+    }
+    return survivor.map((i) => points[i].slice());
+  }
+
   function simplifyLabels(labels, width, height, regionCount, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    const geometryMode = config.geometryMode || "baseline";
+    if (geometryMode !== "baseline" && geometryMode !== "corner-aware") {
+      throw new Error("Unsupported geometry mode: " + geometryMode);
+    }
     const graph = buildBoundaryGraph(labels, width, height, regionCount);
     const stats = regionStats(labels, width, height, regionCount);
     const pointsByChain = graph.chains.map((chain) => (
@@ -1082,6 +1161,9 @@
     ));
     let fallbackChainCount = 0;
     let rejectedCandidateCount = 0;
+    let cornerPrunedChains = 0;
+    let cornerPrunedVertices = 0;
+    let cornerRejectedCandidates = 0;
 
     for (const chain of graph.chains) {
       if (chain.points.length <= 2) continue;
@@ -1134,6 +1216,51 @@
         }
       }
       pointsByChain[chain.id] = accepted;
+      if (geometryMode === "corner-aware" && accepted.length > 2) {
+        const baselineRegionIoU = new Map();
+        for (const regionId of chain.regions) {
+          const loops = assembleRegionLoops(graph, regionId, pointsByChain);
+          const raster = rasterizeRegionLoops(loops, stats[regionId], width, height);
+          baselineRegionIoU.set(
+            regionId, regionMetrics(stats[regionId], raster, width, labels.length, config).iou
+          );
+        }
+        for (const factor of config.cornerPruneFactors) {
+          const candidate = cornerAwareLineCandidate(
+            accepted, chain.points, config.cornerPruneMaxDeviationPx * factor, config
+          );
+          if (candidate.length >= accepted.length) continue;
+          pointsByChain[chain.id] = candidate;
+          let safe = candidateValidForRegions(
+            graph, labels, stats, pointsByChain, chain.id, chain.regions,
+            width, height, config
+          );
+          if (safe) {
+            for (const regionId of chain.regions) {
+              const loops = assembleRegionLoops(graph, regionId, pointsByChain);
+              const raster = rasterizeRegionLoops(loops, stats[regionId], width, height);
+              const metrics = regionMetrics(stats[regionId], raster, width, labels.length, config);
+              if (
+                metrics.iou + config.cornerPruneMinIoUDelta
+                < baselineRegionIoU.get(regionId)
+              ) {
+                safe = false;
+                break;
+              }
+            }
+          }
+          if (safe) {
+            cornerPrunedChains += 1;
+            cornerPrunedVertices += accepted.length - candidate.length;
+            accepted = candidate;
+            simplified = true;
+            break;
+          }
+          cornerRejectedCandidates += 1;
+          pointsByChain[chain.id] = accepted;
+        }
+      }
+      pointsByChain[chain.id] = accepted;
       if (!simplified && chain.points.length > 2) fallbackChainCount += 1;
     }
 
@@ -1176,6 +1303,10 @@
         simplifiedVertexCount,
         fallbackChainCount,
         rejectedCandidateCount,
+        cornerPrunedChains,
+        cornerPrunedVertices,
+        cornerRejectedCandidates,
+        geometryMode,
         minRegionIoU: minimumIoU,
         meanRegionIoU: meanIoU,
       },
@@ -1193,6 +1324,7 @@
       simplifyOpenCvOpen,
       simplifyOpenChain,
       planarLineCandidate,
+      cornerAwareLineCandidate,
       candidateChainIntersectionFree,
       regionStats,
       regionMetrics,
