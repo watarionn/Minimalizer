@@ -156,7 +156,8 @@ def compare_chrome(*, output_dir: Path) -> dict:
         "svg_browser_gate":"PASS" if not np.any(any_difference) and report["unrepresentable_one_or_two_point_parent_rings"]==0 else "FAIL",
         "production_promotion_authorized":False,
     })
-    cv2.imwrite(str(output_dir/"apparel_browser_difference.png"),delta*2)
+    cv2.imwrite(str(output_dir/"apparel_browser_difference.png"),
+                np.clip(delta.astype(np.int16)*2,0,255).astype(np.uint8))
     report_path.write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report,indent=2))
     return report
