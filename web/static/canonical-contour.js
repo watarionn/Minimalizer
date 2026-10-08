@@ -28,6 +28,12 @@
     facetTrialsPerChain: 14,
     facetMaxRemovalsPerChain: 5,
     facetPreferAngleDegrees: 12,
+    // v23: stricter large-color-plane geometry experiment, never used by Facet.
+    planeMajorRegionFraction: 0.035,
+    planeDeviationPx: 3.2,
+    planeMaxIoULoss: 0.0012,
+    planeTrialsPerChain: 24,
+    planeMaxRemovalsPerChain: 8,
   });
 
   function pointKey(point) {
@@ -1303,7 +1309,7 @@
   function simplifyLabels(labels, width, height, regionCount, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
     const geometryMode = config.geometryMode || "baseline";
-    if (geometryMode !== "baseline" && geometryMode !== "corner-aware" && geometryMode !== "facet-safe") {
+    if (!["baseline","corner-aware","facet-safe","plane-safe"].includes(geometryMode)) {
       throw new Error("Unsupported geometry mode: " + geometryMode);
     }
     const graph = buildBoundaryGraph(labels, width, height, regionCount);
@@ -1372,7 +1378,7 @@
         }
       }
       pointsByChain[chain.id] = accepted;
-      if ((geometryMode === "corner-aware" || geometryMode === "facet-safe") && accepted.length > 2) {
+      if (["corner-aware","facet-safe","plane-safe"].includes(geometryMode) && accepted.length > 2) {
         const baselineRegionIoU = new Map();
         for (const regionId of chain.regions) {
           const loops = assembleRegionLoops(graph, regionId, pointsByChain);
@@ -1417,10 +1423,24 @@
         }
       }
       pointsByChain[chain.id] = accepted;
-      if (geometryMode === "facet-safe" && accepted.length > 2) {
+      if ((geometryMode === "facet-safe" || geometryMode === "plane-safe") && accepted.length > 2) {
+        // For plane-safe, use the more extensive straight-line trial only on
+        // boundaries adjoining a sufficiently large connected color region.
+        // All trial edits still pass shared-chain intersection and two-sided IoU
+        // checks. Smaller details retain exactly the existing Facet settings.
+        const major = geometryMode === "plane-safe"
+          && chain.regions.some(id => stats[id].pixels.length / (width*height)
+              >= config.planeMajorRegionFraction);
+        const facetConfig = major ? {
+          ...config,
+          facetDeviationPx: config.planeDeviationPx,
+          facetMaxIoULoss: config.planeMaxIoULoss,
+          facetTrialsPerChain: config.planeTrialsPerChain,
+          facetMaxRemovalsPerChain: config.planeMaxRemovalsPerChain,
+        } : config;
         const facet = refineFacetChain(
           accepted, chain.points, chain, graph, labels, stats, pointsByChain,
-          width, height, config,
+          width, height, facetConfig,
         );
         accepted = facet.points;
         facetRemovedVertices += facet.removed;
@@ -1482,6 +1502,7 @@
         facetRejectedCandidates,
         facetRefinedChains,
         geometryMode,
+        planeMajorRegionFraction: geometryMode === "plane-safe" ? config.planeMajorRegionFraction : 0,
         minRegionIoU: minimumIoU,
         meanRegionIoU: meanIoU,
       },

@@ -3680,6 +3680,12 @@
 
   function analyzeRgba(rgba, width, height, options) {
     const config = Object.assign({}, DEFAULTS, options || {});
+    if(config.geometryMode==="plane-safe" && (
+      config.structuralMode!=="l0-lite-jacobi"
+      || config.canonicalContourLite!==true
+      || config.selectiveRegionMerge===true
+      || config.autoSelectiveMerge===true
+    ))throw Error("V23 plane-safe needs unmodified Facet structure.");
     if(config.autoSelectiveMerge === true && (
       config.selectiveRegionMerge === true
       ||config.structuralMode!=="l0-lite-jacobi"
@@ -3904,6 +3910,9 @@
         subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: selectedHierarchy.selectedCount,
+        planeQualityGate: "not_requested",
+        planeQualityChangedPixels: 0,
+        planeVertexReduction: 0,
         autoMergeStatus: "not_requested",
         autoMergeCandidates: 0,
         autoMergeAttempts: [],
@@ -3960,6 +3969,37 @@
           : (shapes.length > 0 ? Math.min(...shapes.map((shape) => shape.contourIoU)) : 1),
       },
     };
+    if(config.geometryMode==="plane-safe") {
+      if(config.structuralMode!=="l0-lite-jacobi"
+          ||config.canonicalContourLite!==true
+          ||config.selectiveRegionMerge===true
+          ||config.autoSelectiveMerge===true)
+        throw Error("V23 plane-safe needs unmodified Facet structure.");
+      const baseline=analyzeRgba(rgba,width,height,{
+        ...config,geometryMode:"facet-safe",selectiveRegionMerge:false,
+        autoSelectiveMerge:false,
+      });
+      const reduction=baseline.metrics.vertexCount-result.metrics.vertexCount;
+      const verified=reduction>0
+        ? compareRegionRenderFidelity(baseline.shapes,result.shapes,width,height,{
+          maxChangedPixelFraction:0.008,
+          maxRgbMeanAbsoluteError:0.85,
+          maxColorMassDeltaFraction:0.004,
+          maxSilhouetteChangedPixels:0,
+          maxProtectedChangedPixels:0,
+          protectThinComponents:true,
+        }) : {pass:false,reason:"no_vertex_gain",changedPixels:0};
+      if(!verified.pass) {
+        baseline.metrics.planeQualityGate="rejected:"+verified.reason;
+        baseline.metrics.planeQualityChangedPixels=verified.changedPixels;
+        baseline.metrics.planeVertexReduction=0;
+        return baseline;
+      }
+      result.metrics.planeQualityGate="pass";
+      result.metrics.planeQualityChangedPixels=verified.changedPixels;
+      result.metrics.planeVertexReduction=reduction;
+      return result;
+    }
     if(config.selectiveRegionMerge===true && selectiveMergeMetrics.applied>0) {
       const base=analyzeRgba(rgba,width,height,{...config,selectiveRegionMerge:false});
       // A fewer-region output is not a geometry improvement when it adds vertices.
@@ -4276,7 +4316,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4299,6 +4339,7 @@
       "X-Minimalizer-Targeted-Merge-Gate": String(analysis.metrics.targetedMergeStatus),
       "X-Minimalizer-Auto-Merge-Gate": String(analysis.metrics.autoMergeStatus),
       "X-Minimalizer-Auto-Merge-Candidates": String(analysis.metrics.autoMergeCandidates),
+      "X-Minimalizer-Plane-Quality-Gate": String(analysis.metrics.planeQualityGate),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4324,7 +4365,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4359,6 +4400,9 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        planeQualityGate: analysis.metrics.planeQualityGate,
+        planeQualityChangedPixels: analysis.metrics.planeQualityChangedPixels,
+        planeVertexReduction: analysis.metrics.planeVertexReduction,
         autoMergeStatus: analysis.metrics.autoMergeStatus,
         autoMergeCandidates: analysis.metrics.autoMergeCandidates,
         autoMergeAttempts: analysis.metrics.autoMergeAttempts,
