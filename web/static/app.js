@@ -393,7 +393,7 @@ async function requestBrowserFallback() {
     canonicalContourLite: browserFallbackCanonicalContourLite(),
     selectiveRegionMerge: ["selective","near"].includes(browserFallbackQualityProfile()),
     selectiveMergeOptions: browserFallbackQualityProfile() === "near"
-      ? { allowNearPalette: true } : { allowNearPalette: false },
+      ? { allowNearPalette: true, maxMerges: 1 } : { allowNearPalette: false, maxMerges: 1 },
     geometryMode: ["selective", "near"].includes(browserFallbackQualityProfile()) ? "facet-safe"
       : browserFallbackQualityProfile() === "facet" ? "facet-safe"
       : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
