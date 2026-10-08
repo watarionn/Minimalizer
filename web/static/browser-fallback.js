@@ -3346,6 +3346,9 @@
     let candidateNearPalette = 0, rejectedColorFidelity = 0;
     let cumulativeRecolored = 0;
     const rejectReasons={incompatiblePalette:0,donorAreaOrAspect:0,protectedArea:0,paletteDistance:0,recolorBudget:0,regionColorError:0,sourceColorDistance:0,boundaryWeakOrShort:0};
+    // V20 records independent gate outcomes for the *same unmodified* pair.
+    // The probe is research-only and never changes merge acceptance.
+    const candidateGeometry=config.captureCandidateGeometry===true ? [] : null;
     const total = width * height;
     const ownerOf = new Int32Array(labels);
 
@@ -3380,6 +3383,44 @@
         if(crossPalette) candidateNearPalette+=1;
         const small=a.count<=b.count?a:b;
         const large=small===a?b:a;
+        if(candidateGeometry!==null) {
+          const boxWidth=small.maxX-small.minX+1;
+          const boxHeight=small.maxY-small.minY+1;
+          const minSide=Math.min(boxWidth,boxHeight);
+          const aspect=Math.max(boxWidth,boxHeight)/Math.max(1,minSide);
+          const boxPerimeter=2*(boxWidth+boxHeight);
+          const paletteDistance=Math.hypot(...small.paletteRgb.map((v,i)=>v-large.paletteRgb[i]));
+          const sourceRgbDistance=Math.hypot(...small.rgb.map((v,i)=>v-large.rgb[i]));
+          const areaFraction=small.count/total;
+          const sharedRatio=shared/boxPerimeter;
+          const budgetLeft=total*config.maxChangedPixelFraction-cumulativeRecolored;
+          const gates={
+            area:areaFraction<=config.maxSmallFraction,
+            minSide:minSide>=config.minBoundingSide,
+            aspect:aspect<=config.maxAspectRatio,
+            palette:!crossPalette||config.allowNearPalette,
+            protectedArea:!crossPalette||areaFraction<config.protectedMinAreaFraction,
+            paletteDistance:!crossPalette||paletteDistance<=config.maxPaletteRgbDistance,
+            paletteError:!crossPalette||paletteDistance<=config.maxRegionColorError,
+            recolorBudget:!crossPalette||small.count<=budgetLeft,
+            sourceRgbDistance:sourceRgbDistance<=config.maxSourceRgbDistance
+              &&(!crossPalette||sourceRgbDistance<=config.maxBoundaryColorDelta),
+            sharedEdges:shared>=config.minSharedEdges,
+            sharedRatio:sharedRatio>=config.minSharedRatio,
+          };
+          candidateGeometry.push({
+            donorId:small.id,recipientId:large.id,
+            donorPixels:small.count,recipientPixels:large.count,
+            donorAreaFraction:areaFraction,
+            donorBox:[small.minX,small.minY,small.maxX,small.maxY],
+            donorBoxWidth:boxWidth,donorBoxHeight:boxHeight,
+            donorMinSide:minSide,donorAspect:aspect,
+            donorFillFraction:small.count/(boxWidth*boxHeight),
+            sharedEdges:shared,sharedPerimeterFraction:sharedRatio,
+            crossPalette,paletteDistance,sourceRgbDistance,
+            gates,
+          });
+        }
         if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;rejectReasons.donorAreaOrAspect+=1;continue;}
         const paletteDistance=Math.hypot(...small.paletteRgb.map((v,i)=>v-large.paletteRgb[i]));
         if(crossPalette) {
@@ -3420,7 +3461,8 @@
     }
     if(applied===0) return {
       hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0,
-        candidateNearPalette,rejectedColorFidelity,rejectReasons},
+        candidateNearPalette,rejectedColorFidelity,rejectReasons,
+        candidateGeometry},
     };
     const retained=owners.filter(x=>x.active).sort((a,b)=>a.id-b.id);
     const finalLabels=new Int32Array(total);finalLabels.fill(-1);
@@ -3447,7 +3489,8 @@
         colors:retained.map(g=>g.paletteRgb.slice()),
       },
       metrics:{applied,evaluated,rejected,changedPixels:cumulativeRecolored,
-        candidateNearPalette,rejectedColorFidelity,rejectReasons},
+        candidateNearPalette,rejectedColorFidelity,rejectReasons,
+        candidateGeometry},
     };
   }
 
@@ -3569,7 +3612,7 @@
     );
     let selectedHierarchy = hierarchy;
     let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0,
-      candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{}};
+      candidateNearPalette:0,rejectedColorFidelity:0,rejectReasons:{},candidateGeometry:null};
     if (config.selectiveRegionMerge === true) {
       const selective = mergeAcceptedPaletteRegions(hierarchy,palette,width,height,config.selectiveMergeOptions);
       selectedHierarchy = selective.hierarchy;
@@ -3660,6 +3703,7 @@
         selectiveMergeNearPaletteCandidates: selectiveMergeMetrics.candidateNearPalette,
         selectiveMergeColorRejections: selectiveMergeMetrics.rejectedColorFidelity,
         selectiveMergeRejectReasons: selectiveMergeMetrics.rejectReasons,
+        selectiveMergeCandidateGeometry: selectiveMergeMetrics.candidateGeometry,
         selectiveMergeRenderGate: "not_needed",
         selectiveMergeRenderChangedPixels: 0,
         cutObjective: hierarchy.cutObjective,
@@ -3713,6 +3757,7 @@
           selectiveMergeNearPaletteCandidates:selectiveMergeMetrics.candidateNearPalette,
           selectiveMergeColorRejections:selectiveMergeMetrics.rejectedColorFidelity,
           selectiveMergeRejectReasons:selectiveMergeMetrics.rejectReasons,
+          selectiveMergeCandidateGeometry:selectiveMergeMetrics.candidateGeometry,
           selectiveMergeRenderGate:"rejected:"+verified.reason,
           selectiveMergeRenderChangedPixels:verified.changedPixels};
         return base;
@@ -4088,6 +4133,7 @@
         selectiveMergeNearPaletteCandidates: analysis.metrics.selectiveMergeNearPaletteCandidates,
         selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
         selectiveMergeRejectReasons: analysis.metrics.selectiveMergeRejectReasons,
+        selectiveMergeCandidateGeometry: analysis.metrics.selectiveMergeCandidateGeometry,
         selectiveMergeRenderGate: analysis.metrics.selectiveMergeRenderGate,
         selectiveMergeRenderChangedPixels: analysis.metrics.selectiveMergeRenderChangedPixels || 0,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
