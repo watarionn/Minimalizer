@@ -122,6 +122,37 @@ class Sa1038VectorMaskBrowserTests(unittest.TestCase):
             self.assertFalse(record["exact_browser_opencv_pixel_parity"])
             self.assertFalse(record["production_promotion_authorized"])
 
+    def test_optional_parent_contour_stroke_is_counted_and_not_a_quality_pass(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            outer, candidate, evidence=make_authority(root)
+            result=prepare_vector_mask(
+                original_outer_scene=outer,
+                simplified_apparel_scene=candidate,
+                simplified_apparel_metrics=evidence,
+                output_dir=root/"research",
+                parent_outline_stroke=1.15,
+            )
+            svg=(root/"research"/"source_bound_vector_mask.svg").read_text("utf-8")
+            self.assertIn('stroke-width="1.15"',svg)
+            self.assertEqual(result["svg_parent_outline_stroke_px"],1.15)
+            self.assertEqual(result["svg_parent_outline_stroke_paint_passes"],1)
+            self.assertEqual(
+                result["svg_parent_outline_reused_ring_point_occurrences"],
+                result["source_owner_svg_mask_ring_vertices"],
+            )
+            self.assertTrue(result["svg_parent_outline_extra_stroke_counted"])
+            self.assertEqual(result["browser_svg_gate"],"UNVERIFIED")
+            self.assertFalse(result["production_promotion_authorized"])
+            with self.assertRaises(ValueError):
+                prepare_vector_mask(
+                    original_outer_scene=outer,
+                    simplified_apparel_scene=candidate,
+                    simplified_apparel_metrics=evidence,
+                    output_dir=root/"reject",
+                    parent_outline_stroke=3.0,
+                )
+
     def test_without_real_chrome_execution_no_fake_pass(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)
