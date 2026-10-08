@@ -59,6 +59,17 @@ def prepare(*, scene_path:Path, stage9_dir:Path, stage37_dir:Path,
         if root==output_dir or root in output_dir.parents or output_dir in root.parents:
             raise ValueError("research output must be isolated from signed authority files")
     scene=_load(scene_path)
+    stage8_metrics_path=scene_path.parent/"phase8_adaptive_metrics.json"
+    stage8_metrics=_load(stage8_metrics_path)
+    if (
+        stage8_metrics.get("original_source_sha256")!=_sha(original_image)
+        or stage8_metrics.get("adaptive_vector_sha256")!=_sha(scene_path)
+        or stage8_metrics.get("vertex_budget_pass") is not False
+    ):
+        raise ValueError("signed original Stage8 source/budget evidence missing")
+    source_budget=stage8_metrics.get("original_budget",{}).get("ring_vertices")
+    if not isinstance(source_budget,int) or source_budget<=0:
+        raise ValueError("cannot count original geometric vertex budget")
     stage9=_load(stage9_dir/"interior_plane_proposals.json")
     stage9_metrics=_load(stage9_dir/"interior_plane_metrics.json")
     apparel=_load(stage37_dir/"apparel_simplified_subpaths.json")
@@ -200,7 +211,10 @@ def prepare(*, scene_path:Path, stage9_dir:Path, stage37_dir:Path,
         "full_scene_chrome_executed":False,
         "full_scene_chrome_exact_rgb_parity":"UNVERIFIED",
         "all_original_vertex_and_mask_complexity_counted":True,
-        "original_GC001_outer_vertex_budget_limit":1887 if w==340 and h==340 and apparel_planes else None,
+        "original_source_ring_vertex_budget_limit":source_budget,
+        "original_source_ring_vertex_budget_pass":geometry["original_source_ring_vertices_including_support"]<=source_budget,
+        "original_source_ring_vertex_budget_excess":geometry["original_source_ring_vertices_including_support"]-source_budget,
+        "combined_source_geometry_budget_pass":geometry["combined_mask_vector_source_vertex_occurrences_counted"]<=source_budget,
         "production_promotion_authorized":False,
         **geometry,
     }
@@ -233,10 +247,6 @@ def render_chrome(*,output_dir:Path,chrome_binary:Path)->dict:
         raise ValueError("full source vector or real Chrome executable missing")
     if svg.read_text("utf-8") not in page.read_text("utf-8"):
         raise ValueError("actual HTML no longer contains the full signed SVG")
-    w,h=(
-        int(report.get("original_GC001_outer_vertex_budget_limit") is not None or 340),
-        340,
-    )
     expected=cv2.imread(str(output_dir/"signed_full_opencv_reference.png"),cv2.IMREAD_COLOR)
     if expected is None or expected.ndim!=3:
         raise ValueError("original full source OpenCV preview missing")
