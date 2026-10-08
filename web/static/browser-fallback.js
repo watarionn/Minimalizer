@@ -3326,6 +3326,12 @@
       maxSourceRgbDistance: 16, minSharedEdges: 5,
       minSharedRatio: 0.18, minBoundingSide: 5,
       maxAspectRatio: 3.0,
+      allowNearPalette: false,
+      maxPaletteRgbDistance: 18,
+      maxChangedPixelFraction: 0.0015,
+      maxRegionColorError: 8,
+      protectedMinAreaFraction: 0.002,
+      maxBoundaryColorDelta: 16,
     }, settings || {});
     const base = hierarchy.built.components;
     const labels = hierarchy.built.componentIds;
@@ -3337,6 +3343,8 @@
     }));
     const mergedFrom = owners.map((_, id) => [id]);
     let applied = 0, evaluated = 0, rejected = 0;
+    let candidateNearPalette = 0, rejectedColorFidelity = 0;
+    let cumulativeRecolored = 0;
     const total = width * height;
     const ownerOf = new Int32Array(labels);
 
@@ -3365,21 +3373,34 @@
         evaluated+=1;
         const [aId,bId]=key.split(":").map(Number);
         const a=owners[aId],b=owners[bId];
-        if(!a?.active||!b?.active||a.paletteId!==b.paletteId) {rejected+=1;continue;}
+        if(!a?.active||!b?.active) {rejected+=1;continue;}
+        const crossPalette = a.paletteId!==b.paletteId;
+        if(crossPalette&&!config.allowNearPalette){rejected+=1;continue;}
+        if(crossPalette) candidateNearPalette+=1;
         const small=a.count<=b.count?a:b;
         const large=small===a?b:a;
         if(small.count/total>config.maxSmallFraction||!validShape(small)) {rejected+=1;continue;}
+        const paletteDistance=Math.hypot(...small.paletteRgb.map((v,i)=>v-large.paletteRgb[i]));
+        if(crossPalette && (
+          small.count/total>=config.protectedMinAreaFraction
+          || paletteDistance>config.maxPaletteRgbDistance
+          || small.count+cumulativeRecolored>total*config.maxChangedPixelFraction
+          || paletteDistance>config.maxRegionColorError
+        )){rejectedColorFidelity+=1;rejected+=1;continue;}
         const dx=small.rgb[0]-large.rgb[0],dy=small.rgb[1]-large.rgb[1],dz=small.rgb[2]-large.rgb[2];
         const colorDelta=Math.hypot(dx,dy,dz);
         const perimeter=2*((small.maxX-small.minX+1)+(small.maxY-small.minY+1));
-        if(colorDelta>config.maxSourceRgbDistance||shared<config.minSharedEdges
+        if((crossPalette && colorDelta>config.maxBoundaryColorDelta)
+           ||colorDelta>config.maxSourceRgbDistance||shared<config.minSharedEdges
            ||shared/perimeter<config.minSharedRatio) {rejected+=1;continue;}
-        possible.push({source:small.id,target:large.id,shared,colorDelta,area:small.count});
+        possible.push({source:small.id,target:large.id,shared,colorDelta,area:small.count,
+          crossPalette,paletteDistance});
       }
       possible.sort((a,b)=>a.area-b.area||a.colorDelta-b.colorDelta
         ||b.shared-a.shared||a.source-b.source||a.target-b.target);
       if(!possible.length) break;
       const winner=possible[0],source=owners[winner.source],target=owners[winner.target];
+      if(winner.crossPalette)cumulativeRecolored+=source.count;
       const combined=source.count+target.count;
       target.rgb=target.rgb.map((v,j)=>Math.round((v*target.count+source.rgb[j]*source.count)/combined));
       target.count=combined;
@@ -3395,7 +3416,8 @@
       applied+=1;
     }
     if(applied===0) return {
-      hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0},
+      hierarchy,palette,metrics:{applied:0,evaluated,rejected,changedPixels:0,
+        candidateNearPalette,rejectedColorFidelity},
     };
     const retained=owners.filter(x=>x.active).sort((a,b)=>a.id-b.id);
     const finalLabels=new Int32Array(total);finalLabels.fill(-1);
@@ -3421,7 +3443,8 @@
         assignments:retained.map(g=>g.paletteId),
         colors:retained.map(g=>g.paletteRgb.slice()),
       },
-      metrics:{applied,evaluated,rejected,changedPixels:0},
+      metrics:{applied,evaluated,rejected,changedPixels:cumulativeRecolored,
+        candidateNearPalette,rejectedColorFidelity},
     };
   }
 
@@ -3507,7 +3530,8 @@
       config,
     );
     let selectedHierarchy = hierarchy;
-    let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0};
+    let selectiveMergeMetrics = {applied:0,evaluated:0,rejected:0,changedPixels:0,
+      candidateNearPalette:0,rejectedColorFidelity:0};
     if (config.selectiveRegionMerge === true) {
       const selective = mergeAcceptedPaletteRegions(hierarchy,palette,width,height,config.selectiveMergeOptions);
       selectedHierarchy = selective.hierarchy;
@@ -3594,6 +3618,9 @@
         selectiveMergeApplied: selectiveMergeMetrics.applied,
         selectiveMergeEvaluated: selectiveMergeMetrics.evaluated,
         selectiveMergeRejected: selectiveMergeMetrics.rejected,
+        selectiveMergeRecoloredPixels: selectiveMergeMetrics.changedPixels,
+        selectiveMergeNearPaletteCandidates: selectiveMergeMetrics.candidateNearPalette,
+        selectiveMergeColorRejections: selectiveMergeMetrics.rejectedColorFidelity,
         cutObjective: hierarchy.cutObjective,
         cutNormalizedVisualLoss: hierarchy.cutNormalizedVisualLoss,
         cutMaxHeight: hierarchy.cutMaxHeight,
@@ -3916,7 +3943,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -3961,7 +3988,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -3996,6 +4023,9 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        selectiveMergeRecoloredPixels: analysis.metrics.selectiveMergeRecoloredPixels,
+        selectiveMergeNearPaletteCandidates: analysis.metrics.selectiveMergeNearPaletteCandidates,
+        selectiveMergeColorRejections: analysis.metrics.selectiveMergeColorRejections,
         mergeEvaluationCount: analysis.metrics.mergeEvaluationCount,
         cutObjective: analysis.metrics.cutObjective,
         cutNormalizedVisualLoss: analysis.metrics.cutNormalizedVisualLoss,

@@ -20,7 +20,7 @@ def test_selective_opt_in_and_prior_mode_preservation():
     app=APP.read_text(encoding="utf-8")
     engine=ENGINE.read_text(encoding="utf-8")
     assert 'browserFallbackQualityParam === "selective"' in app
-    assert 'selectiveRegionMerge: browserFallbackQualityProfile() === "selective"' in app
+    assert 'selectiveRegionMerge: ["selective","near"].includes(browserFallbackQualityProfile())' in app
     assert 'SELECTIVE (research)' in app
     assert 'selectiveMergeApplied' in engine
     assert "config.selectiveRegionMerge === true" in engine
