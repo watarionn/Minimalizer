@@ -12,7 +12,8 @@ import os
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from minimalize_engine.io.image_loader import load_image_bundle
 from minimalize_engine.v2 import (
@@ -52,6 +53,8 @@ GEOMETRIC_MASS_ENABLED = os.getenv(
 ).strip().lower() not in {"0", "false", "no", "off"}
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+LOCAL_FRONTEND = Path(__file__).with_name("frontend")
+SHARED_FRONTEND = REPO_ROOT / "web" / "static"
 TRACKED_PHASE14_AUTHORIZATION = (
     REPO_ROOT
     / "config"
@@ -60,8 +63,7 @@ TRACKED_PHASE14_AUTHORIZATION = (
 )
 
 DEFAULT_ORIGINS = (
-    "https://cf278796.cloudfree.jp",
-
+    "http://127.0.0.1:28764",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
 )
@@ -194,6 +196,8 @@ app = FastAPI(
     version="1.0",
     lifespan=lifespan,
 )
+app.mount("/static", StaticFiles(directory=SHARED_FRONTEND), name="shared-static")
+app.mount("/local-static", StaticFiles(directory=LOCAL_FRONTEND), name="local-static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(ALLOWED_ORIGINS),
@@ -211,6 +215,18 @@ async def guard_browser_origin(request: Request, call_next):
     if origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse(status_code=403, content={"detail": "Origin is not allowed."})
     return await call_next(request)
+@app.get("/", include_in_schema=False)
+def local_pwa_index():
+    return FileResponse(LOCAL_FRONTEND / "index.html", media_type="text/html", headers={"Cache-Control": "no-store"})
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+def local_pwa_manifest():
+    return FileResponse(LOCAL_FRONTEND / "manifest.webmanifest", media_type="application/manifest+json")
+
+@app.get("/sw.js", include_in_schema=False)
+def local_service_worker():
+    return FileResponse(LOCAL_FRONTEND / "sw.js", media_type="application/javascript", headers={"Cache-Control": "no-cache"})
+
 @app.get("/health")
 def health():
     ready = _rembg_session is not None and _rtmlib_model is not None

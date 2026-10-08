@@ -75,7 +75,7 @@ def test_local_worker_allows_local_development_origin_cors():
 
 
 def test_local_worker_allows_private_network_preflight():
-    origin = "https://cf278796.cloudfree.jp"
+    origin = "http://127.0.0.1:28764"
     with TestClient(worker.app) as client:
         response = client.options(
             "/health",
@@ -202,12 +202,29 @@ def test_local_worker_no_longer_trusts_railway_origin():
         )
     assert response.status_code == 403
 
-def test_local_worker_allows_cloudfree_production_origin_cors():
+def test_local_worker_rejects_cloudfree_public_origin():
     origin = "https://cf278796.cloudfree.jp"
     with TestClient(worker.app) as client:
         response = client.get("/health", headers={"Origin": origin})
-    assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == origin
+    assert response.status_code == 403
+
+
+def test_local_pwa_shell_is_served_from_worker_not_public():
+    with TestClient(worker.app) as client:
+        page = client.get("/")
+        manifest = client.get("/manifest.webmanifest")
+        service_worker = client.get("/sw.js")
+        route = client.get("/local-static/local-route.js")
+    assert page.status_code == 200
+    assert "Minimalizer Local" in page.text
+    assert "browser-fallback.js" not in page.text
+    assert "local-route.js" in page.text
+    assert manifest.status_code == 200
+    assert manifest.json()["display"] == "standalone"
+    assert service_worker.status_code == 200
+    assert route.status_code == 200
+    assert "MinimalizerBrowserFallback" not in route.text
+
 
 
 def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
