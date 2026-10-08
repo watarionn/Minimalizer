@@ -50,6 +50,9 @@ def run(
         stage04, stage11, stage12
     )):
         raise ValueError("source SHA contract mismatch")
+    composition_path = case_dir / "phase_11" / "11_composition.json"
+    if stage11.get("outputs", {}).get("11_composition.json") != file_sha(composition_path):
+        raise ValueError("saved Phase11 composition has changed")
     scene_path = phase12_dir / "12_simplification.json"
     if stage12.get("outputs", {}).get(scene_path.name) != file_sha(scene_path):
         raise ValueError("saved original Phase12 scene has changed")
@@ -79,6 +82,8 @@ def run(
             raise ValueError(f"invalid source part mask: {name}")
         masks[name] = image > 0
         mask_hashes[name] = file_sha(path)
+        if stage04.get("outputs", {}).get(f"part_masks/{name}.png") != mask_hashes[name]:
+            raise ValueError(f"source-owned Stage04 mask checksum mismatch: {name}")
     updated, replay_masks, report = evaluate_exact_replay(
         original_records, masks, width=width, height=height,
     )
@@ -123,6 +128,8 @@ def run(
     report["selected_name"] = scene["selected_name"]
     report["baseline_primitive_count"] = len(original_records)
     report["provenance_owner_audit"] = audit["status"]
+    report["phase11_composition_sha256"] = file_sha(composition_path)
+    report["phase04_masks_verified_against_manifest"] = True
     report["original_scene_sha256"] = file_sha(scene_path)
     report["original_preview_sha256"] = file_sha(phase12_dir / "preview.png")
     report["candidate_vector_scene_sha256"] = file_sha(candidate_path)
