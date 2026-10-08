@@ -40,8 +40,10 @@ The latter support pixel count measures the **observed source-outline ink candid
 
 - Dedicated synthetic-fixture tests at `tests/test_semantic_art_mixer_v2_guarded.py`: original-source eye-hole flattening, no false opaque ink from transparent PNGs, necktie original RGB / no green expansion, fail-closed missing skin, no unauthorized ML/production imports.
 - Existing v1 regression tests preserved at `tests/test_semantic_art_mixer_v1.py`.
-- The actual source-derived v2 gallery must be re-rendered twice and compared by SHA, and the related Local/Public unit regressions rerun, before PR is merged.
-- Save the actual output files to the private Drive mount; independently check when backend Drive sync becomes visible. Do not mistake a mounted file for confirmed server-side presence.
+- **18 research tests PASS** (v1 + v2) with Python warnings treated as errors.
+- **81 tests PASS, 1 pre-existing Starlette/httpx deprecation warning**, covering v1/v2 research tests and the affected Local/Public/Browser/RRM regression suites.
+- Real original-image output was re-rendered twice and all v2 guarded, v1 baseline and face-mask image SHA-256s matched between runs. The source-derived four-recipe gallery SHA-256 is **`c9ef1dd86de62fae2928bd57a585eeb8813484ed3ec09d5000c077f43512a086`**, verified unchanged on repeat.
+- The 16 generated files were saved under the private Drive-mounted folder; separately verify backend Google Drive synchronization. Do not mistake a mounted file for confirmed server-side presence.
 
 ## Next design gate
 
