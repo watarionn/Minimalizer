@@ -1,0 +1,355 @@
+{
+  "stage": "SA10.46",
+  "schema": "sa1046-gc001-positive-source-locked-crosscase-v1",
+  "case": "GC001",
+  "source_hashes": {
+    "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+    "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+    "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+    "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+    "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+    "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+    "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+  },
+  "chromium_version": "144.0.7559.96",
+  "record_order": [
+    "hair",
+    "lower_body",
+    "right_arm",
+    "face",
+    "torso",
+    "major_clothing",
+    "unknown",
+    "left_arm",
+    "neck",
+    "head",
+    "accessory_or_held_object"
+  ],
+  "signed_protected_source_owner_delta_px": {
+    "face": 0,
+    "left_arm": 5,
+    "right_arm": 24
+  },
+  "baseline": {
+    "full_rgb_mismatch": 3919,
+    "source_signed_protected": {
+      "face": 140,
+      "left_arm": 206,
+      "right_arm": 199
+    },
+    "rgb_mae": 3.486127
+  },
+  "candidates": {
+    "exact": {
+      "expanded_mask_vertices": 6028,
+      "stage9_and_clothing_polygon_vertices": 55,
+      "expanded_deployed_vertices": 6083,
+      "original_budget_limit": 1887,
+      "budget_pass": false,
+      "source_mask_vertices": {
+        "sa1041-owner-0": 1398,
+        "sa1041-owner-1": 188,
+        "sa1041-owner-2": 228,
+        "sa1041-owner-3": 140,
+        "sa1041-owner-4": 462,
+        "sa1041-owner-5": 654,
+        "sa1041-owner-6": 1040,
+        "sa1041-owner-7": 264,
+        "sa1041-owner-8": 190,
+        "sa1041-owner-9": 608,
+        "sa1041-owner-10": 64,
+        "sa1041-original-face-guard": 140,
+        "sa1041-protected-clear": 652
+      },
+      "rgb": {
+        "full_rgb_mismatch": 683,
+        "source_signed_protected": {
+          "face": 0,
+          "left_arm": 0,
+          "right_arm": 0
+        },
+        "rgb_mae": 0.598103
+      },
+      "visible_owner_error_partition": {
+        "hair": {
+          "visible_source_owned_pixels": 14521,
+          "rgb_mismatched_pixels": 106
+        },
+        "lower_body": {
+          "visible_source_owned_pixels": 12640,
+          "rgb_mismatched_pixels": 413
+        },
+        "right_arm": {
+          "visible_source_owned_pixels": 6510,
+          "rgb_mismatched_pixels": 0
+        },
+        "face": {
+          "visible_source_owned_pixels": 4937,
+          "rgb_mismatched_pixels": 0
+        },
+        "torso": {
+          "visible_source_owned_pixels": 5815,
+          "rgb_mismatched_pixels": 100
+        },
+        "major_clothing": {
+          "visible_source_owned_pixels": 3741,
+          "rgb_mismatched_pixels": 64
+        },
+        "unknown": {
+          "visible_source_owned_pixels": 1991,
+          "rgb_mismatched_pixels": 0
+        },
+        "left_arm": {
+          "visible_source_owned_pixels": 2718,
+          "rgb_mismatched_pixels": 0
+        },
+        "neck": {
+          "visible_source_owned_pixels": 2002,
+          "rgb_mismatched_pixels": 0
+        },
+        "head": {
+          "visible_source_owned_pixels": 0,
+          "rgb_mismatched_pixels": 0
+        },
+        "accessory_or_held_object": {
+          "visible_source_owned_pixels": 217,
+          "rgb_mismatched_pixels": 0
+        },
+        "background": {
+          "visible_source_owned_pixels": 60508,
+          "rgb_mismatched_pixels": 0
+        }
+      },
+      "isolated_browser_mask_mismatch": {
+        "sa1041-owner-0": 0,
+        "sa1041-owner-1": 0,
+        "sa1041-owner-2": 0,
+        "sa1041-owner-3": 0,
+        "sa1041-owner-4": 0,
+        "sa1041-owner-5": 0,
+        "sa1041-owner-6": 0,
+        "sa1041-owner-7": 0,
+        "sa1041-owner-8": 0,
+        "sa1041-owner-9": 0,
+        "sa1041-owner-10": 0,
+        "sa1041-original-face-guard": 0,
+        "sa1041-protected-clear": 0
+      },
+      "all_13_signed_masks_exact": true
+    },
+    "approx_1": {
+      "expanded_mask_vertices": 3218,
+      "stage9_and_clothing_polygon_vertices": 55,
+      "expanded_deployed_vertices": 3273,
+      "original_budget_limit": 1887,
+      "budget_pass": false,
+      "source_mask_vertices": {
+        "sa1041-owner-0": 472,
+        "sa1041-owner-1": 58,
+        "sa1041-owner-2": 228,
+        "sa1041-owner-3": 140,
+        "sa1041-owner-4": 169,
+        "sa1041-owner-5": 242,
+        "sa1041-owner-6": 637,
+        "sa1041-owner-7": 264,
+        "sa1041-owner-8": 101,
+        "sa1041-owner-9": 105,
+        "sa1041-owner-10": 10,
+        "sa1041-original-face-guard": 140,
+        "sa1041-protected-clear": 652
+      },
+      "rgb": {
+        "full_rgb_mismatch": 1453,
+        "source_signed_protected": {
+          "face": 0,
+          "left_arm": 0,
+          "right_arm": 7
+        },
+        "rgb_mae": 1.158763
+      },
+      "visible_owner_error_partition": {
+        "hair": {
+          "visible_source_owned_pixels": 14521,
+          "rgb_mismatched_pixels": 345
+        },
+        "lower_body": {
+          "visible_source_owned_pixels": 12640,
+          "rgb_mismatched_pixels": 437
+        },
+        "right_arm": {
+          "visible_source_owned_pixels": 6510,
+          "rgb_mismatched_pixels": 7
+        },
+        "face": {
+          "visible_source_owned_pixels": 4937,
+          "rgb_mismatched_pixels": 0
+        },
+        "torso": {
+          "visible_source_owned_pixels": 5815,
+          "rgb_mismatched_pixels": 198
+        },
+        "major_clothing": {
+          "visible_source_owned_pixels": 3741,
+          "rgb_mismatched_pixels": 175
+        },
+        "unknown": {
+          "visible_source_owned_pixels": 1991,
+          "rgb_mismatched_pixels": 127
+        },
+        "left_arm": {
+          "visible_source_owned_pixels": 2718,
+          "rgb_mismatched_pixels": 0
+        },
+        "neck": {
+          "visible_source_owned_pixels": 2002,
+          "rgb_mismatched_pixels": 10
+        },
+        "head": {
+          "visible_source_owned_pixels": 0,
+          "rgb_mismatched_pixels": 0
+        },
+        "accessory_or_held_object": {
+          "visible_source_owned_pixels": 217,
+          "rgb_mismatched_pixels": 8
+        },
+        "background": {
+          "visible_source_owned_pixels": 60508,
+          "rgb_mismatched_pixels": 146
+        }
+      },
+      "isolated_browser_mask_mismatch": {
+        "sa1041-owner-0": 454,
+        "sa1041-owner-1": 66,
+        "sa1041-owner-2": 0,
+        "sa1041-owner-3": 0,
+        "sa1041-owner-4": 133,
+        "sa1041-owner-5": 221,
+        "sa1041-owner-6": 227,
+        "sa1041-owner-7": 0,
+        "sa1041-owner-8": 34,
+        "sa1041-owner-9": 235,
+        "sa1041-owner-10": 19,
+        "sa1041-original-face-guard": 0,
+        "sa1041-protected-clear": 0
+      },
+      "all_13_signed_masks_exact": false
+    },
+    "approx_1p5": {
+      "expanded_mask_vertices": 3018,
+      "stage9_and_clothing_polygon_vertices": 55,
+      "expanded_deployed_vertices": 3073,
+      "original_budget_limit": 1887,
+      "budget_pass": false,
+      "source_mask_vertices": {
+        "sa1041-owner-0": 350,
+        "sa1041-owner-1": 45,
+        "sa1041-owner-2": 228,
+        "sa1041-owner-3": 140,
+        "sa1041-owner-4": 148,
+        "sa1041-owner-5": 262,
+        "sa1041-owner-6": 623,
+        "sa1041-owner-7": 264,
+        "sa1041-owner-8": 95,
+        "sa1041-owner-9": 66,
+        "sa1041-owner-10": 5,
+        "sa1041-original-face-guard": 140,
+        "sa1041-protected-clear": 652
+      },
+      "rgb": {
+        "full_rgb_mismatch": 1679,
+        "source_signed_protected": {
+          "face": 0,
+          "left_arm": 0,
+          "right_arm": 7
+        },
+        "rgb_mae": 1.357811
+      },
+      "visible_owner_error_partition": {
+        "hair": {
+          "visible_source_owned_pixels": 14521,
+          "rgb_mismatched_pixels": 436
+        },
+        "lower_body": {
+          "visible_source_owned_pixels": 12640,
+          "rgb_mismatched_pixels": 476
+        },
+        "right_arm": {
+          "visible_source_owned_pixels": 6510,
+          "rgb_mismatched_pixels": 7
+        },
+        "face": {
+          "visible_source_owned_pixels": 4937,
+          "rgb_mismatched_pixels": 0
+        },
+        "torso": {
+          "visible_source_owned_pixels": 5815,
+          "rgb_mismatched_pixels": 209
+        },
+        "major_clothing": {
+          "visible_source_owned_pixels": 3741,
+          "rgb_mismatched_pixels": 212
+        },
+        "unknown": {
+          "visible_source_owned_pixels": 1991,
+          "rgb_mismatched_pixels": 162
+        },
+        "left_arm": {
+          "visible_source_owned_pixels": 2718,
+          "rgb_mismatched_pixels": 0
+        },
+        "neck": {
+          "visible_source_owned_pixels": 2002,
+          "rgb_mismatched_pixels": 13
+        },
+        "head": {
+          "visible_source_owned_pixels": 0,
+          "rgb_mismatched_pixels": 0
+        },
+        "accessory_or_held_object": {
+          "visible_source_owned_pixels": 217,
+          "rgb_mismatched_pixels": 11
+        },
+        "background": {
+          "visible_source_owned_pixels": 60508,
+          "rgb_mismatched_pixels": 153
+        }
+      },
+      "isolated_browser_mask_mismatch": {
+        "sa1041-owner-0": 602,
+        "sa1041-owner-1": 115,
+        "sa1041-owner-2": 0,
+        "sa1041-owner-3": 0,
+        "sa1041-owner-4": 172,
+        "sa1041-owner-5": 263,
+        "sa1041-owner-6": 272,
+        "sa1041-owner-7": 0,
+        "sa1041-owner-8": 43,
+        "sa1041-owner-9": 364,
+        "sa1041-owner-10": 20,
+        "sa1041-original-face-guard": 0,
+        "sa1041-protected-clear": 0
+      },
+      "all_13_signed_masks_exact": false
+    }
+  },
+  "original_stage8_vertices": 3604,
+  "original_stage8_budget": 1887,
+  "gc001_stage37_five_apparel_panels_preserved": true,
+  "raden_sa1045_empty_apparel_pruning_not_transferred": true,
+  "local_public_worker_production_unchanged": true,
+  "full_character_golden_pass": false,
+  "production_promotion_authorized": false,
+  "result": "POSITIVE_SECOND_CHARACTER_EXACT_MASK_PASS_COMPLEXITY_AND_FULL_SCENE_HOLD",
+  "next": "Protect signed face/arms while reducing visible clothing and hair geometry for both cases; prove 2-case budgets and visual review.",
+  "artifact_sha256": {
+    "original_svg.png": "f6239493fac40623862df57bf759be35efa78abbc9bf2ebb800f4cf22fdf7592",
+    "exact.svg": "bdd9d7e2729dead13ed5deeecce7618f6b114bf182be9a19490feb736097a275",
+    "exact.png": "a9be6871ae0697442083ec6e8a5a04ae5095f74dc9d9f9d5ab656f4c49c10700",
+    "approx_1.svg": "cd26b1f699d6522ff8aa888e5a483216a96ecda03003a1da7d725e6d3addd56c",
+    "approx_1.png": "05fb9baf4236369c77ab23e6a5ab9c3b20bb6326041d24a3dbcfb300872224b5",
+    "approx_1p5.svg": "e90abf66d8fff6c7d284dbd2e32f5eff171250ae62cbc4e48495a8fee02d2f76",
+    "approx_1p5.png": "39107d09750f44b6422ec2789106c97c4fb6ea11843e00227331840f2ee78b7e",
+    "gc001_four_way.png": "15f54cda2a23728da33816de62c1b0f479db95318164e83fa6f9cb3a07ec2f52"
+  }
+}
