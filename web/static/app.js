@@ -45,7 +45,8 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color", "group"].includes(browserFallbackQualityProfile());
+  if (browserFallbackQualityProfile() === "group") return true;
+  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
