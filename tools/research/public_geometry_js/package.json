@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Opt-in, standalone Paper.js and Delaunator evaluation (no production imports)",
   "scripts": {
-    "test": "node --test geometry.test.mjs",
+    "test": "node --test geometry.test.mjs real_guards.test.mjs",
     "demo": "node demo.mjs"
   },
   "dependencies": {
