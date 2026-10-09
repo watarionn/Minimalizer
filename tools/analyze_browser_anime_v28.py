@@ -18,7 +18,7 @@ ANIME_PALETTE=((0,0,0),(255,220,180),(100,150,255),(255,0,0),
   (255,140,0),(255,0,150),(180,0,255),(128,128,0))
 V27_PALETTE=((0,0,0),(244,165,43),(240,189,156),
   (244,214,170),(30,187,125),(112,119,138))
-V27_LABELS=("background","hair","body_skin","face_skin","clothes","accessories")
+V27_LABELS=("background_or_unclassified","hair","body_skin","face_skin","clothes","accessories")
 
 def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
 def file_sha(path:Path)->str:
@@ -73,7 +73,7 @@ def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path,checkpoint:
       "v27ClothesOverlapsAnimeHair":len(b_clothes&a_hair),
       "v27ClothesOverlapsAnimeClothes":len(b_clothes&a_clothes),
       "v27HairOverlapsAnimeHair":len(b_hair&a_hair),
-      "animeHairOverlapsPhotoBackground":sum(i in a_hair for i,v in enumerate(class_b) if v==0),
+      "animeHairOverlapsV27BlackOrUnclassified":sum(i in a_hair for i,v in enumerate(class_b) if v==0),
       "eligibleOpaqueSourcePixels":sum(opaque),
       "animeMaskUnrecognizedColorCount":0,
       "v27MaskUnrecognizedColorCount":0,
@@ -125,7 +125,7 @@ def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path,checkpoint:
       "pixel_counts_anime":dict((ANIME_LABELS[i],counts_a[i]) for i in range(12)),
       "pixel_counts_photo":dict((V27_LABELS[i],counts_b[i]) for i in range(6)),
       "comparison":observations,
-      "limitation":"Cross-model agreement/disagreement is not independent part ground truth.",
+      "limitation":"Cross-model agreement/disagreement is not independent part ground truth; v27 class map black conflates background with unclassified pixels.",
       "conclusion":"ANIME_PARSER_REFERENCE_USEFUL_BROWSER_READY_HOLD"
     }
     (out/"v28_metrics.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
