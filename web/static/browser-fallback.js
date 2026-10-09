@@ -3923,6 +3923,9 @@
       selectiveMergeMetrics = selective.metrics;
     }
 
+    let groupPlaneMetrics={candidates:0,groups:0,movedPixels:0,sourceRgbErrorReduction:0};
+    if(config.colorGroupRefine===true&&config.colorPlaneRefine===true)
+      throw Error("V25 group and V24 color modes are mutually exclusive");
     let colorPlaneMetrics={candidates:0,movedPixels:0,sourceRgbErrorReduction:0,moves:[]};
     if(config.colorPlaneRefine===true) {
       if(config.structuralMode!=="l0-lite-jacobi"
@@ -3935,6 +3938,19 @@
         selectedHierarchy.built,palette,rgba,width,height,config.colorPlaneOptions);
       colorPlaneMetrics=refinement.metrics;
       selectedHierarchy={...selectedHierarchy,built:refinement.built};
+    }
+    if(config.colorGroupRefine===true) {
+      if(config.structuralMode!=="l0-lite-jacobi"
+        ||config.canonicalContourLite!==true||config.geometryMode!=="facet-safe"
+        ||config.selectiveRegionMerge===true||config.autoSelectiveMerge===true)
+        throw Error("V25 group mode requires unchanged Facet preprocessing");
+      const plugin=globalThis.MinimalizerColorGroupsV25;
+      if(!plugin||typeof plugin.propose!=="function")
+        throw Error("V25 group module unavailable");
+      const grouped=plugin.propose(
+        selectedHierarchy.built,palette,rgba,width,height,config.colorGroupOptions);
+      groupPlaneMetrics=grouped.metrics;
+      selectedHierarchy={...selectedHierarchy,built:grouped.built};
     }
     let canonicalContour = null;
     if (
@@ -3950,8 +3966,14 @@
           { geometryMode: config.geometryMode },
         );
       } catch (error) {
-        if (config.colorPlaneRefine !== true) throw error;
-        const base = analyzeRgba(rgba,width,height,{...config,colorPlaneRefine:false});
+        if (config.colorPlaneRefine !== true&&config.colorGroupRefine !== true) throw error;
+        const base = analyzeRgba(rgba,width,height,{...config,colorPlaneRefine:false,colorGroupRefine:false});
+        if(config.colorGroupRefine===true) {
+          base.metrics.groupPlaneQualityGate="rejected:invalid_contour";
+          base.metrics.groupPlaneCandidates=groupPlaneMetrics.candidates;
+          base.metrics.groupPlaneTrialMovedPixels=groupPlaneMetrics.movedPixels;
+          return base;
+        }
         base.metrics.colorPlaneQualityGate = "rejected:invalid_contour";
         base.metrics.colorPlaneCandidates = colorPlaneMetrics.candidates;
         base.metrics.colorPlaneTrialMovedPixels = colorPlaneMetrics.movedPixels;
@@ -4019,6 +4041,13 @@
         subjectGuidance: Boolean(config.subjectProb && config.subjectConfidence),
         componentCount: hierarchy.built.components.length,
         hierarchyCutCount: selectedHierarchy.selectedCount,
+        groupPlaneQualityGate:"not_requested",
+        groupPlaneCandidates:groupPlaneMetrics.candidates,
+        groupPlaneMovedPixels:groupPlaneMetrics.movedPixels,
+        groupPlaneSourceErrorReduction:groupPlaneMetrics.sourceRgbErrorReduction,
+        groupPlaneSeed:groupPlaneMetrics.seed??null,
+        groupPlaneRenderChangedPixels:0,
+        groupPlaneRenderSourceImprovement:0,
         colorPlaneQualityGate: "not_requested",
         colorPlaneCandidates: colorPlaneMetrics.candidates,
         colorPlaneMovedPixels: colorPlaneMetrics.movedPixels,
@@ -4083,6 +4112,37 @@
           : (shapes.length > 0 ? Math.min(...shapes.map((shape) => shape.contourIoU)) : 1),
       },
     };
+    if(config.colorGroupRefine===true) {
+      const baseline=analyzeRgba(rgba,width,height,{
+        ...config,colorGroupRefine:false,geometryMode:"facet-safe"
+      });
+      const fallback=(reason,changed=0)=>{
+        baseline.metrics.groupPlaneQualityGate="rejected:"+reason;
+        baseline.metrics.groupPlaneCandidates=groupPlaneMetrics.candidates;
+        baseline.metrics.groupPlaneTrialMovedPixels=groupPlaneMetrics.movedPixels;
+        baseline.metrics.groupPlaneRenderChangedPixels=changed;
+        return baseline;
+      };
+      if(groupPlaneMetrics.movedPixels===0)return fallback("no_connected_candidate");
+      const guarded=compareRegionRenderFidelity(
+        baseline.shapes,result.shapes,width,height,{
+          maxChangedPixelFraction:0.012,
+          maxRgbMeanAbsoluteError:1.65,
+          maxColorMassDeltaFraction:0.012,
+          maxSilhouetteChangedPixels:0,
+          maxProtectedChangedPixels:0,
+          protectThinComponents:true,
+        });
+      if(!guarded.pass||result.metrics.contourMinRegionIoU<0.90)
+        return fallback(guarded.pass?"topology":guarded.reason,guarded.changedPixels);
+      const sourceGate=globalThis.MinimalizerColorGroupsV25.compareSource(
+        rgba,baseline.shapes,result.shapes,width,height);
+      if(!sourceGate.pass)return fallback(sourceGate.reason,sourceGate.changedPixels);
+      result.metrics.groupPlaneQualityGate="pass";
+      result.metrics.groupPlaneRenderChangedPixels=sourceGate.changedPixels;
+      result.metrics.groupPlaneRenderSourceImprovement=sourceGate.improvement;
+      return result;
+    }
     if(config.colorPlaneRefine===true) {
       const baseline=analyzeRgba(rgba,width,height,{
         ...config,colorPlaneRefine:false,geometryMode:"facet-safe"
@@ -4459,7 +4519,7 @@
       "X-Minimalizer-Browser-Fallback-Version": VERSION,
       "X-Minimalizer-Contour-IoU": analysis.metrics.meanContourIoU.toFixed(4),
       "X-Minimalizer-Contour-Method": analysis.metrics.contourMethod,
-      "X-Minimalizer-Browser-Quality-Profile": config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+      "X-Minimalizer-Browser-Quality-Profile": config.colorGroupRefine===true ? "group" : config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
         ? "facet" : config.geometryMode === "corner-aware"
           ? "shape" : config.canonicalContourLite === true
           ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4484,6 +4544,7 @@
       "X-Minimalizer-Auto-Merge-Candidates": String(analysis.metrics.autoMergeCandidates),
       "X-Minimalizer-Plane-Quality-Gate": String(analysis.metrics.planeQualityGate),
       "X-Minimalizer-Color-Plane-Gate": String(analysis.metrics.colorPlaneQualityGate),
+      "X-Minimalizer-Group-Plane-Gate": String(analysis.metrics.groupPlaneQualityGate),
       "X-Minimalizer-Structural-Preprocess": analysis.metrics.structuralPreprocess,
       "X-Minimalizer-Analysis-Resize": resizeMethod,
       "X-Minimalizer-Source-Sampling": analysisResize.method,
@@ -4509,7 +4570,7 @@
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
-        qualityProfile: config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
+        qualityProfile: config.colorGroupRefine===true ? "group" : config.colorPlaneRefine===true ? "color" : config.geometryMode === "plane-safe" ? "plane" : config.autoSelectiveMerge === true ? "auto" : config.selectiveMergeOptions?.allowNearPalette === true ? "near" : config.selectiveRegionMerge === true ? "selective" : config.geometryMode === "facet-safe"
           ? "facet" : config.geometryMode === "corner-aware"
             ? "shape" : config.canonicalContourLite === true
             ? "sharp" : config.structuralMode === "spectral-exact" ? "exact" : "lite",
@@ -4544,6 +4605,13 @@
         selectiveMergeApplied: analysis.metrics.selectiveMergeApplied,
         selectiveMergeEvaluated: analysis.metrics.selectiveMergeEvaluated,
         selectiveMergeRejected: analysis.metrics.selectiveMergeRejected,
+        groupPlaneQualityGate:analysis.metrics.groupPlaneQualityGate,
+        groupPlaneCandidates:analysis.metrics.groupPlaneCandidates,
+        groupPlaneMovedPixels:analysis.metrics.groupPlaneMovedPixels,
+        groupPlaneTrialMovedPixels:analysis.metrics.groupPlaneTrialMovedPixels,
+        groupPlaneSourceErrorReduction:analysis.metrics.groupPlaneSourceErrorReduction,
+        groupPlaneRenderChangedPixels:analysis.metrics.groupPlaneRenderChangedPixels,
+        groupPlaneRenderSourceImprovement:analysis.metrics.groupPlaneRenderSourceImprovement,
         colorPlaneQualityGate: analysis.metrics.colorPlaneQualityGate,
         colorPlaneMovedPixels: analysis.metrics.colorPlaneMovedPixels,
         colorPlaneCandidates: analysis.metrics.colorPlaneCandidates,
