@@ -146,7 +146,10 @@
         "docs/research/SA1060C_C02A_PHASE03_PHASE04_PROVENANCE_20261009.md",
         "docs/research/evidence/sa1060c_c02a_coordinate_free_20261009.json",
         "docs/handoffs/HND-20261009-C02A-PHASE03-PROVENANCE-C02B-NEXT.md",
-        "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY"
+        "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY",
+        "docs/research/SA1060D_C02B1_POSE_CORRIDOR_RISK_20261009.md",
+        "docs/research/evidence/sa1060d_c02b1_coordinate_free_20261009.json",
+        "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md"
       ],
       "substeps": [
         {
@@ -161,8 +164,23 @@
         {
           "id": "C02b",
           "name": "Source-only human-viewable arm/hair/garment candidate and independent Chromium/holdouts",
-          "status": "READY",
+          "status": "IN_PROGRESS",
           "note": "requires independent anatomical confirmation and genuine original source authority"
+        },
+        {
+          "id": "C02b1",
+          "name": "Probe original rtmlib structural arm corridor and reject low-confidence wrist",
+          "status": "COMPLETE",
+          "engineering_evidence": "docs/research/SA1060D_C02B1_POSE_CORRIDOR_RISK_20261009.md",
+          "tests": "9/9 PASS",
+          "private_board": "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY",
+          "result": "Three source-intersection candidate widths remove 533 source border-connected RGB matches, but wrist confidence 0.462252 < 0.60; pose gate HOLD, neither artwork nor renderer accepted"
+        },
+        {
+          "id": "C02b2",
+          "name": "Find independent confident source-bound arm/hair/garment semantics, true Chromium and Raden holdout",
+          "status": "READY",
+          "note": "Raden and Approved holdout, human Golden, protected/Stage8 budget independent gates"
         }
       ]
     },
@@ -252,6 +270,6 @@
       "evidence": []
     }
   ],
-  "next_action": "C02b: source-bound Phase03 segmentation and Phase04 arm/hair/garment semantics, protect immutable signed SA10.41 left-arm difference, regenerate isolated Chromium candidate, independent Raden/corpus visual review; C03 source-ring gate and C04 human Golden remain HOLD.",
-  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C02A-PHASE03-PROVENANCE-C02B-NEXT.md"
+  "next_action": "C02b2 source-bound independent semantic arm/garment/hair classifier & verified real Chromium/holdout. Keep C03 original Stage8 ring HOLD and C04 authentic human Golden PENDING. No Phase15 or production cutover.",
+  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md"
 }
