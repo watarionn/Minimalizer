@@ -58,7 +58,8 @@ for (const caseName of ["GC001", "Raden"]) {
         // and supersampled Chrome geometry must be audited independently.
         const [sx, sy] = p.colorSample;
         assert(signedMask[sy*width+sx] === 1, "source RGB escaped signed part");
-        diff += Math.abs(rgb[(sy*width+sx)*3] - p.rgb[0]);
+        for (let channel = 0; channel < 3; channel++)
+          diff += Math.abs(rgb[(sy*width+sx)*3 + channel] - p.rgb[channel]);
         coveredRgbPixels++;
       }
       assert(diff === 0, "sampled source RGB mutated");
