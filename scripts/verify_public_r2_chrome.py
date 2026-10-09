@@ -40,6 +40,47 @@ def render_2x(driver, source):
     if len(rgba)!=680*680*4:raise RuntimeError("incorrect Chrome 2x channels")
     return rgba
 
+
+PATH_RE = re.compile(r'<path fill="#([0-9a-fA-F]{6})" fill-rule="evenodd" d="[^"]+"/>')
+
+def rollback_checked_candidates(original_svg, proposed_svg, groups, reference_native,
+                                reference_2x, native_render, double_render):
+    """Only commit a color-group trial if both real Chrome grids are exact."""
+    original=list(PATH_RE.finditer(original_svg))
+    proposed=list(PATH_RE.finditer(proposed_svg))
+    if len(original)!=len(proposed) or len(original)!=len(groups):
+        raise ValueError("R2 path count altered")
+    if not original or not proposed:
+        raise ValueError("empty group scene")
+    head=original_svg[:original[0].start()]
+    tail=original_svg[original[-1].end():]
+    if proposed_svg[:proposed[0].start()]!=head or proposed_svg[proposed[-1].end():]!=tail:
+        raise ValueError("source-image prefix or SVG tail altered")
+    approved=[m.group(0) for m in original]
+    proposed_parts=[m.group(0) for m in proposed]
+    changed={i for i,(a,b) in enumerate(zip(approved,proposed_parts)) if a!=b}
+    declared={i for i,row in enumerate(groups) if row["removedVertices"]>0}
+    if changed!=declared or any(a.group(1)!=b.group(1)
+        for a,b in zip(original,proposed)):
+        raise ValueError("unexpected source group or RGB changed")
+    accepted=[]
+    rejected=[]
+    for i in sorted(declared):
+        trial=approved.copy()
+        trial[i]=proposed_parts[i]
+        trial_svg=head+"".join(trial)+tail
+        diff_native=mismatched_pixels(native_render(trial_svg),reference_native)
+        diff_2x=mismatched_pixels(double_render(trial_svg),reference_2x)
+        result={"groupIndex":i,"removedVertices":groups[i]["removedVertices"],
+                "nativeDifferentPixels":diff_native,"twoXDifferentPixels":diff_2x}
+        if diff_native==0 and diff_2x==0:
+            approved=trial
+            accepted.append(result)
+        else:
+            rejected.append(result)
+    safe=head+"".join(approved)+tail
+    return safe,accepted,rejected
+
 def run(v34: Path,v32: Path,out: Path):
     if out.exists():raise FileExistsError("no overwrite: "+str(out))
     for name in CASES:
@@ -72,13 +113,24 @@ def run(v34: Path,v32: Path,out: Path):
             replay_diff=mismatched_pixels(original_rgba,prior_rgba)
             native_diff=mismatched_pixels(candidate_rgba,v32_rgba)
             two_x_diff=mismatched_pixels(render_2x(driver,before),render_2x(driver,after))
-            negative=after.replace("</svg>",
+            reference_2x=render_2x(driver,before)
+            safe_svg,chrome_accepted,chrome_rolled_back=rollback_checked_candidates(
+                before,after,audit["groups"],v32_rgba,reference_2x,
+                lambda svg:render_rgba(driver,svg),
+                lambda svg:render_2x(driver,svg))
+            safe_path=out/f"{name}_r2_chrome_safe.svg"
+            safe_path.write_text(safe_svg,encoding="utf-8")
+            safe_native_diff=mismatched_pixels(render_rgba(driver,safe_svg),v32_rgba)
+            safe_2x_diff=mismatched_pixels(render_2x(driver,safe_svg),reference_2x)
+            negative=safe_svg.replace("</svg>",
                 '<rect x="0" y="0" width="340" height="340" fill="#000"/></svg>')
             negative_diff=mismatched_pixels(render_rgba(driver,negative),v32_rgba)
             complete=(audit["totalColorGroups"]==audit["visitedGroups"]==
                       audit["fullOwnerMasksBuilt"] and
-                      audit["clippingRingsVisited"]>0)
-            exact=(base_diff==replay_diff==native_diff==two_x_diff==0 and
+                      audit["clippingRingsVisited"]>0 and
+                      audit["candidateCoverageComplete"] and
+                      audit["clippingErrors"]==0 and audit["earcutErrors"]==0)
+            exact=(base_diff==replay_diff==safe_native_diff==safe_2x_diff==0 and
                    negative_diff>0 and complete)
             row={"case":name,"totalColorGroups":audit["totalColorGroups"],
                  "visitedColorGroups":audit["visitedGroups"],
@@ -97,6 +149,13 @@ def run(v34: Path,v32: Path,out: Path):
                  "originalVsArchivedV34PixelDiff":replay_diff,
                  "candidateVsV32NativePixelDiff":native_diff,
                  "candidateVsOriginal2xPixelDiff":two_x_diff,
+                 "safeVsV32NativePixelDiff":safe_native_diff,
+                 "safeVsOriginal2xPixelDiff":safe_2x_diff,
+                 "chromeAcceptedGroups":len(chrome_accepted),
+                 "chromeRolledBackGroups":len(chrome_rolled_back),
+                 "chromeAcceptedVerticesSaved":sum(v["removedVertices"] for v in chrome_accepted),
+                 "chromeRejectedGroupDetails":chrome_rolled_back,
+                 "safeSHA256":sha(safe_path),
                  "negativeControlPixels":negative_diff,
                  "sourceSHA256":sha(original_path),"candidateSHA256":sha(candidate_path),
                  "wholeColorGroupAuditComplete":complete,
@@ -106,7 +165,7 @@ def run(v34: Path,v32: Path,out: Path):
             print(name,json.dumps({k:row[k] for k in
                 ("totalColorGroups","ownerMasksPrepared","candidateGroupsProposedMaskExact",
                  "candidateSavedVerticesProposed","candidateVsV32NativePixelDiff",
-                 "candidateVsOriginal2xPixelDiff","goldenExact")}),flush=True)
+                 "candidateVsOriginal2xPixelDiff","chromeRolledBackGroups",\n                 "safeVsV32NativePixelDiff","safeVsOriginal2xPixelDiff","goldenExact")}),flush=True)
     finally:
         driver.quit()
     report["allGoldensExact"]=len(report["cases"])==len(CASES) and all(
