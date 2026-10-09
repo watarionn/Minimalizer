@@ -108,14 +108,14 @@ function analyzeSvg(svg,{maxCandidates=120}={}) {
   if(!Number.isInteger(maxCandidates)||maxCandidates<1||maxCandidates>1200)throw Error("invalid cap");
   const output=parsed.groups.map(g=>g.original);
   const rows=[];
-  let visited=0, masksChecked=0, proposed=0, rejected=0, safe=0, saved=0;
+  let visited=0, masksBuilt=0, maskComparisons=0, proposed=0, rejected=0, safe=0, saved=0;
   let clipRings=0, clipErrors=0, earcutSingle=0, earcutErrors=0;
   for(let gi=0;gi<parsed.groups.length;gi++){
     const g=parsed.groups[gi];
     visited++;
     const originalMask=raster.rasterizeLoops(g.loops,W,H,2);
     if(!originalMask || originalMask.length!==W*H)throw Error("invalid owner mask");
-    masksChecked++;
+    masksBuilt++;
     // Clipping is observational and NEVER supplies an output polygon.
     // Every source ring, including all paths of multi-ring color groups, is visited.
     for(const ring of g.loops){
@@ -132,11 +132,11 @@ function analyzeSvg(svg,{maxCandidates=120}={}) {
     const beforeVertices=g.loops.reduce((v,r)=>v+r.length,0);
     let selected=null;
     if(proposed < maxCandidates) {
-      for(const tolerance of [0.01,0.25]) {
+      for(const tolerance of [0.35,0.85,1.25]) {
         const candidate=propose(g.loops,tolerance);
         if(candidate.saved<=0)continue;
         proposed++;
-        const testMask=raster.rasterizeLoops(candidate.rings,W,H,2);
+        const testMask=raster.rasterizeLoops(candidate.rings,W,H,2);\n        maskComparisons++;
         if(sameMask(originalMask,testMask)) {
           selected=candidate;
           break;
@@ -150,13 +150,13 @@ function analyzeSvg(svg,{maxCandidates=120}={}) {
     }
     rows.push({group:gi,rgb:g.rgb,rings:g.loops.length,
       originalVertices:beforeVertices,removedVertices:selected?selected.saved:0,
-      maskExact: true,sourceVerifiedSemanticOwner:false});
+      fullOwnerMaskPrepared:true,candidateMaskExact:selected?true:null,\n      sourceVerifiedSemanticOwner:false});
   }
   const candidate=parsed.prefix+output.join("")+parsed.suffix;
   return {candidate, audit:{
     version:"public-r2-whole-color-groups-v1",sourceSHA256:sha256(Buffer.from(svg)),
     candidateSHA256:sha256(Buffer.from(candidate)),totalColorGroups:parsed.groups.length,
-    visitedGroups:visited,fullOwnerMasksChecked:masksChecked,
+    visitedGroups:visited,fullOwnerMasksBuilt:masksBuilt,\n    candidateFullMaskComparisons:maskComparisons,
     totalSourceVertices:parsed.count,acceptedGroups:safe,proposalsTested:proposed,
     proposalsRejected:rejected,proposedSavedVertices:saved,
     clippingRingsVisited:clipRings,clippingErrors:clipErrors,
