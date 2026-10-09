@@ -4,7 +4,7 @@ No new shapes, face detail, raster embedding, change of z-order, or release.
 from __future__ import annotations
 import argparse, hashlib, json
 from pathlib import Path
-from lxml import etree
+from xml.etree import ElementTree as etree
 import numpy as np
 from PIL import Image
 
@@ -48,7 +48,7 @@ def signed_recolor(case, root, manifest, out):
         raise ValueError("source 340x340 only")
     rgb = rgba[:, :, :3]
     doc = etree.fromstring(svg.read_bytes())
-    if doc.tag != NS + "svg" or doc.xpath('.//*[local-name()="image" or local-name()="foreignObject" or local-name()="filter"]'):
+    if doc.tag != NS + "svg" or any(n.tag.rsplit("}",1)[-1] in ("image","foreignObject","filter") for n in doc.iter()):
         raise ValueError("forbidden markup")
     paths = doc.findall(".//" + NS + "clipPath")
     groups = doc.findall(NS + "g")
