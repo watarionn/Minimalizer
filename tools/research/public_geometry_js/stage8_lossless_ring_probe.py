@@ -6,7 +6,7 @@ from pathlib import Path
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def assess(p):
     components=p["parameters"]["components"]
-    before=sum(len(ring) for r in components)
+    before=sum(len(ring) for ring in components)
     exact_repeat=0; collinear=0; degenerate=0
     for ring in components:
         if len(ring)<3:degenerate+=1
