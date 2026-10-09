@@ -1,0 +1,248 @@
+{
+  "stage": "SA10.59",
+  "schema": "signed-multistage-two-source-visual-golden-review-v1",
+  "chromium": "144.0.7559.96",
+  "signed_source_cases": [
+    "Raden",
+    "GC001"
+  ],
+  "total_independent_signed_input_images": 2,
+  "total_chromium_stage_replays": 6,
+  "golden_coverage_limited_to_two_signed_images": true,
+  "source_agnostic_generalization_not_evaluated": true,
+  "comparison_stage_labels": [
+    "SA10.55",
+    "SA10.56",
+    "SA10.57"
+  ],
+  "cases": {
+    "Raden": {
+      "signed_source_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "stage_sha256": {
+        "SA10.55": "fd65000ad4e814348f1158871e9e049b74fffbf7d84e4b4f25c35ee375d2d88a",
+        "SA10.56": "18474c41978f257ebf605040de4cfe2c532f6cc5f171b69089d8f48d921d349d",
+        "SA10.57": "a3927c5e2c0fd98012c64a1443b7fb399aaffb72def636ac3c79157bcc420e6d"
+      },
+      "stage_browser_png_sha256": {
+        "SA10.55": "54997a07a90e18607f491f95178b7e5f91f1fa6e4acf4c58bb7fd20226edb3bd",
+        "SA10.56": "94a44b2b931655a2a2d23f3ec4763c8cd700934184912de019d9dc2ac0e63dce",
+        "SA10.57": "610670713adb410595ca680903c9445d0130ba387da7afe9549be4970d01bbce"
+      },
+      "source_original_stage8_ring_vertices": 2370,
+      "historic_stage8_source_ring_budget": 1412,
+      "historic_stage8_ring_gate": "FAIL",
+      "stages": {
+        "SA10.55": {
+          "expanded_vertices": 1309,
+          "source_nonface_rgb_mae": 27.393669,
+          "per_source_owner_rgb_mae": {
+            "hair": 33.727008,
+            "major_clothing": 31.119887,
+            "torso": 23.882765,
+            "lower_body": 20.301799,
+            "left_arm": 23.351185,
+            "right_arm": 25.677809
+          },
+          "source_arm_rgb_mae": 24.474362
+        },
+        "SA10.56": {
+          "expanded_vertices": 1409,
+          "source_nonface_rgb_mae": 24.462939,
+          "per_source_owner_rgb_mae": {
+            "hair": 28.557764,
+            "major_clothing": 27.14754,
+            "torso": 19.917402,
+            "lower_body": 20.251901,
+            "left_arm": 23.351185,
+            "right_arm": 25.677809
+          },
+          "source_arm_rgb_mae": 24.474362
+        },
+        "SA10.57": {
+          "expanded_vertices": 1409,
+          "source_nonface_rgb_mae": 24.280341,
+          "per_source_owner_rgb_mae": {
+            "hair": 28.504615,
+            "major_clothing": 27.092676,
+            "torso": 19.373102,
+            "lower_body": 20.100538,
+            "left_arm": 23.351185,
+            "right_arm": 25.677809
+          },
+          "source_arm_rgb_mae": 24.474362
+        }
+      },
+      "silhouette_matte_vs_original_source": {
+        "source_pixels": 69458,
+        "candidate_pixels": 69256,
+        "symmetric_difference_pixels": 498,
+        "iou": 0.99284544,
+        "boundary_f1_1px_diagnostic": 0.86763149,
+        "source_boundary_pixels": 3686,
+        "rendered_boundary_pixels": 4812
+      },
+      "source_geometry_disagreement_remains": true,
+      "signed_face_pixels_identical_across_stages": true,
+      "signed_arms_pixels_identical_across_stages": true,
+      "default_faceless_pass": true,
+      "source_background_unchanged_from_baseline": true,
+      "face_iris_mouth_detail_should_be_visible": false,
+      "hair_latest": {
+        "source_owner": "hair",
+        "source_region_pixels": 19467,
+        "candidate_source_rgb_mae": 28.504615
+      },
+      "garment_latest": {
+        "source_owner": "major_clothing",
+        "source_region_pixels": 3773,
+        "candidate_source_rgb_mae": 27.092676
+      },
+      "human_checklist": {
+        "faceless_default_and_no_skin_plate": "PENDING",
+        "recognizable_hair_flow_and_head_shape": "PENDING",
+        "source_costume_planes_and_distinctive_accessories": "PENDING",
+        "anatomically_legible_both_arms_and_pose": "PENDING",
+        "overall_silhouette_and_person_identity": "PENDING",
+        "no_unapproved_generated_or_raster_detail": "PENDING"
+      },
+      "human_identity_verdict": "PENDING",
+      "source_stage8_release_verdict": "HOLD",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    },
+    "GC001": {
+      "signed_source_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "stage_sha256": {
+        "SA10.55": "ca077a2df9d134926a4c433746398dd5f9d3dc79818ded611fac32f9623e859b",
+        "SA10.56": "858080f4a738f41cade641fa24bf6414726f2bc9ce1b364f02400d9e0f37ed7e",
+        "SA10.57": "bdea6fc36a953c01fe115032c10cb9313ecc900377f63954ff84bcb0392b2939"
+      },
+      "stage_browser_png_sha256": {
+        "SA10.55": "921a871af5e609d812187236641270562c852222e3d3d5de4b83d406f85ef1fb",
+        "SA10.56": "5f841e720cd621fbb22ed30cae8e5d05abd2f9e7a22a0ed2ec1ead2fe1535cdb",
+        "SA10.57": "c51c8bac13f68802b1a7d0022eccd1eff66ae2e4b2f601a7e9b881b936eb4445"
+      },
+      "source_original_stage8_ring_vertices": 3604,
+      "historic_stage8_source_ring_budget": 1887,
+      "historic_stage8_ring_gate": "FAIL",
+      "stages": {
+        "SA10.55": {
+          "expanded_vertices": 1710,
+          "source_nonface_rgb_mae": 46.132509,
+          "per_source_owner_rgb_mae": {
+            "hair": 39.199183,
+            "major_clothing": 47.735632,
+            "torso": 59.009802,
+            "lower_body": 42.057595,
+            "left_arm": 76.035197,
+            "right_arm": 55.299078
+          },
+          "source_arm_rgb_mae": 61.527515
+        },
+        "SA10.56": {
+          "expanded_vertices": 1873,
+          "source_nonface_rgb_mae": 40.510816,
+          "per_source_owner_rgb_mae": {
+            "hair": 30.836352,
+            "major_clothing": 43.96329,
+            "torso": 47.320378,
+            "lower_body": 35.852453,
+            "left_arm": 76.035197,
+            "right_arm": 55.299078
+          },
+          "source_arm_rgb_mae": 61.527515
+        },
+        "SA10.57": {
+          "expanded_vertices": 1873,
+          "source_nonface_rgb_mae": 40.323544,
+          "per_source_owner_rgb_mae": {
+            "hair": 30.71081,
+            "major_clothing": 43.940836,
+            "torso": 47.162511,
+            "lower_body": 35.332859,
+            "left_arm": 76.035197,
+            "right_arm": 55.299078
+          },
+          "source_arm_rgb_mae": 61.527515
+        }
+      },
+      "silhouette_matte_vs_original_source": {
+        "source_pixels": 55092,
+        "candidate_pixels": 54608,
+        "symmetric_difference_pixels": 862,
+        "iou": 0.98440694,
+        "boundary_f1_1px_diagnostic": 0.85654879,
+        "source_boundary_pixels": 5169,
+        "rendered_boundary_pixels": 6825
+      },
+      "source_geometry_disagreement_remains": true,
+      "signed_face_pixels_identical_across_stages": true,
+      "signed_arms_pixels_identical_across_stages": true,
+      "default_faceless_pass": true,
+      "source_background_unchanged_from_baseline": true,
+      "face_iris_mouth_detail_should_be_visible": false,
+      "hair_latest": {
+        "source_owner": "hair",
+        "source_region_pixels": 14521,
+        "candidate_source_rgb_mae": 30.71081
+      },
+      "garment_latest": {
+        "source_owner": "major_clothing",
+        "source_region_pixels": 3741,
+        "candidate_source_rgb_mae": 43.940836
+      },
+      "human_checklist": {
+        "faceless_default_and_no_skin_plate": "PENDING",
+        "recognizable_hair_flow_and_head_shape": "PENDING",
+        "source_costume_planes_and_distinctive_accessories": "PENDING",
+        "anatomically_legible_both_arms_and_pose": "PENDING",
+        "overall_silhouette_and_person_identity": "PENDING",
+        "no_unapproved_generated_or_raster_detail": "PENDING"
+      },
+      "human_identity_verdict": "PENDING",
+      "source_stage8_release_verdict": "HOLD",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    }
+  },
+  "human_visual_judgments_are_not_auto_certified": true,
+  "all_human_reviews": "PENDING",
+  "source_stage8_release": "HOLD",
+  "full_character_golden": "HOLD",
+  "production_phase15_gate": "NOT_RUN",
+  "production_deployment": "UNCHANGED",
+  "next": "Human artifact review and expanded corpus, source-stage8 policy resolution before Phase15/production",
+  "artifact_sha256": {
+    "gc001_detail_strip.png": "8689bab5c951644ba8d584a34234a96e0c58d6e0b8f5d20c52ab27d5bf238ba4",
+    "gc001_review_strip.png": "95fd70ba741bc4de9287e9f23406f99ae3b51a5fbcff921a92ef03c7ad54ad61",
+    "gc001_sa1055_review.png": "921a871af5e609d812187236641270562c852222e3d3d5de4b83d406f85ef1fb",
+    "gc001_sa1056_review.png": "5f841e720cd621fbb22ed30cae8e5d05abd2f9e7a22a0ed2ec1ead2fe1535cdb",
+    "gc001_sa1057_review.png": "c51c8bac13f68802b1a7d0022eccd1eff66ae2e4b2f601a7e9b881b936eb4445",
+    "raden_detail_strip.png": "1c4219559a0d75c8c91822319082d9d9cf15d5f7b3256e491a4a82e6fbf103d8",
+    "raden_review_strip.png": "6771d576856e8d3929dbf830c3255fd74bdfddccb0dbae6271e316381e15d525",
+    "raden_sa1055_review.png": "54997a07a90e18607f491f95178b7e5f91f1fa6e4acf4c58bb7fd20226edb3bd",
+    "raden_sa1056_review.png": "94a44b2b931655a2a2d23f3ec4763c8cd700934184912de019d9dc2ac0e63dce",
+    "raden_sa1057_review.png": "610670713adb410595ca680903c9445d0130ba387da7afe9549be4970d01bbce",
+    "sa1059_human_review_blank.json": "cf8a81291705298aa864fd3343dcbb9145f65d6b2a7715c4759f982e97e021dc",
+    "sa1059_human_review_sheet.md": "37fb489384314052a8f95574f0491aa834d67c860e18f68aa60a7f0dbc07d77e",
+    "sa1059_metrics.json": "12cffb4e4477fdfe00f8ffbc1735fe85aeb6be353d5b612b87c1a1f584bba656",
+    "sa1059_two_case_golden_review_board.png": "424f3c3678e822ea89ca67cd53f8c81e86490aa69d0b4b5129abefa66ef1a57d"
+  }
+}
