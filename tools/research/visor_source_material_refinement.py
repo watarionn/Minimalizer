@@ -53,6 +53,16 @@ def replace_and_render(prior,src,lens,frame_mask,count,folder,outsvg,render):
     png.write_bytes(render.svg_to_bytes(svg_path=str(outsvg),width=340,height=340))
     return png,layers
 
+def select_rim_candidate(rows,frame_total,old_frame_mae,old_whole_mae,old_lens_mae):
+    """Select only measurable source-RGB improvements, rejecting frame deletion."""
+    eligible=[r for r in rows
+        if r["source_frame_mask_pixels"]>=0.40*frame_total
+        and r["frame_source_mae"]<old_frame_mae
+        and r["whole_visor_source_mae"]<old_whole_mae
+        and r["lens_source_mae"]<=old_lens_mae+0.25
+        and r["changes_outside_reviewed_visor"]==0]
+    return min(eligible,key=lambda r:(r["whole_visor_source_mae"],r["all_visor_vertices"])) if eligible else None
+
 def main():
     p=argparse.ArgumentParser()
     for n in ("root","prior","out"):p.add_argument("--"+n,type=Path,required=True)
@@ -95,22 +105,33 @@ def main():
     reference_lens_mae=rgb_metrics(original,old,lens)["source_rgb_mae"]
     # Do NOT allow savings by deleting every pale rim. Retain >=40% of
     # manually marked frame AND no significant loss of lens accuracy.
-    accepted=[r for r in rows if r["source_frame_mask_pixels"]>=0.40*int(frame.sum())
-        and r["frame_source_mae"]<old_frame_error["source_rgb_mae"]
-        and r["whole_visor_source_mae"]<old_error["source_rgb_mae"]
-        and r["lens_source_mae"]<=reference_lens_mae+0.25
-        and r["changes_outside_reviewed_visor"]==0]
-    winner=min(accepted,key=lambda r:(r["whole_visor_source_mae"],r["all_visor_vertices"])) if accepted else None
+    winner=select_rim_candidate(rows,int(frame.sum()),old_frame_error["source_rgb_mae"],old_error["source_rgb_mae"],reference_lens_mae)
     chosen=np.asarray(Image.open(out/winner["png"]).convert("RGB")) if winner else old
+    frame_overlay=original.copy()
+    pale=variant_masks["source_pale"]
+    non_pale=frame&~pale
+    frame_overlay[pale]=(0.45*original[pale]+0.55*np.array([20,209,200])).astype(np.uint8)
+    frame_overlay[non_pale]=(0.45*original[non_pale]+0.55*np.array([215,65,144])).astype(np.uint8)
+    Image.fromarray(pale.astype(np.uint8)*255).save(out/"source_pale_frame_candidate_mask.png")
     figure=Image.new("RGB",(1380,420),"#f0efea")
     for i,im in enumerate((src.convert("RGB"),Image.fromarray(old),
-            Image.fromarray(chosen),Image.fromarray(np.asarray(src.convert("RGB"))))):
+            Image.fromarray(chosen),Image.fromarray(frame_overlay))):
         figure.paste(im.convert("RGB"),(10+i*342,10))
     draw=ImageDraw.Draw(figure)
-    for i,label in enumerate(("REFERENCE ORIGINAL","BASELINE V1","WINNER / OR BASELINE","REFERENCE SOURCE")):
+    for i,label in enumerate(("REFERENCE ORIGINAL","BASELINE V1","SOURCE-TRIMMED FRAME","PALE TEAL / EXCLUDED PINK")):
         draw.text((10+i*342,363),label,fill="#263429")
     comparison=out/"source_material_frame_variants.png"
     figure.save(comparison,optimize=True)
+    # Native source crop, enlarged with nearest-neighbor pixels for visual audit.
+    box=(97,29,204,100)
+    detail=Image.new("RGB",(390*3,320),"#f1f0ec")
+    for i,im in enumerate((src.convert("RGB"),Image.fromarray(old),Image.fromarray(chosen))):
+        crop=im.crop(box).resize((390,260),Image.Resampling.NEAREST)
+        detail.paste(crop,(i*390,8))
+    dd=ImageDraw.Draw(detail)
+    for i,label in enumerate(("SOURCE PIXELS","V1 FRAME","PALE-ONLY FRAME")):
+        dd.text((i*390+8,276),label,fill="#263429")
+    detail.save(out/"source_visor_detail_comparison.png",optimize=True)
     manifest={"status":"SOURCE_MATERIAL_CORRECTION_PASS" if winner else "NO_CANDIDATE_IMPROVEMENT",
        "baseline_frame_mae":old_frame_error["source_rgb_mae"],
        "baseline_whole_visor_mae":old_error["source_rgb_mae"],
