@@ -15,7 +15,7 @@ import socketserver
 import threading
 from pathlib import Path
 from verify_public_v34_svgo_chrome import CASES,check_sha,chrome_driver,sha
-from scripts import build_shin_static as build_static
+import build_shin_static as build_static
 
 JS_RUN=r"""
 const done=arguments[arguments.length-1],input=arguments[0];
