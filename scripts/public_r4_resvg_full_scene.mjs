@@ -8,9 +8,12 @@ import {readFileSync,writeFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {dirname,resolve} from "node:path";
 import {Resvg,initWasm} from "../web/static/vendor/resvg-wasm/index.mjs";
+import {createRequire} from "node:module";
+const require=createRequire(import.meta.url);
+const {parse}=require("./public_r2_owner_geometry.cjs");
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const WASM=resolve(ROOT,"web/static/vendor/resvg-wasm/index_bg.wasm");
-export async function render(sourcePath,destinationPath,width=340) {
+export async function render(sourcePath,destinationPath,width=340,component="full") {
   if(![340,680].includes(width))throw Error("unapproved output width");
   const input=readFileSync(sourcePath);
   if(input.length>2000000)throw Error("source too large");
@@ -20,10 +23,21 @@ export async function render(sourcePath,destinationPath,width=340) {
      throw Error("not archived v34 hybrid source SVG");
   if(/<script\b|<foreignObject\b|https?:\/\//i.test(svg.replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/,'').replace(/xmlns:xlink="http:\/\/www\.w3\.org\/1999\/xlink"/,'')))
      throw Error("untrusted active or remote SVG content");
+  if(!["full","facet","paths"].includes(component))throw Error("unapproved diagnostic component");
+  // Derive fragments only from an already-validated original v34 hybrid source.
+  // Component isolation is a diagnostic experiment, never a candidate output.
+  const original=parse(svg);
+  const rawPaths=original.groups.map(g=>g.original).join("");
+  const prefix=original.prefix;
+  const facet=prefix+original.suffix;
+  const imageMarker=/<image [^>]*\/>$/;
+  if(!imageMarker.test(prefix))throw Error("cannot isolate signed raster component");
+  const pathsOnly=prefix.replace(imageMarker,"")+rawPaths+original.suffix;
+  const renderSvg=component==="facet"?facet:component==="paths"?pathsOnly:svg;
   await initWasm(readFileSync(WASM));
   let renderer,output;
   try{
-    renderer=new Resvg(svg,{fitTo:width===340?{mode:"original"}:{mode:"width",value:width},font:{loadSystemFonts:false}});
+    renderer=new Resvg(renderSvg,{fitTo:width===340?{mode:"original"}:{mode:"width",value:width},font:{loadSystemFonts:false}});
     const images=renderer.imagesToResolve();
     if(images?.length)throw Error("external image unresolved");
     output=renderer.render();
@@ -34,15 +48,15 @@ export async function render(sourcePath,destinationPath,width=340) {
       throw Error("invalid resvg output");
     writeFileSync(destinationPath,png,{flag:"wx"});
     return {width:output.width,height:output.height,pngBytes:png.length,
-            renderer:"@resvg/resvg-wasm@2.6.2",notProduction:true};
+            renderer:"@resvg/resvg-wasm@2.6.2",component,notProduction:true};
   } finally {
     if(output?.free)output.free();
     if(renderer?.free)renderer.free();
   }
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const [src,dst,scale]=process.argv.slice(2);
+  const [src,dst,scale,component="full"]=process.argv.slice(2);
   if(!src||!dst||!scale)throw Error("usage: node file.mjs input.svg out.png 340|680");
-  const result=await render(src,dst,Number(scale));
+  const result=await render(src,dst,Number(scale),component);
   console.log(JSON.stringify(result));
 }
