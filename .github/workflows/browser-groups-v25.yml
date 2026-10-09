@@ -23,6 +23,7 @@ on:
       - "tests/test_browser_anime_feasibility_v28.py"
       - "tools/audit_browser_anime_corpus_v29.py"
       - "tools/gate_browser_anime_inference_v29.py"
+      - "tools/verify_browser_anime_corpus_v29.py"
       - "tests/test_browser_anime_corpus_v29.py"
       - ".github/workflows/browser-groups-v25.yml"
   workflow_dispatch:
@@ -49,7 +50,7 @@ jobs:
           node --check web/static/browser-color-groups-v25.js
           node --check web/static/browser-fallback.js
           node --check web/static/app.js
-          python -m py_compile tests/test_browser_anime_corpus_v29.py tools/audit_browser_anime_corpus_v29.py tools/gate_browser_anime_inference_v29.py tests/test_browser_anime_feasibility_v28.py tools/analyze_browser_anime_v28.py tools/package_browser_anime_v28.py tools/verify_browser_anime_v28_replay.py tests/test_browser_color_groups_v25.py tests/test_browser_structural_evidence_v26.py tools/run_browser_groups_v25_chrome.py tools/analyze_browser_groups_v25.py tools/run_browser_structural_v26_chrome.py tools/analyze_browser_structural_v26.py tools/run_browser_part_v27_chrome.py tools/analyze_browser_part_v27.py tests/test_browser_part_evidence_v27.py
+          python -m py_compile tests/test_browser_anime_corpus_v29.py tools/audit_browser_anime_corpus_v29.py tools/gate_browser_anime_inference_v29.py tools/verify_browser_anime_corpus_v29.py tests/test_browser_anime_feasibility_v28.py tools/analyze_browser_anime_v28.py tools/package_browser_anime_v28.py tools/verify_browser_anime_v28_replay.py tests/test_browser_color_groups_v25.py tests/test_browser_structural_evidence_v26.py tools/run_browser_groups_v25_chrome.py tools/analyze_browser_groups_v25.py tools/run_browser_structural_v26_chrome.py tools/analyze_browser_structural_v26.py tools/run_browser_part_v27_chrome.py tools/analyze_browser_part_v27.py tests/test_browser_part_evidence_v27.py
       - name: V25 and inherited quality-gate regressions
         run: |
           python -m pytest tests/test_browser_anime_corpus_v29.py tests/test_browser_anime_feasibility_v28.py tests/test_browser_part_evidence_v27.py tests/test_browser_structural_evidence_v26.py tests/test_browser_color_groups_v25.py tests/test_browser_color_region_v24.py tests/test_browser_plane_v23.py tests/test_browser_auto_gated_v22.py tests/test_browser_targeted_v21.py tests/test_browser_donor_distribution_v20.py tests/test_browser_merge_diagnostic_v19.py tests/test_browser_near_v18.py tests/test_browser_selective_v17.py tests/test_browser_facet_v15.py tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
