@@ -46,5 +46,5 @@ The highest-quality available production stays Facet v15. No public merge/deploy
 
 ## Preserve
 
-Canonical Google Drive location: chatGPT及びCodex用/Minimalizer/AnimeCorpusSafetyV29_20261009. Link is recorded in PR once created and cloud-visible.
+Canonical Google Drive location: [chatGPT及びCodex用/Minimalizer/AnimeCorpusSafetyV29_20261009](https://drive.google.com/drive/folders/1Sr13BdawTh-CIzDA6zLFyFdshklXetxq).
 Outputs: original/no-change Facet/class images, 20-point source QA panels, 2x4 source/class gallery, metrics JSON, CSV, resource guard JSON, reproducibility SHA report, code, tests, detailed handoff, artifact digest manifest.
