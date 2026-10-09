@@ -1,0 +1,510 @@
+{
+  "stage": "SA10.57",
+  "schema": "signed-visible-structure-vertex-neutral-faceless-gate-v1",
+  "chromium": "144.0.7559.96",
+  "cases": {
+    "Raden": {
+      "case": "Raden",
+      "signed_input_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "input_svg_sha256": "18474c41978f257ebf605040de4cfe2c532f6cc5f171b69089d8f48d921d349d",
+      "baseline_render_sha256": "94a44b2b931655a2a2d23f3ec4763c8cd700934184912de019d9dc2ac0e63dce",
+      "expanded_vertices": 1409,
+      "budget": 1412,
+      "source_visible_foreground_rgb_mae_before": 26.120754,
+      "source_visible_foreground_rgb_mae_after": 25.948808,
+      "source_owner_topology": {
+        "owner_count": 9,
+        "role_pixel_counts": {
+          "torso": 19161,
+          "hair": 19467,
+          "neck": 130,
+          "right_arm": 9872,
+          "left_arm": 10419,
+          "unknown": 447,
+          "major_clothing": 3773,
+          "lower_body": 1797,
+          "accessory_or_held_object": 340
+        },
+        "source_visible_owner_overlap_pixels": 0,
+        "adjacency_pairs": [
+          [
+            "torso",
+            "hair"
+          ],
+          [
+            "torso",
+            "neck"
+          ],
+          [
+            "torso",
+            "major_clothing"
+          ],
+          [
+            "hair",
+            "neck"
+          ],
+          [
+            "hair",
+            "right_arm"
+          ],
+          [
+            "hair",
+            "left_arm"
+          ],
+          [
+            "hair",
+            "unknown"
+          ],
+          [
+            "hair",
+            "major_clothing"
+          ],
+          [
+            "hair",
+            "accessory_or_held_object"
+          ],
+          [
+            "right_arm",
+            "major_clothing"
+          ],
+          [
+            "left_arm",
+            "major_clothing"
+          ],
+          [
+            "left_arm",
+            "lower_body"
+          ],
+          [
+            "unknown",
+            "major_clothing"
+          ],
+          [
+            "major_clothing",
+            "lower_body"
+          ]
+        ]
+      },
+      "protected_pixels": {
+        "perimeter_pixel_count": 7227,
+        "interface_pixel_count": 1984,
+        "faceless_signed_face_pixels": 4052,
+        "signed_arms_pixels": 20289
+      },
+      "candidate_chromium_renders": 68,
+      "accepted_existing_vertex_moves": [
+        {
+          "role": "hair",
+          "vertex_ordinal": 35,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 26.118354,
+          "owner_mae_after": 28.549203,
+          "source_edge_mae_after": 41.13261
+        },
+        {
+          "role": "hair",
+          "vertex_ordinal": 4,
+          "delta": [
+            -1,
+            0
+          ],
+          "global_source_mae_after": 26.112552,
+          "owner_mae_after": 28.528501,
+          "source_edge_mae_after": 41.06094
+        },
+        {
+          "role": "hair",
+          "vertex_ordinal": 5,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 26.107225,
+          "owner_mae_after": 28.509495,
+          "source_edge_mae_after": 40.995139
+        },
+        {
+          "role": "hair",
+          "vertex_ordinal": 28,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 26.105858,
+          "owner_mae_after": 28.504615,
+          "source_edge_mae_after": 40.910961
+        },
+        {
+          "role": "major_clothing",
+          "vertex_ordinal": 36,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 26.105267,
+          "owner_mae_after": 27.136673,
+          "source_edge_mae_after": 47.609034
+        },
+        {
+          "role": "major_clothing",
+          "vertex_ordinal": 11,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 26.104624,
+          "owner_mae_after": 27.124834,
+          "source_edge_mae_after": 47.538162
+        },
+        {
+          "role": "major_clothing",
+          "vertex_ordinal": 12,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 26.102878,
+          "owner_mae_after": 27.092676,
+          "source_edge_mae_after": 47.396417
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 3,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 26.084372,
+          "owner_mae_after": 19.850321,
+          "source_edge_mae_after": 32.363254
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 5,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 26.002107,
+          "owner_mae_after": 19.552111,
+          "source_edge_mae_after": 31.599901
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 0,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 25.964578,
+          "owner_mae_after": 19.416071,
+          "source_edge_mae_after": 30.689911
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 2,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 25.952724,
+          "owner_mae_after": 19.373102,
+          "source_edge_mae_after": 30.486152
+        },
+        {
+          "role": "lower_body",
+          "vertex_ordinal": 1,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 25.948808,
+          "owner_mae_after": 20.100538,
+          "source_edge_mae_after": 52.135417
+        }
+      ],
+      "fully_protected_pixel_changes": 0,
+      "masks_face_arms_and_source_role_colors_unchanged": true,
+      "standard_face_microfeatures_off": true,
+      "outer_silhouette_edge_pixel_changes": 0,
+      "owner_interface_pixel_changes": 0,
+      "silhouette_source_identity_certified": false,
+      "historical_stage8_source_ring_gate": "FAIL",
+      "human_visual_review": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    },
+    "GC001": {
+      "case": "GC001",
+      "signed_input_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "input_svg_sha256": "858080f4a738f41cade641fa24bf6414726f2bc9ce1b364f02400d9e0f37ed7e",
+      "baseline_render_sha256": "5f841e720cd621fbb22ed30cae8e5d05abd2f9e7a22a0ed2ec1ead2fe1535cdb",
+      "expanded_vertices": 1873,
+      "budget": 1887,
+      "source_visible_foreground_rgb_mae_before": 41.913533,
+      "source_visible_foreground_rgb_mae_after": 41.743042,
+      "source_owner_topology": {
+        "owner_count": 9,
+        "role_pixel_counts": {
+          "hair": 14521,
+          "lower_body": 12640,
+          "accessory_or_held_object": 217,
+          "right_arm": 6510,
+          "torso": 5815,
+          "major_clothing": 3741,
+          "unknown": 1991,
+          "left_arm": 2718,
+          "neck": 2002
+        },
+        "source_visible_owner_overlap_pixels": 0,
+        "adjacency_pairs": [
+          [
+            "hair",
+            "lower_body"
+          ],
+          [
+            "hair",
+            "torso"
+          ],
+          [
+            "hair",
+            "major_clothing"
+          ],
+          [
+            "hair",
+            "unknown"
+          ],
+          [
+            "hair",
+            "left_arm"
+          ],
+          [
+            "hair",
+            "neck"
+          ],
+          [
+            "lower_body",
+            "accessory_or_held_object"
+          ],
+          [
+            "lower_body",
+            "right_arm"
+          ],
+          [
+            "lower_body",
+            "major_clothing"
+          ],
+          [
+            "lower_body",
+            "left_arm"
+          ],
+          [
+            "accessory_or_held_object",
+            "torso"
+          ],
+          [
+            "accessory_or_held_object",
+            "major_clothing"
+          ],
+          [
+            "right_arm",
+            "major_clothing"
+          ],
+          [
+            "torso",
+            "major_clothing"
+          ],
+          [
+            "torso",
+            "neck"
+          ],
+          [
+            "major_clothing",
+            "unknown"
+          ],
+          [
+            "major_clothing",
+            "left_arm"
+          ]
+        ]
+      },
+      "protected_pixels": {
+        "perimeter_pixel_count": 9567,
+        "interface_pixel_count": 2832,
+        "faceless_signed_face_pixels": 4937,
+        "signed_arms_pixels": 9201
+      },
+      "candidate_chromium_renders": 80,
+      "accepted_existing_vertex_moves": [
+        {
+          "role": "hair",
+          "vertex_ordinal": 47,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 41.892313,
+          "owner_mae_after": 30.755848,
+          "source_edge_mae_after": 42.191712
+        },
+        {
+          "role": "hair",
+          "vertex_ordinal": 24,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 41.890607,
+          "owner_mae_after": 30.749374,
+          "source_edge_mae_after": 42.175344
+        },
+        {
+          "role": "hair",
+          "vertex_ordinal": 10,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 41.880442,
+          "owner_mae_after": 30.71081,
+          "source_edge_mae_after": 42.077834
+        },
+        {
+          "role": "major_clothing",
+          "vertex_ordinal": 20,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 41.878918,
+          "owner_mae_after": 43.940836,
+          "source_edge_mae_after": 55.896928
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 13,
+          "delta": [
+            0,
+            -1
+          ],
+          "global_source_mae_after": 41.8787,
+          "owner_mae_after": 47.318315,
+          "source_edge_mae_after": 53.017443
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 12,
+          "delta": [
+            -1,
+            0
+          ],
+          "global_source_mae_after": 41.877744,
+          "owner_mae_after": 47.309258,
+          "source_edge_mae_after": 52.995742
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 14,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 41.870786,
+          "owner_mae_after": 47.243336,
+          "source_edge_mae_after": 52.933663
+        },
+        {
+          "role": "torso",
+          "vertex_ordinal": 6,
+          "delta": [
+            0,
+            1
+          ],
+          "global_source_mae_after": 41.862255,
+          "owner_mae_after": 47.162511,
+          "source_edge_mae_after": 52.757314
+        },
+        {
+          "role": "lower_body",
+          "vertex_ordinal": 28,
+          "delta": [
+            -1,
+            0
+          ],
+          "global_source_mae_after": 41.856434,
+          "owner_mae_after": 35.827083,
+          "source_edge_mae_after": 60.584606
+        },
+        {
+          "role": "lower_body",
+          "vertex_ordinal": 44,
+          "delta": [
+            -1,
+            0
+          ],
+          "global_source_mae_after": 41.75101,
+          "owner_mae_after": 35.36759,
+          "source_edge_mae_after": 59.388847
+        },
+        {
+          "role": "lower_body",
+          "vertex_ordinal": 37,
+          "delta": [
+            1,
+            0
+          ],
+          "global_source_mae_after": 41.743042,
+          "owner_mae_after": 35.332859,
+          "source_edge_mae_after": 59.316304
+        }
+      ],
+      "fully_protected_pixel_changes": 0,
+      "masks_face_arms_and_source_role_colors_unchanged": true,
+      "standard_face_microfeatures_off": true,
+      "outer_silhouette_edge_pixel_changes": 0,
+      "owner_interface_pixel_changes": 0,
+      "silhouette_source_identity_certified": false,
+      "historical_stage8_source_ring_gate": "FAIL",
+      "human_visual_review": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    }
+  },
+  "two_case_signed_masks_source_owner_adjacency_preserved": true,
+  "two_case_outer_silhouette_and_arm_pixel_exact": true,
+  "two_case_faceless_default_and_vertex_budget_pass": true,
+  "any_source_edge_improvement": true,
+  "historical_stage8_source_ring_gate": "FAIL",
+  "full_character_golden": "HOLD",
+  "human_visual_review": "PENDING",
+  "production_deployment": "UNCHANGED",
+  "artifact_sha256": {
+    "gc001_sa1056_baseline.png": "5f841e720cd621fbb22ed30cae8e5d05abd2f9e7a22a0ed2ec1ead2fe1535cdb",
+    "gc001_structure_guarded.png": "c51c8bac13f68802b1a7d0022eccd1eff66ae2e4b2f601a7e9b881b936eb4445",
+    "gc001_structure_guarded.svg": "bdea6fc36a953c01fe115032c10cb9313ecc900377f63954ff84bcb0392b2939",
+    "raden_sa1056_baseline.png": "94a44b2b931655a2a2d23f3ec4763c8cd700934184912de019d9dc2ac0e63dce",
+    "raden_structure_guarded.png": "610670713adb410595ca680903c9445d0130ba387da7afe9549be4970d01bbce",
+    "raden_structure_guarded.svg": "a3927c5e2c0fd98012c64a1443b7fb399aaffb72def636ac3c79157bcc420e6d",
+    "sa1057_two_case_structure_board.png": "f515eed35a6a0e53a4e95bef5302e3b51d436ef7b153c1cf65b72054ac6b522b"
+  }
+}
