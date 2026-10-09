@@ -193,15 +193,18 @@ function bindObservations(edges,foreground,multi,poseResult,width,height,options
     if(garment>=8&&garment/total>=0.55)
       roleCandidates.push({role:"clothing_observation",
         evidenceFraction:+(garment/total).toFixed(5),
-        provenance:"selfie_multiclass_clothes"});
+        provenance:"selfie_multiclass_clothes",
+        authority:false,domainCalibrated:false});
     if(armLeft>=8&&armLeft/total>=0.4)
       roleCandidates.push({role:"left_arm_pose_corridor",
         evidenceFraction:+(armLeft/total).toFixed(5),
-        provenance:"pose_landmarks+multiclass+foreground"});
+        provenance:"pose_landmarks+multiclass+foreground",
+        authority:false,domainCalibrated:false});
     if(armRight>=8&&armRight/total>=0.4)
       roleCandidates.push({role:"right_arm_pose_corridor",
         evidenceFraction:+(armRight/total).toFixed(5),
-        provenance:"pose_landmarks+multiclass+foreground"});
+        provenance:"pose_landmarks+multiclass+foreground",
+        authority:false,domainCalibrated:false});
     return {evidenceId:seg.evidenceId,
       pixelCount:total,semanticPart:"unbound",bindingConfidence:0,
       observedCounts:{garment,hair,skin,unknown,armLeft,armRight},
@@ -220,15 +223,20 @@ function bindObservations(edges,foreground,multi,poseResult,width,height,options
       poseProvider:poseValid?poseResult.provider:null,
       poseSHA:poseValid?POSE_SHA:null,
       inferenceOnDevice:true,partOwnershipAuthority:false,
-      visibleOutputAuthority:false,generatedPixels:false
+      visibleOutputAuthority:false,generatedPixels:false,
+      domainCalibratedForAnime:false
     },
     summary:{sourceEdges:segments.length,unbound:segments.length,
       garmentCueSegments:clothes,leftArmCueSegments:left,rightArmCueSegments:right,
       acceptedClassPixels:counts,poseCuePixels:poseCueCounts,
       usablePoseTracks:Object.keys(tracks),
+      animeValidatedPartSegments:0,
+      finalSemanticBoundSegments:0,
+      garmentsWithIndependentPartCorroboration:0,
       multiclassStatus:validMulticlass?"verified":"unavailable",
       poseStatus:poseValid?Object.keys(tracks).length?"observed":"low_confidence":
-        poseResult?.status||"unavailable"},
+        poseResult?.status==="pose_observed"?"withheld_unverified_pose":
+          poseResult?.status||"unavailable"},
     segments,categoryMap:classes,armCueMap:cueMap};
 }
 async function observe(image,foreground,edgeEvidence,width,height,options={}) {
