@@ -12,6 +12,7 @@ const simplifyResearch = new URLSearchParams(location.search).get("publicSimplif
 const meshResearch = new URLSearchParams(location.search).get("publicMeshResearch") === "1";
 const earcutResearch = new URLSearchParams(location.search).get("publicEarcutResearch") === "1";
 const svgPathResearch = new URLSearchParams(location.search).get("publicSvgPathResearch") === "1";
+const svgoResearch = new URLSearchParams(location.search).get("publicSvgoResearch") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -28,6 +29,15 @@ window.MinimalizerComputeRoute = Object.freeze({
       throw new Error("Browserエンジンを読み込めませんでした。ページを更新してください。");
     }
     const p = profile();
+    let svgoObserver = null;
+    if (svgoResearch) {
+      try {
+        // Load SVGO only for explicitly opted-in Public research.
+        svgoObserver = await import(new URL("static/public-svgo-research.mjs", document.baseURI).href);
+      } catch (_) {
+        // Optional observer unavailable: normal conversion must still succeed.
+      }
+    }
     const result = await engine.minimalizeFile(file, {
       analysisMaxSide: 400, workMaxSide: 400, maxShapes: 40, slicIterations: 10, paletteTarget: 8,
       publicPolygonDiagnostics: true,
@@ -35,6 +45,8 @@ window.MinimalizerComputeRoute = Object.freeze({
       publicMeshResearch: meshResearch,
       publicEarcutResearch: earcutResearch,
       publicSvgPathResearch: svgPathResearch,
+      publicSvgoResearch: svgoResearch,
+      publicSvgoObserver: svgoObserver,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",

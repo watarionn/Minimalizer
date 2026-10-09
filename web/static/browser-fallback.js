@@ -3849,6 +3849,23 @@
         publicSvgPathAudit = { status: "error", parsedRings: 0, bboxMatches: 0 };
       }
     }
+    // SVGO is an opt-in Public serializer experiment, never a renderer.
+    // Candidate raster is compared against its OWN source SVG at original
+    // work dimensions; this does not certify SVG-vs-production-canvas parity.
+    let publicSvgoAudit = {status: "disabled", rasterExact: false,
+      rasterDifferentPixels: null, savedBytes: 0, applied: false};
+    if (config.publicSvgoResearch === true) {
+      try {
+        const observer = config.publicSvgoObserver;
+        publicSvgoAudit = observer && typeof observer.auditShapes === "function"
+          ? await observer.auditShapes(shapes, workSize.width, workSize.height)
+          : {status: "unavailable", rasterExact: false,
+            rasterDifferentPixels: null, savedBytes: 0, applied: false};
+      } catch (_) {
+        publicSvgoAudit = {status: "error", rasterExact: false,
+          rasterDifferentPixels: null, savedBytes: 0, applied: false};
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3860,6 +3877,9 @@
       "X-Minimalizer-Public-Mesh-Audit": publicMeshAudit.status,
       "X-Minimalizer-Public-Earcut-Audit": publicEarcutAudit.status,
       "X-Minimalizer-Public-SVGPath-Audit": publicSvgPathAudit.status,
+      "X-Minimalizer-Public-SVGO-Audit": publicSvgoAudit.status,
+      "X-Minimalizer-Public-SVGO-Exact": publicSvgoAudit.rasterExact ? "1" : "0",
+      "X-Minimalizer-Public-SVGO-Saved-Bytes": String(publicSvgoAudit.savedBytes || 0),
       "X-Minimalizer-Public-SVGPath-Rings": String(publicSvgPathAudit.parsedRings || 0),
       "X-Minimalizer-Public-SVGPath-BBox-Matches": String(publicSvgPathAudit.bboxMatches || 0),
       "X-Minimalizer-Public-Earcut-Accepted": String(publicEarcutAudit.acceptedTriangles || 0),
@@ -3922,6 +3942,7 @@
         publicMeshAudit,
         publicEarcutAudit,
         publicSvgPathAudit,
+        publicSvgoAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
