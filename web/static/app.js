@@ -10,6 +10,8 @@ const BROWSER_FALLBACK_QUALITY_STORAGE_KEY = "minimalizer.browserFallbackQuality
 const browserFallbackQualityParam = new URLSearchParams(window.location.search).get("browserFallbackQuality");
 if (browserFallbackQualityParam === "exact") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "exact");
+} else if (browserFallbackQualityParam === "group") {
+  window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "group");
 } else if (browserFallbackQualityParam === "color") {
   window.localStorage.setItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY, "color");
 } else if (browserFallbackQualityParam === "plane") {
@@ -32,7 +34,7 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(quality) ? quality : "lite";
+  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color", "group"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
@@ -42,7 +44,7 @@ function browserFallbackStructuralMode() {
 }
 
 function browserFallbackCanonicalContourLite() {
-  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile());
+  return ["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color", "group"].includes(browserFallbackQualityProfile());
 }
 
 const browserFallbackParam = new URLSearchParams(window.location.search).get("browserFallback");
@@ -397,6 +399,10 @@ async function requestBrowserFallback() {
     paletteTarget: 8,
     structuralMode: browserFallbackStructuralMode(),
     canonicalContourLite: browserFallbackCanonicalContourLite(),
+    colorGroupRefine: browserFallbackQualityProfile() === "group",
+    colorGroupOptions: browserFallbackQualityProfile() === "group"
+      ? {maxGroupPixels:256,minGroupPixels:4,minGainSquared:2500,
+         maxDepth:6,lowerYFraction:0.33} : undefined,
     colorPlaneRefine: browserFallbackQualityProfile() === "color",
     colorPlaneOptions: browserFallbackQualityProfile() === "color"
       ? {maxMoves:1,minGainSquared:2500,lowerYFraction:0.33} : undefined,
@@ -407,7 +413,7 @@ async function requestBrowserFallback() {
     selectiveMergeOptions: browserFallbackQualityProfile() === "near"
       ? { allowNearPalette: true, maxMerges: 1, captureCandidateGeometry: true } : { allowNearPalette: false, maxMerges: 1 },
     geometryMode: browserFallbackQualityProfile() === "plane" ? "plane-safe"
-      : ["selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile()) ? "facet-safe"
+      : ["selective", "near", "auto", "plane", "color", "group"].includes(browserFallbackQualityProfile()) ? "facet-safe"
       : browserFallbackQualityProfile() === "facet" ? "facet-safe"
       : browserFallbackQualityProfile() === "shape" ? "corner-aware" : "baseline",
   });
