@@ -40,8 +40,8 @@ def evaluate(stage,sources,masks,manifest):
    unchanged=bool(np.array_equal(raw,current))
    if not unchanged:raise ValueError("combined raw raster mismatch")
    # Topology on a raster follows from exact pixel equality; count explicitly as a witness.
-   components, _=cv2.connectedComponents(current.astype(np.uint8),8)
-   components_new, _=cv2.connectedComponents(raw.astype(np.uint8),8)
+   components, _=cv2.connectedComponents(current.astype(np.uint8),connectivity=8)
+   components_new, _=cv2.connectedComponents(raw.astype(np.uint8),connectivity=8)
    if components!=components_new:raise ValueError("components changed")
    original_holes=cv2.findContours(current.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
    after_holes=cv2.findContours(raw.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
