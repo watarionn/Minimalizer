@@ -1,6 +1,7 @@
 """v29 strict sparse-anime QA and resource-safe inference preflight contracts."""
 from __future__ import annotations
 import importlib.util
+import ast
 from pathlib import Path
 import pytest
 
@@ -73,4 +74,6 @@ def test_frozen_facet_and_production_contract_unchanged():
     assert "browser-anime-corpus-gate-v29" not in app
     assert "minimalizer-v29" not in app
     assert "image_gen" not in AUDIT.read_text(encoding="utf-8")
-    assert "torch" not in GATE.read_text(encoding="utf-8").split("if __name__")[0].split("import ")[1]
+    imports=[n for n in ast.walk(ast.parse(GATE.read_text(encoding="utf-8")))
+             if isinstance(n,(ast.Import,ast.ImportFrom))]
+    assert not any("torch" in ast.unparse(n) for n in imports)
