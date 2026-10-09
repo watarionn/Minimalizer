@@ -36,8 +36,8 @@ The initially attempted batch of 32 pixels on Kyoko produced `canonical contour 
 
 - Isolated Windows `tests/test_browser_color_region_v24.py` and all inherited v12-v23 modes: **66 PASS**. JavaScript and Python syntax pass.
 - Real Chrome 154 three-character test and external source/palette/ROI benchmark: **3 PASS**.
-- GitHub `.github/workflows/browser-color-v24.yml` plus inherited previous workflows: check actual CI results before claiming PASS.
-- Evidence and scripts: [Google Drive](https://drive.google.com/drive/folders/1lwNehPN4FYbHd3JzyZ1-RLc6P-gg-EpA) in the required short canonical `chatGPT及びCodex用/Minimalizer/ColorRegionV24_20261009` path.
+- **GitHub Actions 11/11 PASS** on code-bearing commit `9cc40adfe7be5ab93151cb8eef80f251bc5a656f`: Color v24, Plane v23, Auto v22, Targeted v21, Donor v20, Merge v19, Near v18, Selective v17, Facet v15, Shape v14, Sharp Lite v13.
+- Evidence and scripts: [Google Drive](https://drive.google.com/drive/folders/1lwNehPN4FYbHd3JzyZ1-RLc6P-gg-EpA) in the required short canonical `chatGPT及びCodex用/Minimalizer/ColorRegionV24_20261009` path. **Ten out of ten artifacts confirmed through Google Drive API**, with mounted-drive SHA256 verification against the original outputs. Includes the 3-source montage, original/source/baseline/output archive, metrics, tests and replay scripts.
 - **Do not merge or deploy.** Research v24 proves one-pixel source-supported boundary correction and robust topology failure rollback, but modifies at most eight visible raster pixels and adds ~1.4-1.5x runtime. This does not reach the user goal of materially improved clothing internal colors and missing arm boundaries.
 
 ## Next phase recommendation
