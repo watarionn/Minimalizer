@@ -1,0 +1,211 @@
+{
+  "stage": "SA10.56",
+  "schema": "signed-faceless-material-budgeted-source-palette-v1",
+  "chromium": "144.0.7559.96",
+  "cases": {
+    "Raden": {
+      "case": "Raden",
+      "source_authority_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "sa1055_svg_sha256": "fd65000ad4e814348f1158871e9e049b74fffbf7d84e4b4f25c35ee375d2d88a",
+      "chromium_baseline_sha256": "54997a07a90e18607f491f95178b7e5f91f1fa6e4acf4c58bb7fd20226edb3bd",
+      "expanded_vertices_baseline": 1309,
+      "expanded_vertices_final": 1409,
+      "hard_limit": 1412,
+      "actual_added_vertices": 100,
+      "remaining_vertices": 3,
+      "rendered_original_source_foreground_mae_before": 28.880513,
+      "rendered_original_source_foreground_mae_after": 26.120754,
+      "material_layers_accepted": [
+        {
+          "role": "hair",
+          "vertices": 48,
+          "epsilon": 2.5,
+          "min_area": 20,
+          "source_rgb": [
+            202,
+            190,
+            184
+          ],
+          "owner_source_mae_before": 33.727008,
+          "owner_source_mae_after": 28.557764,
+          "foreground_source_mae_after": 27.431729,
+          "source_cluster_pixels": 2370
+        },
+        {
+          "role": "major_clothing",
+          "vertices": 43,
+          "epsilon": 2.5,
+          "min_area": 20,
+          "source_rgb": [
+            77,
+            80,
+            77
+          ],
+          "owner_source_mae_before": 31.119887,
+          "owner_source_mae_after": 27.14754,
+          "foreground_source_mae_after": 27.215512,
+          "source_cluster_pixels": 1122
+        },
+        {
+          "role": "torso",
+          "vertices": 6,
+          "epsilon": 6.0,
+          "min_area": 20,
+          "source_rgb": [
+            205,
+            191,
+            185
+          ],
+          "owner_source_mae_before": 23.881182,
+          "owner_source_mae_after": 19.917402,
+          "foreground_source_mae_after": 26.122045,
+          "source_cluster_pixels": 855
+        },
+        {
+          "role": "lower_body",
+          "vertices": 3,
+          "epsilon": 6.0,
+          "min_area": 20,
+          "source_rgb": [
+            66,
+            65,
+            68
+          ],
+          "owner_source_mae_before": 20.301799,
+          "owner_source_mae_after": 20.251901,
+          "foreground_source_mae_after": 26.120754,
+          "source_cluster_pixels": 534
+        }
+      ],
+      "material_layers_rejected": [],
+      "tested_chromium_proposals": 20,
+      "faceless_policy_pass": true,
+      "face_changed_pixels": 0,
+      "both_arms_changed_pixels": 0,
+      "outside_source_visible_changed_pixels": 0,
+      "stage8_original_source_ring_policy": "FAIL",
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    },
+    "GC001": {
+      "case": "GC001",
+      "source_authority_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "sa1055_svg_sha256": "ca077a2df9d134926a4c433746398dd5f9d3dc79818ded611fac32f9623e859b",
+      "chromium_baseline_sha256": "921a871af5e609d812187236641270562c852222e3d3d5de4b83d406f85ef1fb",
+      "expanded_vertices_baseline": 1710,
+      "expanded_vertices_final": 1873,
+      "hard_limit": 1887,
+      "actual_added_vertices": 163,
+      "remaining_vertices": 14,
+      "rendered_original_source_foreground_mae_before": 47.031444,
+      "rendered_original_source_foreground_mae_after": 41.913533,
+      "material_layers_accepted": [
+        {
+          "role": "hair",
+          "vertices": 56,
+          "epsilon": 2.5,
+          "min_area": 20,
+          "source_rgb": [
+            250,
+            242,
+            247
+          ],
+          "owner_source_mae_before": 39.199183,
+          "owner_source_mae_after": 30.836352,
+          "foreground_source_mae_after": 44.829146,
+          "source_cluster_pixels": 2669
+        },
+        {
+          "role": "major_clothing",
+          "vertices": 29,
+          "epsilon": 2.5,
+          "min_area": 20,
+          "source_rgb": [
+            245,
+            245,
+            255
+          ],
+          "owner_source_mae_before": 47.764412,
+          "owner_source_mae_after": 43.96329,
+          "foreground_source_mae_after": 44.571033,
+          "source_cluster_pixels": 1319
+        },
+        {
+          "role": "torso",
+          "vertices": 25,
+          "epsilon": 2.5,
+          "min_area": 20,
+          "source_rgb": [
+            49,
+            48,
+            45
+          ],
+          "owner_source_mae_before": 59.009802,
+          "owner_source_mae_after": 47.320378,
+          "foreground_source_mae_after": 43.337206,
+          "source_cluster_pixels": 1707
+        },
+        {
+          "role": "lower_body",
+          "vertices": 53,
+          "epsilon": 4.0,
+          "min_area": 20,
+          "source_rgb": [
+            237,
+            242,
+            250
+          ],
+          "owner_source_mae_before": 42.057595,
+          "owner_source_mae_after": 35.852453,
+          "foreground_source_mae_after": 41.913533,
+          "source_cluster_pixels": 3948
+        }
+      ],
+      "material_layers_rejected": [],
+      "tested_chromium_proposals": 38,
+      "faceless_policy_pass": true,
+      "face_changed_pixels": 0,
+      "both_arms_changed_pixels": 0,
+      "outside_source_visible_changed_pixels": 0,
+      "stage8_original_source_ring_policy": "FAIL",
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    }
+  },
+  "two_case_faceless_preserved": true,
+  "two_case_source_fidelity_improved": true,
+  "two_case_true_expanded_vertex_budget_pass": true,
+  "no_generation_raster_embeds_or_facials": true,
+  "historical_stage8_source_ring_gate": "FAIL",
+  "human_visual_review": "PENDING",
+  "full_character_golden": "HOLD",
+  "production_deployment": "UNCHANGED",
+  "artifact_sha256": {
+    "gc001_faceless_material.png": "5f841e720cd621fbb22ed30cae8e5d05abd2f9e7a22a0ed2ec1ead2fe1535cdb",
+    "gc001_faceless_material.svg": "858080f4a738f41cade641fa24bf6414726f2bc9ce1b364f02400d9e0f37ed7e",
+    "gc001_sa1055_baseline.png": "921a871af5e609d812187236641270562c852222e3d3d5de4b83d406f85ef1fb",
+    "raden_faceless_material.png": "94a44b2b931655a2a2d23f3ec4763c8cd700934184912de019d9dc2ac0e63dce",
+    "raden_faceless_material.svg": "18474c41978f257ebf605040de4cfe2c532f6cc5f171b69089d8f48d921d349d",
+    "raden_sa1055_baseline.png": "54997a07a90e18607f491f95178b7e5f91f1fa6e4acf4c58bb7fd20226edb3bd",
+    "sa1056_two_case_material_board.png": "db2fc52289130c43bf187a8a62df680e4552838df65df4932880a39af1805bca"
+  }
+}
