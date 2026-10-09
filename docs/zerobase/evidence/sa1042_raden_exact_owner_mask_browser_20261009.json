@@ -1,0 +1,89 @@
+{
+  "schema": "sa10.42-signed-source-owner-mask-browser-parity-research-v1",
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "chrome_version": "144.0.7559.96",
+  "original_source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "signed_stage8_json_sha256": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+  "signed_sa1041_svg_sha256": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+  "opencv_baseline_sha256": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+  "pixel_rgb_mismatches": {
+    "baseline": {
+      "face": 122,
+      "left_arm": 237,
+      "right_arm": 255,
+      "whole": 2681,
+      "whole_mean_absolute_error": 3.911358
+    },
+    "research_repaired": {
+      "face": 0,
+      "left_arm": 0,
+      "right_arm": 0,
+      "whole": 2065,
+      "whole_mean_absolute_error": 3.080646
+    }
+  },
+  "isolated_binary_mask_probe": {
+    "face_guard": {
+      "old_error": 122,
+      "corrected_error": 0,
+      "rects": 53,
+      "vertices": 212
+    },
+    "inverse_protected_clear": {
+      "old_error": 613,
+      "corrected_error": 0,
+      "rects": 280,
+      "vertices": 1120
+    },
+    "right_arm_owner": {
+      "old_error": 257,
+      "corrected_error": 0,
+      "rects": 95,
+      "vertices": 380
+    },
+    "left_arm_owner": {
+      "old_error": 237,
+      "corrected_error": 0,
+      "rects": 132,
+      "vertices": 528
+    }
+  },
+  "additional_owner_binary_probe": {
+    "hair": {
+      "original_cv2_pixels": 19503,
+      "old_svg_missing": 714,
+      "old_svg_overflow": 0,
+      "exact_replay_error": 0
+    },
+    "unknown": {
+      "original_cv2_pixels": 447,
+      "old_svg_missing": 82,
+      "old_svg_overflow": 0,
+      "exact_replay_error": 0
+    }
+  },
+  "budget": {
+    "original_source_ring_vertices": 2370,
+    "hard_max_vertices": 1412,
+    "experimental_pixel_rect_vertex_occurrences": 2240,
+    "full_pass": false
+  },
+  "safety": {
+    "source_modified": false,
+    "synthetic_pixels_added": false,
+    "source_image_embedded": false,
+    "production_changed": false,
+    "face_features_invented": false,
+    "full_character_golden_pass": false,
+    "overall_browser_exact_parity": false
+  },
+  "source_research_artifact_hashes": {
+    "before_full_scene_png": "1f9d3a5cc94a44ea52a87903e9de95b036ee5097647bf89728c8b010c34bc7c2",
+    "after_full_scene_png": "e107016e8823239ab366d78bc060092f7d39432c1c9b5b38a3c1524de03387f9",
+    "comparison_png": "be3b0fac0fac0de08e0b2ca59a228ad8c357e39ec1aff8d696b2754850232382",
+    "research_svg": "6761959458fff894ab1918d85a1cd96c93542d81fb11343a72d72cab5c2d3a8e",
+    "output_metrics_json": "b8febcd635d1bb53b04878fa1958a24cce33a88fbb6d764ba06cbfe7973c7fe4"
+  },
+  "artifact_folder": "https://drive.google.com/drive/folders/1_Q5LeaVAHfd0jkz0Pae_rnLnjskfQIMM",
+  "next": "Exact lower-vertex contour strategy and hair/unknown owner repairs; do not promote current research SVG"
+}
