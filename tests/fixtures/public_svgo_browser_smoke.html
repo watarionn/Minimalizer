@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SVGO Pixel Gate</title></head>
+<body><pre id="result">pending</pre>
+<script type="module">
+import {auditShapes, makeCandidate, buildSourceSvg} from "../../web/static/public-svgo-research.mjs";
+const shape = {rgb:[50,120,210], rings:[
+  [[2,2],[48,2],[48,48],[2,48]],
+  [[16,16],[16,34],[34,34],[34,16]]
+]};
+try {
+  const source = buildSourceSvg([shape], 64, 64);
+  const optimized = makeCandidate(source.svg);
+  const audit = await auditShapes([shape], 64, 64);
+  document.getElementById("result").textContent =
+    "SVGO_BROWSER_RESULT=" + JSON.stringify({...audit, reduced: optimized.length < source.svg.length});
+} catch (e) {
+  document.getElementById("result").textContent = "SVGO_BROWSER_FAILURE=" + String(e);
+}
+</script></body></html>
