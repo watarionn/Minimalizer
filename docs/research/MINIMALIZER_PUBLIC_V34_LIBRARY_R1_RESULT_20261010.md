@@ -19,6 +19,7 @@
 | Ririka | 57,641 | 57,641 | **0** | 0 | 0 | 0 | 115,600 |
 
 - `python -m pytest tests/test_public_v34_svgo_bridge.py -q`: **3 passed**.
+- Entire targeted Public/Local isolation and JS/WASM regression set (new gate + all nine vendor integrations + split): **42 passed** in 2.27s; no regression failures.
 - `node --check scripts/public_v34_svgo_candidate.mjs`: **PASS**.
 - Chrome Golden gate, first run: **3/3 pass**; intentionally inserted black 340×340 rectangle correctly rejected each time.
 - Second independent clean Chrome run: **3/3 pass**, byte-level `fc /b` exact repeat for **four/four evidence files** (Kyoko/Noel/Ririka candidate SVGs + JSON).
