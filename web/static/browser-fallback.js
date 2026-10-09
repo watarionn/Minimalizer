@@ -3878,6 +3878,23 @@
         publicResvgAudit = {status:"error",applied:false,differentPixels:null};
       }
     }
+    // Bounded Clipper2-WASM viewport intersection diagnostics, read-only.
+    // Uses the existing owner full-mask raster as strict acceptance authority.
+    let publicClipper2Audit = {status:"disabled",applied:false,exactShapes:0,
+      rejectedShapes:0,rasterDifferentPixels:0};
+    if (config.publicClipper2Research === true) {
+      try {
+        const observer = config.publicClipper2Observer;
+        publicClipper2Audit = observer && typeof observer.auditShapes === "function"
+          ? await observer.auditShapes(shapes,workSize.width,workSize.height,
+              root.MinimalizerOpenCvRaster)
+          : {status:"unavailable",applied:false,exactShapes:0,
+              rejectedShapes:0,rasterDifferentPixels:0};
+      } catch (_) {
+        publicClipper2Audit = {status:"error",applied:false,exactShapes:0,
+          rejectedShapes:0,rasterDifferentPixels:0};
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3891,6 +3908,10 @@
       "X-Minimalizer-Public-SVGPath-Audit": publicSvgPathAudit.status,
       "X-Minimalizer-Public-SVGO-Audit": publicSvgoAudit.status,
       "X-Minimalizer-Public-RESVG-Audit": publicResvgAudit.status,
+      "X-Minimalizer-Public-Clipper2-Audit": publicClipper2Audit.status,
+      "X-Minimalizer-Public-Clipper2-Exact-Shapes": String(publicClipper2Audit.exactShapes || 0),
+      "X-Minimalizer-Public-Clipper2-Rejected-Shapes": String(publicClipper2Audit.rejectedShapes || 0),
+      "X-Minimalizer-Public-Clipper2-Different-Pixels": String(publicClipper2Audit.rasterDifferentPixels || 0),
       "X-Minimalizer-Public-RESVG-Different-Pixels": String(
         Number.isFinite(publicResvgAudit.differentPixels)
           ? publicResvgAudit.differentPixels : -1),
@@ -3961,6 +3982,7 @@
         publicSvgPathAudit,
         publicSvgoAudit,
         publicResvgAudit,
+        publicClipper2Audit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
