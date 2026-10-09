@@ -1,0 +1,11 @@
+{
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source": {"file": "Raden_source.png", "sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00", "drive_file_id": "1Y-omMqRIIKJOg9OBMGnTkoXuFnCzUQzI"},
+  "svg": {"file": "full_character_vector.svg", "sha256": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db", "drive_file_id": "1-YPetI6OY_fBdtui1W3ZhyLDsyh3VCHu"},
+  "baseline": {"file": "signed_full_opencv_reference.png", "sha256": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92", "drive_file_id": "1Safn9OwU220CnFhHA54VLPrObZ2hnL5y"},
+  "masks": {
+    "face": {"file": "signed_face_stage04_mask.png", "sha256": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f", "drive_file_id": "1wN-6_Rip4avkL2uLGjhHIFwmIBGLH_UQ"},
+    "left_arm": {"file": "signed_left_arm_stage04_mask.png", "sha256": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e", "drive_file_id": "1MwWj94BulLo-Cx54YGnQDZUVRcQdp8Iq"},
+    "right_arm": {"file": "signed_right_arm_stage04_mask.png", "sha256": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025", "drive_file_id": "1KLRYhKOgWZIShAqS_YsWrtwtOkuM_SNt"}
+  }
+}
