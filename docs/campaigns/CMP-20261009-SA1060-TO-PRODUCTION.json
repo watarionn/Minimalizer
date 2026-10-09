@@ -1,0 +1,200 @@
+{
+  "schema": "minimalizer_release_campaign_v1",
+  "campaign_id": "CMP-20261009-SA1060-TO-PRODUCTION",
+  "created_on": "2026-10-09",
+  "project": "Minimalizer",
+  "goal": "SA10.60B source-bound quality recovery through formally approved live production & iPhone confirmation",
+  "status": "ACTIVE_RELEASE_HOLD",
+  "current_step": "C01",
+  "baseline": {
+    "repository": "watarionn/Minimalizer",
+    "main_head": "d0144af58e6858f7e63a5412b34d7785ebbad195",
+    "merged_prs": [
+      317,
+      319
+    ],
+    "handoff": "docs/handoffs/HND-20261009-SA1060A-GC001-ARM-DIAGNOSTIC-SA1060B-NEXT.md"
+  },
+  "evidence_at_start": {
+    "gc001_right_arm_background_connected_overlap_pixels": 533,
+    "gc001_trial": "NOT_APPROVED",
+    "source_stage8": {
+      "Raden": {
+        "original_vertices": 2370,
+        "cap": 1412,
+        "gate": "HOLD"
+      },
+      "GC001": {
+        "original_vertices": 3604,
+        "cap": 1887,
+        "gate": "HOLD"
+      }
+    },
+    "human_golden": "PENDING",
+    "signed_independent_golden_sources": 2,
+    "phase15_for_this_release": "NOT_RUN",
+    "production_changed_by_campaign": false
+  },
+  "immutable_requirements": [
+    "Default Rinka Reference face microfeatures OFF: eyes,nose,mouth,eyebrows; face/hair/skin evidence preserved for structure",
+    "Visible output deterministic source-bound geometry only; no generated visible pixels, img2img/inpainting, raster embedding, automatic missing-content completion",
+    "SHA-locked source originals and Stage04 masks cannot be overwritten; author new candidates and maintain provenance",
+    "Actual original Stage8 ring cap and expanded deployed SVG cap are separate and cannot be swapped",
+    "Visual FAIL overrides numerical PASS; human Golden signoff cannot be synthesized by automation",
+    "Production is neither authorized nor deployed until independent Stage8 policy, human Golden and runtime/rollback/device evidence pass",
+    "Avoid RDC unless other official GitHub/Drive/remote routes cannot complete the task; record actual route/verification"
+  ],
+  "release_authorized": false,
+  "deployment_verified": false,
+  "required_independent_gates": [
+    "SIGNED_SOURCE_PROVENANCE",
+    "SOURCE_OWNER_FACE_ARM_TOPOLOGY",
+    "HISTORICAL_STAGE8_POLICY_RESOLUTION",
+    "TRUE_EXPANDED_SVG_BUDGET",
+    "GOLDEN_HUMAN_APPROVAL",
+    "APPROVED18_AND_APPROVED78_CORPUS",
+    "DETERMINISTIC_CHROMIUM_REPLAY",
+    "PHASE15_REAL_BROWSER_ROUTE",
+    "ROLLBACK",
+    "SA1061_IPHONE_AND_PRODUCTION_SMOKE",
+    "POST_DEPLOY_READ_AFTER_WRITE"
+  ],
+  "status_semantics": {
+    "COMPLETE": "Evidence verified, reviewed, persisted and referenced",
+    "READY": "Next actionable stage",
+    "QUEUED": "Ready after dependencies",
+    "HOLD": "Explicit unresolved scientific or human gate; no false approval",
+    "BLOCKED": "Hard dependency not met"
+  },
+  "steps": [
+    {
+      "id": "C00",
+      "name": "Baseline / source authority lock",
+      "status": "COMPLETE",
+      "depends_on": [],
+      "exit": [
+        "main HEAD and PR #317/#319 verified",
+        "SA10.58/59/60A release HOLD preserved; signed source/face/arm SHA references fixed"
+      ],
+      "evidence": [
+        "PR #317",
+        "PR #319",
+        "docs/handoffs/HND-20261009-SA1060A-GC001-ARM-DIAGNOSTIC-SA1060B-NEXT.md"
+      ]
+    },
+    {
+      "id": "C01",
+      "name": "SA10.60B first-bad-stage source-owner diagnosis",
+      "status": "READY",
+      "depends_on": [
+        "C00"
+      ],
+      "exit": [
+        "GC001 arm/background 533px overlap traced to earliest demonstrably wrong Phase04/05/06/owner stage, with provenance; if Phase04 not at fault, correct attribution",
+        "No modification of signed originals/arm/face masks; candidate stored as separate version",
+        "Diagnostic-2 before/after stage visuals and independent source evidence recorded"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C02",
+      "name": "Source-grounded arms / clothing / hair quality recovery",
+      "status": "QUEUED",
+      "depends_on": [
+        "C01"
+      ],
+      "exit": [
+        "GC001 arms/shoulders/sleeves/neckwear then Raden costume/hair evaluated against signed originals",
+        "Visual structure and identity not replaced by RGB MAE; first-bad-stage fixes only, faceless/default and one-block hands preserved",
+        "Chromium source comparisons, exact SVG vertex counts, unchanged artifact/palette/provenance guards; deterministic two-case rerun and cross-case regression"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C03",
+      "name": "Resolve historical source Stage8 ring budget",
+      "status": "HOLD",
+      "depends_on": [
+        "C00"
+      ],
+      "exit": [
+        "Option A: source-equivalent geometry fits immutable original source ring caps AND separately deployed SVG expanded budgets, validates face/arm owners and topology in real Chromium; OR Option B: explicitly approved, versioned policy change with historical failure retained and compatibility/rollback documented",
+        "No substitution of deployed SVG under-budget counts for oversized original Stage8 source rings; signed input immutable",
+        "Independent review evidence persisted, no silent cap relaxation"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C04",
+      "name": "Expanded multi-image artistic Golden + Phase14 gate",
+      "status": "HOLD",
+      "depends_on": [
+        "C02"
+      ],
+      "exit": [
+        "Authentic owner/human signoff per signed original and all six SA10.59 criteria; rejects identity/arm/garment visual failures even when metrics PASS",
+        "Independent signed sources expanded from 2 to approved 18, then Approved-78 Phase14 acceptance/required corpus gate rerun with deterministic/source SHA evidence",
+        "No claim that 3 stages of one image equal three independent cases, no self-certified human approval"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C05",
+      "name": "Release candidate & reversible runtime preflight",
+      "status": "BLOCKED",
+      "depends_on": [
+        "C03",
+        "C04"
+      ],
+      "exit": [
+        "Freeze exact candidate/source/config/renderer SHA and version; live production route is independently measured, not inferred from conflicting historical docs",
+        "Differential preview, unit/synthetic, Diagnostic-2, Approved-18/78, real Chromium reproducibility, regression and device prep verified",
+        "Independent Stage8 policy/human Golden documents and explicit release decision attached, rollback and kill/feature flag rehearsed without changing default"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C06",
+      "name": "Phase15 guarded integration + final Go/No-Go",
+      "status": "BLOCKED",
+      "depends_on": [
+        "C05"
+      ],
+      "exit": [
+        "Actual approved production integration route tested in real browser and API with X-Minimalizer-Route and /health evidence; fallback not mistaken for success",
+        "Rollback to prior known-good verified; formal release authorization with owner review documented",
+        "Final gate cannot pass solely from JSON status fields; a No-Go preserves current production"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C07",
+      "name": "SA10.61 production deployment and device smoke",
+      "status": "BLOCKED",
+      "depends_on": [
+        "C06"
+      ],
+      "exit": [
+        "After authorized Go deploy intended build and independently confirm remote deployed SHA/route",
+        "Real Chrome and iPhone PWA/browser source-image result compared to approved Golden; catch silent fallback",
+        "If identity/arms/route/availability regress, rollback and verify restored runtime"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "C08",
+      "name": "Verify / Review / Ship / Preserve / Closeout",
+      "status": "BLOCKED",
+      "depends_on": [
+        "C07"
+      ],
+      "exit": [
+        "Final commit/PR merge/remote HEAD/live build verifiably match accepted candidate",
+        "Private source/boards/diagnostics to existing chatGPT及びCodex用/Minimalizer Drive lineage, public coordinate-free evidence and handoff to GitHub",
+        "Close issue/campaign only after all gates and production+device state verified; record exception/rollback where needed"
+      ],
+      "evidence": []
+    }
+  ],
+  "next_action": "C01 Phase04/05/06 first-bad-stage and GC001 signed arm/background 533px diagnosis; no promotion"
+}
