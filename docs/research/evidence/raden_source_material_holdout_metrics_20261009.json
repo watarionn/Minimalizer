@@ -1,0 +1,82 @@
+{
+  "case_id": "Juufuutei-Raden_stylecal_source",
+  "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+  "input_manifest_sha256": "3c3f264b741dc960aca9df92fe6e590970ca32b707314e3bbf16b761649aa008",
+  "chromium": {
+    "engine": "Chromium (Playwright)",
+    "version": "144.0.7559.96"
+  },
+  "roles": {
+    "face": {
+      "signed_mask_pixels": 4052,
+      "source_visible_mask_pixels": 4052,
+      "alpha_excluded_pixels": 0,
+      "opencv_source_mae": 50.75263,
+      "chromium_svg_source_mae": 50.92078,
+      "svg_minus_opencv_source_mae": 0.16815,
+      "source_edge": {
+        "source_canny_within_2_5px": 0.89933,
+        "shifted_mask_negative_control": 0.67953,
+        "source_edge_support_vs_shifted_delta": 0.2198,
+        "edge_geometry_semantics_proven": false
+      },
+      "legacy_gc001_pale_negative_transfer": {
+        "retained_pixels": 2655,
+        "retained_fraction": 0.65523,
+        "material_is_visor_frame_proven": false,
+        "policy": "GC001_PALE_COLOR_TRANSFER_NOT_AUTHORIZED"
+      }
+    },
+    "left_arm": {
+      "signed_mask_pixels": 10419,
+      "source_visible_mask_pixels": 10345,
+      "alpha_excluded_pixels": 74,
+      "opencv_source_mae": 23.45065,
+      "chromium_svg_source_mae": 27.27646,
+      "svg_minus_opencv_source_mae": 3.82581,
+      "source_edge": {
+        "source_canny_within_2_5px": 0.67839,
+        "shifted_mask_negative_control": 0.63672,
+        "source_edge_support_vs_shifted_delta": 0.04167,
+        "edge_geometry_semantics_proven": false
+      },
+      "legacy_gc001_pale_negative_transfer": {
+        "retained_pixels": 114,
+        "retained_fraction": 0.01102,
+        "material_is_visor_frame_proven": false,
+        "policy": "GC001_PALE_COLOR_TRANSFER_NOT_AUTHORIZED"
+      }
+    },
+    "right_arm": {
+      "signed_mask_pixels": 9870,
+      "source_visible_mask_pixels": 9870,
+      "alpha_excluded_pixels": 0,
+      "opencv_source_mae": 25.66001,
+      "chromium_svg_source_mae": 29.34468,
+      "svg_minus_opencv_source_mae": 3.68467,
+      "source_edge": {
+        "source_canny_within_2_5px": 0.76801,
+        "shifted_mask_negative_control": 0.29025,
+        "source_edge_support_vs_shifted_delta": 0.47775,
+        "edge_geometry_semantics_proven": false
+      },
+      "legacy_gc001_pale_negative_transfer": {
+        "retained_pixels": 476,
+        "retained_fraction": 0.04823,
+        "material_is_visor_frame_proven": false,
+        "policy": "GC001_PALE_COLOR_TRANSFER_NOT_AUTHORIZED"
+      }
+    }
+  },
+  "independent_source_rgb_audit_executed": true,
+  "gc001_visor_material_transfer_proven": false,
+  "positive_goggles_holdout": false,
+  "full_character_golden_pass": false,
+  "production_changed": false,
+  "decision": "MEASUREMENT_PASS_SEMANTIC_TRANSFER_HOLD",
+  "outputs": {
+    "holdout_actual_chromium.png": "df9aab0f3de472a59990190c8d706becc87a65288a5c2b4993a9031cbfdfe1af",
+    "holdout_comparison.png": "710c66c707c0050b1bfb632b05da1d50020068a1a932040e3f87a627982ce634",
+    "source_rgb_error_roles_heatmap.png": "a5fafe0672d3d6f2f4d0d4617bac9d2475e6b0c7193aea799dcaacf9ed1b025d"
+  }
+}
