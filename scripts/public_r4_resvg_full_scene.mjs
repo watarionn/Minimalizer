@@ -13,7 +13,7 @@ const require=createRequire(import.meta.url);
 const {parse}=require("./public_r2_owner_geometry.cjs");
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const WASM=resolve(ROOT,"web/static/vendor/resvg-wasm/index_bg.wasm");
-export async function render(sourcePath,destinationPath,width=340,component="full") {
+export async function render(sourcePath,destinationPath,width=340,component="full",negativeControl=false) {
   if(![340,680].includes(width))throw Error("unapproved output width");
   const input=readFileSync(sourcePath);
   if(input.length>2000000)throw Error("source too large");
@@ -26,7 +26,12 @@ export async function render(sourcePath,destinationPath,width=340,component="ful
   if(!["full","facet","paths"].includes(component))throw Error("unapproved diagnostic component");
   // Derive fragments only from an already-validated original v34 hybrid source.
   // Component isolation is a diagnostic experiment, never a candidate output.
-  const original=parse(svg);
+  // The only permitted adversarial alteration is the exact black test rect,
+  // enabled solely by the explicit offline negative-control CLI argument.
+  const marker='<rect x="0" y="0" width="340" height="340" fill="#000"/>';
+  const canonical=negativeControl?svg.replace(marker+"</svg>","</svg>"):svg;
+  if(negativeControl && canonical===svg)throw Error("unrecognized negative control");
+  const original=parse(canonical);
   const rawPaths=original.groups.map(g=>g.original).join("");
   const prefix=original.prefix;
   const facet=prefix+original.suffix;
@@ -55,8 +60,10 @@ export async function render(sourcePath,destinationPath,width=340,component="ful
   }
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const [src,dst,scale,component="full"]=process.argv.slice(2);
+  const [src,dst,scale,component="full",negativeFlag]=process.argv.slice(2);
   if(!src||!dst||!scale)throw Error("usage: node file.mjs input.svg out.png 340|680");
-  const result=await render(src,dst,Number(scale),component);
+  if(negativeFlag && negativeFlag!=="--negative-control")
+    throw Error("unapproved mode flag");
+  const result=await render(src,dst,Number(scale),component,negativeFlag==="--negative-control");
   console.log(JSON.stringify(result));
 }
