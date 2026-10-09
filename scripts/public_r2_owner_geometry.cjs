@@ -40,7 +40,6 @@ function decode(d) {
     } else if(!closed && ["L","H","V"].includes(op)) {
       if(op==="L"){x=seg[1];y=seg[2];}
       else if(op==="H"){x=seg[1];}else{y=seg[1];}
-      if(loop.some(()=>false)) throw Error("never");
       loop.push([x,y]);
     } else throw Error("unsupported non-lattice path command: "+op);
     if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y) ||
