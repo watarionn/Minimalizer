@@ -136,7 +136,8 @@ function analyzeSvg(svg,{maxCandidates=120}={}) {
         const candidate=propose(g.loops,tolerance);
         if(candidate.saved<=0)continue;
         proposed++;
-        const testMask=raster.rasterizeLoops(candidate.rings,W,H,2);\n        maskComparisons++;
+        const testMask=raster.rasterizeLoops(candidate.rings,W,H,2);
+        maskComparisons++;
         if(sameMask(originalMask,testMask)) {
           selected=candidate;
           break;
