@@ -16,12 +16,12 @@ Compare two external geometric tools without changing the canonical MinimalizerP
 Requires Node.js and npm. Run only in this directory, not the production web directory:
 
 ```sh
-npm install --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 npm test
 npm run demo -- ./out
 ```
 
-`out/synthetic-triangles.svg`, `out/synthetic-paper-path.svg`, and `out/metrics.json` are diagnostic examples; do not confuse these with real-image quality proof. The tests use original-source-shaped synthetic masks and strict provenance/extra-pixel checks. Packages are pinned to exact versions; no CDN or production dependency is added.
+`out/synthetic-triangles.svg`, `out/synthetic-paper-path.svg`, and `out/metrics.json` are diagnostic examples; do not confuse these with real-image quality proof. The tests use original-source-shaped synthetic masks and strict provenance/extra-pixel checks. Packages and transitive dependency integrity hashes are pinned by package-lock.json; no CDN or production dependency is added.
 
 ## Release / next gate
 
