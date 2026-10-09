@@ -1,6 +1,6 @@
 # CMP-20261009-SA1060-TO-PRODUCTION | Minimalizer 本番リリースキャンペーン
 
-**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C01 SA10.60B first-bad-stage analysis.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
+**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C02 source-owner and artistic-quality recovery.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
 
 ## Goal and frozen baseline
 
@@ -15,8 +15,8 @@ SA10.60A's actual GC001 right-arm signed mask overlaps **533 exact-background-co
 | ID | Track | Start | Exit evidence / next action |
 | --- | --- | --- | --- |
 | C00 | Baseline / source authority lock | **COMPLETE** | main HEAD and PR #317/#319 verified |
-| C01 | SA10.60B first-bad-stage source-owner diagnosis | **READY** | GC001 arm/background 533px overlap traced to earliest demonstrably wrong Phase04/05/06/owner stage, with provenance; if Phase04 not at fault, correct attribution |
-| C02 | Source-grounded arms / clothing / hair quality recovery | **QUEUED** | GC001 arms/shoulders/sleeves/neckwear then Raden costume/hair evaluated against signed originals |
+| C01 | SA10.60B first-bad-stage source-owner diagnosis | **COMPLETE** | GC001 arm/background 533px overlap traced to earliest demonstrably wrong Phase04/05/06/owner stage, with provenance; if Phase04 not at fault, correct attribution |
+| C02 | Source-grounded arms / clothing / hair quality recovery | **READY** | GC001 arms/shoulders/sleeves/neckwear then Raden costume/hair evaluated against signed originals |
 | C03 | Resolve historical source Stage8 ring budget | **HOLD** | Option A: source-equivalent geometry fits immutable original source ring caps AND separately deployed SVG expanded budgets, validates face/arm owners and topology in real Chromium; OR Option B: explicitly approved, versioned policy change with historical failure retained and compatibility/rollback documented |
 | C04 | Expanded multi-image artistic Golden + Phase14 gate | **HOLD** | Authentic owner/human signoff per signed original and all six SA10.59 criteria; rejects identity/arm/garment visual failures even when metrics PASS |
 | C05 | Release candidate & reversible runtime preflight | **BLOCKED** | Freeze exact candidate/source/config/renderer SHA and version; live production route is independently measured, not inferred from conflicting historical docs |
@@ -68,6 +68,14 @@ Each milestone: **Goal → Produce → Verify → Review → Ship → Preserve �
 - [SA10.60A GC001 arm source-owner diagnostic](../research/SA1060A_GC001_SIGNED_ARM_MASK_AUDIT_20261009.md)
 - Approved private Drive for SA10.60A: https://drive.google.com/drive/folders/126DtYlC_OxJJLKbszaXL9VqKkQ-5K3WR
 - Approved private Drive for SA10.59: https://drive.google.com/drive/folders/1McAwnpwHeAUSMy-adwULfU2B0y2gqyep
+
+## Campaign checkpoint C01 verified (2026-10-09)
+
+- **C01 COMPLETE:** GC001 SHA-signed original Phase04 `right_arm` already overlaps source-connected exact border-background RGB in 533 pixels. The immutable Stage08 right-arm rings inherit the same 533 pixels (existing Phase04–Stage08 mask raster XOR = 24). **Earliest demonstrable bad stage is Phase04**, not a proven diagnosis of the upstream Phase03 algorithm or individual Phase05/06 internals.
+- Of the 533 exact RGB intersections, **520 fully opaque pixels** form an isolated non-promoted mask candidate subtraction; 13 partial-alpha pixels stay unchanged. Candidate right-arm connected components remain 1. Human validation of complete semantic anatomy is still required; the candidate is not artwork approval.
+- Independent Raden signed image/masks: 3 right-arm, 7 left-arm exact RGB overlaps. Fixed tests including real signed sources **10/10 PASS**, independent rerun **5/5 artifacts hash matched**. Source binaries, Stage08, SA10.57 SVG, production unchanged.
+- [C01 evidence](../research/SA1060B_C01_FIRST_BAD_STAGE_GC001_20261009.md), [public metrics](../research/evidence/sa1060b_c01_coordinate_free_20261009.json), [C02 handoff](../handoffs/HND-20261009-C01-PHASE04-FIRST-BAD-C02-NEXT.md), [private Drive comparison/mask](https://drive.google.com/drive/folders/1QA2AqOfqRomdHsNbqb4dvoKvV-_mYPwA).
+- **Current next: C02 READY.** Stage8 original budget C03 HOLD, authenticated human Golden C04 HOLD, C05+ deployment blocked. No release authorization.
 
 ## On each next-step request
 

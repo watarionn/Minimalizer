@@ -5,7 +5,7 @@
   "project": "Minimalizer",
   "goal": "SA10.60B source-bound quality recovery through formally approved live production & iPhone confirmation",
   "status": "ACTIVE_RELEASE_HOLD",
-  "current_step": "C01",
+  "current_step": "C02",
   "baseline": {
     "repository": "watarionn/Minimalizer",
     "main_head": "d0144af58e6858f7e63a5412b34d7785ebbad195",
@@ -85,7 +85,7 @@
     {
       "id": "C01",
       "name": "SA10.60B first-bad-stage source-owner diagnosis",
-      "status": "READY",
+      "status": "COMPLETE",
       "depends_on": [
         "C00"
       ],
@@ -94,12 +94,34 @@
         "No modification of signed originals/arm/face masks; candidate stored as separate version",
         "Diagnostic-2 before/after stage visuals and independent source evidence recorded"
       ],
-      "evidence": []
+      "evidence": [
+        "tools/research/sa1060b_first_bad_stage_audit.py",
+        "tests/zerobase/test_sa1060b_first_bad_stage_audit.py",
+        "docs/research/SA1060B_C01_FIRST_BAD_STAGE_GC001_20261009.md",
+        "docs/research/evidence/sa1060b_c01_coordinate_free_20261009.json",
+        "docs/handoffs/HND-20261009-C01-PHASE04-FIRST-BAD-C02-NEXT.md",
+        "https://drive.google.com/drive/folders/1QA2AqOfqRomdHsNbqb4dvoKvV-_mYPwA"
+      ],
+      "verified_at": "2026-10-09",
+      "verification": {
+        "unit_and_real_signed_tests": "10/10 PASS",
+        "fresh_deterministic_artifacts": "5/5 matched SHA",
+        "gc001_phase04_right_arm_exact_rgb_bg_overlap": 533,
+        "fully_opaque_candidate_removed_pixels": 520,
+        "remaining_partial_alpha_overlap_pixels": 13,
+        "stage8_inherited_exact_rgb_bg_overlap": 533,
+        "raden_independent_control": {
+          "right_arm": 3,
+          "left_arm": 7
+        },
+        "root_cause_prior_to_phase04": "NOT_ESTABLISHED",
+        "trial_promotion_allowed": false
+      }
     },
     {
       "id": "C02",
       "name": "Source-grounded arms / clothing / hair quality recovery",
-      "status": "QUEUED",
+      "status": "READY",
       "depends_on": [
         "C01"
       ],
@@ -196,5 +218,6 @@
       "evidence": []
     }
   ],
-  "next_action": "C01 Phase04/05/06 first-bad-stage and GC001 signed arm/background 533px diagnosis; no promotion"
+  "next_action": "C02: trace Phase03/04/05/06 GC001 algorithmic cause, verify source arm vs hair/garment ownership, source-grounded quality in Chromium and Raden holdouts; never promote masks automatically.",
+  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C01-PHASE04-FIRST-BAD-C02-NEXT.md"
 }

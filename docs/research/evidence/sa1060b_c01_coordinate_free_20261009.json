@@ -1,0 +1,60 @@
+{
+  "stage": "SA10.60B-C01",
+  "schema": "signed-phase04-stage8-first-bad-source-owner-audit-v1",
+  "first_demonstrable_bad_stage": "PHASE04_SIGNED_RIGHT_ARM_MASK",
+  "origin_prior_to_phase04": "NOT_ESTABLISHED",
+  "phase05_phase06_causal_path": "NOT_INDIVIDUALLY_REPLAYED",
+  "source_background_color_semantic_authority": "CONSISTENT_SOURCE_CONNECTED_EXACT_RGB_ONLY_NOT_COMPLETE_SEGMENTATION",
+  "candidate_promotion_authorized": false,
+  "golden_human_review": "PENDING",
+  "historic_stage8_ring_gate": "HOLD",
+  "phase15": "NOT_RUN",
+  "production": "UNCHANGED",
+  "next": "C02: independently verify part labels and topology of proposed changes before any SVG integration; still no Golden or Stage8 approval",
+  "case_metrics": {
+    "GC001": {
+      "phase04_mask_pixels": {
+        "right_arm": 6486,
+        "left_arm": 2715,
+        "face": 4937
+      },
+      "source_background_connected_intersection": {
+        "right_arm": 533,
+        "left_arm": 0,
+        "face": 0
+      },
+      "stage8": {
+        "right_arm": {
+          "mask_pixels": 6510,
+          "xor_pixels_vs_signed_stage04": 24,
+          "source_background_connected_intersection": 533
+        },
+        "left_arm": {
+          "mask_pixels": 2718,
+          "xor_pixels_vs_signed_stage04": 5,
+          "source_background_connected_intersection": 0
+        },
+        "face": {
+          "mask_pixels": 4937,
+          "xor_pixels_vs_signed_stage04": 0,
+          "source_background_connected_intersection": 0
+        }
+      },
+      "candidate_removed_pixels": 520,
+      "candidate_connected_components_before": 1,
+      "candidate_connected_components_after": 1
+    },
+    "Raden": {
+      "phase04_mask_pixels": {
+        "right_arm": 9870,
+        "left_arm": 10419,
+        "face": 4052
+      },
+      "source_background_connected_intersection": {
+        "right_arm": 3,
+        "left_arm": 7,
+        "face": 0
+      }
+    }
+  }
+}
