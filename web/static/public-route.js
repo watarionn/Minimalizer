@@ -16,6 +16,8 @@ const svgoResearch = new URLSearchParams(location.search).get("publicSvgoResearc
 const resvgResearch = new URLSearchParams(location.search).get("publicResvgResearch") === "1";
 const clipper2Research = new URLSearchParams(location.search).get("publicClipper2Research") === "1";
 const vtracerResearch = new URLSearchParams(location.search).get("publicVTracerResearch") === "1";
+// Research-only PNG byte-level canary. No geometry/render/output modification.
+const r5ShadowResearch = new URLSearchParams(location.search).get("publicR5Shadow") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -84,6 +86,19 @@ window.MinimalizerComputeRoute = Object.freeze({
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",
     });
+    if (r5ShadowResearch) {
+      try {
+        // The observer only clones a completed Response; it never replaces it.
+        const observer = await import(new URL("static/public-r5-shadow-gate.mjs", document.baseURI).href);
+        window.MinimalizerPublicR5ShadowLast = await observer.auditResponse(result.response);
+      } catch (_) {
+        window.MinimalizerPublicR5ShadowLast = Object.freeze({
+          version:"public-r5-response-shadow-v1",status:"unavailable",
+          applied:false,productionPromoted:false,mutationCount:0,
+          sha256:null
+        });
+      }
+    }
     return {response: result.response, compute: "browser", fallbackReason: "", qualityTier: "browser"};
   },
 });
