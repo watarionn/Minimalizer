@@ -24,8 +24,12 @@ New 4th library: **`earcut@3.2.4` (ISC)** self-hosted UMD browser bundle and lic
 
 - Authentic npm 3.2.4 UMD loaded in JavaScript sandbox, exports real `earcut.default` function; a square triangulated correctly.
 - `node tests/js/test_public_earcut_research.cjs`: **8 cases PASS**. Solid square -> 2 safe triangles and fully reconstructed exact mask; proper 1-hole square -> 8 safe triangles and a fully reconstructed exact mask; concave L-shaped polygon -> 4 safe triangles with original raster reconstruction; disconnected extra outer ring does **not** receive false full-reconstruction approval. Missing library, malformed inputs, caps and original-shape immutability checked.
-- `pytest tests/test_public_earcut_research.py tests/test_public_delaunator_mesh.py tests/test_public_simplify_research.py tests/test_public_polygon_clip_integration.py tests/test_minimalizer_page_split.py -q`: 19 tests expected when the new vendor THIRD_PARTY.md is committed; exact final result to be recorded after rerun.
-- Public built browser route test still required at this writing to verify identical normal vs research PNGs and true runtime metrics. Do not claim browser validation before observed.
+- `pytest tests/test_public_earcut_research.py tests/test_public_delaunator_mesh.py tests/test_public_simplify_research.py tests/test_public_polygon_clip_integration.py tests/test_minimalizer_page_split.py -q`: **19 tests PASS** after vendor third-party notice was committed.
+- Real Chrome, locally built Public static page, actual Public `MinimalizerComputeRoute.minimalize(file)` on a controlled 64×64 test PNG:
+  - Normal Public: HTTP 200; 24 output shapes; Earcut research `disabled`; previous `polygon-clipping` audit `ok`; Simplify and Delaunator experiments still disabled.
+  - `?publicEarcutResearch=1`: HTTP 200, same 24 shapes, Earcut `truncated` as designed after the 8-shape research cap; **22 accepted owner-contained triangles**, 0 rejected, **8 of 8 sampled shapes exactly reconstructed** by the union of accepted triangle rasters.
+  - Normal/research output PNG SHA-256 identical: `14ae574a4bf4111d924e385e455b9afe661c2bbad6604b6035e029c2878c72e2` (430 bytes in both modes).
+  - Subject guidance model was disabled **only in isolated browser smoke**, not in application code. Truncated audit results do not certify the other 16 output shapes.
 
 ## Scope limit
 
