@@ -302,7 +302,6 @@
       "C06_PRODUCTION_RELEASE_AUTHORIZATION",
       "C07_REAL_IPHONE_ACCEPTANCE"
     ],
-    "stop_for": true,
     "stop_conditions": [
       "NO_OTHER_SAFE_EXECUTABLE_WORK",
       "REQUIRES_HUMAN_PROTECTED_DECISION",
