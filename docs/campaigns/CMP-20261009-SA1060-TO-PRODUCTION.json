@@ -281,5 +281,34 @@
     }
   ],
   "next_action": "C02b3 source observer with independent anatomy confidence, Raden + Chromium; retry canonical preservation of C02b2 diagnostic code and private board. Stage8 and human Golden remain HOLD; C05-C08 blocked.",
-  "campaign_latest_evidence": "docs/research/SA1060E_C02B2_COLOR_SENSITIVITY_HOLD_20261009.md"
+  "campaign_latest_evidence": "docs/research/SA1060E_C02B2_COLOR_SENSITIVITY_HOLD_20261009.md",
+  "execution_policy": {
+    "schema": "minimalizer_campaign_continuation_v1",
+    "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
+    "instruction_scope": "C08 campaign authorization persists across reversible research/build/test/archive/merge stages",
+    "user_manual_next_step_prompt_required": false,
+    "max_microsteps_per_conversation": "NO_ARTIFICIAL_ONE_STEP_LIMIT",
+    "automatic_reentry": "CHATGPT_HOURLY_CHECKPOINT_ONLY_NOT_ALWAYS_RUNNING",
+    "on_substep_complete": "VERIFY_SAVE_THEN_CONTINUE_IMMEDIATELY",
+    "on_candidate_failure": "RECORD_AND_TRY_SAFE_ALTERNATIVE_OR_INDEPENDENT_WORK",
+    "independent_parallel_tracks": [
+      "C02_SOURCE_GROUNDED_QUALITY_RESEARCH",
+      "C03_STAGE8_SOURCE_RING_GEOMETRY_RESEARCH",
+      "C04_GOLDEN_REVIEW_PREPARATION"
+    ],
+    "protected_human_gates": [
+      "C03_VERSIONED_POLICY_CHANGE_IF_NEEDED",
+      "C04_AUTHENTIC_HUMAN_GOLDEN_SIGNOFF",
+      "C06_PRODUCTION_RELEASE_AUTHORIZATION",
+      "C07_REAL_IPHONE_ACCEPTANCE"
+    ],
+    "stop_for": true,
+    "stop_conditions": [
+      "NO_OTHER_SAFE_EXECUTABLE_WORK",
+      "REQUIRES_HUMAN_PROTECTED_DECISION",
+      "UNRECOVERABLE_TOOL_OR_RUNTIME_LIMIT"
+    ],
+    "closeout": "C08 ONLY AFTER HUMAN_GOLDEN_AND_RELEASE_DEVICE_EVIDENCE; DO_NOT_CLAIM_CONTINUOUS_BACKGROUND_COMPUTE",
+    "contract_path": "docs/campaigns/MINIMALIZER_CONTINUOUS_OPERATION_20261010.md"
+  }
 }
