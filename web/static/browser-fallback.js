@@ -3820,6 +3820,22 @@
         publicMeshAudit = { status: "error", acceptedTriangles: 0, rejectedTriangles: 0 };
       }
     }
+    // Public-only opt-in Earcut investigation. Results are read-only:
+    // never substitute triangles for owner geometry or rendered image.
+    let publicEarcutAudit = { status: "disabled", acceptedTriangles: 0,
+      rejectedTriangles: 0, fullyReconstructedShapes: 0 };
+    if (config.publicEarcutResearch === true) {
+      try {
+        const observer = root.MinimalizerPublicEarcutResearch;
+        publicEarcutAudit = observer && typeof observer.auditShapes === "function"
+          ? observer.auditShapes(shapes, workSize.width, workSize.height)
+          : { status: "unavailable", acceptedTriangles: 0,
+              rejectedTriangles: 0, fullyReconstructedShapes: 0 };
+      } catch (_) {
+        publicEarcutAudit = { status: "error", acceptedTriangles: 0,
+          rejectedTriangles: 0, fullyReconstructedShapes: 0 };
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3829,6 +3845,10 @@
       "X-Minimalizer-Public-Polygon-Audit": publicPolygonAudit.status,
       "X-Minimalizer-Public-Simplify-Audit": publicSimplifyAudit.status,
       "X-Minimalizer-Public-Mesh-Audit": publicMeshAudit.status,
+      "X-Minimalizer-Public-Earcut-Audit": publicEarcutAudit.status,
+      "X-Minimalizer-Public-Earcut-Accepted": String(publicEarcutAudit.acceptedTriangles || 0),
+      "X-Minimalizer-Public-Earcut-Rejected": String(publicEarcutAudit.rejectedTriangles || 0),
+      "X-Minimalizer-Public-Earcut-Exact-Shapes": String(publicEarcutAudit.fullyReconstructedShapes || 0),
       "X-Minimalizer-Public-Mesh-Accepted": String(publicMeshAudit.acceptedTriangles || 0),
       "X-Minimalizer-Public-Mesh-Rejected": String(publicMeshAudit.rejectedTriangles || 0),
       "X-Minimalizer-Public-Simplify-Safe-Vertices": String(publicSimplifyAudit.safeSavedVertices || 0),
@@ -3884,6 +3904,7 @@
         publicPolygonAudit,
         publicSimplifyAudit,
         publicMeshAudit,
+        publicEarcutAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
