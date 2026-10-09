@@ -4,8 +4,8 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 NS="{http://www.w3.org/2000/svg}"
-TOK=re.compile(r"([MLZ])|(-?\\d+(?:\\.\\d+)?)")
-GRAMMAR=re.compile(r"(?:M-?\\d+ -?\\d+ ?(?:L-?\\d+ -?\\d+ ?)*Z)+")
+TOK=re.compile(r"([MLZ])|(-?\d+(?:\.\d+)?)")
+GRAMMAR=re.compile(r"(?:M-?\d+ -?\d+ ?(?:L-?\d+ -?\d+ ?)*Z)+")
 
 def encode_path(d):
     if not GRAMMAR.fullmatch(d): raise ValueError("unverified path syntax")
@@ -48,5 +48,5 @@ if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("sources",nargs="+");p.add_argument("--out",type=Path,required=True)
     a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
     report=[compact(f,a.out/Path(f).name) for f in a.sources]
-    (a.out/"lossless_metrics.json").write_text(json.dumps(report,indent=2)+"\\n")
+    (a.out/"lossless_metrics.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps(report,indent=2))
