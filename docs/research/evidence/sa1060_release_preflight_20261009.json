@@ -1,0 +1,24 @@
+{
+  "blockers": [
+    "HUMAN_APPROVAL_PROVENANCE_REQUIRES_INDEPENDENT_VERIFICATION",
+    "HUMAN_ARTISTIC_GOLDEN_PENDING",
+    "HUMAN_REVIEW_FORM_INCOMPLETE",
+    "IMMUTABLE_ORIGINAL_STAGE8_RING_CAP_EXCEEDED",
+    "PHASE15_RUNTIME_AND_DEVICE_GATES_NOT_RUN",
+    "SIGNED_GOLDEN_CORPUS_BELOW_18",
+    "STAGE8_COMPRESSED_CANDIDATE_CHANGES_SOURCE_OWNERS",
+    "STAGE8_POLICY_DECISION_REQUIRES_EXPLICIT_VERSIONED_APPROVAL",
+    "STAGE8_SAFE_EQUIVALENCE_UNPROVEN"
+  ],
+  "case_summary": {},
+  "faceless_rule_changed": false,
+  "note": "This read-only audit cannot verify a human signoff or approve a versioned Stage8 policy change.",
+  "phase15_executed": false,
+  "production_changed": false,
+  "production_promotion_authorized": false,
+  "research_evidence_audit": "HOLD",
+  "reviewed_signed_cases": 2,
+  "schema": "non-promoting-frozen-evidence-audit-v1",
+  "stage": "SA10.60-preflight",
+  "stage8_policy_changed": false
+}
