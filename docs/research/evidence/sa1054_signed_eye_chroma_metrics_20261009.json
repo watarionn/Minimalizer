@@ -1,0 +1,202 @@
+{
+  "stage": "SA10.54",
+  "schema": "signed-source-pixel-eye-chroma-conserved-svg-recolor-v1",
+  "chromium": "144.0.7559.96",
+  "cases": {
+    "Raden": {
+      "name": "Raden",
+      "signed_inputs": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "source_baseline_sha256": "5ad0622f04540e77a002f2bcddf5e992c3b4f810f3aaede4f350bed5313263e3",
+      "source_face_mismatch_mae_before": 32.991774,
+      "source_face_mismatch_mae_after": 32.957716,
+      "expanded_vertices": 1412,
+      "budget": 1412,
+      "full_source_stage8_ring_budget_pass": false,
+      "component_split_proof": {
+        "attempts": 13,
+        "pixel_exact_restructures": 13,
+        "prohibited_nonexact_restructures": 0
+      },
+      "iris_chroma_roi": {
+        "source_palette": {
+          "image_left_eye": [
+            79,
+            114,
+            152
+          ],
+          "image_right_eye": [
+            64,
+            102,
+            145
+          ]
+        },
+        "source_chroma_pixels": {
+          "image_left_eye": 26,
+          "image_right_eye": 29
+        },
+        "pixel_rgb_before": {
+          "roi": {
+            "image_left_brow": 46.858333,
+            "image_right_brow": 56.522827,
+            "image_left_eye": 33.233743,
+            "image_right_eye": 34.049715,
+            "mouth": 13.287001
+          },
+          "iris": {
+            "image_left_eye": 60.641026,
+            "image_right_eye": 93.712644
+          }
+        },
+        "pixel_rgb_after": {
+          "roi": {
+            "image_left_brow": 47.0,
+            "image_right_brow": 56.522827,
+            "image_left_eye": 33.045475,
+            "image_right_eye": 34.049715,
+            "mouth": 13.287001
+          },
+          "iris": {
+            "image_left_eye": 53.410256,
+            "image_right_eye": 93.712644
+          }
+        },
+        "max_approved_brow_roi_mae_slack": 0.25,
+        "chromium_candidate_trials": 14,
+        "accepted_contour_recolors": [
+          {
+            "eye": "image_left_eye",
+            "source_medoid_rgb": [
+              79,
+              114,
+              152
+            ],
+            "recolored_source_contour_index": 10,
+            "previous_fill": "#786774",
+            "source_chroma_mae_after": 53.410256
+          }
+        ],
+        "source_medoid_pixel_origin_verified": true
+      },
+      "signed_face_mask_pixels_identical": true,
+      "signed_both_arms_rgb_identical": true,
+      "no_new_vertex_or_mask_reference": true,
+      "face_contours_and_stage9_stage37_colored_polygons_conserved": true
+    },
+    "GC001": {
+      "name": "GC001",
+      "signed_inputs": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "source_baseline_sha256": "e4033302ffefeeb74aa0caf77be4d61c08da40e3058b064618438c6fd4e7cd22",
+      "source_face_mismatch_mae_before": 27.241105,
+      "source_face_mismatch_mae_after": 27.16373,
+      "expanded_vertices": 1882,
+      "budget": 1887,
+      "full_source_stage8_ring_budget_pass": false,
+      "component_split_proof": {
+        "attempts": 25,
+        "pixel_exact_restructures": 20,
+        "prohibited_nonexact_restructures": 5
+      },
+      "iris_chroma_roi": {
+        "source_palette": {
+          "image_left_eye": [
+            148,
+            224,
+            80
+          ],
+          "image_right_eye": [
+            137,
+            213,
+            79
+          ]
+        },
+        "source_chroma_pixels": {
+          "image_left_eye": 23,
+          "image_right_eye": 24
+        },
+        "pixel_rgb_before": {
+          "roi": {
+            "image_left_brow": 34.933204,
+            "image_right_brow": 30.424603,
+            "image_left_eye": 36.273369,
+            "image_right_eye": 35.762505,
+            "mouth": 4.392893
+          },
+          "iris": {
+            "image_left_eye": 55.985507,
+            "image_right_eye": 59.902778
+          }
+        },
+        "pixel_rgb_after": {
+          "roi": {
+            "image_left_brow": 34.898184,
+            "image_right_brow": 30.424603,
+            "image_left_eye": 36.154762,
+            "image_right_eye": 35.427644,
+            "mouth": 4.392893
+          },
+          "iris": {
+            "image_left_eye": 36.028986,
+            "image_right_eye": 43.833333
+          }
+        },
+        "max_approved_brow_roi_mae_slack": 0.25,
+        "chromium_candidate_trials": 20,
+        "accepted_contour_recolors": [
+          {
+            "eye": "image_left_eye",
+            "source_medoid_rgb": [
+              148,
+              224,
+              80
+            ],
+            "recolored_source_contour_index": 19,
+            "previous_fill": "#c8938a",
+            "source_chroma_mae_after": 36.028986
+          }
+        ],
+        "source_medoid_pixel_origin_verified": true
+      },
+      "signed_face_mask_pixels_identical": true,
+      "signed_both_arms_rgb_identical": true,
+      "no_new_vertex_or_mask_reference": true,
+      "face_contours_and_stage9_stage37_colored_polygons_conserved": true
+    }
+  },
+  "all_rgb_from_source_pixels": true,
+  "no_raster_embeds_or_generative_fill": true,
+  "no_source_path_contour_coordinate_change": true,
+  "signed_arm_shape_color_unchanged": true,
+  "both_hard_vertex_budgets_pass": true,
+  "source_stage8_ring_budget_pass": false,
+  "semantic_iris_eye_lid_mouth_accuracy_certified": false,
+  "human_visual_review": "PENDING",
+  "full_character_golden": "HOLD",
+  "production_deployment": "UNCHANGED",
+  "artifacts_sha256": {
+    "gc001_sa1053_baseline.png": "63e5157be4b88b1a232bd27bc172cd5325472042ab4dae5958d6bd33fd22b499",
+    "gc001_source_chroma.png": "ca7e0af67bf465ccc3f65b2080289822b1d2262b340902d979327645c07f1bca",
+    "gc001_source_chroma.svg": "8ebbb1a44c4f893190c8f536c86397b52d13cbd1a6af3d2f3c60e8a46bf67cbb",
+    "raden_sa1053_baseline.png": "22ca14fc5e0d792bc0a18bc6d2a8e6d669463cb412fbd9cf0ca40ad84620b4c7",
+    "raden_source_chroma.png": "0c8bdf7b6020fc8e4b8c288bb141a4a4b3792898905cf3d559dd347df804a5ac",
+    "raden_source_chroma.svg": "11bfc1eb83116981ae6d4f07688af0c0aa165e074af10bf29881c16c938188f5",
+    "sa1054_face_closeup.png": "a78e03e04b45986bf84e5191bb48f7d93311b788af0c00199bfea9aa3af065d5",
+    "sa1054_two_case_iris_comparison.png": "6afa088b8b6f4b1a57271e4391ecdc56bc79d3b9889c164afa32f36c71422d54"
+  }
+}
