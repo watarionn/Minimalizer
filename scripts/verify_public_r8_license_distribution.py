@@ -13,6 +13,11 @@ import importlib.util
 import json
 import re
 import tempfile
+import os
+import threading
+import urllib.request
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -138,6 +143,59 @@ def check_built_source(source:dict, built_static:Path)->dict:
         "allNineNoticeFilesIncluded":True,
         "legacyOnnxAndModelNoticesIncluded":True}
 
+
+def local_http_rollback_dry_run(built_root:Path)->dict:
+    """Serve a disposable static index, switch a marked copy, restore original.
+    This is NOT a live deployment, Safari or release rollback approval.
+    """
+    initial=(built_root/"index.html").read_bytes()
+    if len(initial)<100 or b"</html>" not in initial.lower():
+        raise ValueError("real static HTML unavailable for rollback simulation")
+    with tempfile.TemporaryDirectory(prefix="r8_rollback_loopback_") as directory:
+        root=Path(directory)
+        index=root/"index.html"
+        original=root/"original.bin"
+        index.write_bytes(initial)
+        original.write_bytes(initial)
+        canary=initial+b"\n<!-- R8 DISPOSABLE LOOPBACK CANARY ONLY -->\n"
+        class QuietHandler(SimpleHTTPRequestHandler):
+            def log_message(self, *_args):pass
+        handler=partial(QuietHandler,directory=str(root))
+        server=ThreadingHTTPServer(("127.0.0.1",0),handler)
+        worker=threading.Thread(target=server.serve_forever,daemon=True)
+        worker.start()
+        url=f"http://127.0.0.1:{server.server_port}/index.html"
+        def fetch():
+            with urllib.request.urlopen(url,timeout=10) as response:
+                if response.status!=200:raise ValueError("local HTTP status not 200")
+                return response.read()
+        try:
+            delivered_before=fetch()
+            if delivered_before!=initial:
+                raise ValueError("served baseline differs from source static index")
+            pending=root/"pending.html"
+            pending.write_bytes(canary)
+            os.replace(pending,index)
+            delivered_canary=fetch()
+            if delivered_canary!=canary:
+                raise ValueError("canary static file not served as expected")
+            pending.write_bytes(original.read_bytes())
+            os.replace(pending,index)
+            delivered_after=fetch()
+            if delivered_after!=initial:
+                raise ValueError("ROLLBACK FAILURE: loopback static index differs")
+            return {
+                "scope":"127.0.0.1 disposable files only; no production switch",
+                "loopbackCanaryToggled":True,"loopbackRollbackByteExact":True,
+                "initialSHA256":sha(initial),"canarySHA256":sha(canary),
+                "restoredSHA256":sha(delivered_after),
+                "actualProductionRollbackApproved":False,
+            }
+        finally:
+            server.shutdown()
+            server.server_close()
+            worker.join(timeout=3)
+
 def run(out:Path, source_static:Path=STATIC)->dict:
     if out.exists():raise FileExistsError("R8 refuses to overwrite evidence")
     report_source=audit_vendor_tree(source_static)
@@ -157,6 +215,7 @@ def run(out:Path, source_static:Path=STATIC)->dict:
         if (destination/"index.html").read_bytes()!=index:
             raise ValueError("built index.html modified")
         built["indexHtmlByteExact"]=True
+        rollback=local_http_rollback_dry_run(destination)
     report={
         "version":VERSION,
         "source":"existing web/static vendor source, actual static build via isolated DESTINATION",
@@ -165,6 +224,7 @@ def run(out:Path, source_static:Path=STATIC)->dict:
         "libraryCount":report_source["researchLibrariesCount"],
         "fullVendorFileCount":report_source["allDeclaredVendorAssets"],
         "disposableBuildProof":built,
+        "loopbackStaticRollbackDryRun":rollback,
         "resvgMplRedistributionReviewSigned":False,
         "transitiveWasmDependencyRightsReviewed":False,
         "sourceOfferAndRecipientNoticeReviewed":False,
