@@ -1,0 +1,24 @@
+{
+  "schema": "sa1060c-c02a-original-phase3-to-phase4-provenance-v1",
+  "stage": "C02a",
+  "status": "RESEARCH_DIAGNOSIS_COMPLETE_RELEASE_HOLD",
+  "phase03_first_checked_source_background_intersection": true,
+  "source_connected_rgb_is_not_anatomy_truth": true,
+  "phase03_algorithm_root_cause": "NOT_ESTABLISHED",
+  "phase04_algorithm_root_cause": "NOT_ESTABLISHED",
+  "historical_left_stage4_mask_exact_parity": false,
+  "artistic_golden": "PENDING",
+  "original_stage8_budget": "HOLD",
+  "release_authorized": false,
+  "production_changed": false,
+  "measurements": {
+    "phase03_source_background_connected_exact_rgb_pixels": 648,
+    "phase04_right_arm_overlap_pixels": 533,
+    "phase04_hair_overlap_pixels": 31,
+    "current_phase04_left_arm_pixels": 2330,
+    "historical_sa1041_left_arm_pixels": 2715,
+    "historical_left_arm_extra_pixels": 385,
+    "phase03_source_binding_verified": true,
+    "phase04_source_binding_verified": true
+  }
+}

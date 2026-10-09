@@ -33,7 +33,17 @@
     "human_golden": "PENDING",
     "signed_independent_golden_sources": 2,
     "phase15_for_this_release": "NOT_RUN",
-    "production_changed_by_campaign": false
+    "production_changed_by_campaign": false,
+    "new_source_discovery": {
+      "source_study": "C02a",
+      "p03_exact_background_connected_overlap_pixels": 648,
+      "p04_right_arm_overlap_pixels": 533,
+      "p04_hair_overlap_pixels": 31,
+      "current_p04_left_arm_pixels": 2330,
+      "historical_sa1041_left_arm_pixels": 2715,
+      "left_arm_raster_xor": 385,
+      "semantic_ground_truth_not_proven": true
+    }
   },
   "immutable_requirements": [
     "Default Rinka Reference face microfeatures OFF: eyes,nose,mouth,eyebrows; face/hair/skin evidence preserved for structure",
@@ -64,7 +74,8 @@
     "READY": "Next actionable stage",
     "QUEUED": "Ready after dependencies",
     "HOLD": "Explicit unresolved scientific or human gate; no false approval",
-    "BLOCKED": "Hard dependency not met"
+    "BLOCKED": "Hard dependency not met",
+    "IN_PROGRESS": "Work underway; child evidence verified but parent exit requirements unfulfilled; release gates stay HOLD"
   },
   "steps": [
     {
@@ -116,12 +127,13 @@
         },
         "root_cause_prior_to_phase04": "NOT_ESTABLISHED",
         "trial_promotion_allowed": false
-      }
+      },
+      "followup_evidence": "Phase03 original source snapshot recovered in C02a; historical first-checked Phase04 diagnosis extended upstream to Phase03 (648 RGB intersection). Keep C01 as historical recorded state; do not misrepresent Phase04 as earliest available."
     },
     {
       "id": "C02",
       "name": "Source-grounded arms / clothing / hair quality recovery",
-      "status": "READY",
+      "status": "IN_PROGRESS",
       "depends_on": [
         "C01"
       ],
@@ -130,7 +142,29 @@
         "Visual structure and identity not replaced by RGB MAE; first-bad-stage fixes only, faceless/default and one-block hands preserved",
         "Chromium source comparisons, exact SVG vertex counts, unchanged artifact/palette/provenance guards; deterministic two-case rerun and cross-case regression"
       ],
-      "evidence": []
+      "evidence": [
+        "docs/research/SA1060C_C02A_PHASE03_PHASE04_PROVENANCE_20261009.md",
+        "docs/research/evidence/sa1060c_c02a_coordinate_free_20261009.json",
+        "docs/handoffs/HND-20261009-C02A-PHASE03-PROVENANCE-C02B-NEXT.md",
+        "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY"
+      ],
+      "substeps": [
+        {
+          "id": "C02a",
+          "name": "Recover original source Phase03/04 and owner-mask provenance",
+          "status": "COMPLETE",
+          "engineering_evidence": "docs/research/SA1060C_C02A_PHASE03_PHASE04_PROVENANCE_20261009.md",
+          "tests": "12/12 PASS",
+          "snapshot": "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY",
+          "note": "first checked overlap now Phase03 648; Stage04 right 533; old research signed left vs currently recovered Phase04 385 px mismatch; no source overwrite or promotion"
+        },
+        {
+          "id": "C02b",
+          "name": "Source-only human-viewable arm/hair/garment candidate and independent Chromium/holdouts",
+          "status": "READY",
+          "note": "requires independent anatomical confirmation and genuine original source authority"
+        }
+      ]
     },
     {
       "id": "C03",
@@ -218,6 +252,6 @@
       "evidence": []
     }
   ],
-  "next_action": "C02: trace Phase03/04/05/06 GC001 algorithmic cause, verify source arm vs hair/garment ownership, source-grounded quality in Chromium and Raden holdouts; never promote masks automatically.",
-  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C01-PHASE04-FIRST-BAD-C02-NEXT.md"
+  "next_action": "C02b: source-bound Phase03 segmentation and Phase04 arm/hair/garment semantics, protect immutable signed SA10.41 left-arm difference, regenerate isolated Chromium candidate, independent Raden/corpus visual review; C03 source-ring gate and C04 human Golden remain HOLD.",
+  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C02A-PHASE03-PROVENANCE-C02B-NEXT.md"
 }

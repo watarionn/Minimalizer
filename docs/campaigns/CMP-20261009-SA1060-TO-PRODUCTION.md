@@ -1,6 +1,6 @@
 # CMP-20261009-SA1060-TO-PRODUCTION | Minimalizer 本番リリースキャンペーン
 
-**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C02 source-owner and artistic-quality recovery.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
+**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C02 IN PROGRESS, C02a complete / C02b ready.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
 
 ## Goal and frozen baseline
 
@@ -16,7 +16,7 @@ SA10.60A's actual GC001 right-arm signed mask overlaps **533 exact-background-co
 | --- | --- | --- | --- |
 | C00 | Baseline / source authority lock | **COMPLETE** | main HEAD and PR #317/#319 verified |
 | C01 | SA10.60B first-bad-stage source-owner diagnosis | **COMPLETE** | GC001 arm/background 533px overlap traced to earliest demonstrably wrong Phase04/05/06/owner stage, with provenance; if Phase04 not at fault, correct attribution |
-| C02 | Source-grounded arms / clothing / hair quality recovery | **READY** | GC001 arms/shoulders/sleeves/neckwear then Raden costume/hair evaluated against signed originals |
+| C02 | Source-grounded arms / clothing / hair quality recovery | **IN_PROGRESS** | GC001 arms/shoulders/sleeves/neckwear then Raden costume/hair evaluated against signed originals |
 | C03 | Resolve historical source Stage8 ring budget | **HOLD** | Option A: source-equivalent geometry fits immutable original source ring caps AND separately deployed SVG expanded budgets, validates face/arm owners and topology in real Chromium; OR Option B: explicitly approved, versioned policy change with historical failure retained and compatibility/rollback documented |
 | C04 | Expanded multi-image artistic Golden + Phase14 gate | **HOLD** | Authentic owner/human signoff per signed original and all six SA10.59 criteria; rejects identity/arm/garment visual failures even when metrics PASS |
 | C05 | Release candidate & reversible runtime preflight | **BLOCKED** | Freeze exact candidate/source/config/renderer SHA and version; live production route is independently measured, not inferred from conflicting historical docs |
@@ -76,6 +76,19 @@ Each milestone: **Goal → Produce → Verify → Review → Ship → Preserve �
 - Independent Raden signed image/masks: 3 right-arm, 7 left-arm exact RGB overlaps. Fixed tests including real signed sources **10/10 PASS**, independent rerun **5/5 artifacts hash matched**. Source binaries, Stage08, SA10.57 SVG, production unchanged.
 - [C01 evidence](../research/SA1060B_C01_FIRST_BAD_STAGE_GC001_20261009.md), [public metrics](../research/evidence/sa1060b_c01_coordinate_free_20261009.json), [C02 handoff](../handoffs/HND-20261009-C01-PHASE04-FIRST-BAD-C02-NEXT.md), [private Drive comparison/mask](https://drive.google.com/drive/folders/1QA2AqOfqRomdHsNbqb4dvoKvV-_mYPwA).
 - **Current next: C02 READY.** Stage8 original budget C03 HOLD, authenticated human Golden C04 HOLD, C05+ deployment blocked. No release authorization.
+
+## C02a recovered original source revision checkpoint (2026-10-09)
+
+**C02a verified, C02 final artistic gate still OPEN/HOLD.** First checked original Phase03 subject mask includes **648** dominant source-border-connected exact RGB pixels; of those **533** persisted in the recovered Phase04 right-arm part mask and **31** in hair. Original Phase03 used rembg/isnet-anime; the diagnostic does not prove color-matched pixels are non-subject or pinpoint causal model behavior. Historical C01 first-checked Phase04 observation was valid for its narrower evidence chain, but earliest **newly examined** source stage is now Phase03.
+
+Important **version provenance conflict**: recovered current Phase04 left_arm = **2,330** pixels; previously signed SA10.41 Phase04-derived left_arm = **2,715**; raster XOR **385** and historical variant contains all new pixels. Face and right-arm raster XOR=0 between those source versions. The byte-hash mismatch of re-encoded mask PNGs is independent of this true source-history divergence. Historical signed artifacts remain frozen. Source data were recovered **read-only** with minimum remote access then versioned to approved Drive; local is not canonical.
+
+- [C02a source audit and independent tests](../research/SA1060C_C02A_PHASE03_PHASE04_PROVENANCE_20261009.md) (12/12 PASS)
+- [Sanitized numeric measurements](../research/evidence/sa1060c_c02a_coordinate_free_20261009.json)
+- [C02b handoff](../handoffs/HND-20261009-C02A-PHASE03-PROVENANCE-C02B-NEXT.md)
+- [Private SHA-pinned 19-file Phase03/04 source archive, visual board and manifest](https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY)
+
+**Next C02b:** real source-bound hair/arm/sleeve/garment quality correction with actual Chromium and holdouts; **not accepted by these numeric audits**. C03 Stage8 original rings, C04 human Golden and C05–C08 release remain unchanged HOLD/BLOCKED.
 
 ## On each next-step request
 
