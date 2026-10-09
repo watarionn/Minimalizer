@@ -10,7 +10,22 @@
     "STAGE8_POLICY_DECISION_REQUIRES_EXPLICIT_VERSIONED_APPROVAL",
     "STAGE8_SAFE_EQUIVALENCE_UNPROVEN"
   ],
-  "case_summary": {},
+  "case_summary": {
+    "GC001": {
+      "human_identity": "PENDING",
+      "immutable_source_ring_vertices": 3604,
+      "research_svg_vertices": 1873,
+      "stage8_overrun": 1717,
+      "unchanged_stage8_cap": 1887
+    },
+    "Raden": {
+      "human_identity": "PENDING",
+      "immutable_source_ring_vertices": 2370,
+      "research_svg_vertices": 1409,
+      "stage8_overrun": 958,
+      "unchanged_stage8_cap": 1412
+    }
+  },
   "faceless_rule_changed": false,
   "note": "This read-only audit cannot verify a human signoff or approve a versioned Stage8 policy change.",
   "phase15_executed": false,
