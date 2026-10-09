@@ -46,3 +46,12 @@ Both recolored candidates retain 0 outside alpha and 0 missing signed-source uni
 - Next: source-equivalent lossless geometry encoding (count all actually processed primitives/vertices), or an **explicit user-approved versioned budget policy migration** with independently measured per-owner penalties. Improve GC001 necktie/clothing visibility with source-owned motifs, without drawing face components.
 
 All production routes and feature flags remain untouched. Preserve artifacts in `chatGPT及びCodex用/Minimalizer`; only safe checksum metadata and research code belong in GitHub.
+
+## Additional negative control: weighted costume/hair color-plane priority
+
+A separate candidate kept the same 40/60/80 shape limits, exact original signed clipping, source RGB-only medoids, no facial detail, and original z-order. It multiplied greedy benefit by fixed experimental priorities (major clothing 2.8, torso 1.7, hair 1.4, arms 1.3, lower body 0.65; accessory 3.5 where present). Actual Chromium 144 nonface original-source RGB MAE at 40 shapes:
+
+- GC001: weighted 43.335493, versus unweighted L1 42.264762 and visible-exposed L1 refit 42.012781.
+- Raden: weighted 21.847528, versus unweighted L1 21.655595 and visible-exposed L1 refit 21.575139.
+
+Thus hand-selected semantic weight multipliers did **not** improve the actual frozen 40-shape source RGB metric; they are a diagnostic negative control, not a new default. No human claim about which image looks more recognizable is inferred from this numeric comparison. Protect source tie/arms/clothing semantics in later structure-aware candidate research instead of optimizing fixed arbitrary role weights.
