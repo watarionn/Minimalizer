@@ -1,0 +1,625 @@
+{
+  "stage": "SA10.52",
+  "schema": "source-measured-1px-feature-contour-local-replay-v1",
+  "chromium": "144.0.7559.96",
+  "source_pixel_medoid_colors_only": true,
+  "new_vertices_added": 0,
+  "mask_geometry_unchanged": true,
+  "generative_fill": false,
+  "cases": {
+    "Raden": {
+      "case": "Raden",
+      "signed_input_hashes": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "sa1051_input_svg_sha256": "77fcf349ef6bd3fa6862357fbe42f511d6d360e39aa248071aca6315ef939276",
+      "chromium_replay_matches_baseline": true,
+      "strict_expanded_vertices": 1412,
+      "vertex_budget": 1412,
+      "source_metric_before": {
+        "face": 35.793353,
+        "foreground": 27.929286,
+        "face_high_gradient": 61.349614
+      },
+      "source_metric_after": {
+        "face": 33.65153,
+        "foreground": 27.758737,
+        "face_high_gradient": 56.42392
+      },
+      "face_source_high_gradient_pixels": 1597,
+      "face_refinement": {
+        "role": "face",
+        "passes": 2,
+        "attempted_chromium_renders": 128,
+        "accepted_1px_translations": 18,
+        "moves": [
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 0,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 35.789733
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 2,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 35.278217
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 3,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 35.246627
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 4,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 35.215696
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 5,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 35.151612
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 6,
+            "delta": [
+              -1,
+              0
+            ],
+            "source_mae": 35.009543
+          },
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 7,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 34.937562
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 0,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 34.79977
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 1,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 34.691264
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 2,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 34.664528
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 3,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 34.535456
+          },
+          {
+            "pass": 1,
+            "layer": 2,
+            "contour": 1,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 33.851431
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 0,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 33.826505
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 4,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 33.825683
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 5,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 33.78669
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 6,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 33.712159
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 7,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 33.677196
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 0,
+            "delta": [
+              -1,
+              0
+            ],
+            "source_mae": 33.65153
+          }
+        ],
+        "final_source_mae": 33.65153
+      },
+      "material_refinement": [
+        {
+          "role": "major_clothing",
+          "passes": 1,
+          "attempted_chromium_renders": 8,
+          "accepted_1px_translations": 2,
+          "moves": [
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 0,
+              "delta": [
+                1,
+                0
+              ],
+              "source_mae": 27.7804
+            },
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 1,
+              "delta": [
+                1,
+                0
+              ],
+              "source_mae": 27.763574
+            }
+          ],
+          "final_source_mae": 27.763574
+        },
+        {
+          "role": "lower_body",
+          "passes": 1,
+          "attempted_chromium_renders": 4,
+          "accepted_1px_translations": 1,
+          "moves": [
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 0,
+              "delta": [
+                -1,
+                0
+              ],
+              "source_mae": 27.758737
+            }
+          ],
+          "final_source_mae": 27.758737
+        }
+      ],
+      "owner_masks_and_source_palette_unchanged": true,
+      "signed_face_shape_unchanged": true,
+      "arms_rgb_unchanged": true,
+      "historical_stage8_source_budget_pass": false,
+      "human_visual_approval": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    },
+    "GC001": {
+      "case": "GC001",
+      "signed_input_hashes": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "sa1051_input_svg_sha256": "41cde0b45192ebb276d0003c6449a1abd1ce2e48e1435a164a48831176782903",
+      "chromium_replay_matches_baseline": true,
+      "strict_expanded_vertices": 1882,
+      "vertex_budget": 1887,
+      "source_metric_before": {
+        "face": 29.404429,
+        "foreground": 44.728182,
+        "face_high_gradient": 58.183425
+      },
+      "source_metric_after": {
+        "face": 27.575788,
+        "foreground": 44.469572,
+        "face_high_gradient": 55.156538
+      },
+      "face_source_high_gradient_pixels": 1810,
+      "face_refinement": {
+        "role": "face",
+        "passes": 2,
+        "attempted_chromium_renders": 216,
+        "accepted_1px_translations": 22,
+        "moves": [
+          {
+            "pass": 1,
+            "layer": 0,
+            "contour": 2,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 29.397137
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 0,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 28.820809
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 2,
+            "delta": [
+              0,
+              -1
+            ],
+            "source_mae": 28.791236
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 3,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 28.289987
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 5,
+            "delta": [
+              -1,
+              0
+            ],
+            "source_mae": 28.256093
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 6,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 28.129971
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 7,
+            "delta": [
+              0,
+              -1
+            ],
+            "source_mae": 28.007764
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 8,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 28.006279
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 9,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 27.986564
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 10,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.95186
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 11,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.947404
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 12,
+            "delta": [
+              -1,
+              0
+            ],
+            "source_mae": 27.891635
+          },
+          {
+            "pass": 1,
+            "layer": 1,
+            "contour": 15,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.868274
+          },
+          {
+            "pass": 2,
+            "layer": 0,
+            "contour": 2,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 27.867598
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 0,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.740261
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 2,
+            "delta": [
+              -1,
+              0
+            ],
+            "source_mae": 27.725947
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 3,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 27.657079
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 6,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.649652
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 8,
+            "delta": [
+              1,
+              0
+            ],
+            "source_mae": 27.626426
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 10,
+            "delta": [
+              0,
+              1
+            ],
+            "source_mae": 27.614813
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 11,
+            "delta": [
+              0,
+              -1
+            ],
+            "source_mae": 27.588076
+          },
+          {
+            "pass": 2,
+            "layer": 1,
+            "contour": 12,
+            "delta": [
+              0,
+              -1
+            ],
+            "source_mae": 27.575788
+          }
+        ],
+        "final_source_mae": 27.575788
+      },
+      "material_refinement": [
+        {
+          "role": "major_clothing",
+          "passes": 1,
+          "attempted_chromium_renders": 20,
+          "accepted_1px_translations": 5,
+          "moves": [
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 0,
+              "delta": [
+                -1,
+                0
+              ],
+              "source_mae": 44.560596
+            },
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 1,
+              "delta": [
+                0,
+                1
+              ],
+              "source_mae": 44.542347
+            },
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 2,
+              "delta": [
+                0,
+                -1
+              ],
+              "source_mae": 44.522732
+            },
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 3,
+              "delta": [
+                0,
+                1
+              ],
+              "source_mae": 44.485945
+            },
+            {
+              "pass": 1,
+              "layer": 0,
+              "contour": 4,
+              "delta": [
+                0,
+                1
+              ],
+              "source_mae": 44.469572
+            }
+          ],
+          "final_source_mae": 44.469572
+        }
+      ],
+      "owner_masks_and_source_palette_unchanged": true,
+      "signed_face_shape_unchanged": true,
+      "arms_rgb_unchanged": true,
+      "historical_stage8_source_budget_pass": false,
+      "human_visual_approval": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    }
+  },
+  "both_budget_pass": true,
+  "both_original_face_source_fidelity_improved": true,
+  "eye_nose_mouth_semantic_certification": false,
+  "historical_stage8_source_budget_pass": false,
+  "human_visual_review": "PENDING",
+  "full_character_golden": "HOLD",
+  "production_deployment": "UNCHANGED",
+  "artifact_sha256": {
+    "gc001_edge_refined.png": "7ff6c4a29ae86fc9a725a99f829fdc44892379a492e6d4d555b56ec3d83414c2",
+    "gc001_edge_refined.svg": "f087a89d5918eb7f606ba60eaad9ff051ef6c1ea8a3facdef9ef1d18a6eb5f5f",
+    "gc001_sa1051_baseline.png": "40e54db4a3bb600660ed58e420d554eac6991d65f45b2b4fafa610481c5333db",
+    "raden_edge_refined.png": "b276817698ed12e644b3092551906397f65e8490286792ee92b66d067643c0c6",
+    "raden_edge_refined.svg": "68b9ad6ad24c92d14dd5c5b9cc7ce9fc68a9b43caf5c194df162fc731a04a7b6",
+    "raden_sa1051_baseline.png": "8dbf8749c43c76af86975496e2fa936d0c517f5a5cf0a93142b05edd1ebb18d3",
+    "sa1052_two_case_edge_comparison.png": "761ef9675c8e6dfe08ad4e1c377689a353fc45c351c4cee8e17b7f2406c9f375"
+  }
+}
