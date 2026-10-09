@@ -72,7 +72,7 @@ Public source:
 Private results: `chatGPT及びCodex用/Minimalizer/PublicGeometryJS_RealTwoSource_20261009/` ([Drive folder](https://drive.google.com/drive/folders/1VifAjtJ4SmkqccNfjELuI-4Za3cjZKs7)).
 - 13 deterministic JS diagnostics: per-role Paper path SVG, per-arm Delaunator SVG, combined arm candidates, `real_metrics.json` (individual Drive files).
 - `MinimalizerPublic_Paper_Delaunator_Real_Chromium_20261009.zip` (Drive file ID `1725H0L44XNONDKSbGToGiLIkhuWUucTk`) contains `chromium_audit.py`, signed input metadata, real JS metrics, Chromium metrics, eight alpha-render PNGs and actual side-by-side PNG. The original source photos are **not** included as independent raw files, but side-by-side private comparison contains source pixels. Keep archive in private Drive, **never commit it to public GitHub**.
-- Local archive ZIP checksum SHA-256 `bb75566bf9b8e77f4cf7d084095a2b6cfb85d3a6bc99e4e90e837baa5b321b04` refers to the initial archive; if archive contents are refreshed to the latest script, record the *new* SHA and verify Drive read-after-write.
+- Final refreshed archive checksum SHA-256: `09c6d3eaf1f1845be5094b88be6afcc9633886f857f70bf1ee9a552adf3222b4`. The exact existing Drive file ID was updated in place with the latest tested script; verify Drive SHA-256 read-after-write before marking archive bytes confirmed.
 
 Repro on authorized scratch environment (place original signed inputs in SA10.41 layout):
 
