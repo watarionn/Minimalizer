@@ -41,6 +41,20 @@ test("Paper.js candidate remains independent, deterministic and never auto-promo
     assert.ok(a.anchorCountAfter < a.anchorCountBefore);
   }
 });
+test("Paper.js rejects a smoothed silhouette that bulges beyond source pixels", () => {
+  const width = 80, height = 60;
+  const points = [[6, 6], [20, 6], [40, 6], [58, 6], [66, 6],
+    [66, 18], [66, 30], [66, 52], [40, 52], [20, 52], [6, 52], [6, 30]];
+  const sourceMask = rasterizePolygon(points, width, height);
+  const proposed = proposePaperContour({
+    points, width, height, sourceMask, tolerance: 0.1, maxMissingPixels: 0,
+    protectedIndices: [0, 4, 7, 10],
+  });
+  assert.ok(proposed.addedPixels > 0, "curve must be checked for expansion");
+  assert.equal(proposed.accepted, false, "expanded contours cannot pass");
+  assert.equal(proposed.protectedPreserved, true, "landmark protection is not enough");
+});
+
 test("Paper.js rejects unverified input rather than inventing geometry", () => {
   const points = [[0, 0], [8, 0], [0, 8]];
   assert.throws(() => proposePaperContour({ points, width: W, height: H,
