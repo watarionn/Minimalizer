@@ -40,7 +40,7 @@ SPARSE_ANCHORS={
 "Ririka":[
 ("R-H1",120,76,"hair"),("R-H2",106,105,"hair"),
 ("R-H3",202,139,"hair"),("R-H4",99,75,"hair"),
-("R-H5",148,43,"hair"),
+("R-H5",113,174,"hair"),
 ("R-C1",285,142,"clothes"),("R-C2",290,255,"clothes"),
 ("R-C3",60,297,"clothes"),("R-C4",172,242,"clothes"),
 ("R-C5",147,295,"clothes")],
