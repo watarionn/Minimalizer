@@ -24,6 +24,7 @@ window.MinimalizerComputeRoute = Object.freeze({
     const p = profile();
     const result = await engine.minimalizeFile(file, {
       analysisMaxSide: 400, workMaxSide: 400, maxShapes: 40, slicIterations: 10, paletteTarget: 8,
+      publicPolygonDiagnostics: true,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",
