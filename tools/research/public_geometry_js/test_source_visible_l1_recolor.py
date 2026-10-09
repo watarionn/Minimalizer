@@ -11,7 +11,7 @@ class SignedVisibleRefitRegression(unittest.TestCase):
         candidates={tuple(x) for x in pixels[0]}
         self.assertIn(result,candidates)
         measured=sum(abs(int(x[k])-result[k]) for x in pixels[0] for k in range(3))
-        self.assertEqual(measured,min(sum(abs(int(x[k])-c[k]) for x in pixels[0] for k in range(3)) for c in candidates))
+        self.assertEqual(measured,min(sum(abs(int(x[k])-int(c[k])) for x in pixels[0] for k in range(3)) for c in candidates))
     def test_empty_region_cannot_invent_color(self):
         self.assertIsNone(medoid_l1(np.zeros((2,2,3),np.uint8),np.zeros((2,2),bool)))
     def test_literal_rgb_rejects_out_of_range_and_unsafe(self):
