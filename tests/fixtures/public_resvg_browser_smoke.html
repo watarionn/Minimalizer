@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>resvg wasm audit</title>
+<pre id="result">pending</pre>
+<script type="module">
+import {auditShapes} from "../../web/static/public-resvg-research.mjs";
+const shape={rgb:[90,120,180],rings:[
+ [[2,2],[48,2],[48,48],[2,48]],
+ [[16,16],[16,34],[34,34],[34,16]]
+]};
+try {
+ const audit=await auditShapes([shape],64,64);
+ document.getElementById("result").textContent="RESVG_BROWSER_RESULT="+JSON.stringify(audit);
+} catch(e) {
+ document.getElementById("result").textContent="RESVG_BROWSER_FAILURE="+String(e);
+}
+</script></html>
