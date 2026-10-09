@@ -9,9 +9,9 @@ def assess(p):
     before=sum(len(r) for r in components)
     exact_repeat=0; collinear=0; degenerate=0
     for ring in components:
-        if len(r)<3:degenerate+=1
-        exact_repeat+=sum(r[i]==r[i-1] for i in range(1,len(r)))
-        if len(r)>=3:
+        if len(ring)<3:degenerate+=1
+        exact_repeat+=sum(ring[i]==ring[i-1] for i in range(1,len(ring)))
+        if len(ring)>=3:
             for i in range(len(r)):
                 a,b,c=ring[i-1],ring[i],ring[(i+1)%len(r)]
                 if (b[0]-a[0])*(c[1]-b[1])==(b[1]-a[1])*(c[0]-b[0]):collinear+=1
