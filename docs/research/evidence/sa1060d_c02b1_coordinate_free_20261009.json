@@ -1,0 +1,84 @@
+{
+  "stage": "C02b1",
+  "schema": "sa1060d-structural-right-arm-corridor-risk-v1",
+  "source_original_verified": true,
+  "phase03_phase04_zip_pin_verified": true,
+  "right_arm_current_matches_historical": true,
+  "source_model": "rtmlib-wholebody-balanced COCO17 original recorded keypoints",
+  "body_pose_score_minimum_required": 0.6,
+  "pose_confidence_gate": "HOLD",
+  "artistic_golden": "PENDING",
+  "original_stage8_budget": "HOLD",
+  "true_expanded_svg_budget": "NOT_MEASURED",
+  "chromium_full_character": "NOT_RUN",
+  "independent_raden_control": "NOT_RUN",
+  "faceless_features": "OFF",
+  "generated_pixels": false,
+  "production_changed": false,
+  "release_authorized": false,
+  "candidates": {
+    "0.2": {
+      "factor": 0.2,
+      "width_px": 49,
+      "mask_pixels_before": 6486,
+      "candidate_pixels": 3096,
+      "removed_pixels": 3390,
+      "added_pixels": 0,
+      "candidate_connected_components": 1,
+      "right_shoulder_elbow_wrist_scores": [
+        0.7292919754981995,
+        0.8166850209236145,
+        0.4622519910335541
+      ],
+      "min_right_pose_score": 0.4622519910335541,
+      "pose_confidence_pass": false,
+      "source_rgb_border_connected_remaining": 0,
+      "source_rgb_border_connected_removed": 533,
+      "unchanged_historical_face_left_arm_mask": true,
+      "same_or_less_source_pixel_coverage": true,
+      "release_candidate_valid": false
+    },
+    "0.27": {
+      "factor": 0.27,
+      "width_px": 66,
+      "mask_pixels_before": 6486,
+      "candidate_pixels": 3823,
+      "removed_pixels": 2663,
+      "added_pixels": 0,
+      "candidate_connected_components": 1,
+      "right_shoulder_elbow_wrist_scores": [
+        0.7292919754981995,
+        0.8166850209236145,
+        0.4622519910335541
+      ],
+      "min_right_pose_score": 0.4622519910335541,
+      "pose_confidence_pass": false,
+      "source_rgb_border_connected_remaining": 0,
+      "source_rgb_border_connected_removed": 533,
+      "unchanged_historical_face_left_arm_mask": true,
+      "same_or_less_source_pixel_coverage": true,
+      "release_candidate_valid": false
+    },
+    "0.34": {
+      "factor": 0.34,
+      "width_px": 83,
+      "mask_pixels_before": 6486,
+      "candidate_pixels": 4551,
+      "removed_pixels": 1935,
+      "added_pixels": 0,
+      "candidate_connected_components": 1,
+      "right_shoulder_elbow_wrist_scores": [
+        0.7292919754981995,
+        0.8166850209236145,
+        0.4622519910335541
+      ],
+      "min_right_pose_score": 0.4622519910335541,
+      "pose_confidence_pass": false,
+      "source_rgb_border_connected_remaining": 0,
+      "source_rgb_border_connected_removed": 533,
+      "unchanged_historical_face_left_arm_mask": true,
+      "same_or_less_source_pixel_coverage": true,
+      "release_candidate_valid": false
+    }
+  }
+}
