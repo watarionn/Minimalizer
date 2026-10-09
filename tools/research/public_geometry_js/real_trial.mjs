@@ -46,6 +46,9 @@ for (const caseName of ["GC001", "Raden"]) {
       const t = proposeDelaunayPart({ width, height, partMask: signedMask,
         sourceRGB: rgb, step: 8, maxPoints: 4096 });
       assert(t.extraPixels === 0, "triangles overflow signed part");
+      // Independent SVG per original source-signed owner; no face or inferred pixels.
+      fs.writeFileSync(path.join(destination, `${caseName}_${role}_triangles.svg`),
+        trianglesToSVG(t, width, height) + "\n");
       // Sampled RGB belongs to the signed source part; no new RGB introduced.
       let diff = 0, coveredRgbPixels = 0;
       const selected = new Uint8Array(width*height);
