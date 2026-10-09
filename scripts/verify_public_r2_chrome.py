@@ -165,7 +165,8 @@ def run(v34: Path,v32: Path,out: Path):
             print(name,json.dumps({k:row[k] for k in
                 ("totalColorGroups","ownerMasksPrepared","candidateGroupsProposedMaskExact",
                  "candidateSavedVerticesProposed","candidateVsV32NativePixelDiff",
-                 "candidateVsOriginal2xPixelDiff","chromeRolledBackGroups",\n                 "safeVsV32NativePixelDiff","safeVsOriginal2xPixelDiff","goldenExact")}),flush=True)
+                 "candidateVsOriginal2xPixelDiff","chromeRolledBackGroups",
+                 "safeVsV32NativePixelDiff","safeVsOriginal2xPixelDiff","goldenExact")}),flush=True)
     finally:
         driver.quit()
     report["allGoldensExact"]=len(report["cases"])==len(CASES) and all(
