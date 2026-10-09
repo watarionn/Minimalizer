@@ -3806,6 +3806,20 @@
         publicSimplifyAudit = { status: "error", safeSavedVertices: 0, proposals: 0 };
       }
     }
+    // Opt-in, read-only Public research: Delaunator triangulates original
+    // per-owner vertices; every triangle must be a mask subset of its owner.
+    // Candidates cannot affect paint order, source pixels, or normal output.
+    let publicMeshAudit = { status: "disabled", acceptedTriangles: 0, rejectedTriangles: 0 };
+    if (config.publicMeshResearch === true) {
+      try {
+        const mesh = root.MinimalizerPublicMeshResearch;
+        publicMeshAudit = mesh && typeof mesh.auditShapes === "function"
+          ? mesh.auditShapes(shapes, workSize.width, workSize.height)
+          : { status: "unavailable", acceptedTriangles: 0, rejectedTriangles: 0 };
+      } catch (_) {
+        publicMeshAudit = { status: "error", acceptedTriangles: 0, rejectedTriangles: 0 };
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3814,6 +3828,9 @@
       "X-Minimalizer-Compute": "browser",
       "X-Minimalizer-Public-Polygon-Audit": publicPolygonAudit.status,
       "X-Minimalizer-Public-Simplify-Audit": publicSimplifyAudit.status,
+      "X-Minimalizer-Public-Mesh-Audit": publicMeshAudit.status,
+      "X-Minimalizer-Public-Mesh-Accepted": String(publicMeshAudit.acceptedTriangles || 0),
+      "X-Minimalizer-Public-Mesh-Rejected": String(publicMeshAudit.rejectedTriangles || 0),
       "X-Minimalizer-Public-Simplify-Safe-Vertices": String(publicSimplifyAudit.safeSavedVertices || 0),
       "X-Minimalizer-Public-Polygon-Tested-Rings": String(publicPolygonAudit.testedRings || 0),
       "X-Minimalizer-Analysis": "deterministic-js",
@@ -3866,6 +3883,7 @@
         shapeCount: shapes.length,
         publicPolygonAudit,
         publicSimplifyAudit,
+        publicMeshAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,

@@ -8,6 +8,8 @@ if (options.includes(query)) localStorage.setItem(KEY, query);
 const profile = () => options.includes(localStorage.getItem(KEY)) ? localStorage.getItem(KEY) : "lite";
 // Opt-in research only. Normal Public processing does NOT execute contour experiments.
 const simplifyResearch = new URLSearchParams(location.search).get("publicSimplifyResearch") === "1";
+// Public-only opt-in: never generate/apply mesh in default conversions.
+const meshResearch = new URLSearchParams(location.search).get("publicMeshResearch") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -28,6 +30,7 @@ window.MinimalizerComputeRoute = Object.freeze({
       analysisMaxSide: 400, workMaxSide: 400, maxShapes: 40, slicIterations: 10, paletteTarget: 8,
       publicPolygonDiagnostics: true,
       publicSimplifyResearch: simplifyResearch,
+      publicMeshResearch: meshResearch,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",
