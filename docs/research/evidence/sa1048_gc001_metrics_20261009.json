@@ -1,0 +1,214 @@
+{
+  "stage": "SA10.48",
+  "schema": "gc001-source-signed-guardless-component-budget-v1",
+  "source_hashes": {
+    "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+    "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+    "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+    "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+    "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+    "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+    "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+  },
+  "chromium": "144.0.7559.96",
+  "original_case_stage8_vertices": 3604,
+  "original_case_stage8_budget": 1887,
+  "source_ring_budget_pass": false,
+  "historical_sa1047_candidate": {
+    "expanded_deployed_vertices": 2925,
+    "full_rgb_mismatch": 1980,
+    "protected": {
+      "face": 0,
+      "left_arm": 0,
+      "right_arm": 0
+    }
+  },
+  "guard_non_effect_proof": {
+    "tested_combinations": 16,
+    "mismatched_rgb_pixels_per_combination": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "exact_guarded_and_guardless_rgb_identical": true,
+  "exact_full_rgb_mismatch": 683,
+  "exact_guarded_expanded_vertices": 5327,
+  "exact_guardless_expanded_vertices": 4675,
+  "policy": {
+    "hair": {
+      "epsilon": 2.0,
+      "min_component_area": 4
+    },
+    "lower_body": {
+      "epsilon": 1.25,
+      "min_component_area": 0
+    },
+    "torso": {
+      "epsilon": 1.5,
+      "min_component_area": 2
+    },
+    "major_clothing": {
+      "epsilon": 1.0,
+      "min_component_area": 0
+    },
+    "unknown": {
+      "epsilon": 1.25,
+      "min_component_area": 8
+    },
+    "neck": {
+      "epsilon": 1.0,
+      "min_component_area": 0
+    },
+    "accessory_or_held_object": {
+      "epsilon": 1.0,
+      "min_component_area": 0
+    }
+  },
+  "details": {
+    "hair": {
+      "epsilon": 2.0,
+      "min_component_area": 4,
+      "removed_pixels": 23,
+      "removed_components": 14,
+      "mask_path_vertices": 243,
+      "trim_rectangles": 28,
+      "trim_vertices": 112,
+      "protected_new_overpaint_removed_pixels": 47
+    },
+    "lower_body": {
+      "epsilon": 1.25,
+      "min_component_area": 0,
+      "removed_pixels": 0,
+      "removed_components": 0,
+      "mask_path_vertices": 47,
+      "trim_rectangles": 8,
+      "trim_vertices": 32,
+      "protected_new_overpaint_removed_pixels": 14
+    },
+    "torso": {
+      "epsilon": 1.5,
+      "min_component_area": 2,
+      "removed_pixels": 10,
+      "removed_components": 8,
+      "mask_path_vertices": 79,
+      "trim_rectangles": 7,
+      "trim_vertices": 28,
+      "protected_new_overpaint_removed_pixels": 8
+    },
+    "major_clothing": {
+      "epsilon": 1.0,
+      "min_component_area": 0,
+      "removed_pixels": 0,
+      "removed_components": 0,
+      "mask_path_vertices": 242,
+      "trim_rectangles": 6,
+      "trim_vertices": 24,
+      "protected_new_overpaint_removed_pixels": 9
+    },
+    "unknown": {
+      "epsilon": 1.25,
+      "min_component_area": 8,
+      "removed_pixels": 137,
+      "removed_components": 63,
+      "mask_path_vertices": 262,
+      "trim_rectangles": 1,
+      "trim_vertices": 4,
+      "protected_new_overpaint_removed_pixels": 1
+    },
+    "neck": {
+      "epsilon": 1.0,
+      "min_component_area": 0,
+      "removed_pixels": 0,
+      "removed_components": 0,
+      "mask_path_vertices": 101,
+      "trim_rectangles": 3,
+      "trim_vertices": 12,
+      "protected_new_overpaint_removed_pixels": 3
+    },
+    "accessory_or_held_object": {
+      "epsilon": 1.0,
+      "min_component_area": 0,
+      "removed_pixels": 0,
+      "removed_components": 0,
+      "mask_path_vertices": 10,
+      "trim_rectangles": 0,
+      "trim_vertices": 0,
+      "protected_new_overpaint_removed_pixels": 0
+    }
+  },
+  "budget_candidate": {
+    "source_mask_vertices": {
+      "sa1041-owner-0": 355,
+      "sa1041-owner-1": 79,
+      "sa1041-owner-2": 228,
+      "sa1041-owner-4": 107,
+      "sa1041-owner-5": 266,
+      "sa1041-owner-6": 266,
+      "sa1041-owner-7": 264,
+      "sa1041-owner-8": 113,
+      "sa1041-owner-10": 10,
+      "sa1041-original-face-guard": 140
+    },
+    "mask_vertex_occurrences": 1828,
+    "source_colored_polygon_vertices": 55,
+    "expanded_deployed_vertices": 1883,
+    "full_chromium": {
+      "full_rgb_mismatch": 1871,
+      "source_signed_protected": {
+        "face": 0,
+        "left_arm": 0,
+        "right_arm": 0
+      },
+      "rgb_mae": 1.518463
+    },
+    "owner_error_partition": {
+      "hair": 534,
+      "lower_body": 459,
+      "right_arm": 0,
+      "face": 0,
+      "torso": 222,
+      "major_clothing": 175,
+      "unknown": 274,
+      "left_arm": 0,
+      "neck": 10,
+      "head": 0,
+      "accessory_or_held_object": 8,
+      "background": 189
+    }
+  },
+  "stage9_polygon_vertices": 28,
+  "stage37_apparel_polygon_vertices": 27,
+  "all_source_color_polygons_preserved": true,
+  "two_case_worst_regression_prohibited": true,
+  "raden_champion": {
+    "vertices": 1409,
+    "rgb_mismatch": 882,
+    "status": "UNCHANGED"
+  },
+  "full_character_golden": "HOLD",
+  "production_deployment": "UNCHANGED",
+  "human_visual_review": "PENDING",
+  "use_of_generative_fill": false,
+  "artifact_sha256": {
+    "gc001_guarded_exact.png": "a9be6871ae0697442083ec6e8a5a04ae5095f74dc9d9f9d5ab656f4c49c10700",
+    "gc001_guardless_component_budget.png": "68396ac2c03c4431de2caf0d8b84f8f84a44dcabbddea4660558765c8dc6e129",
+    "gc001_guardless_component_budget.svg": "e20afd2588a55bbaf74d5c567bc5a33165ed3aedd29734f5fc7a6b084116a61f",
+    "gc001_guardless_exact.png": "a9be6871ae0697442083ec6e8a5a04ae5095f74dc9d9f9d5ab656f4c49c10700",
+    "gc001_sa1048_three_way.png": "ab9eb0b594662b986016cdd33422c336be543352c3c2809c0183469b636acf01"
+  }
+}
