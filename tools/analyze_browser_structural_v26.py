@@ -43,11 +43,20 @@ def audit(root:Path,out:Path,frozen_zip:Path):
             preview=Image.open(d/"preview.png").convert("RGB")
             subject=Image.open(d/"subject_probability.png").convert("RGB")
             assert source.size==facet.size==preview.size==subject.size==(width,height)
-            source_pixels=list(source.getdata())
-            preview_pixels=list(preview.getdata())
-            touched={i for i,(a,b) in enumerate(zip(source_pixels,preview_pixels)) if a!=b}
-            assert touched <= set(report["overlayPixels"])
-            assert all(preview_pixels[i]==(255,0,220) for i in touched)
+            original_rgba=list(Image.open(d/"source.png").convert("RGBA").getdata())
+            preview_rgba=list(Image.open(d/"preview.png").convert("RGBA").getdata())
+            touched={i for i,(a,b) in enumerate(zip(original_rgba,preview_rgba))
+              if a[:3]!=b[:3]}
+            overlay=set(report["overlayPixels"])
+            unexpected=touched-overlay
+            # Canvas may round the RGB by one for low-alpha PNG border pixels.
+            # Opaque source pixels MUST remain exact unless explicitly diagnosed.
+            assert all(original_rgba[i][3]<255 and
+              original_rgba[i][3]==preview_rgba[i][3] and
+              (original_rgba[i][3]==0 or max(abs(original_rgba[i][c]-
+              preview_rgba[i][c]) for c in range(3))<=1)
+              for i in unexpected),(case,"unexpected opaque/large RGB drift")
+            assert all(preview_rgba[i][:3]==(255,0,220) for i in touched&overlay)
             y_cut=round(height*.45)
             lower=sum((i//width)>=y_cut for i in report["overlayPixels"])
             # Spatial focus is observational only and NEVER a torso/arm classifier.
