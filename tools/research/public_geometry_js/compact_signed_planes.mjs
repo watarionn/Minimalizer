@@ -56,11 +56,26 @@ export function exactSourceBoundary(mask,w,h){
 const color=(rgb,i)=>[rgb[i*3],rgb[i*3+1],rgb[i*3+2]];
 const err=(c,i,rgb)=>Math.abs(c[0]-rgb[i*3])+Math.abs(c[1]-rgb[i*3+1])+Math.abs(c[2]-rgb[i*3+2]);
 function nearestOriginalMedoid(indices,rgb){
- let means=[0,0,0];for(const i of indices){const c=color(rgb,i);for(let k=0;k<3;k++)means[k]+=c[k];}
- means=means.map(x=>x/indices.length);
- let best=indices[0],dist=Infinity;
- for(const i of indices){const c=color(rgb,i),d=c.reduce((s,v,k)=>s+(v-means[k])**2,0);
-  if(d<dist){dist=d;best=i;}
+ // Exact discrete L1 medoid: chosen RGB must occur in the verified original owner.
+ const hist=[new Uint32Array(256),new Uint32Array(256),new Uint32Array(256)],totals=[0,0,0];
+ for(const i of indices)for(let k=0;k<3;k++){
+  const v=rgb[3*i+k];hist[k][v]++;totals[k]+=v;
+ }
+ const costs=[];
+ for(let k=0;k<3;k++){
+  const arr=new Float64Array(256);let countLess=0,sumLess=0;
+  for(let v=0;v<256;v++){
+   const count=hist[k][v],rightCount=indices.length-countLess-count;
+   const rightSum=totals[k]-sumLess-v*count;
+   arr[v]=v*countLess-sumLess+rightSum-v*rightCount;
+   countLess+=count;sumLess+=v*count;
+  }
+  costs.push(arr);
+ }
+ let best=indices[0],bestCost=Infinity;
+ for(const i of indices){
+  const c=color(rgb,i),loss=costs[0][c[0]]+costs[1][c[1]]+costs[2][c[2]];
+  if(loss<bestCost){bestCost=loss;best=i;}
  }
  return color(rgb,best);
 }
