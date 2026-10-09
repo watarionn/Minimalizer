@@ -71,6 +71,6 @@ Next (v29) needs:
 ## Persistence
 
 Canonical private Google Drive path under chatGPT及びCodex用/Minimalizer:
-AnimeModelFeasibilityV28_20261009 (folder link recorded in PR and result manifest after cloud verification).
+[AnimeModelFeasibilityV28_20261009](https://drive.google.com/drive/folders/1yANlXi_2b9CgX2eIjzqiBAqk5YVvBzcu).
 
 Packages contain **only existing Kyoko source/outputs and metrics**, no 432MB checkpoint copy and no invented Noel/Ririka mask. Source code and handoff remain in this repository; this research branch is intentionally Draft/HOLD.
