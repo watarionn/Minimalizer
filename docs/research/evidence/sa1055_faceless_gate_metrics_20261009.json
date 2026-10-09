@@ -1,0 +1,106 @@
+{
+  "stage": "SA10.55",
+  "schema": "signed-target-face-off-gate-v1",
+  "chromium": "144.0.7559.96",
+  "target_style": "faceless_subject",
+  "facial_microfeatures_default": "OFF",
+  "face_research_diagnostics_retained_but_not_canonical": true,
+  "test_corpus": [
+    "Raden",
+    "GC001"
+  ],
+  "cases": {
+    "Raden": {
+      "name": "Raden",
+      "signed_source_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "sa1054_baseline_sha256": "11bfc1eb83116981ae6d4f07688af0c0aa165e074af10bf29881c16c938188f5",
+      "face_off_by_default": true,
+      "standard_output_svg_has_zero_facials": true,
+      "rendered_face_interior_is_one_real_source_rgb": true,
+      "face_interior_pixel_rgb": [
+        254,
+        240,
+        239
+      ],
+      "signed_face_eroded_pixel_count": 3758,
+      "nonuniform_eroded_face_pixels": 0,
+      "removed_face_feature_paths": 16,
+      "reclaimed_face_vertices": 103,
+      "expanded_vertex_count_before": 1412,
+      "expanded_vertex_count_after": 1309,
+      "hard_budget": 1412,
+      "changed_signed_face_pixels_to_remove_details": 1126,
+      "changed_outside_signed_face": 0,
+      "changed_signed_arms": 0,
+      "prior_face_photo_mae": 32.957716354063834,
+      "canonical_face_photo_mae": 52.880635077328066,
+      "legacy_stage8_source_ring_gate": "FAIL",
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    },
+    "GC001": {
+      "name": "GC001",
+      "signed_source_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "sa1054_baseline_sha256": "8ebbb1a44c4f893190c8f536c86397b52d13cbd1a6af3d2f3c60e8a46bf67cbb",
+      "face_off_by_default": true,
+      "standard_output_svg_has_zero_facials": true,
+      "rendered_face_interior_is_one_real_source_rgb": true,
+      "face_interior_pixel_rgb": [
+        252,
+        238,
+        233
+      ],
+      "signed_face_eroded_pixel_count": 4621,
+      "nonuniform_eroded_face_pixels": 0,
+      "removed_face_feature_paths": 23,
+      "reclaimed_face_vertices": 172,
+      "expanded_vertex_count_before": 1882,
+      "expanded_vertex_count_after": 1710,
+      "hard_budget": 1887,
+      "changed_signed_face_pixels_to_remove_details": 1521,
+      "changed_outside_signed_face": 0,
+      "changed_signed_arms": 0,
+      "prior_face_photo_mae": 27.16372966038755,
+      "canonical_face_photo_mae": 56.16372966038755,
+      "legacy_stage8_source_ring_gate": "FAIL",
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    }
+  },
+  "two_case_faceless_output_policy_pass": true,
+  "two_case_chromium_signed_protection_pass": true,
+  "two_case_expanded_vertices_under_hard_budget": true,
+  "historical_source_stage8_ring_budget": "FAIL",
+  "full_character_golden": "HOLD",
+  "human_visual_review": "PENDING",
+  "production_integration": "NOT_YET_WIRED",
+  "production_deployment": "UNCHANGED",
+  "sha256": {
+    "gc001_face_detail_research_only.png": "ca7e0af67bf465ccc3f65b2080289822b1d2262b340902d979327645c07f1bca",
+    "gc001_faceless.png": "921a871af5e609d812187236641270562c852222e3d3d5de4b83d406f85ef1fb",
+    "gc001_faceless.svg": "ca077a2df9d134926a4c433746398dd5f9d3dc79818ded611fac32f9623e859b",
+    "raden_face_detail_research_only.png": "0c8bdf7b6020fc8e4b8c288bb141a4a4b3792898905cf3d559dd347df804a5ac",
+    "raden_faceless.png": "54997a07a90e18607f491f95178b7e5f91f1fa6e4acf4c58bb7fd20226edb3bd",
+    "raden_faceless.svg": "fd65000ad4e814348f1158871e9e049b74fffbf7d84e4b4f25c35ee375d2d88a",
+    "sa1055_two_case_faceless_comparison.png": "5ee4d59870d9b89b39af1b35aaa7132ffe02612cce6b691b5b6107a730bf5a92"
+  }
+}
