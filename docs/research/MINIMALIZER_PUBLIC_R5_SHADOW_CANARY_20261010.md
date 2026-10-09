@@ -28,7 +28,7 @@ Chrome **154.0.8037.98**. The input files were the three **frozen v32 already-mi
 
 The separate shadow `sha256` value matches each complete original PNG. A **fresh, uncached Chrome** session with `public-r5-shadow-gate.mjs` and `resvg-wasm` blocked still converted and yielded the exact same Kyoko PNG SHA; status was `unavailable`. This is **fail-open for normal Public conversion**, not fail-open for release certification.
 
-Tests through R5: **59 Python PASS** and six real Node browser-compatible observer safety scenarios PASS. The next independent canary run is required to record byte-for-byte reproducibility of its eight files (3 OFF, 3 ON, one blocked module output, one JSON).
+Tests through R5: **59 Python PASS** and six real Node browser-compatible observer safety scenarios PASS. Two independent real Chrome canary runs **PASS**; all eight outputs (3 OFF, 3 ON, one blocked module output and one JSON) were verified **8/8 byte-for-byte identical**.
 
 ## Gate distinction
 
