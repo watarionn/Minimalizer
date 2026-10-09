@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>VTracer WASM audit</title>
+<pre id="result">pending</pre><script type="module">
+import {auditCanvas} from "../../web/static/public-vtracer-research.mjs";
+const canvas=document.createElement("canvas");canvas.width=canvas.height=64;
+const ctx=canvas.getContext("2d");
+ctx.fillStyle="#f3efe9";ctx.fillRect(0,0,64,64);
+ctx.fillStyle="#283e69";ctx.fillRect(8,8,45,48);
+ctx.fillStyle="#e03068";ctx.fillRect(18,12,12,30);
+ctx.fillStyle="#ffc546";ctx.fillRect(30,39,22,10);
+try{
+ const audit=await auditCanvas(canvas);
+ document.getElementById("result").textContent=
+   "VTRACER_BROWSER_RESULT="+JSON.stringify(audit);
+}catch(e){
+ document.getElementById("result").textContent=
+   "VTRACER_BROWSER_FAILURE="+String(e);
+}
+</script></html>

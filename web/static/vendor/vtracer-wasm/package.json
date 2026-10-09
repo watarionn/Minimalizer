@@ -1,0 +1,15 @@
+{
+  "name": "vtracer-wasm",
+  "version": "0.1.0",
+  "description": "vtracer app exposed as a JavaScript library",
+  "type": "module",
+  "main": "vtracer.js",
+  "types": "vtracer.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsscheller/vtracer-wasm.git"
+  },
+  "devDependencies": {
+    "runish": "^0.1.0"
+  }
+}
