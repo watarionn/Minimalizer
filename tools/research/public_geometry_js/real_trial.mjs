@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { proposePaperContour, proposeDelaunayPart, trianglesToSVG } from "./geometry.mjs";
+import { wholeSignedRoleGate } from "./real_guards.mjs";
 
 function assert(ok, msg) { if (!ok) throw new Error(msg); }
 const specFile = process.argv[2], destination = process.argv[3];
@@ -37,6 +38,8 @@ for (const caseName of ["GC001", "Raden"]) {
       sourceMask: comp, tolerance: 0.2, maxMissingPixels: 0,
       protectedIndices: [...new Set([0, Math.floor(part.points.length/4),
         Math.floor(part.points.length/2), Math.floor(part.points.length*3/4)])] });
+    // Evaluate the entire signed role, not just its largest component.
+    const wholeRoleGate = wholeSignedRoleGate(part, paper);
     // Paper is only a proposal; even one out-of-mask pixel means NO-GO.
     let triangle = null;
     if (role !== "face") {
@@ -63,9 +66,10 @@ for (const caseName of ["GC001", "Raden"]) {
         extraRasterCenterPixels: t.extraPixels, sourceSampleRgbExact: true };
     }
     roles[role] = { provenanceSha: part.mask_sha256,
+      wholeRoleGate, signedHoleCount: part.maskHoleCount,
       sourceMaskPixels: part.signedPixels, componentPixels: part.componentPixels,
       observedComponents: part.components, originalContourVertices: part.sourceContourPointCount,
-      paper: { candidateOnly: true, accepted: paper.accepted,
+      paper: { candidateOnly: true, accepted: wholeRoleGate.accepted, componentTrialAccepted: paper.accepted,
         verticesBefore: paper.anchorCountBefore, verticesAfter: paper.anchorCountAfter,
         externalPixels: paper.addedPixels, missingComponentPixels: paper.missingPixels,
         protectedPreserved: paper.protectedPreserved, componentOnly: true,
