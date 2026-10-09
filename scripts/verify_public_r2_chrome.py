@@ -76,13 +76,13 @@ def run(v34: Path,v32: Path,out: Path):
                 '<rect x="0" y="0" width="340" height="340" fill="#000"/></svg>')
             negative_diff=mismatched_pixels(render_rgba(driver,negative),v32_rgba)
             complete=(audit["totalColorGroups"]==audit["visitedGroups"]==
-                      audit["fullOwnerMasksChecked"] and
+                      audit["fullOwnerMasksBuilt"] and
                       audit["clippingRingsVisited"]>0)
             exact=(base_diff==replay_diff==native_diff==two_x_diff==0 and
                    negative_diff>0 and complete)
             row={"case":name,"totalColorGroups":audit["totalColorGroups"],
                  "visitedColorGroups":audit["visitedGroups"],
-                 "ownerMasksChecked":audit["fullOwnerMasksChecked"],
+                 "ownerMasksPrepared":audit["fullOwnerMasksBuilt"],\n                 "candidateFullMaskComparisons":audit["candidateFullMaskComparisons"],
                  "candidateGroupsProposedMaskExact":audit["acceptedGroups"],
                  "candidateSavedVerticesProposed":audit["proposedSavedVertices"],
                  "proposalsTested":audit["proposalsTested"],
@@ -103,7 +103,7 @@ def run(v34: Path,v32: Path,out: Path):
                  "geometryProductionAuthorized":False}
             report["cases"].append(row)
             print(name,json.dumps({k:row[k] for k in
-                ("totalColorGroups","ownerMasksChecked","candidateGroupsProposedMaskExact",
+                ("totalColorGroups","ownerMasksPrepared","candidateGroupsProposedMaskExact",
                  "candidateSavedVerticesProposed","candidateVsV32NativePixelDiff",
                  "candidateVsOriginal2xPixelDiff","goldenExact")}),flush=True)
     finally:
