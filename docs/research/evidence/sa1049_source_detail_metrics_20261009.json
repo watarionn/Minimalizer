@@ -1,0 +1,191 @@
+{
+  "stage": "SA10.49",
+  "schema": "source-observed-detail-dual-gate-v1",
+  "source_authority_hash_verified": true,
+  "artistic_generation_performed": false,
+  "new_facial_anatomy_synthesized": false,
+  "svg_modified": false,
+  "production_deployment": "UNCHANGED",
+  "full_character_golden": "HOLD",
+  "gate_policy": {
+    "source_shape": "signed Stage04 masks unchanged",
+    "legacy_flat_rgb": "diagnostic of Stage37 flat reference only, not artistic identity",
+    "source_detail": "compare original source RGB within signed original masks",
+    "release": "Never equate flat-face RGB=0 with preserving facial features"
+  },
+  "cases": {
+    "Raden": {
+      "details": {
+        "face": {
+          "source_pixels": 4052,
+          "source_vs_flat_rgb_mismatch": 4047,
+          "source_vs_flat_rgb_match": 5,
+          "source_distinct_rgb_colors": 2258,
+          "frozen_distinct_rgb_colors": 1,
+          "photo_dominant_rgb": [
+            255,
+            243,
+            242
+          ],
+          "top3_photo_color_frequencies": [
+            238,
+            150,
+            129
+          ],
+          "interior_edge_gradient_gt_64_pixels": 1601,
+          "interior_edge_gradient_gt_128_pixels": 1260,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "left_arm": {
+          "source_pixels": 10419,
+          "source_vs_flat_rgb_mismatch": 10419,
+          "source_vs_flat_rgb_match": 0,
+          "source_distinct_rgb_colors": 3283,
+          "frozen_distinct_rgb_colors": 1,
+          "photo_dominant_rgb": [
+            0,
+            0,
+            0
+          ],
+          "top3_photo_color_frequencies": [
+            667,
+            86,
+            85
+          ],
+          "interior_edge_gradient_gt_64_pixels": 2874,
+          "interior_edge_gradient_gt_128_pixels": 1362,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "right_arm": {
+          "source_pixels": 9870,
+          "source_vs_flat_rgb_mismatch": 9844,
+          "source_vs_flat_rgb_match": 26,
+          "source_distinct_rgb_colors": 2781,
+          "frozen_distinct_rgb_colors": 1,
+          "photo_dominant_rgb": [
+            0,
+            0,
+            0
+          ],
+          "top3_photo_color_frequencies": [
+            579,
+            164,
+            78
+          ],
+          "interior_edge_gradient_gt_64_pixels": 1792,
+          "interior_edge_gradient_gt_128_pixels": 676,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "outside_protected": {
+          "source_pixels": 91259,
+          "photo_vs_flat_mismatch": 91244,
+          "source_color_unique": 16040,
+          "frozen_color_unique": 10
+        },
+        "all_face_fidelity_and_flat_face_gate_simultaneously_satisfiable": false
+      },
+      "historical_budget": 1412,
+      "previous_champion_unmodified": {
+        "vertices": 1409,
+        "flat_rgb_mismatch": 882
+      },
+      "input_source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+      "source_fidelity_and_flat_face_parity_are_mutually_exclusive": true
+    },
+    "GC001": {
+      "details": {
+        "face": {
+          "source_pixels": 4937,
+          "source_vs_flat_rgb_mismatch": 4936,
+          "source_vs_flat_rgb_match": 1,
+          "source_distinct_rgb_colors": 2467,
+          "frozen_distinct_rgb_colors": 1,
+          "photo_dominant_rgb": [
+            252,
+            238,
+            233
+          ],
+          "top3_photo_color_frequencies": [
+            956,
+            170,
+            115
+          ],
+          "interior_edge_gradient_gt_64_pixels": 1879,
+          "interior_edge_gradient_gt_128_pixels": 1545,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "left_arm": {
+          "source_pixels": 2715,
+          "source_vs_flat_rgb_mismatch": 2715,
+          "source_vs_flat_rgb_match": 0,
+          "source_distinct_rgb_colors": 1772,
+          "frozen_distinct_rgb_colors": 2,
+          "photo_dominant_rgb": [
+            254,
+            236,
+            230
+          ],
+          "top3_photo_color_frequencies": [
+            428,
+            26,
+            24
+          ],
+          "interior_edge_gradient_gt_64_pixels": 728,
+          "interior_edge_gradient_gt_128_pixels": 502,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "right_arm": {
+          "source_pixels": 6486,
+          "source_vs_flat_rgb_mismatch": 6486,
+          "source_vs_flat_rgb_match": 0,
+          "source_distinct_rgb_colors": 3952,
+          "frozen_distinct_rgb_colors": 1,
+          "photo_dominant_rgb": [
+            255,
+            134,
+            46
+          ],
+          "top3_photo_color_frequencies": [
+            848,
+            370,
+            163
+          ],
+          "interior_edge_gradient_gt_64_pixels": 2618,
+          "interior_edge_gradient_gt_128_pixels": 1977,
+          "structural_preservation_target": "signed_stage04_mask",
+          "source_detail_evidence_target": "original_source_rgb",
+          "flat_rgb_parity_and_source_detail_can_both_be_exact": false
+        },
+        "outside_protected": {
+          "source_pixels": 101462,
+          "photo_vs_flat_mismatch": 101172,
+          "source_color_unique": 27788,
+          "frozen_color_unique": 18
+        },
+        "all_face_fidelity_and_flat_face_gate_simultaneously_satisfiable": false
+      },
+      "historical_budget": 1887,
+      "previous_champion_unmodified": {
+        "vertices": 1883,
+        "flat_rgb_mismatch": 1871
+      },
+      "input_source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+      "source_fidelity_and_flat_face_parity_are_mutually_exclusive": true
+    }
+  },
+  "full_character_visual_quality_approved": false,
+  "face_detail_drawing_next_step": "Requires source-exact feature vectorization with distinct fidelity gate; forbidden to call flat-face RGB=0 a feature restoration.",
+  "asset_sha256": {
+    "two_case_source_vs_flat_authority.png": "3106535a13eded09b1496964fc2d002eb4b4a75025013b322a9e5dfe0663540a"
+  }
+}
