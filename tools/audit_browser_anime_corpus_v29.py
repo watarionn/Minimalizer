@@ -137,7 +137,6 @@ def audit(reference:Path,out:Path)->dict:
                 "annotationAuthority","segmentationAuthority")
         writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
     # 2 cases x 4 evidence columns, no original pixels modified by observer.
-    from PIL import ImageDraw
     gallery=Image.new("RGB",(4*340+5*12,2*(340+58)+12),(246,246,246))
     gd=ImageDraw.Draw(gallery)
     labels=("Original","v27 Class Map","Source sparse QA","Class sparse QA")
