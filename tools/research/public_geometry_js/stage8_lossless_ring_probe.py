@@ -5,7 +5,7 @@ import argparse,hashlib,json
 from pathlib import Path
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def assess(p):
-    components=p["parameters"]["components"]
+    components=[r["points"] for r in p["parameters"]["rings"]]
     before=sum(len(ring) for ring in components)
     exact_repeat=0; collinear=0; degenerate=0
     for ring in components:
@@ -15,7 +15,7 @@ def assess(p):
             for i in range(len(ring)):
                 a,b,c=ring[i-1],ring[i],ring[(i+1)%len(ring)]
                 if (b[0]-a[0])*(c[1]-b[1])==(b[1]-a[1])*(c[0]-b[0]):collinear+=1
-    return dict(owner=p.get("composition_part"),ringVertices=before,adjacentDuplicateOccurrences=exact_repeat,
+    return dict(owner=p.get("composition_part"),ringVertices=before,componentVertices=sum(len(r) for r in p["parameters"]["components"]),adjacentDuplicateOccurrences=exact_repeat,
                 collinearOccurrences=collinear,degenerateRings=degenerate,
                 verifiedRemovableVertices=0)
 def analyze(base):
