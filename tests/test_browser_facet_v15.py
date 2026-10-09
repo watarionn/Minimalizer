@@ -27,8 +27,8 @@ def test_facet_quality_opt_in_and_safe_defaults():
     engine = ENGINE.read_text(encoding="utf-8")
     contour = CONTOUR.read_text(encoding="utf-8")
     assert 'browserFallbackQualityParam === "facet"' in app
-    assert '["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(quality)' in app
-    assert '["sharp", "shape", "facet", "selective", "near", "auto", "plane"].includes(browserFallbackQualityProfile())' in app
+    assert '["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(quality)' in app
+    assert '["sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(browserFallbackQualityProfile())' in app
     assert 'browserFallbackQualityProfile() === "facet" ? "facet-safe"' in app
     assert 'FACET (experimental)' in app
     assert 'geometryMode: "baseline"' in engine
