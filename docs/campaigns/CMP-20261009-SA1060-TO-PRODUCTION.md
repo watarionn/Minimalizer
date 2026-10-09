@@ -97,6 +97,10 @@ Important **version provenance conflict**: recovered current Phase04 left_arm = 
 - [C02b1 numerical audit](../research/SA1060D_C02B1_POSE_CORRIDOR_RISK_20261009.md), [sanitized measurements](../research/evidence/sa1060d_c02b1_coordinate_free_20261009.json), [C02b2 handoff](../handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md), [private variant board](https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY).
 - C02 remains **IN_PROGRESS**. C03 original Stage8 cap HOLD, C04 human Golden PENDING, C05–C08 BLOCKED. No release authorization.
 
+## Continuous operation: no more microstep prompts
+
+As explicitly requested on 2026-10-10, **one C08 campaign instruction authorizes a batch of safe implement/verify/merge/archive steps**. Never end work solely on completion of a minor C02 branch; take the next runnable item, including independent C03 research and C04 review preparation. Ask only for genuine Golden/policy/deployment/device owner action or an unavoidable blocker. Do not manufacture a GO. On execution interruption, persist GitHub checkpoint with exact next commands and verified private Drive artifacts. Periodic automation is hourly re-entry, not continuous background computation. Full contract: [Continuous Operation](MINIMALIZER_CONTINUOUS_OPERATION_20261010.md).
+
 ## On each next-step request
 
 Read the latest `main` and this campaign's JSON + latest C-stage handoff, reconcile any newly merged work, choose the earliest READY step with unmet objective evidence, implement/verify/review/merge and persist, update **both** this board and JSON with actual evidence. Never mark HOLD as PASS through the tracker, and never claim production promotion until live tests pass.
