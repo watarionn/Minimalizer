@@ -23,7 +23,17 @@ Previously merged Public libraries:
 
 Real npm UMD loaded in sandbox with callable static parser, path bbox and length. Synthetic rectangle expected bbox (2,2)-(12,10) and perimeter 36.
 
-Browser validation and test counts are recorded after actual execution. Do not infer image-quality improvement, full scene source pixel equality, Golden or production readiness from this diagnostic.
+### Executed test evidence
+
+- Real npm UMD loaded in Node VM and actual `SVGPathCommander` instance methods called.
+- `node tests/js/test_public_svgpath_research.cjs`: **7 scenarios PASS**. A rectangle source ring produced bounding box (2,2)–(12,10), exact perimeter **36**, and remained immutable. Holes (2 rings), fractional coordinate loops, malformed source, bounded inputs, oversized dimensions and missing library handled without rendering changes.
+- `python -m pytest tests/test_public_svgpath_research.py tests/test_public_earcut_research.py tests/test_public_delaunator_mesh.py tests/test_public_simplify_research.py tests/test_public_polygon_clip_integration.py tests/test_minimalizer_page_split.py -q`: **23 tests PASS**.
+- `node --check` on new Public observer, Public route and browser fallback: PASS.
+- Built Public static release (`dist/shin`) loaded in real desktop Chrome. The actual `MinimalizerComputeRoute.minimalize(file)` path converted the same controlled 64×64 PNG twice:
+  - Default URL: status 200, `SVGPath-Audit: disabled`, 24 output shapes, existing `polygon-clipping` audit `ok`.
+  - `?publicSvgPathResearch=1`: status 200, `SVGPath-Audit: truncated` (8-shape research cap), **8 parsed rings, 8 exact geometric bbox matches**, 24 output shapes, existing polygon clipping audit still `ok`; other optional Earcut audit remained disabled.
+  - PNG **SHA-256 identical** with research OFF/ON: `c0ce3b408de0ab2c811306e99f15f923db2699cebb5f22b60cf7890e854f6c7d`, 552 bytes both. Subject guidance was disabled only in isolated smoke harness, not in shipped Public application code.
+- Truncation of the 8-shape observer explicitly does not certify the remaining 16 shapes, and bbox comparison does not establish source-pixel/color/SVG/browser antialias parity.
 
 ## Future library roadmap
 
