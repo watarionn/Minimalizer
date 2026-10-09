@@ -48,7 +48,7 @@ EXPECTED={
         "files":["vtracer.mjs","vtracer.wasm","LICENSE","LICENSE-VTRACER-UPSTREAM",
                  "THIRD_PARTY.md","package.json"],
         "license":"MIT",
-        "wasmSHA256":"b93108af0f23e13a64f4b23f2582312a325be9d7ff833e49d04554cd99606f0"},
+        "wasmSHA256":"b93108af0f23e13a64f4b23f2582312a325be9d7ff833e49d04554cd99606f0b"},
 }
 LEGACY_REQUIRED={
     "onnxruntime":["ort-wasm-simd-threaded.mjs","ort-wasm-simd-threaded.wasm","ort.wasm.min.mjs"],
