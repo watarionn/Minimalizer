@@ -55,8 +55,11 @@ def compare_rgba(a: bytes,b: bytes) -> dict:
         "exact":differing==0
     }
 
-def run_resvg(svg:Path,output:Path,width:int) -> dict:
-    p=subprocess.run(["node",str(RESVG),str(svg),str(output),str(width)],
+def run_resvg(svg:Path,output:Path,width:int,negative_control:bool=False) -> dict:
+    args=["node",str(RESVG),str(svg),str(output),str(width)]
+    if negative_control:
+        args.extend(["full","--negative-control"])
+    p=subprocess.run(args,
                      capture_output=True,text=True,check=True,timeout=90)
     result=json.loads(p.stdout.strip())
     with Image.open(output) as image:
@@ -141,7 +144,7 @@ def verify(v34:Path,v32:Path,out:Path)->dict:
             # A real second renderer negative check, without risking source rewrite:
             bad_svg=out/f"{name}_r4_negative_control.svg"
             bad_svg.write_text(injected,encoding="utf-8")
-            run_resvg(bad_svg,out/f"{name}_negative_resvg_340.png",340)
+            run_resvg(bad_svg,out/f"{name}_negative_resvg_340.png",340,negative_control=True)
             with Image.open(out/f"{name}_negative_resvg_340.png") as im:
                 bad_resvg=im.convert("RGBA")
             bad1=mismatched_pixels(bad_chrome,v32_native.tobytes())
