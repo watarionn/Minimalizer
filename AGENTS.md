@@ -255,3 +255,16 @@ PhaseをCLOSEDにするときは、最低限以下を記録する。
 - next canonical step
 
 Drive診断ミラーが運用中なら、Phaseごと・caseごとにmandatory画像を反映する。
+
+## 15. 連続キャンペーン: 「次の工程」要求を繰り返させない
+
+Minimalizerキャンペーンは、ユーザーの「C08まで進めて」等の一度の継続指示を、以後の個々の **非破壊的な実装・検証・保存・PRマージ** の許可として扱う。「次の工程を完了させて」の再入力を各小工程の開始条件にしてはならない。
+
+1. 現行main、キャンペーンのJSON、Issue #321、最新handoffから開始地点を毎回復元。
+2. 小工程の完了を区切りにせず、利用可能な1回の実行内で次の実行可能工程へ連続して進む。失敗枝は記録して代替の品質研究・独立C03研究・C04審査準備へ移る。定期自動再開時も同様。
+3. 各成果について Goal → Produce → Verify → Review → Ship → Preserve → Next を行う。止まるときは成果・失敗・次の実行可能手順・正本リンク・SHAと必要な承認をGitHubへ残す。
+4. 工程報告をユーザーへの「継続する？」にすり替えない。人間のGolden目視承認、Stage8正式方針変更、未承認本番デプロイ、iPhone実機受入のように本人の判断/実操作が真に必要な点だけを照会する。
+5. C02/C03/C04をPASSに偽装しない。変更は可能な限り自動化しても、画像生成禁止、顔ディテールOFF、署名済み原本保護、visual FAIL優先、公開/非公開の分離を厳守。
+6. GitHub Actionsを前提にした新規workflowは増やさない。定期ChatGPTタスクは継続実行プロセスではないことを正確に伝える。
+
+詳細: [Continuous Campaign Operator Contract](docs/campaigns/MINIMALIZER_CONTINUOUS_OPERATION_20261010.md)
