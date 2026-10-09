@@ -1,0 +1,450 @@
+{
+  "stage": "SA10.58",
+  "schema": "signed-source-ring-vertex-budget-release-gate-v1",
+  "chromium": "144.0.7559.96",
+  "immutable_original_stage8_vertex_caps": {
+    "Raden": 1412,
+    "GC001": 1887
+  },
+  "separate_source_lineage_vs_deployed_svg_counts": true,
+  "candidate_family_epsilons": [
+    0.0,
+    0.4,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    2.0,
+    2.5,
+    3.0,
+    4.0,
+    6.0
+  ],
+  "candidate_paints_not_promoted": true,
+  "cases": {
+    "Raden": {
+      "name": "Raden",
+      "source_input_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "signed_sa1057_svg_sha256": "a3927c5e2c0fd98012c64a1443b7fb399aaffb72def636ac3c79157bcc420e6d",
+      "original_stage8_ring_vertices": 2370,
+      "original_stage8_budget": 1412,
+      "source_stage8_budget_pass": false,
+      "stage9_stage37_overlay_vertices": 12,
+      "sa1057_deployed_expanded_vertices": 1409,
+      "sa1057_expanded_budget_pass": true,
+      "source_ring_overrun": 958,
+      "candidate_ring_vertices": 1412,
+      "candidate_ring_budget_pass": true,
+      "minimum_exact_ring_vertices_in_tested_epsilon_family": 2306,
+      "minimum_all_protected_face_arm_pixel_safe_vertices_in_tested_epsilon_family": 1726,
+      "all_protected_face_arm_pixels_safe_within_source_budget_in_tested_epsilon_family": false,
+      "strict_protected_minima_by_owner": [
+        {
+          "role": "torso",
+          "minimum_preserving_every_protected_pixel": 71
+        },
+        {
+          "role": "hair",
+          "minimum_preserving_every_protected_pixel": 452
+        },
+        {
+          "role": "right_arm",
+          "minimum_preserving_every_protected_pixel": 152
+        },
+        {
+          "role": "left_arm",
+          "minimum_preserving_every_protected_pixel": 207
+        },
+        {
+          "role": "unknown",
+          "minimum_preserving_every_protected_pixel": 56
+        },
+        {
+          "role": "face",
+          "minimum_preserving_every_protected_pixel": 78
+        },
+        {
+          "role": "major_clothing",
+          "minimum_preserving_every_protected_pixel": 430
+        },
+        {
+          "role": "lower_body",
+          "minimum_preserving_every_protected_pixel": 151
+        },
+        {
+          "role": "head",
+          "minimum_preserving_every_protected_pixel": 87
+        },
+        {
+          "role": "accessory_or_held_object",
+          "minimum_preserving_every_protected_pixel": 3
+        },
+        {
+          "role": "neck",
+          "minimum_preserving_every_protected_pixel": 39
+        }
+      ],
+      "all_source_ring_parts_exact_within_budget_in_tested_epsilon_family": false,
+      "candidate_optimization_proxy_weighted_loss": 4010,
+      "per_owner": [
+        {
+          "role": "torso",
+          "source_vertices": 343,
+          "candidate_vertices": 216,
+          "approximation_epsilon": 0.5,
+          "source_mask_changed_pixels": 27,
+          "original_visible_region_changed_pixels": 10,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 343
+        },
+        {
+          "role": "hair",
+          "source_vertices": 640,
+          "candidate_vertices": 345,
+          "approximation_epsilon": 0.5,
+          "source_mask_changed_pixels": 50,
+          "original_visible_region_changed_pixels": 20,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 640
+        },
+        {
+          "role": "right_arm",
+          "source_vertices": 152,
+          "candidate_vertices": 152,
+          "approximation_epsilon": 0.0,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 152
+        },
+        {
+          "role": "left_arm",
+          "source_vertices": 207,
+          "candidate_vertices": 207,
+          "approximation_epsilon": 0.0,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 207
+        },
+        {
+          "role": "unknown",
+          "source_vertices": 91,
+          "candidate_vertices": 36,
+          "approximation_epsilon": 1.0,
+          "source_mask_changed_pixels": 47,
+          "original_visible_region_changed_pixels": 19,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 73
+        },
+        {
+          "role": "face",
+          "source_vertices": 110,
+          "candidate_vertices": 78,
+          "approximation_epsilon": 0.4,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 78
+        },
+        {
+          "role": "major_clothing",
+          "source_vertices": 430,
+          "candidate_vertices": 272,
+          "approximation_epsilon": 0.5,
+          "source_mask_changed_pixels": 33,
+          "original_visible_region_changed_pixels": 9,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 430
+        },
+        {
+          "role": "lower_body",
+          "source_vertices": 151,
+          "candidate_vertices": 31,
+          "approximation_epsilon": 0.75,
+          "source_mask_changed_pixels": 33,
+          "original_visible_region_changed_pixels": 6,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 151
+        },
+        {
+          "role": "head",
+          "source_vertices": 87,
+          "candidate_vertices": 19,
+          "approximation_epsilon": 2.0,
+          "source_mask_changed_pixels": 217,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 87
+        },
+        {
+          "role": "accessory_or_held_object",
+          "source_vertices": 63,
+          "candidate_vertices": 10,
+          "approximation_epsilon": 0.75,
+          "source_mask_changed_pixels": 21,
+          "original_visible_region_changed_pixels": 6,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 57
+        },
+        {
+          "role": "neck",
+          "source_vertices": 96,
+          "candidate_vertices": 46,
+          "approximation_epsilon": 1.0,
+          "source_mask_changed_pixels": 30,
+          "original_visible_region_changed_pixels": 7,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 88
+        }
+      ],
+      "full_source_ownership_replay": {
+        "source_ownership_mismatched_pixels": 186,
+        "changed_signed_face_pixels": 0,
+        "changed_signed_arm_ownership_pixels": 11,
+        "source_visible_silhouette_symmetric_difference_pixels": 95,
+        "source_visible_silhouette_iou": 0.99863301,
+        "source_reference_silhouette_pixels": 69458,
+        "proposed_silhouette_pixels": 69439
+      },
+      "rendered_current_svg_vs_source_geometry": {
+        "binary_silhouette_disagreement_pixels": 498,
+        "silhouette_iou": 0.99284544,
+        "actual_chromium_matte_render": true
+      },
+      "candidate_source_exact_release_gate": false,
+      "signed_source_face_arm_ring_masks_unchanged": true,
+      "human_visual_review": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    },
+    "GC001": {
+      "name": "GC001",
+      "source_input_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "signed_sa1057_svg_sha256": "bdea6fc36a953c01fe115032c10cb9313ecc900377f63954ff84bcb0392b2939",
+      "original_stage8_ring_vertices": 3604,
+      "original_stage8_budget": 1887,
+      "source_stage8_budget_pass": false,
+      "stage9_stage37_overlay_vertices": 55,
+      "sa1057_deployed_expanded_vertices": 1873,
+      "sa1057_expanded_budget_pass": true,
+      "source_ring_overrun": 1717,
+      "candidate_ring_vertices": 1887,
+      "candidate_ring_budget_pass": true,
+      "minimum_exact_ring_vertices_in_tested_epsilon_family": 3424,
+      "minimum_all_protected_face_arm_pixel_safe_vertices_in_tested_epsilon_family": 2981,
+      "all_protected_face_arm_pixels_safe_within_source_budget_in_tested_epsilon_family": false,
+      "strict_protected_minima_by_owner": [
+        {
+          "role": "hair",
+          "minimum_preserving_every_protected_pixel": 1180
+        },
+        {
+          "role": "lower_body",
+          "minimum_preserving_every_protected_pixel": 141
+        },
+        {
+          "role": "right_arm",
+          "minimum_preserving_every_protected_pixel": 177
+        },
+        {
+          "role": "face",
+          "minimum_preserving_every_protected_pixel": 72
+        },
+        {
+          "role": "torso",
+          "minimum_preserving_every_protected_pixel": 109
+        },
+        {
+          "role": "major_clothing",
+          "minimum_preserving_every_protected_pixel": 347
+        },
+        {
+          "role": "unknown",
+          "minimum_preserving_every_protected_pixel": 554
+        },
+        {
+          "role": "left_arm",
+          "minimum_preserving_every_protected_pixel": 210
+        },
+        {
+          "role": "neck",
+          "minimum_preserving_every_protected_pixel": 75
+        },
+        {
+          "role": "head",
+          "minimum_preserving_every_protected_pixel": 113
+        },
+        {
+          "role": "accessory_or_held_object",
+          "minimum_preserving_every_protected_pixel": 3
+        }
+      ],
+      "all_source_ring_parts_exact_within_budget_in_tested_epsilon_family": false,
+      "candidate_optimization_proxy_weighted_loss": 11533,
+      "per_owner": [
+        {
+          "role": "hair",
+          "source_vertices": 1180,
+          "candidate_vertices": 642,
+          "approximation_epsilon": 0.5,
+          "source_mask_changed_pixels": 112,
+          "original_visible_region_changed_pixels": 41,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 1180
+        },
+        {
+          "role": "lower_body",
+          "source_vertices": 153,
+          "candidate_vertices": 63,
+          "approximation_epsilon": 0.75,
+          "source_mask_changed_pixels": 48,
+          "original_visible_region_changed_pixels": 16,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 141
+        },
+        {
+          "role": "right_arm",
+          "source_vertices": 177,
+          "candidate_vertices": 177,
+          "approximation_epsilon": 0.0,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 177
+        },
+        {
+          "role": "face",
+          "source_vertices": 110,
+          "candidate_vertices": 72,
+          "approximation_epsilon": 0.4,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 72
+        },
+        {
+          "role": "torso",
+          "source_vertices": 328,
+          "candidate_vertices": 109,
+          "approximation_epsilon": 1.0,
+          "source_mask_changed_pixels": 111,
+          "original_visible_region_changed_pixels": 47,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 236
+        },
+        {
+          "role": "major_clothing",
+          "source_vertices": 451,
+          "candidate_vertices": 156,
+          "approximation_epsilon": 0.75,
+          "source_mask_changed_pixels": 120,
+          "original_visible_region_changed_pixels": 49,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 451
+        },
+        {
+          "role": "unknown",
+          "source_vertices": 632,
+          "candidate_vertices": 311,
+          "approximation_epsilon": 1.0,
+          "source_mask_changed_pixels": 195,
+          "original_visible_region_changed_pixels": 98,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 632
+        },
+        {
+          "role": "left_arm",
+          "source_vertices": 210,
+          "candidate_vertices": 210,
+          "approximation_epsilon": 0.0,
+          "source_mask_changed_pixels": 0,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 210
+        },
+        {
+          "role": "neck",
+          "source_vertices": 164,
+          "candidate_vertices": 89,
+          "approximation_epsilon": 1.0,
+          "source_mask_changed_pixels": 40,
+          "original_visible_region_changed_pixels": 9,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 146
+        },
+        {
+          "role": "head",
+          "source_vertices": 159,
+          "candidate_vertices": 53,
+          "approximation_epsilon": 2.0,
+          "source_mask_changed_pixels": 500,
+          "original_visible_region_changed_pixels": 0,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 159
+        },
+        {
+          "role": "accessory_or_held_object",
+          "source_vertices": 40,
+          "candidate_vertices": 5,
+          "approximation_epsilon": 0.75,
+          "source_mask_changed_pixels": 12,
+          "original_visible_region_changed_pixels": 9,
+          "protected_source_mask_unchanged": true,
+          "exact_candidate_min_vertices": 20
+        }
+      ],
+      "full_source_ownership_replay": {
+        "source_ownership_mismatched_pixels": 467,
+        "changed_signed_face_pixels": 0,
+        "changed_signed_arm_ownership_pixels": 5,
+        "source_visible_silhouette_symmetric_difference_pixels": 269,
+        "source_visible_silhouette_iou": 0.99512275,
+        "source_reference_silhouette_pixels": 55092,
+        "proposed_silhouette_pixels": 54947
+      },
+      "rendered_current_svg_vs_source_geometry": {
+        "binary_silhouette_disagreement_pixels": 862,
+        "silhouette_iou": 0.98440694,
+        "actual_chromium_matte_render": true
+      },
+      "candidate_source_exact_release_gate": false,
+      "signed_source_face_arm_ring_masks_unchanged": true,
+      "human_visual_review": "PENDING",
+      "golden": "HOLD",
+      "production": "UNCHANGED"
+    }
+  },
+  "source_stage8_release_gate": "HOLD",
+  "candidate_source_equivalence_release_gate": "HOLD",
+  "human_visual_golden": "HOLD",
+  "production_deployment": "UNCHANGED",
+  "next_stage": "SA10.59 multi-image and human visual Golden review; no release until Stage8 gate is formally resolved",
+  "artifact_sha256": {
+    "gc001_sa1057_baseline.png": "c51c8bac13f68802b1a7d0022eccd1eff66ae2e4b2f601a7e9b881b936eb4445",
+    "gc001_stage8_source_difference.png": "fd6efc80f7895749cdb6ba996138a8c451a5dad161060413c4ddfa1b91665a72",
+    "gc001_unapproved_stage8_candidate.json": "1550358054854c18d6d65d1ffe8547d1e7933114dd552067a0706828b8250899",
+    "raden_sa1057_baseline.png": "610670713adb410595ca680903c9445d0130ba387da7afe9549be4970d01bbce",
+    "raden_stage8_source_difference.png": "45ae5548634074b970cbda14a15e3a29e49c10fdd86610bba5284a3acd4d688b",
+    "raden_unapproved_stage8_candidate.json": "6c905ef5083fe83865b27d99a7b5c64d946b1dfa46cc1b18786cc6972cbb9072",
+    "sa1058_source_budget_review.png": "a25cbeea5e132f4fd7927a8f74d7983644bef3ec23fded17b42ea6d4f91782a5"
+  }
+}
