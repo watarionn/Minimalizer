@@ -61,6 +61,7 @@ export function proposePaperContour({ points, width, height, sourceMask, toleran
   assert(Array.isArray(protectedIndices) && protectedIndices.every((i) => Number.isInteger(i) && i >= 0 && i < points.length), "invalid landmarks");
 
   // Paper geometry functions do not require an SVG renderer or ML model.
+  if (!paper.project) paper.setup([width, height]);
   const path = new paper.Path({ segments: points, closed: true, insert: false });
   try {
     const simplified = path.simplify(tolerance);
