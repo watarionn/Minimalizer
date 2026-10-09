@@ -29,12 +29,18 @@ with sync_playwright() as p:
     browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox'])
     report['chromium'] = browser.version
     for case in ('GC001', 'Raden'):
+        case_spec = spec['cases'][case] if 'cases' in spec else spec[case]
+        source_sha = case_spec.get('source_sha256') or case_spec.get('original_source_sha256')
+        source_file = INPUT / case / f'{case}_source.png'
+        if not source_sha or hashlib.sha256(source_file.read_bytes()).hexdigest() != source_sha:
+            raise RuntimeError('original source image SHA mismatch')
         report['cases'][case] = {}
         for role in ('left_arm','right_arm'):
-            rec = spec['cases'][case]['signed_roles'][role]
+            expected_sha = (case_spec['signed_roles'][role]['sha256']
+                            if 'signed_roles' in case_spec else case_spec['masks'][role])
             mask_path = INPUT / case / f'signed_{role}_stage04_mask.png'
             actual_sha = hashlib.sha256(mask_path.read_bytes()).hexdigest()
-            if actual_sha != rec['sha256']:
+            if actual_sha != expected_sha:
                 raise RuntimeError('original Stage04 signed mask SHA mismatch')
             src_mask = (np.asarray(Image.open(mask_path).convert('L')) >= 127)
             svgfile = CANDIDATES / f'{case}_{role}_triangles.svg'
