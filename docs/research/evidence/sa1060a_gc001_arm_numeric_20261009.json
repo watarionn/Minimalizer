@@ -1,0 +1,54 @@
+{
+  "background_dominant_exact_rgb": [
+    255,
+    134,
+    46
+  ],
+  "candidate_promotion_authorized": false,
+  "case": "GC001",
+  "chrome_version": "144.0.7559.96",
+  "chromium_candidate_render_count": 48,
+  "deployed_svg_vertex_budget": 1887,
+  "deterministic_artifacts_matched": 4,
+  "engineering_tests_passed": 8,
+  "face_microfeatures_default_off": true,
+  "human_artistic_approval": "PENDING",
+  "original_svg_vertices": 1873,
+  "outside_signed_arms_changed_pixels": 0,
+  "phase15": "NOT_RUN",
+  "phase4_source_arm_binding_hypothesis": "BACKGROUND_CONNECTED_EXACT_SOURCE_RGB_OVERLAP_REQUIRES_REVIEW",
+  "private_artwork_only_in_approved_drive": true,
+  "production": "UNCHANGED",
+  "schema": "signed-gc001-arm-semantic-diagnostic-coordinate-free-v1",
+  "signed_arm_pixels_changed_in_trial": {
+    "left": 470,
+    "right": 499
+  },
+  "signed_arm_source_rgb_mae_before": {
+    "left": 76.071332,
+    "right": 55.439562
+  },
+  "signed_arm_source_rgb_mae_unapproved_trial": {
+    "left": 59.814733,
+    "right": 47.365762
+  },
+  "signed_face_changed_pixels": 0,
+  "source_background_connected_overlap_arm_pixels": {
+    "left": 0,
+    "right": 533
+  },
+  "source_border_connected_background_pixels": 35514,
+  "source_observed_added_vertices": 11,
+  "source_original_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "source_pixel_or_polygon_geometry_in_public_report": false,
+  "source_sa1057_svg_sha256": "bdea6fc36a953c01fe115032c10cb9313ecc900377f63954ff84bcb0392b2939",
+  "source_signed_arm_pixels": {
+    "left": 2715,
+    "right": 6486
+  },
+  "stage": "SA10.60A",
+  "stage8_original_source_ring_gate": "HOLD",
+  "unapproved_observed_color_planes": 2,
+  "unapproved_trial_svg_vertices": 1884,
+  "verified_baseline_png_sha256": "c51c8bac13f68802b1a7d0022eccd1eff66ae2e4b2f601a7e9b881b936eb4445"
+}
