@@ -21,8 +21,13 @@ V27_PALETTE=((0,0,0),(244,165,43),(240,189,156),
 V27_LABELS=("background","hair","body_skin","face_skin","clothes","accessories")
 
 def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
+def file_sha(path:Path)->str:
+    h=hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda:f.read(1024*1024),b""):h.update(block)
+    return h.hexdigest()
 
-def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path):
+def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path,checkpoint:Path|None=None):
     src_bytes=source_path.read_bytes()
     anime_bytes=mask_path.read_bytes()
     zip_bytes=archive_path.read_bytes()
@@ -73,6 +78,11 @@ def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path):
       "animeMaskUnrecognizedColorCount":0,
       "v27MaskUnrecognizedColorCount":0,
     }
+    if checkpoint is None or not checkpoint.is_file():
+        raise ValueError("v28 model checkpoint path required for SHA-verified provenance")
+    if checkpoint.stat().st_size!=431643704:
+        raise ValueError("v28 model checkpoint byte size mismatch")
+    actual_model_sha=file_sha(checkpoint)
     out.mkdir(parents=True,exist_ok=True)
     # Source clip overlays are DIAGNOSTIC ONLY. Face/eye source detections
     # must NEVER enter the Minimalizer final composition.
@@ -105,8 +115,8 @@ def audit(source_path:Path,mask_path:Path,archive_path:Path,out:Path):
       "casesAvailable":{"Kyoko":"cached_v3_mask","Noel":"unavailable","Ririka":"unavailable"},
       "model":{"name":"suzukimain/AnimeSeg","architecture":"Mask2Former",
         "checkpoint":"models/anime_seg_mask2former_v3.safetensors",
-        "fileSizeBytes":431643704,"modelSha256":None,
-        "modelShaStatus":"requires_explicit_cache_file_hash",
+        "fileSizeBytes":431643704,"modelSha256":actual_model_sha,
+        "modelShaStatus":"sha256_verified_from_existing_cached_weight_file",
         "runtime":"existing isolated Python CPU result (not browser inference)",
         "classes":list(ANIME_LABELS)},
       "provenance":{"sourceSha256":PINNED_SOURCE,"cachedMaskSha256":PINNED_ANIME_MASK,
@@ -145,5 +155,6 @@ if __name__=="__main__":
     p.add_argument("--mask",type=Path,required=True)
     p.add_argument("--v27-zip",type=Path,required=True)
     p.add_argument("--out",type=Path,required=True)
+    p.add_argument("--checkpoint",type=Path,required=True)
     args=p.parse_args()
-    audit(args.source,args.mask,args.v27_zip,args.out)
+    audit(args.source,args.mask,args.v27_zip,args.out,args.checkpoint)
