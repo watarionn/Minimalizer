@@ -3836,6 +3836,19 @@
           rejectedTriangles: 0, fullyReconstructedShapes: 0 };
       }
     }
+    // Public opt-in SVG path parser/bbox audit. Read-only inspection of copies
+    // of the existing owner rings, never replaces production rendering.
+    let publicSvgPathAudit = { status: "disabled", parsedRings: 0, bboxMatches: 0 };
+    if (config.publicSvgPathResearch === true) {
+      try {
+        const observer = root.MinimalizerPublicSvgPathResearch;
+        publicSvgPathAudit = observer && typeof observer.auditShapes === "function"
+          ? observer.auditShapes(shapes, workSize.width, workSize.height)
+          : { status: "unavailable", parsedRings: 0, bboxMatches: 0 };
+      } catch (_) {
+        publicSvgPathAudit = { status: "error", parsedRings: 0, bboxMatches: 0 };
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3846,6 +3859,9 @@
       "X-Minimalizer-Public-Simplify-Audit": publicSimplifyAudit.status,
       "X-Minimalizer-Public-Mesh-Audit": publicMeshAudit.status,
       "X-Minimalizer-Public-Earcut-Audit": publicEarcutAudit.status,
+      "X-Minimalizer-Public-SVGPath-Audit": publicSvgPathAudit.status,
+      "X-Minimalizer-Public-SVGPath-Rings": String(publicSvgPathAudit.parsedRings || 0),
+      "X-Minimalizer-Public-SVGPath-BBox-Matches": String(publicSvgPathAudit.bboxMatches || 0),
       "X-Minimalizer-Public-Earcut-Accepted": String(publicEarcutAudit.acceptedTriangles || 0),
       "X-Minimalizer-Public-Earcut-Rejected": String(publicEarcutAudit.rejectedTriangles || 0),
       "X-Minimalizer-Public-Earcut-Exact-Shapes": String(publicEarcutAudit.fullyReconstructedShapes || 0),
@@ -3905,6 +3921,7 @@
         publicSimplifyAudit,
         publicMeshAudit,
         publicEarcutAudit,
+        publicSvgPathAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
