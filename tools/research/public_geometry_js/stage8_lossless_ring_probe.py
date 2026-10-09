@@ -6,14 +6,14 @@ from pathlib import Path
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def assess(p):
     components=p["parameters"]["components"]
-    before=sum(len(r) for r in components)
+    before=sum(len(ring) for r in components)
     exact_repeat=0; collinear=0; degenerate=0
     for ring in components:
         if len(ring)<3:degenerate+=1
         exact_repeat+=sum(ring[i]==ring[i-1] for i in range(1,len(ring)))
         if len(ring)>=3:
-            for i in range(len(r)):
-                a,b,c=ring[i-1],ring[i],ring[(i+1)%len(r)]
+            for i in range(len(ring)):
+                a,b,c=ring[i-1],ring[i],ring[(i+1)%len(ring)]
                 if (b[0]-a[0])*(c[1]-b[1])==(b[1]-a[1])*(c[0]-b[0]):collinear+=1
     return dict(owner=p.get("composition_part"),ringVertices=before,adjacentDuplicateOccurrences=exact_repeat,
                 collinearOccurrences=collinear,degenerateRings=degenerate,
