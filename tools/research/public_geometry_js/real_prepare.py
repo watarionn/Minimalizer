@@ -87,6 +87,8 @@ def prepare(root: Path, out: Path) -> dict:
             points = contour[:, 0, :].tolist()
             if len(points) < 3:
                 raise ValueError("degenerate source contour; fail closed")
+            all_loops, hierarchy = cv2.findContours(signed_array, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+            mask_holes = sum(1 for entry in hierarchy[0] if int(entry[3]) >= 0) if hierarchy is not None else 0
             crop_file = folder / f"{role}_component.bin"
             crop_file.write_bytes(clipped.tobytes())
             roles[role] = {
@@ -95,6 +97,7 @@ def prepare(root: Path, out: Path) -> dict:
                 "signedPixels": int(signed_array.sum()),
                 "componentPixels": int(clipped.sum()),
                 "components": number - 1,
+                "maskHoleCount": mask_holes,
                 "crop": [x0, y0, x1-x0, y1-y0],
                 "points": points,
                 "sourceContourPointCount": len(points),
