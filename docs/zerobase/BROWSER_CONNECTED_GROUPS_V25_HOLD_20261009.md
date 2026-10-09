@@ -53,7 +53,7 @@ python tools/run_browser_groups_v25_chrome.py --root CHECKOUT --source ORIGINAL.
 Substitute Noel/Ririka as needed; then run:
 python tools/analyze_browser_groups_v25.py --kyoko KYOKO_OUT --noel NOEL_OUT --ririka RIRIKA_OUT --out AUDIT_OUT --reference-zip FROZEN_V24.zip
 
-The accepted v24 baseline is frozen, not derived from an approximation. First-run output SHA values are in evidence manifest; a **second** identical-run SHA is not implied without a verified rerun.
+The accepted v24 baseline is frozen, not derived from an approximation. A **second full Chrome 154 replay** was independently executed for Kyoko, Noel and Ririka. All 12 PNG byte streams (Facet/Near/Color/Group × 3) and selected shape/region metadata are identical to the first run. First and repeat SHA-256 hashes and read-after-write verification are recorded in v25_replay_sha_verify.json and the updated v25_evidence_manifest.json in the canonical Drive folder.
 
 ## Next: v26 source-linked structural/semantic planes
 
