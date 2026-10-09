@@ -179,8 +179,18 @@
         {
           "id": "C02b2",
           "name": "Find independent confident source-bound arm/hair/garment semantics, true Chromium and Raden holdout",
-          "status": "READY",
+          "status": "IN_PROGRESS",
           "note": "Raden and Approved holdout, human Golden, protected/Stage8 budget independent gates"
+        },
+        {
+          "id": "C02b2-color-sensitivity",
+          "status": "COMPLETE",
+          "kind": "research-negative-evidence",
+          "document": "docs/research/SA1060E_C02B2_COLOR_SENSITIVITY_HOLD_20261009.md",
+          "tests": "6/6 local signed-source PASS",
+          "decision": "COLOR_ONLY_REJECTED",
+          "canonical_artifact_archive": "PARTIAL_UPLOAD_FAILURE_NEEDS_RETRY",
+          "next": "C02b3 source semantics+edges and Raden/Chromium"
         }
       ]
     },
@@ -270,6 +280,6 @@
       "evidence": []
     }
   ],
-  "next_action": "C02b2 source-bound independent semantic arm/garment/hair classifier & verified real Chromium/holdout. Keep C03 original Stage8 ring HOLD and C04 authentic human Golden PENDING. No Phase15 or production cutover.",
-  "campaign_latest_evidence": "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md"
+  "next_action": "C02b3 source observer with independent anatomy confidence, Raden + Chromium; retry canonical preservation of C02b2 diagnostic code and private board. Stage8 and human Golden remain HOLD; C05-C08 blocked.",
+  "campaign_latest_evidence": "docs/research/SA1060E_C02B2_COLOR_SENSITIVITY_HOLD_20261009.md"
 }
