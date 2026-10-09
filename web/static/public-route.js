@@ -14,6 +14,7 @@ const earcutResearch = new URLSearchParams(location.search).get("publicEarcutRes
 const svgPathResearch = new URLSearchParams(location.search).get("publicSvgPathResearch") === "1";
 const svgoResearch = new URLSearchParams(location.search).get("publicSvgoResearch") === "1";
 const resvgResearch = new URLSearchParams(location.search).get("publicResvgResearch") === "1";
+const clipper2Research = new URLSearchParams(location.search).get("publicClipper2Research") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -47,6 +48,14 @@ window.MinimalizerComputeRoute = Object.freeze({
         // Optional independent oracle must not break the standard output.
       }
     }
+    let clipper2Observer = null;
+    if (clipper2Research) {
+      try {
+        clipper2Observer = await import(new URL("static/public-clipper2-research.mjs", document.baseURI).href);
+      } catch (_) {
+        // Opt-in WASM geometry observer unavailable: normal conversion continues.
+      }
+    }
     const result = await engine.minimalizeFile(file, {
       analysisMaxSide: 400, workMaxSide: 400, maxShapes: 40, slicIterations: 10, paletteTarget: 8,
       publicPolygonDiagnostics: true,
@@ -58,6 +67,8 @@ window.MinimalizerComputeRoute = Object.freeze({
       publicSvgoObserver: svgoObserver,
       publicResvgResearch: resvgResearch,
       publicResvgObserver: resvgObserver,
+      publicClipper2Research: clipper2Research,
+      publicClipper2Observer: clipper2Observer,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",

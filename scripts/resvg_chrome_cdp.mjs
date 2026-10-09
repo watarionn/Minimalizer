@@ -63,7 +63,11 @@ export async function pageValue(url,expression,timeoutMs=55000) {
       if(last.startsWith("RESVG_BROWSER_RESULT=") ||
         last.startsWith("RESVG_ROUTE_RESULT=") ||
         last.startsWith("RESVG_BROWSER_FAILURE=") ||
-        last.startsWith("RESVG_ROUTE_FAILURE=")) return last;
+        last.startsWith("RESVG_ROUTE_FAILURE=") ||
+        last.startsWith("CLIPPER2_BROWSER_RESULT=") ||
+        last.startsWith("CLIPPER2_ROUTE_RESULT=") ||
+        last.startsWith("CLIPPER2_BROWSER_FAILURE=") ||
+        last.startsWith("CLIPPER2_ROUTE_FAILURE=")) return last;
     }
     await sleep(200);
   }

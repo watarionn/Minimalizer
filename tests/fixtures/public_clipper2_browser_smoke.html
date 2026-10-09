@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Clipper2 WASM audit</title>
+<pre id="result">pending</pre>
+<script src="../../web/static/opencv-fill-raster.js"></script>
+<script type="module">
+import {auditShapes} from "../../web/static/public-clipper2-research.mjs";
+const shapes=[
+  {rgb:[30,90,160],rings:[[[2,2],[48,2],[48,48],[2,48]],
+    [[16,16],[16,34],[34,34],[34,16]]]},
+  {rgb:[200,40,80],rings:[[[-4,5],[29,5],[29,44],[-4,44]]]}
+];
+try {
+ const audit=await auditShapes(shapes,64,64,window.MinimalizerOpenCvRaster);
+ document.getElementById("result").textContent=
+   "CLIPPER2_BROWSER_RESULT="+JSON.stringify(audit);
+} catch(e) {
+ document.getElementById("result").textContent=
+   "CLIPPER2_BROWSER_FAILURE="+String(e);
+}
+</script></html>
