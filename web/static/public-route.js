@@ -10,6 +10,7 @@ const profile = () => options.includes(localStorage.getItem(KEY)) ? localStorage
 const simplifyResearch = new URLSearchParams(location.search).get("publicSimplifyResearch") === "1";
 // Public-only opt-in: never generate/apply mesh in default conversions.
 const meshResearch = new URLSearchParams(location.search).get("publicMeshResearch") === "1";
+const earcutResearch = new URLSearchParams(location.search).get("publicEarcutResearch") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -31,6 +32,7 @@ window.MinimalizerComputeRoute = Object.freeze({
       publicPolygonDiagnostics: true,
       publicSimplifyResearch: simplifyResearch,
       publicMeshResearch: meshResearch,
+      publicEarcutResearch: earcutResearch,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",
