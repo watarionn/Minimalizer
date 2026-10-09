@@ -3866,6 +3866,18 @@
           rasterDifferentPixels: null, savedBytes: 0, applied: false};
       }
     }
+    // Read-only independent resvg-WASM raster oracle, not an output renderer.
+    let publicResvgAudit = {status:"disabled",applied:false, differentPixels:null};
+    if (config.publicResvgResearch === true) {
+      try {
+        const observer = config.publicResvgObserver;
+        publicResvgAudit = observer && typeof observer.auditShapes === "function"
+          ? await observer.auditShapes(shapes, workSize.width, workSize.height)
+          : {status:"unavailable",applied:false,differentPixels:null};
+      } catch (_) {
+        publicResvgAudit = {status:"error",applied:false,differentPixels:null};
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3878,6 +3890,11 @@
       "X-Minimalizer-Public-Earcut-Audit": publicEarcutAudit.status,
       "X-Minimalizer-Public-SVGPath-Audit": publicSvgPathAudit.status,
       "X-Minimalizer-Public-SVGO-Audit": publicSvgoAudit.status,
+      "X-Minimalizer-Public-RESVG-Audit": publicResvgAudit.status,
+      "X-Minimalizer-Public-RESVG-Different-Pixels": String(
+        Number.isFinite(publicResvgAudit.differentPixels)
+          ? publicResvgAudit.differentPixels : -1),
+      "X-Minimalizer-Public-RESVG-Exact": publicResvgAudit.exactNativeParity ? "1" : "0",
       "X-Minimalizer-Public-SVGO-Exact": publicSvgoAudit.rasterExact ? "1" : "0",
       "X-Minimalizer-Public-SVGO-Saved-Bytes": String(publicSvgoAudit.savedBytes || 0),
       "X-Minimalizer-Public-SVGPath-Rings": String(publicSvgPathAudit.parsedRings || 0),
@@ -3943,6 +3960,7 @@
         publicEarcutAudit,
         publicSvgPathAudit,
         publicSvgoAudit,
+        publicResvgAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,

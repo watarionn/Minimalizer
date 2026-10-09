@@ -13,6 +13,7 @@ const meshResearch = new URLSearchParams(location.search).get("publicMeshResearc
 const earcutResearch = new URLSearchParams(location.search).get("publicEarcutResearch") === "1";
 const svgPathResearch = new URLSearchParams(location.search).get("publicSvgPathResearch") === "1";
 const svgoResearch = new URLSearchParams(location.search).get("publicSvgoResearch") === "1";
+const resvgResearch = new URLSearchParams(location.search).get("publicResvgResearch") === "1";
 window.MinimalizerComputeRoute = Object.freeze({
   label: "Minimalizer Public · Browser",
   description: "画像はこのブラウザ内で処理されます。外部の計算サーバーには送信しません。",
@@ -38,6 +39,14 @@ window.MinimalizerComputeRoute = Object.freeze({
         // Optional observer unavailable: normal conversion must still succeed.
       }
     }
+    let resvgObserver = null;
+    if (resvgResearch) {
+      try {
+        resvgObserver = await import(new URL("static/public-resvg-research.mjs", document.baseURI).href);
+      } catch (_) {
+        // Optional independent oracle must not break the standard output.
+      }
+    }
     const result = await engine.minimalizeFile(file, {
       analysisMaxSide: 400, workMaxSide: 400, maxShapes: 40, slicIterations: 10, paletteTarget: 8,
       publicPolygonDiagnostics: true,
@@ -47,6 +56,8 @@ window.MinimalizerComputeRoute = Object.freeze({
       publicSvgPathResearch: svgPathResearch,
       publicSvgoResearch: svgoResearch,
       publicSvgoObserver: svgoObserver,
+      publicResvgResearch: resvgResearch,
+      publicResvgObserver: resvgObserver,
       structuralMode: p === "exact" ? "spectral-exact" : "l0-lite-jacobi",
       canonicalContourLite: ["sharp", "shape", "facet"].includes(p),
       geometryMode: p === "facet" ? "facet-safe" : p === "shape" ? "corner-aware" : "baseline",
