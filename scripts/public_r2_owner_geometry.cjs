@@ -103,7 +103,7 @@ function triangulateOneRing(ring) {
   const flat=ring.flat();
   return earcut(flat,[],2);
 }
-function analyzeSvg(svg,{maxCandidates=120}={}) {
+function analyzeSvg(svg,{maxCandidates=1200}={}) {
   const parsed=parse(svg);
   if(!Number.isInteger(maxCandidates)||maxCandidates<1||maxCandidates>1200)throw Error("invalid cap");
   const output=parsed.groups.map(g=>g.original);
