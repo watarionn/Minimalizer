@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
 from verify_public_r8_license_distribution import (
     EXPECTED, LEGACY_REQUIRED, STATIC, VERSION, audit_vendor_tree,
-    check_built_source, run)
+    check_built_source, local_http_rollback_dry_run, run)
 
 @pytest.fixture
 def staged_vendor(tmp_path):
@@ -76,6 +76,9 @@ def test_real_static_builder_disposable_output_and_unsigned_hold(tmp_path):
     assert report["fullVendorFileCount"]==40
     assert report["disposableBuildProof"]["buildVendorFilesByteExact"]==40
     assert report["disposableBuildProof"]["resvgMplLicenseIncluded"]
+    assert report["loopbackStaticRollbackDryRun"]["loopbackRollbackByteExact"] is True
+    assert report["loopbackStaticRollbackDryRun"]["actualProductionRollbackApproved"] is False
+    assert report["loopbackStaticRollbackDryRun"]["initialSHA256"] == report["loopbackStaticRollbackDryRun"]["restoredSHA256"]
     assert report["disposableBuildProof"]["indexHtmlByteExact"]
     assert report["licenseComplianceLegallyApproved"] is False
     assert report["resvgMplRedistributionReviewSigned"] is False
@@ -93,3 +96,21 @@ def test_live_public_and_local_conversion_routes_untouched():
         assert "verify_public_r8_license_distribution" not in data
     text=(ROOT/"scripts/verify_public_r8_license_distribution.py").read_text()
     assert "productionPromoted" in text and '"releaseAuthorized":False' in text
+
+def test_local_http_static_rollback_protects_exact_original_bytes(tmp_path):
+    folder=tmp_path/"stage"
+    folder.mkdir()
+    original=(STATIC/"index.html").read_bytes()
+    (folder/"index.html").write_bytes(original)
+    result=local_http_rollback_dry_run(folder)
+    assert result["loopbackCanaryToggled"] is True
+    assert result["loopbackRollbackByteExact"] is True
+    assert result["actualProductionRollbackApproved"] is False
+    assert result["initialSHA256"]==result["restoredSHA256"]
+    assert result["canarySHA256"]!=result["initialSHA256"]
+    assert (folder/"index.html").read_bytes()==original
+
+def test_local_http_rollback_refuses_invalid_static_html(tmp_path):
+    (tmp_path/"index.html").write_bytes(b"not a real static page")
+    with pytest.raises(ValueError,match="static HTML unavailable"):
+        local_http_rollback_dry_run(tmp_path)
