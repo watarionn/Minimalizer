@@ -82,7 +82,8 @@ def run(v34: Path,v32: Path,out: Path):
                    negative_diff>0 and complete)
             row={"case":name,"totalColorGroups":audit["totalColorGroups"],
                  "visitedColorGroups":audit["visitedGroups"],
-                 "ownerMasksPrepared":audit["fullOwnerMasksBuilt"],\n                 "candidateFullMaskComparisons":audit["candidateFullMaskComparisons"],
+                 "ownerMasksPrepared":audit["fullOwnerMasksBuilt"],
+                 "candidateFullMaskComparisons":audit["candidateFullMaskComparisons"],
                  "candidateGroupsProposedMaskExact":audit["acceptedGroups"],
                  "candidateSavedVerticesProposed":audit["proposedSavedVertices"],
                  "proposalsTested":audit["proposalsTested"],
