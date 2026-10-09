@@ -151,13 +151,15 @@ function analyzeSvg(svg,{maxCandidates=120}={}) {
     }
     rows.push({group:gi,rgb:g.rgb,rings:g.loops.length,
       originalVertices:beforeVertices,removedVertices:selected?selected.saved:0,
-      fullOwnerMaskPrepared:true,candidateMaskExact:selected?true:null,\n      sourceVerifiedSemanticOwner:false});
+      fullOwnerMaskPrepared:true,candidateMaskExact:selected?true:null,
+      sourceVerifiedSemanticOwner:false});
   }
   const candidate=parsed.prefix+output.join("")+parsed.suffix;
   return {candidate, audit:{
     version:"public-r2-whole-color-groups-v1",sourceSHA256:sha256(Buffer.from(svg)),
     candidateSHA256:sha256(Buffer.from(candidate)),totalColorGroups:parsed.groups.length,
-    visitedGroups:visited,fullOwnerMasksBuilt:masksBuilt,\n    candidateFullMaskComparisons:maskComparisons,
+    visitedGroups:visited,fullOwnerMasksBuilt:masksBuilt,
+    candidateFullMaskComparisons:maskComparisons,
     totalSourceVertices:parsed.count,acceptedGroups:safe,proposalsTested:proposed,
     proposalsRejected:rejected,proposedSavedVertices:saved,
     clippingRingsVisited:clipRings,clippingErrors:clipErrors,
