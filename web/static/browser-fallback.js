@@ -3793,6 +3793,19 @@
         publicPolygonAudit = { status: "error", testedRings: 0, clipErrors: 1 };
       }
     }
+    // Opt-in only: read-only Simplify.js experiment, checked against the existing
+    // Public OpenCV-compatible filled owner masks. NEVER apply proposed rings.
+    let publicSimplifyAudit = { status: "disabled", safeSavedVertices: 0, proposals: 0 };
+    if (config.publicSimplifyResearch === true) {
+      try {
+        const research = root.MinimalizerPublicSimplifyResearch;
+        publicSimplifyAudit = research && typeof research.auditShapes === "function"
+          ? research.auditShapes(shapes, workSize.width, workSize.height)
+          : { status: "unavailable", safeSavedVertices: 0, proposals: 0 };
+      } catch (_) {
+        publicSimplifyAudit = { status: "error", safeSavedVertices: 0, proposals: 0 };
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3800,6 +3813,8 @@
       "X-Minimalizer-Mode": VERSION,
       "X-Minimalizer-Compute": "browser",
       "X-Minimalizer-Public-Polygon-Audit": publicPolygonAudit.status,
+      "X-Minimalizer-Public-Simplify-Audit": publicSimplifyAudit.status,
+      "X-Minimalizer-Public-Simplify-Safe-Vertices": String(publicSimplifyAudit.safeSavedVertices || 0),
       "X-Minimalizer-Public-Polygon-Tested-Rings": String(publicPolygonAudit.testedRings || 0),
       "X-Minimalizer-Analysis": "deterministic-js",
       "X-Minimalizer-Shape-Count": String(shapes.length),
@@ -3850,6 +3865,7 @@
         workHeight: workSize.height,
         shapeCount: shapes.length,
         publicPolygonAudit,
+        publicSimplifyAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
