@@ -58,20 +58,34 @@ def evaluate(records:dict,fingerprints:dict)->dict:
       for i in range(3))
     layer_paths_exact=all(
       c["components"]["paths"]["exact340"] and
-      c["components"]["paths"]["exact680"] for c in layer["cases"])
+      c["components"]["paths"]["exact680"] and
+      c["components"]["paths"]["differentPixels340"]==0 and
+      c["components"]["paths"]["differentPixels680"]==0
+      for c in layer["cases"])
     measured={
       "frozenSourceProvenanceConsistent":sha_matching,
       "r1SerializationGoldenPass":r1.get("allGoldenExact") is True,
       "r2WholeColorGroupChromePass":(r2.get("allGoldensExact") is True and
                                      r2.get("allColorGroupsVisited") is True and
-                                     sum(c["visitedColorGroups"] for c in r2["cases"])==910),
+                                     sum(c["visitedColorGroups"] for c in r2["cases"])==910 and
+                                     all(c["wholeColorGroupAuditComplete"] and
+                                         c["goldenExact"] and
+                                         c["visitedColorGroups"]==c["totalColorGroups"]
+                                         for c in r2["cases"])),
       "r3ExactLatticeResearchComplete":r3.get("allExact") is True,
       "r4ChromeFrozenNativePass":r4.get("chromeBaselinePass") is True,
       "r4PathsNativeAndDpr2Exact":layer_paths_exact,
-      "r4WholeSceneDpr2Exact":r4.get("crossRendererExact") is True,
+      "r4WholeSceneDpr2Exact":(
+          r4.get("crossRendererExact") is True and
+          all(c["fullSceneCrossRendererExact"] and
+              c["chromeVsResvg340"]["differentPixels"]==0 and
+              c["chromeVsResvg680"]["differentPixels"]==0 for c in r4["cases"])),
       "r5PublicShadowCanarySafe":(r5.get("researchPass") is True and
                                   r5.get("allOffOnByteExact") is True and
-                                  r5.get("missingObserverWasmFallbackByteExact") is True),
+                                  r5.get("missingObserverWasmFallbackByteExact") is True and
+                                  all(c["offAndOnByteExact"] and
+                                      c["offSHA256"]==c["onSHA256"]==c["onDiagnosticSHA256"]
+                                      for c in r5["cases"])),
       "humanGoldenSigned":False,
       "sourceSemanticOwnersSigned":False,
       "protectedArmsTieStaffCertified":False,
