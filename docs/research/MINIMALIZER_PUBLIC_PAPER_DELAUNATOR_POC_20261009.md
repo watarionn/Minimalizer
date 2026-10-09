@@ -54,3 +54,14 @@ The 6 tests cover Paper stable proposals, Paper overshoot hard rejection, Paper 
 - **ACCEPT as research-only PoC.**
 - **DO NOT merge as a production feature or deploy.** Review research-only code separately.
 - Next: original GC001/Kyoko and Raden multi-image, SHA-bound evidence masks. Use existing canonical output side-by-side with Paper and Delaunator candidate-only output. Keep tie/arm/hair protected. Run optical/structural/source RGB and pixel-footprint gates, supersampled SVG comparison and visual review. If Paper overshoots, retain canonical. If Delaunator leaves large gaps or changes important color features, retain existing internal face/facet reconstruction.
+
+## Private diagnostic artifact preservation
+
+Google Drive canonical folder (verified under `chatGPT及びCodex用/Minimalizer`):
+https://drive.google.com/drive/folders/1zKlfdIVDXmQOs2WAZmed3rJeHYRcPvk5
+
+- `metrics.json`: 1,444 bytes, Drive file ID `1no5gxw3o-bsaAcjNoGdAPnDLvfV2U81O`
+- `synthetic-paper-path.svg`: 426 bytes, Drive file ID `14ouph37fROg69v6KgzqKLONKHTjTVDDQ`
+- `synthetic-triangles.svg`: 8,819 bytes, Drive file ID `1F6kzCVAEfUh0Pw9Fj_aY0N35i3-h4QAm`
+
+The local Google Drive mount returned matching SHA-256 hashes after copying all three synthetic files; the Google Drive API subsequently listed all three with expected names and byte lengths. These are **synthetic diagnostics only**, not evidence of real-character visual quality. The working temporary installation is disposable; the reproducible source and lockfile remain on the GitHub research branch.
