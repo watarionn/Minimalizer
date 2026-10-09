@@ -1,6 +1,6 @@
 # CMP-20261009-SA1060-TO-PRODUCTION | Minimalizer 本番リリースキャンペーン
 
-**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C02 IN PROGRESS, C02a complete / C02b ready.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
+**Status: ACTIVE / RELEASE HOLD** (2026-10-09). **Current: C02 IN PROGRESS, C02a and C02b1 research complete / C02b2 ready.** This is a campaign definition and starting snapshot, not an authorization or deployment. Progress tracker data: [JSON](CMP-20261009-SA1060-TO-PRODUCTION.json).
 
 ## Goal and frozen baseline
 
@@ -89,6 +89,13 @@ Important **version provenance conflict**: recovered current Phase04 left_arm = 
 - [Private SHA-pinned 19-file Phase03/04 source archive, visual board and manifest](https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY)
 
 **Next C02b:** real source-bound hair/arm/sleeve/garment quality correction with actual Chromium and holdouts; **not accepted by these numeric audits**. C03 Stage8 original rings, C04 human Golden and C05–C08 release remain unchanged HOLD/BLOCKED.
+
+## C02b1 source-pose corridor evidence (2026-10-09)
+
+- Confirmed pinned original GC001 Phase04 rtmlib COCO17 pose. Source right-arm subset corridors with radius factors 0.20/0.27/0.34 retain **3,096/3,823/4,551** of 6,486 original right_arm pixels and leave **zero of 533** border-connected exact RGB risk pixels in each. They retain one connected component and add zero pixels. This is a geometric source-constraint study, **not an accepted human arm**.
+- **Mandatory fail:** COCO17 wrist score **0.462252 < 0.60**, all pose-confident release checks HOLD. True deployed SVG cost, full Chromium, independent Raden case and human Golden were NOT run/approved for these pose studies. No automatic arm masking or drawing has changed production.
+- [C02b1 numerical audit](../research/SA1060D_C02B1_POSE_CORRIDOR_RISK_20261009.md), [sanitized measurements](../research/evidence/sa1060d_c02b1_coordinate_free_20261009.json), [C02b2 handoff](../handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md), [private variant board](https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY).
+- C02 remains **IN_PROGRESS**. C03 original Stage8 cap HOLD, C04 human Golden PENDING, C05–C08 BLOCKED. No release authorization.
 
 ## On each next-step request
 
