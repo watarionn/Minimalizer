@@ -3776,12 +3776,31 @@
     const outputCanvas = rendered.canvas;
     const shapes = rendered.shapes;
     const rasterMethod = rendered.rasterMethod;
+    // Explicit opt-in from Public route only. The geometry library is diagnostic:
+    // it cannot change shapes, canvas pixels, ownership, or rendering decisions.
+    let publicPolygonAudit = { status: "disabled", testedRings: 0, clipErrors: 0 };
+    if (config.publicPolygonDiagnostics === true) {
+      try {
+        if (root.MinimalizerPublicPolygonGeometry &&
+            typeof root.MinimalizerPublicPolygonGeometry.auditShapes === "function") {
+          publicPolygonAudit = root.MinimalizerPublicPolygonGeometry.auditShapes(
+            shapes, workSize.width, workSize.height,
+          );
+        } else {
+          publicPolygonAudit = { status: "unavailable", testedRings: 0, clipErrors: 0 };
+        }
+      } catch (_) {
+        publicPolygonAudit = { status: "error", testedRings: 0, clipErrors: 1 };
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
       "Content-Type": "image/png",
       "X-Minimalizer-Mode": VERSION,
       "X-Minimalizer-Compute": "browser",
+      "X-Minimalizer-Public-Polygon-Audit": publicPolygonAudit.status,
+      "X-Minimalizer-Public-Polygon-Tested-Rings": String(publicPolygonAudit.testedRings || 0),
       "X-Minimalizer-Analysis": "deterministic-js",
       "X-Minimalizer-Shape-Count": String(shapes.length),
       "X-Minimalizer-Analysis-Size": analysisSize.width + "x" + analysisSize.height,
@@ -3830,6 +3849,7 @@
         workWidth: workSize.width,
         workHeight: workSize.height,
         shapeCount: shapes.length,
+        publicPolygonAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
