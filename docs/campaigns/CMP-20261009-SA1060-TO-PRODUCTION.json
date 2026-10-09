@@ -191,6 +191,16 @@
           "decision": "COLOR_ONLY_REJECTED",
           "canonical_artifact_archive": "PARTIAL_UPLOAD_FAILURE_NEEDS_RETRY",
           "next": "C02b3 source semantics+edges and Raden/Chromium"
+        },
+        {
+          "id": "C02b3",
+          "name": "Source-pinned appearance-only negative arm owner research",
+          "status": "COMPLETE",
+          "type": "non-promoting research",
+          "merge_pr": "#362",
+          "unit_signed_validation": "8/8 PASS",
+          "finding": "3 GrabCut seeds lose 787-790 original source arm edges out of 1353; reject appearance-only pruning, independent Raden/Chromium/human Golden not yet performed",
+          "report": "docs/research/SA1060F_C02B3_APPEARANCE_EDGE_HOLD_20261010.md"
         }
       ]
     },
@@ -206,7 +216,33 @@
         "No substitution of deployed SVG under-budget counts for oversized original Stage8 source rings; signed input immutable",
         "Independent review evidence persisted, no silent cap relaxation"
       ],
-      "evidence": []
+      "evidence": [
+        "docs/research/SA1060G_C03_STAGE8_SIGNED_LOWER_BOUNDS_AND_STRICT_PRUNE_20261010.md",
+        "docs/research/evidence/sa1060g_c03_signed_budget_coordinate_free_20261010.json",
+        "tools/research/c03_stage8_budget_bounds.py",
+        "tests/zerobase/test_c03_stage8_budget_bounds.py",
+        "tools/research/c03_exact_vertex_prune.py",
+        "tests/zerobase/test_c03_exact_vertex_prune.py",
+        "https://drive.google.com/drive/folders/1N48_Ae5CWB8KSO0mEmgHJRJ-4w4AxDvS"
+      ],
+      "checkpoint": {
+        "status": "RESEARCH_NEGATIVE_EVIDENCE_COMPLETE_NOT_POLICY_PASS",
+        "tests": "25/25 signed-source local tests PASS",
+        "original_stage8_cap_unchanged": true,
+        "GC001": {
+          "original": 3604,
+          "cap": 1887,
+          "safe_experimental_existing_vertex_removal": 2,
+          "still_over": 1715
+        },
+        "Raden": {
+          "original": 2370,
+          "cap": 1412,
+          "safe_experimental_existing_vertex_removal": 0,
+          "still_over": 958
+        },
+        "options": "Seek novel source/owner/Chrome-parity topology preserving approach OR get explicit human owner versioned policy decision; no self-certification"
+      }
     },
     {
       "id": "C04",
@@ -280,8 +316,8 @@
       "evidence": []
     }
   ],
-  "next_action": "C02b3 source observer with independent anatomy confidence, Raden + Chromium; retry canonical preservation of C02b2 diagnostic code and private board. Stage8 and human Golden remain HOLD; C05-C08 blocked.",
-  "campaign_latest_evidence": "docs/research/SA1060E_C02B2_COLOR_SENSITIVITY_HOLD_20261009.md",
+  "next_action": "C02 original owner confident anatomical candidate + independent Raden and Chromium; C03 source-equivalent topology or versioned owner-approved policy; C04 candidate-specific 18/78 Golden review. Prior C02b3 research merged; C03 25/25 research checked in; all release gates remain HOLD.",
+  "campaign_latest_evidence": "docs/research/SA1060G_C03_STAGE8_SIGNED_LOWER_BOUNDS_AND_STRICT_PRUNE_20261010.md",
   "execution_policy": {
     "schema": "minimalizer_campaign_continuation_v1",
     "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
