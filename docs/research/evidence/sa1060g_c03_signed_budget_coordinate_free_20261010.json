@@ -1,0 +1,58 @@
+{
+  "schema": "minimalizer_c03_signed_budget_negative_research_v1",
+  "recorded_on": "2026-10-10",
+  "authority": "SIGNED_SOURCE_SCENES",
+  "promotion": "RESEARCH_ONLY_HOLD",
+  "cases": [
+    {
+      "case": "GC001",
+      "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+      "scene_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+      "metrics_sha256": "a3ca4f09a033603692e775f2587052c5e9e0112dd3b1868039c655ee1e4c085c",
+      "original_source_ring_vertices": 3604,
+      "immutable_source_cap": 1887,
+      "source_cap_excess": 1717,
+      "all_small_rings_le_16_hypothetically_deleted_vertices": 544,
+      "remaining_after_illegal_small_ring_deletion": 3060,
+      "strict_two_scale_existing_vertex_candidate_saved": 2,
+      "candidate_ring_vertices": 3602,
+      "candidate_still_over_cap": 1715
+    },
+    {
+      "case": "Raden",
+      "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+      "scene_sha256": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+      "metrics_sha256": "ea9415e172b17c6a52fb668c5183809af11d33afec809a308e90c1e58ecd501f",
+      "original_source_ring_vertices": 2370,
+      "immutable_source_cap": 1412,
+      "source_cap_excess": 958,
+      "all_small_rings_le_16_hypothetically_deleted_vertices": 161,
+      "remaining_after_illegal_small_ring_deletion": 2209,
+      "strict_two_scale_existing_vertex_candidate_saved": 0,
+      "candidate_ring_vertices": 2370,
+      "candidate_still_over_cap": 958
+    }
+  ],
+  "tests": {
+    "signed_source_budget_bounds": {
+      "passed": 15,
+      "failed": 0
+    },
+    "strict_two_scale_vertex_prune": {
+      "passed": 10,
+      "failed": 0
+    },
+    "total_passed": 25,
+    "total_failed": 0
+  },
+  "limitations": {
+    "whole_scene_chromium": "NOT_RUN",
+    "approved18_78": "NOT_RUN",
+    "semantic_owner": "NOT_PROVEN",
+    "human_golden": "PENDING",
+    "source_stage8_policy": "UNCHANGED_HOLD",
+    "release_authorized": false,
+    "deployment_verified": false,
+    "production_changed": false
+  }
+}
