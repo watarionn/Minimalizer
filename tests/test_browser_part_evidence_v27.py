@@ -105,10 +105,7 @@ console.log(JSON.stringify({
 }));
 """)
     assert got=={"clothes":0,"left":0,"known":"unavailable",
-      "pose":"pose_observed","unbound":1,"owner":"unbound"} or (
-      got["clothes"]==0 and got["left"]==0 and got["unbound"]==1
-      and got["owner"]=="unbound"
-    )
+      "pose":"withheld_unverified_pose","unbound":1,"owner":"unbound"}
 
 @pytest.mark.skipif(not shutil.which("node"),reason="Node unavailable")
 def test_malformed_foreground_or_v26_not_accepted():
