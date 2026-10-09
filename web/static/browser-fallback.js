@@ -3895,6 +3895,22 @@
           rejectedShapes:0,rasterDifferentPixels:0};
       }
     }
+    // Opt-in VTracer traces ONLY the fully rendered Public output canvas.
+    // The traced SVG is diagnostic and NEVER applied to the result PNG/SVG.
+    let publicVTracerAudit = {status:"disabled",applied:false,
+      changedPixels:null,pixelExact:false};
+    if (config.publicVTracerResearch === true) {
+      try {
+        const observer = config.publicVTracerObserver;
+        publicVTracerAudit = observer && typeof observer.auditCanvas === "function"
+          ? await observer.auditCanvas(outputCanvas)
+          : {status:"unavailable",applied:false,
+              changedPixels:null,pixelExact:false};
+      } catch (_) {
+        publicVTracerAudit = {status:"error",applied:false,
+          changedPixels:null,pixelExact:false};
+      }
+    }
     const blob = await canvasToBlob(outputCanvas);
     const elapsed = performance.now() - started;
     const headers = new Headers({
@@ -3909,6 +3925,11 @@
       "X-Minimalizer-Public-SVGO-Audit": publicSvgoAudit.status,
       "X-Minimalizer-Public-RESVG-Audit": publicResvgAudit.status,
       "X-Minimalizer-Public-Clipper2-Audit": publicClipper2Audit.status,
+      "X-Minimalizer-Public-VTracer-Audit": publicVTracerAudit.status,
+      "X-Minimalizer-Public-VTracer-Exact": publicVTracerAudit.pixelExact ? "1" : "0",
+      "X-Minimalizer-Public-VTracer-Changed-Pixels": String(
+        Number.isFinite(publicVTracerAudit.changedPixels)
+          ? publicVTracerAudit.changedPixels : -1),
       "X-Minimalizer-Public-Clipper2-Exact-Shapes": String(publicClipper2Audit.exactShapes || 0),
       "X-Minimalizer-Public-Clipper2-Rejected-Shapes": String(publicClipper2Audit.rejectedShapes || 0),
       "X-Minimalizer-Public-Clipper2-Different-Pixels": String(publicClipper2Audit.rasterDifferentPixels || 0),
@@ -3983,6 +4004,7 @@
         publicSvgoAudit,
         publicResvgAudit,
         publicClipper2Audit,
+        publicVTracerAudit,
         processingMs: elapsed,
         meanContourIoU: analysis.metrics.meanContourIoU,
         contourMethod: analysis.metrics.contourMethod,
