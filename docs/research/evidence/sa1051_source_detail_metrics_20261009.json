@@ -1,0 +1,579 @@
+{
+  "stage": "SA10.51",
+  "schema": "signed-chromium-dead-trim-reclaim-face-color-budget-v1",
+  "chromium": "144.0.7559.96",
+  "cases": {
+    "Raden": {
+      "case": "Raden",
+      "source_sha256": {
+        "Raden_source.png": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+        "phase8_adaptive_source_contour_research.json": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+        "signed_full_opencv_reference.png": "749fc372e293de4a839b13dc2196d5576e98d2f5c784d73449ca2f96ab074a92",
+        "full_character_vector.svg": "ecc48fcf20a85b584a421bbd7f485c40c1c0bab6cd536049a73a61d4d7ac97db",
+        "signed_face_stage04_mask.png": "a192ef05aa3ae2cc42e249cb311349d82dd5e4115c1aa438c7a3205ba0d4ec2f",
+        "signed_left_arm_stage04_mask.png": "6872bd01fb350b5ce2b5ec09b44feaa2c46cc442aa327cccc0e8681db33b404e",
+        "signed_right_arm_stage04_mask.png": "79829023fd293e16a619dbc7b84736ca3d2ac172ac442c04d35bc1a3eae13025"
+      },
+      "immutable_champion_svg_sha256": "8a2ea697b81e8d1c6ee1ac35e8a1b2264932b1091dcd6cc06f25c35ae5bd3345",
+      "baseline_vertices": 1409,
+      "budget": 1412,
+      "champion_legacy_flat_opencv_error": 882,
+      "dead_trim_composite_proof": {
+        "source_trim_count": 50,
+        "removed_count": 28,
+        "saved_expanded_vertices": 112,
+        "preserved_count": 22,
+        "removed_mask_count_by_owner": {
+          "sa1041-owner-1": 27,
+          "sa1041-owner-4": 1
+        },
+        "all_old_chromium_pixels_unchanged": true
+      },
+      "trimmed_exact_account": {
+        "mask_and_color_vertices": 1297,
+        "face_and_material_path_vertices": 0,
+        "expanded_deployed_vertices": 1297,
+        "live_protected_trim_rectangles": 22,
+        "source_color_polygon_vertices": 12,
+        "signed_face_mask_references": 1
+      },
+      "face_policy": {
+        "k": 4,
+        "epsilon": 3.0,
+        "min_area": 7
+      },
+      "face_options": [
+        {
+          "epsilon": 1.4,
+          "min_area": 7,
+          "vertices": 1520,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 1.4,
+          "min_area": 15,
+          "vertices": 1511,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 1.8,
+          "min_area": 7,
+          "vertices": 1462,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 1.8,
+          "min_area": 15,
+          "vertices": 1454,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 2.0,
+          "min_area": 7,
+          "vertices": 1443,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 2.0,
+          "min_area": 15,
+          "vertices": 1436,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 2.5,
+          "min_area": 7,
+          "vertices": 1422,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 2.5,
+          "min_area": 15,
+          "vertices": 1416,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 3.0,
+          "min_area": 7,
+          "vertices": 1400,
+          "feature_path_vertices": 103,
+          "budget_fit": true,
+          "face_mae": 35.793353,
+          "foreground_mae": 28.405862
+        },
+        {
+          "epsilon": 3.0,
+          "min_area": 15,
+          "vertices": 1394,
+          "feature_path_vertices": 97,
+          "budget_fit": true,
+          "face_mae": 36.006005,
+          "foreground_mae": 28.418267
+        },
+        {
+          "epsilon": 4.0,
+          "min_area": 7,
+          "vertices": 1367,
+          "feature_path_vertices": 70,
+          "budget_fit": true,
+          "face_mae": 39.008967,
+          "foreground_mae": 28.593452
+        },
+        {
+          "epsilon": 4.0,
+          "min_area": 15,
+          "vertices": 1367,
+          "feature_path_vertices": 70,
+          "budget_fit": true,
+          "face_mae": 39.008967,
+          "foreground_mae": 28.593452
+        },
+        {
+          "epsilon": 5.0,
+          "min_area": 7,
+          "vertices": 1347,
+          "feature_path_vertices": 50,
+          "budget_fit": true,
+          "face_mae": 40.620517,
+          "foreground_mae": 28.687466
+        },
+        {
+          "epsilon": 5.0,
+          "min_area": 15,
+          "vertices": 1347,
+          "feature_path_vertices": 50,
+          "budget_fit": true,
+          "face_mae": 40.620517,
+          "foreground_mae": 28.687466
+        },
+        {
+          "epsilon": 6.0,
+          "min_area": 7,
+          "vertices": 1338,
+          "feature_path_vertices": 41,
+          "budget_fit": true,
+          "face_mae": 42.43822,
+          "foreground_mae": 28.793506
+        },
+        {
+          "epsilon": 6.0,
+          "min_area": 15,
+          "vertices": 1338,
+          "feature_path_vertices": 41,
+          "budget_fit": true,
+          "face_mae": 42.43822,
+          "foreground_mae": 28.793506
+        },
+        {
+          "epsilon": 8.0,
+          "min_area": 7,
+          "vertices": 1324,
+          "feature_path_vertices": 27,
+          "budget_fit": true,
+          "face_mae": 46.038006,
+          "foreground_mae": 29.003508
+        },
+        {
+          "epsilon": 8.0,
+          "min_area": 15,
+          "vertices": 1324,
+          "feature_path_vertices": 27,
+          "budget_fit": true,
+          "face_mae": 46.038006,
+          "foreground_mae": 29.003508
+        },
+        {
+          "epsilon": 10.0,
+          "min_area": 7,
+          "vertices": 1314,
+          "feature_path_vertices": 17,
+          "budget_fit": true,
+          "face_mae": 49.640507,
+          "foreground_mae": 29.213669
+        },
+        {
+          "epsilon": 10.0,
+          "min_area": 15,
+          "vertices": 1314,
+          "feature_path_vertices": 17,
+          "budget_fit": true,
+          "face_mae": 49.640507,
+          "foreground_mae": 29.213669
+        }
+      ],
+      "face_feature_path_vertices": 103,
+      "extra_face_mask_reference_vertex_occurrences": 0,
+      "accepted_material_details": [
+        {
+          "role": "major_clothing",
+          "feature_path_vertices": 9,
+          "total_vertices": 1409,
+          "epsilon": 2.5,
+          "replace_source_owner_base": false,
+          "source_color_rgb": [
+            202,
+            188,
+            181
+          ],
+          "foreground_mae_after": 28.004238,
+          "owner_mae_before": 39.229261,
+          "owner_mae_after": 31.880201
+        },
+        {
+          "role": "lower_body",
+          "feature_path_vertices": 3,
+          "total_vertices": 1412,
+          "epsilon": 5.0,
+          "replace_source_owner_base": false,
+          "source_color_rgb": [
+            66,
+            65,
+            68
+          ],
+          "foreground_mae_after": 27.929286,
+          "owner_mae_before": 23.385828,
+          "owner_mae_after": 20.488778
+        }
+      ],
+      "rejected_material_details": [
+        {
+          "role": "torso",
+          "why": "no source-improving source-pixel-only paint candidate within real vertex budget"
+        },
+        {
+          "role": "hair",
+          "why": "no source-improving source-pixel-only paint candidate within real vertex budget"
+        }
+      ],
+      "strict_account": {
+        "mask_and_color_vertices": 1297,
+        "face_and_material_path_vertices": 115,
+        "expanded_deployed_vertices": 1412,
+        "live_protected_trim_rectangles": 22,
+        "source_color_polygon_vertices": 12,
+        "signed_face_mask_references": 1
+      },
+      "prior_source_fidelity": {
+        "face_rgb_mae": 50.752632,
+        "foreground_rgb_mae": 29.278547,
+        "left_arm_changed_vs_champion": 0,
+        "right_arm_changed_vs_champion": 0,
+        "outside_signed_face_changed_vs_champion": 0
+      },
+      "budget_source_fidelity": {
+        "face_rgb_mae": 35.793353,
+        "foreground_rgb_mae": 27.929286,
+        "left_arm_changed_vs_champion": 0,
+        "right_arm_changed_vs_champion": 0,
+        "outside_signed_face_changed_vs_champion": 455
+      },
+      "geometric_budget_pass": true,
+      "signed_arms_unchanged": true,
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    },
+    "GC001": {
+      "case": "GC001",
+      "source_sha256": {
+        "GC001_source.png": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+        "phase8_adaptive_source_contour_research.json": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+        "full_character_vector.svg": "0f10af9aaddad0ee96c7acbafb73361ee0000ee6833b9d581025659895718b34",
+        "signed_full_opencv_reference.png": "b155651a9aac6979472f391564756a3866ab0ed4fe0e955af58a3ab3557d39c9",
+        "signed_face_stage04_mask.png": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f",
+        "signed_left_arm_stage04_mask.png": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+        "signed_right_arm_stage04_mask.png": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+        "full_character_svg_metrics.json": "c0d4a730289024090f4a77fe61563d56de32e7e9158790a29768a546e0265cc2"
+      },
+      "immutable_champion_svg_sha256": "e20afd2588a55bbaf74d5c567bc5a33165ed3aedd29734f5fc7a6b084116a61f",
+      "baseline_vertices": 1883,
+      "budget": 1887,
+      "champion_legacy_flat_opencv_error": 1871,
+      "dead_trim_composite_proof": {
+        "source_trim_count": 53,
+        "removed_count": 49,
+        "saved_expanded_vertices": 196,
+        "preserved_count": 4,
+        "removed_mask_count_by_owner": {
+          "sa1041-owner-0": 28,
+          "sa1041-owner-1": 8,
+          "sa1041-owner-4": 7,
+          "sa1041-owner-5": 2,
+          "sa1041-owner-6": 1,
+          "sa1041-owner-8": 3
+        },
+        "all_old_chromium_pixels_unchanged": true
+      },
+      "trimmed_exact_account": {
+        "mask_and_color_vertices": 1687,
+        "face_and_material_path_vertices": 0,
+        "expanded_deployed_vertices": 1687,
+        "live_protected_trim_rectangles": 4,
+        "source_color_polygon_vertices": 55,
+        "signed_face_mask_references": 1
+      },
+      "face_policy": {
+        "k": 4,
+        "epsilon": 1.8,
+        "min_area": 7
+      },
+      "face_options": [
+        {
+          "epsilon": 1.4,
+          "min_area": 7,
+          "vertices": 1897,
+          "budget_fit": false
+        },
+        {
+          "epsilon": 1.4,
+          "min_area": 15,
+          "vertices": 1880,
+          "feature_path_vertices": 193,
+          "budget_fit": true,
+          "face_mae": 31.13598,
+          "foreground_mae": 45.806645
+        },
+        {
+          "epsilon": 1.8,
+          "min_area": 7,
+          "vertices": 1859,
+          "feature_path_vertices": 172,
+          "budget_fit": true,
+          "face_mae": 29.404429,
+          "foreground_mae": 45.651474
+        },
+        {
+          "epsilon": 1.8,
+          "min_area": 15,
+          "vertices": 1844,
+          "feature_path_vertices": 157,
+          "budget_fit": true,
+          "face_mae": 29.673486,
+          "foreground_mae": 45.675585
+        },
+        {
+          "epsilon": 2.0,
+          "min_area": 7,
+          "vertices": 1831,
+          "feature_path_vertices": 144,
+          "budget_fit": true,
+          "face_mae": 30.920397,
+          "foreground_mae": 45.787325
+        },
+        {
+          "epsilon": 2.0,
+          "min_area": 15,
+          "vertices": 1825,
+          "feature_path_vertices": 138,
+          "budget_fit": true,
+          "face_mae": 31.028425,
+          "foreground_mae": 45.797006
+        },
+        {
+          "epsilon": 2.5,
+          "min_area": 7,
+          "vertices": 1800,
+          "feature_path_vertices": 113,
+          "budget_fit": true,
+          "face_mae": 32.074877,
+          "foreground_mae": 45.890783
+        },
+        {
+          "epsilon": 2.5,
+          "min_area": 15,
+          "vertices": 1797,
+          "feature_path_vertices": 110,
+          "budget_fit": true,
+          "face_mae": 32.045439,
+          "foreground_mae": 45.888145
+        },
+        {
+          "epsilon": 3.0,
+          "min_area": 7,
+          "vertices": 1776,
+          "feature_path_vertices": 89,
+          "budget_fit": true,
+          "face_mae": 34.638242,
+          "foreground_mae": 46.120495
+        },
+        {
+          "epsilon": 3.0,
+          "min_area": 15,
+          "vertices": 1773,
+          "feature_path_vertices": 86,
+          "budget_fit": true,
+          "face_mae": 34.608804,
+          "foreground_mae": 46.117857
+        },
+        {
+          "epsilon": 4.0,
+          "min_area": 7,
+          "vertices": 1742,
+          "feature_path_vertices": 55,
+          "budget_fit": true,
+          "face_mae": 37.537371,
+          "foreground_mae": 46.380297
+        },
+        {
+          "epsilon": 4.0,
+          "min_area": 15,
+          "vertices": 1742,
+          "feature_path_vertices": 55,
+          "budget_fit": true,
+          "face_mae": 37.537371,
+          "foreground_mae": 46.380297
+        },
+        {
+          "epsilon": 5.0,
+          "min_area": 7,
+          "vertices": 1718,
+          "feature_path_vertices": 31,
+          "budget_fit": true,
+          "face_mae": 41.288029,
+          "foreground_mae": 46.716408
+        },
+        {
+          "epsilon": 5.0,
+          "min_area": 15,
+          "vertices": 1718,
+          "feature_path_vertices": 31,
+          "budget_fit": true,
+          "face_mae": 41.288029,
+          "foreground_mae": 46.716408
+        },
+        {
+          "epsilon": 6.0,
+          "min_area": 7,
+          "vertices": 1713,
+          "feature_path_vertices": 26,
+          "budget_fit": true,
+          "face_mae": 40.968334,
+          "foreground_mae": 46.687759
+        },
+        {
+          "epsilon": 6.0,
+          "min_area": 15,
+          "vertices": 1713,
+          "feature_path_vertices": 26,
+          "budget_fit": true,
+          "face_mae": 40.968334,
+          "foreground_mae": 46.687759
+        },
+        {
+          "epsilon": 8.0,
+          "min_area": 7,
+          "vertices": 1705,
+          "feature_path_vertices": 18,
+          "budget_fit": true,
+          "face_mae": 43.993383,
+          "foreground_mae": 46.958845
+        },
+        {
+          "epsilon": 8.0,
+          "min_area": 15,
+          "vertices": 1705,
+          "feature_path_vertices": 18,
+          "budget_fit": true,
+          "face_mae": 43.993383,
+          "foreground_mae": 46.958845
+        },
+        {
+          "epsilon": 10.0,
+          "min_area": 7,
+          "vertices": 1700,
+          "feature_path_vertices": 13,
+          "budget_fit": true,
+          "face_mae": 46.798663,
+          "foreground_mae": 47.210236
+        },
+        {
+          "epsilon": 10.0,
+          "min_area": 15,
+          "vertices": 1700,
+          "feature_path_vertices": 13,
+          "budget_fit": true,
+          "face_mae": 46.798663,
+          "foreground_mae": 47.210236
+        }
+      ],
+      "face_feature_path_vertices": 172,
+      "extra_face_mask_reference_vertex_occurrences": 0,
+      "accepted_material_details": [
+        {
+          "role": "major_clothing",
+          "feature_path_vertices": 23,
+          "total_vertices": 1882,
+          "epsilon": 3.5,
+          "replace_source_owner_base": true,
+          "source_color_rgb": [
+            245,
+            245,
+            255
+          ],
+          "foreground_mae_after": 44.728182,
+          "owner_mae_before": 62.611601,
+          "owner_mae_after": 49.130803
+        }
+      ],
+      "rejected_material_details": [
+        {
+          "role": "lower_body",
+          "why": "no source-improving source-pixel-only paint candidate within real vertex budget"
+        },
+        {
+          "role": "torso",
+          "why": "no source-improving source-pixel-only paint candidate within real vertex budget"
+        },
+        {
+          "role": "hair",
+          "why": "no source-improving source-pixel-only paint candidate within real vertex budget"
+        }
+      ],
+      "strict_account": {
+        "mask_and_color_vertices": 1687,
+        "face_and_material_path_vertices": 195,
+        "expanded_deployed_vertices": 1882,
+        "live_protected_trim_rectangles": 4,
+        "source_color_polygon_vertices": 55,
+        "signed_face_mask_references": 1
+      },
+      "prior_source_fidelity": {
+        "face_rgb_mae": 54.76666,
+        "foreground_rgb_mae": 47.924278,
+        "left_arm_changed_vs_champion": 0,
+        "right_arm_changed_vs_champion": 0,
+        "outside_signed_face_changed_vs_champion": 0
+      },
+      "budget_source_fidelity": {
+        "face_rgb_mae": 29.404429,
+        "foreground_rgb_mae": 44.728182,
+        "left_arm_changed_vs_champion": 0,
+        "right_arm_changed_vs_champion": 0,
+        "outside_signed_face_changed_vs_champion": 3358
+      },
+      "geometric_budget_pass": true,
+      "signed_arms_unchanged": true,
+      "human_visual_review": "PENDING",
+      "full_character_golden": "HOLD",
+      "production_deployment": "UNCHANGED"
+    }
+  },
+  "two_case_proven_dead_trim_pass": true,
+  "two_case_expanded_vertex_budget_pass": true,
+  "two_case_source_face_fidelity_improved": true,
+  "two_case_signed_arms_stable": true,
+  "source_colors_only": true,
+  "generated_or_raster_embedded": false,
+  "historical_source_ring_budget_pass": false,
+  "full_character_golden": "HOLD",
+  "human_visual_review": "PENDING",
+  "production_deployment": "UNCHANGED",
+  "artifact_sha256": {
+    "gc001_budget_detail.png": "40e54db4a3bb600660ed58e420d554eac6991d65f45b2b4fafa610481c5333db",
+    "gc001_budget_detail.svg": "41cde0b45192ebb276d0003c6449a1abd1ce2e48e1435a164a48831176782903",
+    "gc001_previous_champion.png": "68396ac2c03c4431de2caf0d8b84f8f84a44dcabbddea4660558765c8dc6e129",
+    "raden_budget_detail.png": "8dbf8749c43c76af86975496e2fa936d0c517f5a5cf0a93142b05edd1ebb18d3",
+    "raden_budget_detail.svg": "77fcf349ef6bd3fa6862357fbe42f511d6d360e39aa248071aca6315ef939276",
+    "raden_previous_champion.png": "f2712b79d78cf582436fc99970c6374c0792ebd2bf932c3e6a17a67a5fb865c6",
+    "sa1051_two_case_budget_comparison.png": "82e398af7175d9d1b92153fdd68f3cb17874c03ef4091fdc5e7700146ffa1aa3"
+  }
+}
