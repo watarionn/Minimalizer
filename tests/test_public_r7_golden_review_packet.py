@@ -63,7 +63,7 @@ def test_complete_source_contact_sheet_and_unsigned_verdict(tmp_path):
         img=Image.open(tmp_path/"r7"/case["reviewGalleryFile"])
         assert img.size[0]>=340*3
         assert img.size[1]>=340*2
-    review=(tmp_path/"r7"/"GOLDEN_HUMAN_REVIEW_PENDING.md").read_text()
+    review=(tmp_path/"r7"/"GOLDEN_HUMAN_REVIEW_PENDING.md").read_text(encoding="utf-8")
     assert review.count("Human Golden decision: **PENDING**")==3
     assert review.count("overallQualityHumanGolden")==3
 
