@@ -91,7 +91,7 @@ def staged_releases(built:Path,base:Path,canary:Path,recovered:Path):
 
 class RouteHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self,*a,directory=None,**kw):
-        super().__init__(*a,directory=str(self.server.current_root),**kw)
+        super().__init__(*a,directory=str(a[2].current_root),**kw)
     def log_message(self,*args):pass
     def do_GET(self):
         self.directory=str(self.server.current_root)
