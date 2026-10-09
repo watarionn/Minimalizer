@@ -34,7 +34,8 @@ if (browserFallbackQualityParam === "exact") {
 
 function browserFallbackQualityProfile() {
   const quality = window.localStorage.getItem(BROWSER_FALLBACK_QUALITY_STORAGE_KEY);
-  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color", "group"].includes(quality) ? quality : "lite";
+  if (quality === "group") return "group";
+  return ["exact", "sharp", "shape", "facet", "selective", "near", "auto", "plane", "color"].includes(quality) ? quality : "lite";
 }
 
 function browserFallbackStructuralMode() {
