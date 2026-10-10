@@ -32,7 +32,7 @@ def sample():
         review.append({"case":name,"reviewItems":[{"owner":o,"visibleUnoccludedMaskPixels":n[0]}
                             for o,n in masks.items()]})
         packet.append({"case":name,"reviewItems":[{}]*11})
-    return {"cases":review},{"cases":cases},{"cases":packet},{"blockedGateCount":8,"releaseAuthorized":False}
+    return {"cases":review},{"cases":cases},{"cases":packet,"productionReleaseAuthorized":False},{"blockedGateCount":8,"releaseAuthorized":False}
 def test_original_observed_rgb_medoid_is_actual_pixel():
     a=np.array([[10,20,30],[100,110,120],[14,24,34]],dtype=np.uint8)
     assert r45.observed_medoid(a) in a.tolist()
