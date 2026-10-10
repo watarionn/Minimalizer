@@ -1,0 +1,24 @@
+{
+  "schema": "sa1060k_prospective_stage8_input_binding_v1",
+  "scope": "RECOVERED_CURRENT_PHASE04_ONLY_NOT_HISTORICAL_STAGE8_PROOF",
+  "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "source_stage8_scene_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+  "phase03_stage_sha256": "c1485333f581e26ca75e2d425cc09f061ff06d721839777300ee73da829d460c",
+  "phase03_config_sha256": "0984eed6a1967847a60b32365c193ab75c6014ebafab6211b4a2424f4996c05e",
+  "phase04_stage_sha256": "7a73dc4ae03fd4a5d5789a7d0bc8e0103f480cb3ae44a88badc28f06db56ff0e",
+  "phase04_config_sha256": "037d8107f72e15f39c3b4dcc812471933d8edb19512e53be15a226cd5716f8b8",
+  "phase04_mask_raw_sha256": {
+    "face": "e1c4665e07e236b1667af6741a9b25480ea350243de2289c2ff6fbc018f4b293",
+    "left_arm": "cb707edab78c6d0715de5fcb811f6e0595baa53c9f5c8cd3290be420ba06061d",
+    "right_arm": "8829b6865a50abee2fac820cfe250c35e3089a8f5eb4c3754b633a7d1327ac58"
+  },
+  "historical_stage8_used_this_revision": "UNPROVEN",
+  "semantic_owner_quality": "UNPROVEN",
+  "cryptographic_signature": "NONE",
+  "prospective_only": true,
+  "candidate_promoted": false,
+  "human_golden": "PENDING",
+  "original_stage8_budget": "HOLD",
+  "release_authorized": false,
+  "production_changed": false
+}
