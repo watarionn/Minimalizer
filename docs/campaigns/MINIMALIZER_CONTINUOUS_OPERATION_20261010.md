@@ -44,3 +44,36 @@ For each execution, repeat as far as the available run permits:
 As of initial adoption: **C01 COMPLETE; C02 IN_PROGRESS (next C02b3), C03 and C04 HOLD, C05–C08 BLOCKED; production unchanged and release not authorized.** Reference Issue #321 and immutable campaign tracker for evolving truth. This snapshot is not a status promotion.
 
 **Definition of outcome:** The user does not have to manually be the scheduler. The engineering system moves through safe stages, accurately preserves rejected attempts, and asks for human action only where it is truly indispensable.
+
+
+## Execution rule v2: blocked gate is NOT blocked research (2026-10-10)
+
+**This rule governs the active C02b7c2 and subsequent C02/C03/C04 work.** The engineering loop must not terminate merely because an experiment has emitted a valid HOLD or a PR has merged. Hold means *no quality/release promotion*, not no runnable investigation. Split the currently blocked release dependency from runnable preparatory or alternative tasks.
+
+### Precise state machine
+
+| Condition | State | Required next action |
+|---|---|---|
+| Safe coding/test/research step finishes | `CONTINUE` | Save evidence and immediately select another unblocked task within this same invocation |
+| One model cannot be downloaded, dependency unavailable, or approach scores poorly | `ALTERNATE` | Record error + source/weight/license verification status, try a genuinely different candidate/available compute route or switch to C03/C04 |
+| Transport/network timeout, 429, transient GitHub/Drive failure | `RETRYABLE_INFRA` | Retry up to 2 times with short bounded delay, then checkpoint and switch to independent work |
+| Explicit safety, permissions, or policy denial | `PROTECTED_DENIAL` | Do not repeat for the purpose of overcoming the refusal; preserve reason, keep access controls, work on separate permitted task |
+| Signed-source SHA disagreement, owner ambiguity, failed visual/raster, insufficient independent anchors | `QUALITY_HOLD` | No promotion; research other hypotheses, preserve original inputs and report candidate=NONE if needed |
+| Real human Golden, versioned Stage8 policy decision, release authorization or actual iPhone acceptance needed | `WAIT_FOR_OWNER_GATE` | Prepare decision-ready evidence, run other independent tracks, ask owner only when decision is actionable |
+| Truly no remaining safe work, execution cap reached, or irreversible prerequisite absent | `CHECKPOINT_AND_YIELD` | Update main-based campaign tracker/handoff/Issue with exact reentry and explicit uncompleted tasks; no fake completion |
+
+**Before yielding:** query/reconcile latest main, unmerged research branches, Drive evidence; enumerate runnable `C02` / `C03` / `C04` branches and attempt at least one alternative when the primary path is blocked. Never claim that merely passing unit tests clears canonical image quality.
+
+### C02b7c2 concrete alternative queue
+
+1. Search multiple independent *analysis-only* semantic/pose/human-parsing model candidates and inspect real licenses, fixed revision and weight hash; do not treat merely finding a model name as having performed inference.
+2. First perform source-only (signed original image, no Stage8 or candidate mask as model input) inference via direct connected cloud, container or service as actually available. Do not make local/RDC the default. For an untrusted external model, ensure its input/personal-data and license constraints are appropriate before transferring signed image data.
+3. Keep per-observer reproducible model weights SHA, input source SHA, raw output/confidence, calibration evidence and independence audit. A model's self-reported confidence is **not** calibrated simply because it is a number. When the validation fails, preserve abstention and try another model family.
+4. In parallel, continue independent Stage8 original-source ring budget work, source-owner integrity checks and C04 reviewer packet preparation. Candidate-specific original-source equality, Approved18/78, canonical Chromium DPR1/DPR2 and authentic human Golden remain mandatory before any release path can be promoted.
+5. Persist nonpromoting rejected candidate results in a single batch where sensible; do not generate a proliferation of one tiny PR or ask the owner to say `次の工程を完了させて` between hypotheses.
+
+### Observable run handoff
+
+Every real invocation should checkpoint: UTC/JST run timestamp, main/head at start and end, operations attempted, count and kind of validations, links for any new commits/PR/Drive archive, precise failure state (`RETRYABLE_INFRA` vs `PROTECTED_DENIAL` vs `QUALITY_HOLD`), next runnable batch, and protected human gates. Separate "research complete" from "quality approved" and "production verified". A scheduled wakeup is not an always-on worker; if uninterrupted compute becomes useful, use a separately implemented, authorized job runner.
+
+**Stop criterion:** Not `C02 QUALITY_HOLD` alone. Stop the invocation only at `CHECKPOINT_AND_YIELD` after exhausting safe independent work feasible inside available execution time, or when genuinely owner-protected actions are the only possible way forward.
