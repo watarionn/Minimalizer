@@ -56,6 +56,6 @@ The source-medoid color candidate does **not** demonstrate robust held-out impro
 
 ## Tests and handoff
 
-Prior R1–R41 selected regressions = **211 PASS**. The new R42–R48 test cases = **13 PASS** and R49 tests = **3 PASS**. Final full regression must be checked before promoting the combined **227 PASS** statement. All new code and source-free reports in Draft GitHub; private source-derived PNGs, RGB proposals and spatial-validation JSON remain in `chatGPT及びCodex用/MinimalizerPublic/LibraryConvergence_R42_R49_20261010` with independent SHA readback.
+Prior R1–R41 selected regressions = **211 PASS**. The new R42–R48 test cases = **13 PASS** and R49 tests = **3 PASS**. The final selected Public R1–R49 and Local/Public isolation regression was rerun in the genuine Windows test environment: **227/227 pytest PASS**. All new code and source-free reports in Draft GitHub; private source-derived PNGs, RGB proposals and spatial-validation JSON remain in `chatGPT及びCodex用/MinimalizerPublic/LibraryConvergence_R42_R49_20261010` with independent SHA readback.
 
 **Next meaningful step:** independently sourced/pinned photo annotation of arms, clothing, accessory and overlap *before* any model-based source-only owner correction. Do not try to reduce training MAE by repainting protected parts, new details, fabricated palettes or Stage8 cap reclassification. Release stays **NO-GO**.
