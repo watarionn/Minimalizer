@@ -10,7 +10,7 @@ import pytest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
 from research_public_r12_exact_raster_prune import SOURCE
-import research_public_r18_dual_renderer_prune as r18
+import verify_public_r18_dual_renderer_prune as r18
 from research_public_r17_consecutive_vertex_prune import masks
 from verify_public_v34_svgo_chrome import chrome_driver
 from verify_public_r17_chrome_owner import svg_for_owner
