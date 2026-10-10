@@ -1,0 +1,173 @@
+{
+  "schema": "minimalizer_c02b4_alpha_rgb_owner_evidence_v1",
+  "status": "RESEARCH_ONLY_C02_HOLD",
+  "source_shas": {
+    "GC001": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "Raden": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00"
+  },
+  "stage8_shas": {
+    "GC001": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+    "Raden": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f"
+  },
+  "cases": {
+    "GC001": {
+      "stage8_owner_evidence": {
+        "right_arm": {
+          "owner_pixels": 6510,
+          "owner_on_alpha_zero": 3,
+          "owner_on_alpha_partial": 38,
+          "owner_on_alpha_opaque": 6469,
+          "owner_on_border_connected_rgb": 533,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 13,
+          "rgb_overlap_alpha_opaque": 520
+        },
+        "left_arm": {
+          "owner_pixels": 2718,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 2718,
+          "owner_on_border_connected_rgb": 0,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 0
+        },
+        "hair": {
+          "owner_pixels": 14605,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 14605,
+          "owner_on_border_connected_rgb": 30,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 30
+        },
+        "major_clothing": {
+          "owner_pixels": 3741,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 3741,
+          "owner_on_border_connected_rgb": 2,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 2
+        },
+        "face": {
+          "owner_pixels": 4937,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 4937,
+          "owner_on_border_connected_rgb": 0,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 0
+        }
+      },
+      "phase04_to_stage8_lineage_observation": {
+        "right_arm": {
+          "current_phase04_pixels": 6486,
+          "stage8_owner_pixels": 6510,
+          "stage8_only_pixels": 24,
+          "phase04_only_pixels": 0,
+          "xor_pixels": 24,
+          "not_a_causal_attribution": true
+        },
+        "left_arm": {
+          "current_phase04_pixels": 2330,
+          "stage8_owner_pixels": 2718,
+          "stage8_only_pixels": 389,
+          "phase04_only_pixels": 1,
+          "xor_pixels": 390,
+          "not_a_causal_attribution": true
+        },
+        "hair": {
+          "current_phase04_pixels": 17541,
+          "stage8_owner_pixels": 14605,
+          "stage8_only_pixels": 727,
+          "phase04_only_pixels": 3663,
+          "xor_pixels": 4390,
+          "not_a_causal_attribution": true
+        },
+        "major_clothing": {
+          "current_phase04_pixels": 3217,
+          "stage8_owner_pixels": 3741,
+          "stage8_only_pixels": 633,
+          "phase04_only_pixels": 109,
+          "xor_pixels": 742,
+          "not_a_causal_attribution": true
+        },
+        "face": {
+          "current_phase04_pixels": 4937,
+          "stage8_owner_pixels": 4937,
+          "stage8_only_pixels": 0,
+          "phase04_only_pixels": 0,
+          "xor_pixels": 0,
+          "not_a_causal_attribution": true
+        }
+      }
+    },
+    "Raden": {
+      "stage8_owner_evidence": {
+        "right_arm": {
+          "owner_pixels": 9872,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 9872,
+          "owner_on_border_connected_rgb": 2,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 2
+        },
+        "left_arm": {
+          "owner_pixels": 10419,
+          "owner_on_alpha_zero": 74,
+          "owner_on_alpha_partial": 38,
+          "owner_on_alpha_opaque": 10307,
+          "owner_on_border_connected_rgb": 7,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 7
+        },
+        "hair": {
+          "owner_pixels": 19503,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 19503,
+          "owner_on_border_connected_rgb": 0,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 0
+        },
+        "major_clothing": {
+          "owner_pixels": 3773,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 3773,
+          "owner_on_border_connected_rgb": 0,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 0
+        },
+        "face": {
+          "owner_pixels": 4052,
+          "owner_on_alpha_zero": 0,
+          "owner_on_alpha_partial": 0,
+          "owner_on_alpha_opaque": 4052,
+          "owner_on_border_connected_rgb": 0,
+          "rgb_overlap_alpha_zero": 0,
+          "rgb_overlap_alpha_partial": 0,
+          "rgb_overlap_alpha_opaque": 0
+        }
+      },
+      "phase04_to_stage8_lineage_observation": null
+    }
+  },
+  "source_alpha_is_semantic_owner_ground_truth": false,
+  "border_rgb_is_background_ground_truth": false,
+  "visual_golden": "PENDING",
+  "source_stage8_original_budget": "HOLD",
+  "approved18_78": "NOT_RUN",
+  "chromium": "NOT_RUN",
+  "release_authorized": false,
+  "production_changed": false
+}
