@@ -6,6 +6,7 @@ routines, Golden pixels, Local Worker or active deployment are modified.
 """
 from __future__ import annotations
 import argparse
+import base64
 import hashlib
 import http.server
 import importlib.util
@@ -19,7 +20,8 @@ from pathlib import Path
 from verify_public_r9_cache_rollback import (
     BROWSER_SAMPLE, ROUTES, RouteHandler, browser_rows, verify_no_go,
     VERSION as R9_VERSION)
-from verify_public_v34_svgo_chrome import chrome_driver
+from verify_public_v34_svgo_chrome import chrome_driver, check_sha
+from verify_public_r5_route_chrome import JS_RUN as R5_CONVERSION_JS
 
 ROOT=Path(__file__).resolve().parents[1]
 PUBLIC=ROOT/"web"/"static"
@@ -155,9 +157,27 @@ def require_sha_matches(record:dict,release_id:str,assets:dict)->None:
         if row["sha256"]!=assets[name]:
             raise ValueError("Chrome unexpected bytes: "+name)
 
-def run(r6:Path,r8:Path,r9:Path,out:Path)->dict:
+
+def conversion_smoke(driver,source:bytes)->dict:
+    event=driver.execute_async_script(R5_CONVERSION_JS,base64.b64encode(source).decode("ascii"))
+    if not event.get("ok"):
+        raise ValueError("versioned Public browser conversion failed: "+repr(event))
+    png=base64.b64decode(event["png"],validate=True)
+    if not png.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("versioned Public returned non-PNG result")
+    observed=event.get("shaStatus")
+    actual=digest(png)
+    if not observed or observed.get("status")!="ok" or observed.get("sha256")!=actual:
+        raise ValueError("opt-in shadow module failed from versioned asset root")
+    return {"pngSHA256":actual,"pngBytes":len(png),
+            "shadowStatus":observed["status"],"byteExactObserver":True}
+
+def run(r6:Path,r8:Path,r9:Path,v32:Path,out:Path)->dict:
     if out.exists():raise FileExistsError("R10 evidence output exists")
     provenance=verify_no_go(r6,r8)
+    fixture=v32/'Kyoko_connected_fine.png'
+    check_sha(v32,'v32_evidence_manifest.json',fixture)
+    test_source=fixture.read_bytes()
     prior=json.loads(r9.read_text(encoding="utf-8"))
     if prior.get("version")!=R9_VERSION or (
         prior.get("status")!="CACHE_SIMULATION_VERIFIED_PRODUCTION_NO_GO" or
@@ -192,11 +212,13 @@ def run(r6:Path,r8:Path,r9:Path,out:Path)->dict:
         origin=f"http://127.0.0.1:{srv.server_port}/"
         try:
             driver.set_script_timeout(120)
-            driver.get(origin)
+            driver.get(origin+"?browserFallbackQuality=lite&publicR5Shadow=1&r10=baseline")
+            baseline_smoke=conversion_smoke(driver,test_source)
             baseline=browser_hashes(driver,old["releaseId"])
             require_sha_matches(baseline,old["releaseId"],old["stagedAssetSHA256"])
             (research/"index.html").write_bytes((research/"new_index.html").read_bytes())
-            driver.get(origin+"?r10=cutover")
+            driver.get(origin+"?browserFallbackQuality=lite&publicR5Shadow=1&r10=cutover")
+            canary_smoke=conversion_smoke(driver,test_source)
             current=browser_hashes(driver,new["releaseId"])
             require_sha_matches(current,new["releaseId"],new["stagedAssetSHA256"])
             # Old HTML browser tabs may still reference OLD immutable asset URLs.
@@ -204,12 +226,20 @@ def run(r6:Path,r8:Path,r9:Path,out:Path)->dict:
             old_tab=browser_hashes(driver,old["releaseId"])
             require_sha_matches(old_tab,old["releaseId"],old["stagedAssetSHA256"])
             (research/"index.html").write_bytes((research/"old_index.html").read_bytes())
-            driver.get(origin+"?r10=rollback")
+            driver.get(origin+"?browserFallbackQuality=lite&publicR5Shadow=1&r10=rollback")
+            restored_smoke=conversion_smoke(driver,test_source)
             recovered=browser_hashes(driver,old["releaseId"])
             require_sha_matches(recovered,old["releaseId"],old["stagedAssetSHA256"])
             # No stale cross-release mixing, even while both asset generations
             # share the same simulated 1h browser cache.
+            if not (baseline_smoke["pngSHA256"]==canary_smoke["pngSHA256"]==restored_smoke["pngSHA256"]):
+                raise ValueError("Public PNG changed during asset-only release switching")
             chrome={"chromeVersion":driver.capabilities.get("browserVersion"),
+                    "goldenInputIsAlreadyMinimalizedFixtureNotSourcePhoto":True,
+                    "conversionSHA256UnchangedAcrossReleases":True,
+                    "baselineBrowserConversion":baseline_smoke,
+                    "canaryBrowserConversion":canary_smoke,
+                    "rollbackBrowserConversion":restored_smoke,
                     "browserDpr":baseline["devicePixelRatio"],
                     "oldAssetsAfterCanaryStillAvailable":True,
                     "newAssetsAfterRollbackStillAvailable":True,
@@ -259,9 +289,9 @@ def run(r6:Path,r8:Path,r9:Path,out:Path)->dict:
 
 def main():
     p=argparse.ArgumentParser()
-    for k in ("r6","r8","r9","out"):
+    for k in ("r6","r8","r9","v32","out"):
         p.add_argument("--"+k,required=True,type=Path)
     args=p.parse_args()
-    run(args.r6,args.r8,args.r9,args.out)
+    run(args.r6,args.r8,args.r9,args.v32,args.out)
 
 if __name__=="__main__":main()
