@@ -142,7 +142,7 @@ class CacheHandler(http.server.SimpleHTTPRequestHandler):
 def browser_hashes(driver,release_id:str)->dict:
     links=[
         "assets/"+release_id+"/static/"+name
-        for name in PROBES]
+        for name in (p.removeprefix("static/") for p in PROBES)]
     return browser_rows(driver,links,"default")
 
 def require_sha_matches(record:dict,release_id:str,assets:dict)->None:
