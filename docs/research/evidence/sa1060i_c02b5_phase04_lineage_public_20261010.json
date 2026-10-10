@@ -1,0 +1,99 @@
+{
+  "schema": "minimalizer-c02b5-signed-phase04-revision-lineage-v1",
+  "original_source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "stage8_source_ring_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+  "current_phase03_phase04_snapshot_sha256": "89286cb1e8cf2003f02ec2dbab2a80dcf3da26b902123255a9cc17767855e434",
+  "historical_reencoded_stage04_mask_sha256": {
+    "right_arm": "4900beccaf0ca4a9ca33600339df77976a4500f1db932fcb240a41907b935b91",
+    "left_arm": "49986981c02f472a888e1717205799c254b16c1bca7ef96beba2dc6b4f696b5f",
+    "face": "b4812364eaec7da9930a18ae85270d6612555d3fb3d80283efcf69b03aa6a72f"
+  },
+  "parts": {
+    "right_arm": {
+      "historical_vs_current": {
+        "a_pixels": 6486,
+        "b_pixels": 6486,
+        "xor_pixels": 0,
+        "a_only_pixels": 0,
+        "b_only_pixels": 0
+      },
+      "historical_vs_stage8": {
+        "a_pixels": 6486,
+        "b_pixels": 6510,
+        "xor_pixels": 24,
+        "a_only_pixels": 0,
+        "b_only_pixels": 24
+      },
+      "current_vs_stage8": {
+        "a_pixels": 6486,
+        "b_pixels": 6510,
+        "xor_pixels": 24,
+        "a_only_pixels": 0,
+        "b_only_pixels": 24
+      },
+      "stage8_source_ref": [
+        "phase04:part_masks/right_arm.png"
+      ]
+    },
+    "left_arm": {
+      "historical_vs_current": {
+        "a_pixels": 2715,
+        "b_pixels": 2330,
+        "xor_pixels": 385,
+        "a_only_pixels": 385,
+        "b_only_pixels": 0
+      },
+      "historical_vs_stage8": {
+        "a_pixels": 2715,
+        "b_pixels": 2718,
+        "xor_pixels": 5,
+        "a_only_pixels": 1,
+        "b_only_pixels": 4
+      },
+      "current_vs_stage8": {
+        "a_pixels": 2330,
+        "b_pixels": 2718,
+        "xor_pixels": 390,
+        "a_only_pixels": 1,
+        "b_only_pixels": 389
+      },
+      "stage8_source_ref": [
+        "phase04:part_masks/left_arm.png"
+      ]
+    },
+    "face": {
+      "historical_vs_current": {
+        "a_pixels": 4937,
+        "b_pixels": 4937,
+        "xor_pixels": 0,
+        "a_only_pixels": 0,
+        "b_only_pixels": 0
+      },
+      "historical_vs_stage8": {
+        "a_pixels": 4937,
+        "b_pixels": 4937,
+        "xor_pixels": 0,
+        "a_only_pixels": 0,
+        "b_only_pixels": 0
+      },
+      "current_vs_stage8": {
+        "a_pixels": 4937,
+        "b_pixels": 4937,
+        "xor_pixels": 0,
+        "a_only_pixels": 0,
+        "b_only_pixels": 0
+      },
+      "stage8_source_ref": [
+        "phase04:part_masks/face.png"
+      ]
+    }
+  },
+  "finding": "STAGE8_LEFT_ARM_RASTER_CLOSE_TO_HISTORICAL_PHASE04_NOT_CURRENT_REVISION",
+  "historical_pixel_similarity_is_not_proof_of_identical_producer_or_config": true,
+  "source_mask_semantic_quality": "NOT_PROVEN",
+  "candidate_promoted": false,
+  "original_stage8_budget": "HOLD",
+  "human_golden": "PENDING",
+  "release_authorized": false,
+  "production_changed": false
+}
