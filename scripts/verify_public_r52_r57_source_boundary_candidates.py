@@ -100,7 +100,10 @@ def graphcut_trust_region(photo:np.ndarray, original:np.ndarray,
     init[original]=cv2.GC_PR_FGD
     core=cv2.erode(original.astype(np.uint8),K11)>0
     init[core]=cv2.GC_FGD
-    if not core.any():raise ValueError("R53 cannot guarantee original core")
+    if not core.any():
+        distances=cv2.distanceTransform(original.astype(np.uint8),cv2.DIST_L2,3)
+        y,x=np.unravel_index(int(distances.argmax()),distances.shape)
+        core[y,x]=True
     bg=np.zeros((1,65),dtype=np.float64)
     fg=np.zeros((1,65),dtype=np.float64)
     result,_,_=cv2.grabCut(np.ascontiguousarray(photo[:,:,::-1]),
