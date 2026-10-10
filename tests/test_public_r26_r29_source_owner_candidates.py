@@ -49,6 +49,7 @@ def test_unsafe_source_masks_are_rejected(wrong):
     elif wrong=="alpha_type":alpha=alpha.astype(float)
     elif wrong=="all_removed":
         bg[:]=True
+        alpha[:]=255
     with pytest.raises(ValueError,match="R26"):
         module.isolate_opaque_exact_border_connected(signed,bg,alpha)
 
