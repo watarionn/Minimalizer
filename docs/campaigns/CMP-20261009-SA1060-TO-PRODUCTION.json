@@ -156,7 +156,12 @@
         "docs/research/SA1060L_C02B7A_PROSPECTIVE_SHA_BINDING_20261010.md",
         "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md",
         "docs/research/evidence/sa1060k_c02b7b_source_boundary_public_20261010.json",
-        "https://drive.google.com/file/d/1wpmGoZSn4xCtsVlysxEHxga-ADAi5o3N/view"
+        "https://drive.google.com/file/d/1wpmGoZSn4xCtsVlysxEHxga-ADAi5o3N/view",
+        "docs/research/SA1060M_C02B7C1_INDEPENDENT_SEMANTIC_ANCHOR_GATE_20261010.md",
+        "docs/research/evidence/sa1060m_c02b7c_coordinate_free_public_20261010.json",
+        "tools/research/c02b7c_independent_owner_evidence_gate.py",
+        "tests/zerobase/test_c02b7c_independent_owner_evidence_gate.py",
+        "https://drive.google.com/file/d/1lB2WHKPQqqlK1-E22l_6xwJr9NgctKpa/view"
       ],
       "substeps": [
         {
@@ -255,6 +260,25 @@
           "result": "Source Canny and overlap/alpha evidence recorded with no semantic ground truth; candidate NONE; no mask edits",
           "code": "tools/research/c02b7b_source_boundary_owner_observer.py",
           "report": "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md"
+        },
+        {
+          "id": "C02b7c",
+          "name": "Obtain independent semantic/pose/part owner observations for signed GC001 and Raden and confidence-bearing abstention",
+          "status": "IN_PROGRESS",
+          "type": "actual observer execution and evidence"
+        },
+        {
+          "id": "C02b7c1",
+          "name": "Implement strict independent source-only semantic anchor evidence gate with abstention",
+          "status": "COMPLETE",
+          "type": "non-promoting safety contract",
+          "tests_signed": "20/20 PASS including GC001 and Raden exact-SHA scenes",
+          "tests_without_private": "16 PASS / 4 SKIP",
+          "actual_source_observers": "NOT_AVAILABLE",
+          "actual_semantic_ground_truth": "NOT_AVAILABLE",
+          "result": "Both cases ABSTAIN_NO_INDEPENDENT_ANCHORS; synthetic independent observer claims can reach review-only, never owner edits or promotion",
+          "report": "docs/research/SA1060M_C02B7C1_INDEPENDENT_SEMANTIC_ANCHOR_GATE_20261010.md",
+          "archive": "https://drive.google.com/file/d/1lB2WHKPQqqlK1-E22l_6xwJr9NgctKpa/view"
         }
       ]
     },
@@ -370,8 +394,8 @@
       "evidence": []
     }
   ],
-  "next_action": "C02b7c: obtain genuinely independent semantic/pose/structural owner anchors with uncertainty/abstention for both GC001 and Raden; do not edit mask on RGB/alpha/Canny alone. Then canonical Chrome + Approved18/78 and candidate-specific human Golden. C03 original Stage8 ring budget HOLD; C04 human Golden PENDING; C05–C08 BLOCKED.",
-  "campaign_latest_evidence": "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md",
+  "next_action": "C02b7c2: obtain real independently audited original-source-only semantic/pose owner anchors for GC001 AND Raden (source content SHA, separate observer lineages/weights, calibrated uncertainty) and run C02b7c1 strict abstention gate. Merely syntactic two-observer agreement is review-only; source-mask ownership, canonical Chrome/Approved18/78/human Golden not yet proven. Preserve C02 IN_PROGRESS, C03 original Stage8 cap HOLD, C04 human Golden PENDING, C05-C08 BLOCKED.",
+  "campaign_latest_evidence": "docs/research/SA1060M_C02B7C1_INDEPENDENT_SEMANTIC_ANCHOR_GATE_20261010.md",
   "execution_policy": {
     "schema": "minimalizer_campaign_continuation_v1",
     "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
