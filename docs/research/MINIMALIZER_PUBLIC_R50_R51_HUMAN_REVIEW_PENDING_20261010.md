@@ -14,7 +14,7 @@ This is a starting point for actual first-party manual review, not an annotation
 
 `scripts/verify_public_r50_r51_human_review_worksheet.py` verifies 10 original reviewer row identities, source/file SHA binding, unchanged CSV schema, no duplicate parts and allowed statuses. `PENDING` remains unapproved. If a future CSV says `ACCEPT_MASK`, `REJECT_MASK`, or `UNCERTAIN`, require a reviewer identifier, date and note. **But this is not a cryptographic signature nor verified human identity**, therefore the resulting record always states human source-owner semantics and Golden approval **FALSE**.
 
-Seven dedicated tests PASS: initialized pending, missing role rejection, forged source SHA rejection, faux human signoff never promoting, unsigned claimed acceptance blocked, tampered R44 source/photo preview rejection and Local/Public code isolation. Combined full R1–R51 regression final test pending final independent rerun before claiming a total pass count.
+Seven dedicated tests PASS: initialized pending, missing role rejection, forged source SHA rejection, faux human signoff never promoting, unsigned claimed acceptance blocked, tampered R44 source/photo preview rejection and Local/Public code isolation. Combined full selected R1–R51 and Local/Public isolation regression **234/234 pytest PASS** on the Windows execution environment.
 
 ## Blocked upstream requirements
 
