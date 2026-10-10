@@ -110,6 +110,44 @@ def confirm_source_and_r17(case:str,source:Path,proposed:Path,audit:Path):
     if masks(current,w,h)!=ref:raise ValueError("R17 changed original OpenCV owner raster")
     return old,variant,ref,cap,w,h
 
+
+def missing_original_indices(before:list,after:list)->list[int]:
+    """R17 accepted points must be an ordered subsequence."""
+    missing=[]
+    k=0
+    for i,point in enumerate(before):
+        if k<len(after) and point==after[k]:
+            k+=1
+        else:
+            missing.append(i)
+    if k!=len(after):raise ValueError("unmatched R17 source point")
+    return missing
+
+def micro_candidates(part:dict,baseline:dict,r17_variant:dict,
+                     reference_mask:bytes,w:int,h:int,
+                     limit:int=360)->list[tuple[int,int,dict]]:
+    """One-point deletions suggested by R17; OpenCV-filter then Chrome."""
+    proposed=[]
+    for index,(old,short) in enumerate(zip(baseline["parameters"]["rings"],
+                                           r17_variant["parameters"]["rings"])):
+        if old["points"]==short["points"]:continue
+        missing=missing_original_indices(old["points"],short["points"])
+        current=part["parameters"]["rings"][index]["points"]
+        for original_index in missing:
+            point=old["points"][original_index]
+            if len(current)<=3:break
+            try:
+                j=current.index(point)
+            except ValueError:
+                continue
+            attempt=copy.deepcopy(part)
+            attempt["parameters"]["rings"][index]["points"]=current[:j]+current[j+1:]
+            sync(attempt)
+            if masks([attempt],w,h)[part["source_mask_owner"]]==reference_mask:
+                proposed.append((index,original_index,attempt))
+            if len(proposed)>=limit:return proposed
+    return proposed
+
 def evaluate(case:str,source:Path,proposed:Path,audit:Path,out:Path)->dict:
     if out.exists():raise FileExistsError("R18 refuses overwriting private research")
     original,proposed_obj,reference,cap,w,h=confirm_source_and_r17(
@@ -143,6 +181,9 @@ def evaluate(case:str,source:Path,proposed:Path,audit:Path,out:Path)->dict:
                            "acceptedRingChanges":0,
                            "acceptedRemovedVertices":0,
                            "rejectedChromeChangedRings":0,
+                           "singleVertexOpenCvExactProposals":0,
+                           "singleVertexChromeExactProposals":0,
+                           "singleVertexCumulativeAccepted":0,
                            "testedNativeAndDpr2":True}
             # Check all proposed rings independently; then check cumulatively.
             for (ring_idx,removed,trial),result in zip(proposed_rings,rows):
@@ -165,6 +206,36 @@ def evaluate(case:str,source:Path,proposed:Path,audit:Path,out:Path)->dict:
                     continue
                 owner_summary["acceptedRingChanges"]+=1
                 owner_summary["acceptedRemovedVertices"]+=removed
+
+            # Second pass: independently probe R17-proposed single original vertices.
+            # A whole-ring Chrome failure does not justify rejecting each point.
+            singles=micro_candidates(part,src,variant,reference[owner],w,h)
+            owner_summary["singleVertexOpenCvExactProposals"]=len(singles)
+            checks=chrome_candidates(browser,baseline,
+                                    [svg_for_owner(item[2]) for item in singles])
+            for (ri,source_idx,trial),diff in zip(singles,checks):
+                if diff["d340"] or diff["d680"]:
+                    continue
+                owner_summary["singleVertexChromeExactProposals"]+=1
+                old_points=part["parameters"]["rings"][ri]["points"]
+                candidate_points=trial["parameters"]["rings"][ri]["points"]
+                # Never blindly apply stale coordinates after another edit.
+                if len(old_points)!=len(candidate_points)+1 or (
+                    not retained_source_subsequence(old_points,candidate_points)):
+                    continue
+                part["parameters"]["rings"][ri]["points"]=copy.deepcopy(candidate_points)
+                sync(part)
+                if masks([part],w,h)[owner]!=reference[owner]:
+                    part["parameters"]["rings"][ri]["points"]=old_points
+                    sync(part)
+                    continue
+                combined=chrome_candidates(browser,baseline,[svg_for_owner(part)])[0]
+                if combined["d340"] or combined["d680"]:
+                    part["parameters"]["rings"][ri]["points"]=old_points
+                    sync(part)
+                    continue
+                owner_summary["singleVertexCumulativeAccepted"]+=1
+                owner_summary["acceptedRemovedVertices"]+=1
             # Final owner validation is compulsory even if no candidate survived.
             final=chrome_candidates(browser,baseline,[svg_for_owner(part)])[0]
             if final["d340"]!=0 or final["d680"]!=0 or masks([part],w,h)[owner]!=reference[owner]:
