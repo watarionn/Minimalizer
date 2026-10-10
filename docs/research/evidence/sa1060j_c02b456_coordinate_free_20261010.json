@@ -1,0 +1,44 @@
+{
+  "schema": "sa1060j-c02b456-coordinate-free-signed-evidence-v1",
+  "recorded_at": "2026-10-10",
+  "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+  "private_source_zip_sha256": "89286cb1e8cf2003f02ec2dbab2a80dcf3da26b902123255a9cc17767855e434",
+  "original_stage8_scene_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+  "C02b4": {
+    "test_result": "15/15 PASS",
+    "GC001_stage8_right_border_rgb_intersection": 533,
+    "GC001_right_opaque": 520,
+    "GC001_right_partial": 13,
+    "Raden_stage8_right_border_rgb_intersection": 2,
+    "Raden_stage8_left_border_rgb_intersection": 7,
+    "alpha_or_RGB_semantic_truth": false
+  },
+  "C02b5": {
+    "test_result": "15/15 PASS",
+    "GC001_historical_Phase04_left": 2715,
+    "current_Phase04_left": 2330,
+    "stage8_left": 2718,
+    "historical_current_XOR": 385,
+    "historical_stage8_XOR": 5,
+    "current_stage8_XOR": 390,
+    "exact_historical_producer_SHA": "NOT_AVAILABLE"
+  },
+  "C02b6": {
+    "test_result": "18/18 PASS two independent tested audit modules",
+    "original_Phase03_stage_sha256": "c1485333f581e26ca75e2d425cc09f061ff06d721839777300ee73da829d460c",
+    "current_Phase04_stage_sha256": "7a73dc4ae03fd4a5d5789a7d0bc8e0103f480cb3ae44a88badc28f06db56ff0e",
+    "Phase03_to_current_Phase04_input_chain": "SHA_VERIFIED",
+    "stage8_mask_input_SHA_for_left_right_face": "MISSING",
+    "exact_Phase04_revision_used_by_stage8": "UNPROVEN",
+    "snapshot_missing_declared_preview": "preview.png"
+  },
+  "total_real_signed_tests_passed": 48,
+  "visual_quality_pass": false,
+  "stage8_original_source_budget": "HOLD",
+  "human_golden": "PENDING",
+  "release_authorized": false,
+  "deployment_verified": false,
+  "production_changed": false,
+  "private_bundle_url": "https://drive.google.com/file/d/1eQA0oklXLqch8doVXv_CHs9SauKmtGQ7/view",
+  "private_bundle_sha256": "7901d23af6d726e7c96b90b3b8ab268475dbb704bb0701d4479e779257c3340c"
+}
