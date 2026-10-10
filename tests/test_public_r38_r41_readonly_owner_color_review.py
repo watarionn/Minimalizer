@@ -57,4 +57,4 @@ def test_original_product_files_unchanged():
     assert '"signedMasksOrColorsModified":False' in source
     assert '"originalPhotosAccessed":False' in source
     for path in ("web/static/public-route.js","local_worker/frontend/local-route.js"):
-        assert "verify_public_r38_r41_readonly_owner_color_review" not in (ROOT/path).read_text()
+        assert "verify_public_r38_r41_readonly_owner_color_review" not in (ROOT/path).read_text(encoding='utf-8')
