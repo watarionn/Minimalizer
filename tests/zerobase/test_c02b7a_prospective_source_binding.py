@@ -1,7 +1,7 @@
 import json,os,sys
 from pathlib import Path
 import pytest
-sys.path.insert(0,str(Path(__file__).parent))
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools/research'))
 import c02b7a_prospective_source_binding as m
 BASE=Path(os.environ.get('SA1060_C02_SIGNED_DIR','/__private_signed_not_available__'))
 SNAP=BASE/'GC001_Phase03_Phase04_ReadOnlySnapshot_20261009.zip'
