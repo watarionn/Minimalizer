@@ -46,8 +46,8 @@ def test_photo_gradient_has_two_independent_color_spaces():
 def test_r55_rejects_connected_component_split_despite_better_source_gradient():
     before=sample_mask()
     after=before.copy()
-    after[110:180,108]=False
-    vals={"changedMaskPixels":70,"sourceMaskAreaRatioChanged":0.01,
+    after[95:180,108]=False
+    vals={"changedMaskPixels":85,"sourceMaskAreaRatioChanged":0.01,
           "changedOutsideSignedOnePixelBoundary":0,
           "changedProtectedOtherOwnerPixels":0}
     old={"sourcePhotoLumGradientMean":20,"sourcePhotoLabChromaGradientMean":20}
