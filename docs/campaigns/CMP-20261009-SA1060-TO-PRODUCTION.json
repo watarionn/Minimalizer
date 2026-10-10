@@ -152,7 +152,11 @@
         "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md",
         "docs/research/SA1060J_C02B456_SIGNED_PROVENANCE_CHAIN_20261010.md",
         "docs/research/evidence/sa1060j_c02b456_coordinate_free_20261010.json",
-        "https://drive.google.com/file/d/1eQA0oklXLqch8doVXv_CHs9SauKmtGQ7/view"
+        "https://drive.google.com/file/d/1eQA0oklXLqch8doVXv_CHs9SauKmtGQ7/view",
+        "docs/research/SA1060L_C02B7A_PROSPECTIVE_SHA_BINDING_20261010.md",
+        "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md",
+        "docs/research/evidence/sa1060k_c02b7b_source_boundary_public_20261010.json",
+        "https://drive.google.com/file/d/1wpmGoZSn4xCtsVlysxEHxga-ADAi5o3N/view"
       ],
       "substeps": [
         {
@@ -231,6 +235,26 @@
           "tests": "18/18 independently authored signed-input tests PASS",
           "result": "current Phase03->Phase04 SHA verified; Stage8 left/right/face refs are path-only without exact phase04 mask content SHA, so historical producer config unresolved",
           "next": "C02b7 source confidence and semantic owner observation; cannot promote without independent Raden/Golden/Chrome"
+        },
+        {
+          "id": "C02b7a",
+          "name": "Prospective content-SHA binding contract for current recovered Phase04 -> future Stage8 input",
+          "status": "COMPLETE",
+          "type": "nonpromoting provenance research",
+          "tests": "9/9 signed source replay PASS",
+          "result": "SHA-pinned prospective sidecar only; cannot retroactively certify historical Stage8 used current Phase04",
+          "code": "tools/research/c02b7a_prospective_source_binding.py",
+          "report": "docs/research/SA1060L_C02B7A_PROSPECTIVE_SHA_BINDING_20261010.md"
+        },
+        {
+          "id": "C02b7b",
+          "name": "Independent GC001 and Raden source-edge and owner-coverage observer",
+          "status": "COMPLETE",
+          "type": "nonpromoting diagnostic research",
+          "tests": "9/9 signed two-case + synthetic PASS",
+          "result": "Source Canny and overlap/alpha evidence recorded with no semantic ground truth; candidate NONE; no mask edits",
+          "code": "tools/research/c02b7b_source_boundary_owner_observer.py",
+          "report": "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md"
         }
       ]
     },
@@ -346,8 +370,8 @@
       "evidence": []
     }
   ],
-  "next_action": "C02b7: independently source-confident semantic/structural arm-clothing-hair owner candidate on GC001 + Raden and real canonical Chromium; Stage8 SHA lineage gap requires future mandatory SHA-binding contract; C03 original source cap HOLD and C04 human Golden PENDING; C05-C08 BLOCKED until real gates pass.",
-  "campaign_latest_evidence": "docs/research/SA1060J_C02B456_SIGNED_PROVENANCE_CHAIN_20261010.md",
+  "next_action": "C02b7c: obtain genuinely independent semantic/pose/structural owner anchors with uncertainty/abstention for both GC001 and Raden; do not edit mask on RGB/alpha/Canny alone. Then canonical Chrome + Approved18/78 and candidate-specific human Golden. C03 original Stage8 ring budget HOLD; C04 human Golden PENDING; C05–C08 BLOCKED.",
+  "campaign_latest_evidence": "docs/research/SA1060K_C02B7B_SOURCE_BOUNDARY_OWNER_OBSERVER_20261010.md",
   "execution_policy": {
     "schema": "minimalizer_campaign_continuation_v1",
     "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
