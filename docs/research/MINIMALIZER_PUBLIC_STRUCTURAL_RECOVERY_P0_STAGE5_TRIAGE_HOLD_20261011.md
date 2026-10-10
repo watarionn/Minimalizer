@@ -1,0 +1,11 @@
+# MinimalizerPublic StructuralRecovery P0 — Stage5 source-arm-mass triage (2026-10-11)
+
+**Exploratory source-only research checked; integration REJECTED / HOLD.** After Stage3's selective GC001 apparel-plane adoption and Stage4's in-memory Chrome Canvas parity, we tested a new coarse tonal mass hypothesis on *both historical signed Stage04 arms*. This does **not** finish Stage5 structural recovery or license any production integration.
+
+Method: verify both distinct original PNG and frozen Public Facet40 SHA-256 inputs; clip brightness-quantile connected color clusters to individually signed arms, original source alpha and the excluded signed face. Proposed polygon components are source-derived with at most 14 points each, sampled-source RGB medoids and candidate-level squared RGB loss improvement; no generated content.
+
+Result: GC001 two tentative color masses, 1,008 altered RGB pixels and ~0.825% *whole-frame* squared RGB gain; Raden four tentative color masses, 1,438 altered pixels and ~1.079% gain. **Visual side-by-side rejects both for structural promotion.** Raden's pale source-colored area was incorrectly treated as sleeve-tonal mass when it is hand/skin-related in context. GC001 gained pale forearm areas, but missing goggle/collar/sleeve structures remain missing. Both previews are private and unapproved. This proves that reducing RGB loss is insufficient to identify clothing parts.
+
+Next engineering action: independent signed/source-supported sleeve-versus-skin and bow/corset masks, explicit semantic owner boundaries and verified depth order, then shape/coherence and recognizability Golden review. Never infer a sleeve or skin patch solely from RGB brightness and reject ambiguous overlap. Stage8 original budgets (GC001 3,604 > 1,887; Raden 2,370 > 1,412), remaining source-eye-like patches, true Chrome module import and Safari/production gates remain HOLD.
+
+All comparison art and reproducible local study script are in private Drive at `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage5_Triage_20261011`. No source image, signed mask pixel data or misleading quality PASS is committed to the public repository. Normal route, Local Worker, `main` and production unmodified.
