@@ -1,0 +1,143 @@
+{
+  "candidate": "NONE",
+  "cases": [
+    {
+      "GC001_lineage_differences": {
+        "left_arm": {
+          "current_stage8_xor": 390,
+          "equivalence_is_semantic_ground_truth": false,
+          "historical_and_current_and_stage8_pixels": 2329,
+          "historical_current_xor": 385,
+          "historical_stage8_xor": 5
+        },
+        "right_arm": {
+          "current_stage8_xor": 24,
+          "equivalence_is_semantic_ground_truth": false,
+          "historical_and_current_and_stage8_pixels": 6486,
+          "historical_current_xor": 0,
+          "historical_stage8_xor": 24
+        }
+      },
+      "case": "GC001",
+      "independent_semantic_ground_truth": "NOT_AVAILABLE",
+      "owners": {
+        "hair": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 2380,
+          "border_pixels": 2530,
+          "border_without_source_canny_pixels": 150,
+          "overlap_with_other_declared_owners_pixels": 4,
+          "partial_alpha_pixels": 0,
+          "pixels": 14605,
+          "raster_core_5x5_pixels": 10130,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "left_arm": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 456,
+          "border_pixels": 486,
+          "border_without_source_canny_pixels": 30,
+          "overlap_with_other_declared_owners_pixels": 4,
+          "partial_alpha_pixels": 0,
+          "pixels": 2718,
+          "raster_core_5x5_pixels": 1865,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "major_clothing": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 1146,
+          "border_pixels": 1375,
+          "border_without_source_canny_pixels": 229,
+          "overlap_with_other_declared_owners_pixels": 0,
+          "partial_alpha_pixels": 0,
+          "pixels": 3741,
+          "raster_core_5x5_pixels": 1411,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "right_arm": {
+          "alpha_zero_pixels": 3,
+          "border_near_source_canny_pixels": 405,
+          "border_pixels": 494,
+          "border_without_source_canny_pixels": 89,
+          "overlap_with_other_declared_owners_pixels": 0,
+          "partial_alpha_pixels": 38,
+          "pixels": 6510,
+          "raster_core_5x5_pixels": 5549,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        }
+      },
+      "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+      "stage8_scene_sha256": "7eed624b31c9a117b6d7e6e5fe9788067f00b3fc3e8889fd250c14adaaac8f08",
+      "suitable_for_owner_mutation": false
+    },
+    {
+      "GC001_lineage_differences": "NOT_AVAILABLE",
+      "case": "Raden",
+      "independent_semantic_ground_truth": "NOT_AVAILABLE",
+      "owners": {
+        "hair": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 1706,
+          "border_pixels": 1955,
+          "border_without_source_canny_pixels": 249,
+          "overlap_with_other_declared_owners_pixels": 8,
+          "partial_alpha_pixels": 0,
+          "pixels": 19503,
+          "raster_core_5x5_pixels": 15877,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "left_arm": {
+          "alpha_zero_pixels": 74,
+          "border_near_source_canny_pixels": 430,
+          "border_pixels": 572,
+          "border_without_source_canny_pixels": 142,
+          "overlap_with_other_declared_owners_pixels": 0,
+          "partial_alpha_pixels": 38,
+          "pixels": 10419,
+          "raster_core_5x5_pixels": 9291,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "major_clothing": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 901,
+          "border_pixels": 1261,
+          "border_without_source_canny_pixels": 360,
+          "overlap_with_other_declared_owners_pixels": 6,
+          "partial_alpha_pixels": 0,
+          "pixels": 3773,
+          "raster_core_5x5_pixels": 1392,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        },
+        "right_arm": {
+          "alpha_zero_pixels": 0,
+          "border_near_source_canny_pixels": 380,
+          "border_pixels": 467,
+          "border_without_source_canny_pixels": 87,
+          "overlap_with_other_declared_owners_pixels": 2,
+          "partial_alpha_pixels": 0,
+          "pixels": 9872,
+          "raster_core_5x5_pixels": 8973,
+          "raster_core_is_semantic_truth": false,
+          "source_boundary_is_anatomical_truth": false
+        }
+      },
+      "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+      "stage8_scene_sha256": "be6001f3607466617a4c2db92cdc92ad81296a403cdeeef009ac0628dc149b5f",
+      "suitable_for_owner_mutation": false
+    }
+  ],
+  "human_golden": "PENDING",
+  "production_changed": false,
+  "quality_gates": "HOLD",
+  "real_canonical_chromium": "NOT_RUN",
+  "reason": "NO_INDEPENDENT_SEMANTIC_OWNER_GROUND_TRUTH",
+  "release_authorized": false,
+  "schema": "sa1060k-c02b7b-source-boundary-owner-observer-v1"
+}
