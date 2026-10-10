@@ -83,7 +83,7 @@ def test_real_chrome_native_and_dpr2_negative_and_positive():
     source=svg_for_owner(owner_fixture())
     same=svg_for_owner(owner_fixture())
     changed=owner_fixture()
-    changed["parameters"]["rings"][0]["points"]=[[12.,13.],[23.,13.],
+    changed["parameters"]["rings"][0]["points"]=[[18.,13.],[23.,13.],
                                                    [23.,25.],[12.,25.]]
     other=svg_for_owner(changed)
     driver=chrome_driver()
