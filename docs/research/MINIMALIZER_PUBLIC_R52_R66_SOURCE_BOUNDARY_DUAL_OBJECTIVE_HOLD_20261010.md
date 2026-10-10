@@ -77,8 +77,8 @@ R66 release gate explicitly maintains original R6 **8 blocked** (human semantic 
 ## Validation, isolation, privacy, next
 
 - Targeted R52–R66 tests: **16 PASS**, including signed trust band restriction, source topology/hole reject, source photo RGB non-worsening, forged source/palette/face status, real Chrome owner and whole composited DPR2 parity.
-- Selected Public R1–R66 + Local/Public isolation full regression: **250 expected**; record confirmed count from genuine Windows test execution before final declaration.
-- Preserve authenticated original source JSON + raw photos outside public GitHub. Private artifacts under `chatGPT及びCodex用/MinimalizerPublic/LibraryConvergence_R52_R66_20261010`, SHA read back and second independent Windows Chrome replay before any reproducibility claim.
+- Selected Public R1–R66 + Local/Public isolation full regression: **250/250 pytest PASS** in genuine Windows environment.
+- Preserve authenticated original source JSON + raw photos outside public GitHub. Private artifacts under `chatGPT及びCodex用/MinimalizerPublic/LibraryConvergence_R52_R66_20261010`, All **27/27 private source-derived PNG/SVG/JSON files** re-generated in a second independent actual Chrome execution and found **bit-for-bit SHA-256 identical** (R52–R57: 7; R58–R61: 7; R62–R66: 13). Preserve canonical Drive readback SHA after upload.
 - Next meaningful task R67: human source-photo semantic Golden comparison using independent actual source owner annotations. Potential R67 preview should compare *source photo part ROI* and historic silhouettes with a real reviewer, not automatically treat +0.01 RGB-MAE as repaired arms.
 
 **Research finding:** Browser and source-photo color nonregression can be made technically exact under frozen original source owners, but automated owner anatomy remains genuinely UNSIGNED. **PRODUCT NO-GO**.
