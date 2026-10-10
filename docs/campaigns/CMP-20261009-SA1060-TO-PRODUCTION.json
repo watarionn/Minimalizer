@@ -149,7 +149,10 @@
         "https://drive.google.com/drive/folders/1g3jckoCVzxLDKVW_cJ6ukhBMiVtlkMeY",
         "docs/research/SA1060D_C02B1_POSE_CORRIDOR_RISK_20261009.md",
         "docs/research/evidence/sa1060d_c02b1_coordinate_free_20261009.json",
-        "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md"
+        "docs/handoffs/HND-20261009-C02B1-POSE-CORRIDOR-C02B2-NEXT.md",
+        "docs/research/SA1060J_C02B456_SIGNED_PROVENANCE_CHAIN_20261010.md",
+        "docs/research/evidence/sa1060j_c02b456_coordinate_free_20261010.json",
+        "https://drive.google.com/file/d/1eQA0oklXLqch8doVXv_CHs9SauKmtGQ7/view"
       ],
       "substeps": [
         {
@@ -201,6 +204,33 @@
           "unit_signed_validation": "8/8 PASS",
           "finding": "3 GrabCut seeds lose 787-790 original source arm edges out of 1353; reject appearance-only pruning, independent Raden/Chromium/human Golden not yet performed",
           "report": "docs/research/SA1060F_C02B3_APPEARANCE_EDGE_HOLD_20261010.md"
+        },
+        {
+          "id": "C02b4",
+          "name": "Read-only two-case SHA-pinned alpha/RGB owner ambiguity audit",
+          "status": "COMPLETE",
+          "type": "non-promoting research",
+          "tests": "15/15 signed original PASS",
+          "result": "GC001 right 533 RGB overlap 520 opaque +13 partial; Raden 2/7; alpha and RGB cannot prove semantic part",
+          "private_bundle": "Minimalizer_C02B4_Alpha_Owner_Research_20261010.zip"
+        },
+        {
+          "id": "C02b5",
+          "name": "Reconcile historic Stage04 versus current Stage04 versus signed Stage8",
+          "status": "COMPLETE",
+          "type": "non-promoting research",
+          "tests": "15/15 signed original PASS",
+          "result": "left historical/current XOR385; historical/Stage8 XOR5; current/Stage8 XOR390; version mismatch, semantic correction unproven",
+          "private_bundle": "Minimalizer_C02B5_Phase04_Lineage_20261010.zip"
+        },
+        {
+          "id": "C02b6",
+          "name": "Recover and validate Phase03-Phase04 config/producer SHA chain; investigate Stage8 content-pinning gap",
+          "status": "COMPLETE",
+          "type": "non-promoting provenance research",
+          "tests": "18/18 independently authored signed-input tests PASS",
+          "result": "current Phase03->Phase04 SHA verified; Stage8 left/right/face refs are path-only without exact phase04 mask content SHA, so historical producer config unresolved",
+          "next": "C02b7 source confidence and semantic owner observation; cannot promote without independent Raden/Golden/Chrome"
         }
       ]
     },
@@ -316,8 +346,8 @@
       "evidence": []
     }
   ],
-  "next_action": "C02 original owner confident anatomical candidate + independent Raden and Chromium; C03 source-equivalent topology or versioned owner-approved policy; C04 candidate-specific 18/78 Golden review. Prior C02b3 research merged; C03 25/25 research checked in; all release gates remain HOLD.",
-  "campaign_latest_evidence": "docs/research/SA1060G_C03_STAGE8_SIGNED_LOWER_BOUNDS_AND_STRICT_PRUNE_20261010.md",
+  "next_action": "C02b7: independently source-confident semantic/structural arm-clothing-hair owner candidate on GC001 + Raden and real canonical Chromium; Stage8 SHA lineage gap requires future mandatory SHA-binding contract; C03 original source cap HOLD and C04 human Golden PENDING; C05-C08 BLOCKED until real gates pass.",
+  "campaign_latest_evidence": "docs/research/SA1060J_C02B456_SIGNED_PROVENANCE_CHAIN_20261010.md",
   "execution_policy": {
     "schema": "minimalizer_campaign_continuation_v1",
     "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
