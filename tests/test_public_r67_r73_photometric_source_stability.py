@@ -65,3 +65,14 @@ def test_r73_no_semantic_or_product_signoff():
     assert '"historicalStage8RingBudgetPassed":False' in text
     for path in ("web/static/public-route.js","local_worker/frontend/local-route.js"):
         assert "verify_public_r67_r73_photometric_source_stability" not in (ROOT/path).read_text(encoding="utf8")
+
+def test_prior_archive_requires_all_nine_sha_pinned_source_inputs(tmp_path):
+    import json
+    folder=tmp_path/"private"
+    folder.mkdir()
+    index=tmp_path/"manifest.json"
+    index.write_text(json.dumps({"artifactCount":28,
+                                 "productionReleaseAuthorized":False,
+                                 "files":[]}),encoding="utf8")
+    with pytest.raises(ValueError,match="R67"):
+        r.verify_archive(index,folder)
