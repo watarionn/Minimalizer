@@ -97,7 +97,9 @@ def isolate_opaque_exact_border_connected(
       "originalTopology":mask_cc(right),
       "candidateTopology":mask_cc(candidate),
       "sameOriginalMaskBitstream":False if np.any(removed) else True,
-      "sourcePhotoSemanticArmTruthEstablished":False
+      "sourcePhotoSemanticArmTruthEstablished":False,
+      "additionalContourVerticesVsSignedMask":mask_cc(candidate)["polygonVertices"]-mask_cc(right)["polygonVertices"],
+      "sourcePixelDeletionCannotEstablishAnatomicalCorrectness":True
     }
 
 def owner_mask_svg(mask:np.ndarray)->tuple[str,dict]:
@@ -145,7 +147,8 @@ def browser_raster_audit(driver,source_mask:np.ndarray,candidate_mask:np.ndarray
          "originalSignedBinaryExactInChrome":not bool(np.any(source_disagreement)),
          "proposedCandidateBinaryExactInChrome":not bool(np.any(candidate_disagreement)),
          "changedOutsideDeletedSignedMaskZero":not bool(np.any(diff & ~removed_ref)),
-         "noUnobservedDrawingOrNewSourcePixel":True,
+         "chromeChangedPixelsOutsideExpectedDeletedSourceMask":bool(np.any(diff & ~removed_ref)),
+         "proposedSvgIntroducedNoGeneratedSourceBitmap":True,
         }
         private[str(scale)]={"original":before.copy(),"candidate":after.copy(),"diff":diff.copy()}
     return {
@@ -253,6 +256,11 @@ def assert_r29_no_go(rows:list,r6:Path,r25_report:dict)->dict:
             changed["candidateTrustedSemanticCorrection"] is not False or
             browser["candidateBrowserParityApprovedForProduct"] is not False or
             set(browser["chromeDprRuns"])!={"1","2"} or
+            any(v["renderedSize"]!=340*int(scale) for scale,v in browser["chromeDprRuns"].items()) or
+            any(v["originalSignedBinaryExactInChrome"] is not False for v in browser["chromeDprRuns"].values()) or
+            any(v["proposedCandidateBinaryExactInChrome"] is not False for v in browser["chromeDprRuns"].values()) or
+            any(v["changedOutsideDeletedSignedMaskZero"] is not False for v in browser["chromeDprRuns"].values()) or
+            changed["additionalContourVerticesVsSignedMask"]<=0 or
             row["R28GeneralizationStatus"]!="ABSTAIN_SEMANTIC_ANCHOR_MISSING" or
             row["independentOriginalPhotoSemanticOwnerAnchorPresent"] is not False or
             row["releaseAuthorized"] is not False):
