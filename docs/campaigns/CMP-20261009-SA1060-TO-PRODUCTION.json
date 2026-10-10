@@ -397,7 +397,7 @@
   "next_action": "C02b7c2: obtain real independently audited original-source-only semantic/pose owner anchors for GC001 AND Raden (source content SHA, separate observer lineages/weights, calibrated uncertainty) and run C02b7c1 strict abstention gate. Merely syntactic two-observer agreement is review-only; source-mask ownership, canonical Chrome/Approved18/78/human Golden not yet proven. Preserve C02 IN_PROGRESS, C03 original Stage8 cap HOLD, C04 human Golden PENDING, C05-C08 BLOCKED.",
   "campaign_latest_evidence": "docs/research/SA1060M_C02B7C1_INDEPENDENT_SEMANTIC_ANCHOR_GATE_20261010.md",
   "execution_policy": {
-    "schema": "minimalizer_campaign_continuation_v1",
+    "schema": "minimalizer_campaign_continuation_v2",
     "mode": "CONTINUE_UNTIL_MEANINGFUL_BLOCKER_OR_RUNTIME_LIMIT",
     "instruction_scope": "C08 campaign authorization persists across reversible research/build/test/archive/merge stages",
     "user_manual_next_step_prompt_required": false,
@@ -422,6 +422,23 @@
       "UNRECOVERABLE_TOOL_OR_RUNTIME_LIMIT"
     ],
     "closeout": "C08 ONLY AFTER HUMAN_GOLDEN_AND_RELEASE_DEVICE_EVIDENCE; DO_NOT_CLAIM_CONTINUOUS_BACKGROUND_COMPUTE",
-    "contract_path": "docs/campaigns/MINIMALIZER_CONTINUOUS_OPERATION_20261010.md"
+    "contract_path": "docs/campaigns/MINIMALIZER_CONTINUOUS_OPERATION_20261010.md",
+    "next_substep": "C02b7c2",
+    "nonterminal_research_states": [
+      "CONTINUE",
+      "ALTERNATE",
+      "RETRYABLE_INFRA",
+      "PROTECTED_DENIAL",
+      "QUALITY_HOLD",
+      "WAIT_FOR_OWNER_GATE"
+    ],
+    "termination_state": "CHECKPOINT_AND_YIELD",
+    "only_yield_after": "NO_OTHER_SAFE_INDEPENDENT_WORK_OR_RUNTIME_LIMIT_OR_ACTIONABLE_OWNER_ONLY_GATE",
+    "on_model_unavailable": "VALIDATE_OTHER_REAL_MODEL_AND_COMPUTE_OPTIONS_THEN_C03_OR_C04_WITHOUT_USER_PROMPT",
+    "on_transient_infra": "UP_TO_TWO_BOUNDED_RETRIES_THEN_CHECKPOINT_AND_ALTERNATE",
+    "on_explicit_safety_refusal": "DO_NOT_RETRY_TO_OVERRULE; DOCUMENT_AND_SWITCH_TO_AUTHORIZED_WORK",
+    "require_real_observer_calibration_and_license": true,
+    "conflates_quality_hold_with_research_stop": false,
+    "observable_handoff": "docs/campaigns/MINIMALIZER_CONTINUOUS_OPERATION_20261010.md#execution-rule-v2-blocked-gate-is-not-blocked-research-2026-10-10"
   }
 }
