@@ -20,7 +20,7 @@ sys.path.insert(0,str(ROOT))
 from research_public_r12_exact_raster_prune import SOURCE,input_checks,sync
 from research_public_r17_consecutive_vertex_prune import SCENE_SHA256,masks,sha
 from verify_public_r17_chrome_owner import svg_for_owner
-from verify_public_v34_svgo_chrome import chrome_driver,render_rgba
+from verify_public_v34_svgo_chrome import chrome_driver,render_rgba,mismatched_pixels
 from verify_public_r2_chrome import render_2x
 from minimalizer_zerobase.reviewed_sa10.source_exact_vector_replay import _vertex_budget
 
@@ -240,6 +240,16 @@ def evaluate(case:str,source:Path,proposed:Path,audit:Path,out:Path)->dict:
             final=chrome_candidates(browser,baseline,[svg_for_owner(part)])[0]
             if final["d340"]!=0 or final["d680"]!=0 or masks([part],w,h)[owner]!=reference[owner]:
                 raise AssertionError("Chrome or OpenCV was modified in final owner")
+            # Independently cross-check JS batch gate with the canonical
+            # two separate Selenium renderers (actual Chrome at each DPR).
+            independent_340=mismatched_pixels(
+                render_rgba(browser,baseline),render_rgba(browser,svg_for_owner(part)))
+            independent_680=mismatched_pixels(
+                render_2x(browser,baseline),render_2x(browser,svg_for_owner(part)))
+            if independent_340 or independent_680:
+                raise AssertionError("R18 JS batch renderer disagrees with independent Chrome render")
+            owner_summary["independentNativeDiffPixels"]=independent_340
+            owner_summary["independentDpr2DiffPixels"]=independent_680
             all_rows.append(owner_summary)
     finally:
         browser.quit()
