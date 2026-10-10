@@ -195,6 +195,24 @@ def browser_full(driver,source_records,proposals)->dict:
                      "sourceDerivedSvgSHA256":hashlib.sha256(svg.encode("utf8")).hexdigest()}
     return full
 
+def verify_archive(manifest:Path,folder:Path)->dict:
+    m=json.loads(manifest.read_text(encoding="utf8"))
+    if (m.get("artifactCount")!=28 or
+        m.get("productionReleaseAuthorized") is not False):
+        raise ValueError("R67 previous research archive invalid")
+    rows={x["path"]:x for x in m.get("files",[])}
+    required=["public_r62_r66_dual_objective_photo_fidelity_audit.json"]
+    for case in CASES:
+        for role in ROLES:
+            required.append(case+"_r65_PRIVATE_"+role+"_candidate_mask.png")
+        required.append(case+"_r65_PRIVATE_candidate.svg")
+    for name in required:
+        v=rows.get("R62_R66/"+name)
+        p=folder/name
+        if not v or not p.is_file() or sha(p)!=v["sha256"] or p.stat().st_size!=v["bytes"]:
+            raise ValueError("R67 archived signed source candidate mismatch: "+name)
+    return {"validatedFiles":len(required),"priorArchiveSHA256":sha(manifest)}
+
 def trial(case:str,root:Path,scene:Path,prior_folder:Path,out:Path,driver):
     if case not in CASES:raise ValueError("R67 unknown signed case")
     source=root/PRIVATE/"original_inputs"/(case+"_source.png")
@@ -250,7 +268,7 @@ def trial(case:str,root:Path,scene:Path,prior_folder:Path,out:Path,driver):
         "productionSourceMaskUpdated":False
     }
 
-def run(source_root:Path,scenes:dict[str,Path],prior:Path,r6:Path,out:Path):
+def run(source_root:Path,scenes:dict[str,Path],prior:Path,r6:Path,manifest:Path,out:Path):
     if out.exists():raise FileExistsError("R73 never overwrite signed photo evidence")
     held=json.loads(r6.read_text("utf8"))
     reference=json.loads((prior/"public_r62_r66_dual_objective_photo_fidelity_audit.json").read_text("utf8"))
@@ -260,6 +278,7 @@ def run(source_root:Path,scenes:dict[str,Path],prior:Path,r6:Path,out:Path):
         [a["case"] for a in reference["cases"]]!=list(CASES)):
         raise ValueError("R67 signed research lineage or original R6 not held")
     # Check each previous private image against signed evidence where available.
+    provenance=verify_archive(manifest,prior)
     out.mkdir(parents=True)
     rows=[]
     driver=chrome_driver()
@@ -272,6 +291,7 @@ def run(source_root:Path,scenes:dict[str,Path],prior:Path,r6:Path,out:Path):
        "version":VERSION,
        "realChromeVersion":version,
        "originalR66PrivateAuditSHA256":sha(prior/"public_r62_r66_dual_objective_photo_fidelity_audit.json"),
+       "priorCandidateArchive":provenance,
        "R6EightBlockedGatesEvidenceSHA256":sha(r6),
        "cases":rows,
        "R73ReleaseGate":{
@@ -308,8 +328,8 @@ def run(source_root:Path,scenes:dict[str,Path],prior:Path,r6:Path,out:Path):
 
 def main():
     p=argparse.ArgumentParser()
-    for name in ("source-root","gc-stage8","raden-stage8","prior","r6","out"):
+    for name in ("source-root","gc-stage8","raden-stage8","prior","r6","manifest","out"):
         p.add_argument("--"+name,required=True,type=Path)
     a=p.parse_args()
-    run(a.source_root,{"GC001":a.gc_stage8,"Raden":a.raden_stage8},a.prior,a.r6,a.out)
+    run(a.source_root,{"GC001":a.gc_stage8,"Raden":a.raden_stage8},a.prior,a.r6,a.manifest,a.out)
 if __name__=="__main__":main()
