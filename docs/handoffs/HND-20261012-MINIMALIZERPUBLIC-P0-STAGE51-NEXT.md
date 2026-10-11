@@ -1,0 +1,9 @@
+# Handoff: MinimalizerPublic P0 after Stage51, 2026-10-12
+
+Repo `watarionn/Minimalizer`, Draft PR #390, branch `research/public-structural-recovery-p0-part-preservation-20261011`. Main / deployed Public / Local Minimalizer must remain untouched. Stage46 CI 246/246 pass. Stage47–50 add source-only modules/tests and real two-case replay; Stage51 CI and Drive evidence must be checked against actual run logs.
+
+Stage47 isolated Chromium HTTPS document route blocked; `about:blank` insecure with no native subtle. Do **not** claim real secure-origin native Crypto or iPhone Safari. Stage48 independently SHA-pins original binary feature masks, compares evenodd contour membership at 340 and 680; existing exact Stage12 feature subsets 398 vertices GC001, 1968 Raden are 1x/2x pixel-exact but NOT complete body. Epsilon0.5 reduces vertices to 296/1614 but distorts 680 raster by 148/428 pixels; reject. Stage49 vertical rectangle cover is exact but worse cost: 492 vs398, 2632 vs1968, reject. Old Stage8 full-body budget remains GC001 3604>1887, Raden 2370>1412. Stage50 original-vs-frozen Facet40 SHA-locked RGB error inventory shows 8326/9160 GC001 historic eligible arm RGB different and 20153/20177 Raden; this alone is not a semantic/quality metric. Actual original RGB/masks and replay belong PRIVATE in Drive only.
+
+Next priority is **quality** rather than further bookkeeping: independent sleeve/skin/hair source-level annotation and a review with authenticated human evidence, then evaluate no-spill/high-coverage reconstruction, whole-body 340/680 SVG and Golden. Keep screenshot/product gate HOLD, do not upgrade trust from mock reviewer receipts, and no source-absent features. Real secure-origin, iPhone Safari, release/rollback/vertex gates are still blocking. Do not merge PR #390 without real Golden.
+
+Drive canonical: `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage47_51_20261012`.
