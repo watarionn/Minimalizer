@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   source-contour-node:
-    name: Source contour / DPR veto (research only)
+    name: Source-only research regression (Stages 1-15)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -18,5 +18,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run 18 source-only Stage12-15 checks
-        run: node --test tests/js/test_public_source_contour_p0.mjs
+      - name: Run research-only regression (no image generation)
+        run: >
+          node --test
+          tests/js/test_public_structural_recovery_p0.mjs
+          tests/js/test_public_source_part_authority_p0.mjs
+          tests/js/test_public_apparel_selective_p0.mjs
+          tests/js/test_public_source_feature_preservation_p0.mjs
+          tests/js/test_public_signed_face_blank_p0.mjs
+          tests/js/test_public_source_geometry_p0.mjs
+          tests/js/test_public_source_contour_p0.mjs
