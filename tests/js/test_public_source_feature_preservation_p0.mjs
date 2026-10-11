@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
-import {replaySourceFeatureSurfaces as run} from './public-source-feature-preservation-p0.mjs';
+import {replaySourceFeatureSurfaces as run} from '../../web/static/public-source-feature-preservation-p0.mjs';
 if(!globalThis.crypto)globalThis.crypto=webcrypto;
 const sha=x=>createHash('sha256').update(x).digest('hex');
 function sample(){
