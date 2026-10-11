@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash, webcrypto } from 'node:crypto';
-import {prepareSourceOwnedParts} from './public-source-part-authority-p0.mjs';
+import {prepareSourceOwnedParts} from '../../web/static/public-source-part-authority-p0.mjs';
 globalThis.crypto??=webcrypto;
 const W=12,H=12,N=W*H;
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
