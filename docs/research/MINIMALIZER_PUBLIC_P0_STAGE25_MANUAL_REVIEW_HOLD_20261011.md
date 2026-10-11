@@ -1,0 +1,11 @@
+# MinimalizerPublic P0 Stage25: offline source-pixel semantic annotation draft
+
+Date 2026-10-11. RESEARCH TOOL READY / SIGNED SEMANTICS AND PRODUCT GOLDEN HOLD.
+
+The private Drive folder `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage21_24_20261011` contains `MINIMALIZER_PUBLIC_P0_STAGE25_PRIVATE_MANUAL_REVIEW.html`, an entirely offline draft reviewer with original privately embedded GC001 and Raden source images, historic Stage04 left/right arm masks, historic signed face and external observed-background masks, immutable metadata including original image/decoded RGBA SHA-256. This HTML **MUST NOT be committed to public GitHub**, because it contains embedded original source imagery. The generated annotation mask is an untrusted first draft, *not* semantic ground truth or independently signed evidence.
+
+User interaction: case switch, `sleeve`, `forearm_skin`, `hair`, `other_clothes` or erase, 1–13-pixel-radius brush, pointer/touch drawing, undo, show/hide labels and export an unverified RLE JSON record containing source SHA lineage. The brush is constrained to historical arm owner / original opaque / not historic face / not observed background. The JSON is tagged `UNVERIFIED_UNTRUSTED_USER_ANNOTATION` and `approved:false`. It never overwrites original source and does not draw to product output. Collar and props outside those arm masks are not yet supported.
+
+**Real isolated Chromium 144 test:** page material was injected with Playwright `page.set_content()` (no localhost/file navigation), UI loaded both GC001 (9,160 paintable historically-owned pixels) and Raden (20,177), drawing at Raden original-source eligible point 10,235 painted 49 pixels, undo restored 0; browser export produced `MinimalizerP0_Raden_UNVERIFIED_semantic_draft.json`. Chrome `file://` URL navigation was separately attempted and returned `ERR_BLOCKED_BY_ADMINISTRATOR`, therefore direct-open and iPhone Safari are **UNVERIFIED**.
+
+This is a tool to enable an independently reviewed mask workflow later. A painted label, export file or self-declared reviewer signature is not sufficient for Stage22–23 release or source-part authority. Stage23 remains DRAFT/HOLD, `stage18PaintAllowed:false`. No main/production/Local Minimalizer modification.
