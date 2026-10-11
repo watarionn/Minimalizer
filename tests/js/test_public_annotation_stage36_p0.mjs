@@ -43,3 +43,7 @@ test('S36 two case IDs separated even with same fixture coordinates',async()=>{c
 
 // Stage41 CI adapter: include the source-pinned Stage37-40 research suite.
 import './test_public_review_stage37_40_p0.mjs';
+
+// Stage46 CI adapter: source-only mobile viewport, case isolation and original RGB probe.
+import './test_public_review_stage42_43_p0.mjs';
+import './test_public_review_stage44_p0.mjs';
