@@ -20,7 +20,7 @@ The enhanced offline review HTML is private only. The import feature refuses wro
 
 ## Stage30: regression gates
 
-New `tests/js/test_public_annotation_ingest_p0.mjs`: 24 Node tests initially PASS locally. Need GitHub CI after the workflow is extended to include this suite; record actual results before claiming PASS. All source-visible API exports return `productPromotionAuthorized:false`. Research remains Draft/HOLD. The previous GitHub Actions baseline was 112/112 tests PASS on Stage25 branch.
+New `tests/js/test_public_annotation_ingest_p0.mjs`: 24 Node tests initially PASS locally. GitHub Actions run #38150691958 completed SUCCESS on research branch commit e328193e22e575235392ee853b7c1af02ba3bfee: 136 tests PASS / 0 FAIL across Stages 1–30 Node research suites. This does not certify full-image Golden, real HTTPS WebCrypto, reviewer identity, or production. All source-visible API exports return `productPromotionAuthorized:false`. Research remains Draft/HOLD. The previous GitHub Actions baseline was 112/112 tests PASS on Stage25 branch.
 
 ## Real case source-byte replay (private)
 
