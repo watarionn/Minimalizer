@@ -1,0 +1,9 @@
+# Handoff: MinimalizerPublic P0 after Stage41
+
+Repository `watarionn/Minimalizer`, research branch `research/public-structural-recovery-p0-part-preservation-20261011`, Draft PR #390. Continue from Stage42. Main, normal Public production route, Local Minimalizer and deploy are **unchanged**, and PR is **HOLD, not mergeable on quality grounds** until release gates.
+
+Stage37 introduced a SHA-256-pinned worklist manifest recomputed from original GC001/Raden RGBA and historical face/arm/background masks; Stage38 introduced manifest-body SHA reconfirmation and explicitly untrusted bookmarks; Stage39 shows tile-level changes without implying actual review; Stage40 upgraded the private offline review HTML with 20px tile selection, next/previous, navigation bookmarks import/export and rejection of wrong-lineage JSON. Private HTML embeds original images, **NEVER commit or upload to public GitHub**. The UI Chrome test uses `page.set_content` (about:blank) and cannot prove real HTTPS WebCrypto or iPhone Safari.
+
+Source exact: GC001 9,160 eligible pixels and 47 tiles, Raden 20,177 and 78 tiles, full enumeration. **Zero independently attested semantic pixels.** No generated features, no source-absent painting, Stage18 source-color repaint forbidden. Stage40 two-case gate still DRAFT_HOLD (11 blockers). Stages37–40 add 28 Node tests; Stage41 CI full Node result should be checked using GitHub decoded logs.
+
+Private replay, screenshot, embedded reviewer, manifest and data stored in Google Drive under `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage37_41_20261012`. Prior stages 31–36 material under adjacent canonical Drive folders. Next: real human-independent source semantic owner evidence and visual improvement beyond risk/worklist tooling, SVG full-body primitive budget, true full-character Chrome 340px/680px, iPhone Safari, real Public origin and rollback.
