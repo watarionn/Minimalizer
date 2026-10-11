@@ -47,3 +47,6 @@ import './test_public_review_stage37_40_p0.mjs';
 // Stage46 CI adapter: source-only mobile viewport, case isolation and original RGB probe.
 import './test_public_review_stage42_43_p0.mjs';
 import './test_public_review_stage44_p0.mjs';
+
+// Stage51 research CI adapter, source evidence only.
+import './test_public_source_fidelity_stage47_50_p0.mjs';
