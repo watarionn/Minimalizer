@@ -1,0 +1,22 @@
+name: MinimalizerPublic P0 research checks
+on:
+  pull_request:
+    paths:
+      - 'web/static/public-*p0.mjs'
+      - 'tests/js/test_public_*p0.mjs'
+      - '.github/workflows/minimalizerpublic-p0-research.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contour-node:
+    name: Source contour / DPR veto (research only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run 18 source-only Stage12-15 checks
+        run: node --test tests/js/test_public_source_contour_p0.mjs
