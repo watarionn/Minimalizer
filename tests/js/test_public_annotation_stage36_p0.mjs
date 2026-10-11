@@ -40,3 +40,6 @@ test('S36 refuses to truncate a full review queue under task budget',async()=>{c
 test('S36 refuses single draft to avoid unpaired conformance pretence',async()=>{const f=fixture();await assert.rejects(()=>run(f,[pair(f)[0]]),/INVALID_STAGE36_QUEUE_INPUT/);});
 test('S36 no source-absent labels or masks generated under zero contrast',async()=>{const f=fixture(),r=await buildCompleteSourceReviewQueue({...f,tileSize:8,minContrast:765});assert.equal(r.sourceContrastEdges,0);assert.equal(r.eligiblePixels,97);assert.equal(r.productPromotionAuthorized,false);});
 test('S36 two case IDs separated even with same fixture coordinates',async()=>{const a=await run(fixture('GC001')),b=await run(fixture('Raden'));assert.notEqual(a.caseId,b.caseId);assert.equal(a.eligiblePixels,b.eligiblePixels);});
+
+// Stage41 CI adapter: include the source-pinned Stage37-40 research suite.
+import './test_public_review_stage37_40_p0.mjs';
