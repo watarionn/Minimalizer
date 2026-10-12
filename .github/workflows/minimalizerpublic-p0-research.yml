@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   source-contour-node:
-    name: Source-only research regression (Stages 1-81)
+    name: Source-only research regression (Stages 1-90)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,3 +35,5 @@ jobs:
           tests/js/test_public_annotation_stage36_p0.mjs
           tests/js/test_public_review_and_color_fill_stage72_76_p0.mjs
           tests/js/test_public_fullframe_stage77_81_p0.mjs
+          tests/js/test_public_fullframe_packet_stage82_86_p0.mjs
+          tests/js/test_public_stage82_85_committed_p0.mjs
