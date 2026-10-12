@@ -34,7 +34,7 @@ Private replay takes both original-source RGBA/masks/manifests from the earlier 
 
 ## Stage76: local cross-stage verification, CI and HOLD
 
-Research module/test+workflow prepared and registered. Source-only Node regression: **413 passed / 0 failed / 0 skipped locally**, including 27 new Stage72–76 tests (386 prior Stage71). GitHub Actions for current head should be checked separately and never pre-declared PASS before run completes.
+Research module/test+workflow registered. Source-only Node regression: **413 passed / 0 failed / 0 skipped locally**, including 27 new Stage72–76 tests (386 prior Stage71). Actual GitHub Actions run **38200219356**, job **114651745649** on executable/test SHA **8c5557ecf4baa0ea341e8e3f8829968af05475db**: decoded runner log **413 tests PASS / 0 failed / 0 skipped**. See `MINIMALIZER_PUBLIC_P0_STAGE76_CI_413_PASS_GOLDEN_HOLD_20261012.md`.
 
 Hard blockers: **0 independently verified human skin/sleeve/hair pixels**, missing arms/neckwear/hair full-character Golden, whole-scene SVG budget, actual iPhone Safari, live secure Public origin, rollback. This source-only color transport does NOT authorize paint or deploy. **PR remains Draft HOLD, do not merge.**
 
