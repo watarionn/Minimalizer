@@ -34,6 +34,6 @@ True Chrome raster proof 340 and 680 on BOTH originals: **4/4 zero missing, extr
 
 ## Stage115: research-only CI and canonical Drive preservation
 
-`tests/js/test_public_human_stage106_115_p0.mjs` adds **20** Node regression tests, including source tampering, human enrollment spoof, all-pixel agenda, alpha exclusion, exact observed source palette, RGB mismatch accounting, bitmap identity and veto. Starting point was 487 PASS at Stage105; actual expected total now **507**, but verify actual GitHub Actions job's decoded log after push before declaring PASS.
+`tests/js/test_public_human_stage106_115_p0.mjs` adds **20** Node regression tests, including source tampering, human enrollment spoof, all-pixel agenda, alpha exclusion, exact observed source palette, RGB mismatch accounting, bitmap identity and veto. Starting point was 487 PASS at Stage105; actual GitHub Actions run 38283964179 / job 114927740900 on executable SHA 96410ec0aff15228b473dded99a66fe56c74d052 confirmed **507 PASS, 0 failed, 0 skipped** from decoded runner log.
 
 Original private source/PNG/masks and SVG derived from source stay in **PRIVATE** Google Drive ZIP. GitHub retains only source-free JS/tests/research docs. Next Stage116+: actual separate enrolled humans must hand-review entire original body/background/arms/hands/sleeves/skin/hair/necktie/face suppression and independently adjudicate, then a *new full-subject* scene candidate should be checked for honest polygon budget, perceptual/color/edge fidelity, physical iPhone Safari HTTPS and rollback. Current PR stays Draft/Golden HOLD.
