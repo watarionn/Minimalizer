@@ -22,7 +22,7 @@ Historical Stage8 full-body polygon budget baseline: GC001 3,604 vertices versus
 
 ## Stage90: verify, preserve, continue
 
-GitHub executable/test verification must be recorded from actual CI after push. Private original evidence, Stage87 packet JSON, Stage88 Chrome replay and Stage89 gate stay in the existing canonical Drive project structure. Source-free JS/tests/docs only in GitHub. Keep PR Draft/HOLD and do not merge/deploy.
+Actual GitHub Actions [run 38247050170](https://github.com/watarionn/Minimalizer/actions/runs/38247050170), job 114803443601 on executable/test SHA ccbd0f2514682145eb1623bd3b0747b21f0e3993: **461 tests PASS, 0 failed, 0 skipped** confirmed by decoded runner log. See `MINIMALIZER_PUBLIC_P0_STAGE90_CI_461_PASS_GOLDEN_HOLD_20261012.md`. Private original evidence, Stage87 packet JSON, Stage88 Chrome replay and Stage89 gate stay in the existing canonical Drive project structure. Source-free JS/tests/docs only in GitHub. Keep PR Draft/HOLD and do not merge/deploy.
 
 Outstanding: real **independently authenticated human semantic annotation** of full GC001/Raden image (including subject vs background, arms/hands, sleeves/skin, fine hair, necktie and entire silhouette), two independent label adjudications, whole-character opt-in SVG, original-source shape budget, Golden visual review, HTTPS physical iPhone Safari and tested rollback. No source-pixel overlap or semantic truth is automatically inferred from historical owner labels.
 
