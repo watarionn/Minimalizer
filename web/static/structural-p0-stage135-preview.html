@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MinimalizerPublic | P0 Stage135 比較実験</title>
+<meta name="description" content="非生成・ブラウザ内完結の部分領域SVG実験。研究用であり全身変換の完成版ではありません。">
+<style>
+:root{color-scheme:light;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f8f7f3;color:#202623}
+*{box-sizing:border-box}body{max-width:1060px;margin:0 auto;padding:26px 22px 80px}
+a{color:#265943}h1{font-size:clamp(27px,5vw,42px);letter-spacing:-.04em;line-height:1.3;margin:10px 0 16px}
+h2{font-size:21px;margin:30px 0 12px}.overline{font:12px monospace;letter-spacing:.09em;text-transform:uppercase}
+p{line-height:1.85;margin:12px 0}.muted{color:#56605b;font-size:14px}
+hr{border:0;border-top:1px solid #ccd1cb;margin:27px 0}
+button,input{font:inherit}button{background:#234d3d;color:white;border:0;padding:12px 18px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}button.secondary{color:#234d3d;background:transparent;border:1px solid #9baea1}
+input[type=file]{display:block;margin:10px 0 18px;max-width:100%}
+.panels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+figure{margin:0;min-width:0}figcaption{font-size:13px;margin:10px 0;line-height:1.55;color:#425048}
+.imagebox{border:1px solid #c6cec7;min-height:200px;aspect-ratio:1;background:repeating-conic-gradient(#e3e6df 0% 25%,#f3f3ee 0% 50%) 50%/20px 20px;display:grid;place-items:center;overflow:hidden}
+.imagebox img,.imagebox canvas{max-width:100%;max-height:370px;display:block;object-fit:contain;image-rendering:pixelated}
+#canvas{touch-action:none;cursor:crosshair}.metrics{width:100%;border-collapse:collapse;margin:10px 0 16px;font-variant-numeric:tabular-nums}
+.metrics th,.metrics td{padding:12px 8px;border-bottom:1px solid #cbd2cb;text-align:left;font-size:14px}
+.metrics td{white-space:nowrap}.metrics th:not(:first-child){text-align:right}.metrics td:not(:first-child){text-align:right}
+.note{padding:13px 0;border-top:2px solid #a0a99f;border-bottom:1px solid #a0a99f}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+#status{white-space:pre-wrap;min-height:24px;font-size:14px}
+small{color:#59655c}@media(max-width:720px){body{padding:18px 15px 60px}.panels{grid-template-columns:1fr;gap:23px}.imagebox{aspect-ratio:4/3;min-height:170px}}
+</style></head><body>
+<p class="overline">MINIMALIZER PUBLIC / SOURCE-ONLY RESEARCH</p>
+<h1>元の色を残す。頂点は増える。<br>Stage 135 比較実験</h1>
+<p>このページは<strong>非公開画像を含まない、任意参加の研究プレビュー</strong>です。通常のMinimalizerPublic変換は変更しません。GC001・Radenの実験では元RGBの完全再現に成功しましたが、全身の形状審査と頂点予算は未達です。</p>
+<p class="note"><strong>研究版・HOLD</strong>：描くのは利用者が矩形選択した元画像内の不透明画素だけ。人物・腕・服などを自動認識しません。AI補完・描き足し・画像アップロードは行いません。</p>
+<h2>手元のPNGで体験する</h2>
+<p class="muted">340×340px以下のPNGを選び、元画像をドラッグして小さな範囲を指定してください。選択領域の元RGBをそのまま描く方式と、元画像から1色だけ採る方式を並べます。複雑な画像で処理が重くならないよう、選択画素は20,000以下に制限しています。</p>
+<input type="file" id="file" accept="image/png">
+<div class="panels">
+<figure><div class="imagebox"><canvas id="canvas" width="1" height="1" aria-label="元画像。ドラッグして領域を選ぶ"></canvas></div><figcaption>元画像・選択領域（手動・未認証）</figcaption></figure>
+<figure><div class="imagebox"><img id="compact" alt="1色へ単純化した部分的SVGプレビュー"></div><figcaption>1色の元RGBを採る圧縮方式</figcaption></figure>
+<figure><div class="imagebox"><img id="exact" alt="選択画素の元RGBを完全に再現した部分的SVGプレビュー"></div><figcaption>選択画素の元RGB完全保持方式</figcaption></figure>
+</div>
+<div class="actions"><button id="run" disabled>選択領域を比較</button><button class="secondary" id="reset" disabled>範囲を選び直す</button></div>
+<p id="status" role="status">PNGを選択してください。ファイルは外部へ送信されません。</p>
+<table class="metrics"><thead><tr><th>検証項目</th><th>1色方式</th><th>RGB完全保持</th></tr></thead><tbody>
+<tr><td>元RGBと異なる画素</td><td id="compactError">—</td><td id="exactError">—</td></tr>
+<tr><td>明示的頂点数</td><td id="compactVertex">—</td><td id="exactVertex">—</td></tr>
+<tr><td>SVGサイズ</td><td id="compactBytes">—</td><td id="exactBytes">—</td></tr>
+</tbody></table>
+<p class="muted">画素一致は選択領域に限定した結果です。元画像全体の人物輪郭、背景、袖・肌の意味判断を承認したものではありません。元の透明・半透明画素には描画しません。</p>
+<hr>
+<h2>実データで確認できたこと</h2>
+<table class="metrics"><thead><tr><th>対象</th><th>単色方式のRGB不一致</th><th>完全保持方式の頂点</th></tr></thead><tbody>
+<tr><td>GC001（部分領域のみ）</td><td>9,159画素</td><td>27,496</td></tr>
+<tr><td>Raden（部分領域のみ）</td><td>20,176画素</td><td>67,572</td></tr>
+</tbody></table>
+<p class="muted">両対象とも元RGB完全保持方式では対象画素のRGB不一致0。ただし全身SVGを完成させたという意味ではなく、本番採用の審査は継続しています。</p>
+<p><a href="../">通常のMinimalizerPublicへ戻る</a></p>
+<script type="module">
+import {buildHumanReviewQueue} from './public-human-review-queue-p0.mjs';
+import {encodeFullFrameDraftRle} from './public-fullframe-review-p0.mjs';
+import {buildUntrustedWholeFramePreview} from './public-untrusted-fullscene-preview-p0.mjs';
+import {buildSourceExactRgbPreview} from './public-source-rgb-lossless-preview-p0.mjs';
+const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const roles=['unreviewed','background_proposal','hair_proposal','face_proposal','skin_proposal','sleeve_proposal','garment_proposal','neckwear_proposal','accessory_proposal','uncertain_subject'];
+let imageSource=null,rectangle=null,drawing=false,start=null,objectUrls=[];
+const status=s=>{$('status').textContent=s};
+function revokeResults(){for(const url of objectUrls)URL.revokeObjectURL(url);objectUrls=[];$('compact').removeAttribute('src');$('exact').removeAttribute('src');
+ for(const id of ['compactError','exactError','compactVertex','exactVertex','compactBytes','exactBytes'])$(id).textContent='—';}
+function redraw(){
+ if(!imageSource)return;
+ const {width,height,rgba}=imageSource;
+ ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba),width,height),0,0);
+ if(rectangle){const [x0,y0,x1,y1]=rectangle;ctx.fillStyle='rgba(44,150,93,.20)';ctx.fillRect(x0,y0,x1-x0,y1-y0);
+ ctx.strokeStyle='#18714d';ctx.lineWidth=1.5;ctx.strokeRect(x0+.75,y0+.75,x1-x0-1.5,y1-y0-1.5);}
+}
+function position(e){const r=canvas.getBoundingClientRect();const x=Math.max(0,Math.min(canvas.width-1,Math.floor((e.clientX-r.left)*canvas.width/r.width)));
+ const y=Math.max(0,Math.min(canvas.height-1,Math.floor((e.clientY-r.top)*canvas.height/r.height)));return[x,y];}
+function updateSelection(e){const [x,y]=position(e);rectangle=[Math.min(start[0],x),Math.min(start[1],y),Math.max(start[0],x)+1,Math.max(start[1],y)+1];redraw();}
+canvas.addEventListener('pointerdown',e=>{if(!imageSource)return;e.preventDefault();revokeResults();drawing=true;start=position(e);
+ canvas.setPointerCapture(e.pointerId);updateSelection(e);$('run').disabled=false;});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();updateSelection(e);});
+canvas.addEventListener('pointerup',()=>{drawing=false});
+canvas.addEventListener('pointercancel',()=>{drawing=false});
+$('reset').onclick=()=>{rectangle=null;drawing=false;revokeResults();redraw();$('run').disabled=true;status('元画像をドラッグして選択してください。');};
+$('file').onchange=async()=>{
+ const f=$('file').files?.[0];if(!f)return;
+ $('run').disabled=$('reset').disabled=true;rectangle=null;imageSource=null;revokeResults();
+ try{
+ if(f.type!=='image/png'||f.size>5*1024*1024)throw Error('5MB以下のPNGを選択してください。');
+ const pngBytes=new Uint8Array(await f.arrayBuffer()),blob=new Blob([pngBytes],{type:'image/png'}),bitmap=await createImageBitmap(blob);
+ try{
+ if(bitmap.width<1||bitmap.height<1||bitmap.width>340||bitmap.height>340)throw Error('340×340px以下のPNGを使用してください。');
+ canvas.width=bitmap.width;canvas.height=bitmap.height;ctx.drawImage(bitmap,0,0);
+ const rgba=new Uint8Array(ctx.getImageData(0,0,bitmap.width,bitmap.height).data);
+ imageSource={width:bitmap.width,height:bitmap.height,rgba,pngHash:await sha(pngBytes)};
+ }finally{bitmap.close();}
+ $('reset').disabled=false;redraw();status('元画像をドラッグして比較する範囲を選んでください。');
+ }catch(e){status('読込失敗: '+e.message);}
+};
+$('run').onclick=async()=>{
+ if(!imageSource||!rectangle)return;
+ $('run').disabled=true;revokeResults();status('元画像の画素を検証しています…');
+ try{
+ const {width,height,rgba,pngHash}=imageSource,[x0,y0,x1,y1]=rectangle,n=width*height;
+ const mask=new Uint8Array(n),labels=new Uint8Array(n);
+ let selected=0;
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*width+x;if(rgba[4*i+3]!==255)continue;labels[i]=9;selected++;}
+ if(!selected)throw Error('選択範囲に不透明な元画素がありません。');
+ if(selected>20000)throw Error('選択範囲が大きすぎます。不透明画素が20,000以下になるよう小さく選択してください。');
+ const zeroSha=await sha(mask),rgbaSha=await sha(rgba);
+ const source={caseId:'GC001',width,height,sourceRgba:rgba,sourceRgbaSha256:rgbaSha,
+  sourcePngSha256:pngHash,faceMask:mask,faceSha256:zeroSha,
+  backgroundMask:mask,backgroundSha256:zeroSha,
+  owners:{left_arm:{mask,sha256:zeroSha},right_arm:{mask,sha256:zeroSha}}};
+ const packet=await buildHumanReviewQueue(source);
+ const draft={format:'MinimalizerPublic-P0-fullframe-review-draft-v1',
+  caseId:'GC001',dimensions:[width,height],sourceRgbaSha256:rgbaSha,
+  sourcePngSha256:pngHash,sourceEligibilitySha256:packet.eligibilitySha256,
+  status:'UNVERIFIED_FULLFRAME_HUMAN_PROPOSAL',approved:false,paintAuthorized:false,
+  reviewerAuthenticated:false,roles,rle:encodeFullFrameDraftRle(labels)};
+ const [compact,exact]=await Promise.all([
+  buildUntrustedWholeFramePreview({source,draft}),
+  buildSourceExactRgbPreview({source,draft,maxRectangles:30000})
+ ]);
+ if(compact.paintedSourcePixels!==selected||exact.paintedPixels!==selected||
+  exact.originalRgbMismatchPixels!==0||
+  compact.productionReleaseAuthorized!==false||exact.releaseAuthorized!==false)
+  throw Error('元画像の検証が一致しません。');
+ const values={compactError:compact.rgbMismatchPixelsDueToSourcePaletteQuantization,
+  exactError:exact.originalRgbMismatchPixels,compactVertex:compact.totalExplicitVertices,
+  exactVertex:exact.vertices,compactBytes:compact.svgBytes,exactBytes:exact.svgBytes};
+ for(const [id,v]of Object.entries(values))$(id).textContent=v.toLocaleString('ja-JP');
+ for(const [id,result]of [['compact',compact],['exact',exact]]){
+  const url=URL.createObjectURL(new Blob([id==='compact'?result.svg:exact.svg],{type:'image/svg+xml'}));
+  objectUrls.push(url);$(id).src=url;
+ }
+ status(selected.toLocaleString('ja-JP')+'画素を比較しました。両方式とも元画像内の指定画素だけを描画。人物の意味領域は未審査です。');
+ }catch(e){status('比較を完了できませんでした: '+e.message);}
+ finally{$('run').disabled=!rectangle;}
+};
+</script></body></html>
