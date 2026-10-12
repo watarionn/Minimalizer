@@ -14,7 +14,11 @@ export async function buildHumanReviewQueue(source){
 export async function verifyHumanReviewQueue(source,packet){
  const fresh=await buildHumanReviewQueue(source);
  if(!packet||packet.packetSha256!==fresh.packetSha256||JSON.stringify(packet.tiles)!==JSON.stringify(fresh.tiles)||
- packet.humanReviewAccepted!==false||packet.authenticatedHumanPixels!==0||packet.paintAuthorized!==false)
+ packet.rgbaSha256!==fresh.rgbaSha256||packet.pngSha256!==fresh.pngSha256||
+ packet.eligibilitySha256!==fresh.eligibilitySha256||packet.caseId!==fresh.caseId||
+ packet.totalOriginalPixels!==fresh.totalOriginalPixels||packet.backgroundSemanticsVerified!==false||
+ packet.status!=='HUMAN_REVIEW_REQUIRED'||packet.humanReviewAccepted!==false||
+ packet.authenticatedHumanPixels!==0||packet.paintAuthorized!==false)
   fail('UNTRUSTED_REVIEW_PACKET');
  return {caseId:fresh.caseId,originalPixelsQueued:fresh.totalOriginalPixels,verifiedSemanticPixels:0,
   status:'HUMAN_REVIEW_REQUIRED'};
