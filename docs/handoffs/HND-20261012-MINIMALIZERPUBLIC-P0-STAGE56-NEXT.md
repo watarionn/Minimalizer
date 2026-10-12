@@ -1,0 +1,9 @@
+# MinimalizerPublic P0 after Stage56, 2026-10-12
+
+Source of truth: GitHub `watarionn/Minimalizer` Draft PR #390, `research/public-structural-recovery-p0-part-preservation-20261011`; Drive `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage52_56_20261012`.
+
+Do not modify Local Minimalizer. Do not alter default Public route or replace deployed full-character production preview with unapproved stroke masks. PR #390 remains unmerged HOLD. Deployed isolated Stage51 preview at `/minimalizer/static/structural-p0-stage51-preview.html` is separate, and should not be overwritten by these research modules.
+
+Stage52 SHA-pinned source binary component masks -> min-axis disjoint rectangles -> centered SVG butt-cap strokes. Stage53 rejects untrusted/tampered SVG strings and endpoint geometry; no palette reconstruction, no anatomy. Stage54 real Chromium 144 1x and2x alpha parity 0 error on four *source observed accessory feature subsets*: GC001 398 contour vertices → 246 stroke endpoints; Raden total 1968 contour vertices → 1288 stroke endpoints. Endpoint metrics are not the same as conventional polygon vertex costs; full-scene Stage8 cap still FAIL. Stage55 face/feature overlap gate and independent observations remain untrusted; diagnostic original photographs and PNG overlays private on Drive. Stage56 CI must be verified from GitHub Actions logs, not assumed.
+
+Next: Stage57+ benchmark full-image segmentation and signed part masks with true multi-resolution Chrome overlay, fix arm/sleeve/hair and palette by source-confirmed boundaries (do not hallucinate), incorporate reviewer provenance, resolve Stage8 full-scene gate and whole-person Golden at 340/680 before normal Product/Public merge. Actual iPhone Safari tests and rollback remain pending. Never falsely certify human semantic review from synthetic data.
