@@ -1,0 +1,12 @@
+# Handoff MinimalizerPublic P0 after Stage105 (2026-10-13)
+Repo `watarionn/Minimalizer`, Draft PR #390; research branch `research/public-structural-recovery-p0-part-preservation-20261011`. HOLD no merge/deploy. Do not touch Local Minimalizer, main, ordinary Public or Stage51.
+
+Stages96–99: new `public-human-review-protocol-p0.mjs` provides SHA-pinned two-case original review manifest, mandatory whole-body manual review topics, statistics of untrusted label proposal completeness, per-tile dual-review adjudication agenda and **unconditional release veto**. Human-reviewed semantic pixels remain 0; uploader-provided approvals or signatures do not establish human identity.
+
+Stages100–103: new `public-wholeframe-opacity-p0.mjs` is a **source alpha255-only** bitmap→rectangle→SVG diagnostic, NOT a person silhouette. Original opaque backgrounds are included, original RGB not reconstructed. Fail-closed original SHA validation, strict source alpha255 rectangle coverage and deterministic SVG bytes. Production paint never authorized. Geometry from this diagnostic must NEVER be compared as if it were Stage8 complete-character geometry.
+
+Stage104: source-sha-pinned actual original GC001/Raden Chrome 340/680: 4/4 zero missing, extra or fractional alpha. Both 115,152 alpha255 pixels out of 115,600; black opaque diagnostic SVG 507 bytes and 100 rectangle vertices for both. **These tiny numbers include opaque background and demonstrate that alpha cannot recover original character boundary**.
+
+Stage105: new test suite (12 initial tests) and workflow Stages1–105. Verify actual CI log after push, archive source-free code and documentation in GitHub and private original-derived SVG, rerun script, browser proof, reviewer manifest only in Drive `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage96_105_20261013`.
+
+Blocking next Stage106+: actual independently authenticated humans must label the source original entire body/background/arms/sleeves/skin/hair/necktie/face suppression using previous Stage91 private offline reviewer; independently adjudicate. No full-body Golden, no iPhone Safari HTTPS/rollback, no shape budget (historic Stage8 GC001 3604>1887 and Raden 2370>1412). Keep Golden HOLD and PR Draft.
