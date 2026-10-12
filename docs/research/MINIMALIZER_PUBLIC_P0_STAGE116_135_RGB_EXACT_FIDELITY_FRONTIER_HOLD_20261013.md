@@ -45,7 +45,7 @@ Historic **whole-character** Stage8 polygon budget remains GC001 **3,604 > 1,887
 
 ## Stage135: CI, isolation, handoff
 
-`tests/js/test_public_stage116_135_p0.mjs` adds **26** new Node regressions to the prior Stage115 **507** tests (expected actual total **533**, confirm **real GitHub CI** before reporting). Archives:
+`tests/js/test_public_stage116_135_p0.mjs` adds **26** new Node regressions to the prior Stage115 **507** tests (expected actual total **533**, ACTUAL GitHub Actions run 38285758605 / job 114933614316 confirmed **533 PASS, 0 failed, 0 skipped** on executable SHA 932ea2bf1369353f953f031284b7a83d7acbce4a). Archives:
 - Source-free code/tests/research/handoff in GitHub Draft PR #390 and public ZIP.
 - Actual original-derived exact RGB SVG, original RGBA SHA/label SHA, source Chrome pixel proof, cost-frontier JSON and replay scripts in **PRIVATE Google Drive ZIP only** under `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage116_135_20261013`.
 - No main, Local, Stage51 or production change, no merge/deploy.
