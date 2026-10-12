@@ -10,7 +10,7 @@ Stage93: `public-human-review-dispute-map-p0.mjs` exhaustively checks every orig
 
 Stage94: true private Chrome offline files for real GC001/Raden original RGBA were tested **2/2**: label, RLE reimport, tampered source draft refused, nonopaque pixel blocked and two labels not accepted as independent human. PRIVATE Chrome screenshot PNG and replay are archived. No physical Safari/HTTPS.
 
-Stage95: **14** new Node tests added, workflow updated to Stages1–95. Verify actual GitHub Actions run on executable commit; earlier 461 tests Stage90. All source embedded files/screenshots remain PRIVATE Drive-only, no original RGB in repo; GitHub and Drive research documents/handoff archived.
+Stage95: **14** new Node tests added, workflow updated to Stages1–95. Actual CI run 38268814585 / job 114877682712 on code SHA c6190031b0d12e6ae6246b9f4763a0b069bd5120: 475 PASS, 0 fail, 0 skipped. All source embedded files/screenshots remain PRIVATE Drive-only, no original RGB in repo; GitHub and Drive research documents/handoff archived.
 
 Important: independently verified human semantic pixel count **0**. Old whole-character polygon vertices still GC001 3604>1887, Raden 2370>1412; true person/background silhouette and arms/sleeves/hair/tie Golden absent; physical iPhone Safari HTTPS and rollback absent. No auto product paint, full-character SVG adoption, or release. PR stays DRAFT/HOLD.
 
