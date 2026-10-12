@@ -1,0 +1,56 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash,webcrypto} from 'node:crypto';
+import {deriveSourceAnnotationAuthority} from '../../web/static/public-annotation-authority-p0.mjs';
+import {buildSourceBoundaryReviewQueue} from '../../web/static/public-annotation-boundary-queue-p0.mjs';
+import {compareSourceReviewDraftPair} from '../../web/static/public-annotation-dual-review-p0.mjs';
+import {evaluateTwoCaseOwnerRecovery} from '../../web/static/public-annotation-stage34-gate-p0.mjs';
+import {encodeReviewRle,decodeReviewRle} from '../../web/static/public-annotation-ingest-p0.mjs';
+globalThis.crypto||=webcrypto;
+const hash=a=>createHash('sha256').update(a).digest('hex');
+function setup(){
+ const width=16,height=16,n=width*height,sourceRgba=new Uint8Array(n*4),faceMask=new Uint8Array(n),backgroundMask=new Uint8Array(n),left=new Uint8Array(n),right=new Uint8Array(n);
+ for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=y*width+x;sourceRgba.set([x<8?20:120,y<8?40:140,70,255],i*4);}
+ for(let y=3;y<13;y++)for(let x=2;x<7;x++)left[y*width+x]=255;
+ for(let y=3;y<13;y++)for(let x=10;x<15;x++)right[y*width+x]=255;
+ faceMask[6*width+11]=255;backgroundMask[4*width+2]=255;sourceRgba[4*(8*width+4)+3]=0;
+ const owners={left_arm:{mask:left,sha256:hash(left)},right_arm:{mask:right,sha256:hash(right)}};
+ const f={caseId:'GC001',width,height,sourceRgba,sourceRgbaSha256:hash(sourceRgba),sourcePngSha256:'a'.repeat(64),faceMask,faceSha256:hash(faceMask),backgroundMask,backgroundSha256:hash(backgroundMask),owners};
+ return f;
+}
+const asAuthority=f=>({width:f.width,height:f.height,originalRgba:f.sourceRgba,originalSha256:f.sourceRgbaSha256,faceMask:f.faceMask,faceSha256:f.faceSha256,backgroundMask:f.backgroundMask,backgroundSha256:f.backgroundSha256,arms:f.owners});
+function draft(f,changes){const n=f.width*f.height,labels=new Uint8Array(n);for(const [i,v] of changes)labels[i]=v;
+ return {format:'MinimalizerPublic-P0-source-manual-review-draft-v1',reviewStatus:'UNVERIFIED_UNTRUSTED_USER_ANNOTATION',approved:false,productPromotionAuthorized:false,caseId:f.caseId,dimensions:[f.width,f.height],sourcePngSha256:f.sourcePngSha256,sourceRgbaSha256:f.sourceRgbaSha256,faceSha256:f.faceSha256,backgroundObserverSha256:f.backgroundSha256,historicalOwnerSha256:{left_arm:f.owners.left_arm.sha256,right_arm:f.owners.right_arm.sha256},labels:{0:'unclassified',1:'sleeve_observation',2:'skin_forearm_observation',3:'hair_observation',4:'other_clothes_observation'},rle:encodeReviewRle(labels)};}
+const pair=f=>{const a=[3*16+3,3*16+4,4*16+3,4*16+4,5*16+4],b=[3*16+3,3*16+4,4*16+3,4*16+4,5*16+4];return [draft(f,a.map(i=>[i,1])),draft(f,b.map((i,k)=>[i,k===2?2:1]))];};
+const queue=(f,a)=>buildSourceBoundaryReviewQueue({width:f.width,height:f.height,originalRgba:f.sourceRgba,authority:a.eligible,faceMask:f.faceMask,backgroundMask:f.backgroundMask,tileSize:8});
+test('S31 authoritative left and right mask accepted with exclusions',async()=>{const f=setup(),a=await deriveSourceAnnotationAuthority(asAuthority(f));assert.equal(a.eligiblePixels,97);assert.equal(a.byOwner.left_arm,48);assert.equal(a.byOwner.right_arm,49);assert.equal(a.excludedFace,1);assert.equal(a.excludedBackground,1);assert.equal(a.excludedAlpha,1);assert.equal(a.productPromotionAuthorized,false);});
+test('S31 deterministic eligibility SHA and output',async()=>{const f=setup();assert.deepEqual(await deriveSourceAnnotationAuthority(asAuthority(f)),await deriveSourceAnnotationAuthority(asAuthority(f)));});
+test('S31 protects caller buffers unchanged',async()=>{const f=setup(),before=f.sourceRgba.slice(),left=f.owners.left_arm.mask.slice();await deriveSourceAnnotationAuthority(asAuthority(f));assert.deepEqual(f.sourceRgba,before);assert.deepEqual(f.owners.left_arm.mask,left);});
+test('S31 cannot infer semantic labels',async()=>{const a=await deriveSourceAnnotationAuthority(asAuthority(setup()));assert.equal(a.semanticTruthEstablished,false);assert.equal(a.stage18PaintAllowed,false);});
+test('S31 rejects source tampering',async()=>{const f=setup();f.sourceRgba[0]++;await assert.rejects(()=>deriveSourceAnnotationAuthority(asAuthority(f)),/SOURCE_PIN_MISMATCH/);});
+test('S31 rejects face tampering',async()=>{const f=setup();f.faceMask[0]=255;await assert.rejects(()=>deriveSourceAnnotationAuthority(asAuthority(f)),/FACE_PIN_MISMATCH/);});
+test('S31 rejects alpha-hidden overlap before labeling',async()=>{const f=setup();f.owners.right_arm.mask[3*16+3]=255;f.owners.right_arm.sha256=hash(f.owners.right_arm.mask);await assert.rejects(()=>deriveSourceAnnotationAuthority(asAuthority(f)),/HISTORICAL_OWNER_COLLISION/);});
+test('S31 rejects historical nonbinary arm mask',async()=>{const f=setup();f.owners.left_arm.mask[0]=1;await assert.rejects(()=>deriveSourceAnnotationAuthority(asAuthority(f)),/left_arm_NONBINARY/);});
+test('S31 rejects wrong dimension',async()=>{const f=setup();f.width=1000;await assert.rejects(()=>deriveSourceAnnotationAuthority(asAuthority(f)),/SOURCE_SIZE/);});
+test('S32 source boundary queue deterministic',async()=>{const f=setup(),a=await deriveSourceAnnotationAuthority(asAuthority(f));assert.deepEqual(queue(f,a),queue(f,a));});
+test('S32 boundary queue contains source contrast only and no class inference',async()=>{const f=setup(),a=await deriveSourceAnnotationAuthority(asAuthority(f)),q=queue(f,a);assert(q.sourceContrastEdges>0);assert(q.suggestedReviewTiles.length>0);assert.equal(q.eligiblePixels,a.eligiblePixels);assert.equal(q.sourcePixelsClassified,0);assert.equal(q.productPromotionAuthorized,false);});
+test('S32 review tiles always in canvas',async()=>{const f=setup(),a=await deriveSourceAnnotationAuthority(asAuthority(f));for(const t of queue(f,a).suggestedReviewTiles){assert(t.bbox[0]>=0&&t.bbox[1]>=0&&t.bbox[2]<=f.width&&t.bbox[3]<=f.height);}});
+test('S32 rejects face pixel in authority',()=>{const f=setup();const fake=f.owners.right_arm.mask.slice();assert.throws(()=>buildSourceBoundaryReviewQueue({width:16,height:16,originalRgba:f.sourceRgba,authority:fake,faceMask:f.faceMask,backgroundMask:f.backgroundMask}),/SOURCE_AUTHORITY_COLLISION/);});
+test('S32 rejects nonbinary authority',()=>{const f=setup(),m=new Uint8Array(256);m[0]=128;assert.throws(()=>buildSourceBoundaryReviewQueue({width:16,height:16,originalRgba:f.sourceRgba,authority:m,faceMask:f.faceMask,backgroundMask:f.backgroundMask}),/NONBINARY_AUTHORITY/);});
+test('S32 rejects tiny tileSize',()=>{const f=setup();assert.throws(()=>buildSourceBoundaryReviewQueue({width:16,height:16,originalRgba:f.sourceRgba,authority:new Uint8Array(256),faceMask:f.faceMask,backgroundMask:f.backgroundMask,tileSize:1}),/INVALID_REVIEW_QUEUE_INPUT/);});
+test('S32 never returns an original RGBA or semantic mask',async()=>{const f=setup(),a=await deriveSourceAnnotationAuthority(asAuthority(f)),q=queue(f,a);assert(!('sourceRgba' in q));assert(!('paintMask' in q));});
+test('S33 compares two individually source-validated synthetic drafts',async()=>{const f=setup(),r=await compareSourceReviewDraftPair({...f,drafts:pair(f)});assert.equal(r.eligiblePixels,97);assert.equal(r.duallyLabeledPixels,5);assert.equal(r.unverifiedMatchingPixels,4);assert.equal(r.disagreedPixels,1);assert.equal(r.abstainedPixels,92);assert.equal(r.productPromotionAuthorized,false);});
+test('S33 consensus equality is never semantic approval',async()=>{const f=setup(),r=await compareSourceReviewDraftPair({...f,drafts:pair(f)});assert.equal(r.independentReviewersVerified,false);assert.equal(r.paintAuthorized,false);});
+test('S33 rejects two identical label files',async()=>{const f=setup(),d=pair(f)[0];await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:[d,d]}),/DUPLICATE_REVIEW_DATA/);});
+test('S33 rejects falsified reviewer draft claims',async()=>{const f=setup(),d=pair(f);d[1].approved=true;await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:d}),/UNTRUSTED_CLAIM/);});
+test('S33 rejects source change in a draft',async()=>{const f=setup(),d=pair(f);d[1].sourcePngSha256='0'.repeat(64);await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:d}),/PNG_DRAFT_SOURCE_MISMATCH/);});
+test('S33 rejects out-of-authority paint',async()=>{const f=setup(),d=pair(f),l=decodeReviewRle({rle:d[1].rle,expectedPixels:256});l[0]=1;d[1].rle=encodeReviewRle(l);await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:d}),/OUTSIDE_SOURCE_OWNER_LABEL/);});
+test('S33 cannot import cross-case draft',async()=>{const f=setup(),d=pair(f);d[1].caseId='Raden';await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:d}),/CASE_OR_FORMAT_CONFLICT/);});
+test('S33 requires exactly two drafts',async()=>{const f=setup();await assert.rejects(()=>compareSourceReviewDraftPair({...f,drafts:[]}),/REQUIRE_TWO_DRAFTS/);});
+const CASES=()=>['GC001','Raden'].map((caseId,i)=>({caseId,eligiblePixels:i?20177:9160,proposedPixels:49,independentlyAttestedPixels:0,unknownPixels:i?20128:9111,sourceOutsideChangedPixels:0,independentReviewerVerified:false,visualAnatomyGolden:false}));
+test('S34 two-case gate keeps all unreviewed anatomy HOLD',()=>{const r=evaluateTwoCaseOwnerRecovery({cases:CASES()});assert(r.blockerCount>=13);assert.equal(r.stage18PaintAllowed,false);});
+test('S34 even forged checked-all cannot promote',()=>{const rows=CASES().map(x=>({...x,proposedPixels:x.eligiblePixels,independentlyAttestedPixels:x.eligiblePixels,unknownPixels:0,independentReviewerVerified:true,visualAnatomyGolden:true}));const r=evaluateTwoCaseOwnerRecovery({cases:rows,fullCharacterGolden:true,realPublicOriginTested:true,iphoneSafariTested:true,vertexBudgetPassed:true,rollbackTested:true});assert.equal(r.blockerCount,0);assert.equal(r.productPromotionAuthorized,false);});
+test('S34 missing Raden fails closed',()=>{assert.throws(()=>evaluateTwoCaseOwnerRecovery({cases:[CASES()[0],CASES()[0]]}),/REQUIRE_TWO_REAL_CASES/);});
+test('S34 impossible coverage fails closed',()=>{const rows=CASES();rows[0].independentlyAttestedPixels=50;assert.throws(()=>evaluateTwoCaseOwnerRecovery({cases:rows}),/IMPOSSIBLE_COVERAGE/);});
+test('S34 source exterior modified gets explicit blocker',()=>{const rows=CASES();rows[1].sourceOutsideChangedPixels=1;const r=evaluateTwoCaseOwnerRecovery({cases:rows});assert(r.blockers.includes('Raden_SOURCE_OUTSIDE_MUTATION'));});
+test('S34 no marketing-style success statuses',()=>{const r=evaluateTwoCaseOwnerRecovery({cases:CASES()});assert.equal(r.status,'DRAFT_HOLD');assert.equal(r.productionReleaseAuthorized,false);});

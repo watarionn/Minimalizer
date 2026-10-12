@@ -1,0 +1,10 @@
+# Handoff: MinimalizerPublic P0 Stage20, next source-semantic anatomy masks
+
+- Repo `watarionn/Minimalizer`, Draft PR #390, branch `research/public-structural-recovery-p0-part-preservation-20261011`. Do NOT merge or deploy, and do NOT touch Local Minimalizer.
+- Completed Stage17 source SHA-pinned historical limb owner / face/background/alpha guard; Stage18 literal source RGB medoid-only color partition replay; Stage19 nonpromoting anatomy/Golden veto; Stage20 full test CI and preservation.
+- New files: `web/static/public-owner-evidence-guard-p0.mjs`, `web/static/public-owner-color-mass-p0.mjs`, `web/static/public-owner-review-gate-p0.mjs`, `tests/js/test_public_owner_evidence_p0.mjs`, report `docs/research/MINIMALIZER_PUBLIC_P0_STAGE17_20_SOURCE_OWNER_HOLD_20261011.md`.
+- Private Golden GC001/Raden paired original source, production frozen Facet40 and historical Stage04 signed arm masks (SHA identity). Source observation masks for backdrop and color clustering are external and **UNSIGNED semantically**. Never accept them as garment/hair/skin facts.
+- Two-case candidate: GC001 6,891 changed/+3.93% source RGB, Raden 16,197/+6.41%. All protection violations zero, but **VISUAL REJECTED** because ambiguous sleeves and hair. Stage19 actual gate 13 blockers, DRAFT_HOLD. No product quality pass.
+- Earlier Stage12 lossless eyewear/bow SVG did not fix whole-body structural fidelity and exceeded vertex budgets GC001 3604>1887; Raden 2370>1412 before feature vertices. Stage16 full research CI was success; Stage20 CI must be separately inspected.
+- Next: independent pixel-level owner attestation for sleeve/forearm/hair, plus collar and prop with overlap DAG; source-only regions and medoid RGB, 340px/680px parity, full visual Golden and mobile. No further blanket arm recolor until meaningful mask truth.
+- Canonical Drive evidence under `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage17_20_20261011`. Include sha manifests, private source photographs/masks/preview and replay scripts there, never on public GitHub.

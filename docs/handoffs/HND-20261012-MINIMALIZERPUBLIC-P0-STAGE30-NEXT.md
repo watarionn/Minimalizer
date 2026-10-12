@@ -1,0 +1,11 @@
+# MinimalizerPublic StructuralRecovery P0 handoff after Stage30
+
+Canonical `watarionn/Minimalizer` Draft PR #390, branch `research/public-structural-recovery-p0-part-preservation-20261011`. Main, production Public route and **Local Minimalizer must not be modified**. Human Golden, trusted hair/sleeve/skin/forearm/garment owner masks, SVG complexity limits, genuine Chrome HTTPS WebCrypto, iPhone Safari and full-character silhouette remain HOLD.
+
+Stage26 `web/static/public-annotation-ingest-p0.mjs` validates private Stage25 JSON RLE against independent original RGB and SHA mask bytes, protects face/background/alpha and historical signed arm bounds. Stage27 `public-annotation-topology-p0.mjs` detects disconnected label islands and original RGB edge diagnostics with NO semantic authority. Stage28 `public-independent-review-compare-p0.mjs` measures review conflict and unknown pixels, but never attests reviewer identities. Stage29 revised PRIVATE reviewer HTML adds source-attested JSON reimport, Undo, and rejects forged lineage with no state mutation. Isolated Chromium `about:blank` tests with explicitly delegated Python SHA256 are **NOT** a native secure-origin WebCrypto proof. Stage30 24 new Node tests initially pass locally. Full CI status is verified separately after upload.
+
+Private data/photos/source RGBA/masks/revised reviewer HTML and source-private replay under Google Drive `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage26_30_20261012`. Do not commit PRIVATE ZIP or reviewer HTML to public GitHub.
+
+Real GC001/Raden source/masks SHA verified: GC001 visible eligible arm mask 9160, Raden 20177. **49 pixel drafts are artificial parser exercises, not human signed anatomical annotation**. No independently reviewed semantic labels exist. Stage18 recoloring remains forbidden. Previous Stage21 unknown owner-color mass pixels 6249 remain unknown.
+
+Next require source-level independently reviewed sleeve/forearm-skin/hair boundary map, adjudicate disagreements with verified reviewer provenance, expand to torso/collar/held item only after new source evidence. Then re-run true original silhouette full-character Chrome 340/680 and iPhone Safari Golden, Stage8 full vertex cap GC001 3604>1887 Raden 2370>1412, dependency and rollback verification. Only then consider release; until then PR Draft HOLD.

@@ -1,0 +1,43 @@
+name: MinimalizerPublic P0 research checks
+on:
+  pull_request:
+    paths:
+      - 'web/static/public-*p0.mjs'
+      - 'tests/js/test_public_*p0.mjs'
+      - '.github/workflows/minimalizerpublic-p0-research.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contour-node:
+    name: Source-only research regression (Stages 1-135)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run research-only regression (no image generation)
+        run: >
+          node --test
+          tests/js/test_public_structural_recovery_p0.mjs
+          tests/js/test_public_source_part_authority_p0.mjs
+          tests/js/test_public_apparel_selective_p0.mjs
+          tests/js/test_public_source_feature_preservation_p0.mjs
+          tests/js/test_public_signed_face_blank_p0.mjs
+          tests/js/test_public_source_geometry_p0.mjs
+          tests/js/test_public_source_contour_p0.mjs
+          tests/js/test_public_owner_evidence_p0.mjs
+          tests/js/test_public_semantic_review_p0.mjs
+          tests/js/test_public_annotation_ingest_p0.mjs
+          tests/js/test_public_annotation_stage31_34_p0.mjs
+          tests/js/test_public_annotation_stage36_p0.mjs
+          tests/js/test_public_review_and_color_fill_stage72_76_p0.mjs
+          tests/js/test_public_fullframe_stage77_81_p0.mjs
+          tests/js/test_public_fullframe_packet_stage82_86_p0.mjs
+          tests/js/test_public_stage82_85_committed_p0.mjs
+          tests/js/test_public_human_review_stage91_95_p0.mjs
+          tests/js/test_public_stage96_105_p0.mjs
+          tests/js/test_public_human_stage106_115_p0.mjs
+          tests/js/test_public_stage116_135_p0.mjs

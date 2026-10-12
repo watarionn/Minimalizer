@@ -1,0 +1,23 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash,webcrypto} from 'node:crypto';
+import {probePinnedOriginalSourcePixel} from '../../web/static/public-review-source-pixel-probe-p0.mjs';
+globalThis.crypto||=webcrypto;
+const sha=x=>createHash('sha256').update(x).digest('hex');
+function f(){const width=10,height=10,n=100,sourceRgba=new Uint8Array(4*n),faceMask=new Uint8Array(n),backgroundMask=new Uint8Array(n),left=new Uint8Array(n),right=new Uint8Array(n);
+ for(let y=0;y<10;y++)for(let x=0;x<10;x++)sourceRgba.set([x*20,y*20,39,255],(y*10+x)*4);
+ for(let y=2;y<8;y++)for(let x=1;x<4;x++)left[y*10+x]=255;
+ for(let y=2;y<8;y++)for(let x=6;x<9;x++)right[y*10+x]=255;
+ faceMask[3*10+2]=255;backgroundMask[3*10+7]=255;sourceRgba[(4*10+8)*4+3]=0;
+ return {width,height,sourceRgba,sourceRgbaSha256:sha(sourceRgba),faceMask,faceSha256:sha(faceMask),backgroundMask,backgroundSha256:sha(backgroundMask),owners:{left_arm:{mask:left,sha256:sha(left)},right_arm:{mask:right,sha256:sha(right)}}};}
+const call=(a,x=2,y=2)=>probePinnedOriginalSourcePixel({...a,x,y});
+test('S44 reads literal original RGB and no inferred colors',async()=>{const r=await call(f());assert.deepEqual(r.sourceRgb,[40,40,39]);assert.equal(r.historicalCandidate,'left_arm');assert.equal(r.semanticLabel,'unknown');});
+test('S44 background excluded from historical eligible',async()=>{const r=await call(f(),7,3);assert.equal(r.protectedObservedBackground,true);assert.equal(r.historicalEligible,false);});
+test('S44 face pixel exclusion',async()=>{const r=await call(f(),2,3);assert.equal(r.protectedFace,true);assert.equal(r.historicalEligible,false);});
+test('S44 transparent pixel excluded',async()=>{const r=await call(f(),8,4);assert.equal(r.sourceAlpha,0);assert.equal(r.historicalEligible,false);});
+test('S44 right historical owner not mistaken for skin',async()=>{const r=await call(f(),6,2);assert.equal(r.historicalCandidate,'right_arm');assert.equal(r.semanticLabel,'unknown');});
+test('S44 source and mask buffers never mutated',async()=>{const a=f(),b=a.sourceRgba.slice();await call(a);assert.deepEqual(a.sourceRgba,b);});
+test('S44 rejects stale source digest',async()=>{const a=f();a.sourceRgba[3]++;await assert.rejects(()=>call(a),/SOURCE_PIN_MISMATCH/);});
+test('S44 rejects shifted face digest',async()=>{const a=f();a.faceMask[0]=255;await assert.rejects(()=>call(a),/FACE_PIN_MISMATCH/);});
+test('S44 refuses outside source pixel coordinates',async()=>{await assert.rejects(()=>call(f(),10,10),/PIXEL_OUT_OF_RANGE/);});
+test('S44 immutable probe never creates paint authority',async()=>{const r=await call(f());assert.equal(r.paintAuthorized,false);assert.equal(r.productPromotionAuthorized,false);assert.equal(r.sourcePixelExact,true);});

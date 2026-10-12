@@ -1,0 +1,9 @@
+# MinimalizerPublic P0 handoff after Stage46, 2026-10-12
+
+Repo `watarionn/Minimalizer`; Draft PR #390 on branch `research/public-structural-recovery-p0-part-preservation-20261011`. Stage41 Actions 212/212 PASS, Stage42–44 new 34 tests. Exact Stage46 Actions run and commit recorded in subsequent CI verification note. Main, deployed Public, Local Minimalizer are untouched.
+
+Stage42 `public-review-viewport-p0.mjs`: source pixel geometry zoom/pan/selected-tile focus 1–8×, no generator. Stage43 `public-review-session-p0.mjs`: per-case ephemeral draft and undo state copied/pinned to original SHA and safe eligible source, never signer. Stage44 `public-review-source-pixel-probe-p0.mjs`: literal SHA-pinned original RGB readout with source-only historic role/face/background checks. Stage45 PRIVATE offline HTML UI with pan as default, touch pinch, source coordinate readout, zoom controls, per-case draft recovery. Chromium desktop + iPhone 13 emulation tested, **not actual Safari or HTTPS WebCrypto**. Images/HTML and original masks are PRIVATE only in Drive, NEVER GitHub.
+
+Verified source pixels eligible GC001 9,160, Raden 20,177; source/owner hashes match earlier. Independent sleeve/forearm/skin/hair labels: 0 pixels each. Earlier 47/78 tile queues remain unchanged; manual classification may span hair/background due old historical masks, **do not authorize painting**. All annotation records remain untrusted, no product promotion.
+
+Next: Stage47 verify native secure-origin WebCrypto and actual iPhone Safari if practical; separately obtain human-independent original source sleeve/skin/hair boundary review and adjudicate conflict. Then source-only full-character Golden 340/680 and Stage8 SVG complexity 3604>1887 GC001, 2370>1412 Raden before any production release. Stage18 paint gate stays hard HOLD. Test branch only; save future artifacts under `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010`.
