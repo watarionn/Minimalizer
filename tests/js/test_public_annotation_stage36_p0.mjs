@@ -59,3 +59,6 @@ import './test_public_source_stroke_stage57_60_p0.mjs';
 
 // Stage66: source-attested color observation/medoid diagnostic, no normal product paint.
 import './test_public_source_color_stage62_65_p0.mjs';
+
+// Stage71: conservative source-only spatial RGB/SVG proof; product gate remains HOLD.
+import './test_public_source_palette_stage67_70_p0.mjs';
