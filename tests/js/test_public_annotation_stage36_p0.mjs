@@ -50,3 +50,6 @@ import './test_public_review_stage44_p0.mjs';
 
 // Stage51 research CI adapter, source evidence only.
 import './test_public_source_fidelity_stage47_50_p0.mjs';
+
+// Stage56 source-exact research-only SVG stroke parity guard (no product activation).
+import './test_public_source_stroke_stage52_55_p0.mjs';
