@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="MinimalizerPublicの全身SVG研究を、基準画像と差分とともに本番ブラウザで比較する一時プレビュー。">
+<title>Minimalizer Public | 全身SVG 一時プレビュー</title>
+<style>
+:root{color-scheme:light;--paper:#fff;--bg:#f6f5f2;--ink:#252420;--quiet:#6e6b65;--line:#cfcdc7;--tone:#393831}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;line-height:1.65}
+a{color:inherit;text-underline-offset:4px}a:hover{text-decoration-thickness:2px}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #6687aa;outline-offset:3px}
+.shell{max-width:1192px;margin:auto;padding:24px clamp(16px,4vw,46px) 82px}
+nav{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:4px 0 20px;font-size:13px}
+.brand{letter-spacing:.12em;font-weight:800}.intro{margin:48px 0 38px;max-width:850px}
+.kicker{font:600 12px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--quiet)}
+h1{font-size:clamp(30px,4.3vw,54px);line-height:1.26;letter-spacing:-.04em;margin:16px 0}
+.lead{max-width:770px;font-size:16px;margin:0 0 22px}.warning{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;font-size:14px;max-width:950px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin:32px 0 21px}
+.tab{border:1px solid var(--line);background:transparent;color:var(--ink);padding:10px 18px;min-height:46px;border-radius:2px}
+.tab[aria-pressed=true]{background:var(--tone);color:#fff;border-color:var(--tone)}
+select{color:var(--ink);background:var(--paper);padding:10px 12px;border:1px solid var(--line);border-radius:2px;min-height:46px}
+.metrics{border-top:1px solid var(--line);padding:19px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.metric{min-width:0}.metric span{display:block;color:var(--quiet);font-size:12px}.metric strong{display:block;font-size:clamp(18px,2.3vw,29px);font-weight:680;font-variant-numeric:tabular-nums}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+figure{min-width:0;margin:0}figcaption{font-weight:650;font-size:14px;margin:10px 0 2px}figcaption small{display:block;font-weight:400;color:var(--quiet);font-size:12px}
+.canvas{background:#f1f1ef;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;min-height:220px;overflow:auto;aspect-ratio:1;}
+.canvas img{width:100%;height:100%;object-fit:contain;display:block;image-rendering:auto}
+.overlay-panel{border-top:1px solid var(--line);margin:38px 0 0;padding:28px 0 14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+h2{font-size:clamp(19px,2.5vw,26px);margin:0 0 12px}.overlay-text{font-size:14px;color:var(--quiet)}
+.range-line{display:flex;gap:12px;align-items:center;font-size:13px;margin-top:22px}.range-line input{flex:1;min-width:80px;accent-color:var(--tone)}.range-line output{font-variant-numeric:tabular-nums;width:50px;text-align:right}
+.stack{position:relative;aspect-ratio:1;background:#f1f1ef;border:1px solid var(--line);overflow:hidden;max-width:100%;}
+.stack img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.info{border-top:1px solid var(--line);margin-top:36px;padding-top:25px;font-size:14px}
+.info p{margin:0 0 14px}.secondary{color:var(--quiet)}footer{border-top:1px solid var(--line);margin-top:48px;padding-top:20px;color:var(--quiet);font-size:12px}
+@media(max-width:680px){.intro{margin:32px 0}.compare{gap:11px}.canvas{min-height:150px}.overlay-panel{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:20px}}
+@media(max-width:420px){.metrics{grid-template-columns:1fr 1fr}.toolbar{gap:8px}.tab{padding:9px 12px}.compare{grid-template-columns:1fr}.canvas{min-height:230px}nav{gap:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav><div class="brand">MINIMALIZER <span style="font-weight:400">/ RESEARCH</span></div><a href="../">通常のMinimalizerへ戻る ↗</a></nav>
+<header class="intro">
+<p class="kicker">Temporary public preview / StructuralRecovery P0 / Stage 51</p>
+<h1>全身SVGを、本番ブラウザで見比べる。</h1>
+<p class="lead">輪郭、腕、服の色を細部まで確認するための一時公開ページです。公開済みのSA10.41全身SVGとその検証基準を使い、表示を切り替えて比較できます。</p>
+<div class="warning"><strong>品質判定はHOLDです。</strong> Stage 51は画素一致・SVG頂点数・原画像との差分を測る研究工程で、新しい画像変換エンジンではありません。このページの全身SVGは既存のSA10.41候補です。通常の画像アップロード・ミニマル化処理は変わりません。元画像の写真や非公開のマスクはこのページで配信しません。</div>
+</header>
+<main>
+<section aria-labelledby="sample-heading">
+<h2 id="sample-heading">表示する検証画像</h2>
+<div class="toolbar" aria-label="検証画像の操作">
+<button class="tab" id="choose-gc" type="button" aria-pressed="true">GC001 / キョーコ</button>
+<button class="tab" id="choose-raden" type="button" aria-pressed="false">らでん</button>
+<label for="viewMode">右側の表示：</label><select id="viewMode" aria-label="右側の表示"><option value="svg">SVG</option><option value="diff">不一致の位置</option></select>
+</div>
+<div class="metrics" aria-live="polite">
+<div class="metric"><span>全身SVGと基準画像の不一致（SA10.41）</span><strong id="different">3,919画素</strong></div>
+<div class="metric"><span>全身の頂点数 / 参考上限（Stage 8）</span><strong id="vertices">3,604 / 1,887</strong></div>
+<div class="metric"><span>Stage 51の部分輪郭 680px簡略化誤差</span><strong id="dpr">148画素</strong></div>
+</div>
+<div class="compare">
+<figure><div class="canvas"><img id="reference" src="./sa1041-preview/gc001-reference.png" width="340" height="340" alt="GC001の幾何学的な検証基準画像"></div><figcaption>検証基準<small>公開済みのOpenCV再構成画像。元の写真そのものではありません。</small></figcaption></figure>
+<figure><div class="canvas"><img id="candidate" src="./sa1041-preview/gc001.svg" width="340" height="340" alt="GC001の研究用全身SVG"></div><figcaption id="candidate-caption">本番ブラウザで描くSVG<small>SA10.41の実験候補。品質未承認。</small></figcaption></figure>
+</div>
+</section>
+<section class="overlay-panel" aria-labelledby="overlay-heading">
+<div><h2 id="overlay-heading">重ね合わせで境界を確認</h2><p class="overlay-text">基準画像の上にSVGを重ねます。透明度を動かすと、輪郭・腕・服の内側の位置の違いを確認できます。表示だけの操作であり、画像を変換したり画素を描き足したりしません。</p><div class="range-line"><label for="opacity">SVGの濃さ</label><input id="opacity" type="range" min="0" max="100" step="1" value="50"><output for="opacity" id="opacity-value">50%</output></div></div>
+<div class="stack" aria-label="基準画像とSVGの重ね合わせ"><img id="overlay-reference" src="./sa1041-preview/gc001-reference.png" width="340" height="340" alt="基準画像"><img id="overlay-svg" src="./sa1041-preview/gc001.svg" width="340" height="340" style="opacity:.5" alt="重ね合わせたSVG"></div>
+</section>
+<section class="info">
+<h2>今回の検証で分かっていること</h2>
+<p><strong>部分輪郭の厳密な幾何学は維持できる。</strong> Stage 51では、元画像由来の一部の観測マスクを340pxと680pxの格子で検証し、元の正確な輪郭なら両方で0画素差だった。一方で、頂点を減らした輪郭は680pxでGC001が148画素、らでんが428画素ずれたため不採用にした。</p>
+<p><strong>全身はまだ未完成。</strong> 参考頂点上限の超過と、腕・袖・髪の境界の確認不足が残る。部分輪郭の一致は全身SVGや実際のChrome・Safariの描画品質合格を意味しない。</p>
+<p class="secondary">このページに掲載する候補・基準・差分は2026年10月8日に公開されたSA10.41の研究資産です。新しいStage 51の検証結果を付記したものであり、Stage 51による新たな全身画像の生成を示すものではありません。</p>
+<p><a href="./sa1041-preview.html">旧SA10.41の全身比較ページを見る ↗</a>　 / 　<a href="../">通常のMinimalizerで画像を変換する ↗</a></p>
+</section>
+</main>
+<footer>MinimalizerPublic · 一時研究プレビュー · <a href="https://github.com/watarionn/Minimalizer/pull/390" target="_blank" rel="noopener noreferrer">研究PR #390</a> は未マージ・品質HOLD · 通常エンジンとLocal Minimalizerは変更なし。</footer>
+</div>
+<script>
+(function(){'use strict';
+const records={gc:{reference:'gc001-reference.png',svg:'gc001.svg',diff:'gc001-diff.png',different:'3,919画素',vertices:'3,604 / 1,887',dpr:'148画素',label:'GC001'},raden:{reference:'raden-reference.png',svg:'raden.svg',diff:'raden-diff.png',different:'2,681画素',vertices:'2,370 / 1,412',dpr:'428画素',label:'らでん'}};
+const byId=id=>document.getElementById(id),base='./sa1041-preview/';let current='gc';
+function render(){const r=records[current],diff=byId('viewMode').value==='diff';byId('reference').src=base+r.reference;byId('candidate').src=base+(diff?r.diff:r.svg);byId('candidate').alt=r.label+(diff?'の差分画像':'の実験SVG');byId('overlay-reference').src=base+r.reference;byId('overlay-svg').src=base+r.svg;byId('different').textContent=r.different;byId('vertices').textContent=r.vertices;byId('dpr').textContent=r.dpr;byId('candidate-caption').innerHTML=diff?'不一致の位置<small>保存済みのChrome描画差分。明るい場所ほど不一致です。</small>':'本番ブラウザで描くSVG<small>SA10.41の実験候補。品質未承認。</small>';byId('choose-gc').setAttribute('aria-pressed',String(current==='gc'));byId('choose-raden').setAttribute('aria-pressed',String(current==='raden'));}
+byId('choose-gc').addEventListener('click',()=>{current='gc';render();});byId('choose-raden').addEventListener('click',()=>{current='raden';render();});byId('viewMode').addEventListener('change',render);byId('opacity').addEventListener('input',()=>{const n=Number(byId('opacity').value);byId('opacity-value').textContent=n+'%';byId('overlay-svg').style.opacity=String(n/100);});
+render();
+})();
+</script>
+</body></html>
