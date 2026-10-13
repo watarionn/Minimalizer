@@ -1,0 +1,15 @@
+{
+  "name": "minimalizer-public-geometry-research",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Opt-in, standalone Paper.js and Delaunator evaluation (no production imports)",
+  "scripts": {
+    "test": "node --test geometry.test.mjs",
+    "demo": "node demo.mjs"
+  },
+  "dependencies": {
+    "paper": "0.12.18",
+    "delaunator": "5.1.0"
+  }
+}
