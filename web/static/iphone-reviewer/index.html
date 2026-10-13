@@ -1,0 +1,25 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<title>Minimalizer｜非公開パーツ塗り分け</title><link rel="stylesheet" href="review.css"></head><body>
+<header><h1>パーツ塗り分けレビュー</h1><p class="muted">iPhone向け・原画は端末内だけで処理・AI描き足しなし</p></header>
+<section id="start" class="panel">
+<h2>① 専用ファイルを読み込む</h2><p>受け取ったZIPを「ファイル」アプリで展開し、<b>GC001.review-source.json</b> または <b>Raden.review-source.json</b> を選んでね。審査画面に画像を送信する必要はありません。</p>
+<label class="fileButton">画像データを選択<input type="file" id="sourceFile" accept=".json,application/json"></label>
+<p id="security" class="muted">原画ファイルを選ぶまで画像は読み込まれません。</p></section>
+<section id="workspace" hidden>
+<div class="sticky panel"><div class="topbar"><b id="loadedCase">未選択</b><span id="progress" aria-live="polite"></span></div>
+<div class="tools"><label>パーツ<select id="role"><option value="1">背景</option><option value="2">髪</option><option value="3">顔全体（目・口の個別指定は不要）</option><option value="4">肌・手</option><option value="5">袖</option><option value="6">服</option><option value="7">ネクタイ・襟</option><option value="8">アクセサリー</option><option value="9">判別できない</option><option value="0">消しゴム・未分類</option></select></label>
+<div class="segmented"><button type="button" id="drawMode" class="selected" aria-pressed="true">✎ 塗る</button><button type="button" id="panMode" aria-pressed="false">✋ 移動</button></div></div>
+<div class="tools"><label>太さ<select id="brush"><option value="0">1 px</option><option value="1" selected>3 px</option><option value="2">5 px</option><option value="4">9 px</option></select></label><label>拡大 <input type="range" id="zoom" min="1" max="8" step="1" value="1"></label><span id="zoomLabel">1×</span></div>
+<div class="actions"><button id="undo" type="button">↶ 戻す</button><button id="redo" type="button">↷ やり直す</button><button id="saveLocal" type="button">端末内に途中保存</button></div>
+</div>
+<div class="viewerFrame" id="viewer" aria-label="画像を指で塗り分ける領域"><canvas id="drawing" width="340" height="340"></canvas></div>
+<div class="panel"><div class="tools"><label>タイル番号（0〜120）<input id="tile" type="number" min="0" max="120" value="0"></label><button type="button" id="jump">移動</button><button type="button" id="nextTile">次のタイル</button></div>
+<p class="muted">線で囲むのではなく、見えている部分を分類して塗ってね。2本指で移動、拡大は上の倍率スライダーから変更できます。顔の目・鼻・口は個別に描かない。分からない所は「判別できない」。</p>
+<div class="actions"><button type="button" id="shareDraft" class="primary">② JSONを「ファイル」に保存・共有</button><button type="button" id="downloadDraft">JSONをダウンロード</button></div>
+<label class="fileButton">途中保存したJSONを読み込む<input id="draftFile" type="file" accept=".json,application/json"></label>
+<div class="actions"><button type="button" id="clear">全ラベルを消去</button></div>
+<p class="muted">端末内の途中保存はSafariの設定やストレージ整理で消えることがあります。作業ごとにJSONも「ファイル」に保存してね。</p>
+</div></section>
+<section class="panel"><h2>状態</h2><p id="status" role="status">準備完了。専用ファイルを読み込んでください。</p><p class="muted">分類結果は未認証ドラフトです。本人確認やGolden承認には使われません。</p></section>
+<script src="review.js" defer></script></body></html>
