@@ -1,0 +1,49 @@
+{
+  "format": "MinimalizerPublic-P0-handoff-v1",
+  "updatedAtJST": "2026-10-14",
+  "stageRange": [
+    205,
+    214
+  ],
+  "repository": "watarionn/Minimalizer",
+  "prNumber": 393,
+  "branch": "research/minimalizerpublic-p0-stage136-155-20261013",
+  "lastCICommitSha": "d0b5ce686d68845438679687e129d0489f8cc085",
+  "ci": {
+    "runId": 38536860562,
+    "url": "https://github.com/watarionn/Minimalizer/actions/runs/38536860562",
+    "tests": 698,
+    "pass": 698,
+    "fail": 0
+  },
+  "status": {
+    "prDraft": true,
+    "merged": false,
+    "golden": "HOLD",
+    "production": false,
+    "localMinimalizerTouched": false,
+    "mainTouched": false
+  },
+  "blocked": [
+    "GC001 original-label opaque pixels pending human adjudication: 7072",
+    "Raden original-label opaque pixels pending human adjudication: 22690",
+    "GC001 incomplete union contour 4588 vertices > 1887",
+    "Raden incomplete union contour 2436 vertices > 1412",
+    "Internal source RGB color fidelity insufficient",
+    "Full-body semantic Golden and physical iPhone Safari acceptance pending",
+    "Actual rollback rehearsal and owner release approval pending"
+  ],
+  "artifactPaths": {
+    "research": "docs/research/MINIMALIZER_PUBLIC_P0_STAGE205_214_SOURCE_BOUND_FRONTIER_GOLDEN_HOLD_20261014.md",
+    "code": "web/static/public-stage205-214-evidence-frontier-p0.mjs",
+    "tests": "tests/js/test_public_stage205_214_p0.mjs",
+    "privateDriveFolderId": "1ZLfnIQy6W4A0q0tu6q7uq45G5wuhx6lj",
+    "stage204Handoff": "docs/handoffs/HND-20261014-MINIMALIZERPUBLIC-P0-STAGE204-NEXT.md"
+  },
+  "privacy": "Private source originals, masks and label arrays never in GitHub/public CI; owner Drive only.",
+  "nextStage": 215,
+  "nextFocus": "Original-art human adjudication of Raden sleeve-versus-garment and GC001 accessory-versus-garment, then source-exact geometry frontier.",
+  "operatorOutOfBandIndependenceConfirmed": true,
+  "automaticallyApprovedHumanPixels": 0,
+  "handoffIsNotReleaseApproval": true
+}
