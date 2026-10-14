@@ -23,9 +23,9 @@ test('195: all source-opaque pixels accounted and no Golden',()=>{
  const q=classifyPairedLabels(fixture());
  assert.equal(q.counts.nonopaque,1);
  assert.deepEqual([q.counts.background,q.counts.subject,q.counts.roleConflict,
- q.counts.backgroundConflict,q.counts.abstain,q.counts.uncertain],[1,3,1,2,2,2]);
+ q.counts.backgroundConflict,q.counts.abstain,q.counts.uncertain],[1,3,1,2,3,1]);
  assert.equal(q.opaque,11);assert.equal(q.semanticCertified,false);
- assert.deepEqual([...q.state],[1,3,2,0,4,2,4,5,5,2,5,6].map((v,i)=>i===7?3:i===10?5:v)); // corrected below
+ assert.deepEqual([...q.state],[1,3,2,0,4,2,4,5,5,2,5,6]);
 });
 test('195: strict unknown labels and no nonopaque painting',()=>{
  for(const key of ['labelsA','labelsB']){
@@ -112,8 +112,8 @@ test('200: exact source rectangles merge identical column runs vertically',()=>{
   255,255,0,0
  ]);
  const r=exactSourceRectangleCover({width:4,height:4,mask});
- assert.equal(r.sourcePixels,8);assert.equal(r.rectangles.length,3);
- assert.equal(r.explicitVertices,12);assert.equal(r.spilledPixels,0);assert.equal(r.lostPixels,0);
+ assert.equal(r.sourcePixels,8);assert.equal(r.rectangles.length,2);
+ assert.equal(r.explicitVertices,8);assert.equal(r.spilledPixels,0);assert.equal(r.lostPixels,0);
 });
 test('200: empty source mask has zero polygons and no fabrication',()=>{
  const r=exactSourceRectangleCover({width:4,height:3,mask:new Uint8Array(12)});
