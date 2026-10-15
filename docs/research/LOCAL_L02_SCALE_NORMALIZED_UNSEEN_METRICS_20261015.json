@@ -1,0 +1,297 @@
+{
+  "H04_half_crossvalidation": {
+    "both_sides": {
+      "f1": 0.815682,
+      "fn": 4147,
+      "fp": 4029,
+      "iou": 0.688735,
+      "precision": 0.817857,
+      "pred_pixels": 22120,
+      "recall": 0.813517,
+      "tp": 18091
+    },
+    "folds": {
+      "viewer_left": {
+        "improvement": 0.295275,
+        "new_iou": 0.596057,
+        "new_precision": 0.627332,
+        "new_recall": 0.922817,
+        "old_iou": 0.300782
+      },
+      "viewer_right": {
+        "improvement": -0.110389,
+        "new_iou": 0.750954,
+        "new_precision": 0.975775,
+        "new_recall": 0.765221,
+        "old_iou": 0.861343
+      }
+    }
+  },
+  "analysis_height_px": 900,
+  "gate": {
+    "L02_status": "HOLD",
+    "independent_character_labels": 0,
+    "production_release": "NO_GO",
+    "semantic_iou": null
+  },
+  "independently_labelled_unseen_count": 0,
+  "model_hyperparameters_tuned_on_H04": true,
+  "models_installed": false,
+  "predictions_are_source_only_diagnostics": true,
+  "production_worker_changed": false,
+  "schema": "minimalizer/local_l02_scale_normalized_unseen_probe/v1",
+  "signed_bundle_sha256": "d652f09625c08c25d88ccf312f408af762982554b30453e42ecb5076cbe3a8eb",
+  "source_pixels_generated_in_signed_original": 0,
+  "training": "ONE H04 signed human drawing (NOT cross-character supervision)",
+  "unseen_cases": {
+    "H01": {
+      "fraction": 0.018838,
+      "labelled": false,
+      "original_foreground_pixels": 843639,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 15189,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H02": {
+      "fraction": 0.007537,
+      "labelled": false,
+      "original_foreground_pixels": 414898,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        794,
+        1500
+      ],
+      "positive_original_pixels": 3165,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H03": {
+      "fraction": 0.235676,
+      "labelled": false,
+      "original_foreground_pixels": 494611,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        1000,
+        1500
+      ],
+      "positive_original_pixels": 116403,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H05": {
+      "fraction": 0.038968,
+      "labelled": false,
+      "original_foreground_pixels": 406615,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        950,
+        1350
+      ],
+      "positive_original_pixels": 13785,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H06": {
+      "fraction": 0.058787,
+      "labelled": false,
+      "original_foreground_pixels": 602869,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 33523,
+      "scale_perturbations": {
+        "1100": {
+          "original_pred_positive": 35865,
+          "raw_original_iou_with_900": 0.763937,
+          "raw_positive_fraction": 0.062386
+        },
+        "700": {
+          "original_pred_positive": 30371,
+          "raw_original_iou_with_900": 0.733706,
+          "raw_positive_fraction": 0.053747
+        }
+      },
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H07": {
+      "fraction": 0.013308,
+      "labelled": false,
+      "original_foreground_pixels": 983175,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 12976,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H08": {
+      "fraction": 0.068199,
+      "labelled": false,
+      "original_foreground_pixels": 536859,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 36664,
+      "scale_perturbations": {
+        "1100": {
+          "original_pred_positive": 39745,
+          "raw_original_iou_with_900": 0.798113,
+          "raw_positive_fraction": 0.073882
+        },
+        "700": {
+          "original_pred_positive": 31800,
+          "raw_original_iou_with_900": 0.741643,
+          "raw_positive_fraction": 0.059277
+        }
+      },
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H09": {
+      "fraction": 0.116484,
+      "labelled": false,
+      "original_foreground_pixels": 201917,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        800,
+        1200
+      ],
+      "positive_original_pixels": 23191,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H10": {
+      "fraction": 0.000126,
+      "labelled": false,
+      "original_foreground_pixels": 619593,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 37,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H11": {
+      "fraction": 0.043057,
+      "labelled": false,
+      "original_foreground_pixels": 636633,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 27097,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H12": {
+      "fraction": 0.000596,
+      "labelled": false,
+      "original_foreground_pixels": 1003911,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 335,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H13": {
+      "labelled": false,
+      "original_wh": [
+        340,
+        340
+      ],
+      "reason": "opaque or complex background, cannot normalize",
+      "semantic_iou": null,
+      "status": "ABSTAIN"
+    },
+    "H14": {
+      "fraction": 0.013467,
+      "labelled": false,
+      "original_foreground_pixels": 622311,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        2000,
+        2000
+      ],
+      "positive_original_pixels": 8001,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H15": {
+      "labelled": false,
+      "original_wh": [
+        340,
+        340
+      ],
+      "reason": "opaque or complex background, cannot normalize",
+      "semantic_iou": null,
+      "status": "ABSTAIN"
+    },
+    "H16": {
+      "labelled": false,
+      "original_wh": [
+        340,
+        340
+      ],
+      "reason": "opaque or complex background, cannot normalize",
+      "semantic_iou": null,
+      "status": "ABSTAIN"
+    },
+    "H17": {
+      "fraction": 0.094912,
+      "labelled": false,
+      "original_foreground_pixels": 237326,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        800,
+        1200
+      ],
+      "positive_original_pixels": 22021,
+      "scale_perturbations": {
+        "1100": {
+          "original_pred_positive": 23587,
+          "raw_original_iou_with_900": 0.798848,
+          "raw_positive_fraction": 0.101732
+        },
+        "700": {
+          "original_pred_positive": 20155,
+          "raw_original_iou_with_900": 0.747866,
+          "raw_positive_fraction": 0.087555
+        }
+      },
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    },
+    "H18": {
+      "fraction": 0.008712,
+      "labelled": false,
+      "original_foreground_pixels": 201674,
+      "original_nonopaque_predictions": 0,
+      "original_wh": [
+        800,
+        1200
+      ],
+      "positive_original_pixels": 1728,
+      "semantic_iou": null,
+      "status": "RAW_DIAGNOSTIC_ONLY"
+    }
+  },
+  "unseen_semantic_iou": null
+}
