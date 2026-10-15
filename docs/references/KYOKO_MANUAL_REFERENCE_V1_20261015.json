@@ -1,0 +1,59 @@
+{
+  "schema": "minimalizer_manual_reference_registry/v1",
+  "id": "KYOKO_MANUAL_REFERENCE_V1",
+  "title": "Kyoko Manual Reference v1",
+  "subject": "百灯キョーコ",
+  "version": "1",
+  "adopted_on": "2026-10-15",
+  "status": "ADOPTED_MANUAL_REFERENCE",
+  "adopted_by": "explicit human user instruction",
+  "kind": "HUMAN_MANUAL_POLYGON_REFERENCE",
+  "scope": {
+    "part": "face_and_upper_body",
+    "width": 340,
+    "height": 340,
+    "partial": true
+  },
+  "counts": {
+    "polygons": 33,
+    "vertices": 172,
+    "shared_vertices": 54
+  },
+  "storage": {
+    "authority": "PRIVATE_GOOGLE_DRIVE",
+    "relative_path": "chatGPT及びCodex用/Minimalizer/Kyoko_Manual_Reference_v1_PRIVATE_20261015.zip",
+    "archive_sha256": "63fd3a8b9b730ad641916b5daf14c8d149c508ac5a29aec2e2ac5c502e129db4",
+    "archive_bytes": 747543,
+    "readback_sha256_verified": true
+  },
+  "provenance": {
+    "editor_schema": "reference-shape-editor/v1",
+    "project_json_sha256": "4c326494f7199e41607b86e4ac2985c61b9cd49f375ed7dc06236fcab2598b4c",
+    "trace_svg_sha256": "6274c1dda1bd8d3ddfdff091c1c3d4edb10b246890811cb0cc4f42783f35858e",
+    "underlay_source_png_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "signed_c08_gc001_source_png_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+    "byte_identical_to_signed_gc001": false,
+    "signed_gc001_pixel_alignment_verified": false,
+    "colorstrip_canonical_palette_proven": false
+  },
+  "verification": {
+    "svg_json_geometry_correspondence": true,
+    "private_svg_contains_source_raster": false,
+    "polygon_self_intersections": 0,
+    "test_cases_passed": 7
+  },
+  "use_constraints": {
+    "visual_and_shape_teacher": true,
+    "automatic_ground_truth_for_signed_gc001": false,
+    "replace_signed_source": false,
+    "auto_pass_c04_golden": false,
+    "approve_stage8_budget": false,
+    "release_authorized": false
+  },
+  "campaign_effect": {
+    "status_change": false,
+    "release_status": "ACTIVE_RELEASE_HOLD",
+    "scheduled_job_restart": false
+  },
+  "documentation": "docs/references/KYOKO_MANUAL_REFERENCE_V1_20261015.md"
+}
