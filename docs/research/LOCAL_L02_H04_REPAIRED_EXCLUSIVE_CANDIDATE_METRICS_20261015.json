@@ -1,0 +1,111 @@
+{
+  "H04_human_17_polygon_semantic_label_signoff": false,
+  "candidate_masks_detail": {
+    "eligible_pixels": 239068,
+    "hair_demotion_unknown_pixels": 1931,
+    "human_quality_approved": false,
+    "inherited_components": {
+      "accessory_or_held_object": 0,
+      "face": 1,
+      "hair": 4,
+      "head": 1,
+      "left_arm": 1,
+      "lower_body": 3,
+      "major_clothing": 5,
+      "neck": 3,
+      "right_arm": 3,
+      "torso": 2,
+      "unknown": 37
+    },
+    "jacket_manual_visible_score_diagnostic_only": {
+      "exclusive_major_clothing": {
+        "FN": 4250,
+        "FP": 8924,
+        "IoU": 0.785034,
+        "TP": 48110,
+        "precision": 0.843532,
+        "recall": 0.918831
+      },
+      "soft_observer": {
+        "FN": 4272,
+        "FP": 3339,
+        "IoU": 0.863355,
+        "TP": 48088,
+        "precision": 0.935073,
+        "recall": 0.918411
+      },
+      "two_large_regions": {
+        "FN": 4653,
+        "FP": 3223,
+        "IoU": 0.858302,
+        "TP": 47707,
+        "precision": 0.936717,
+        "recall": 0.911134
+      }
+    },
+    "leaf_overlap_pixels": 0,
+    "model_input_human_mask": false,
+    "neck_torso_gap_new": 16.124515533447266,
+    "neck_torso_gap_old": 16.124515533447266,
+    "parent_head_xor_pixels": 0,
+    "production_release": "NO_GO",
+    "protected_xor_pixels": 0,
+    "rejected_islands_pixels": 497,
+    "repaired_components": {
+      "accessory_or_held_object": 0,
+      "face": 1,
+      "hair": 4,
+      "head": 1,
+      "left_arm": 1,
+      "lower_body": 3,
+      "major_clothing": 5,
+      "neck": 3,
+      "right_arm": 3,
+      "torso": 2,
+      "unknown": 90
+    },
+    "reserved_original_torso_bridge_pixels": 483,
+    "retained_agreement_pixels": 50930,
+    "signed_union_xor_pixels": 0,
+    "source_pixels": 241182,
+    "status": "RESEARCH_CANDIDATE_NOT_GOLDEN",
+    "torso_demotion_unknown_pixels": 63,
+    "transferred_hair_pixels": 6331,
+    "transferred_torso_pixels": 35169,
+    "transferred_unknown_pixels": 7
+  },
+  "candidate_source_sha256": "a380d45f6bd8104304779b175fe88e7a0ff326e04cc2d9135d1ea68b92bb03b3",
+  "case": "H04",
+  "date": "2026-10-15",
+  "hypothesis_not_signed": true,
+  "immutable_phase4_bundle_sha256": "0798bfa21ea52dfe3d3d45435e1513dce0cdeb1712978debe4b272b22fee1b21",
+  "immutable_signed_protected_xor": {
+    "accessory_or_held_object": 0,
+    "face": 0,
+    "left_arm": 0,
+    "lower_body": 0,
+    "neck": 0,
+    "right_arm": 0
+  },
+  "immutable_source_original_pixel_union_xor": 0,
+  "independent_character_jacket_labels": 0,
+  "input_run121_model_checkpoint_sha256": "f6764a379496712a92d1a85f852a81155cd79132a3e050b77c972be7e1cec394",
+  "no_new_source_pixels": true,
+  "original_unmodified": true,
+  "parent_nonexclusive_head": true,
+  "phase5_exact_graph_blob": "60848322332ac88297ef2688d06e32f17ed2b8bc",
+  "phase5_exact_graph_validation": {
+    "anchors": 21,
+    "missing_arm_attachments": [],
+    "missing_core_relations": [],
+    "occlusion_cycle_count": 0,
+    "pass": true,
+    "relations": 13
+  },
+  "production_release": "NO_GO",
+  "quality_gate": "HOLD",
+  "schema": "minimalizer-local-l02-repaired-owner-v1-sourcefree",
+  "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+  "synthetic_negative_tests_passed": 25,
+  "synthetic_negative_tests_total": 25
+}
