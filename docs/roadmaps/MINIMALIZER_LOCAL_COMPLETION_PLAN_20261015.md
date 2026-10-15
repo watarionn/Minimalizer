@@ -26,6 +26,10 @@ MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Publ
 - `docs/references/KYOKO_MANUAL_REFERENCE_V1_20261015.md`: ユーザー採用済み手描き参照（顔・上半身340×340、33図形）。見本の下敷きSHA ≠ 署名済みGC001なのでピクセル教師として直接適用不可。
 - 既存キャンペーン `docs/campaigns/CMP-20261009-SA1060-TO-PRODUCTION.json` は `ACTIVE_RELEASE_HOLD`。この計画の承認や実施はC08の定時タスク再開／Public本番承認ではない。
 
+## L02 左右反転安全ゲート（2026-10-15追補）
+
+**L02正式完了は引き続きHOLD。** H04学習済み単一モデルを左右反転した同一署名済み原画像に再適用し、予測同士のIoUを調べる負例ゲートを追加。H04 **0.593929**（訓練個体）、H06 **0.226774**、H08 **0.237584**（未学習個体、900px一時解析フレーム）。全件ABSTAIN。反転予測一致率は意味分離のIoUでも独立モデルでもない。H04片側学習＋鏡像増強のheld-out IoU **0.611905**、左右対称x特徴のheld-out IoU **0.585136**（反転予測一致自体は0.997321）で、両改善案を棄却した。署名済みPNG/WebP SHAと復号RGBA配列の完全一致を保証する新13/13テストPASS、H04/H06/H08の2回実行のNPZ 3/3 SHA一致。本番変更加えず、ソース由来の可視画素追加0。公開技術記録は `docs/research/LOCAL_L02_FLIP_NEGATIVE_GATE_20261015.md`、ソース画像・比較マスクと編集スターターは非公開Drive `chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_FlipSafety_PRIVATE_20261015.zip`。H04ユーザー製17図形のうちジャケットの3・9・10以外の部位名は未認証。別キャラクターの腕・衣装ラベルや排他的owner修復＋修正候補のactual Phase4→5再現／人間の視認確認が未完了。**技術的研究ゲートPASSは品質・Golden PASSではない。**
+
 ## L02 二観測研究進捗（2026-10-15）
 
 **L02 formal: HOLD / production NO-GO.** ユーザー製H04全身17ポリゴンの見本は「H04だけの教師データ」として活用。H04左右out-of-foldジャケットIoU 0.799184に対し、独立したRun121 AnimeSeg Mask2Former v3の一般衣服クラスをsource-boundで照合した3px境界許容・元Phase4前景unionクリップ済みの**soft-observation**はH04 IoU **0.863355** / Precision 0.935073 / Recall 0.918411。これはH04内評価であり別人物への汎化保証ではない。直接owner ORでmajor_clothingの連結成分が5→29へ増えたのでその案は**棄却**。従来shadowのownerは一切変えず二観測の一致/不一致だけを独立保存。pinned Phase5 graph `60848322332ac88297ef2688d06e32f17ed2b8bc` の**不変owner側**は実機21 anchors/13 relations構造PASS（修正衣装owner PASSではない）。新規安全テスト55/55、先行L02テスト16/16+15/15 PASS。900/1100/1200pxのスケール正規化はH04で回帰し不採用。H06/H08の署名済み空ReferenceShapeEditor JSONとレビュー取り込み・重なり順validator準備済み、**人間の独立ジャケットラベルは未提出**。CPU AnimeSeg再推論はPCの空きRAM3.32GiBで安全保留。公開可能なコードとsource-free結果は `docs/research/LOCAL_L02_DUAL_OBSERVER_GATES_20261015.md` 、原画像・手描き見本・比較画像・私有NPZはDrive `chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_DualObserver_PRIVATE_20261015.zip` に分離。H06/H08実画像評価と排他的意味所有・腕/髪前後順に人間根拠が必要。Golden/C03/Local本番依然HOLD。
