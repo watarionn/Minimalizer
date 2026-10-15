@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Reference Shape Editor | Golden Trace Studio</title>
+  <style>
+:root{--bg:#151719;--panel:#1e2023;--panel2:#24272a;--line:#34383b;--text:#eaece9;--muted:#969e9f;--focus:#9acdd0;--accent:#efb278;--white:#f9f7f0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);font-synthesis:none}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,label:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:3px}#app{display:flex;flex-direction:column;height:100dvh;min-height:400px}.app-head{height:67px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 21px 0 17px;border-bottom:1px solid var(--line);background:#1a1c1e;gap:15px}.brand{display:flex;align-items:center;gap:12px;min-width:230px}.brand-mark{font-size:42px;color:var(--accent);font-weight:200;line-height:.8}.brand strong{display:block;font-size:12px;letter-spacing:.15em;line-height:1.2}.brand small{display:block;font-size:9px;letter-spacing:.14em;color:var(--muted);margin-top:7px}.top-actions{display:flex;align-items:center;gap:7px}.action{background:transparent;color:var(--text);border:1px solid #43474a;font-size:12px;padding:10px 12px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:.12s}.action:hover,.small-quiet:hover{background:#323639}.action.primary{background:#f0ae78;color:#201710;border-color:#f0ae78;font-weight:700}.action.primary:hover{background:#ffd2ac}.action.primary span{font-size:17px}.icon-action{width:36px;justify-content:center}.export-wrap{display:flex;gap:1px}.workspace{min-height:0;flex:1;display:flex}.toolrail{flex:0 0 72px;background:#1b1d1f;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}.tool{color:#a4aaac;background:transparent;border:0;border-left:2px solid transparent;width:68px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.tool:hover{background:#2b2f30;color:#fff}.tool.active{border-color:var(--accent);color:#f2c8a5;background:#2a2927}.tool .glyph{font-size:23px;line-height:1.2}.tool small{font-size:10px}.tool-rail-bottom{margin-top:auto}.tool.compact{font-size:24px;min-height:38px}.center{display:flex;flex-direction:column;flex:1;min-width:0}.canvas-head{background:#1b1e20;padding:11px 19px;display:flex;justify-content:space-between;align-items:center;gap:15px;min-height:50px;border-bottom:1px solid var(--line)}.canvas-head strong{font-size:12px}.canvas-head .muted{margin-left:13px;font-size:10px}.canvas-head-right{display:flex;align-items:center;gap:12px}.hint{font-size:11px;color:#b7bfc0}.zoom-value{font:11px ui-monospace,monospace;color:var(--muted);min-width:45px;text-align:right}.small-quiet{font-size:11px;color:var(--muted);background:transparent;border:0;padding:6px 4px}.small-quiet:hover{color:var(--text)}.viewport{position:relative;flex:1;min-height:0;overflow:hidden;display:grid;place-items:center;background-color:#282b2e;background-image:linear-gradient(45deg,#303335 25%,transparent 25%,transparent 75%,#303335 75%),linear-gradient(45deg,#303335 25%,transparent 25%,transparent 75%,#303335 75%);background-position:0 0,13px 13px;background-size:26px 26px;touch-action:none;outline:0}.viewport svg{display:block;width:calc(100% - 56px);height:calc(100% - 52px);max-height:100%;object-fit:contain;overflow:hidden;touch-action:none;user-select:none}.viewport[data-tool=draw] svg{cursor:crosshair}.viewport[data-tool=pan] svg,.viewport[data-panning=yes] svg{cursor:grab}.viewport[data-tool=eyedropper] svg{cursor:crosshair}.viewport[data-tool=move] svg{cursor:move}#stage polygon{cursor:pointer}#stage .selected-shape{stroke:#f1ad7b;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;paint-order:stroke}#stage .shape-hover{stroke:#a7d3d7;stroke-width:1.5;vector-effect:non-scaling-stroke}#stage .handle{cursor:grab;stroke:#192023;stroke-width:1.5;vector-effect:non-scaling-stroke;fill:#fff}#stage .handle.shared{fill:#a6d3d5}#stage .handle.hover{fill:#f1b07e;stroke:#1f1a17}#stage .draft-line{stroke:#edb07d;fill:#edb07d;fill-opacity:.12;stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;pointer-events:none}#stage .draft-point{fill:#f7c597;stroke:#392c23;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none}.empty-state{position:absolute;text-align:center;background:#1f2224ee;border:1px solid #3e4445;padding:34px 48px;max-width:460px;box-shadow:0 18px 52px #1117}.empty-icon{font-size:51px;color:#ebb27f}.empty-state h1{font-family:ui-serif,"Hiragino Mincho ProN",serif;font-weight:600;font-size:25px;margin:8px 0 16px}.empty-state p{font-size:12px;color:#b2b9b8;line-height:2}.big-launch{display:inline-flex;margin:19px 0 14px;border:1px solid #d7a479;color:#ffd5b3;padding:11px 20px;font-size:13px;gap:24px;cursor:pointer}.big-launch:hover{background:#36302c}.empty-tip{display:block;color:#848d8d;font-size:10px}.canvas-overlay-bottom{pointer-events:none;position:absolute;bottom:13px;left:15px;right:15px;display:flex;justify-content:space-between;font:10px ui-monospace,monospace;color:#ccc;text-shadow:0 1px 4px #000}.draftbar{height:59px;flex:0 0 59px;display:flex;align-items:center;justify-content:space-between;padding:0 17px;background:#1c1f21;border-top:1px solid var(--line);gap:10px}.draftbar>div{display:flex;align-items:center;gap:12px}.draftbar .muted{font-size:11px}.label-overline{font-size:10px;color:var(--accent);letter-spacing:.1em}.draftbar #draftCount{font-size:12px;font-weight:700}.draft-controls kbd{margin-left:3px;color:#636e70}.build{background:#a4c9c6;border:0;color:#122427;font-size:12px;font-weight:700;padding:10px 16px;display:flex;gap:25px;align-items:center}.build:disabled{opacity:.3;cursor:not-allowed}.build:not(:disabled):hover{background:#caf0e8}.inspector{width:328px;flex:0 0 328px;overflow:auto;background:var(--panel);border-left:1px solid var(--line);scrollbar-color:#4b5353 transparent}.inspector-head{height:50px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.15em;color:#d9c5b3;border-bottom:1px solid var(--line)}.panel-section{padding:17px 18px 18px;border-bottom:1px solid var(--line)}.panel-section h2{font-size:13px;font-weight:650;margin:0 0 16px;display:flex;align-items:center;gap:9px;letter-spacing:.025em}.panel-section h2 span{font:10px ui-monospace,monospace;color:#757d7e;font-weight:400}.field-row{display:flex;align-items:center;justify-content:space-between;color:#c9cecc;font-size:12px;margin-bottom:11px}.field-row strong,.field-row output{font-size:11px;color:var(--muted);font-weight:400}.panel-section input[type=range]{width:100%;accent-color:#a5c9cb;cursor:pointer;height:12px;display:block;margin:9px 0 15px}.two-col{display:flex;gap:22px}.check{color:#aab2b1;font-size:11px;display:inline-flex;align-items:center;gap:6px}.check input{accent-color:#9fc8c7}.switch{width:31px;height:17px;position:relative}.switch input{opacity:0;position:absolute}.switch i{display:block;background:#4b5252;height:17px;border-radius:10px}.switch i:before{content:"";display:block;background:#e8ece8;position:absolute;top:3px;left:3px;width:11px;height:11px;border-radius:50%;transition:.12s}.switch input:checked+i{background:#78a6a6}.switch input:checked+i:before{left:17px}.panel-note{font-size:10px;line-height:1.7;color:#878f90;margin:9px 0 0}.head-line{display:flex;align-items:flex-start;justify-content:space-between}.mini-link{font-size:10px;color:#a9cdd1;text-decoration:underline;text-underline-offset:4px;cursor:pointer}.color-current{display:flex;gap:12px;align-items:center;padding:10px;background:#272b2d;border:1px solid #3c4242;margin-bottom:20px}.color-current input{appearance:none;width:39px;height:39px;padding:0;border:0;background:transparent;cursor:pointer}.color-current input::-webkit-color-swatch-wrapper{padding:0}.color-current input::-webkit-color-swatch{border:1px solid #aaa}.color-current strong{display:block;font:13px ui-monospace,monospace}.color-current small{font-size:10px;color:var(--muted)}.palette-heading{display:flex;justify-content:space-between;align-items:baseline;margin:13px 0 9px}.palette-heading span{font-size:11px;font-weight:650}.palette-heading em{font-size:10px;font-style:normal;color:#999;margin-left:5px;font-weight:400}.palette-heading small{font-size:10px;color:#7e8788}.swatches{display:flex;gap:6px;flex-wrap:wrap;min-height:23px}.swatch{display:block;width:25px;height:25px;background:var(--swatch);border:1px solid #636b6b;position:relative;padding:0;cursor:pointer}.swatch:hover{outline:2px solid #d3e9e7}.swatch.active:after{content:"";position:absolute;inset:3px;border:2px solid #fff;box-shadow:0 0 0 1px #17191a}.no-selection{font-size:11px;color:#869193;line-height:1.75}.shape-input{width:100%;padding:9px 10px;background:#2a2e30;border:1px solid #454e4f;color:#eceeed;border-radius:0;font-size:12px}.shape-controls{display:flex;gap:7px;margin-top:12px}.shape-controls button,.layer-controls button{border:1px solid #465050;background:transparent;color:#c5d5d4;padding:7px;font-size:11px}.shape-controls button:hover,.layer-controls button:hover{background:#343d3c}.shape-meta{font-size:10px;color:var(--muted);margin:9px 0}.layers{max-height:275px;overflow:auto}.layers .muted{font-size:11px;color:var(--muted)}.layer{display:flex;gap:9px;align-items:center;padding:9px 4px;border-bottom:1px solid #333a3a;cursor:pointer}.layer.active{background:#2b3434}.layer .layer-swatch{height:20px;width:20px;flex:0 0 20px;border:1px solid #777;background:var(--swatch)}.layer-label{min-width:0;flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.layer-number{display:block;font:9px ui-monospace,monospace;color:#7a8384;margin-top:4px}.layer-controls{display:flex;gap:2px}.layer-controls button{border:0;font-size:12px;padding:4px;color:#949f9f}.layer-controls button:hover{color:white}.small-muted{font-size:10px;color:#7a8586}.status{height:26px;flex:none;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 15px;color:#899394;font-size:9px;letter-spacing:.07em}.status span:first-child{color:#a7c9c7}#toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);background:#2c3839;color:#e8f4f1;border:1px solid #6b999a;padding:11px 18px;font-size:12px;box-shadow:0 10px 35px #0009;opacity:0;transition:.2s;pointer-events:none;z-index:10;max-width:90vw}#toast.visible{opacity:1}dialog{background:#222629;color:var(--text);width:min(760px,94vw);border:1px solid #657071;box-shadow:0 30px 80px #0009;padding:28px}dialog::backdrop{background:#0b0f10d9}.dialog-head{display:flex;justify-content:space-between;align-items:start}.dialog-head small{font-size:10px;color:#e7a979;letter-spacing:.2em}.dialog-head h2{font-family:ui-serif,serif;font-size:24px;margin:8px 0 26px}.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}.guide-grid strong{font-size:12px;color:#c0dedf}.guide-grid p{font-size:12px;color:#b2bcbc;line-height:1.9}.keymap{display:flex;flex-wrap:wrap;gap:13px;margin-top:25px;border-top:1px solid #454a4b;padding-top:18px;font-size:11px;color:#aaa}.keymap kbd{background:#394143;padding:3px 5px;color:white}.inspector.collapsed{display:none}.hidden{display:none!important}@media(max-width:1100px){.brand{min-width:200px}.app-head{padding:0 10px}.action{padding:8px}.canvas-head .hint{display:none}.inspector{width:280px;flex-basis:280px}.panel-section{padding:14px}}@media(max-width:760px){.app-head{height:auto;min-height:60px;flex-wrap:wrap;padding:10px}.brand{min-width:0}.brand small{display:none}.top-actions{flex:1;justify-content:flex-end;flex-wrap:wrap;gap:4px}.action{font-size:10px;padding:7px}.workspace{position:relative;flex-direction:column}.toolrail{flex:0 0 58px;flex-direction:row;justify-content:center;gap:0;padding:0;width:100%;border-bottom:1px solid var(--line)}.tool{min-height:53px;flex:1;max-width:63px;width:auto;border-left:0;border-bottom:2px solid transparent}.tool.active{border-bottom-color:var(--accent)}.tool .glyph{font-size:19px}.tool-rail-bottom{margin:0;display:flex}.tool.compact{min-width:30px}.center{min-height:0}.inspector{position:absolute;right:0;top:57px;bottom:0;z-index:6;width:min(340px,94vw);max-width:94vw;box-shadow:-9px 0 35px #0009}.inspector.collapsed{display:none}.canvas-head{padding:7px 10px}.canvas-head .muted{display:block;margin:3px 0 0}.viewport svg{width:calc(100% - 12px);height:calc(100% - 26px)}.draftbar{height:58px;flex-basis:58px;padding:0 6px}.draftbar .muted{display:none}.draftbar>div{gap:6px}.draft-controls kbd{display:none}.build{padding:8px;gap:5px}.status span:last-child{display:none}.empty-state{padding:22px;max-width:90%}.empty-state h1{font-size:20px}.empty-state p{font-size:11px}.guide-grid{grid-template-columns:1fr}dialog{max-height:90dvh;overflow:auto}}
+
+</style>
+  
+</head>
+<body>
+<div id="app">
+  <header class="app-head">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">▱</span><div><strong>REFERENCE SHAPE EDITOR</strong><small>GOLDEN TRACE STUDIO · ローカル完結</small></div></div>
+    <div class="top-actions">
+      <label class="action primary" for="sourceInput" title="下敷き画像を読み込む"><span>＋</span> 画像を開く</label>
+      <input type="file" id="sourceInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden/>
+      <label class="action" for="projectInput">JSONを開く</label><input type="file" id="projectInput" accept="application/json,.json" hidden/>
+      <button class="action" id="saveProject">JSON保存</button>
+      <div class="export-wrap"><button class="action" id="exportSvg">SVG</button><button class="action" id="exportPng">PNG</button></div>
+      <button class="action" id="panelButton" title="右のパネル表示">パネル ☷</button>
+      <button class="action icon-action" id="openHelp" title="ヘルプ" aria-label="使い方">?</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="toolrail" aria-label="描画ツール">
+      <button class="tool active" data-tool="draw" title="図形化 (P)"><span class="glyph">⬡</span><small>図形化</small></button>
+      <button class="tool" data-tool="select" title="選択 (V)"><span class="glyph">↖</span><small>選択</small></button>
+      <button class="tool" data-tool="vertex" title="頂点編集 (E)"><span class="glyph">⌘</span><small>頂点</small></button>
+      <button class="tool" data-tool="move" title="図形を移動 (M)"><span class="glyph">✥</span><small>移動</small></button>
+      <button class="tool" data-tool="pan" title="移動・パン (H / Space)"><span class="glyph">✋</span><small>パン</small></button>
+      <button class="tool" data-tool="eyedropper" title="元画像スポイト (I)"><span class="glyph">◉</span><small>スポイト</small></button>
+      <div class="tool-rail-bottom"><button class="tool compact" id="undo" title="元に戻す (Ctrl/⌘+Z)">↶</button><button class="tool compact" id="redo" title="やり直し (Ctrl/⌘+Shift+Z)">↷</button></div>
+    </nav>
+
+    <main class="center">
+      <div class="canvas-head">
+        <div><strong id="projectTitle">無題の手本</strong><span class="muted" id="imageInfo">画像を読み込んでください</span></div>
+        <div class="canvas-head-right"><span id="toolHint" class="hint">クリックして頂点を追加 · 既存の点をスナップ</span><button class="small-quiet" id="fit">全体表示</button><span class="zoom-value" id="zoomValue">100%</span></div>
+      </div>
+      <div id="viewport" class="viewport" tabindex="0" aria-label="ポリゴン編集キャンバス">
+        <svg id="stage" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" preserveAspectRatio="xMidYMid meet" aria-label="編集領域">
+          <defs><pattern id="paperGrid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0 H0 V32" fill="none" stroke="#999" stroke-opacity=".09" stroke-width="1"/></pattern></defs>
+          <rect id="canvasBase" width="960" height="640" fill="#fcfbf6"/>
+          <rect id="canvasGrid" width="960" height="640" fill="url(#paperGrid)"/>
+          <image id="underlay" width="960" height="640" opacity=".35" preserveAspectRatio="none"/>
+          <g id="polygonLayer"></g>
+          <g id="draftLayer"></g>
+          <g id="handleLayer"></g>
+        </svg>
+        <div class="empty-state" id="emptyState"><div class="empty-icon">⌗</div><h1>輪郭を、あなたの手で。</h1><p>画像を読み込んだら、点を打って「図形化」。<br/>重なる頂点は共有できるので、細い隙間も防げます。</p><label for="sourceInput" class="big-launch">画像を選ぶ <span>↗</span></label><span class="empty-tip">ドラッグ＆ドロップにも対応 / 画像は外部送信しません</span></div>
+        <div class="canvas-overlay-bottom"><span id="cursorInfo">x: –　y: –</span><span id="canvasStats">0 図形 · 0 頂点</span></div>
+      </div>
+      <div class="draftbar">
+        <div><span class="label-overline">編集中</span><span id="draftCount">0 点</span><span class="muted">3点以上で閉じられます</span></div>
+        <div class="draft-controls"><button class="small-quiet" id="cancelDraft">取り消し <kbd>Esc</kbd></button><button class="small-quiet" id="removeDraftPoint">1点戻す <kbd>⌫</kbd></button><button class="build" id="finishPolygon" disabled>図形化 <span>↗</span></button></div>
+      </div>
+    </main>
+
+    <aside class="inspector" id="inspector">
+      <div class="inspector-head"><span>INSPECTOR</span><button id="toggleInspector" class="small-quiet" title="パネルの表示を切り替え">☷</button></div>
+      <section class="panel-section">
+        <h2>下敷き <span>01</span></h2>
+        <label class="field-row" for="opacity"><span>透過表示</span><strong id="opacityValue">35%</strong></label>
+        <input id="opacity" type="range" min="0" max="100" value="35" step="1"/>
+        <div class="two-col"><label class="check"><input type="checkbox" id="showUnderlay" checked/>画像を表示</label><label class="check"><input type="checkbox" id="showGrid"/>グリッド</label></div>
+      </section>
+      <section class="panel-section">
+        <h2>頂点スナップ <span>02</span></h2>
+        <div class="field-row"><span>既存頂点を共有</span><label class="switch"><input type="checkbox" id="snapEnabled" checked/><i></i></label></div>
+        <div class="field-row"><span>吸着範囲</span><output id="snapValue">12 px</output></div>
+        <input type="range" id="snapRadius" min="4" max="24" value="12" step="1"/>
+        <p class="panel-note">青く光る点をクリックすると既存頂点を共有します。移動時も接続された図形が連動します。</p>
+      </section>
+      <section class="panel-section palette-section">
+        <div class="head-line"><h2>塗り色 <span>03</span></h2><label class="mini-link" for="paletteInput">色を読込</label><input id="paletteInput" type="file" accept=".json,application/json" hidden/></div>
+        <div class="color-current"><input id="colorPicker" type="color" value="#d47c5c" aria-label="カスタム塗り色"/><div><strong id="colorName">#D47C5C</strong><small>選択中の色</small></div></div>
+        <div class="palette-heading"><span>Characteristic <em>特徴色</em></span><small id="charLabel">画像待ち</small></div>
+        <div class="swatches" id="characteristicColors"></div>
+        <div class="palette-heading"><span>Featured <em>アクセント</em></span></div>
+        <div class="swatches" id="featuredColors"></div>
+        <div class="palette-heading"><span>Representative <em>代表色</em></span></div>
+        <div class="swatches" id="representativeColors"></div>
+        <p id="paletteNote" class="panel-note">下敷き画像からブラウザ内で色候補を計算します。ColorStrip出力JSONを取り込んで正確な色も使えます。</p>
+      </section>
+      <section class="panel-section">
+        <h2>選択中の図形 <span>04</span></h2>
+        <div id="shapeInspector" class="no-selection">図形を選ぶと、名称・色・レイヤーを編集できます。</div>
+      </section>
+      <section class="panel-section layer-section"><div class="head-line"><h2>レイヤー <span>05</span></h2><span class="small-muted" id="layerCount">0件</span></div><div id="layers" class="layers"><p class="muted">図形はまだありません。</p></div></section>
+    </aside>
+  </div>
+  <footer class="status"><span id="statusText">準備完了</span><span>NO GENERATIVE FILL · SOURCE IMAGE UNCHANGED · EXPORT VECTOR ONLY</span></footer>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="helpDialog"><div class="dialog-head"><div><small>QUICK GUIDE</small><h2>描く、つなぐ、整える。</h2></div><button class="small-quiet" id="closeHelp">閉じる ✕</button></div><div class="guide-grid"><div><strong>01 · 図形化</strong><p>キャンバス上を順にクリックして頂点を追加。3点以上で<strong>「図形化」</strong>または Enter で確定。右クリックで直前の頂点を削除。</p></div><div><strong>02 · 共有頂点</strong><p>既存の頂点に近づくと吸着します。共有頂点を動かすと隣接図形も追従します。頂点モードで辺をダブルクリックすると点を追加。</p></div><div><strong>03 · 色と重なり</strong><p>Characteristic・Featured・代表色を使い分け。右パネルで色と図形名を変更。レイヤーの▲▼で前後関係を調整。</p></div><div><strong>04 · 保存</strong><p>JSONは再編集用で下敷き画像も含まれます。PNG/SVGは図形だけを書き出し、元画像を混入させません。</p></div></div><div class="keymap"><span><kbd>P</kbd> 図形</span><span><kbd>V</kbd> 選択</span><span><kbd>E</kbd> 頂点</span><span><kbd>H</kbd> パン</span><span><kbd>I</kbd> 色採取</span><span><kbd>Space</kbd> 一時パン</span><span><kbd>Ctrl+Z</kbd> 戻す</span><span><kbd>Delete</kbd> 削除</span></div></dialog>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const APP_VERSION = '1.0.0';
+  const MAX_PICTURE_BYTES = 24 * 1024 * 1024;
+  const PALETTE_LIMIT = 12;
+  const INITIAL_WIDTH = 960, INITIAL_HEIGHT = 640;
+  const toolTips = {
+    draw: 'クリックして頂点を追加 · 近くの既存頂点を再利用',
+    select: 'クリックして図形を選択 · 右のパネルで編集',
+    vertex: '白/青の頂点をドラッグ · 辺のダブルクリックで追加',
+    move: '選んだ図形をドラッグ · 共有頂点も連動',
+    pan: 'ドラッグで画面を移動 · ホイールで拡大縮小',
+    eyedropper: '画像をクリックしてその画素の色を選択'
+  };
+  const state = {
+    project: newProject(), mode: 'draw', draft: [], selected: null,
+    selectedVertex: null, hoverVertex: null, cursor: null,
+    snapEnabled: true, snapRadius: 12, underlayOpacity: .35,
+    showUnderlay: true, showGrid: false,
+    view: {x:0,y:0,w:INITIAL_WIDTH,h:INITIAL_HEIGHT},
+    history: [], future: [], interaction: null, spaceDown: false,
+    color: '#d47c5c', colorSource:'manual', lastName: '無題の手本',
+  };
+  let cachedBitmap = null; // browser Image object, only for source-bound color sampling
+  let toastTimer = null;
+
+  function newProject(w=INITIAL_WIDTH,h=INITIAL_HEIGHT) {
+    return {
+      version: APP_VERSION,
+      width:w, height:h, imageName:null, imageData:null,
+      vertices:{}, shapes:[], counter:0,
+      palette:{characteristic:[],featured:[],representative:[],imported:false}
+    };
+  }
+  const round = (n) => Math.round(n * 100) / 100;
+  const clamp = (x,a,b) => Math.min(b,Math.max(a,x));
+  const finite = (x) => Number.isFinite(x);
+  const cleanColor = (s) => /^#[\da-fA-F]{6}$/.test(s||'') ? s.toLowerCase() : null;
+  const hex = (r,g,b) => '#' + [r,g,b].map(c => clamp(Math.round(c),0,255).toString(16).padStart(2,'0')).join('');
+  const rgbFromColor = (value) => {
+    if (Array.isArray(value) && value.length>=3 && value.slice(0,3).every(finite)) return hex(...value.slice(0,3));
+    if (typeof value === 'string') return cleanColor(value);
+    if (value && typeof value === 'object') return rgbFromColor(value.rgb || value.hex || value.color);
+    return null;
+  };
+  function toast(message,seconds=3) {const el=$('toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),seconds*1000)}
+  function status(s) {$('statusText').textContent=s}
+  function escapeXml(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]));}
+  function svgNode(tag,attrs={}) {const e=document.createElementNS(SVGNS,tag);for(const [key,val] of Object.entries(attrs))e.setAttribute(key,String(val));return e;}
+  function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);}
+  function exportBase(){return (state.project.imageName||'reference').replace(/\.[^.]+$/,'').replace(/[^\w\u3000-\u9fff\u3040-\u30ff-]+/g,'_').slice(0,60)+'_trace'}
+  function snapshot(){return JSON.stringify({vertices:state.project.vertices, shapes:state.project.shapes,counter:state.project.counter});}
+  function saveHistory(){state.history.push(snapshot());if(state.history.length>100)state.history.shift();state.future=[];refreshUndo();}
+  function applySnapshot(text){const obj=JSON.parse(text);state.project.vertices=obj.vertices;state.project.shapes=obj.shapes;state.project.counter=obj.counter;state.draft=[];state.selected=null;state.selectedVertex=null;render();}
+  function undo(){if(!state.history.length)return;state.future.push(snapshot());applySnapshot(state.history.pop());refreshUndo();toast('元に戻しました')}
+  function redo(){if(!state.future.length)return;state.history.push(snapshot());applySnapshot(state.future.pop());refreshUndo();toast('やり直しました')}
+  function refreshUndo(){$('undo').disabled=!state.history.length;$('redo').disabled=!state.future.length}
+  function nextId(prefix){state.project.counter++;return prefix+state.project.counter.toString(36)}
+  function vertex(id){return state.project.vertices[id]}
+  function usedIds(){return new Set(state.project.shapes.flatMap(s=>s.vertexIds).concat(state.draft.filter(v=>v.ref).map(v=>v.ref)))}
+  function cleanupVertices(){const ids=usedIds();for(const id of Object.keys(state.project.vertices))if(!ids.has(id))delete state.project.vertices[id]}
+  function shapePoints(shape){return shape.vertexIds.map(id=>vertex(id)).filter(Boolean)}
+  function shapeValid(ids){
+    if(ids.length<3 || new Set(ids).size<3)return false;
+    const points=ids.map(vertex);if(points.some(v=>!v))return false;
+    let area=0;for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];area+=a.x*b.y-b.x*a.y;}return Math.abs(area)>=.25;
+  }
+  function shapeCoords(shape){return shape.vertexIds.map(id=>{const p=vertex(id);return `${round(p.x)},${round(p.y)}`}).join(' ')}
+  function getScale(){const m=$('stage').getScreenCTM();return m?Math.hypot(m.a,m.b):1}
+  function screenToSource(e){const m=$('stage').getScreenCTM();if(!m)return {x:0,y:0};const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());return {x:p.x,y:p.y}}
+  function snapNearest(p,except=null){if(!state.snapEnabled)return null;const max=state.snapRadius/Math.max(getScale(),.0001);let target=null,d=max;for(const [id,v] of Object.entries(state.project.vertices)){if(id===except)continue;const dd=Math.hypot(p.x-v.x,p.y-v.y);if(dd<=d){target=id;d=dd}}return target}
+  function pointsDeduplicated(p){const ids=state.draft.filter(d=>d.ref).map(d=>d.ref);return !!ids.length && ids.at(-1)===p;}
+  function limitPoint(p){return {x:round(clamp(p.x,0,state.project.width)),y:round(clamp(p.y,0,state.project.height))};}
+  function changeTool(name){if(!toolTips[name])return;state.mode=name;$('viewport').dataset.tool=name;document.querySelectorAll('.tool[data-tool]').forEach(el=>el.classList.toggle('active',el.dataset.tool===name));$('toolHint').textContent=toolTips[name];render();}
+  function addDraftPoint(p){
+    if(state.mode!=='draw')return;
+    const nearest=snapNearest(p);
+    if(nearest && pointsDeduplicated(nearest))return;
+    if(nearest){state.draft.push({ref:nearest})}else{const pt=limitPoint(p);state.draft.push({x:pt.x,y:pt.y})}
+    render();
+  }
+  function draftPolygonPoints(){return state.draft.map(d=>d.ref?vertex(d.ref):d)}
+  function finishPolygon(){
+    if(state.draft.length<3){toast('3点以上の頂点を置いてください');return;}
+    const pts=draftPolygonPoints(); if(pts.some(x=>!x))return;
+    const distinct=new Set(pts.map(p=>`${round(p.x)}:${round(p.y)}`));if(distinct.size<3){toast('異なる位置の3点が必要です');return;}if(distinct.size!==pts.length){toast('同じ頂点は1つの図形内では再利用できません');return;}
+    let area=0;pts.forEach((p,i)=>{const q=pts[(i+1)%pts.length];area+=p.x*q.y-p.y*q.x;});
+    if(Math.abs(area)<.5){toast('面積のない図形は作れません');return;}
+    if(polygonSelfIntersects(pts)){toast('辺が交差しています。頂点の順番を見直してください');return;}
+    saveHistory();const vertexIds=[];for(const d of state.draft){if(d.ref){vertexIds.push(d.ref)}else{const id=nextId('v');state.project.vertices[id]={x:d.x,y:d.y};vertexIds.push(id)}}
+    const s={id:nextId('s'),name:`図形 ${state.project.shapes.length+1}`,vertexIds,fill:state.color,visible:true};
+    state.project.shapes.push(s);state.draft=[];state.selected=s.id;changeTool('select');render();toast(`「${s.name}」を作成しました`);
+  }
+  function orient(a,b,c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)}
+  function segmentsCross(a,b,c,d){const eps=1e-8;const o1=orient(a,b,c),o2=orient(a,b,d),o3=orient(c,d,a),o4=orient(c,d,b);return ((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps));}
+  function polygonSelfIntersects(points){for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){if(j===i+1 || i===0&&j===points.length-1)continue;if(segmentsCross(points[i],points[(i+1)%points.length],points[j],points[(j+1)%points.length]))return true;}return false;}
+  function selectedShape(){return state.project.shapes.find(s=>s.id===state.selected)||null}
+  function countUsage(id){return state.project.shapes.filter(s=>s.vertexIds.includes(id)).length}
+  function mergeVertices(from,to){if(from===to)return true;for(const s of state.project.shapes){if(s.vertexIds.includes(from)&&s.vertexIds.includes(to)){toast('同じ図形に同じ頂点が重複するため統合できません');return false}}for(const s of state.project.shapes)s.vertexIds=s.vertexIds.map(id=>id===from?to:id);delete state.project.vertices[from];state.selectedVertex=to;return true;}
+  function shiftPolygon(shape,dx,dy){const ids=new Set(shape.vertexIds);for(const id of ids){const p=vertex(id);p.x=round(clamp(p.x+dx,0,state.project.width));p.y=round(clamp(p.y+dy,0,state.project.height))}}
+  function removeSelected(){if(state.mode==='vertex'&&state.selectedVertex){const s=selectedShape();if(!s || !s.vertexIds.includes(state.selectedVertex))return;if(s.vertexIds.length<=3){toast('3頂点以下にはできません');return}saveHistory();s.vertexIds=s.vertexIds.filter(id=>id!==state.selectedVertex);state.selectedVertex=null;cleanupVertices();render();return}if(!state.selected)return;saveHistory();state.project.shapes=state.project.shapes.filter(s=>s.id!==state.selected);state.selected=null;cleanupVertices();render();toast('図形を削除しました');}
+  function updateShape(patch){const s=selectedShape();if(!s)return;saveHistory();Object.assign(s,patch);render();}
+  function changeColor(color,source='manual'){color=cleanColor(color);if(!color)return;state.color=color;state.colorSource=source;const s=selectedShape();if(s){if(s.fill!==color){saveHistory();s.fill=color}}render();}
+  function raiseShape(direction){const idx=state.project.shapes.findIndex(s=>s.id===state.selected);const next=idx+direction;if(idx<0||next<0||next>=state.project.shapes.length)return;saveHistory();const arr=state.project.shapes;[arr[idx],arr[next]]=[arr[next],arr[idx]];render();}
+
+  function render(){
+    const p=state.project;const st=$('stage');const bounds=$('viewport').getBoundingClientRect();const fitScale=Math.min(Math.max(1,bounds.width-42)/p.width,Math.max(1,bounds.height-52)/p.height);st.style.width=Math.round(p.width*fitScale)+'px';st.style.height=Math.round(p.height*fitScale)+'px';st.setAttribute('viewBox',[state.view.x,state.view.y,state.view.w,state.view.h].join(' '));
+    for(const id of ['canvasBase','canvasGrid','underlay']){$(id).setAttribute('width',p.width);$(id).setAttribute('height',p.height)}
+    $('canvasGrid').setAttribute('opacity',state.showGrid?1:0);
+    if(p.imageData){$('underlay').setAttribute('href',p.imageData)}else{$('underlay').removeAttribute('href')}
+    $('underlay').setAttribute('opacity',state.showUnderlay?state.underlayOpacity:0);
+    $('emptyState').classList.toggle('hidden',!!p.imageData||p.shapes.length>0);
+    const pol=$('polygonLayer');pol.replaceChildren();
+    for(const s of p.shapes){if(!s.visible)continue;const node=svgNode('polygon',{points:shapeCoords(s),fill:s.fill,'data-shape':s.id,'class':state.selected===s.id?'selected-shape':''});pol.append(node)}
+    const draft=$('draftLayer');draft.replaceChildren();const pts=draftPolygonPoints();const sc=1/Math.max(getScale(),.001);
+    if(pts.length){let d=pts.map(t=>`${round(t.x)},${round(t.y)}`).join(' ');
+      if(state.cursor){const near=snapNearest(state.cursor),q=near?vertex(near):limitPoint(state.cursor);d+=` ${round(q.x)},${round(q.y)}`}
+      draft.append(svgNode('polyline',{points:d,'class':'draft-line',fill:'none'}));pts.forEach(t=>draft.append(svgNode('circle',{cx:t.x,cy:t.y,r:4.3*sc,'class':'draft-point'})));
+    }
+    const layer=$('handleLayer');layer.replaceChildren();const selected=selectedShape();
+    const toShow=new Set((selected&&['vertex','select','move'].includes(state.mode)?selected.vertexIds:[]));
+    if(state.hoverVertex)toShow.add(state.hoverVertex);
+    for(const id of toShow){const v=vertex(id);if(!v)continue;layer.append(svgNode('circle',{'data-vertex':id,cx:v.x,cy:v.y,r:(id===state.hoverVertex?7:5.5)*sc,'class':'handle'+(countUsage(id)>1?' shared':'')+(id===state.hoverVertex||id===state.selectedVertex?' hover':'')}));}
+    $('draftCount').textContent=state.draft.length+' 点';$('finishPolygon').disabled=state.draft.length<3;
+    $('canvasStats').textContent=`${p.shapes.length} 図形 · ${Object.keys(p.vertices).length} 頂点`;
+    $('imageInfo').textContent=p.imageName?`${p.imageName} / ${p.width} × ${p.height}`:'画像を読み込んでください';
+    $('projectTitle').textContent=state.lastName;
+    $('zoomValue').textContent=Math.round(p.width/state.view.w*100)+'%';
+    $('opacityValue').textContent=Math.round(state.underlayOpacity*100)+'%';$('snapValue').textContent=state.snapRadius+' px';
+    renderInspector();renderPalette();refreshUndo();
+  }
+  function renderInspector(){
+    const s=selectedShape(),el=$('shapeInspector');el.replaceChildren();
+    if(!s){el.className='no-selection';el.textContent='図形を選ぶと、名称・色・レイヤーを編集できます。';}
+    else{
+      el.className='';
+      const field=document.createElement('input');field.className='shape-input';field.value=s.name;field.maxLength=80;field.ariaLabel='図形の名前';field.addEventListener('change',()=>{if(field.value.trim()!==s.name)updateShape({name:field.value.trim()||s.name})});
+      const meta=document.createElement('p');meta.className='shape-meta';meta.textContent=`${s.vertexIds.length} 頂点 · 色 ${s.fill.toUpperCase()} · 共有 ${s.vertexIds.filter(id=>countUsage(id)>1).length} 点`;
+      const row=document.createElement('div');row.className='shape-controls';
+      [['▲ 手前へ',()=>raiseShape(1)],['▼ 奥へ',()=>raiseShape(-1)],['削除',()=>removeSelected()]].forEach(([label,fn])=>{const b=document.createElement('button');b.textContent=label;b.addEventListener('click',fn);row.append(b)});
+      el.append(field,meta,row);
+    }
+    const layer=$('layers');layer.replaceChildren();$('layerCount').textContent=state.project.shapes.length+'件';
+    if(!state.project.shapes.length){const p=document.createElement('p');p.className='muted';p.textContent='図形はまだありません。';layer.append(p)}
+    [...state.project.shapes].reverse().forEach((s,index)=>{
+      const row=document.createElement('div');row.className='layer'+(s.id===state.selected?' active':'');row.dataset.id=s.id;
+      const sw=document.createElement('span');sw.className='layer-swatch';sw.style.setProperty('--swatch',s.fill);
+      const label=document.createElement('div');label.className='layer-label';label.textContent=s.name;
+      const sub=document.createElement('small');sub.className='layer-number';sub.textContent=`${state.project.shapes.length-index} · ${s.vertexIds.length} VERTICES`;
+      label.append(sub);
+      const controls=document.createElement('div');controls.className='layer-controls';const eye=document.createElement('button');eye.textContent=s.visible?'◉':'○';eye.title='表示を切り替え';eye.addEventListener('click',(e)=>{e.stopPropagation();updateVisibility(s.id)});controls.append(eye);
+      row.addEventListener('click',()=>{state.selected=s.id;state.selectedVertex=null;changeTool('select');render()});row.append(sw,label,controls);layer.append(row);
+    });
+  }
+  function updateVisibility(id){const s=state.project.shapes.find(x=>x.id===id);if(!s)return;saveHistory();s.visible=!s.visible;render()}
+  function paletteColors(arr){return (arr||[]).map(rgbFromColor).filter(Boolean).filter((c,i,a)=>a.indexOf(c)===i).slice(0,PALETTE_LIMIT)}
+  function renderPalette(){
+    for(const [key,elem] of [['characteristic','characteristicColors'],['featured','featuredColors'],['representative','representativeColors']]){
+      const box=$(elem);box.replaceChildren();for(const c of state.project.palette[key]){const b=document.createElement('button');b.className='swatch'+(state.color===c?' active':'');b.style.setProperty('--swatch',c);b.title=c+' を選ぶ';b.ariaLabel=c+' 塗り色';b.addEventListener('click',()=>changeColor(c,key));box.append(b)}
+    }
+    $('colorName').textContent=state.color.toUpperCase();$('colorPicker').value=state.color;
+    $('charLabel').textContent=state.project.palette.imported?'読み込み済み':state.project.imageData?'ブラウザ推定':'画像待ち';
+  }
+  function updateCursor(e){const p=screenToSource(e);state.cursor=p;$('cursorInfo').textContent=`x: ${round(p.x)}　y: ${round(p.y)}`;state.hoverVertex=snapNearest(p);}
+  function onPointerDown(e){if(e.button!==0 && e.button!==1)return;if(!state.project.imageData&&state.project.shapes.length===0)return;
+    $('viewport').focus({preventScroll:true});const pt=screenToSource(e);const target=e.target;const handle=target.closest('[data-vertex]');const shapeNode=target.closest('[data-shape]');
+    if(state.spaceDown||state.mode==='pan'||e.button===1){state.interaction={kind:'pan',view:{...state.view},origin:{x:e.clientX,y:e.clientY},scale:getScale()};$('viewport').dataset.panning='yes';}
+    else if(state.mode==='draw'){addDraftPoint(pt);return;}
+    else if(state.mode==='eyedropper'){pickImageColor(pt);return;}
+    else if(state.mode==='vertex' && handle){const id=handle.getAttribute('data-vertex');if(id){state.selectedVertex=id;saveHistory();state.interaction={kind:'vertex',id,original:{...vertex(id)},changed:false};}}
+    else if(shapeNode){const id=shapeNode.getAttribute('data-shape');state.selected=id;state.selectedVertex=null;if(state.mode==='move'){
+      saveHistory();const s=selectedShape();state.interaction={kind:'move',origin:{...pt},start:Object.fromEntries(new Set(s.vertexIds).values().map(v=>[v,{...vertex(v)}])),changed:false};
+    }render();}
+    else{state.selected=null;state.selectedVertex=null;render();}
+    if(state.interaction){try{$('stage').setPointerCapture(e.pointerId)}catch{}}
+  }
+  function onPointerMove(e){updateCursor(e);const a=state.interaction;
+    if(a?.kind==='pan'){const scale=Math.max(a.scale,.0001);state.view.x=a.view.x-(e.clientX-a.origin.x)/scale;state.view.y=a.view.y-(e.clientY-a.origin.y)/scale;render();return}
+    if(a?.kind==='vertex'){
+      const pt=limitPoint(screenToSource(e));let proposed=pt;const other=snapNearest(pt,a.id);if(other)proposed={...vertex(other)};
+      const v=vertex(a.id);if(!v)return;v.x=proposed.x;v.y=proposed.y;a.changed=true;render();return;
+    }
+    if(a?.kind==='move'){const now=screenToSource(e),dx=now.x-a.origin.x,dy=now.y-a.origin.y;
+      for(const [id,p] of Object.entries(a.start)){const v=vertex(id);if(v){v.x=round(clamp(p.x+dx,0,state.project.width));v.y=round(clamp(p.y+dy,0,state.project.height))}}a.changed=true;render();return;
+    }
+    if(state.mode==='draw')render();else renderHandles();
+  }
+  function renderHandles(){ // draw handles only on hover without rebuilding color/layers inspector
+    const layer=$('handleLayer'),selected=selectedShape();layer.replaceChildren();const sc=1/Math.max(getScale(),.001);
+    const ids=new Set((selected&&['vertex','select','move'].includes(state.mode)?selected.vertexIds:[]));if(state.hoverVertex)ids.add(state.hoverVertex);
+    for(const id of ids){const v=vertex(id);if(!v)continue;layer.append(svgNode('circle',{'data-vertex':id,cx:v.x,cy:v.y,r:(id===state.hoverVertex?7:5.5)*sc,'class':'handle'+(countUsage(id)>1?' shared':'')+(id===state.hoverVertex||id===state.selectedVertex?' hover':'')}))}
+  }
+  function onPointerUp(e){const a=state.interaction;state.interaction=null;delete $('viewport').dataset.panning;if(!a)return;
+    if(a.kind==='vertex'&&a.changed){const pt=vertex(a.id);const near=snapNearest(pt,a.id);if(near&&Math.hypot(pt.x-vertex(near).x,pt.y-vertex(near).y)<.001){mergeVertices(a.id,near)}state.selectedVertex=near||a.id;}
+    if((a.kind==='vertex'||a.kind==='move')&&!a.changed){state.history.pop();refreshUndo()}
+    render();try{$('stage').releasePointerCapture(e.pointerId)}catch{}
+  }
+  function insertEdgeVertex(e){if(state.mode!=='vertex')return;const s=selectedShape();if(!s || !s.visible)return;const p=screenToSource(e),pts=shapePoints(s),ids=s.vertexIds;const max=14/Math.max(getScale(),.001);let best={index:-1,dist:max,projection:null};
+    for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],dx=b.x-a.x,dy=b.y-a.y;const len=dx*dx+dy*dy;if(len===0)continue;const t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/len,0,1);const q={x:a.x+t*dx,y:a.y+t*dy},d=Math.hypot(p.x-q.x,p.y-q.y);if(d<best.dist&&t>.05&&t<.95)best={index:i,dist:d,projection:q};}
+    if(best.index<0)return;saveHistory();const id=nextId('v');state.project.vertices[id]=limitPoint(best.projection);ids.splice(best.index+1,0,id);state.selectedVertex=id;render();toast('辺に頂点を追加しました');
+  }
+  function onWheel(e){e.preventDefault();const p=screenToSource(e),amount=e.deltaY<0?1.17:1/1.17;const old={...state.view};state.view.w=clamp(state.view.w/amount,state.project.width/25,state.project.width*5);state.view.h=old.h*(state.view.w/old.w);const after=screenToSource(e);state.view.x+=p.x-after.x;state.view.y+=p.y-after.y;render();}
+  function fit(){state.view={x:0,y:0,w:state.project.width,h:state.project.height};render()}
+  function pickImageColor(pt){if(!cachedBitmap){toast('先に下敷き画像を読み込んでください');return}const c=document.createElement('canvas');c.width=1;c.height=1;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(cachedBitmap,Math.floor(pt.x),Math.floor(pt.y),1,1,0,0,1,1);const rgb=ctx.getImageData(0,0,1,1).data;if(rgb[3]===0){toast('透明な画素です');return}changeColor(hex(...rgb),'sampled');toast('元画像から色を採りました')}
+
+  function rgbLab(rgb){const linear=rgb.map(v=>{const t=v/255;return t<=.04045?t/12.92:Math.pow((t+.055)/1.055,2.4)});let x=(linear[0]*.4124564+linear[1]*.3575761+linear[2]*.1804375)/.95047,y=linear[0]*.2126729+linear[1]*.7151522+linear[2]*.072175,z=(linear[0]*.0193339+linear[1]*.119192+linear[2]*.9503041)/1.08883;const d=6/29,f=t=>t>d*d*d?Math.cbrt(t):t/(3*d*d)+4/29;return [116*f(y)-16,500*(f(x)-f(y)),200*(f(y)-f(z))]}
+  const labDist=(a,b)=>Math.hypot(...a.map((n,i)=>n-b[i]));
+  function extractPalette(img){
+    const canvas=document.createElement('canvas');const m=Math.min(1,256/Math.max(img.width,img.height));canvas.width=Math.max(1,Math.round(img.width*m));canvas.height=Math.max(1,Math.round(img.height*m));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);const w=canvas.width,h=canvas.height,px=ctx.getImageData(0,0,w,h).data;
+    const bins=new Map(),border=new Map();let total=0;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const k=(y*w+x)*4;if(px[k+3]<=20)continue;total++;const r=px[k],g=px[k+1],b=px[k+2],key=((r>>3)<<10)|((g>>3)<<5)|(b>>3);let p=bins.get(key);if(!p){p={n:0,r:0,g:0,b:0,x:0,y:0,x2:0,y2:0};bins.set(key,p)}p.n++;p.r+=r;p.g+=g;p.b+=b;p.x+=x;p.y+=y;p.x2+=x*x;p.y2+=y*y;
+      if(x<w*.04||x>w*.96||y<h*.04||y>h*.96){const kk=((r>>4)<<8)|((g>>4)<<4)|(b>>4);let q=border.get(kk);if(!q){q={n:0,r:0,g:0,b:0};border.set(kk,q)}q.n++;q.r+=r;q.g+=g;q.b+=b}
+    }
+    let entries=[...bins.values()].map(a=>{const rgb=[a.r/a.n,a.g/a.n,a.b/a.n],mx=a.x/a.n,my=a.y/a.n,spread=(Math.min(1,Math.sqrt(Math.max(0,a.x2/a.n-mx*mx))/(w*.22))+Math.min(1,Math.sqrt(Math.max(0,a.y2/a.n-my*my))/(h*.22)))/2;return {...a,rgb,lab:rgbLab(rgb),spread,area:a.n/Math.max(total,1)}}).sort((a,b)=>b.n-a.n);
+    const clustered=[];for(const e of entries.slice(0,512)){const c=clustered.find(c=>labDist(c.lab,e.lab)<17);if(c){const n=c.n+e.n;c.rgb=c.rgb.map((v,i)=>(v*c.n+e.rgb[i]*e.n)/n);c.n=n;c.lab=rgbLab(c.rgb);c.area=c.n/Math.max(total,1)}else clustered.push({...e})}
+    clustered.sort((a,b)=>b.n-a.n);const rep=clustered.slice(0,8).map(x=>hex(...x.rgb));
+    const featured=clustered.slice(0,7);for(const e of clustered.slice(7)){const d=Math.min(...featured.map(c=>labDist(c.lab,e.lab)));const chroma=Math.hypot(e.lab[1],e.lab[2]);if(d>25&&chroma>24&&e.area>.002){featured.push(e);break}};
+    const backgrounds=[...border.values()].sort((a,b)=>b.n-a.n).slice(0,3).map(a=>rgbLab([a.r/a.n,a.g/a.n,a.b/a.n]));
+    let candidates=entries.slice(0,96).filter(a=>!backgrounds.length||Math.min(...backgrounds.map(b=>labDist(a.lab,b)))>=17||a.spread<.22);
+    if(candidates.length<5)candidates=entries.slice(0,96);
+    candidates=candidates.map(a=>{const chroma=Math.hypot(a.lab[1],a.lab[2]),neutral=chroma<15,l=a.lab[0];return {...a,score:Math.pow(Math.max(a.area,.000001),.56)*(neutral?.78: .70+.55*Math.min(1,chroma/52))*(neutral?(l>76?1.1:.85):.9)*( .9+.22*a.spread)}}).sort((a,b)=>b.score-a.score);
+    const char=[];for(let ix=0;char.length<8&&ix<Math.min(96,candidates.length);ix++){let winner=null,win=-1;for(const e of candidates){if(char.includes(e)||char.some(a=>labDist(a.lab,e.lab)<13))continue;const distance=char.length?Math.min(...char.map(a=>labDist(a.lab,e.lab))):50;const diversity=.12+.88*Math.min(1,Math.max(0,(distance-9)/32));const chroma=Math.hypot(e.lab[1],e.lab[2]);const score=e.score*diversity*(char.length===0?1:.45+1.45*Math.min(1,chroma/60));if(score>win){win=score;winner=e}}if(!winner)break;char.push(winner)}
+    return {characteristic:paletteColors(char.map(x=>hex(...x.rgb))),featured:paletteColors(featured.map(x=>hex(...x.rgb))),representative:paletteColors(rep),imported:false};
+  }
+  async function loadImage(file){
+    if(!file||!/^image\/(png|jpeg|webp|gif)$/.test(file.type)){toast('PNG / JPEG / WebP / GIF の画像を選んでください');return;}
+    if(file.size>MAX_PICTURE_BYTES){toast('画像は24MB以下にしてください');return;}
+    try{
+      const data=await readFileAsDataUrl(file),image=await decodeImage(data);if(image.naturalWidth>12000||image.naturalHeight>12000)throw Error('画像が大きすぎます (上限12000px)');
+      cachedBitmap=image;state.project=newProject(image.naturalWidth,image.naturalHeight);state.project.imageName=file.name;state.project.imageData=data;
+      state.lastName=file.name.replace(/\.[^.]+$/,'');state.project.palette=extractPalette(image);state.draft=[];state.history=[];state.future=[];state.selected=null;state.selectedVertex=null;state.cursor=null;fit();status('画像を読み込みました · 色パレットを抽出しました');toast('画像を読み込みました。クリックして頂点を置けます');
+    }catch(e){toast(`読み込みに失敗: ${e.message}`,5)}
+  }
+  function readFileAsDataUrl(f){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('ファイルを読み込めません'));r.readAsDataURL(f)})}
+  function decodeImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('画像をデコードできません'));img.src=src})}
+  function importPalette(json){
+    const src=json.metadata?.colors||json.colors||json.palette||json;
+    let data={};if(Array.isArray(src))data={characteristic:src,featured:src,representative:src};
+    else data={characteristic:src.characteristic||src.characteristicColors||src.featured||src.colors||[],featured:src.featured||src.featuredColors||[],representative:src.representative||src.dominant||src.representativeColors||src.colors||[]};
+    let n=0;for(const key of ['characteristic','featured','representative']){const colors=paletteColors(data[key]);if(colors.length){state.project.palette[key]=colors;n+=colors.length}}if(!n)throw Error('対応する色配列がありません（RGB配列、hex、colors、metadata.colors）');state.project.palette.imported=true;render();toast(`${n}色の外部パレット候補を読み込みました`);
+  }
+  async function loadPaletteFile(file){if(!file)return;try{const s=await file.text();importPalette(JSON.parse(s))}catch(e){toast('色パレット読込エラー: '+e.message,5)}}
+  function saveProject(){const p=state.project;const doc={schema:'reference-shape-editor/v1',savedAt:new Date().toISOString(),appVersion:APP_VERSION,canvas:{width:p.width,height:p.height},image:{name:p.imageName,dataURL:p.imageData},backgroundOpacity:state.underlayOpacity,vertices:p.vertices,shapes:p.shapes,palette:p.palette,nextCounter:p.counter};download(new Blob([JSON.stringify(doc,null,2)],{type:'application/json'}),exportBase()+'.json');status('編集可能なJSONを保存しました')}
+  function validateImport(x){
+    if(x?.schema!=='reference-shape-editor/v1')throw Error('非対応のプロジェクト形式です');const w=x.canvas?.width,h=x.canvas?.height;
+    if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>12000||h>12000)throw Error('キャンバスサイズが不正です');
+    if(x.image?.dataURL && (!/^data:image\/(png|jpeg|webp|gif);base64,/i.test(x.image.dataURL)||x.image.dataURL.length>MAX_PICTURE_BYTES*1.5))throw Error('画像データの形式または容量が不正です');
+    if(!x.vertices||Array.isArray(x.vertices)||typeof x.vertices!=='object'||!Array.isArray(x.shapes)||x.shapes.length>20000||Object.keys(x.vertices).length>100000)throw Error('図形データが不正です');
+    const vertices=Object.create(null);for(const [id,v] of Object.entries(x.vertices)){if(!/^[A-Za-z0-9_-]{1,50}$/.test(id)||!finite(v?.x)||!finite(v?.y)||Math.abs(v.x)>100000||Math.abs(v.y)>100000)throw Error('頂点が不正です');vertices[id]={x:round(v.x),y:round(v.y)}}
+    const ids=new Set(),shapes=x.shapes.map(s=>{if(typeof s.id!=='string'||ids.has(s.id)||!Array.isArray(s.vertexIds)||s.vertexIds.length<3||s.vertexIds.length>20000||!s.vertexIds.every(id=>Object.hasOwn(vertices,id))||new Set(s.vertexIds).size<3)throw Error('図形の頂点参照が不正です');const fill=cleanColor(s.fill);if(!fill)throw Error('図形の色が不正です');ids.add(s.id);return {id:s.id,name:String(s.name||'図形').slice(0,80),vertexIds:s.vertexIds.slice(),fill,visible:s.visible!==false}});
+    const palette={characteristic:paletteColors(x.palette?.characteristic),featured:paletteColors(x.palette?.featured),representative:paletteColors(x.palette?.representative),imported:!!x.palette?.imported};
+    return {project:{version:APP_VERSION,width:w,height:h,imageName:String(x.image?.name||'imported.png').slice(0,250),imageData:x.image?.dataURL||null,vertices,shapes,counter:Number.isInteger(x.nextCounter)&&x.nextCounter>=0?x.nextCounter:1000000,palette},opacity:clamp(Number(x.backgroundOpacity)||.35,0,1)};
+  }
+  async function loadProject(file){if(!file)return;try{const text=await file.text();const data=validateImport(JSON.parse(text));let img=null;if(data.project.imageData){img=await decodeImage(data.project.imageData);if(img.naturalWidth!==data.project.width||img.naturalHeight!==data.project.height)throw Error('元画像とキャンバス寸法が一致しません')}
+      state.project=data.project;cachedBitmap=img;state.lastName=data.project.imageName.replace(/\.[^.]+$/,'');state.underlayOpacity=data.opacity;$('opacity').value=Math.round(data.opacity*100);state.selected=null;state.selectedVertex=null;state.draft=[];state.history=[];state.future=[];changeTool('draw');fit();toast('編集状態を復元しました');status('JSONプロジェクトを開きました');
+    }catch(e){toast('プロジェクト読込エラー: '+e.message,6)}}
+  function outputSvg(){const p=state.project;const shapes=p.shapes.filter(s=>s.visible).map(s=>`  <polygon points="${escapeXml(shapeCoords(s))}" fill="${s.fill}" data-shape-name="${escapeXml(s.name)}"/>`).join('\n');return `<svg xmlns="http://www.w3.org/2000/svg" width="${p.width}" height="${p.height}" viewBox="0 0 ${p.width} ${p.height}">\n${shapes}\n</svg>\n`}
+  function exportSvg(){download(new Blob([outputSvg()],{type:'image/svg+xml;charset=utf-8'}),exportBase()+'.svg');toast('SVGを書き出しました（下敷き画像を含みません）')}
+  async function exportPng(){const p=state.project;if(p.width*p.height>48_000_000){toast('PNG出力が大きすぎます (48MP以下にしてください)');return}
+    const svg=outputSvg(),url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));try{const img=await decodeImage(url),canvas=document.createElement('canvas');canvas.width=p.width;canvas.height=p.height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);canvas.toBlob(blob=>{if(blob){download(blob,exportBase()+'.png');toast('PNGを書き出しました（背景は透明）')}else toast('PNG保存に失敗しました')},'image/png')}catch(e){toast('PNG書き出しエラー: '+e.message)}finally{URL.revokeObjectURL(url)}}
+
+  function setBindings(){
+    document.querySelectorAll('.tool[data-tool]').forEach(b=>b.addEventListener('click',()=>changeTool(b.dataset.tool)));
+    $('sourceInput').addEventListener('change',e=>{loadImage(e.target.files[0]);e.target.value=''});
+    $('projectInput').addEventListener('change',e=>{loadProject(e.target.files[0]);e.target.value=''});
+    $('paletteInput').addEventListener('change',e=>{loadPaletteFile(e.target.files[0]);e.target.value=''});
+    $('finishPolygon').addEventListener('click',finishPolygon);$('cancelDraft').addEventListener('click',()=>{state.draft=[];render()});$('removeDraftPoint').addEventListener('click',()=>{state.draft.pop();render()});
+    $('undo').addEventListener('click',undo);$('redo').addEventListener('click',redo);
+    $('fit').addEventListener('click',fit);$('opacity').addEventListener('input',e=>{state.underlayOpacity=e.target.value/100;render()});$('showUnderlay').addEventListener('change',e=>{state.showUnderlay=e.target.checked;render()});$('showGrid').addEventListener('change',e=>{state.showGrid=e.target.checked;render()});
+    $('snapEnabled').addEventListener('change',e=>{state.snapEnabled=e.target.checked;render()});$('snapRadius').addEventListener('input',e=>{state.snapRadius=+e.target.value;render()});$('colorPicker').addEventListener('change',e=>changeColor(e.target.value));
+    $('exportSvg').addEventListener('click',exportSvg);$('exportPng').addEventListener('click',exportPng);$('saveProject').addEventListener('click',saveProject);
+    $('stage').addEventListener('pointerdown',onPointerDown);$('stage').addEventListener('pointermove',onPointerMove);$('stage').addEventListener('pointerup',onPointerUp);$('stage').addEventListener('pointercancel',onPointerUp);$('stage').addEventListener('dblclick',insertEdgeVertex);
+    $('viewport').addEventListener('wheel',onWheel,{passive:false});
+    $('viewport').addEventListener('dragover',e=>e.preventDefault());$('viewport').addEventListener('drop',e=>{e.preventDefault();const file=e.dataTransfer.files[0];if(file?.type.startsWith('image/'))loadImage(file);else if(file?.name.endsWith('.json'))loadProject(file)});
+    $('stage').addEventListener('contextmenu',e=>{if(state.mode==='draw'){e.preventDefault();state.draft.pop();render()}});
+    $('openHelp').addEventListener('click',()=>$('helpDialog').showModal());$('closeHelp').addEventListener('click',()=>$('helpDialog').close());
+    $('toggleInspector').addEventListener('click',()=>$('inspector').classList.toggle('collapsed'));$('panelButton').addEventListener('click',()=>$('inspector').classList.toggle('collapsed'));
+    document.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement||e.target.isContentEditable)return;
+      if(e.code==='Space'){state.spaceDown=true;e.preventDefault()}
+      if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();if(e.shiftKey)redo();else undo();return}
+      if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){e.preventDefault();redo();return}
+      if(e.key==='Escape'){state.draft=[];state.selectedVertex=null;render();return}
+      if(e.key==='Backspace'&&state.mode==='draw'){e.preventDefault();state.draft.pop();render();return}
+      if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeSelected();return}
+      if(e.key==='Enter'&&state.mode==='draw'){e.preventDefault();finishPolygon();return}
+      const map={KeyP:'draw',KeyV:'select',KeyE:'vertex',KeyM:'move',KeyH:'pan',KeyI:'eyedropper'};if(map[e.code]&&!e.ctrlKey&&!e.metaKey){changeTool(map[e.code]);return}
+      if((e.key==='+'||e.key==='=')&&!e.ctrlKey){e.preventDefault();zoomCenter(1.2)}if(e.key==='-'&&!e.ctrlKey){e.preventDefault();zoomCenter(1/1.2)}
+    });
+    document.addEventListener('keyup',e=>{if(e.code==='Space')state.spaceDown=false});window.addEventListener('blur',()=>state.spaceDown=false);window.addEventListener('resize',render);
+  }
+  function zoomCenter(amount){const p={x:state.view.x+state.view.w/2,y:state.view.y+state.view.h/2};state.view.w=clamp(state.view.w/amount,state.project.width/25,state.project.width*5);state.view.h=state.view.w*state.project.height/state.project.width;state.view.x=p.x-state.view.w/2;state.view.y=p.y-state.view.h/2;render()}
+
+  setBindings();if(window.matchMedia('(max-width:760px)').matches)$('inspector').classList.add('collapsed');state.view={x:0,y:0,w:INITIAL_WIDTH,h:INITIAL_HEIGHT};changeTool('draw');refreshUndo();
+  window.ReferenceShapeEditor=Object.freeze({
+    getState:()=>JSON.parse(JSON.stringify({project:state.project,selected:state.selected,mode:state.mode,draft:state.draft,view:state.view})),
+    importPalette,
+    validateImport,
+    outputSvg,
+    polygonSelfIntersects,
+    getVersion:()=>APP_VERSION
+  });
+})();
+
+</script>
+</body></html>
