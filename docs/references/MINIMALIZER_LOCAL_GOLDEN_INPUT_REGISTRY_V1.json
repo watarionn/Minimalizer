@@ -1,0 +1,79 @@
+{
+  "schema": "minimalizer-local-golden-input-registry/v1",
+  "created_on": "2026-10-15",
+  "purpose": "evaluation_preparation_only",
+  "project": "MinimalizerLocal",
+  "source_authority": "Historical signed source hashes; current original raw source images not rehashed. New conversion runs must separately obtain signed original bytes and compare SHA.",
+  "signed_cases": [
+    {
+      "id": "H04",
+      "scope": "full_character",
+      "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+      "source_digest_evidence": "Run107 original image audit + Run188 checkpoint",
+      "actual_signed_original_rehashed_this_run": false,
+      "phase4_stage_sha256": "def1eac131b60ae12fa14675441f21a342cfdfde7d1b96c168ba351c74a9eec0",
+      "part_mask_count": 11,
+      "run122_zip_sha256": "0798bfa21ea52dfe3d3d45435e1513dce0cdeb1712978debe4b272b22fee1b21",
+      "run107_zip_sha256": "1e07cc74aa5de817461b3b699dab26bbb00cd2de9ac80b25e08cd68cd033d606",
+      "two_archive_mask_byte_match": true,
+      "human_golden": "HOLD",
+      "next_input_gate": "require source raw bytes with matching SHA"
+    },
+    {
+      "id": "GC001",
+      "scope": "full_character",
+      "source_sha256": "75ef1506709f65c39ea6b3501747c74423c7f2822a36d6f2fb7808c4b3f95f9e",
+      "source_digest_evidence": "SA1059/C04 signed original review",
+      "actual_signed_original_rehashed_this_run": false,
+      "human_golden": "HOLD",
+      "known_human_visual_failure": "subject right shoulder/right arm at viewer-left obscured by excessive hair; FAIL signal; reviewer signoff still outstanding"
+    },
+    {
+      "id": "Raden",
+      "scope": "full_character",
+      "source_sha256": "d9982c74a2d9a0a8cd3547f3f5cc603a809e942e6dcf62b98e36bfa019903a00",
+      "source_digest_evidence": "SA1059/C04 signed original review",
+      "actual_signed_original_rehashed_this_run": false,
+      "human_golden": "HOLD"
+    }
+  ],
+  "manual_reference": {
+    "id": "KYOKO_MANUAL_REFERENCE_V1",
+    "status": "ADOPTED_MANUAL_REFERENCE",
+    "underlay_sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "private_zip_sha256": "63fd3a8b9b730ad641916b5daf14c8d149c508ac5a29aec2e2ac5c502e129db4",
+    "scope": "340x340 Kyoko face and upper body, 33 polygons, 172 vertices, 54 shared",
+    "pixel_aligned_to_signed_gc001": false,
+    "allowed": "independent manual visual exemplar only"
+  },
+  "approved78": {
+    "manifest_path": "docs/zerobase/approved78_manifest.json",
+    "git_blob_sha": "86f413c77760756081273049a3bb02602dc5b2c1",
+    "count": 78,
+    "approved18_prefix_count": 18,
+    "canonical_readme_version": "2026-09-18",
+    "reference_image_bytes_rehashed_this_run": false,
+    "source": "GitHub index + canonical Drive README"
+  },
+  "golden_criteria": [
+    "faceless_and_no_skin_plate",
+    "hair_and_head",
+    "clothing_and_accessories",
+    "both_arms_and_pose",
+    "silhouette_and_identity",
+    "source_only_no_generated_detail"
+  ],
+  "review_requires": [
+    "signed original source bytes sha",
+    "render candidate sha",
+    "Chromium DPR1 and DPR2",
+    "independent reviewer A and B",
+    "human visual reason and reviewer auth",
+    "Approved18/78 run"
+  ],
+  "human_reviews_status": "PENDING_UNAUTHENTICATED",
+  "stage8_original_source_ring_budget": "HOLD",
+  "local_release_authorized": false,
+  "production_changed": false,
+  "user_scheduled_campaign_restarted": false
+}
