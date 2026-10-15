@@ -1,0 +1,54 @@
+{
+  "schema": "minimalizer/local_l02_flip_negative_control/v1",
+  "date": "2026-10-15",
+  "milestone": "L02",
+  "status": "HOLD",
+  "production_release": "NO_GO",
+  "sources": {
+    "H04": {
+      "signed_original_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+      "analysis_resampled_not_original": false,
+      "trained_on_this_character": true
+    },
+    "H06": {
+      "signed_original_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+      "analysis_resampled_not_original": true,
+      "trained_on_this_character": false
+    },
+    "H08": {
+      "signed_original_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+      "analysis_resampled_not_original": true,
+      "trained_on_this_character": false
+    }
+  },
+  "non_train_human_labels": 0,
+  "training_characters": 1,
+  "test_time_flip_is_not_independent_observer": true,
+  "flip_agreement_iou": {
+    "H04": 0.593929,
+    "H06": 0.226774,
+    "H08": 0.237584
+  },
+  "flip_gate": {
+    "H04": "ABSTAIN_UNSTABLE_OR_SPARSE",
+    "H06": "ABSTAIN_UNSTABLE_OR_SPARSE",
+    "H08": "ABSTAIN_UNSTABLE_OR_SPARSE"
+  },
+  "H04_spatial_holdout_jacket_iou_baseline": 0.799184,
+  "H04_spatial_holdout_jacket_iou_mirror_training": 0.611905,
+  "H04_spatial_holdout_jacket_iou_symmetric_x": 0.585136,
+  "H04_symmetric_x_full_train_flip_iou": 0.997321,
+  "mirror_training_adopted": false,
+  "symmetric_x_adopted": false,
+  "unit_tests_pass": 13,
+  "unit_tests_total": 13,
+  "independent_jacket_precision": null,
+  "independent_jacket_recall": null,
+  "independent_jacket_iou": null,
+  "owner_repair_completed": false,
+  "fresh_repaired_phase4_to_phase5_pass": false,
+  "originals_modified": false,
+  "new_source_pixels": 0,
+  "local_worker_modified": false,
+  "public_route_modified": false
+}
