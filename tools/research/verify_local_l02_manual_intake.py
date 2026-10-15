@@ -10,7 +10,7 @@ import numpy as np, cv2
 from PIL import Image
 
 class AuthorityHold(ValueError):pass
-LABELS={'outerwear','arm_skin','hair','underlayer','accessory','unknown'}
+LABELS={'outerwear','arm_skin','hair','underlayer','accessory','unknown','face_skin','neck_skin','lower_body'}
 PREFIXES=tuple(l+'/' for l in sorted(LABELS))
 
 def check_polygon(points):
@@ -59,6 +59,10 @@ def validate_reference(doc:dict,source_bytes:bytes,expected_sha:str,*,final:bool
         ids.add(sid)
         label=shape.get('name','')
         if final and not any(label.startswith(prefix) for prefix in PREFIXES):raise AuthorityHold('unlabeled user polygon '+sid)
+        if final and re.search(r'(?i)(?:^|[/_-])(?:eye|eyes|eyebrow|eyebrows|nose|nostril|mouth|lip|lips|iris|pupil)(?:$|[/_-])', label):
+            raise AuthorityHold('facial microdetail cannot be used as an approved default-render label: '+sid)
+        if final and label.startswith('face_skin/') and label not in ('face_skin/face','face_skin/skin'):
+            raise AuthorityHold('only undetailed face skin is valid for a default faceless output: '+sid)
         verts0=shape.get('vertexIds')
         if not isinstance(verts0,list) or len(verts0)<3 or len(verts0)>20000 or any(k not in verts for k in verts0):
             raise AuthorityHold('invalid polygon vertex lookup')
@@ -107,3 +111,21 @@ def rasterize_visible_reference(doc:dict,source_bytes:bytes,expected_sha:str):
         above|=(filled>0)&alpha
     if sum(x.sum() for x in results.values())>int(alpha.sum()):raise AuthorityHold('visible reference exceeds signed source')
     return results
+
+
+def alignment_audit(doc:dict,source_bytes:bytes,expected_sha:str,*,max_outside_ratio:float=.015)->dict:
+    """Research-only source-underlay overshoot audit; cannot certify labels or release.
+
+    This does not alter a vertex, overwrite manual files, or silently relax the
+    final 1.5%-outside guard. Annotation owner must decide borderline tracing.
+    """
+    if not isinstance(max_outside_ratio,(float,int)) or not 0.0<=max_outside_ratio<=1.0:
+        raise AuthorityHold('invalid source overshoot limit')
+    r=validate_reference(doc,source_bytes,expected_sha,final=False)
+    excess=[{'shape_id':s['shape_id'],'name':s['name'],'outside_source_pixels':s['outside_source_pixels'],
+             'polygon_pixels':s['polygon_pixels'],'outside_source_ratio':s['outside_source_ratio']}
+            for s in r['shape_integrity'] if s['outside_source_ratio']>max_outside_ratio]
+    return {'source_sha256':expected_sha,'shape_count':r['shape_count'],
+            'outside_limit':max_outside_ratio,'flagged_shape_count':len(excess),
+            'flagged_shapes':excess,'final_geometry_gate_pass':len(excess)==0,
+            'human_semantic_label_signature':False,'production_release':'NO_GO'}
