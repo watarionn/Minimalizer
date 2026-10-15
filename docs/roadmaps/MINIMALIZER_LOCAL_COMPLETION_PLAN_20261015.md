@@ -1,5 +1,5 @@
 # MinimalizerLocal 完成計画 v1（提案）
-**2026-10-15 / status: PROPOSED, NOT RELEASE APPROVAL**
+**2026-10-15 / status: ADOPTED, NOT RELEASE APPROVAL**
 
 ## 完成の定義
 
@@ -25,6 +25,14 @@ MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Publ
 - Private Drive `RUN188_CHECKPOINT_20261015.md` (ID `1ugpaHU0mBPM7mnMqf3_CiLBkOWkeyeOJ`) : Run184–188研究の74 pytest PASS、13 shadow artifacts deterministic 3回、既存H04マスク11/11 SHA一致。**品質・統合HOLD**。原形状は head 1 component, torso 2 components, hair 4 components。V6候補は torso 2維持、hair 6に増加、9,150 hair候補画素の正しい所属が未確定。Phase5 graph PASSは意味的正解の証明ではない。PC production workerのgraph実装とGitHub mainのgraph実装に差分がある。
 - `docs/references/KYOKO_MANUAL_REFERENCE_V1_20261015.md`: ユーザー採用済み手描き参照（顔・上半身340×340、33図形）。見本の下敷きSHA ≠ 署名済みGC001なのでピクセル教師として直接適用不可。
 - 既存キャンペーン `docs/campaigns/CMP-20261009-SA1060-TO-PRODUCTION.json` は `ACTIVE_RELEASE_HOLD`。この計画の承認や実施はC08の定時タスク再開／Public本番承認ではない。
+
+## 採用・進捗（2026-10-15）
+
+- **ロードマップ採用:** ユーザー承認、PR #397 → main `58be43f6`。
+- **L00 COMPLETE（監査）:** 稼働中ProductionWorkerの主要コードとGitHub mainのGit blobを照合し、HTTP配信4ファイルとdiskのSHA-256が4/4一致。旧作業ツリーの未コミット差分は保持。
+- **L01 COMPLETE（入力・評価準備）:** H04 Phase4 11/11 private PNGマスク・Stage記録を独立アーカイブで再検証。Approved78全件台帳を確認。署名済み元画像を自動昇格しない台帳/validatorと12件の負例を含む単体テストを追加。
+- **実施・統合記録:** [PR #398](https://github.com/watarionn/Minimalizer/pull/398), main `6ae652ce`; [L00/L01 closure](MINIMALIZER_LOCAL_L00_L01_CLOSURE_20261015.md)。
+- **未解決・今後の入力ゲート:** 今回H04/GC001/Radenの元画像raw bytesは改めて再ハッシュしていない。L02では署名済み元画像のSHA検査を必須とする。Golden/Stage8/Approved78 full regression/本番/iPhoneはHOLD、定時タスク停止維持。
 
 ## 工程・終了条件
 
@@ -70,4 +78,4 @@ MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Publ
 2. Drive `RUN188_CHECKPOINT_20261015.md` のH04 signed originals + original Phase4 mask lineageから、`hair/clothes/torso/head`の右衣装・肩境界の現状レビュー画像を再確認。
 3. LocalとPublicの検証/出力を別ディレクトリへ保持し、L00監査とL01ソースManifestをsource-free PRにまとめる。
 
-**この文書は提案計画。既存のPublic/C08ステータス、署名済み原物、本番Worker、ユーザーのGolden/リリース承認を変更しない。**
+**この文書は採用済みLocal完成計画。L00/L01は監査・評価準備完了であり、Public/C08ステータス、署名済み原物、本番Worker、ユーザーのGolden/リリース承認を変更しない。**
