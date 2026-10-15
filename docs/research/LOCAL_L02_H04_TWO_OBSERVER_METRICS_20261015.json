@@ -1,0 +1,77 @@
+{
+  "H04_spatial_oof": {
+    "f1": 0.888385,
+    "fn": 3362,
+    "fp": 8950,
+    "iou": 0.799184,
+    "precision": 0.845551,
+    "pred_pixels": 57948,
+    "recall": 0.935791,
+    "tp": 48998
+  },
+  "H04_training_labels_used": true,
+  "SECONDARY_CLASS_GENERIC": "CLOTHES_NOT_JACKET",
+  "direct_owner_OR_fragmentation_count_rejected": 29,
+  "face_microdetails_drawn": false,
+  "fixed_two_observer_3px": {
+    "f1": 0.926667,
+    "fn": 4272,
+    "fp": 3339,
+    "iou": 0.863355,
+    "precision": 0.935073,
+    "pred_pixels": 51427,
+    "recall": 0.918411,
+    "tp": 48088
+  },
+  "foreground_union_xor": 0,
+  "fusion": {
+    "agreement_pixels": 51427,
+    "disagreement_pixels": 18209,
+    "foreground_xor_pixels": 0,
+    "primary_pixels": 57948,
+    "production_authorized": false,
+    "protected_overlap_pixels": 0,
+    "secondary_pixels": 63452,
+    "semantic_quality_verified": false
+  },
+  "fusion_soft_evidence_is_separate_from_phase4_owners": true,
+  "independent_animeseg_generic_clothes": {
+    "f1": 0.869042,
+    "fn": 2822,
+    "fp": 12108,
+    "iou": 0.768412,
+    "precision": 0.803588,
+    "pred_pixels": 61646,
+    "recall": 0.946104,
+    "tp": 49538
+  },
+  "no_new_source_pixels": true,
+  "old_color_shadow": {
+    "f1": 0.755624,
+    "fn": 8748,
+    "fp": 19461,
+    "iou": 0.607232,
+    "precision": 0.691453,
+    "pred_pixels": 63073,
+    "recall": 0.832926,
+    "tp": 43612
+  },
+  "owner_components": {
+    "hair": 4,
+    "head": 1,
+    "major_clothing": 5,
+    "torso": 2
+  },
+  "phase5_shadow_npz_sha256": "94b3fc18865246ffeecb65aa487e0077391a140fd73a8504c4305dbaf7528c75",
+  "production": {
+    "production_release": "NO_GO",
+    "reason": "ONLY_H04_GROUND_TRUTH_AND_CLOTHES_IS_NOT_JACKET_CLASS",
+    "semantic_iou_unseen": null,
+    "status": "HOLD"
+  },
+  "secondary_classmember_sha256": "18190ac3d86c1376b319f0b1b17a89eb69a6b89e97ced3f935c03f09299965fb",
+  "secondary_weights_sha256": "f6764a379496712a92d1a85f852a81155cd79132a3e050b77c972be7e1cec394",
+  "signed_owners_modified": false,
+  "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+  "unseen_jacket_truth": false
+}
