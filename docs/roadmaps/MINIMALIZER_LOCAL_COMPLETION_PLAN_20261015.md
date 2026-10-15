@@ -26,6 +26,12 @@ MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Publ
 - `docs/references/KYOKO_MANUAL_REFERENCE_V1_20261015.md`: ユーザー採用済み手描き参照（顔・上半身340×340、33図形）。見本の下敷きSHA ≠ 署名済みGC001なのでピクセル教師として直接適用不可。
 - 既存キャンペーン `docs/campaigns/CMP-20261009-SA1060-TO-PRODUCTION.json` は `ACTIVE_RELEASE_HOLD`。この計画の承認や実施はC08の定時タスク再開／Public本番承認ではない。
 
+## L02 source-bound 排他的owner候補とneck attachment修復（2026-10-15 続行）
+
+**L02 formal: HOLD / production: NO_GO。** H04署名済み元画像SHAおよびRun122の11-mask Phase4原本とのunion XOR=0・6保護部位 XOR=0を維持する研究専用owner再割当候補を作成。既存v2 research shadow + 2モデル衣装一致観測のみを推論入力にし、ユーザー17図形の頂点・マスクは推論へ渡さない。髪→衣装は6,331px、胴体→衣装35,169px（**提案**）、分断された髪1,931px・胴体63pxはsemantic断定せずunknownへ退避。排他的leaf重複0・head/hair/torsoの連結成分は1/4/2維持。unknown連結は37→90で視覚品質に未解決リスク。
+
+最初のproposalは pinned actual Phase5 blob `60848322332ac88297ef2688d06e32f17ed2b8bc` で**FAIL**（neck-attached-to-torso relation欠落）。原画像の既存torso内だけを通る幅の狭い483px source-supported attachment橋を予約した修正版では、neck/torso距離を16.12pxに維持し、実機pinned Phase5で**21 anchors/13 relations PASS**。source SHA/RGBA照合、独立2回byte-replay、25/25 synthetic regressions PASS。**ただし「新ownerが意味的に正しい」は未承認であり、Phase4→5以降の視覚Goldenには転用不可。** H04ジャケット手描き3部分との診断IoUは橋を保存したcoreで0.858302（参考、H04上で調整済み）。whole `major_clothing` はshirtやunderlayerを含むのでjacket-only IoUと直接比較不可。H06/H08には独立した人間署名の正解ジャケット/腕マスクがなく、H04全身17図形のうち4図形でsource alpha境界超過も未承認。現行Local Worker/サイト/C08の本番版は**一切変更していない**。再現コード、負例テスト、研究レポート: `docs/research/LOCAL_L02_H04_REPAIRED_EXCLUSIVE_SHADOW_20261015.md`。Private image/reference/NPZはDrive `chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_BridgedExclusive_PRIVATE_20261015.zip` に隔離。
+
 ## L02 左右反転安全ゲート（2026-10-15追補）
 
 **L02正式完了は引き続きHOLD。** H04学習済み単一モデルを左右反転した同一署名済み原画像に再適用し、予測同士のIoUを調べる負例ゲートを追加。H04 **0.593929**（訓練個体）、H06 **0.226774**、H08 **0.237584**（未学習個体、900px一時解析フレーム）。全件ABSTAIN。反転予測一致率は意味分離のIoUでも独立モデルでもない。H04片側学習＋鏡像増強のheld-out IoU **0.611905**、左右対称x特徴のheld-out IoU **0.585136**（反転予測一致自体は0.997321）で、両改善案を棄却した。署名済みPNG/WebP SHAと復号RGBA配列の完全一致を保証する新13/13テストPASS、H04/H06/H08の2回実行のNPZ 3/3 SHA一致。本番変更加えず、ソース由来の可視画素追加0。公開技術記録は `docs/research/LOCAL_L02_FLIP_NEGATIVE_GATE_20261015.md`、ソース画像・比較マスクと編集スターターは非公開Drive `chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_FlipSafety_PRIVATE_20261015.zip`。H04ユーザー製17図形のうちジャケットの3・9・10以外の部位名は未認証。別キャラクターの腕・衣装ラベルや排他的owner修復＋修正候補のactual Phase4→5再現／人間の視認確認が未完了。**技術的研究ゲートPASSは品質・Golden PASSではない。**
