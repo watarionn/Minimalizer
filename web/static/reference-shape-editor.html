@@ -8,6 +8,17 @@
   <style>
 :root{--bg:#151719;--panel:#1e2023;--panel2:#24272a;--line:#34383b;--text:#eaece9;--muted:#969e9f;--focus:#9acdd0;--accent:#efb278;--white:#f9f7f0;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);font-synthesis:none}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,label:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:3px}#app{display:flex;flex-direction:column;height:100dvh;min-height:400px}.app-head{height:67px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 21px 0 17px;border-bottom:1px solid var(--line);background:#1a1c1e;gap:15px}.brand{display:flex;align-items:center;gap:12px;min-width:230px}.brand-mark{font-size:42px;color:var(--accent);font-weight:200;line-height:.8}.brand strong{display:block;font-size:12px;letter-spacing:.15em;line-height:1.2}.brand small{display:block;font-size:9px;letter-spacing:.14em;color:var(--muted);margin-top:7px}.top-actions{display:flex;align-items:center;gap:7px}.action{background:transparent;color:var(--text);border:1px solid #43474a;font-size:12px;padding:10px 12px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;transition:.12s}.action:hover,.small-quiet:hover{background:#323639}.action.primary{background:#f0ae78;color:#201710;border-color:#f0ae78;font-weight:700}.action.primary:hover{background:#ffd2ac}.action.primary span{font-size:17px}.icon-action{width:36px;justify-content:center}.export-wrap{display:flex;gap:1px}.workspace{min-height:0;flex:1;display:flex}.toolrail{flex:0 0 72px;background:#1b1d1f;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}.tool{color:#a4aaac;background:transparent;border:0;border-left:2px solid transparent;width:68px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.tool:hover{background:#2b2f30;color:#fff}.tool.active{border-color:var(--accent);color:#f2c8a5;background:#2a2927}.tool .glyph{font-size:23px;line-height:1.2}.tool small{font-size:10px}.tool-rail-bottom{margin-top:auto}.tool.compact{font-size:24px;min-height:38px}.center{display:flex;flex-direction:column;flex:1;min-width:0}.canvas-head{background:#1b1e20;padding:11px 19px;display:flex;justify-content:space-between;align-items:center;gap:15px;min-height:50px;border-bottom:1px solid var(--line)}.canvas-head strong{font-size:12px}.canvas-head .muted{margin-left:13px;font-size:10px}.canvas-head-right{display:flex;align-items:center;gap:12px}.hint{font-size:11px;color:#b7bfc0}.zoom-value{font:11px ui-monospace,monospace;color:var(--muted);min-width:45px;text-align:right}.small-quiet{font-size:11px;color:var(--muted);background:transparent;border:0;padding:6px 4px}.small-quiet:hover{color:var(--text)}.viewport{position:relative;flex:1;min-height:0;overflow:hidden;display:grid;place-items:center;background-color:#282b2e;background-image:linear-gradient(45deg,#303335 25%,transparent 25%,transparent 75%,#303335 75%),linear-gradient(45deg,#303335 25%,transparent 25%,transparent 75%,#303335 75%);background-position:0 0,13px 13px;background-size:26px 26px;touch-action:none;outline:0}.viewport svg{display:block;width:calc(100% - 56px);height:calc(100% - 52px);max-height:100%;object-fit:contain;overflow:hidden;touch-action:none;user-select:none}.viewport[data-tool=draw] svg{cursor:crosshair}.viewport[data-tool=pan] svg,.viewport[data-panning=yes] svg{cursor:grab}.viewport[data-tool=eyedropper] svg{cursor:crosshair}.viewport[data-tool=move] svg{cursor:move}#stage polygon{cursor:pointer}#stage .selected-shape{stroke:#f1ad7b;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;paint-order:stroke}#stage .shape-hover{stroke:#a7d3d7;stroke-width:1.5;vector-effect:non-scaling-stroke}#stage .handle{cursor:grab;stroke:#192023;stroke-width:1.5;vector-effect:non-scaling-stroke;fill:#fff}#stage .handle.shared{fill:#a6d3d5}#stage .handle.hover{fill:#f1b07e;stroke:#1f1a17}#stage .draft-line{stroke:#edb07d;fill:#edb07d;fill-opacity:.12;stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;pointer-events:none}#stage .draft-point{fill:#f7c597;stroke:#392c23;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none}.empty-state{position:absolute;text-align:center;background:#1f2224ee;border:1px solid #3e4445;padding:34px 48px;max-width:460px;box-shadow:0 18px 52px #1117}.empty-icon{font-size:51px;color:#ebb27f}.empty-state h1{font-family:ui-serif,"Hiragino Mincho ProN",serif;font-weight:600;font-size:25px;margin:8px 0 16px}.empty-state p{font-size:12px;color:#b2b9b8;line-height:2}.big-launch{display:inline-flex;margin:19px 0 14px;border:1px solid #d7a479;color:#ffd5b3;padding:11px 20px;font-size:13px;gap:24px;cursor:pointer}.big-launch:hover{background:#36302c}.empty-tip{display:block;color:#848d8d;font-size:10px}.canvas-overlay-bottom{pointer-events:none;position:absolute;bottom:13px;left:15px;right:15px;display:flex;justify-content:space-between;font:10px ui-monospace,monospace;color:#ccc;text-shadow:0 1px 4px #000}.draftbar{height:59px;flex:0 0 59px;display:flex;align-items:center;justify-content:space-between;padding:0 17px;background:#1c1f21;border-top:1px solid var(--line);gap:10px}.draftbar>div{display:flex;align-items:center;gap:12px}.draftbar .muted{font-size:11px}.label-overline{font-size:10px;color:var(--accent);letter-spacing:.1em}.draftbar #draftCount{font-size:12px;font-weight:700}.draft-controls kbd{margin-left:3px;color:#636e70}.build{background:#a4c9c6;border:0;color:#122427;font-size:12px;font-weight:700;padding:10px 16px;display:flex;gap:25px;align-items:center}.build:disabled{opacity:.3;cursor:not-allowed}.build:not(:disabled):hover{background:#caf0e8}.inspector{width:328px;flex:0 0 328px;overflow:auto;background:var(--panel);border-left:1px solid var(--line);scrollbar-color:#4b5353 transparent}.inspector-head{height:50px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.15em;color:#d9c5b3;border-bottom:1px solid var(--line)}.panel-section{padding:17px 18px 18px;border-bottom:1px solid var(--line)}.panel-section h2{font-size:13px;font-weight:650;margin:0 0 16px;display:flex;align-items:center;gap:9px;letter-spacing:.025em}.panel-section h2 span{font:10px ui-monospace,monospace;color:#757d7e;font-weight:400}.field-row{display:flex;align-items:center;justify-content:space-between;color:#c9cecc;font-size:12px;margin-bottom:11px}.field-row strong,.field-row output{font-size:11px;color:var(--muted);font-weight:400}.panel-section input[type=range]{width:100%;accent-color:#a5c9cb;cursor:pointer;height:12px;display:block;margin:9px 0 15px}.two-col{display:flex;gap:22px}.check{color:#aab2b1;font-size:11px;display:inline-flex;align-items:center;gap:6px}.check input{accent-color:#9fc8c7}.switch{width:31px;height:17px;position:relative}.switch input{opacity:0;position:absolute}.switch i{display:block;background:#4b5252;height:17px;border-radius:10px}.switch i:before{content:"";display:block;background:#e8ece8;position:absolute;top:3px;left:3px;width:11px;height:11px;border-radius:50%;transition:.12s}.switch input:checked+i{background:#78a6a6}.switch input:checked+i:before{left:17px}.panel-note{font-size:10px;line-height:1.7;color:#878f90;margin:9px 0 0}.head-line{display:flex;align-items:flex-start;justify-content:space-between}.mini-link{font-size:10px;color:#a9cdd1;text-decoration:underline;text-underline-offset:4px;cursor:pointer}.color-current{display:flex;gap:12px;align-items:center;padding:10px;background:#272b2d;border:1px solid #3c4242;margin-bottom:20px}.color-current input{appearance:none;width:39px;height:39px;padding:0;border:0;background:transparent;cursor:pointer}.color-current input::-webkit-color-swatch-wrapper{padding:0}.color-current input::-webkit-color-swatch{border:1px solid #aaa}.color-current strong{display:block;font:13px ui-monospace,monospace}.color-current small{font-size:10px;color:var(--muted)}.palette-heading{display:flex;justify-content:space-between;align-items:baseline;margin:13px 0 9px}.palette-heading span{font-size:11px;font-weight:650}.palette-heading em{font-size:10px;font-style:normal;color:#999;margin-left:5px;font-weight:400}.palette-heading small{font-size:10px;color:#7e8788}.swatches{display:flex;gap:6px;flex-wrap:wrap;min-height:23px}.swatch{display:block;width:25px;height:25px;background:var(--swatch);border:1px solid #636b6b;position:relative;padding:0;cursor:pointer}.swatch:hover{outline:2px solid #d3e9e7}.swatch.active:after{content:"";position:absolute;inset:3px;border:2px solid #fff;box-shadow:0 0 0 1px #17191a}.no-selection{font-size:11px;color:#869193;line-height:1.75}.shape-input{width:100%;padding:9px 10px;background:#2a2e30;border:1px solid #454e4f;color:#eceeed;border-radius:0;font-size:12px}.shape-controls{display:flex;gap:7px;margin-top:12px}.shape-controls button,.layer-controls button{border:1px solid #465050;background:transparent;color:#c5d5d4;padding:7px;font-size:11px}.shape-controls button:hover,.layer-controls button:hover{background:#343d3c}.shape-meta{font-size:10px;color:var(--muted);margin:9px 0}.layers{max-height:275px;overflow:auto}.layers .muted{font-size:11px;color:var(--muted)}.layer{display:flex;gap:9px;align-items:center;padding:9px 4px;border-bottom:1px solid #333a3a;cursor:pointer}.layer.active{background:#2b3434}.layer .layer-swatch{height:20px;width:20px;flex:0 0 20px;border:1px solid #777;background:var(--swatch)}.layer-label{min-width:0;flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.layer-number{display:block;font:9px ui-monospace,monospace;color:#7a8384;margin-top:4px}.layer-controls{display:flex;gap:2px}.layer-controls button{border:0;font-size:12px;padding:4px;color:#949f9f}.layer-controls button:hover{color:white}.small-muted{font-size:10px;color:#7a8586}.status{height:26px;flex:none;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 15px;color:#899394;font-size:9px;letter-spacing:.07em}.status span:first-child{color:#a7c9c7}#toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);background:#2c3839;color:#e8f4f1;border:1px solid #6b999a;padding:11px 18px;font-size:12px;box-shadow:0 10px 35px #0009;opacity:0;transition:.2s;pointer-events:none;z-index:10;max-width:90vw}#toast.visible{opacity:1}dialog{background:#222629;color:var(--text);width:min(760px,94vw);border:1px solid #657071;box-shadow:0 30px 80px #0009;padding:28px}dialog::backdrop{background:#0b0f10d9}.dialog-head{display:flex;justify-content:space-between;align-items:start}.dialog-head small{font-size:10px;color:#e7a979;letter-spacing:.2em}.dialog-head h2{font-family:ui-serif,serif;font-size:24px;margin:8px 0 26px}.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}.guide-grid strong{font-size:12px;color:#c0dedf}.guide-grid p{font-size:12px;color:#b2bcbc;line-height:1.9}.keymap{display:flex;flex-wrap:wrap;gap:13px;margin-top:25px;border-top:1px solid #454a4b;padding-top:18px;font-size:11px;color:#aaa}.keymap kbd{background:#394143;padding:3px 5px;color:white}.inspector.collapsed{display:none}.hidden{display:none!important}@media(max-width:1100px){.brand{min-width:200px}.app-head{padding:0 10px}.action{padding:8px}.canvas-head .hint{display:none}.inspector{width:280px;flex-basis:280px}.panel-section{padding:14px}}@media(max-width:760px){.app-head{height:auto;min-height:60px;flex-wrap:wrap;padding:10px}.brand{min-width:0}.brand small{display:none}.top-actions{flex:1;justify-content:flex-end;flex-wrap:wrap;gap:4px}.action{font-size:10px;padding:7px}.workspace{position:relative;flex-direction:column}.toolrail{flex:0 0 58px;flex-direction:row;justify-content:center;gap:0;padding:0;width:100%;border-bottom:1px solid var(--line)}.tool{min-height:53px;flex:1;max-width:63px;width:auto;border-left:0;border-bottom:2px solid transparent}.tool.active{border-bottom-color:var(--accent)}.tool .glyph{font-size:19px}.tool-rail-bottom{margin:0;display:flex}.tool.compact{min-width:30px}.center{min-height:0}.inspector{position:absolute;right:0;top:57px;bottom:0;z-index:6;width:min(340px,94vw);max-width:94vw;box-shadow:-9px 0 35px #0009}.inspector.collapsed{display:none}.canvas-head{padding:7px 10px}.canvas-head .muted{display:block;margin:3px 0 0}.viewport svg{width:calc(100% - 12px);height:calc(100% - 26px)}.draftbar{height:58px;flex-basis:58px;padding:0 6px}.draftbar .muted{display:none}.draftbar>div{gap:6px}.draft-controls kbd{display:none}.build{padding:8px;gap:5px}.status span:last-child{display:none}.empty-state{padding:22px;max-width:90%}.empty-state h1{font-size:20px}.empty-state p{font-size:11px}.guide-grid{grid-template-columns:1fr}dialog{max-height:90dvh;overflow:auto}}
 
+/* v1.1: the editor occupies the viewport; images are a camera scene, not the page shape. */
+.viewport svg#stage{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:fill;overflow:hidden;}
+.canvas-head-right{flex-wrap:wrap;justify-content:flex-end;gap:6px;}
+.zoom-button{min-width:27px;font-size:16px;}
+.canvas-progress{position:absolute;z-index:3;left:18px;right:18px;bottom:31px;display:flex;align-items:center;gap:12px;max-width:360px;padding:5px 9px;background:#1d2222d9;border:1px solid #495050;color:#d4dbd8;font-size:10px;}
+.canvas-progress label{white-space:nowrap;display:flex;gap:7px;align-items:center;}
+.canvas-progress output{font-variant-numeric:tabular-nums;}
+.canvas-progress input{flex:1;min-width:0;accent-color:#9ecac9;height:15px;}
+.canvas-progress[hidden]{display:none;}
+@media(max-width:760px){.canvas-progress{left:8px;right:8px;max-width:none;bottom:30px}.canvas-head-right{flex-wrap:nowrap;gap:3px}.canvas-head-right .small-quiet{font-size:10px;padding:5px}.zoom-button{min-width:24px}.canvas-head{gap:4px}}
+
 </style>
   
 </head>
@@ -40,7 +51,7 @@
     <main class="center">
       <div class="canvas-head">
         <div><strong id="projectTitle">無題の手本</strong><span class="muted" id="imageInfo">画像を読み込んでください</span></div>
-        <div class="canvas-head-right"><span id="toolHint" class="hint">クリックして頂点を追加 · 既存の点をスナップ</span><button class="small-quiet" id="fit">全体表示</button><span class="zoom-value" id="zoomValue">100%</span></div>
+        <div class="canvas-head-right"><span id="toolHint" class="hint">クリックして頂点を追加 · 既存の点をスナップ</span><button class="small-quiet" id="fit">全体表示</button><button class="small-quiet" id="fitWidth" title="原寸大の形を保って画像の幅を広く表示">幅に合わせる</button><button class="small-quiet zoom-button" id="zoomOut" title="縮小">−</button><button class="small-quiet zoom-button" id="zoomIn" title="拡大">＋</button><span class="zoom-value" id="zoomValue">100%</span></div>
       </div>
       <div id="viewport" class="viewport" tabindex="0" aria-label="ポリゴン編集キャンバス">
         <svg id="stage" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" preserveAspectRatio="xMidYMid meet" aria-label="編集領域">
@@ -53,6 +64,7 @@
           <g id="handleLayer"></g>
         </svg>
         <div class="empty-state" id="emptyState"><div class="empty-icon">⌗</div><h1>輪郭を、あなたの手で。</h1><p>画像を読み込んだら、点を打って「図形化」。<br/>重なる頂点は共有できるので、細い隙間も防げます。</p><label for="sourceInput" class="big-launch">画像を選ぶ <span>↗</span></label><span class="empty-tip">ドラッグ＆ドロップにも対応 / 画像は外部送信しません</span></div>
+        <div class="canvas-progress" id="canvasProgress"><label for="verticalNav">縦位置 <output id="verticalNavValue">0%</output></label><input type="range" id="verticalNav" min="0" max="100" value="0" step="1" aria-label="縦長画像の表示位置"/></div>
         <div class="canvas-overlay-bottom"><span id="cursorInfo">x: –　y: –</span><span id="canvasStats">0 図形 · 0 頂点</span></div>
       </div>
       <div class="draftbar">
@@ -97,13 +109,13 @@
   <footer class="status"><span id="statusText">準備完了</span><span>NO GENERATIVE FILL · SOURCE IMAGE UNCHANGED · EXPORT VECTOR ONLY</span></footer>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
-<dialog id="helpDialog"><div class="dialog-head"><div><small>QUICK GUIDE</small><h2>描く、つなぐ、整える。</h2></div><button class="small-quiet" id="closeHelp">閉じる ✕</button></div><div class="guide-grid"><div><strong>01 · 図形化</strong><p>キャンバス上を順にクリックして頂点を追加。3点以上で<strong>「図形化」</strong>または Enter で確定。右クリックで直前の頂点を削除。</p></div><div><strong>02 · 共有頂点</strong><p>既存の頂点に近づくと吸着します。共有頂点を動かすと隣接図形も追従します。頂点モードで辺をダブルクリックすると点を追加。</p></div><div><strong>03 · 色と重なり</strong><p>Characteristic・Featured・代表色を使い分け。右パネルで色と図形名を変更。レイヤーの▲▼で前後関係を調整。</p></div><div><strong>04 · 保存</strong><p>JSONは再編集用で下敷き画像も含まれます。PNG/SVGは図形だけを書き出し、元画像を混入させません。</p></div></div><div class="keymap"><span><kbd>P</kbd> 図形</span><span><kbd>V</kbd> 選択</span><span><kbd>E</kbd> 頂点</span><span><kbd>H</kbd> パン</span><span><kbd>I</kbd> 色採取</span><span><kbd>Space</kbd> 一時パン</span><span><kbd>Ctrl+Z</kbd> 戻す</span><span><kbd>Delete</kbd> 削除</span></div></dialog>
+<dialog id="helpDialog"><div class="dialog-head"><div><small>QUICK GUIDE</small><h2>描く、つなぐ、整える。</h2></div><button class="small-quiet" id="closeHelp">閉じる ✕</button></div><div class="guide-grid"><div><strong>01 · 図形化</strong><p>キャンバス上を順にクリックして頂点を追加。3点以上で<strong>「図形化」</strong>または Enter で確定。右クリックで直前の頂点を削除。</p></div><div><strong>02 · 共有頂点</strong><p>既存の頂点に近づくと吸着します。共有頂点を動かすと隣接図形も追従します。頂点モードで辺をダブルクリックすると点を追加。</p></div><div><strong>03 · 色と重なり</strong><p>Characteristic・Featured・代表色を使い分け。右パネルで色と図形名を変更。レイヤーの▲▼で前後関係を調整。</p></div><div><strong>04 · 縦長画像</strong><p>縦長画像は自動で「幅に合わせる」表示になります。ホイールで上下に移動、Ctrl/⌘＋ホイールや＋−で拡大縮小。上部の「全体表示」と「幅に合わせる」で切り替えられます。下部の縦位置スライダーで離れた場所へ移動できます。</p></div><div><strong>05 · 保存</strong><p>JSONは再編集用で下敷き画像も含まれます。PNG/SVGは図形だけを書き出し、元画像を混入させません。</p></div></div><div class="keymap"><span><kbd>P</kbd> 図形</span><span><kbd>V</kbd> 選択</span><span><kbd>E</kbd> 頂点</span><span><kbd>H</kbd> パン</span><span><kbd>I</kbd> 色採取</span><span><kbd>Space</kbd> 一時パン</span><span><kbd>ホイール</kbd> 縦移動</span><span><kbd>Ctrl＋ホイール</kbd> ズーム</span><span><kbd>Ctrl+Z</kbd> 戻す</span><span><kbd>Delete</kbd> 削除</span></div></dialog>
 <script>
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
   const SVGNS = 'http://www.w3.org/2000/svg';
-  const APP_VERSION = '1.0.0';
+  const APP_VERSION = '1.1.0';
   const MAX_PICTURE_BYTES = 24 * 1024 * 1024;
   const PALETTE_LIMIT = 12;
   const INITIAL_WIDTH = 960, INITIAL_HEIGHT = 640;
@@ -112,7 +124,7 @@
     select: 'クリックして図形を選択 · 右のパネルで編集',
     vertex: '白/青の頂点をドラッグ · 辺のダブルクリックで追加',
     move: '選んだ図形をドラッグ · 共有頂点も連動',
-    pan: 'ドラッグで画面を移動 · ホイールで拡大縮小',
+    pan: 'ドラッグで画面を移動 · ホイールで上下移動',
     eyedropper: '画像をクリックしてその画素の色を選択'
   };
   const state = {
@@ -207,7 +219,11 @@
   function raiseShape(direction){const idx=state.project.shapes.findIndex(s=>s.id===state.selected);const next=idx+direction;if(idx<0||next<0||next>=state.project.shapes.length)return;saveHistory();const arr=state.project.shapes;[arr[idx],arr[next]]=[arr[next],arr[idx]];render();}
 
   function render(){
-    const p=state.project;const st=$('stage');const bounds=$('viewport').getBoundingClientRect();const fitScale=Math.min(Math.max(1,bounds.width-42)/p.width,Math.max(1,bounds.height-52)/p.height);st.style.width=Math.round(p.width*fitScale)+'px';st.style.height=Math.round(p.height*fitScale)+'px';st.setAttribute('viewBox',[state.view.x,state.view.y,state.view.w,state.view.h].join(' '));
+    const p=state.project, st=$('stage');
+    // Camera units track the *viewport* ratio, not the source-image ratio.
+    // The SVG remains full-size even when a 453x1400 image is loaded.
+    const ratio=viewportRatio();state.view.h=state.view.w/ratio;
+    st.setAttribute('viewBox',[state.view.x,state.view.y,state.view.w,state.view.h].join(' '));
     for(const id of ['canvasBase','canvasGrid','underlay']){$(id).setAttribute('width',p.width);$(id).setAttribute('height',p.height)}
     $('canvasGrid').setAttribute('opacity',state.showGrid?1:0);
     if(p.imageData){$('underlay').setAttribute('href',p.imageData)}else{$('underlay').removeAttribute('href')}
@@ -228,7 +244,10 @@
     $('canvasStats').textContent=`${p.shapes.length} 図形 · ${Object.keys(p.vertices).length} 頂点`;
     $('imageInfo').textContent=p.imageName?`${p.imageName} / ${p.width} × ${p.height}`:'画像を読み込んでください';
     $('projectTitle').textContent=state.lastName;
-    $('zoomValue').textContent=Math.round(p.width/state.view.w*100)+'%';
+    $('zoomValue').textContent=Math.round(getScale()*100)+'%';
+    const travel=Math.max(0,p.height-state.view.h), nav=$('canvasProgress');
+    nav.hidden=travel<1; $('verticalNav').value=travel?Math.round(clamp(state.view.y/travel*100,0,100)):0;
+    $('verticalNavValue').textContent=$('verticalNav').value+'%';
     $('opacityValue').textContent=Math.round(state.underlayOpacity*100)+'%';$('snapValue').textContent=state.snapRadius+' px';
     renderInspector();renderPalette();refreshUndo();
   }
@@ -268,8 +287,8 @@
   function onPointerDown(e){if(e.button!==0 && e.button!==1)return;if(!state.project.imageData&&state.project.shapes.length===0)return;
     $('viewport').focus({preventScroll:true});const pt=screenToSource(e);const target=e.target;const handle=target.closest('[data-vertex]');const shapeNode=target.closest('[data-shape]');
     if(state.spaceDown||state.mode==='pan'||e.button===1){state.interaction={kind:'pan',view:{...state.view},origin:{x:e.clientX,y:e.clientY},scale:getScale()};$('viewport').dataset.panning='yes';}
-    else if(state.mode==='draw'){addDraftPoint(pt);return;}
-    else if(state.mode==='eyedropper'){pickImageColor(pt);return;}
+    else if(state.mode==='draw'){if(pt.x<0||pt.y<0||pt.x>state.project.width||pt.y>state.project.height)return;addDraftPoint(pt);return;}
+    else if(state.mode==='eyedropper'){if(pt.x<0||pt.y<0||pt.x>=state.project.width||pt.y>=state.project.height)return;pickImageColor(pt);return;}
     else if(state.mode==='vertex' && handle){const id=handle.getAttribute('data-vertex');if(id){state.selectedVertex=id;saveHistory();state.interaction={kind:'vertex',id,original:{...vertex(id)},changed:false};}}
     else if(shapeNode){const id=shapeNode.getAttribute('data-shape');state.selected=id;state.selectedVertex=null;if(state.mode==='move'){
       saveHistory();const s=selectedShape();state.interaction={kind:'move',origin:{...pt},start:Object.fromEntries(new Set(s.vertexIds).values().map(v=>[v,{...vertex(v)}])),changed:false};
@@ -302,8 +321,44 @@
     for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],dx=b.x-a.x,dy=b.y-a.y;const len=dx*dx+dy*dy;if(len===0)continue;const t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/len,0,1);const q={x:a.x+t*dx,y:a.y+t*dy},d=Math.hypot(p.x-q.x,p.y-q.y);if(d<best.dist&&t>.05&&t<.95)best={index:i,dist:d,projection:q};}
     if(best.index<0)return;saveHistory();const id=nextId('v');state.project.vertices[id]=limitPoint(best.projection);ids.splice(best.index+1,0,id);state.selectedVertex=id;render();toast('辺に頂点を追加しました');
   }
-  function onWheel(e){e.preventDefault();const p=screenToSource(e),amount=e.deltaY<0?1.17:1/1.17;const old={...state.view};state.view.w=clamp(state.view.w/amount,state.project.width/25,state.project.width*5);state.view.h=old.h*(state.view.w/old.w);const after=screenToSource(e);state.view.x+=p.x-after.x;state.view.y+=p.y-after.y;render();}
-  function fit(){state.view={x:0,y:0,w:state.project.width,h:state.project.height};render()}
+  function viewportRatio(){
+    const bounds=$('viewport').getBoundingClientRect();
+    return Math.max(1,bounds.width)/Math.max(1,bounds.height);
+  }
+  function showSourceRect(width,centerX,centerY){
+    const w=Math.max(.1,width),h=w/viewportRatio();
+    state.view={x:centerX-w/2,y:centerY-h/2,w,h};render();
+  }
+  function fit(){
+    const p=state.project, ratio=viewportRatio();
+    const w=Math.max(p.width,p.height*ratio)*1.06;
+    showSourceRect(w,p.width/2,p.height/2);
+  }
+  function fitWidth(){
+    const p=state.project,w=p.width*1.06,h=w/viewportRatio();
+    showSourceRect(w,p.width/2,h*.485); // show from the top with a little breathing room
+  }
+  function autoFit(){
+    const p=state.project;
+    if(p.height/p.width>1.25/viewportRatio())fitWidth();else fit();
+  }
+  function zoomAt(amount,cx,cy){
+    const rect=$('stage').getBoundingClientRect();
+    const fx=clamp((cx-rect.left)/Math.max(1,rect.width),0,1),fy=clamp((cy-rect.top)/Math.max(1,rect.height),0,1);
+    const original={...state.view};
+    const w=clamp(original.w/amount,state.project.width/30,Math.max(state.project.width,state.project.height*viewportRatio())*6);
+    const h=w/viewportRatio();
+    state.view={x:original.x+original.w*fx-w*fx,y:original.y+original.h*fy-h*fy,w,h};render();
+  }
+  function onWheel(e){
+    e.preventDefault();
+    const factor=e.deltaMode===1?16:e.deltaMode===2?$('viewport').clientHeight:1;
+    if(e.ctrlKey||e.metaKey||e.altKey){zoomAt(Math.exp(-e.deltaY*factor*.003),e.clientX,e.clientY);return;}
+    const scale=Math.max(getScale(),.001);
+    const dx=(e.shiftKey?e.deltaY:e.deltaX)*factor/scale;
+    const dy=(e.shiftKey?e.deltaX:e.deltaY)*factor/scale;
+    state.view.x+=dx;state.view.y+=dy;render();
+  }
   function pickImageColor(pt){if(!cachedBitmap){toast('先に下敷き画像を読み込んでください');return}const c=document.createElement('canvas');c.width=1;c.height=1;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(cachedBitmap,Math.floor(pt.x),Math.floor(pt.y),1,1,0,0,1,1);const rgb=ctx.getImageData(0,0,1,1).data;if(rgb[3]===0){toast('透明な画素です');return}changeColor(hex(...rgb),'sampled');toast('元画像から色を採りました')}
 
   function rgbLab(rgb){const linear=rgb.map(v=>{const t=v/255;return t<=.04045?t/12.92:Math.pow((t+.055)/1.055,2.4)});let x=(linear[0]*.4124564+linear[1]*.3575761+linear[2]*.1804375)/.95047,y=linear[0]*.2126729+linear[1]*.7151522+linear[2]*.072175,z=(linear[0]*.0193339+linear[1]*.119192+linear[2]*.9503041)/1.08883;const d=6/29,f=t=>t>d*d*d?Math.cbrt(t):t/(3*d*d)+4/29;return [116*f(y)-16,500*(f(x)-f(y)),200*(f(y)-f(z))]}
@@ -332,7 +387,7 @@
     try{
       const data=await readFileAsDataUrl(file),image=await decodeImage(data);if(image.naturalWidth>12000||image.naturalHeight>12000)throw Error('画像が大きすぎます (上限12000px)');
       cachedBitmap=image;state.project=newProject(image.naturalWidth,image.naturalHeight);state.project.imageName=file.name;state.project.imageData=data;
-      state.lastName=file.name.replace(/\.[^.]+$/,'');state.project.palette=extractPalette(image);state.draft=[];state.history=[];state.future=[];state.selected=null;state.selectedVertex=null;state.cursor=null;fit();status('画像を読み込みました · 色パレットを抽出しました');toast('画像を読み込みました。クリックして頂点を置けます');
+      state.lastName=file.name.replace(/\.[^.]+$/,'');state.project.palette=extractPalette(image);state.draft=[];state.history=[];state.future=[];state.selected=null;state.selectedVertex=null;state.cursor=null;autoFit();status('画像を読み込みました · 色パレットを抽出しました');toast('画像を読み込みました。クリックして頂点を置けます');
     }catch(e){toast(`読み込みに失敗: ${e.message}`,5)}
   }
   function readFileAsDataUrl(f){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('ファイルを読み込めません'));r.readAsDataURL(f)})}
@@ -356,7 +411,7 @@
     return {project:{version:APP_VERSION,width:w,height:h,imageName:String(x.image?.name||'imported.png').slice(0,250),imageData:x.image?.dataURL||null,vertices,shapes,counter:Number.isInteger(x.nextCounter)&&x.nextCounter>=0?x.nextCounter:1000000,palette},opacity:clamp(Number(x.backgroundOpacity)||.35,0,1)};
   }
   async function loadProject(file){if(!file)return;try{const text=await file.text();const data=validateImport(JSON.parse(text));let img=null;if(data.project.imageData){img=await decodeImage(data.project.imageData);if(img.naturalWidth!==data.project.width||img.naturalHeight!==data.project.height)throw Error('元画像とキャンバス寸法が一致しません')}
-      state.project=data.project;cachedBitmap=img;state.lastName=data.project.imageName.replace(/\.[^.]+$/,'');state.underlayOpacity=data.opacity;$('opacity').value=Math.round(data.opacity*100);state.selected=null;state.selectedVertex=null;state.draft=[];state.history=[];state.future=[];changeTool('draw');fit();toast('編集状態を復元しました');status('JSONプロジェクトを開きました');
+      state.project=data.project;cachedBitmap=img;state.lastName=data.project.imageName.replace(/\.[^.]+$/,'');state.underlayOpacity=data.opacity;$('opacity').value=Math.round(data.opacity*100);state.selected=null;state.selectedVertex=null;state.draft=[];state.history=[];state.future=[];changeTool('draw');autoFit();toast('編集状態を復元しました');status('JSONプロジェクトを開きました');
     }catch(e){toast('プロジェクト読込エラー: '+e.message,6)}}
   function outputSvg(){const p=state.project;const shapes=p.shapes.filter(s=>s.visible).map(s=>`  <polygon points="${escapeXml(shapeCoords(s))}" fill="${s.fill}" data-shape-name="${escapeXml(s.name)}"/>`).join('\n');return `<svg xmlns="http://www.w3.org/2000/svg" width="${p.width}" height="${p.height}" viewBox="0 0 ${p.width} ${p.height}">\n${shapes}\n</svg>\n`}
   function exportSvg(){download(new Blob([outputSvg()],{type:'image/svg+xml;charset=utf-8'}),exportBase()+'.svg');toast('SVGを書き出しました（下敷き画像を含みません）')}
@@ -370,7 +425,11 @@
     $('paletteInput').addEventListener('change',e=>{loadPaletteFile(e.target.files[0]);e.target.value=''});
     $('finishPolygon').addEventListener('click',finishPolygon);$('cancelDraft').addEventListener('click',()=>{state.draft=[];render()});$('removeDraftPoint').addEventListener('click',()=>{state.draft.pop();render()});
     $('undo').addEventListener('click',undo);$('redo').addEventListener('click',redo);
-    $('fit').addEventListener('click',fit);$('opacity').addEventListener('input',e=>{state.underlayOpacity=e.target.value/100;render()});$('showUnderlay').addEventListener('change',e=>{state.showUnderlay=e.target.checked;render()});$('showGrid').addEventListener('change',e=>{state.showGrid=e.target.checked;render()});
+    $('fit').addEventListener('click',fit);
+    $('fitWidth').addEventListener('click',fitWidth);
+    $('zoomIn').addEventListener('click',()=>zoomCenter(1.35));
+    $('zoomOut').addEventListener('click',()=>zoomCenter(1/1.35));
+    $('verticalNav').addEventListener('input',e=>{const travel=Math.max(0,state.project.height-state.view.h);state.view.y=travel*(Number(e.target.value)/100);render()});$('opacity').addEventListener('input',e=>{state.underlayOpacity=e.target.value/100;render()});$('showUnderlay').addEventListener('change',e=>{state.showUnderlay=e.target.checked;render()});$('showGrid').addEventListener('change',e=>{state.showGrid=e.target.checked;render()});
     $('snapEnabled').addEventListener('change',e=>{state.snapEnabled=e.target.checked;render()});$('snapRadius').addEventListener('input',e=>{state.snapRadius=+e.target.value;render()});$('colorPicker').addEventListener('change',e=>changeColor(e.target.value));
     $('exportSvg').addEventListener('click',exportSvg);$('exportPng').addEventListener('click',exportPng);$('saveProject').addEventListener('click',saveProject);
     $('stage').addEventListener('pointerdown',onPointerDown);$('stage').addEventListener('pointermove',onPointerMove);$('stage').addEventListener('pointerup',onPointerUp);$('stage').addEventListener('pointercancel',onPointerUp);$('stage').addEventListener('dblclick',insertEdgeVertex);
@@ -390,9 +449,9 @@
       const map={KeyP:'draw',KeyV:'select',KeyE:'vertex',KeyM:'move',KeyH:'pan',KeyI:'eyedropper'};if(map[e.code]&&!e.ctrlKey&&!e.metaKey){changeTool(map[e.code]);return}
       if((e.key==='+'||e.key==='=')&&!e.ctrlKey){e.preventDefault();zoomCenter(1.2)}if(e.key==='-'&&!e.ctrlKey){e.preventDefault();zoomCenter(1/1.2)}
     });
-    document.addEventListener('keyup',e=>{if(e.code==='Space')state.spaceDown=false});window.addEventListener('blur',()=>state.spaceDown=false);window.addEventListener('resize',render);
+    document.addEventListener('keyup',e=>{if(e.code==='Space')state.spaceDown=false});window.addEventListener('blur',()=>state.spaceDown=false);window.addEventListener('resize',()=>{const v=state.view,cx=v.x+v.w/2,cy=v.y+v.h/2;showSourceRect(v.w,cx,cy)});
   }
-  function zoomCenter(amount){const p={x:state.view.x+state.view.w/2,y:state.view.y+state.view.h/2};state.view.w=clamp(state.view.w/amount,state.project.width/25,state.project.width*5);state.view.h=state.view.w*state.project.height/state.project.width;state.view.x=p.x-state.view.w/2;state.view.y=p.y-state.view.h/2;render()}
+  function zoomCenter(amount){const rect=$('stage').getBoundingClientRect();zoomAt(amount,rect.left+rect.width/2,rect.top+rect.height/2)}
 
   setBindings();if(window.matchMedia('(max-width:760px)').matches)$('inspector').classList.add('collapsed');state.view={x:0,y:0,w:INITIAL_WIDTH,h:INITIAL_HEIGHT};changeTool('draw');refreshUndo();
   window.ReferenceShapeEditor=Object.freeze({
@@ -401,7 +460,8 @@
     validateImport,
     outputSvg,
     polygonSelfIntersects,
-    getVersion:()=>APP_VERSION
+    getVersion:()=>APP_VERSION,
+    fitWidth, fitAll:fit
   });
 })();
 
