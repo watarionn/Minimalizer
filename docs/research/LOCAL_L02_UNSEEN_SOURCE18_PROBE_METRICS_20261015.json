@@ -1,0 +1,509 @@
+{
+  "schema": "minimalizer/local_l02_unseen_source_probe/v1",
+  "date": "2026-10-15",
+  "H04_training_reference": "H04_FULLBODY_MANUAL_REFERENCE_V1",
+  "training_source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+  "signed_run105_bundle_sha256": "d652f09625c08c25d88ccf312f408af762982554b30453e42ecb5076cbe3a8eb",
+  "signed_original_18_of_18_SHA_verified": true,
+  "unseen_images": 17,
+  "unseen_signed_anatomical_part_masks_available": 0,
+  "unseen_independently_human_annotated_jacket_masks_available": 0,
+  "inference_probe_only": true,
+  "trained_on_only_H04": true,
+  "human_trace_at_inference": false,
+  "raw_probability_threshold": 0.5,
+  "diagnostic_source_stride_max_edge": 800,
+  "diagnostic_original_pixels_subsampled_not_resized": true,
+  "semantic_performance": "UNSCORABLE_WITHOUT_INDEPENDENT_LABELS",
+  "registered_source18_selection_status": "PENDING",
+  "gate": {
+    "status": "HOLD",
+    "labelled_unseen_cases": 0,
+    "observed_unseen_cases": 17,
+    "probed": 14,
+    "abstained": 3,
+    "semantic_precision": null,
+    "semantic_recall": null,
+    "semantic_iou": null,
+    "phase4_candidate_created": false,
+    "production_release": "NO_GO"
+  },
+  "private_panels_are_annotations_not_outputs": true,
+  "cases": [
+    {
+      "case_id": "H01",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.21090975,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 93719,
+      "high_confidence_pixels": 475,
+      "positive_pixels": 1089,
+      "positive_ratio": 0.01162,
+      "top_quarter_positive_ratio": 0.017185,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H02",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        794,
+        1500
+      ],
+      "sample_shape": [
+        397,
+        750
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.3483610411418976,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 103719,
+      "high_confidence_pixels": 38,
+      "positive_pixels": 106,
+      "positive_ratio": 0.001022,
+      "top_quarter_positive_ratio": 0.000207,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H03",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        1000,
+        1500
+      ],
+      "sample_shape": [
+        500,
+        750
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.3297406666666667,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 123655,
+      "high_confidence_pixels": 20561,
+      "positive_pixels": 32099,
+      "positive_ratio": 0.259585,
+      "top_quarter_positive_ratio": 6.4e-05,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H05",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        950,
+        1350
+      ],
+      "sample_shape": [
+        475,
+        675
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.3170487329434698,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 101656,
+      "high_confidence_pixels": 1311,
+      "positive_pixels": 3671,
+      "positive_ratio": 0.036112,
+      "top_quarter_positive_ratio": 0.036072,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H06",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.15071725,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 66979,
+      "high_confidence_pixels": 802,
+      "positive_pixels": 1588,
+      "positive_ratio": 0.023709,
+      "top_quarter_positive_ratio": 0.0,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS",
+      "native_scale_spotcheck": {
+        "native_resolution": [
+          2000,
+          2000
+        ],
+        "native_model_response_fraction": 0.037043,
+        "sampled_stride": 3,
+        "sampled_response_fraction": 0.023709,
+        "native_top_quarter_response_fraction": 0.0,
+        "sampled_top_quarter_response_fraction": 0.0,
+        "native_foreground_samples": 602869,
+        "diagnostic_only": true,
+        "semantic_accuracy": null
+      }
+    },
+    {
+      "case_id": "H07",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.24579375,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 109273,
+      "high_confidence_pixels": 639,
+      "positive_pixels": 1512,
+      "positive_ratio": 0.013837,
+      "top_quarter_positive_ratio": 0.000147,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H08",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.13421475,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 59661,
+      "high_confidence_pixels": 2573,
+      "positive_pixels": 4730,
+      "positive_ratio": 0.079281,
+      "top_quarter_positive_ratio": 0.0,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS",
+      "native_scale_spotcheck": {
+        "native_resolution": [
+          2000,
+          2000
+        ],
+        "native_model_response_fraction": 0.123904,
+        "sampled_stride": 3,
+        "sampled_response_fraction": 0.079281,
+        "native_top_quarter_response_fraction": 0.00048,
+        "sampled_top_quarter_response_fraction": 0.0,
+        "native_foreground_samples": 536859,
+        "diagnostic_only": true,
+        "semantic_accuracy": null
+      }
+    },
+    {
+      "case_id": "H09",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        800,
+        1200
+      ],
+      "sample_shape": [
+        400,
+        600
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.21033020833333332,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 50473,
+      "high_confidence_pixels": 4812,
+      "positive_pixels": 6871,
+      "positive_ratio": 0.136132,
+      "top_quarter_positive_ratio": 0.001134,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H10",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.15489825,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 68865,
+      "high_confidence_pixels": 2,
+      "positive_pixels": 3,
+      "positive_ratio": 4.4e-05,
+      "top_quarter_positive_ratio": 8.7e-05,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H11",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.15915825,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 70732,
+      "high_confidence_pixels": 4810,
+      "positive_pixels": 6809,
+      "positive_ratio": 0.096265,
+      "top_quarter_positive_ratio": 0.079931,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H12",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.25097775,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 111538,
+      "high_confidence_pixels": 2,
+      "positive_pixels": 13,
+      "positive_ratio": 0.000117,
+      "top_quarter_positive_ratio": 0.0,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H13",
+      "status": "ABSTAIN",
+      "reason": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED",
+      "original_size": [
+        340,
+        340
+      ],
+      "sample_shape": null,
+      "sample_stride": null,
+      "foreground_fraction": 0.9974394463667821,
+      "border_foreground_fraction": 0.9203539823008849,
+      "source_foreground_samples": 0,
+      "high_confidence_pixels": null,
+      "positive_pixels": null,
+      "positive_ratio": null,
+      "top_quarter_positive_ratio": null,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED"
+    },
+    {
+      "case_id": "H14",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        2000,
+        2000
+      ],
+      "sample_shape": [
+        667,
+        667
+      ],
+      "sample_stride": 3,
+      "foreground_fraction": 0.15557775,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 69162,
+      "high_confidence_pixels": 591,
+      "positive_pixels": 1102,
+      "positive_ratio": 0.015934,
+      "top_quarter_positive_ratio": 0.000169,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    },
+    {
+      "case_id": "H15",
+      "status": "ABSTAIN",
+      "reason": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED",
+      "original_size": [
+        340,
+        340
+      ],
+      "sample_shape": null,
+      "sample_stride": null,
+      "foreground_fraction": 0.9974394463667821,
+      "border_foreground_fraction": 0.9203539823008849,
+      "source_foreground_samples": 0,
+      "high_confidence_pixels": null,
+      "positive_pixels": null,
+      "positive_ratio": null,
+      "top_quarter_positive_ratio": null,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED"
+    },
+    {
+      "case_id": "H16",
+      "status": "ABSTAIN",
+      "reason": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED",
+      "original_size": [
+        340,
+        340
+      ],
+      "sample_shape": null,
+      "sample_stride": null,
+      "foreground_fraction": 0.9974394463667821,
+      "border_foreground_fraction": 0.9203539823008849,
+      "source_foreground_samples": 0,
+      "high_confidence_pixels": null,
+      "positive_pixels": null,
+      "positive_ratio": null,
+      "top_quarter_positive_ratio": null,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "OPAQUE_OR_COMPLEX_BACKGROUND_UNSUPPORTED"
+    },
+    {
+      "case_id": "H17",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        800,
+        1200
+      ],
+      "sample_shape": [
+        400,
+        600
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.24721458333333332,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 59314,
+      "high_confidence_pixels": 3352,
+      "positive_pixels": 6946,
+      "positive_ratio": 0.117106,
+      "top_quarter_positive_ratio": 0.008623,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS",
+      "native_scale_spotcheck": {
+        "native_resolution": [
+          800,
+          1200
+        ],
+        "native_model_response_fraction": 0.151749,
+        "sampled_stride": 2,
+        "sampled_response_fraction": 0.117106,
+        "native_top_quarter_response_fraction": 0.012522,
+        "sampled_top_quarter_response_fraction": 0.008623,
+        "native_foreground_samples": 237326,
+        "diagnostic_only": true,
+        "semantic_accuracy": null
+      }
+    },
+    {
+      "case_id": "H18",
+      "status": "RAW_PROBE_ONLY",
+      "reason": "NO_INDEPENDENT_OWNER_OR_JACKET_LABELS",
+      "original_size": [
+        800,
+        1200
+      ],
+      "sample_shape": [
+        400,
+        600
+      ],
+      "sample_stride": 2,
+      "foreground_fraction": 0.21007708333333333,
+      "border_foreground_fraction": 0.0,
+      "source_foreground_samples": 50421,
+      "high_confidence_pixels": 278,
+      "positive_pixels": 467,
+      "positive_ratio": 0.009262,
+      "top_quarter_positive_ratio": 0.000135,
+      "semantic_iou": null,
+      "semantic_pass": false,
+      "production_candidate": false,
+      "original_masks_available": false,
+      "review_note": "NO_SIGNED_PART_MASKS"
+    }
+  ]
+}
