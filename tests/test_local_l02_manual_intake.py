@@ -2,7 +2,7 @@ import sys,unittest,io,base64,hashlib,copy
 from pathlib import Path
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'/'research'))
-from verify_local_l02_manual_intake import validate_reference,rasterize_visible_reference,AuthorityHold
+from verify_local_l02_manual_intake import validate_reference,rasterize_visible_reference,alignment_audit,AuthorityHold
 
 class Test(unittest.TestCase):
  def setUp(self):
@@ -58,6 +58,48 @@ class Test(unittest.TestCase):
   m=rasterize_visible_reference(self.doc,self.raw,self.sha)
   self.assertEqual(m['outerwear'].shape,(80,60))
   self.assertEqual(m['outerwear'].dtype.name,'bool')
+ def test_extended_fullbody_taxonomy_and_occlusion(self):
+  x=copy.deepcopy(self.doc)
+  extra=[('face_skin/face',(22,22,36,37),'face'),('neck_skin/neck',(22,38,36,44),'neck'),('lower_body/trousers',(15,56,43,63),'lower')]
+  for name,(left,top,right,bottom),stub in extra:
+   ids=[stub+q for q in ('a','b','c','d')]
+   for vid,pt in zip(ids,((left,top),(right,top),(right,bottom),(left,bottom))):x['vertices'][vid]={'x':pt[0],'y':pt[1]}
+   x['shapes'].append({'id':stub,'name':name,'vertexIds':ids,'fill':'#ffccaa','visible':True})
+  rep=validate_reference(x,self.raw,self.sha,final=True)
+  self.assertEqual(rep['shape_count'],4)
+  layers=rasterize_visible_reference(x,self.raw,self.sha)
+  for key in ('outerwear','face_skin','neck_skin','lower_body'):self.assertTrue(layers[key].any(),key)
+  ids=['outerwear','face_skin','neck_skin','lower_body']
+  for i,key in enumerate(ids):
+   for other in ids[i+1:]:self.assertFalse((layers[key]&layers[other]).any(),key+' and '+other)
+ def test_facial_microdetail_blocked(self):
+  x=copy.deepcopy(self.doc);x['shapes'][0]['name']='face_skin/eye'
+  with self.assertRaises(AuthorityHold):validate_reference(x,self.raw,self.sha,final=True)
+ def test_face_region_only_is_not_a_microdetail(self):
+  x=copy.deepcopy(self.doc);x['shapes'].append({'id':'face','name':'face_skin/face','vertexIds':['a','b','c','d'],'fill':'#ffccaa','visible':True})
+  self.assertEqual(validate_reference(x,self.raw,self.sha,final=True)['shape_count'],2)
+ def test_face_skin_eyelash_rejected_even_if_not_word_token(self):
+  x=copy.deepcopy(self.doc);x['shapes'].append({'id':'detail','name':'face_skin/eyelash','vertexIds':['a','b','c','d'],'fill':'#000000','visible':True})
+  with self.assertRaises(AuthorityHold):validate_reference(x,self.raw,self.sha,final=True)
+ def test_face_microdetails_reject_after_outerwear(self):
+  x=copy.deepcopy(self.doc);x['shapes'].append({'id':'iris','name':'face_skin/iris','vertexIds':['a','b','c','d'],'fill':'#000000','visible':True})
+  with self.assertRaises(AuthorityHold):validate_reference(x,self.raw,self.sha,final=True)
+ def test_alignment_audit_accepts_ordinary_clip(self):
+  a=alignment_audit(self.doc,self.raw,self.sha)
+  self.assertEqual(a['flagged_shape_count'],0)
+  self.assertTrue(a['final_geometry_gate_pass'])
+  self.assertFalse(a['human_semantic_label_signature'])
+ def test_alignment_audit_identifies_excess_without_mutating_vertices(self):
+  x=copy.deepcopy(self.doc)
+  before=copy.deepcopy(x['vertices'])
+  x['vertices']['a']['x']=1;x['vertices']['b']['x']=59;x['vertices']['c']['x']=59;x['vertices']['d']['x']=1
+  deliberately_modified=copy.deepcopy(x['vertices'])
+  a=alignment_audit(x,self.raw,self.sha)
+  self.assertEqual(a['flagged_shape_count'],1)
+  self.assertFalse(a['final_geometry_gate_pass'])
+  self.assertEqual(x['vertices'],deliberately_modified)
+ def test_alignment_audit_rejects_invalid_threshold(self):
+  with self.assertRaises(AuthorityHold):alignment_audit(self.doc,self.raw,self.sha,max_outside_ratio=2)
  def test_bad_schema(self):
   x=copy.deepcopy(self.doc);x['schema']='bad'
   with self.assertRaises(AuthorityHold):validate_reference(x,self.raw,self.sha)
