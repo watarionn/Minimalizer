@@ -1,0 +1,90 @@
+{
+  "L02_status": "HOLD",
+  "foreground_union_xor_pixels": 0,
+  "hyperparameters_tuned_on_H04": true,
+  "independent_character_semantic_quality": "NOT_VERIFIED",
+  "local_worker_changed": false,
+  "manual_json_sha256": "be03cd35f7bcd0ca56350e748d3ff784f8b40683af440a8dd732c643d8d195fb",
+  "new_components": {
+    "hair": 4,
+    "head": 1,
+    "major_clothing": 2,
+    "torso": 2
+  },
+  "new_soft_shadow_sha256": "fa66810c36dfaac3d9a9de1fb5984fc3e923d8ee240e697af4dd2d6a093d9cc0",
+  "old_whole": {
+    "f1": 0.755624,
+    "fn": 8748,
+    "fp": 19461,
+    "iou": 0.607232,
+    "precision": 0.691453,
+    "pred_pixels": 63073,
+    "recall": 0.832926,
+    "tp": 43612
+  },
+  "out_of_fold_h04": {
+    "f1": 0.888385,
+    "fn": 3362,
+    "fp": 8950,
+    "iou": 0.799184,
+    "precision": 0.845551,
+    "pred_pixels": 57948,
+    "recall": 0.935791,
+    "tp": 48998
+  },
+  "phase5_graph_blob": "60848322332ac88297ef2688d06e32f17ed2b8bc",
+  "phase5_graph_validation": {
+    "anchors": 21,
+    "isolated_major_parts": 0,
+    "missing_arm_attachments": 0,
+    "missing_core_relations": 0,
+    "occlusion_cycle_count": 0,
+    "pass": true,
+    "relations": 13
+  },
+  "prior_candidate_sha256": "5d6c8839b9651db9e14132c891c80d41ef5d2233b9c668dc75d5ee6f2f67d310",
+  "production_release": "NO_GO",
+  "protected_xor_pixels": 0,
+  "reference_id": "H04_FULLBODY_MANUAL_REFERENCE_V1",
+  "regularized_soft_evidence_h04": {
+    "f1": 0.889522,
+    "fn": 3459,
+    "fp": 8688,
+    "iou": 0.801025,
+    "precision": 0.849138,
+    "pred_pixels": 57589,
+    "recall": 0.933938,
+    "tp": 48901
+  },
+  "schema": "minimalizer-local-l02-h04-manual-supervision-sourcefree/v1",
+  "shape_visible_recall": {
+    "10": {
+      "old_recall": 0.411672,
+      "out_of_fold_recall": 0.936304,
+      "pixels": 3187
+    },
+    "3": {
+      "old_recall": 0.929353,
+      "out_of_fold_recall": 0.967592,
+      "pixels": 37213
+    },
+    "9": {
+      "old_recall": 0.645151,
+      "out_of_fold_recall": 0.836706,
+      "pixels": 11960
+    }
+  },
+  "source18_manual_jacket_holdout_labels_available": 1,
+  "source18_sha_pass": 18,
+  "source_pixels_generated": 0,
+  "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+  "spatial_fold_iou_delta": {
+    "train_alternating_tiles": 0.335986,
+    "train_lower": 0.135204,
+    "train_upper": 0.415176,
+    "train_viewer_left": 0.269616,
+    "train_viewer_right": 0.069708
+  },
+  "stage_sha256": "def1eac131b60ae12fa14675441f21a342cfdfde7d1b96c168ba351c74a9eec0",
+  "status": "H04_SHADOW_ENGINEERING_PASS_PHASE5_PASS_L02_GENERALIZATION_HOLD"
+}
