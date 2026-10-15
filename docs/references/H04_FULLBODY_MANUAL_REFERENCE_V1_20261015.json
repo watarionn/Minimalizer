@@ -1,0 +1,56 @@
+{
+  "schema": "minimalizer/manual_reference_registry/v1",
+  "reference_id": "H04_FULLBODY_MANUAL_REFERENCE_V1",
+  "recorded_date": "2026-10-15",
+  "status": "REGISTERED_HUMAN_AUTHORED_REFERENCE_NOT_GOLDEN",
+  "case": "H04",
+  "reference_type": "user_manual_fullbody_vector_trace",
+  "editor_app_version": "1.1.0",
+  "pixel_source": {
+    "canvas": {
+      "width": 453,
+      "height": 1400
+    },
+    "image_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+    "signed_source_identical": true
+  },
+  "shape_inventory": {
+    "polygons": 17,
+    "unique_vertices": 156,
+    "vertex_references": 211,
+    "shared_vertices": 43,
+    "colors": 13,
+    "geometry_valid": true,
+    "svg_matches_json": true
+  },
+  "source_submission": {
+    "svg_sha256": "8e8f21957559dd75afa1e3c4e6c5a93e92cb2ab9c2afe66917178cb1b4a927fe",
+    "json_sha256": "be03cd35f7bcd0ca56350e748d3ff784f8b40683af440a8dd732c643d8d195fb",
+    "private_includes_embedded_image": true
+  },
+  "diagnostics": {
+    "alpha_silhouette_iou": 0.969847,
+    "never_a_golden_pass": true,
+    "semantic_polygon_labels": "UNASSIGNED"
+  },
+  "predecessor": {
+    "case": "H04",
+    "type": "jacket_only_manual_trace",
+    "polygon_count": 3,
+    "json_sha256": "a367fefb746f2e39bd62ac24bc595e36db378afc71256dde1f6f30a343f16002",
+    "is_exact_subset": false
+  },
+  "storage": {
+    "canonical_root": "Google Drive/chatGPT及びCodex用/Minimalizer",
+    "private_archive": "H04_FullBody_Manual_Reference_v1_PRIVATE_20261015.zip"
+  },
+  "authority_limits": {
+    "no_change_to_signed_source": true,
+    "no_change_to_phase4_masks": true,
+    "not_a_golden_approval": true,
+    "L02_semantic_candidate": "HOLD",
+    "C03_source_vertex": "HOLD",
+    "C04_golden": "HOLD",
+    "production_release_authorized": false
+  }
+}
