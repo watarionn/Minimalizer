@@ -44,6 +44,7 @@ def evaluate(record: dict) -> dict:
     protected_ok = record["protected_face_arm_owner_mismatch_pixels"] == 0
     silhouette_ok = record["source_silhouette_xor_pixels"] == 0
     eligible = source_ok and svg_ok and owner_ok and protected_ok and silhouette_ok
+    # SHA fields are checked for format only; original file bytes are not present.
     return {
         "schema": "minimalizer/local-l04/dual-budget-gate/v1",
         "case": record["case"],
@@ -58,6 +59,7 @@ def evaluate(record: dict) -> dict:
         "protected_face_arm_unchanged": protected_ok,
         "source_silhouette_exact": silhouette_ok,
         "numerical_candidate_eligible_for_independent_review": eligible,
+        "source_authority_bytes_verified": False,
         "human_visual_golden": "HOLD",
         "L04_formal": "HOLD",
         "production_release": "NO_GO",
