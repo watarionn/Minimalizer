@@ -30,3 +30,7 @@ Source-free metrics: [JSON](LOCAL_L02_SEGFORMER_FASHION_AGGREGATES_20261016.json
 4. Only after independent owner semantics pass should exclusive Phase4→5 actual pinned replay, Stage8 budgets, Chrome DPR1/DPR2, H04 Golden review and iPhone signoff be reconsidered. L02→L03 is **blocked**, not silently skipped. L07 non-destructive PWA checks may run independently.
 
 **No facials (eyes/nose/mouth/brows), no img2img/inpainting, no source pixel synthesis, no production Worker/Public/C08 changes, no campaign restart.**
+
+## Final checksum closure (2026-10-16)
+
+The reproducible local research runner was strengthened to reject any change in the model **architecture config** SHA-256 `44b342a5e9301a1716dac8a56537e82acfdae8f0597069b0414b7704e39b8705` and preprocessing config SHA-256 `6073ac6a37530ed2a19443d6a748f5579887b3ae48f6730073954b0b38cf3fd6`, in addition to the already-pinned weight SHA. Synthetic safety regression now **13/13 PASS**, including deliberate mutations of both configs. Private runner ZIP verified on the mounted PC Drive: **21,268 bytes**, SHA-256 `d5c4ea8ba8843a72707d87ace6ffcf3839e9d62912c3cb08e797383a0243b2fe`, with three native prediction arrays identical to the initial independently run shadow. A mounted Drive file is not evidence of cloud-provider synchronization; connected Google Drive search still returned no matching new ZIP. Do not mark that archival gate complete unless cloud readback succeeds.
