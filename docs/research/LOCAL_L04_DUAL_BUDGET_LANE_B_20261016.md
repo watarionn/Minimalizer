@@ -1,6 +1,6 @@
 # L04 Lane B: dual-budget admission contract (2026-10-16)
 
-The new research-only evaluator at `tools/research/local_l04_budget_gate.py` separates original signed Stage8 source-ring vertices from expanded SVG vertices. It also requires source owner, protected face/arm ownership, and silhouette exactness, plus SHA-256 authority fields. It never changes source geometry or grants human Golden or production release.
+The new research-only evaluator at `tools/research/local_l04_budget_gate.py` separates original signed Stage8 source-ring vertices from expanded SVG vertices. It also requires source owner, protected face/arm ownership, and silhouette exactness, plus syntactically valid SHA-256 authority fields. The evaluator does not read or hash original bytes, so `source_authority_bytes_verified=false` is explicit; a passing numeric candidate is not independent source verification. It never changes source geometry or grants human Golden or production release.
 
 A local synthetic test harness passed **62/62** cases, including compact SVG with source-ring overrun, the converse, single-pixel ownership changes, missing authority hashes, malformed counts, zero caps and invalid schema. The test source is not yet committed because its GitHub write was blocked; the number must not be treated as repository CI coverage.
 
