@@ -11,7 +11,27 @@ from PIL import Image
 
 class AuthorityHold(ValueError):pass
 LABELS={'outerwear','arm_skin','hair','underlayer','accessory','unknown','face_skin','neck_skin','lower_body'}
-PREFIXES=tuple(l+'/' for l in sorted(LABELS))
+# These are user-entered names, not anatomical direction conversions.
+USER_LABEL_ALIASES={'innerwear':'underlayer','body_skin':'arm_skin'}
+PREFIXES=tuple(l+'/' for l in sorted(LABELS|set(USER_LABEL_ALIASES)))
+# User explicitly accepted these four harmless H04 boundary overshoots on 2026-10-16.
+# The exemption is tied to the exact SIGNED H04 bytes and exact set of trace vertices.
+H04_SIGNED_SOURCE_SHA256='7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3'
+H04_USER_REVIEWED_CANONICAL_TRACE_SHA256='631946a9661a34c12a0575a30c08b00357f7700bf4888096a71f03669eff2535'
+H04_USER_ACCEPTED_OVERSHOOT_IDS=frozenset(('sj','s1i','s1m','s4p'))
+
+def reviewed_h04_overshoot(doc,source_sha,shape_id):
+    if source_sha!=H04_SIGNED_SOURCE_SHA256 or shape_id not in H04_USER_ACCEPTED_OVERSHOOT_IDS:
+        return False
+    # The approved trace cannot change under this exception, including its shape IDs,
+    # vertices, layer order or embedded signed underlay. No broad ratio waiver.
+    canonical=json.dumps(doc,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')
+    return hashlib.sha256(canonical).hexdigest()==H04_USER_REVIEWED_CANONICAL_TRACE_SHA256
+
+def normalise_user_label(label):
+    root,sep,detail=label.partition('/')
+    return (USER_LABEL_ALIASES.get(root,root)+sep+detail) if sep else label
+
 
 def check_polygon(points):
     if len(points)<3 or len(set(points))!=len(points):raise AuthorityHold('missing or duplicate polygon vertices')
@@ -75,7 +95,7 @@ def validate_reference(doc:dict,source_bytes:bytes,expected_sha:str,*,final:bool
         wrong.append({'shape_id':sid,'name':label,'polygon_pixels':count,
                       'outside_source_pixels':outside,
                       'outside_source_ratio':round(outside/max(count,1),5)})
-        if final and outside/max(1,count)>.015:
+        if final and outside/max(1,count)>.015 and not reviewed_h04_overshoot(doc,expected_sha,sid):
             raise AuthorityHold('polygon extends too far outside signed source foreground: '+sid)
         drawn_masks.append(poly.astype(bool));names.append(label)
     if final and (not names or not any(n.startswith('outerwear/') for n in names)):
@@ -85,7 +105,10 @@ def validate_reference(doc:dict,source_bytes:bytes,expected_sha:str,*,final:bool
             'visible_count':len(names),'outerwear_shapes':sum(n.startswith('outerwear/') for n in names),
             'unlabeled_shapes':sum(not any(n.startswith(prefix) for prefix in PREFIXES) for n in names),
             'final_review_ready':bool(final and names),'semantic_quality_approved':False,
-            'source_pixels_generated':0,'shape_integrity':wrong}
+            'source_pixels_generated':0,'shape_integrity':wrong,
+            'user_accepted_h04_exact_overshoot':bool(final and any(w['outside_source_ratio']>.015 for w in wrong) and
+              all(reviewed_h04_overshoot(doc,expected_sha,w['shape_id']) for w in wrong if w['outside_source_ratio']>.015)),
+            'anatomical_side_names_preserved':True,'production_release':'NO_GO'}
 
 
 def rasterize_visible_reference(doc:dict,source_bytes:bytes,expected_sha:str):
@@ -102,7 +125,7 @@ def rasterize_visible_reference(doc:dict,source_bytes:bytes,expected_sha:str):
     above=np.zeros((h,w),bool)
     for sh in reversed(doc['shapes']):
         if sh.get('visible',True) is False:continue
-        label=sh['name'].split('/',1)[0]
+        label=USER_LABEL_ALIASES.get(sh['name'].split('/',1)[0],sh['name'].split('/',1)[0])
         points=np.rint(np.array([[doc['vertices'][i]['x'],doc['vertices'][i]['y']] for i in sh['vertexIds']])).astype('int32')
         filled=np.zeros((h,w),np.uint8)
         cv2.fillPoly(filled,[points],1)
@@ -125,7 +148,11 @@ def alignment_audit(doc:dict,source_bytes:bytes,expected_sha:str,*,max_outside_r
     excess=[{'shape_id':s['shape_id'],'name':s['name'],'outside_source_pixels':s['outside_source_pixels'],
              'polygon_pixels':s['polygon_pixels'],'outside_source_ratio':s['outside_source_ratio']}
             for s in r['shape_integrity'] if s['outside_source_ratio']>max_outside_ratio]
+    signed_acceptance=bool(excess and all(reviewed_h04_overshoot(doc,expected_sha,item['shape_id']) for item in excess))
     return {'source_sha256':expected_sha,'shape_count':r['shape_count'],
             'outside_limit':max_outside_ratio,'flagged_shape_count':len(excess),
-            'flagged_shapes':excess,'final_geometry_gate_pass':len(excess)==0,
-            'human_semantic_label_signature':False,'production_release':'NO_GO'}
+            'flagged_shapes':excess,'strict_geometry_gate_pass':len(excess)==0,
+            'final_geometry_gate_pass':len(excess)==0,
+            'exact_h04_user_accepted_boundary_exception':signed_acceptance,
+            'effective_geometry_review_pass':len(excess)==0 or signed_acceptance,
+            'human_semantic_label_signature':False, 'production_release':'NO_GO'}
