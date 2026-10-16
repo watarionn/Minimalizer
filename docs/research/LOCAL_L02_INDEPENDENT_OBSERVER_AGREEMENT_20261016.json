@@ -1,0 +1,80 @@
+{
+  "schema": "minimalizer/local-l02/independent-observer-agreement-sourcefree/v1",
+  "recorded_on": "2026-10-16",
+  "segformer_model": "sayeed99/segformer-b2-fashion",
+  "segformer_weights_sha256": "47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1",
+  "deepfashion_model": "HasanKabir23/Yolov26s-DeepFashion2",
+  "deepfashion_weights_sha256": "485bc106721febbd82fe24297e12a9fb49a435a552afff1e6b76308716555f76",
+  "license_user_report": "SEGFORMER_PERMISSION_CONDITIONS_RESOLVED_REPORTED_BY_USER_2026_10_16",
+  "private_raw_sources_remain_unmodified": true,
+  "inference_used_human_masks": false,
+  "human_masks_diagnostic_only": true,
+  "unknown_evaluated_separately": true,
+  "visible_pixels_generated": 0,
+  "cases": {
+    "H04": {
+      "consensus_px": 0,
+      "disagreement_px": 38461,
+      "union_px": 38461,
+      "consensus_known_only_iou": 0,
+      "segformer_only_known_only_iou": 0.614489,
+      "consensus_missing_known_positive_px": 52572,
+      "decision": "ABSTAIN_EMPTY_INDEPENDENT_AGREEMENT",
+      "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3"
+    },
+    "H06": {
+      "consensus_px": 189054,
+      "disagreement_px": 159308,
+      "union_px": 348362,
+      "shared_known_only_iou": 0.592101,
+      "consensus_known_positive_px": 186407,
+      "consensus_known_negative_px": 0,
+      "unknown_consensus_px": 2647,
+      "segformer_only_px": 147738,
+      "deepfashion_only_px": 11570,
+      "consensus_missing_known_positive_px": 128416,
+      "decision": "SHADOW_AGREEMENT_NOT_OWNER_AUTHORITY",
+      "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8"
+    },
+    "H08": {
+      "consensus_px": 78726,
+      "disagreement_px": 51357,
+      "union_px": 130083,
+      "shared_known_only_iou": 0.496398,
+      "consensus_known_positive_px": 77721,
+      "consensus_known_negative_px": 0,
+      "unknown_consensus_px": 1005,
+      "segformer_only_px": 21623,
+      "deepfashion_only_px": 29734,
+      "deepfashion_only_human_arm_fp_px": 3297,
+      "consensus_missing_known_positive_px": 78849,
+      "decision": "SHADOW_AGREEMENT_NOT_OWNER_AUTHORITY",
+      "source_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e"
+    }
+  },
+  "replays": 2,
+  "private_metrics_bytes_match": true,
+  "private_prediction_masks_match": {
+    "H04": true,
+    "H06": true,
+    "H08": true
+  },
+  "private_metrics_payload_sha256": "c0c92e20b876fa624e0969841560c87c90eb1b2f2219edc37b203dc2eb6df80e",
+  "cloud_drive_evidence_verified": {
+    "agreement_archive": {
+      "file_id": "11tcbty2tfZJayG1tn_TaEW6siDhJLkyN",
+      "sha256": "f33c7b5238bce049e2ce676481c6962389b4a9a26deffc7ad988761bfa4e0a58"
+    },
+    "visual_board": {
+      "file_id": "1IF_9GAlXCQP_5N1Ba0e6_FFkwetv6Ta7",
+      "sha256": "1abcf46cb8b7885e489a9dca931fb7465452209ff8c29a7110ee637b9139362b"
+    }
+  },
+  "synthetic_regressions_passed": 15,
+  "full_repository_ci_not_run": true,
+  "Phase4_owner_promotion": false,
+  "Phase5_pinned_replay_not_run": true,
+  "L02": "HOLD",
+  "Golden": "HOLD",
+  "production": "NO_GO"
+}
