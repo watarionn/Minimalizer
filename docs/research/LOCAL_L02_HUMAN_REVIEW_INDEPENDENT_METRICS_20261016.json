@@ -1,0 +1,238 @@
+{
+  "schema": "minimalizer/local-L02-human-review-independent-target-evaluation/v1",
+  "report_date": "2026-10-16",
+  "review_scope": {
+    "anatomical_right_left": "character-relative, no image/viewer side swaps",
+    "H04_labels_user_reviewed": true,
+    "H04_1p5pct_alpha_overshoot_user_accepted_ids": [
+      "sj",
+      "s1i",
+      "s1m",
+      "s4p"
+    ],
+    "H04_override_exact_trace_digest": "631946a9661a34c12a0575a30c08b00357f7700bf4888096a71f03669eff2535",
+    "H06_H08_model_evaluation_allowed_with_alpha_clipping": true,
+    "H06_H08_strict_geometry_overshoot_individually_approved": false,
+    "normalization_without_changing_submitted_labels": {
+      "innerwear": "underlayer",
+      "body_skin": "arm_skin"
+    },
+    "H06_H08_SVG_JSON_shape_and_points_parity": true,
+    "original_annotations_unmodified": true
+  },
+  "reviewed_cases": {
+    "H04": {
+      "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+      "canvas": [
+        453,
+        1400
+      ],
+      "polygon_count": 17,
+      "vertex_count": 156,
+      "source_opaque_px": 241182,
+      "visible_manually_labelled_px": 235934,
+      "labelled_fraction_of_alpha": 0.97824,
+      "visible_outerwear_px": 52572,
+      "visible_underlayer_px": 14074,
+      "visible_arm_skin_px": 13407,
+      "unlabelled_px": 5248,
+      "outside_alpha_shapes_gt_1p5pct": 4,
+      "signed_annotation_json_sha256": "8d42d7466108b3e4657e6b9ec762cd6de6860c2539493a184b0c64389710e6e3",
+      "svg_parity_pass": false
+    },
+    "H06": {
+      "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+      "canvas": [
+        2000,
+        2000
+      ],
+      "polygon_count": 7,
+      "vertex_count": 91,
+      "source_opaque_px": 602869,
+      "visible_manually_labelled_px": 333216,
+      "labelled_fraction_of_alpha": 0.552717,
+      "visible_outerwear_px": 314823,
+      "visible_underlayer_px": 13057,
+      "visible_arm_skin_px": 5336,
+      "unlabelled_px": 269653,
+      "outside_alpha_shapes_gt_1p5pct": 4,
+      "signed_annotation_json_sha256": "a6ea6b0f8e40d079ba477534252267b7f2e2becd18a4cf082a3caf04c443582a",
+      "svg_parity_pass": true
+    },
+    "H08": {
+      "source_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+      "canvas": [
+        2000,
+        2000
+      ],
+      "polygon_count": 4,
+      "vertex_count": 62,
+      "source_opaque_px": 536859,
+      "visible_manually_labelled_px": 171598,
+      "labelled_fraction_of_alpha": 0.319633,
+      "visible_outerwear_px": 156570,
+      "visible_underlayer_px": 0,
+      "visible_arm_skin_px": 15028,
+      "unlabelled_px": 365261,
+      "outside_alpha_shapes_gt_1p5pct": 2,
+      "signed_annotation_json_sha256": "27dfc44b9acf01ca64ceb27161ca0886213d76bb4ac1534ee837666b232b222e",
+      "svg_parity_pass": true
+    }
+  },
+  "baseline_comparison": {
+    "H04": {
+      "generic_clothes_model_not_jacket_specific": {
+        "source": "Run121 AnimeSeg v3 offline CPU 768-padded",
+        "positive_recall": 0.943449,
+        "precision_on_annotated": 0.339708,
+        "labelled_only_iou": 0.332928,
+        "unlabelled_predictions": 1556,
+        "unknown_negative_warning": true
+      },
+      "reject_color_cluster_shadow": {
+        "labelled_only_iou": 0.8624,
+        "recall": 0.9402,
+        "precision_on_annotated": 0.9125,
+        "unlabelled_predictions": 183,
+        "trained_on_this_case": false,
+        "heuristic_parameters_reviewed_on_this_case": true
+      }
+    },
+    "H06": {
+      "generic_clothes_model_not_jacket_specific": {
+        "source": "Run121 AnimeSeg v3 offline CPU 384-padded",
+        "positive_recall": 0.834167,
+        "precision_on_annotated": 0.996229,
+        "labelled_only_iou": 0.831542,
+        "unlabelled_predictions": 159478,
+        "unknown_negative_warning": true
+      },
+      "reject_color_cluster_shadow": {
+        "labelled_only_iou": 0.700864,
+        "recall": 0.701073,
+        "precision_on_annotated": 0.999574,
+        "unlabelled_predictions": 14004,
+        "trained_on_this_case": false,
+        "heuristic_parameters_reviewed_on_this_case": false
+      }
+    },
+    "H08": {
+      "generic_clothes_model_not_jacket_specific": {
+        "source": "Run121 AnimeSeg v3 offline CPU 384-padded",
+        "positive_recall": 0.742307,
+        "precision_on_annotated": 1.0,
+        "labelled_only_iou": 0.742307,
+        "unlabelled_predictions": 38129,
+        "unknown_negative_warning": true
+      },
+      "reject_color_cluster_shadow": {
+        "labelled_only_iou": 0.099668,
+        "recall": 0.099668,
+        "precision_on_annotated": 1.0,
+        "unlabelled_predictions": 34901,
+        "trained_on_this_case": false,
+        "heuristic_parameters_reviewed_on_this_case": false
+      }
+    }
+  },
+  "held_out_character_experiment": {
+    "H04": {
+      "train_cases": [
+        "H06",
+        "H08"
+      ],
+      "test": {
+        "labelled_only_iou": 0.005419,
+        "labelled_only_precision": 0.221402,
+        "positive_recall": 0.005525,
+        "known_negative_fp_rate": 0.005576,
+        "unknown_predicted_px": 8,
+        "unknown_fraction_predicted": 0.003608,
+        "all_alpha_treat_unlabelled_negative_iou_DIAGNOSTIC_ONLY": 0.005417,
+        "tp": 120,
+        "fn": 21601,
+        "fp_known_negative": 422,
+        "pred_total_px": 550,
+        "annotated_jacket_px": 21721
+      },
+      "test_original_wh": [
+        453,
+        1400
+      ],
+      "test_eval_wh": [
+        291,
+        900
+      ]
+    },
+    "H06": {
+      "train_cases": [
+        "H04",
+        "H08"
+      ],
+      "test": {
+        "labelled_only_iou": 0.032561,
+        "labelled_only_precision": 0.982498,
+        "positive_recall": 0.03258,
+        "known_negative_fp_rate": 0.009906,
+        "unknown_predicted_px": 3402,
+        "unknown_fraction_predicted": 0.062297,
+        "all_alpha_treat_unlabelled_negative_iou_DIAGNOSTIC_ONLY": 0.030913,
+        "tp": 2077,
+        "fn": 61673,
+        "fp_known_negative": 37,
+        "pred_total_px": 5516,
+        "annotated_jacket_px": 63750
+      },
+      "test_original_wh": [
+        2000,
+        2000
+      ],
+      "test_eval_wh": [
+        900,
+        900
+      ]
+    },
+    "H08": {
+      "train_cases": [
+        "H04",
+        "H06"
+      ],
+      "test": {
+        "labelled_only_iou": 0.017511,
+        "labelled_only_precision": 0.34809,
+        "positive_recall": 0.018105,
+        "known_negative_fp_rate": 0.353968,
+        "unknown_predicted_px": 11071,
+        "unknown_fraction_predicted": 0.149616,
+        "all_alpha_treat_unlabelled_negative_iou_DIAGNOSTIC_ONLY": 0.01309,
+        "tp": 574,
+        "fn": 31130,
+        "fp_known_negative": 1075,
+        "pred_total_px": 12720,
+        "annotated_jacket_px": 31704
+      },
+      "test_original_wh": [
+        2000,
+        2000
+      ],
+      "test_eval_wh": [
+        900,
+        900
+      ]
+    }
+  },
+  "results": {
+    "human_reference_import": "PASS_REVIEW_SCOPED",
+    "independent_character_human_outerwear_reference_count": 2,
+    "LOCO_model_generalization": "FAIL",
+    "generic_clothes_is_outerwear_exclusively": false,
+    "color_cluster_source_only_generalization": "FAIL_H08_0p0997",
+    "L02_formal_acceptance": "HOLD",
+    "quality_gate": "NO_GO",
+    "production_release": "NO_GO",
+    "phase5_exclusive_H04_source_candidate": "PINNED_GRAPH_PASS_ONLY_NOT_GOLDEN",
+    "signed_phase4_original_modified": false,
+    "local_worker_modified": false,
+    "public_worker_modified": false
+  }
+}
