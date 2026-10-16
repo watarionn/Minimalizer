@@ -1,0 +1,53 @@
+{
+  "schema": "minimalizer/local-l02/source-color-sleeve-exploratory/v1",
+  "date": "2026-10-16",
+  "source_model": "sayeed99/segformer-b2-fashion",
+  "weights_sha256": "47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1",
+  "segformer_classids_sha256": {
+    "H04": "389d5975cb66cbc7ca64d27bbd6b1950abce40f6399096d651e86996afd8b1b6",
+    "H06": "06e02c257d982a4da45ee8f77da8730d91615502eaa2cc9e438068e69e1e286a",
+    "H08": "d6ff3cee53338711f6dc253dc423d772f52d7cce711d3311a6497002739976f5"
+  },
+  "source_only_proposal": "source RGBA + pinned model classids 5/10 and adjacent class32 + nearest OpenCV-Lab color delta under 30",
+  "threshold_chosen_while_examining_these_three_characters": true,
+  "independent_holdout_generalization_established": false,
+  "human_reference_used_only_for_later_evaluation": true,
+  "new_visible_source_pixels": 0,
+  "model_licence_conditions_resolved_reported_by_user": true,
+  "results": {
+    "H04": {
+      "base_labelled_iou": 0.614489,
+      "exploratory_labelled_iou": 0.866317,
+      "known_negative_fp_rate": 0.021133,
+      "known_arm_fp_pixels": 236,
+      "unknown_predicted_pixels": 0,
+      "candidate_pred_sha256": "471b0ebd27af6219c2c35956372f390929412bde925395f3a7e18232820d108e"
+    },
+    "H06": {
+      "base_labelled_iou": 0.825905,
+      "exploratory_labelled_iou": 0.852027,
+      "known_negative_fp_rate": 0.012342,
+      "known_arm_fp_pixels": 51,
+      "candidate_pred_sha256": "46fe00dc7bbc34d919e1b3294fd71adb5487019d3270f924e304951599823f96"
+    },
+    "H08": {
+      "base_labelled_iou": 0.616561,
+      "exploratory_labelled_iou": 0.756734,
+      "known_negative_fp_rate": 0.01444,
+      "known_arm_fp_pixels": 217,
+      "candidate_pred_sha256": "298a9e1053aabc4c30c9e5ce38cfa4bc436b47f55bf4e15f756cef04f28524e8"
+    }
+  },
+  "sourcefree_json_sha256": "ffe1bdb9e831b4cb5cb8ec0f2e4a540ab759924d71c273b91de5da46eab3a2a4",
+  "private_evidence_drive_id": "1_7K8vEhDRdR-2Mt0ZH3wpNbPhSziT1md",
+  "private_evidence_archive_sha256": "a1bbd358db2f113c39ad04c3b8e51466bd4753d617d1b3a9fd1da3c2f077fd2c",
+  "private_evidence_cloud_readback_verified": true,
+  "independent_core_mirror_synthetic_tests": 10,
+  "repository_new_synthetic_tests_added": 10,
+  "repository_synthetic_tests_run": false,
+  "full_repo_ci_run": false,
+  "owner_promotion": "NOT_AUTHORIZED",
+  "L02": "HOLD",
+  "Golden": "HOLD",
+  "production": "NO_GO"
+}
