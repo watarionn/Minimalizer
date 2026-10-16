@@ -1,0 +1,55 @@
+{
+  "schema": "minimalizer/l02/explicit-known-negative-loco/aggregates/v1",
+  "date": "2026-10-16",
+  "source_archive_sha256": "6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598",
+  "private_results_archive_sha256": "c2133af02b78b029ff5eb7467dab05b96a847f847f6800a825d9e7927308cbd3",
+  "private_results_file_id": "1nU_ikd0o-PLBmrqzDlqpp9lyfZQpFAL_",
+  "private_metrics_json_sha256": "780eb3a12041159e16347b6d124d552eb7e08ab829a5a5e462582d62337506dc",
+  "research_base_sha": "63a5dbd9befc22b6ecf51a9ebb531580a61825ea",
+  "negative_training_authority": "human_explicit_only",
+  "unknown_training_negative": false,
+  "heldout_masks_used_as_features": false,
+  "deterministic_runs": 2,
+  "identical_run_bytes": true,
+  "analysis_long_side": 900,
+  "prediction_threshold": 0.5,
+  "cases": {
+    "H04": {
+      "old_iou": 0.005419,
+      "new_iou": 0.218283,
+      "positive_recall": 0.942314,
+      "known_negative_false_positive_rate": 0.951932,
+      "unknown_predicted_px": 1813,
+      "positive_labelled_px": 21721,
+      "negative_labelled_px": 75685,
+      "unknown_px": 2217
+    },
+    "H06": {
+      "old_iou": 0.032561,
+      "new_iou": 0.164998,
+      "positive_recall": 0.165145,
+      "known_negative_false_positive_rate": 0.015261,
+      "unknown_predicted_px": 9086,
+      "positive_labelled_px": 63750,
+      "negative_labelled_px": 3735,
+      "unknown_px": 54609
+    },
+    "H08": {
+      "old_iou": 0.017511,
+      "new_iou": 0.029907,
+      "positive_recall": 0.031384,
+      "known_negative_false_positive_rate": 0.51564,
+      "unknown_predicted_px": 18600,
+      "positive_labelled_px": 31704,
+      "negative_labelled_px": 3037,
+      "unknown_px": 73996
+    }
+  },
+  "quality": "FAIL_GENERALIZATION",
+  "L02_status": "HOLD",
+  "golden_status": "HOLD",
+  "production": "NO_GO",
+  "source_aligned_phase4_owner_modified": false,
+  "local_worker_modified": false,
+  "public_worker_modified": false
+}
