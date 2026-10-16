@@ -1,10 +1,12 @@
 """Deterministic source-free guards for noncommercial L02 SegFormer shadow."""
-import io, json, sys, tempfile, unittest, inspect, hashlib\nfrom unittest import mock
+import io, json, sys, tempfile, unittest, inspect, hashlib
+from unittest import mock
 from pathlib import Path
 import numpy as np
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'/'research'))
-import local_l02_segformer_fashion_shadow as subject\nfrom local_l02_segformer_fashion_shadow import (
+import local_l02_segformer_fashion_shadow as subject
+from local_l02_segformer_fashion_shadow import (
  AuthorityHold,CLASSES,MODEL_REPO,REVISION,SOURCE_PINS,WEIGHTS_SHA,
  to_model_rgb,known_only_score,validate_model_dir,run,source_only_prediction
 )
@@ -72,9 +74,9 @@ class ResearchGuards(unittest.TestCase):
    (root/'model.safetensors').write_bytes(model)
    (root/'config.json').write_bytes(conf)
    (root/'preprocessor_config.json').write_bytes(proc)
-   with mock.patch.object(subject,'WEIGHTS_SHA',hashlib.sha256(model).hexdigest()), \\
-        mock.patch.object(subject,'MODEL_CONFIG_SHA',hashlib.sha256(conf).hexdigest()), \\
-        mock.patch.object(subject,'PROCESSOR_CONFIG_SHA',hashlib.sha256(proc).hexdigest()):
+   with (mock.patch.object(subject,'WEIGHTS_SHA',hashlib.sha256(model).hexdigest()),
+         mock.patch.object(subject,'MODEL_CONFIG_SHA',hashlib.sha256(conf).hexdigest()),
+         mock.patch.object(subject,'PROCESSOR_CONFIG_SHA',hashlib.sha256(proc).hexdigest())):
     self.assertEqual(validate_model_dir(root),hashlib.sha256(proc).hexdigest())
     (root/'config.json').write_bytes(conf+b' ')
     with self.assertRaisesRegex(AuthorityHold,'MODEL_CONFIG_SHA_MISMATCH'):
