@@ -13,6 +13,8 @@ from PIL import Image
 MODEL_REPO = "sayeed99/segformer-b2-fashion"
 REVISION = "e82089f3b76fdc5522727f6e793ff3d470c15e74"
 WEIGHTS_SHA = "47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1"
+MODEL_CONFIG_SHA = "44b342a5e9301a1716dac8a56537e82acfdae8f0597069b0414b7704e39b8705"
+PROCESSOR_CONFIG_SHA = "6073ac6a37530ed2a19443d6a748f5579887b3ae48f6730073954b0b38cf3fd6"
 CLASSES = {5: "jacket", 10: "coat"}
 SOURCE_PINS = {
  "H04": ("H04_original_signed_trace (1).json","7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3"),
@@ -30,11 +32,15 @@ def validate_model_dir(model_dir:Path):
         raise AuthorityHold("PINNED_MODEL_FILES_MISSING")
     if sha((model_dir/"model.safetensors").read_bytes())!=WEIGHTS_SHA:
         raise AuthorityHold("MODEL_WEIGHTS_SHA_MISMATCH")
+    if sha((model_dir/"config.json").read_bytes())!=MODEL_CONFIG_SHA:
+        raise AuthorityHold("MODEL_CONFIG_SHA_MISMATCH")
+    if sha((model_dir/"preprocessor_config.json").read_bytes())!=PROCESSOR_CONFIG_SHA:
+        raise AuthorityHold("PROCESSOR_CONFIG_SHA_MISMATCH")
     cfg=json.loads((model_dir/"config.json").read_text(encoding="utf-8"))
     labels=cfg["id2label"]
     if any(labels.get(str(k),"").lower()!=v for k,v in CLASSES.items()):
         raise AuthorityHold("OUTERWEAR_TAXONOMY_MISMATCH")
-    return sha((model_dir/"preprocessor_config.json").read_bytes())
+    return PROCESSOR_CONFIG_SHA
 
 def signed_sample(archive:zipfile.ZipFile, case:str):
     name,pin=SOURCE_PINS[case]
