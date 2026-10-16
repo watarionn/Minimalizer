@@ -1,0 +1,71 @@
+{
+  "schema": "minimalizer/local-L02/segformer-fashion-source-free-aggregates/v1",
+  "date": "2026-10-16",
+  "model_id": "sayeed99/segformer-b2-fashion",
+  "revision": "e82089f3b76fdc5522727f6e793ff3d470c15e74",
+  "model_sha256": "47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1",
+  "preprocessor_sha256": "6073ac6a37530ed2a19443d6a748f5579887b3ae48f6730073954b0b38cf3fd6",
+  "source_license_scope": "NVIDIA SegFormer noncommercial research/evaluation, production NOT approved",
+  "model_production_authorized": false,
+  "same_source_replay_runs": 2,
+  "identical_source_free_metric_payloads": true,
+  "identical_prediction_arrays": [
+    "H04",
+    "H06",
+    "H08"
+  ],
+  "human_mask_at_inference": false,
+  "source_pixels_generated": 0,
+  "comparison_to_pr411_deepfashion2": {
+    "H04": {
+      "previous_iou": 0,
+      "current_iou": 0.614489
+    },
+    "H06": {
+      "previous_iou": 0.627044,
+      "current_iou": 0.825905
+    },
+    "H08": {
+      "previous_iou": 0.606773,
+      "current_iou": 0.616561
+    }
+  },
+  "results": {
+    "H04": {
+      "labelled_only_iou": 0.614489,
+      "positive_recall": 0.657784,
+      "known_negative_fp_rate": 0.0202,
+      "unknown_predicted_px": 176,
+      "unknown_source_px": 5248,
+      "source_positive_px": 52572,
+      "prediction_sha256": "97716eb50004a153c0fe6934a3f010fcd09c2b27a6b9bd0a1dc4c21c37d766ed"
+    },
+    "H06": {
+      "labelled_only_iou": 0.825905,
+      "positive_recall": 0.825905,
+      "known_negative_fp_rate": 0,
+      "unknown_predicted_px": 76778,
+      "unknown_source_px": 269653,
+      "source_positive_px": 314823,
+      "prediction_sha256": "413735e90ff42381798948163c9c0966473ec616ea035684a8dc1f10962283ad"
+    },
+    "H08": {
+      "labelled_only_iou": 0.616561,
+      "positive_recall": 0.616561,
+      "known_negative_fp_rate": 0,
+      "unknown_predicted_px": 3814,
+      "unknown_source_px": 365261,
+      "source_positive_px": 156570,
+      "prediction_sha256": "2ab16a864b23a9a178faf219512e4a7dbb255a659ddb57785c16292b3d008d6d"
+    }
+  },
+  "metrics_payload_sha256_first_experiment": "0529d92e493cbdfa3e81151e0c683cb9ba18ce483ef68f8a1a612426c6a83295",
+  "private_evidence_existing_mounted_drive_path": "chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_SegFormerFashion_VerifiedRunner_PRIVATE_20261016.zip",
+  "private_evidence_cloud_synced_verified": false,
+  "new_safety_tests_passed": 12,
+  "full_repo_tests_verified": false,
+  "L02": "HOLD",
+  "Golden": "HOLD",
+  "production": "NO_GO",
+  "worker_or_public_changed": false
+}
