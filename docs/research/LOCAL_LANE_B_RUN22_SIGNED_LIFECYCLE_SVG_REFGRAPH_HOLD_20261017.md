@@ -1,0 +1,11 @@
+# MinimalizerLocal Lane B Run22: signed lifecycle bridge and SVG reference graph (HOLD)
+
+Date: 2026-10-17 JST. B-only non-destructive research. Baseline main `4b1f6dc65a1b166966d88fdb24be013a5a480218`, B branch 10 ahead / 0 behind before this note. Adopted plan `docs/roadmaps/MINIMALIZER_LOCAL_COMPLETION_PLAN_20261015.md` unchanged.
+
+Run21 Drive preservation recovered: ZIP ID `1KAmcfeodItbw6kJk22ZfS9IzTpoScK0L` SHA256 `02e81f397ad41acf9b11a88950fa6a31b0024d5cfb264e1770c73c1e5b8eeb77`; handoff ID `1jvluAzObN9T_i2mYBVvP7L7Q5dMWJCM_` SHA256 `1c1d62506c86f1711f94f3436b249def13b004c8d25ece57b380e1b4d415d17d`. Both verified via provider raw bytes, size, parent and SHA.
+
+L07 Run22 research proposal `research_proposals/sw-v13-signed-lifecycle-observer.js`: read-only bridge of v11 signed eight-asset byte verifier and v12 double-pass cache lifecycle inspector. A valid fixture signer+pin and twice-verified cache remain HOLD: independent deployment key/pin/manifest authority is absent, and CacheStorage is non-atomic. No cache open/put/delete, SW registration or production integration. Synthetic tests include tampered bytes, wrong pin, expiry, key race, post-first-pass content corruption, quota pressure and foreign namespace. Main SW blob `9dcf1b658e7c4160a4ce7d9efd0e91242559cbe2` retains global cache deletion/unscoped fallback/query interception. Main local-route blob `88ff8eac22ba6f6bb54851fa7499fced1522df0c` retains broad BEST→V2 fallback.
+
+L04 Run22 research proposal `tools/research/local_l04_svg_ref_graph_audit.py`: signed SVG ID/reference graph inventory, duplicate/missing IDs, local URL/href, external/unparsed references, bounded iterative cycle witnesses, without leaking IDs/coordinates. Not a paint, owner, silhouette or Golden authorization. Signed official Local Stage8 original image+JSON+expanded SVG triple not established; Public Stage8 is not substituted.
+
+Fresh reconstructed synthetic/VM tests: Node 178/178 and Python 88/88 PASS (266 total); NOT live Chromium/SW/Safari/Tailscale/Worker/iPhone acceptance. Run22 source files and test fixtures are in separate research ZIP, not part of this source-free GitHub note. L02/L04/L07/Golden HOLD, production NO_GO. No A research, private masks, production LocalWorker, Public/C08, deployment or release modified.
