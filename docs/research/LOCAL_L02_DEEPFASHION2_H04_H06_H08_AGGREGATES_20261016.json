@@ -1,0 +1,26 @@
+{
+  "schema": "minimalizer/l02/deepfashion2-independent-outerwear-diagnostic/v1",
+  "date": "2026-10-16",
+  "source": "previously signed H04/H06/H08 original + manually reviewed partial labels",
+  "model": "HasanKabir23/Yolov26s-DeepFashion2",
+  "model_sha256": "485bc106721febbd82fe24297e12a9fb49a435a552afff1e6b76308716555f76",
+  "model_bytes": 10994299,
+  "backend": "ONNX Runtime 1.26.0 CPU-only, fixed 416x416",
+  "confidence": 0.5,
+  "outerwear_labels": {"2": "short_sleeve_outwear", "3": "long_sleeve_outwear"},
+  "two_inference_replays_equal": true,
+  "summary": {
+    "H04": {"outerwear_instances": 0, "candidate_source_px": 0, "labelled_only_iou": 0.0, "known_negative_fp_rate": 0.0, "positive_recall": 0.0, "unknown_predictions_px": 0, "prediction_sha256": "f4c3ea5e73984366f23c29b9e1fb72f8388dd0de53c7a41d43cd2688a10a70ed"},
+    "H06": {"outerwear_instances": 3, "candidate_source_px": 200624, "labelled_only_iou": 0.627044, "known_negative_fp_rate": 0.0, "positive_recall": 0.627044, "unknown_predictions_px": 3216, "prediction_sha256": "2627c7dcb3eaec5a54660d52b503da292b8e6a7b9b51a1d828a270fa1d60ac03"},
+    "H08": {"outerwear_instances": 2, "candidate_source_px": 108460, "labelled_only_iou": 0.606773, "known_negative_fp_rate": 0.21939, "positive_recall": 0.61955, "unknown_predictions_px": 8160, "prediction_sha256": "d07aba41d11ec8a3c5506d14574132b42779d61a0d6a13bb1cd8b5d06628c25b"}
+  },
+  "source_only": true,
+  "inference_manual_pixels": false,
+  "all_source_pixels_generated": 0,
+  "L02": "HOLD",
+  "Golden": "HOLD",
+  "production": "NO_GO",
+  "local_worker_modified": false,
+  "public_modified": false,
+  "model_promoted": false
+}
