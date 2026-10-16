@@ -6,6 +6,6 @@ L07: synthetic VM reproduction shows v6 CacheStorage candidate eviction after ac
 
 L04: source-free SVG paint inventory distinguishes attested owner base paint from unreviewed root/group overlays, defs and protected masks. It never grants full-scene paint authority, raster silhouette or Golden. Signed Local Stage8 image/JSON/SVG triple remains missing.
 
-Reconstructed tests: Python 291/291 PASS, Node VM 242/242 PASS, Chromium DOM mocked-fetch 29/29 PASS, total 562/562. Live SW/HTTP/iPhone not tested; Chromium navigation was blocked by administrator. Research ZIP and full handoff are retained in the canonical private Drive folder when uploaded and SHA-verified.
+Reconstructed tests: Python 292/292 PASS, Node VM 242/242 PASS, Chromium DOM mocked-fetch 29/29 PASS, total 563/563. Live SW/HTTP/iPhone not tested; Chromium navigation was blocked by administrator. Research ZIP and full handoff are retained in the canonical private Drive folder when uploaded and SHA-verified.
 
 L02/L04/L07/Golden HOLD; production NO_GO.
