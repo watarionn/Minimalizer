@@ -20,7 +20,6 @@
       "exploratory_labelled_iou": 0.866317,
       "known_negative_fp_rate": 0.021133,
       "known_arm_fp_pixels": 236,
-      "unknown_predicted_pixels": 0,
       "candidate_pred_sha256": "471b0ebd27af6219c2c35956372f390929412bde925395f3a7e18232820d108e"
     },
     "H06": {
