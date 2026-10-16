@@ -26,6 +26,12 @@ MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Publ
 - `docs/references/KYOKO_MANUAL_REFERENCE_V1_20261015.md`: ユーザー採用済み手描き参照（顔・上半身340×340、33図形）。見本の下敷きSHA ≠ 署名済みGC001なのでピクセル教師として直接適用不可。
 - 既存キャンペーン `docs/campaigns/CMP-20261009-SA1060-TO-PRODUCTION.json` は `ACTIVE_RELEASE_HOLD`。この計画の承認や実施はC08の定時タスク再開／Public本番承認ではない。
 
+## L02 手作業レビュー受領・独立キャラ検証（2026-10-16）
+
+**L02 formal: HOLD / production: NO_GO。** ユーザーのH04全身17図形、H06の7図形、H08の4図形JSONを本人の原画像SHA-256と照合して取り込み、H06/H08 SVGの図形・頂点一致7/7、4/4を確認。左右名称は**キャラ本人から見た解剖学的左右**。H04でsource alphaの外に1.5%超はみ出した4図形（`sj`, `s1i`, `s1m`, `s4p`）は、ユーザー明示承認によりこの固定H04手本に限って許容、原本座標は変更せず。H06/H08の同じ警告はユーザー承認されていないため勝手に例外扱いしない。透過元画像外は評価マスク上でクリップ、遮蔽は後に描いた図形優先、未描画前景は「不明」であり真の陰性ではない。承認済み正例visible outerwearはH04 **52,572px**、H06 **314,823px**、H08 **156,570px**（原画像座標）。よって従来欠けていた未学習2名の人間参照データを取得できた。
+
+新3名LOCO（leave-one-character-out）予測を各キャラ完全除外で実行。ラベル済み画素のみでのジャケットIoU: **H04 0.005419 / H06 0.032561 / H08 0.017511**、全員FAIL。H04のみで調整した色クラスタ候補も独立H08ラベル領域でIoU 0.099668、**不採用**。Run121 Indie AnimeSegの`clothes`は一般衣服クラスであって`outerwear`だけの検出ではない（H06ラベル画素IoU 0.831542、H08 0.742307、未ラベルでの反応はそれぞれ159,478px・38,129px、全画素精度と見做さない）。提出された全身手本を推論出力へ貼り付けない。**H04独立owner source-onlyのpinned Phase5 21 anchors/13 relations PASSは既存H04シャドウ候補に限定**し、未学習キャラに対する品質を示さない。研究コードと否定的な全量メトリクスは`docs/research/LOCAL_L02_REVIEWED_INDEPENDENT_BENCHMARK_20261016.md`、手本原画像・JSON/SVG/NPZと比較画像は非公開Drive `chatGPT及びCodex用/Minimalizer/MinimalizerLocal_L02_ReviewedEvidence_PRIVATE_20261016.zip`。H04の再描画は求めない。次の必要工程は**独立outerwear専用観測の改善→3名LOCO合格→排他的ownerのsource-only Phase4→5 exact replay→見た目/Golden最終承認**。Local WorkerとPublic/C08は変更していない。
+
 ## L02 source-bound 排他的owner候補とneck attachment修復（2026-10-15 続行）
 
 **L02 formal: HOLD / production: NO_GO。** H04署名済み元画像SHAおよびRun122の11-mask Phase4原本とのunion XOR=0・6保護部位 XOR=0を維持する研究専用owner再割当候補を作成。既存v2 research shadow + 2モデル衣装一致観測のみを推論入力にし、ユーザー17図形の頂点・マスクは推論へ渡さない。髪→衣装は6,331px、胴体→衣装35,169px（**提案**）、分断された髪1,931px・胴体63pxはsemantic断定せずunknownへ退避。排他的leaf重複0・head/hair/torsoの連結成分は1/4/2維持。unknown連結は37→90で視覚品質に未解決リスク。
