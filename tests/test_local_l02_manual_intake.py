@@ -2,7 +2,7 @@ import sys,unittest,io,base64,hashlib,copy
 from pathlib import Path
 from PIL import Image
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'/'research'))
-from verify_local_l02_manual_intake import validate_reference,rasterize_visible_reference,alignment_audit,AuthorityHold
+from verify_local_l02_manual_intake import validate_reference,rasterize_visible_reference,alignment_audit,AuthorityHold,normalise_user_label,reviewed_h04_overshoot
 
 class Test(unittest.TestCase):
  def setUp(self):
@@ -72,6 +72,18 @@ class Test(unittest.TestCase):
   ids=['outerwear','face_skin','neck_skin','lower_body']
   for i,key in enumerate(ids):
    for other in ids[i+1:]:self.assertFalse((layers[key]&layers[other]).any(),key+' and '+other)
+ def test_innerwear_alias(self):
+  x=copy.deepcopy(self.doc);x['shapes'][0]['name']='innerwear/leftbody'
+  self.assertEqual(validate_reference(x,self.raw,self.sha,final=False)['unlabeled_shapes'],0)
+  self.assertEqual(normalise_user_label('innerwear/leftbody'),'underlayer/leftbody')
+ def test_body_skin_alias(self):
+  x=copy.deepcopy(self.doc);x['shapes'].append({'id':'hand','name':'body_skin/right_hand','vertexIds':['a','b','c','d'],'fill':'#fff','visible':True})
+  self.assertEqual(validate_reference(x,self.raw,self.sha,final=True)['shape_count'],2)
+  self.assertEqual(normalise_user_label('body_skin/right_hand'),'arm_skin/right_hand')
+ def test_h04_exception_does_not_apply_to_unsigned_case(self):
+  self.assertFalse(reviewed_h04_overshoot(self.doc,self.sha,'sj'))
+ def test_h04_exception_cannot_be_used_by_other_shape(self):
+  self.assertFalse(reviewed_h04_overshoot(self.doc,self.sha,'some-new-shape'))
  def test_facial_microdetail_blocked(self):
   x=copy.deepcopy(self.doc);x['shapes'][0]['name']='face_skin/eye'
   with self.assertRaises(AuthorityHold):validate_reference(x,self.raw,self.sha,final=True)
