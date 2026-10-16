@@ -1,6 +1,13 @@
 # MinimalizerLocal 完成計画 v1（提案）
 **2026-10-15 / status: ADOPTED, NOT RELEASE APPROVAL**
 
+## L02 explicit-known-negative three-character replay (2026-10-16, after PR #408)
+
+**Experiment complete, independent outerwear model FAIL. L02 formal HOLD / Golden HOLD / Local production NO_GO.** The previously missing exact private H04/H06/H08 reviewed evidence archive was located under the established Google Drive `chatGPT及びCodex用/Minimalizer`, source SHA-256 `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`. Source-verified PR #407 canonical code and PR #408 explicitly-known-negative control were run on three characters, with two byte-identical replays. Labelled-only LOCO IoU changed H04 **0.005419→0.218283**, H06 **0.032561→0.164998**, H08 **0.017511→0.029907**. Despite improvements, H04 and H08 false-positive rates on human-explicit non-outerwear are **0.951932 / 0.515640**, and H06/H08 positive recalls are **0.165145 / 0.031384**. **Reject the model for semantic owner authority**; these metrics do not imply Golden quality or all-alpha precision where labels are partial. Exact report: [2026-10-16 known-only real holdout](../research/LOCAL_L02_KNOWN_ONLY_REAL_HOLDOUT_20261016.md). Source-free aggregates: [JSON](../research/LOCAL_L02_KNOWN_ONLY_REAL_AGGREGATES_20261016.json). Private NPZ/results archive `MinimalizerLocal_L02_ExplicitKnownNegativeLOCO_PRIVATE_20261016.zip` uploaded to the same Drive folder, read-after-write verified, SHA-256 `c2133af02b78b029ff5eb7467dab05b96a847f847f6800a825d9e7927308cbd3`. Local/Public production, signed masks and raw sources unchanged.
+
+**Next actual L02 engineering work**: independent outerwear-vs-underlayer semantic observer and strict abstention, then truly independent LOCO positive/known-negative and unknown coverage diagnostics, then exclusive Phase4 owner → exact Phase5 replay. No forced threshold relaxation, H04-specific transfer, user polygon injection, or unapproved H06/H08 geometry waiver.
+
+
 ## 完成の定義
 
 MinimalizerLocal はユーザー専用の private-HTTPS PWA + LocalWorker。Public/C08 は別の配布経路・リリース判定とする。完成とは「画質が良さそう」という研究報告ではなく、同じ署名済み入力で再現可能な高品質成果が、実機iPhoneから安全・安定に得られ、人間が受け入れたことを意味する。
