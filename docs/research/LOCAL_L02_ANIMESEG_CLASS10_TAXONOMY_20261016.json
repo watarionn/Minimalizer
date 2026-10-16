@@ -1,0 +1,70 @@
+{
+  "Golden": "HOLD",
+  "L02": "HOLD",
+  "cases": {
+    "H06": {
+      "class_map_png_sha256": "482f64583f9b0212d1dfbf683a820d3e3f092058ded20f3d180998c834475d8d",
+      "classid_10_source_only_diagnostic": {
+        "candidate_source_px": 423087,
+        "fn": 52208,
+        "fp_known": 994,
+        "known_negative_fp_rate": 0.054042,
+        "known_negative_px": 18393,
+        "known_only_iou": 0.831542,
+        "known_positive_px": 314823,
+        "positive_recall": 0.834167,
+        "tp": 262615,
+        "unknown_are_negative": false,
+        "unknown_predicted_px": 159478,
+        "unknown_source_px": 269653
+      },
+      "signed_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+      "strict_observer_admission": {
+        "candidate_source_px": 0,
+        "generic_class_codes": [10],
+        "owner_promotion_authorized": false,
+        "reason": "generic clothes/upper clothes do not distinguish an outer layer",
+        "source_pixels_generated": 0,
+        "specialized_classes": [],
+        "status": "ABSTAIN_NO_OUTERWEAR_CLASS"
+      }
+    },
+    "H08": {
+      "class_map_png_sha256": "531ec269e28abb121e2b46f4b1d30f7f092ad425de8e297701fae47b4d8a5ea7",
+      "classid_10_source_only_diagnostic": {
+        "candidate_source_px": 154352,
+        "fn": 40347,
+        "fp_known": 0,
+        "known_negative_fp_rate": 0.0,
+        "known_negative_px": 15028,
+        "known_only_iou": 0.742307,
+        "known_positive_px": 156570,
+        "positive_recall": 0.742307,
+        "tp": 116223,
+        "unknown_are_negative": false,
+        "unknown_predicted_px": 38129,
+        "unknown_source_px": 365261
+      },
+      "signed_source_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+      "strict_observer_admission": {
+        "candidate_source_px": 0,
+        "generic_class_codes": [10],
+        "owner_promotion_authorized": false,
+        "reason": "generic clothes/upper clothes do not distinguish an outer layer",
+        "source_pixels_generated": 0,
+        "specialized_classes": [],
+        "status": "ABSTAIN_NO_OUTERWEAR_CLASS"
+      }
+    }
+  },
+  "input_semantic_scope": "GENERIC_CLOTHES_NOT_OUTERWEAR",
+  "manual_labels_never_used_in_prediction": true,
+  "model_id": "suzukimain/AnimeSeg-Mask2Former-v3-Run121",
+  "model_weights_sha256": "f6764a379496712a92d1a85f852a81155cd79132a3e050b77c972be7e1cec394",
+  "not_run": {
+    "H04": "H04 class-map not contained in this signed offline384 ZIP"
+  },
+  "production": "NO_GO",
+  "schema": "minimalizer/local-l02/independent-generic-clothes-negative-control/v1",
+  "source_pixel_generation": false
+}
