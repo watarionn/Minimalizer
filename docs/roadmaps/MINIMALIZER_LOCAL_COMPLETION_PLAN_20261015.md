@@ -1,4 +1,9 @@
 # MinimalizerLocal 完成計画 v1（提案）
+
+## L02 signed cross-observer reality check (2026-10-16 after PR #414)
+
+User reports SegFormer-B2 Fashion permission conditions resolved. A second independent-model agreement shadow between SegFormer and DeepFashion2 was run on the H04/H06/H08 signed source frames. Agreement-only labelled jacket IoU H04 **0**, H06 **0.592101**, H08 **0.496398**. H08 agreement filters 3,297 model-only human-arm false positives, but it also erases all H04 jacket and large true sleeve/coat regions for H06/H08. Two metric/mask replays consistent, 15/15 negative tests PASS, signed private visual boards examined and Google Drive cloud readback verified. **No Phase4 exclusive owner promotion. L02 HOLD, Golden HOLD, L03 still blocked, production NO_GO.** See [actual 3-case consensus gate](../research/LOCAL_L02_INDEPENDENT_OBSERVER_AGREEMENT_20261016.md). Do not interpret licence clearance, diagnostic mask overlap, or earlier pinned H04-only graph PASS as whole-image quality approval.
+
 **2026-10-15 / status: ADOPTED, NOT RELEASE APPROVAL**
 
 ## L02 explicit-known-negative three-character replay (2026-10-16, after PR #408)
