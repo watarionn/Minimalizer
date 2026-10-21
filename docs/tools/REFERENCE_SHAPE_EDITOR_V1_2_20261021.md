@@ -16,7 +16,7 @@ The public website repository `watarionn/portfolio-site/tools/reference-shape-ed
 
 ## Verification
 
-The deployed-source repo includes the dependency-free regression script `tools/reference-shape-editor/test-core.js`, covering layer merge/split/order, source geometry preservation, undo/redo, palette edit/import, and old/new JSON import compatibility. JavaScript parse, document element references, and standalone packaging should be verified against the source PR prior to merge. Real browser and iPhone/touch drag interaction remain separate manual acceptance checks.
+The deployed-source repo includes the dependency-free regression script `tools/test_reference_shape_editor_core.js`, covering layer merge/split/order, source geometry preservation, undo/redo, palette edit/import, and old/new JSON import compatibility. JavaScript parse, document element references, and standalone packaging should be verified against the source PR prior to merge. Real browser and iPhone/touch drag interaction remain separate manual acceptance checks.
 
 ## Safety and provenance
 
