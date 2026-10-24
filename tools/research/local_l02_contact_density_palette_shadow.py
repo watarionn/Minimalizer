@@ -57,12 +57,13 @@ def _palette_color_evidence(source_rgba, trusted, possible):
 
 def propose_contact_density_palette_shadow(*, source_rgba: np.ndarray,
         class_ids: np.ndarray, anime_classes: np.ndarray,
-        baseline_owner: np.ndarray) -> tuple[np.ndarray, dict]:
+        baseline_owner: np.ndarray, eligible_classes=(32,)) -> tuple[np.ndarray, dict]:
     """Return exclusive owner shadow, never an automatic semantic-quality PASS."""
     try:
         proposed, structural = propose_contact_density_partition_shadow(
             source_rgba=source_rgba, class_ids=class_ids,
-            anime_classes=anime_classes, baseline_owner=baseline_owner)
+            anime_classes=anime_classes, baseline_owner=baseline_owner,
+            eligible_classes=eligible_classes)
     except ContactDensityHold as exc:
         raise ContactPaletteHold('SOURCE_CONTACT_PARTITION_HOLD:' + str(exc)) from exc
     possible = (baseline_owner == 0) & (proposed > 0)
