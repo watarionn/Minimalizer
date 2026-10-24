@@ -18,7 +18,8 @@ def row(name, tp=90, fp=10, arm=1, under=9, fn=None):
                 quality='FAIL', unseen_character_pass=False,
                 TP=tp, known_FP=fp, known_FN=fn,
                 known_arm_FP=arm, known_underlayer_FP=under,
-                known_positive_total=100)
+                known_positive_total=100, source_sha256='a' * 64,
+                review_sha256='b' * 64, owner_sha256='c' * 64)
 
 
 class KnownFrontierContract(unittest.TestCase):
@@ -67,6 +68,21 @@ class KnownFrontierContract(unittest.TestCase):
                 r = row('one')
                 r[key] = value
                 with self.assertRaises(SignedFrontierHold):
+                    validate_record(r)
+
+    def test_same_case_requires_exact_signed_source_and_review_identity(self):
+        for key in ('source_sha256', 'review_sha256'):
+            base, changed = row('base'), row('changed')
+            changed[key] = 'd' * 64
+            with self.subTest(key=key), self.assertRaises(SignedFrontierHold):
+                dominates(base, changed)
+            with self.subTest(key=key), self.assertRaises(SignedFrontierHold):
+                evaluate_frontier([base, changed])
+        for key in ('source_sha256', 'review_sha256', 'owner_sha256'):
+            for value in ('', '0' * 63, 'G' * 64, None, True):
+                r = row('invalid')
+                r[key] = value
+                with self.subTest(key=key, value=value), self.assertRaises(SignedFrontierHold):
                     validate_record(r)
 
     def test_no_cross_case_duplicate_or_missing_identity(self):
