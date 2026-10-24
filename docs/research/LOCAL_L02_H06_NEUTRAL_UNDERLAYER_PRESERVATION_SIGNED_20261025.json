@@ -1,0 +1,64 @@
+{
+  "Golden": "HOLD",
+  "L02": "HOLD",
+  "L03": "NO_GO",
+  "Phase4": "FAIL",
+  "anime_manifest_members_verified": 5,
+  "archive_sha256_verified": true,
+  "frontier_comparison": "H06 latest composed frontier is not reproduced here; no claim to surpass 20,803 known FN or 1,077 known FP",
+  "hue_abstained_coat": {
+    "known_arm_wrong_owner_fp": 0,
+    "known_outerwear_fn": 23743,
+    "known_outerwear_tp": 291080,
+    "known_underlayer_wrong_owner_fp": 1077,
+    "known_wrong_owner_fp": 1077
+  },
+  "human_labels_used_for_inference": false,
+  "known_case_exposed": true,
+  "known_p0_unresolved_cases": 3,
+  "new_accepted_p0_improvement_cases": 0,
+  "new_accepted_p1_improvement_cases": 0,
+  "new_provisional_p0_candidate_cases": 1,
+  "production": "NO_GO",
+  "provisional_underlayer_postscore": {
+    "known_arm_wrongly_provisional": 49,
+    "known_outerwear_wrongly_provisional": 8,
+    "known_underlayer": 10177,
+    "unknown_unreviewed": 250
+  },
+  "review_manifest_members_verified": 19,
+  "run30_baseline_coat": {
+    "known_arm_wrong_owner_fp": 225,
+    "known_outerwear_fn": 23735,
+    "known_outerwear_tp": 291088,
+    "known_underlayer_wrong_owner_fp": 11326,
+    "known_wrong_owner_fp": 11551
+  },
+  "run30_manifest_members_verified": 7,
+  "schema": "minimalizer/local-l02/neutral-underlayer-preservation-signed-known-h06/v0",
+  "source_only_frozen_before_human_postscore": true,
+  "source_only_meta": {
+    "Golden": "HOLD",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Phase4": "FAIL",
+    "candidate_components_8": 2,
+    "candidate_source_pixels": 10484,
+    "coat_abstained_source_pixels": 10873,
+    "frozen_owner_promotions": 0,
+    "human_labels_used_for_inference": false,
+    "known_case_exposed": true,
+    "production": "NO_GO",
+    "schema": "minimalizer/local-l02/neutral-underlayer-preservation-shadow/v0",
+    "underlayer_semantic_owner_authorized": false,
+    "unknown_pixels_not_treated_as_negative": true,
+    "unseen_signed_blind": "PENDING"
+  },
+  "source_pins": {
+    "coat_candidate_sha256": "3175aef851e730236c3efab6e854de5a08d7562cc86f3a752eb625f240ccd1fc",
+    "frozen_owner_sha256": "4be9ae240b8d32cc6b0923371f5c5b3a6159196ba819aa0b7044c06740a7b317",
+    "provisional_underlayer_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+    "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8"
+  },
+  "unseen_signed_blind": "PENDING"
+}
