@@ -8,6 +8,7 @@ This module cannot promote a known-character candidate to Phase4 or Golden.
 from __future__ import annotations
 
 from collections.abc import Mapping
+import re
 
 
 class SignedFrontierHold(ValueError):
@@ -15,6 +16,8 @@ class SignedFrontierHold(ValueError):
 
 
 COUNTS = ('TP', 'known_FP', 'known_FN', 'known_arm_FP', 'known_underlayer_FP')
+SHA_FIELDS = ('source_sha256', 'review_sha256', 'owner_sha256')
+SHA256_RE = re.compile(r'[0-9a-f]{64}\Z')
 
 
 def validate_record(record: Mapping) -> None:
@@ -23,6 +26,10 @@ def validate_record(record: Mapping) -> None:
     if (type(record.get('case')) is not str or not record['case'] or
             type(record.get('candidate')) is not str or not record['candidate']):
         raise SignedFrontierHold('INVALID_CASE_OR_CANDIDATE')
+    for key in SHA_FIELDS:
+        value = record.get(key)
+        if type(value) is not str or SHA256_RE.fullmatch(value) is None:
+            raise SignedFrontierHold('MISSING_OR_INVALID_SIGNED_SHA:' + key)
     if record.get('known_exposed_case_only') is not True:
         raise SignedFrontierHold('KNOWN_CASE_PROVENANCE_REQUIRED')
     if (record.get('source_sha_verified') is not True or
@@ -48,6 +55,8 @@ def dominates(a: Mapping, b: Mapping) -> bool:
     validate_record(a)
     validate_record(b)
     if (a['case'] != b['case'] or
+            a['source_sha256'] != b['source_sha256'] or
+            a['review_sha256'] != b['review_sha256'] or
             a['known_positive_total'] != b['known_positive_total']):
         raise SignedFrontierHold('INCOMPARABLE_SIGNED_CASE')
     better_or_equal = (a['TP'] >= b['TP'] and
@@ -71,7 +80,10 @@ def evaluate_frontier(records: list[Mapping]) -> dict:
         raise SignedFrontierHold('DUPLICATE_CANDIDATE')
     cases = {record['case'] for record in records}
     totals = {record['known_positive_total'] for record in records}
-    if len(cases) != 1 or len(totals) != 1:
+    source_shas = {record['source_sha256'] for record in records}
+    review_shas = {record['review_sha256'] for record in records}
+    if (len(cases) != 1 or len(totals) != 1 or
+            len(source_shas) != 1 or len(review_shas) != 1):
         raise SignedFrontierHold('INCOMPARABLE_SIGNED_CASE')
     result = []
     for target in records:
@@ -87,7 +99,9 @@ def evaluate_frontier(records: list[Mapping]) -> dict:
             'known_underlayer_FP': target['known_underlayer_FP'],
         })
     return {
-        'schema': 'minimalizer/local-l02/signed-known-p0-frontier/v1',
+        'schema': 'minimalizer/local-l02/signed-known-p0-frontier/v2',
+        'source_sha256': next(iter(source_shas)),
+        'review_sha256': next(iter(review_shas)),
         'case': next(iter(cases)),
         'frontier': result,
         'unlabelled_pixels_treated_as_negative': False,
