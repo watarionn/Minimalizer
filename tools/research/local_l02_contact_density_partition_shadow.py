@@ -18,7 +18,7 @@ MIN_INDEPENDENT_GENERIC_CLOTHES = 32
 
 
 def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
-                                               anime_classes, baseline_owner):
+                                               anime_classes, baseline_owner, eligible_classes=(32,)):
     shape = getattr(baseline_owner, 'shape', None)
     if (type(source_rgba) is not np.ndarray or source_rgba.dtype != np.uint8 or
             source_rgba.ndim != 3 or source_rgba.shape[-1] != 4 or
@@ -33,8 +33,10 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
             np.any(baseline_owner > 2) or
             np.any((baseline_owner > 0) & (source_rgba[..., 3] == 0))):
         raise ContactDensityHold('INVALID_DOMAIN_OR_SOURCE')
+    if type(eligible_classes) is not tuple or eligible_classes not in ((32,), (30, 32)):
+        raise ContactDensityHold('UNAPPROVED_ELIGIBLE_CLASS_POLICY')
     st8 = np.ones((3, 3), dtype=bool)
-    eligible = ((class_ids == 32) & (baseline_owner == 0) &
+    eligible = (np.isin(class_ids, eligible_classes) & (baseline_owner == 0) &
                 (source_rgba[..., 3] > 0))
     islands, n_islands = ndimage.label(eligible, structure=st8)
     sizes = np.bincount(islands.ravel())
