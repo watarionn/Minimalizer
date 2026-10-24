@@ -1,0 +1,72 @@
+import sys
+from pathlib import Path
+import numpy as np
+import pytest
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
+import local_l02_neutral_underlayer_preservation_shadow as m
+
+
+def fake_input():
+    rgba = np.zeros((48, 48, 4), dtype=np.uint8)
+    rgba[..., :3] = [235, 230, 225]
+    rgba[..., 3] = 255
+    classes = np.full((48, 48), 32, dtype=np.uint8)
+    owner = np.zeros((48, 48), dtype=np.uint8)
+    owner[4:44, 4:44] = 2
+    classes[4:14, 4:44] = 10
+    return rgba, classes, owner
+
+
+def fake_hue(*, source_rgba, class_ids, frozen_owner):
+    out = frozen_owner.copy()
+    out[24:44, 4:44] = 0
+    return out, {}
+
+
+def test_provisional_layer_is_source_bound_and_disjoint(monkeypatch):
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow', fake_hue)
+    # Component-identity verification is the responsibility of the hue stage.
+    monkeypatch.setattr(m, '_assert_component_identity', lambda *args: 1)
+    rgba, cls, owner = fake_input()
+    # 800px is smaller than the existing 1024px floor: abstain.
+    coat, provisional, receipt = m.propose_neutral_underlayer_preservation_shadow(
+        source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+    assert not provisional.any()
+    assert receipt['underlayer_semantic_owner_authorized'] is False
+    assert receipt['Phase4'] == 'FAIL'
+    assert not np.any(provisional & (coat > 0))
+
+
+def test_large_neutral_component_retained_without_promotion(monkeypatch):
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow', fake_hue)
+    monkeypatch.setattr(m, '_assert_component_identity', lambda *args: 1)
+    rgba, cls, owner = fake_input()
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    owner[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    def hue2(*, source_rgba, class_ids, frozen_owner):
+        out = frozen_owner.copy(); out[14:60, 4:60] = 0; return out, {}
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow', hue2)
+    coat, candidate, receipt = m.propose_neutral_underlayer_preservation_shadow(
+        source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+    assert candidate.sum() >= 1024
+    assert np.all(owner[candidate] == 2)
+    assert np.all(coat[candidate] == 0)
+    assert receipt['human_labels_used_for_inference'] is False
+
+
+@pytest.mark.parametrize('change', ['alpha','class','owner1','dtype','shape'])
+def test_invalid_or_multicoat_input_fails_closed(change):
+    rgba, cls, owner = fake_input()
+    if change == 'alpha': rgba[5,5,3] = 0
+    if change == 'class': cls[5,5] = 47
+    if change == 'owner1': owner[5,5] = 1
+    if change == 'dtype': cls = cls.astype(np.int16)
+    if change == 'shape': cls = cls[:-1]
+    with pytest.raises(m.NeutralUnderlayerHold):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner)
