@@ -32,6 +32,8 @@ def audit_taxonomy_promotion(record: Mapping) -> dict:
         raise TaxonomyPromotionHold('UNVERIFIED_SOURCE_OR_MODEL')
     if record.get('human_labels_used_for_inference') is not False:
         raise TaxonomyPromotionHold('HUMAN_LABEL_LEAKAGE')
+    if independent and record.get('independent_specific_outerwear_verified') is not True:
+        raise TaxonomyPromotionHold('UNVERIFIED_INDEPENDENT_OUTERWEAR')
     risky = sum(counts.get(str(k),0) for k in RISK_CLASSES)
     unsupported_lower_bound = max(0, risky - independent)
     # Independent support is a necessary, never sufficient, condition. A
