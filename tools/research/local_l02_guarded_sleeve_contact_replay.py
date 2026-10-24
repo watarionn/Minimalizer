@@ -11,6 +11,7 @@ import numpy as np
 from scipy import ndimage
 
 from local_l02_guarded_sleeve_geodesic_shadow import propose_guarded_sleeve
+from local_l02_frozen_component_gate import prune_frozen_component_joins
 from local_l02_cross_owner_contact_gate import (
     prune_new_cross_owner_additions, verify_no_new_cross_owner_contacts,
 )
@@ -38,6 +39,9 @@ def propose_contact_safe_sleeve(*, class_ids: np.ndarray,
     repaired, contact = prune_new_cross_owner_additions(
         before=frozen_owner, proposed=proposed,
     )
+    repaired, component_receipt = prune_frozen_component_joins(
+        frozen_owner=frozen_owner, proposed_owner=repaired,
+    )
     if np.any((frozen_owner != 0) & (repaired != frozen_owner)):
         raise GuardedSleeveContactHold('FROZEN_OWNER_CHANGED')
     if np.any((repaired != 0) & (source_alpha == 0)):
@@ -64,6 +68,8 @@ def propose_contact_safe_sleeve(*, class_ids: np.ndarray,
         'frozen_owner_modified_px': 0,
         'new_cross_owner_edges': 0,
         'contact_receipt': contact,
+        'component_receipt': component_receipt,
+        'same_owner_component_identity_4_and_8': 'PRESERVED',
         'human_annotations_used_for_inference': False,
         'signed_source_authenticated_by_caller_required': True,
         'signed_source_verified_here': False,
