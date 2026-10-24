@@ -1,0 +1,11 @@
+# MinimalizerPublic P0 Stage185 Handoff: True Human Review Awaiting Submissions
+
+2026-10-13 JST, canonical `watarionn/Minimalizer` PR #393 Draft / Golden HOLD, branch `research/minimalizerpublic-p0-stage136-155-20261013`.
+
+Stages181-185: two independently named *slots* A/B now have OWNER-ONLY private copies of the original Stage91 offline reviewer archive in established Drive `chatGPT及びCodex用/MinimalizerPublic/StructuralRecovery_P0_20261010/PartPreservation_Stage181_185_20261013`; each has dedicated offline workflow instructions. "Slots provisioned" is NOT "human reviewers authenticated." No reviewer emails or person credentials were present in this chat/Drive at time of handoff, and no sharing grant was applied.
+
+Added pure source-free `web/static/public-human-review-intake-p0.mjs`: exact 340x340 case source SHA check, private draft coverage/uncertain/abstention totals, original 121-tile diagnostics, untrusted pair comparison and four-file intake. Signed-key provenance transport from Stage92 remains available for operator workflow but cannot verify human identity without independently managed registered person-to-key map. No source bytes or actual original-derived data in public repo. New `tests/js/test_public_stage181_185_p0.mjs` adds 15 synthetic tests. Node local 623/623 PASS across 24 suites; verify hosted CI separate.
+
+Actual human identities verified: zero. Actual independent original-label pixel approvals: zero. Even complete and identical submissions are not Golden without validated real humans and adjudication. Fullbody original geometry GC001 3604>1887 and Raden 2370>1412 FAIL. Safari HTTPS and rollback unverified. No merge/deploy, main/Local/regular Public/Stage51/Stage135 untouched.
+
+Next: operator share separately with two known verified accounts, collect A_GC001_review.json, A_Raden_review.json, B_GC001_review.json, B_Raden_review.json, confirm signed provenance/out-of-band identity, apply `evaluateTwoCaseManualIntake` on privately stored unmodified source artifacts and proposed JSON, and human-adjudicate discrepancies. Do not auto-authorize paint. After independently certified wholebody labels exist, revisit source-only subject mask and vertex/color frontier plus real device/release gates.
