@@ -22,6 +22,6 @@ H08 known-only IoU **0.915606 -> 0.921028**. Source-only 4/8 component identity,
 ## Integration boundary
 
 - Opt-in argument `eligible_classes=(30,32)` is accepted only by dormant `tools/research` modules. Existing default `(32,)` remains unchanged.
-- Source-free negative/invariant tests cover default no-op on class30, opt-in recovery, unsupported class policy rejection, alpha/owner preservation; 29 focused tests passed locally. Full repository CI not yet established.
+- Source-free negative/invariant tests cover default no-op on class30, opt-in recovery, unsupported class policy rejection, alpha/owner preservation; 29 focused tests plus 258 L02 source-free tests and 31 subtests passed in the local research overlay. This is not full GitHub repository CI, which has no run record for this PR.
 - No private images, masks, NPZ, annotation coordinates or source bytes in GitHub. The source-free aggregate is the only public replay artifact.
 - Phase4 owner exclusivity, semantic correctness, critical-part retention, and connection still FAIL globally. Unknown signed blind, Phase5 and user Golden/iPhone acceptance remain pending. B L04/L07, Public/C08, production LocalWorker and release untouched.
