@@ -25,6 +25,7 @@ def test_known_tp_gain_cannot_hide_large_pants_background_exposure():
        source_only_added_by_class={'0':4185,'7':8770},
        total_added_source_pixels=12955,
        independent_specific_outerwear_supported_added_pixels=1,
+       independent_specific_outerwear_verified=True,
        human_unlabelled_added_pixels=10035))
     assert a['semantic_promotion']=='HOLD'
     assert a['high_risk_unsupported_lower_bound']==12954
@@ -34,6 +35,7 @@ def test_specific_support_only_removes_this_particular_veto():
     a=audit_taxonomy_promotion(rec(source_only_added_by_class={'7':20},
        total_added_source_pixels=20,
        independent_specific_outerwear_supported_added_pixels=20,
+       independent_specific_outerwear_verified=True,
        human_unlabelled_added_pixels=20))
     assert a['semantic_promotion']=='NOT_AUTHORIZED_BY_THIS_AUDIT'
 
@@ -52,6 +54,7 @@ def test_generic_clothes_not_counted_as_independent_specific_support():
     {'human_labels_used_for_inference':True},
     {'source_only_added_by_class':{'7':-1}},
     {'source_only_added_by_class':{'pants':10}},
+    {'independent_specific_outerwear_supported_added_pixels':1},
 ])
 def test_fail_closed_on_invalid_provenance_or_counts(patch):
     with pytest.raises(TaxonomyPromotionHold):audit_taxonomy_promotion(rec(**patch))
