@@ -1,0 +1,25 @@
+{
+  "schema": "minimalizer/local-l02/run32-component-identity-signed-summary/v1",
+  "date": "2026-10-24",
+  "main_before": "3b17ceb9ae9f73fffa53d6e5a41c293665afdadf",
+  "real_cases_new_P0_resolved": 0,
+  "real_cases_new_P1_resolved": 0,
+  "unresolved_cases": [
+    "H04",
+    "H06",
+    "H08"
+  ],
+  "known_h08_run32_topology_fail": "29->14 jacket 4-neighbour components",
+  "known_h08_fixed_topology": "29->29 jacket 4-neighbour components",
+  "h08_run32_fixed_TP": 116566,
+  "h08_best_prior_TP": 137789,
+  "h08_new_owner_pixels_beyond_best": 0,
+  "h06_run32_added_px": 0,
+  "unseen_blind": "PENDING",
+  "Phase4": "FAIL",
+  "L02": "HOLD",
+  "L03": "NO_GO",
+  "Golden": "HOLD",
+  "production": "NO_GO",
+  "source_free_regression": "253 passed + 31 subtests"
+}
