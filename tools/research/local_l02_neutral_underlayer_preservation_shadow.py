@@ -76,6 +76,21 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
             np.any((composed_owner > 0) & (frozen_owner == 0) &
                    ~np.isin(class_ids, (30, 32))) or np.any(composed_owner == 1)):
             raise NeutralUnderlayerHold('INVALID_COMPOSED_OWNER_PROVENANCE')
+        # A class32 label alone does not authorize arbitrary coat/sleeve
+        # deletion. Recompute the pinned source-only hue abstention from the
+        # original frozen owner, then reject any extra composed-owner erasure.
+        # A 4/8 component count can remain unchanged after a large hole.
+        try:
+            hue_reference, _ = propose_hue_extended_owner_shadow(
+                source_rgba=source_rgba, class_ids=class_ids,
+                frozen_owner=frozen_owner)
+        except ExtendedOwnerHold as exc:
+            raise NeutralUnderlayerHold(
+                'COMPOSED_HUE_PROVENANCE_UNVERIFIED:' + str(exc)) from exc
+        if np.any((frozen_owner > 0) & (composed_owner == 0) &
+                  (hue_reference > 0)):
+            raise NeutralUnderlayerHold(
+                'COMPOSED_CLASS32_ERASURE_NOT_IN_HUE_REPLAY')
         coat = composed_owner.copy()
         provenance_stage = 'composed_owner_provenance'
         input_promotions = int(np.count_nonzero((frozen_owner == 0) & (coat > 0)))
