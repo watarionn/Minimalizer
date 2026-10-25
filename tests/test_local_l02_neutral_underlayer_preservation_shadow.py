@@ -90,11 +90,13 @@ def test_composed_provenance_preserves_original_abstained_source_pixels(monkeypa
     monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
                         lambda **kwargs: (hue_reference, {}))
     coat, candidate, receipt = m.propose_neutral_underlayer_preservation_shadow(
-        source_rgba=rgba, class_ids=cls, frozen_owner=owner, composed_owner=composed)
+        source_rgba=rgba, class_ids=cls, frozen_owner=owner,
+        composed_owner=composed, anime_classes=np.full(cls.shape, 10, dtype=np.uint8))
     assert np.array_equal(coat, composed)
     assert candidate.sum() >= 1024
     assert receipt['provenance_stage'] == 'composed_owner_provenance'
     assert receipt['composed_owner_input_promotions'] == 1
+    assert receipt['composed_class30_independent_support_verified'] is True
     assert receipt['underlayer_semantic_owner_authorized'] is False
     assert receipt['Phase4'] == 'FAIL'
     assert not np.any(candidate & (coat > 0))
@@ -304,7 +306,47 @@ def test_composed_unowned_class32_promotion_refused_even_if_connected(monkeypatc
             coat, candidate, receipt = (
                 m.propose_neutral_underlayer_preservation_shadow(
                     source_rgba=rgba, class_ids=classes,
-                    frozen_owner=frozen, composed_owner=composed))
+                    frozen_owner=frozen, composed_owner=composed,
+                    anime_classes=np.full(cls.shape, 10, dtype=np.uint8)))
             assert np.array_equal(coat, composed)
             assert receipt['composed_owner_input_promotions'] == 1
             assert receipt['underlayer_semantic_owner_authorized'] is False
+
+
+def test_composed_class30_promotion_requires_frozen_independent_evidence(monkeypatch):
+    """A class30 source label alone cannot make skin/underlayer into coat."""
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    classes = np.full((64, 64), 32, dtype=np.uint8)
+    frozen = np.zeros((64, 64), dtype=np.uint8)
+    frozen[4:60, 4:60] = 2
+    classes[4:14, 4:60] = 10
+    hue = frozen.copy()
+    hue[14:60, 4:60] = 0
+    classes[3, 10] = 30
+    composed = hue.copy()
+    composed[3, 10] = 2
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        lambda **kwargs: (hue, {}))
+    with pytest.raises(m.NeutralUnderlayerHold,
+                       match='COMPOSED_INDEPENDENT_OBSERVER_REQUIRED'):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=classes,
+            frozen_owner=frozen, composed_owner=composed)
+    independent = np.full(classes.shape, 10, dtype=np.uint8)
+    independent[3, 10] = 0
+    with pytest.raises(m.NeutralUnderlayerHold,
+                       match='COMPOSED_CLASS30_INDEPENDENT_SUPPORT_HOLD'):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=classes,
+            frozen_owner=frozen, composed_owner=composed,
+            anime_classes=independent)
+    independent[3, 10] = 10
+    coat, _, receipt = m.propose_neutral_underlayer_preservation_shadow(
+        source_rgba=rgba, class_ids=classes, frozen_owner=frozen,
+        composed_owner=composed, anime_classes=independent)
+    assert np.array_equal(coat, composed)
+    assert receipt['composed_class30_independent_support_verified'] is True
+    assert receipt['underlayer_semantic_owner_authorized'] is False
+    assert receipt['Phase4'] == 'FAIL'
