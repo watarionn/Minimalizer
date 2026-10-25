@@ -57,7 +57,13 @@ def propose_morphology_then_class30_shadow(*, source_rgba: np.ndarray,
     veto = ((pre_palette_owner == 0) & (raw_palette > 0) & (cleaned == 0))
     out = proposed.copy()
     resurrected = veto & (out > 0)
-    out[veto] = 0
+    # A later class30/32 opt-in must not invent *new* class32 ownership
+    # outside the morphology-approved source-only candidate. The older veto
+    # covers only pixels proposed by raw_palette, not fresh opt-in class32.
+    unvetted_class32 = ((pre_palette_owner == 0) & (out > 0) &
+                        (class_ids == 32) & (cleaned == 0))
+    newly_unvetted_class32 = unvetted_class32 & ~veto
+    out[veto | unvetted_class32] = 0
     st4 = ndimage.generate_binary_structure(2, 1)
     for owner in (1, 2):
         reachable = ndimage.binary_propagation(
@@ -67,7 +73,8 @@ def propose_morphology_then_class30_shadow(*, source_rgba: np.ndarray,
     if (np.any((pre_palette_owner > 0) & (out != pre_palette_owner)) or
             np.any((out > 0) & (source_rgba[..., 3] == 0)) or
             np.any(added & ~np.isin(class_ids, (30, 32))) or
-            np.any(veto & (out > 0))):
+            np.any(veto & (out > 0)) or
+            np.any(added & (class_ids == 32) & (cleaned == 0))):
         raise MorphologyClass30Hold('FROZEN_SOURCE_OR_VETO_REGRESSION')
     try:
         for owner in (1, 2):
@@ -86,6 +93,7 @@ def propose_morphology_then_class30_shadow(*, source_rgba: np.ndarray,
         'morphology_vetoed_px': int(np.count_nonzero(veto)),
         'optin_attempted_veto_resurrection_px': int(np.count_nonzero(resurrected)),
         'veto_resurrected_after_final_px': 0,
+        'unvetted_class32_optin_vetoed_px': int(np.count_nonzero(newly_unvetted_class32)),
         'new_source_supported_px': int(np.count_nonzero(added)),
         'new_class30_px': int(np.count_nonzero(added & (class_ids == 30))),
         'new_class32_px': int(np.count_nonzero(added & (class_ids == 32))),
