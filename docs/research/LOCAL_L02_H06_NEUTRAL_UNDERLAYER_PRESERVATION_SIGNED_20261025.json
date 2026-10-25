@@ -1,0 +1,179 @@
+{
+  "Golden": "HOLD",
+  "L02": "HOLD",
+  "L03": "NO_GO",
+  "Phase4": "FAIL",
+  "anime_manifest_members_verified": 5,
+  "archive_sha256_verified": true,
+  "frontier_comparison": "H06 composed frontier independently reproduced; provisional underlayer is unchanged and still semantically contaminated, no accepted P0/P1 improvement",
+  "hue_abstained_coat": {
+    "known_arm_wrong_owner_fp": 0,
+    "known_outerwear_fn": 23743,
+    "known_outerwear_tp": 291080,
+    "known_underlayer_wrong_owner_fp": 1077,
+    "known_wrong_owner_fp": 1077
+  },
+  "human_labels_used_for_inference": false,
+  "known_case_exposed": true,
+  "known_p0_unresolved_cases": 3,
+  "new_accepted_p0_improvement_cases": 0,
+  "new_accepted_p1_improvement_cases": 0,
+  "new_provisional_p0_candidate_cases": 1,
+  "production": "NO_GO",
+  "provisional_underlayer_postscore": {
+    "known_arm_wrongly_provisional": 49,
+    "known_outerwear_wrongly_provisional": 8,
+    "known_underlayer": 10177,
+    "unknown_unreviewed": 250
+  },
+  "review_manifest_members_verified": 19,
+  "run30_baseline_coat": {
+    "known_arm_wrong_owner_fp": 225,
+    "known_outerwear_fn": 23735,
+    "known_outerwear_tp": 291088,
+    "known_underlayer_wrong_owner_fp": 11326,
+    "known_wrong_owner_fp": 11551
+  },
+  "run30_manifest_members_verified": 7,
+  "schema": "minimalizer/local-l02/neutral-underlayer-preservation-signed-known-h06/v0",
+  "source_only_frozen_before_human_postscore": true,
+  "source_only_meta": {
+    "Golden": "HOLD",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Phase4": "FAIL",
+    "candidate_components_8": 2,
+    "candidate_source_pixels": 10484,
+    "coat_abstained_source_pixels": 10873,
+    "frozen_owner_promotions": 0,
+    "human_labels_used_for_inference": false,
+    "known_case_exposed": true,
+    "production": "NO_GO",
+    "schema": "minimalizer/local-l02/neutral-underlayer-preservation-shadow/v0",
+    "underlayer_semantic_owner_authorized": false,
+    "unknown_pixels_not_treated_as_negative": true,
+    "unseen_signed_blind": "PENDING"
+  },
+  "source_pins": {
+    "coat_candidate_sha256": "3175aef851e730236c3efab6e854de5a08d7562cc86f3a752eb625f240ccd1fc",
+    "frozen_owner_sha256": "4be9ae240b8d32cc6b0923371f5c5b3a6159196ba819aa0b7044c06740a7b317",
+    "provisional_underlayer_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+    "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8"
+  },
+  "unseen_signed_blind": "PENDING",
+  "composed_frontier_provenance_replay": {
+    "status": "RESEARCH_ONLY_SEMANTIC_FAIL",
+    "signed_archive_sha256_verified": true,
+    "private_manifest_members_verified": {
+      "review": 19,
+      "run30": 7,
+      "anime": 5
+    },
+    "composed_owner_sha256": "ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c",
+    "composed_coat": {
+      "TP": 294020,
+      "known_FP": 1077,
+      "FN": 20803,
+      "known_arm_FP": 0,
+      "known_IoU": 0.930738
+    },
+    "re_hue_on_composed": {
+      "removed_pixels": 0,
+      "provisional_pixels": 0,
+      "reason": "source provenance already lost"
+    },
+    "original_run30_to_composed_provenance": {
+      "source_pixels": 10484,
+      "components_8": 2,
+      "source_only_mask_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+      "known_underlayer": 10177,
+      "known_arm_wrong_owner": 49,
+      "known_outerwear_wrong_owner": 8,
+      "unknown_unreviewed": 250,
+      "composed_owner_input_promotions": 3162,
+      "provisional_owner_authorized": false
+    },
+    "h08_dual_owner": "HOLD_NOT_SINGLE_COAT_OWNER_DOMAIN",
+    "independent_replays": 2,
+    "sourcefree_replay_json_sha256": "ef421df5cf0e248bb45caf014407baef3a7f68c7e8ab62a2ecfdfa06d7d10d4b",
+    "known_exposed_only": true,
+    "human_labels_used_for_inference": false,
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "unresolved_P0_cases": 3,
+    "Phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
+  },
+  "composed_class32_hue_provenance_negative": {
+    "status": "SIGNED_SOURCE_ONLY_NEGATIVE_VERIFIED_GUARD_DRAFT",
+    "signed_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "source_archive_sha256_verified": true,
+    "review_manifest_members_verified": 19,
+    "run30_manifest_members_verified": 7,
+    "anime_manifest_members_verified": 5,
+    "unauthorized_class32_erasure_pixels": 9,
+    "frozen_coat_components_4_before_after": [
+      9,
+      9
+    ],
+    "frozen_coat_components_8_before_after": [
+      8,
+      8
+    ],
+    "removed_pixels_in_frozen_seed_hue_domain": true,
+    "hue_conflict_predicate_for_removed_pixels": false,
+    "source_only_predicate_regression": "PASS",
+    "code_change": "composed_owner class32 deletions must be subset of pinned source-only hue replay deletions",
+    "code_and_tests_registered_in_draft": true,
+    "full_pytest_and_signed_composed_frontier_replay_after_guard": "NOT_RUN",
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "known_P0_unresolved": 3,
+    "Phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
+  },
+  "composed_hue_resurrection_negative": {
+    "status": "SIGNED_SOURCE_ONLY_NEGATIVE_GUARD_DRAFT",
+    "signed_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "private_archive_pins_verified": 4,
+    "member_manifest_checks": {
+      "review": 19,
+      "run30": 7,
+      "anime": 5
+    },
+    "baseline_provisional_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+    "reintroduced_source_pixels": 10484,
+    "former_extra_erasure_check_would_accept": true,
+    "frozen_component_count_4_8_unchanged": true,
+    "new_guard_reason": "COMPOSED_HUE_ABSTENTION_RESURRECTION",
+    "human_postscore_only": {
+      "reviewed_underlayer": 10177,
+      "known_arm": 49,
+      "known_outerwear": 8,
+      "unknown": 250
+    },
+    "strict_neutral_rgb_negative": {
+      "max_channel_delta": 12,
+      "reviewed_underlayer_retained": 9946,
+      "known_arm": 49,
+      "known_outerwear": 5,
+      "unknown": 248,
+      "adopted": false
+    },
+    "current_composed_frontier_exact_replay_after_guard": "NOT_RUN",
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "unresolved_P0_cases": 3,
+    "phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
+  }
+}
