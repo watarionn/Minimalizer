@@ -5,7 +5,7 @@
   "Phase4": "FAIL",
   "anime_manifest_members_verified": 5,
   "archive_sha256_verified": true,
-  "frontier_comparison": "H06 latest composed frontier is not reproduced here; no claim to surpass 20,803 known FN or 1,077 known FP",
+  "frontier_comparison": "H06 composed frontier independently reproduced; provisional underlayer is unchanged and still semantically contaminated, no accepted P0/P1 improvement",
   "hue_abstained_coat": {
     "known_arm_wrong_owner_fp": 0,
     "known_outerwear_fn": 23743,
@@ -60,5 +60,51 @@
     "provisional_underlayer_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
     "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8"
   },
-  "unseen_signed_blind": "PENDING"
+  "unseen_signed_blind": "PENDING",
+  "composed_frontier_provenance_replay": {
+    "status": "RESEARCH_ONLY_SEMANTIC_FAIL",
+    "signed_archive_sha256_verified": true,
+    "private_manifest_members_verified": {
+      "review": 19,
+      "run30": 7,
+      "anime": 5
+    },
+    "composed_owner_sha256": "ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c",
+    "composed_coat": {
+      "TP": 294020,
+      "known_FP": 1077,
+      "FN": 20803,
+      "known_arm_FP": 0,
+      "known_IoU": 0.930738
+    },
+    "re_hue_on_composed": {
+      "removed_pixels": 0,
+      "provisional_pixels": 0,
+      "reason": "source provenance already lost"
+    },
+    "original_run30_to_composed_provenance": {
+      "source_pixels": 10484,
+      "components_8": 2,
+      "source_only_mask_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+      "known_underlayer": 10177,
+      "known_arm_wrong_owner": 49,
+      "known_outerwear_wrong_owner": 8,
+      "unknown_unreviewed": 250,
+      "composed_owner_input_promotions": 3162,
+      "provisional_owner_authorized": false
+    },
+    "h08_dual_owner": "HOLD_NOT_SINGLE_COAT_OWNER_DOMAIN",
+    "independent_replays": 2,
+    "sourcefree_replay_json_sha256": "ef421df5cf0e248bb45caf014407baef3a7f68c7e8ab62a2ecfdfa06d7d10d4b",
+    "known_exposed_only": true,
+    "human_labels_used_for_inference": false,
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "unresolved_P0_cases": 3,
+    "Phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
+  }
 }
