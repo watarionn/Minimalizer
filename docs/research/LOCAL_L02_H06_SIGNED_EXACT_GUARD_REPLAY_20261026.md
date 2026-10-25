@@ -1,0 +1,24 @@
+# Lane A L02: H06 signed exact PR #436 guard replay (2026-10-26 JST)
+
+**Status: source-free independent verification; candidate remains RESEARCH ONLY. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO.** This report is NOT a new semantic owner, a visual P0 resolution, an unseen-character evaluation, or CI approval.
+
+## Canonical provenance and exact code
+
+- GitHub main independently re-read at `48918ac15cdf6edcf4ff9868b29ab341bd4e3618` (already includes merged PR #440); PR #436 remained Draft with code head `0fdf2d0889109831a8913db4148aace263e742df` before this evidence-only commit.
+- Executed exact PR #436 source module Git blob `95799ba16ad16804729b24aaeeab86181e82c2e0` and test Git blob `fd265847d63d6efeb7d68212af1d31fb85a76d7a`. The existing hue-extended and hue-conflict dependencies matched main Git blobs `553c1e9142c1c34463bc85964a66a0692614d16d` and `b12bb2fc969b42641b39285f3a8ac5a9a8204346`. The broader 115-file source-free Drive replay archive is an older research snapshot, **not** a verified exact full main checkout.
+- Four existing private canonical archives verified by raw ZIP SHA-256: reviewed `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`; Run30 `6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c`; sleeve `a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7`; AnimeSeg `9a3f27edac23e14c219ff3a743c85321519cbe7c621c3f962d19e84ad6eb1e26`. Private reviewed/Run30/AnimeSeg member manifests independently verified 19/7/5. Signed original source bytes were validated by the existing signed-source loader.
+
+## Actual signed-source H06 replay after the new provenance guards
+
+- Recomputed existing source-only composed H06 owner SHA `ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c` from authenticated original RGBA and frozen model observers, **before opening human labels**. Existing coat quality: TP **294,020**, known FP **1,077** (underlayer), FN **20,803**, known arm FP **0**. This is the prior frontier, not a new gain.
+- Exact PR #436 `composed_owner` helper accepted this legitimate frozen frontier after its added coat-core, class32 hue-erasure and hue-resurrection guards; output coat is byte-identical. It recovered the *unapproved* separate provisional candidate mask SHA `df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e`, **10,484 original-source pixels / 2 components**, 3,162 already-existing composed-owner additions (not performed by this helper).
+- Postscore, **after both source-only hashes froze**: provisional mask contains **10,177 reviewed underlayer**, **49 known arm**, **8 known coat**, and **250 unknown**. It must **NOT** be promoted or rendered as a semantic underlayer owner.
+- Real signed H06 source-only negatives: reintroducing **10,873 hue-abstained pixels** into the coat is rejected with `COMPOSED_HUE_ABSTENTION_RESURRECTION`; deleting an original-source 3×3 class10 coat-core patch is rejected with `INVALID_COMPOSED_OWNER_PROVENANCE`. Signed H08 mixed-owner input rejects with `NOT_SINGLE_COAT_OWNER_DOMAIN`.
+- Existing DeepFashion2 binary outerwear observer classified **all 10,484 provisional pixels as non-outerwear**; therefore that independent negative alone cannot separate the 49 arm and 8 coat intrusions from correct cuffs. Existing AnimeSeg generic-clothes class10-only retains **977 correct underlayer** but loses the great majority of the 10,177 reviewed cuff pixels. These are independent-observer **negative findings**, not tuned fixes.
+- Exact PR #436 module's own targeted regression suite: **20 PASS**. Broader locally assembled 115-file source-free Drive replay snapshot plus exact PR #436 module/tests: **269 PASS + 31 subtests**. **This is not full GitHub-head CI** and does not authenticate every dependency in the snapshot against current main.
+
+## Decision / next quality gate
+
+No new accepted visual P0/P1 improvements (**0 / 0**); **H04/H06/H08 all three P0 cases remain unresolved**. The signed latest-frontier replay gap for PR #436's new guards is now closed, but the **semantic** gate is still FAIL due to 49 arm + 8 coat provisional intrusions and 250 unknown. Keep PR #436 Draft, do not merge or enable production, and do not treat a clean regression suite as image-quality PASS. Next useful work: obtain an independently supported cuff-versus-skin/coat observer or a source-only abstention that preserves significant correct cuffs without semantic intrusion, followed by H04/H06/H08 visual comparison, truly unseen signed blind, Phase4 owner/connection/critical-part PASS, Phase5 exact replay, full CI, and user Golden/iPhone acceptance. No Lane B L04/L07, Public/C08, LocalWorker production, Golden or original private evidence was modified.
+
+No original RGB/alpha bytes, private masks/NPZ, coordinates, image boards or user review polygons are included here.
