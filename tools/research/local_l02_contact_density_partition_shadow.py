@@ -17,24 +17,27 @@ MIN_OWNER_CONTACT_FRACTION = 0.10
 MIN_INDEPENDENT_GENERIC_CLOTHES = 32
 
 
-def _abstain_unsupported_class30_subcomponents(eligible, class_ids, anime_classes):
-    """Withhold class30 subcomponents lacking their *own* independent evidence.
+def _abstain_unsupported_class30_subcomponents(eligible, class_ids, anime_classes, source_alpha):
+    """Require class30's own independent support across immutable owner stages.
 
-    In a mixed class30/32 island, class32 model support must not authorize
-    class30 pixels by inheritance. Reuse the existing 32px observer minimum,
-    with no manual annotations or new per-character threshold. Research only.
+    Count model evidence on the complete original-alpha class30 component,
+    not merely the remaining unowned eligible pixels. Prior owner promotion
+    must not erase the evidence for a contiguous remaining sleeve segment.
+    Class32 support never counts as class30 support. Research only.
     """
-    class30 = eligible & (class_ids == 30)
-    labels, n = ndimage.label(class30, structure=np.ones((3, 3), dtype=bool))
+    class30_domain = (class_ids == 30) & (source_alpha > 0)
+    labels, n = ndimage.label(class30_domain, structure=np.ones((3, 3), dtype=bool))
     if n == 0:
         return eligible, 0, 0
-    support = np.bincount(labels[class30 & (anime_classes == 10)],
+    support = np.bincount(labels[class30_domain & (anime_classes == 10)],
                           minlength=n + 1)
     supported = support >= MIN_INDEPENDENT_GENERIC_CLOTHES
     supported[0] = False
-    withheld = class30 & ~supported[labels]
+    candidate30 = eligible & (class_ids == 30)
+    withheld = candidate30 & ~supported[labels]
+    withheld_components = np.unique(labels[withheld])
     return (eligible & ~withheld, int(np.count_nonzero(withheld)),
-            int(np.count_nonzero(~supported[1:])))
+            int(len(withheld_components)))
 
 
 def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
@@ -62,7 +65,7 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
     if eligible_classes == (30, 32):
         eligible, withheld_class30_px, withheld_class30_components = (
             _abstain_unsupported_class30_subcomponents(
-                eligible, class_ids, anime_classes))
+                eligible, class_ids, anime_classes, source_rgba[..., 3]))
     islands, n_islands = ndimage.label(eligible, structure=st8)
     sizes = np.bincount(islands.ravel())
     contact = ndimage.binary_dilation(baseline_owner > 0, structure=st8) & eligible
