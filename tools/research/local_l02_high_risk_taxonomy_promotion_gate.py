@@ -78,7 +78,7 @@ def audit_taxonomy_promotion(record: Mapping) -> dict:
         'human_unlabelled_added_pixels_unknown_not_negative': unknown,
         'semantic_promotion': 'HOLD' if hold else 'NOT_AUTHORIZED_BY_THIS_AUDIT',
         'reason': ('CLASS_SUPPORT_INTERSECTION_MISSING' if missing_intersection else
-                   'MODEL_CLASS_25_ACCESSORY_CONFLICT' if accessory_conflict else
+                   'MODEL_CLASS_25_ACCESSORY_CONFLICT' if accessory_conflict and unsupported == 0 else
                    'MODEL_CLASS_0_7_25_UNSUPPORTED' if hold else
                    'FURTHER_SEMANTIC_REVIEW_REQUIRED'),
         'known_case_frontier_is_not_semantic_pass': True,
