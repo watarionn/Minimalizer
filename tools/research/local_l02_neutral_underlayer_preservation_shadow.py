@@ -27,11 +27,15 @@ MIN_COMPONENT_PIXELS = 1024
 
 
 def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
-        class_ids: np.ndarray, frozen_owner: np.ndarray) -> tuple[np.ndarray, np.ndarray, dict]:
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        composed_owner: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
     """Return (coat_owner, provisional_underlayer_mask, fail-closed receipt).
 
     This does not certify the provisional pixels as underlayer. Do not send
     the second array to the production renderer or substitute it for a Golden.
+    When composed_owner is supplied, the original frozen owner is retained as
+    provenance: rerunning hue on an already abstained composed owner loses the
+    original underlayer source pixels.
     """
     shape = getattr(frozen_owner, 'shape', None)
     if (type(source_rgba) is not np.ndarray or source_rgba.dtype != np.uint8 or
@@ -50,11 +54,26 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
         np.count_nonzero((frozen_owner == 2) & (class_ids == 10)) < 64 or
         np.any((frozen_owner == 2) & ~np.isin(class_ids, (10, 32, 29, 30, 31)))):
         raise NeutralUnderlayerHold('NOT_SINGLE_COAT_OWNER_DOMAIN')
-    try:
-        coat, hue_receipt = propose_hue_extended_owner_shadow(
-            source_rgba=source_rgba, class_ids=class_ids, frozen_owner=frozen_owner)
-    except ExtendedOwnerHold as exc:
-        raise NeutralUnderlayerHold('HUE_TOPOLOGY_HOLD:' + str(exc)) from exc
+    if composed_owner is None:
+        try:
+            coat, _ = propose_hue_extended_owner_shadow(
+                source_rgba=source_rgba, class_ids=class_ids, frozen_owner=frozen_owner)
+        except ExtendedOwnerHold as exc:
+            raise NeutralUnderlayerHold('HUE_TOPOLOGY_HOLD:' + str(exc)) from exc
+        provenance_stage = 'hue_replay'
+        input_promotions = 0
+    else:
+        if (type(composed_owner) is not np.ndarray or composed_owner.dtype != np.uint8 or
+            composed_owner.shape != shape or np.any(composed_owner > 2) or
+            np.any((composed_owner > 0) & (source_rgba[..., 3] == 0)) or
+            np.any((frozen_owner > 0) & (composed_owner > 0) &
+                   (frozen_owner != composed_owner)) or
+            np.any((composed_owner > 0) & (frozen_owner == 0) &
+                   ~np.isin(class_ids, (30, 32))) or np.any(composed_owner == 1)):
+            raise NeutralUnderlayerHold('INVALID_COMPOSED_OWNER_PROVENANCE')
+        coat = composed_owner.copy()
+        provenance_stage = 'composed_owner_provenance'
+        input_promotions = int(np.count_nonzero((frozen_owner == 0) & (coat > 0)))
     _, saturation, value = _rgb_to_hsv_numpy(source_rgba[..., :3])
     neutral = ((frozen_owner == 2) & (coat == 0) & (class_ids == 32) &
                (source_rgba[..., 3] > 0) &
@@ -69,7 +88,7 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
     if (np.any(candidate & (coat > 0)) or
         np.any(candidate & (source_rgba[..., 3] == 0)) or
         np.any(candidate & ~((frozen_owner == 2) & (class_ids == 32))) or
-        np.any((coat > 0) & (coat != frozen_owner))):
+        np.any((coat > 0) & (frozen_owner > 0) & (coat != frozen_owner))):
         raise NeutralUnderlayerHold('SOURCE_OR_EXCLUSIVE_OWNER_VIOLATION')
     try:
         for neighborhood in (4, 8):
@@ -77,7 +96,9 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
     except ExtendedOwnerHold as exc:
         raise NeutralUnderlayerHold('COAT_COMPONENT_IDENTITY_HOLD') from exc
     return coat, candidate, {
-        'schema': 'minimalizer/local-l02/neutral-underlayer-preservation-shadow/v0',
+        'schema': 'minimalizer/local-l02/neutral-underlayer-preservation-shadow/v1',
+        'provenance_stage': provenance_stage,
+        'composed_owner_input_promotions': input_promotions,
         'candidate_source_pixels': int(np.count_nonzero(candidate)),
         'candidate_components_8': int(np.count_nonzero(keep)),
         'coat_abstained_source_pixels': int(np.count_nonzero((frozen_owner == 2) & (coat == 0))),
