@@ -68,6 +68,11 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
             np.any((composed_owner > 0) & (source_rgba[..., 3] == 0)) or
             np.any((frozen_owner > 0) & (composed_owner > 0) &
                    (frozen_owner != composed_owner)) or
+            # Only class32 may be abstained by the pinned hue stage.
+            # Component identity alone does not prevent catastrophic loss of
+            # class10 coat core or preserved class29/30/31 extensions.
+            np.any((frozen_owner > 0) & (composed_owner == 0) &
+                   (class_ids != 32)) or
             np.any((composed_owner > 0) & (frozen_owner == 0) &
                    ~np.isin(class_ids, (30, 32))) or np.any(composed_owner == 1)):
             raise NeutralUnderlayerHold('INVALID_COMPOSED_OWNER_PROVENANCE')
