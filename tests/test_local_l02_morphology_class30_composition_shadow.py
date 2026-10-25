@@ -64,3 +64,32 @@ def test_invalid_pin_rejected():
         composition.propose_morphology_then_class30_shadow(
             source_rgba=rgba, class_ids=cls, anime_classes=anime,
             pre_palette_owner=owner, expected_pre_palette_sha256='unverified')
+
+
+def test_class32_optin_cannot_bypass_morphology_approval(monkeypatch):
+    """A fresh class32 region may become connected via class30 but is not approved."""
+    rgba, cls, anime, owner = fixture()
+    first = owner.copy()
+    first[12:52, 26:36] = 1
+
+    def palette(*, baseline_owner, eligible_classes=(32,), **kwargs):
+        if eligible_classes == (32,):
+            assert np.array_equal(baseline_owner, owner)
+            return first.copy(), {'schema': 'palette'}
+        assert eligible_classes == (30, 32)
+        out = baseline_owner.copy()
+        out[12:52, 36:40] = 1  # class30, legitimate opt-in
+        out[20:25, 40:44] = 1   # class32, absent from morphology result
+        return out, {'schema': 'optin'}
+
+    monkeypatch.setattr(composition, 'propose_contact_density_palette_shadow', palette)
+    monkeypatch.setattr(morphology, 'propose_contact_density_palette_shadow', palette)
+    out, meta = composition.propose_morphology_then_class30_shadow(
+        source_rgba=rgba, class_ids=cls, anime_classes=anime,
+        pre_palette_owner=owner,
+        expected_pre_palette_sha256=hashlib.sha256(owner.tobytes()).hexdigest())
+    assert np.count_nonzero(out[20:25, 40:44]) == 0
+    assert meta['unvetted_class32_optin_vetoed_px'] == 20
+    assert meta['new_class30_px'] > 0
+    assert meta['new_class32_px'] > 0  # previously morphology-approved sleeve
+    assert meta['Phase4'] == 'FAIL'
