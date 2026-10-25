@@ -95,7 +95,7 @@ def test_composed_provenance_preserves_original_abstained_source_pixels():
     assert not np.any(candidate & (coat > 0))
 
 
-@pytest.mark.parametrize('bad', ['alpha', 'reassign', 'promote_bad_class', 'owner1', 'dtype', 'shape'])
+@pytest.mark.parametrize('bad', ['alpha', 'reassign', 'promote_bad_class', 'owner1', 'dtype', 'shape', 'erase_coat_core', 'erase_extension'])
 def test_composed_invalid_contract_fails_closed(bad):
     rgba = np.zeros((64, 64, 4), dtype=np.uint8)
     rgba[..., :3] = [240, 240, 240]
@@ -113,6 +113,14 @@ def test_composed_invalid_contract_fails_closed(bad):
         composed[0, 0] = 2
     elif bad == 'owner1':
         composed[0, 0] = 1
+    elif bad == 'erase_coat_core':
+        # Removing a 3x3 interior patch preserves 4/8 component counts,
+        # but silently destroys signed class10 coat pixels.
+        composed[6:9, 6:9] = 0
+    elif bad == 'erase_extension':
+        # Previously retained class30 source pixels are not hue abstentions.
+        cls[20, 20] = 30
+        composed[20, 20] = 0
     elif bad == 'dtype':
         composed = composed.astype(np.int16)
     elif bad == 'shape':
