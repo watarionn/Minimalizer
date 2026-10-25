@@ -13,32 +13,33 @@ def _fixture():
     eligible[10:50, 30:40] = True
     cls[10:50, 30:40] = 30
     anime[10:50, 30:40] = 0
-    return eligible, cls, anime
+    alpha = np.full((64, 64), 255, dtype=np.uint8)
+    return eligible, cls, anime, alpha
 
 
 def test_class32_support_cannot_be_inherited_by_class30():
-    eligible, cls, anime = _fixture()
+    eligible, cls, anime, alpha = _fixture()
     out, withheld, components = _abstain_unsupported_class30_subcomponents(
-        eligible, cls, anime)
+        eligible, cls, anime, alpha)
     assert withheld == 400 and components == 1
     assert np.count_nonzero(out) == 800
     assert not np.any(out[10:50, 30:40])
 
 
 def test_class30_with_own_observer_support_kept():
-    eligible, cls, anime = _fixture()
+    eligible, cls, anime, alpha = _fixture()
     anime[10:50, 30] = 10  # 40 independent class30 pixels, above existing 32
     out, withheld, components = _abstain_unsupported_class30_subcomponents(
-        eligible, cls, anime)
+        eligible, cls, anime, alpha)
     assert withheld == 0 and components == 0
     assert np.array_equal(out, eligible)
 
 
 def test_class32_only_policy_unchanged():
-    eligible, cls, anime = _fixture()
+    eligible, cls, anime, alpha = _fixture()
     cls[10:50, 30:40] = 32
     out, withheld, components = _abstain_unsupported_class30_subcomponents(
-        eligible, cls, anime)
+        eligible, cls, anime, alpha)
     assert withheld == 0 and components == 0
     assert np.array_equal(out, eligible)
 
@@ -47,7 +48,29 @@ def test_no_class30_pixels_or_review_annotations_needed():
     eligible = np.zeros((16, 16), dtype=bool)
     cls = np.zeros((16, 16), dtype=np.uint8)
     anime = np.zeros((16, 16), dtype=np.uint8)
+    alpha = np.full((16, 16), 255, dtype=np.uint8)
     out, withheld, components = _abstain_unsupported_class30_subcomponents(
-        eligible, cls, anime)
+        eligible, cls, anime, alpha)
     assert not np.any(out)
     assert (withheld, components) == (0, 0)
+
+def test_frozen_owner_mask_cannot_erase_same_class_observer_support():
+    eligible, cls, anime, alpha = _fixture()
+    anime[10:50, 30] = 10
+    eligible[10:50, 30] = False  # already owned before later opt-in
+    out, withheld, components = _abstain_unsupported_class30_subcomponents(
+        eligible, cls, anime, alpha)
+    assert withheld == 0 and components == 0
+    assert np.array_equal(out, eligible)
+    assert np.count_nonzero(out & (cls == 30)) == 360
+
+
+def test_transparent_class30_evidence_cannot_release_unsupported_pixels():
+    eligible, cls, anime, alpha = _fixture()
+    anime[10:50, 30] = 10
+    alpha[10:50, 30] = 0
+    eligible[10:50, 30] = False
+    out, withheld, components = _abstain_unsupported_class30_subcomponents(
+        eligible, cls, anime, alpha)
+    assert withheld == 360 and components == 1
+    assert np.count_nonzero(out & (cls == 30)) == 0
