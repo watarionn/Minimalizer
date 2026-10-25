@@ -1,0 +1,78 @@
+{
+  "schema": "minimalizer/local-l02/class30-domain-evidence-latest-h08/v1",
+  "date": "2026-10-25",
+  "known_case_exposed": true,
+  "private_archives_sha256": {
+    "reviewed": "6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598",
+    "run30": "6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c",
+    "sleeve": "a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7",
+    "anime": "9a3f27edac23e14c219ff3a743c85321519cbe7c621c3f962d19e84ad6eb1e26"
+  },
+  "private_member_sha_checks": {
+    "reviewed": 19,
+    "run30": 7,
+    "anime": 5
+  },
+  "h08_source_only_stages": {
+    "composed": "3e46769428946d54f0cc441ead77699a81839cd8e372ca39212e5b7825ee4a1a",
+    "strict": "32bb5266a479ce64571f190ffebe90b50c01329598408019b363c5ab0c9f0778",
+    "single_anchor": "6472cfc419dfc8b2c97ff19350f1b53f31f82033bde3103851072d646d1db14f",
+    "class32_palette": "f847f995790c76a2e3e2238c29a21400aa9d545ac5dcab4d6f4420a15e6efa6d"
+  },
+  "h08_current": {
+    "sha256": "94122b855f70347ff6f318e02bbfa03cddd77e74e76c3772bfe59011df0b0086",
+    "TP": 144221,
+    "known_FP": 17,
+    "FN": 12349,
+    "known_arm_FP": 17
+  },
+  "h08_naive_guard": {
+    "sha256": "ca76309ed90f4e58d8fee151053cd7f5a576f24ec5ce2621bdf2d7300a1b4f19",
+    "TP": 143376,
+    "known_FP": 17,
+    "FN": 13194,
+    "known_arm_FP": 17,
+    "regressed_known_garment_px": 845
+  },
+  "h08_corrected_guard": {
+    "sha256": "94122b855f70347ff6f318e02bbfa03cddd77e74e76c3772bfe59011df0b0086",
+    "TP": 144221,
+    "known_FP": 17,
+    "FN": 12349,
+    "known_arm_FP": 17,
+    "prevented_regression_garment_px": 845,
+    "accepted_quality_improvement": false
+  },
+  "run30_eligibility_postscore": {
+    "H08": {
+      "abstained_class30_px": 74,
+      "known_arm": 74,
+      "reviewed_garment": 0
+    },
+    "H06": {
+      "abstained_class30_px": 54,
+      "reviewed_garment": 26,
+      "known_arm": 0,
+      "other_or_unknown": 28
+    }
+  },
+  "h06_existing_composed_sha256": "ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c",
+  "source_only_targeted_local_tests_passed": 12,
+  "full_repo_ci_verified": false,
+  "github_head_exact_test_verified": false,
+  "human_annotations_used_for_inference": false,
+  "unknown_as_negative": false,
+  "unseen_signed_blind": "PENDING",
+  "accepted_P0_resolved": 0,
+  "accepted_P1_resolved": 0,
+  "unresolved_major_P0_cases": [
+    "H04",
+    "H06",
+    "H08"
+  ],
+  "Phase4": "FAIL",
+  "L02": "HOLD",
+  "L03": "NO_GO",
+  "Golden": "HOLD",
+  "production": "NO_GO"
+}
