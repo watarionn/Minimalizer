@@ -21,3 +21,22 @@ The previously signed **latest H08 composed owner** `94122b855f70347ff6f318e02bb
 Source-only isolated helper fixture confirmed 400 unsupported class30 pixels withheld without touching class32, while 40 independent class30 support pixels retain the component. New source-free regression tests cover these cases and default class32 preservation. Full repository pytest/CI, exact GitHub-head complete replay, unseen signed blind and Phase4 semantic owner quality are **not** established.
 
 **Accepted P0 fully resolved 0 / P1 0; H04, H06, H08 all unresolved.** The new code remains a research-only branch and Draft PR until signed latest-frontier replay, H04/H06 regressions, full CI, and meaningful sleeve/arm visual quality can be verified. No changes to B L04/L07, Public/C08, production LocalWorker, Golden, or release. No private image, mask, NPZ, human polygon or coordinate is committed.
+
+
+## 2026-10-25 signed latest-H08 replay and critical regression correction
+
+The previous first version of this PR measured class30 support only inside `eligible=(baseline_owner==0)`. This accidentally discarded class30 model evidence on pixels already incorporated into the frozen owner. **Exact signed H08 source-only replay exposed a real 845-pixel reviewed-garment regression**, not a hypothetical risk:
+
+| Latest signed H08 owner | SHA-256 prefix | Reviewed garment TP | Known FP | Garment FN | Known arm FP |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Current frontier, no class30 guard | `94122b855f70` | 144,221 | 17 | 12,349 | 17 |
+| First PR #440 guard (incorrect owner-masked evidence) | `ca76309ed90f` | 143,376 | 17 | 13,194 | 17 |
+| Corrected source-domain class30 evidence | `94122b855f70` | 144,221 | 17 | 12,349 | 17 |
+
+**Root cause fixed:** source-only independent class30 support is now counted on each complete 8-connected class30 component inside the original signed source alpha, before any owner-stage eligibility masking. The minimum remains the already adopted 32 AnimeSeg class10 pixels. Class32 support never counts toward class30. Transparent pixels cannot contribute support. No human masks or coordinates enter inference. This preserves class30 sleeve evidence that a previous owner stage had already consumed, without blindly OR-ing mixed class30/32 islands.
+
+The source-only chain was reconstructed from the four SHA-pinned private archives and verified stage-by-stage: H08 composed `3e467694...` → strict `32bb5266...` → single-anchor `6472cfc4...` → class32 palette `f847f995...` → latest mixed opt-in `94122b855f70347ff6f318e02bbfa03cddd77e74e76c3772bfe59011df0b0086`. Source and owner hashes were frozen before postscore. The corrected guard reproduces the same final owner hash and **prevents the 845 true-garment loss**; it does **not** eliminate the existing 17 known arm misassignments or large sleeve gaps.
+
+The separate Run30 eligibility negative remains: H08 74 known-arm / 0 reviewed-garment pixels withheld; H06 54 withheld, including 26 reviewed garment / 0 known arm / 28 other-or-unknown. These are eligibility measurements only. H06's existing composed owner `ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c` was independently reproduced unchanged by the default source-only path. H04 is outside the mixed class30 opt-in and has not been re-evaluated with a new observer in this replay.
+
+Two new source-free regressions cover previously-owned class30 evidence and transparent false evidence. **12 focused local tests PASS** (six class30 and six related contact-palette tests), but the locally assembled research dependencies are not certified GitHub-head-exact and full repository CI has not run. Keep PR **Draft/unmerged** until independent exact-head tests, H04/H06/H08 regression review, signed unknown blind and Phase4 quality gates. No P0/P1 case has been formally resolved. No private bytes were committed.
