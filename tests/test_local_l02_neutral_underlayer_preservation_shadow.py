@@ -162,7 +162,8 @@ def test_composed_class32_coat_color_erasure_requires_hue_provenance(monkeypatch
             composed_owner=composed)
 
 
-def test_composed_unverifiable_hue_reference_fails_closed(monkeypatch):
+@pytest.mark.parametrize('hold_type', [m.ExtendedOwnerHold, ValueError])
+def test_composed_unverifiable_hue_reference_fails_closed(monkeypatch, hold_type):
     rgba = np.zeros((64, 64, 4), dtype=np.uint8)
     rgba[..., :3] = [240, 240, 240]
     rgba[..., 3] = 255
@@ -171,7 +172,7 @@ def test_composed_unverifiable_hue_reference_fails_closed(monkeypatch):
     owner[4:60, 4:60] = 2
     cls[4:14, 4:60] = 10
     def unverifiable(**kwargs):
-        raise m.ExtendedOwnerHold('MISSING_FROZEN_HUE_EVIDENCE')
+        raise hold_type('MISSING_FROZEN_HUE_EVIDENCE')
     monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
                         unverifiable)
     with pytest.raises(
