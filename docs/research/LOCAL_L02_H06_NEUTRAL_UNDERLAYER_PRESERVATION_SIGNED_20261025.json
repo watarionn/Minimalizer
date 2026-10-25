@@ -137,5 +137,43 @@
     "L03": "NO_GO",
     "Golden": "HOLD",
     "production": "NO_GO"
+  },
+  "composed_hue_resurrection_negative": {
+    "status": "SIGNED_SOURCE_ONLY_NEGATIVE_GUARD_DRAFT",
+    "signed_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "private_archive_pins_verified": 4,
+    "member_manifest_checks": {
+      "review": 19,
+      "run30": 7,
+      "anime": 5
+    },
+    "baseline_provisional_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+    "reintroduced_source_pixels": 10484,
+    "former_extra_erasure_check_would_accept": true,
+    "frozen_component_count_4_8_unchanged": true,
+    "new_guard_reason": "COMPOSED_HUE_ABSTENTION_RESURRECTION",
+    "human_postscore_only": {
+      "reviewed_underlayer": 10177,
+      "known_arm": 49,
+      "known_outerwear": 8,
+      "unknown": 250
+    },
+    "strict_neutral_rgb_negative": {
+      "max_channel_delta": 12,
+      "reviewed_underlayer_retained": 9946,
+      "known_arm": 49,
+      "known_outerwear": 5,
+      "unknown": 248,
+      "adopted": false
+    },
+    "current_composed_frontier_exact_replay_after_guard": "NOT_RUN",
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "unresolved_P0_cases": 3,
+    "phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
   }
 }
