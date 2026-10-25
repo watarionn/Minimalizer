@@ -22,3 +22,12 @@ H06's pinned composed owner `ceaae119...` was unchanged (TP 294,020 / known FP 1
 ## Integration gate
 
 This PR remains **Draft**. Required: exact GitHub-head source-only replay and full CI; H08 sleeve/arm visual comparison and semantic owner review; genuinely unseen signed blind evaluation; Phase4 exclusivity/connection/critical-part preservation. Do not merge as production-quality or treat the tiny known-arm correction as completion. A-only source-free code/tests/docs; B L04/L07, Public/C08, production LocalWorker, Golden and release untouched.
+
+
+## 2026-10-26 source-only opt-in bypass hardening (not yet signed-replayed)
+
+A code review of the composition found a separate semantic escape: the earlier `veto` covered only class32 pixels present in the *first* palette proposal and removed by morphology. The subsequent `eligible_classes=(30, 32)` opt-in could propose **fresh class32 pixels absent from the morphology-approved candidate**, potentially connected through newly added class30 pixels. Those were not in the old veto set. This is a P0 owner-integrity risk, not evidence of an observed new H08 defect.
+
+The A-only composition now rejects every newly added class32 pixel outside the morphology-approved `cleaned` mask, while still permitting source-supported class30 opt-in and previously approved class32. A new source-free negative fixture exercises a connected class30 bridge with 20 unapproved class32 pixels; an independent local NumPy/SciPy reproduction removed all 20 and preserved 160 class30 and 400 previously approved class32 pixels. GitHub code/test blobs were read back after writing.
+
+**Important provenance boundary:** the previously recorded H08 candidate SHA `c3a7e642...` and 38-test result refer to the *pre-hardening* PR head. The new exact GitHub-head full pytest, signed H08 replay, and H04/H06 regression are **not yet verified**. Do not claim the new candidate has the old SHA, do not count a new P0/P1 visual improvement, and do not merge this Draft on the strength of the old evidence. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO remain binding.
