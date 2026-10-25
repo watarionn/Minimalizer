@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import numpy as np
 import pytest
+from scipy import ndimage
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
 import local_l02_neutral_underlayer_preservation_shadow as m
 
@@ -72,7 +73,7 @@ def test_invalid_or_multicoat_input_fails_closed(change):
             source_rgba=rgba, class_ids=cls, frozen_owner=owner)
 
 
-def test_composed_provenance_preserves_original_abstained_source_pixels():
+def test_composed_provenance_preserves_original_abstained_source_pixels(monkeypatch):
     rgba = np.zeros((64, 64, 4), dtype=np.uint8)
     rgba[..., :3] = [240, 240, 240]
     rgba[..., 3] = 255
@@ -84,6 +85,10 @@ def test_composed_provenance_preserves_original_abstained_source_pixels():
     composed[14:60, 4:60] = 0
     cls[3, 10] = 30
     composed[3, 10] = 2  # connected permitted source promotion
+    hue_reference = owner.copy()
+    hue_reference[14:60, 4:60] = 0
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        lambda **kwargs: (hue_reference, {}))
     coat, candidate, receipt = m.propose_neutral_underlayer_preservation_shadow(
         source_rgba=rgba, class_ids=cls, frozen_owner=owner, composed_owner=composed)
     assert np.array_equal(coat, composed)
@@ -128,3 +133,50 @@ def test_composed_invalid_contract_fails_closed(bad):
     with pytest.raises(m.NeutralUnderlayerHold):
         m.propose_neutral_underlayer_preservation_shadow(
             source_rgba=rgba, class_ids=cls, frozen_owner=owner, composed_owner=composed)
+
+
+def test_composed_class32_coat_color_erasure_requires_hue_provenance(monkeypatch):
+    """A class32 hole can preserve topology but is not hue-authorized."""
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    owner[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    hue_reference = owner.copy()
+    hue_reference[40:60, 4:60] = 0
+    composed = hue_reference.copy()
+    composed[20:23, 20:23] = 0  # extra class32 interior hole
+    for connectivity in (1, 2):
+        structure = ndimage.generate_binary_structure(2, connectivity)
+        assert ndimage.label(owner == 2, structure)[1] == ndimage.label(
+            composed == 2, structure)[1]
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        lambda **kwargs: (hue_reference, {}))
+    with pytest.raises(
+            m.NeutralUnderlayerHold,
+            match='COMPOSED_CLASS32_ERASURE_NOT_IN_HUE_REPLAY'):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner,
+            composed_owner=composed)
+
+
+def test_composed_unverifiable_hue_reference_fails_closed(monkeypatch):
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    owner[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    def unverifiable(**kwargs):
+        raise m.ExtendedOwnerHold('MISSING_FROZEN_HUE_EVIDENCE')
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        unverifiable)
+    with pytest.raises(
+            m.NeutralUnderlayerHold,
+            match='COMPOSED_HUE_PROVENANCE_UNVERIFIED'):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner,
+            composed_owner=owner.copy())
