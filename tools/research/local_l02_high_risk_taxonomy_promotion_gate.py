@@ -60,12 +60,17 @@ def audit_taxonomy_promotion(record: Mapping) -> dict:
                             if support is not None and intersection_verified else 0)
     unsupported = risky - proven_risky_support
     missing_intersection = bool(risky and independent and support is None)
-    hold = unsupported > 0
+    # A garment-specific observer can also see a visible bag as outerwear.
+    # Frozen class25 is an accessory conflict, not a garment owner grant:
+    # even exact pixelwise outerwear overlap cannot clear this semantic veto.
+    accessory_conflict = counts.get('25', 0)
+    hold = unsupported > 0 or accessory_conflict > 0
     return {
         'schema': 'minimalizer/local-l02/high-risk-taxonomy-promotion-gate/v2',
         'high_risk_added_pixels': risky,
         'high_risk_verified_independent_supported_pixels': proven_risky_support,
         'high_risk_unsupported_or_unverified_pixels': unsupported,
+        'class25_accessory_conflict_pixels': accessory_conflict,
         # This remains a valid *mathematical* lower bound for legacy consumers;
         # it is NOT a substitute for intersection verification.
         'high_risk_unsupported_lower_bound': max(0, risky - independent),
@@ -73,6 +78,7 @@ def audit_taxonomy_promotion(record: Mapping) -> dict:
         'human_unlabelled_added_pixels_unknown_not_negative': unknown,
         'semantic_promotion': 'HOLD' if hold else 'NOT_AUTHORIZED_BY_THIS_AUDIT',
         'reason': ('CLASS_SUPPORT_INTERSECTION_MISSING' if missing_intersection else
+                   'MODEL_CLASS_25_ACCESSORY_CONFLICT' if accessory_conflict else
                    'MODEL_CLASS_0_7_25_UNSUPPORTED' if hold else
                    'FURTHER_SEMANTIC_REVIEW_REQUIRED'),
         'known_case_frontier_is_not_semantic_pass': True,
