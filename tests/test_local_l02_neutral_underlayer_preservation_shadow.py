@@ -269,3 +269,42 @@ def test_boundary_core_refuses_zero_candidate(monkeypatch):
                        match='BOUNDARY_CORE_COMPONENT_RETENTION_HOLD'):
         m.propose_neutral_underlayer_boundary_core_shadow(
             source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+
+
+def test_composed_unowned_class32_promotion_refused_even_if_connected(monkeypatch):
+    """A source-backed class32 addition is not independently coat-authorized."""
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    frozen = np.zeros((64, 64), dtype=np.uint8)
+    frozen[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    hue_reference = frozen.copy()
+    hue_reference[14:60, 4:60] = 0
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        lambda **kwargs: (hue_reference, {}))
+    # Both alternatives touch the original coat and preserve component count.
+    for class_id, should_reject in ((32, True), (30, False)):
+        classes = cls.copy()
+        classes[3, 10] = class_id
+        composed = hue_reference.copy()
+        composed[3, 10] = 2
+        for connectivity in (1, 2):
+            structure = ndimage.generate_binary_structure(2, connectivity)
+            assert ndimage.label(hue_reference == 2, structure)[1] == (
+                ndimage.label(composed == 2, structure)[1])
+        if should_reject:
+            with pytest.raises(m.NeutralUnderlayerHold,
+                               match='INVALID_COMPOSED_OWNER_PROVENANCE'):
+                m.propose_neutral_underlayer_preservation_shadow(
+                    source_rgba=rgba, class_ids=classes,
+                    frozen_owner=frozen, composed_owner=composed)
+        else:
+            coat, candidate, receipt = (
+                m.propose_neutral_underlayer_preservation_shadow(
+                    source_rgba=rgba, class_ids=classes,
+                    frozen_owner=frozen, composed_owner=composed))
+            assert np.array_equal(coat, composed)
+            assert receipt['composed_owner_input_promotions'] == 1
+            assert receipt['underlayer_semantic_owner_authorized'] is False

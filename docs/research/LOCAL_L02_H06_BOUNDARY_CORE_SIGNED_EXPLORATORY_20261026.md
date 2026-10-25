@@ -32,3 +32,30 @@ The 1,703 abstained boundary pixels include **1,447 reviewed correct underlayer*
 A-only source-free helper and synthetic regressions were added. A local independent reconstruction of the signed H06 mask and two synthetic component-guard probes passed; **the exact updated GitHub-head pytest and repository-wide CI are not yet verified**. Next: run exact-head code with the latest composed owner, independently inspect visual cuff-edge continuity, test H04/H08 negative domain and a genuinely unseen signed character, then Phase4 owner exclusivity/connection/critical-parts PASS before Phase5. Do not auto-promote based on known-only postscore.
 
 No changes to Lane B L04/L07, Public/C08, production LocalWorker, Golden, source originals, or private Drive artifacts.
+
+
+## 2026-10-26: unowned class32 composed-promotion provenance guard
+
+Source-free audit found that the composed-owner input contract previously allowed
+**arbitrary unowned class32 pixels to become coat owner** as long as the
+source alpha, class domain and 4/8 coat-component identity remained valid.
+The existing hue-abstention resurrection check protects *previously owned*
+class32 pixels, but not newly promoted class32 pixels. A 64x64 synthetic
+counterexample keeps the coat's 4/8 component counts at 1/1, yet the old
+predicate accepts the extra class32 pixel. This is a **potential large
+skin/underlayer-to-coat P0 regression**, not an observed rendered fix.
+
+The historical source-free signed H06 composed replay attributes its **3,162
+existing owner promotions exclusively to class30**, not class32. Accordingly,
+this H06-only research adapter now rejects any new composed-owner promotion
+outside class30. A matched synthetic class30 control still passes. The
+existing neutral cuff mask is not promoted, and the source-free 2px boundary
+candidate remains unapproved. No reviewed labels or coordinates enter
+inference. The synthetic counterexample and class30 control were checked
+independently; **exact updated GitHub-head pytest, fresh signed H06 replay,
+full CI and unseen-character blind remain NOT_RUN/PENDING**. The historical
+H06 promotion breakdown is not a substitute for a fresh replay.
+
+Accepted rendered P0/P1 improvements **0/0**; H04/H06/H08 **3 unresolved**.
+PR remains Draft, Phase4 FAIL / L02 HOLD / L03 NO_GO / Golden HOLD /
+production NO_GO. No Lane B, Public/C08, production Worker or Golden change.
