@@ -70,3 +70,53 @@ def test_invalid_or_multicoat_input_fails_closed(change):
     with pytest.raises(m.NeutralUnderlayerHold):
         m.propose_neutral_underlayer_preservation_shadow(
             source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+
+
+def test_composed_provenance_preserves_original_abstained_source_pixels():
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    owner[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    composed = owner.copy()
+    composed[14:60, 4:60] = 0
+    cls[3, 10] = 30
+    composed[3, 10] = 2  # connected permitted source promotion
+    coat, candidate, receipt = m.propose_neutral_underlayer_preservation_shadow(
+        source_rgba=rgba, class_ids=cls, frozen_owner=owner, composed_owner=composed)
+    assert np.array_equal(coat, composed)
+    assert candidate.sum() >= 1024
+    assert receipt['provenance_stage'] == 'composed_owner_provenance'
+    assert receipt['composed_owner_input_promotions'] == 1
+    assert receipt['underlayer_semantic_owner_authorized'] is False
+    assert receipt['Phase4'] == 'FAIL'
+    assert not np.any(candidate & (coat > 0))
+
+
+@pytest.mark.parametrize('bad', ['alpha', 'reassign', 'promote_bad_class', 'owner1', 'dtype', 'shape'])
+def test_composed_invalid_contract_fails_closed(bad):
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    owner[4:60, 4:60] = 2
+    cls[4:14, 4:60] = 10
+    composed = owner.copy()
+    if bad == 'alpha':
+        rgba[5, 5, 3] = 0
+    elif bad == 'reassign':
+        composed[5, 5] = 1
+    elif bad == 'promote_bad_class':
+        composed[0, 0] = 2
+    elif bad == 'owner1':
+        composed[0, 0] = 1
+    elif bad == 'dtype':
+        composed = composed.astype(np.int16)
+    elif bad == 'shape':
+        composed = composed[:-1]
+    with pytest.raises(m.NeutralUnderlayerHold):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner, composed_owner=composed)
