@@ -350,3 +350,30 @@ def test_composed_class30_promotion_requires_frozen_independent_evidence(monkeyp
     assert receipt['composed_class30_independent_support_verified'] is True
     assert receipt['underlayer_semantic_owner_authorized'] is False
     assert receipt['Phase4'] == 'FAIL'
+
+
+def test_boundary_core_forwards_independent_observer(monkeypatch):
+    rgba = np.zeros((64, 64, 4), dtype=np.uint8)
+    rgba[..., 3] = 255
+    classes = np.full((64, 64), 32, dtype=np.uint8)
+    owner = np.zeros((64, 64), dtype=np.uint8)
+    composed = owner.copy()
+    independent = np.full((64, 64), 10, dtype=np.uint8)
+    candidate = np.zeros((64, 64), dtype=bool)
+    candidate[4:60, 4:60] = True
+    captured = {}
+    def capture(**kwargs):
+        captured.update(kwargs)
+        return owner.copy(), candidate.copy(), {
+            'schema': 'minimalizer/local-l02/test-source-only/v1',
+            'underlayer_semantic_owner_authorized': False,
+        }
+    monkeypatch.setattr(m, 'propose_neutral_underlayer_preservation_shadow', capture)
+    _, core, receipt = m.propose_neutral_underlayer_boundary_core_shadow(
+        source_rgba=rgba, class_ids=classes, frozen_owner=owner,
+        composed_owner=composed, anime_classes=independent)
+    assert captured['anime_classes'] is independent
+    assert captured['composed_owner'] is composed
+    assert core.sum() == 52 * 52
+    assert receipt['underlayer_semantic_owner_authorized'] is False
+    assert receipt['Phase4'] == 'FAIL'
