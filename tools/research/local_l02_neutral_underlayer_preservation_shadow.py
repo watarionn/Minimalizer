@@ -163,7 +163,8 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
 
 def propose_neutral_underlayer_boundary_core_shadow(*, source_rgba: np.ndarray,
         class_ids: np.ndarray, frozen_owner: np.ndarray,
-        composed_owner: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
+        composed_owner: np.ndarray | None = None,
+        anime_classes: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
     """Retain only the 2-pixel-interior of unapproved neutral source islands.
 
     The 2px boundary band is an EXPOSED H06 research hypothesis, not a learned
@@ -173,7 +174,8 @@ def propose_neutral_underlayer_boundary_core_shadow(*, source_rgba: np.ndarray,
     """
     coat, provisional, receipt = propose_neutral_underlayer_preservation_shadow(
         source_rgba=source_rgba, class_ids=class_ids,
-        frozen_owner=frozen_owner, composed_owner=composed_owner)
+        frozen_owner=frozen_owner, composed_owner=composed_owner,
+        anime_classes=anime_classes)
     structure = np.ones((3, 3), dtype=bool)
     core = ndimage.binary_erosion(
         provisional, structure=structure, iterations=2, border_value=0)
