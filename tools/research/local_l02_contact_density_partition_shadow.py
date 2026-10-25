@@ -17,6 +17,29 @@ MIN_OWNER_CONTACT_FRACTION = 0.10
 MIN_INDEPENDENT_GENERIC_CLOTHES = 32
 
 
+def _abstain_unsupported_class30_subcomponents(eligible, class_ids, anime_classes, source_alpha):
+    """Require class30's own independent support across immutable owner stages.
+
+    Count model evidence on the complete original-alpha class30 component,
+    not merely the remaining unowned eligible pixels. Prior owner promotion
+    must not erase the evidence for a contiguous remaining sleeve segment.
+    Class32 support never counts as class30 support. Research only.
+    """
+    class30_domain = (class_ids == 30) & (source_alpha > 0)
+    labels, n = ndimage.label(class30_domain, structure=np.ones((3, 3), dtype=bool))
+    if n == 0:
+        return eligible, 0, 0
+    support = np.bincount(labels[class30_domain & (anime_classes == 10)],
+                          minlength=n + 1)
+    supported = support >= MIN_INDEPENDENT_GENERIC_CLOTHES
+    supported[0] = False
+    candidate30 = eligible & (class_ids == 30)
+    withheld = candidate30 & ~supported[labels]
+    withheld_components = np.unique(labels[withheld])
+    return (eligible & ~withheld, int(np.count_nonzero(withheld)),
+            int(len(withheld_components)))
+
+
 def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
                                                anime_classes, baseline_owner, eligible_classes=(32,)):
     shape = getattr(baseline_owner, 'shape', None)
@@ -38,6 +61,11 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
     st8 = np.ones((3, 3), dtype=bool)
     eligible = (np.isin(class_ids, eligible_classes) & (baseline_owner == 0) &
                 (source_rgba[..., 3] > 0))
+    withheld_class30_px = withheld_class30_components = 0
+    if eligible_classes == (30, 32):
+        eligible, withheld_class30_px, withheld_class30_components = (
+            _abstain_unsupported_class30_subcomponents(
+                eligible, class_ids, anime_classes, source_rgba[..., 3]))
     islands, n_islands = ndimage.label(eligible, structure=st8)
     sizes = np.bincount(islands.ravel())
     contact = ndimage.binary_dilation(baseline_owner > 0, structure=st8) & eligible
@@ -110,6 +138,9 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
         'source_only_eligible_px':int(np.count_nonzero(possible)),
         'new_source_supported_px':int(np.count_nonzero((baseline_owner == 0)&(out > 0))),
         'eligible_components':int(np.count_nonzero(keep_ids)),
+        'class30_independent_support_min_px':MIN_INDEPENDENT_GENERIC_CLOTHES,
+        'class30_without_independent_support_abstained_px':withheld_class30_px,
+        'class30_without_independent_support_abstained_components':withheld_class30_components,
         'frozen_owner_changes':0,
         'human_annotations_used_for_inference':False,
         'known_case_explored':True,
