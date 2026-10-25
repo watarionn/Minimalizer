@@ -93,6 +93,14 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
                   (hue_reference > 0)):
             raise NeutralUnderlayerHold(
                 'COMPOSED_CLASS32_ERASURE_NOT_IN_HUE_REPLAY')
+        # A later composition may add independently eligible *unowned* pixels,
+        # but must never put hue-abstained frozen class32 pixels back into coat.
+        # Re-admission would silently undo the signed source-only underlayer
+        # abstention while passing the existing deletion/component checks.
+        if np.any((frozen_owner > 0) & (hue_reference == 0) &
+                  (composed_owner > 0)):
+            raise NeutralUnderlayerHold(
+                'COMPOSED_HUE_ABSTENTION_RESURRECTION')
         coat = composed_owner.copy()
         provenance_stage = 'composed_owner_provenance'
         input_promotions = int(np.count_nonzero((frozen_owner == 0) & (coat > 0)))
