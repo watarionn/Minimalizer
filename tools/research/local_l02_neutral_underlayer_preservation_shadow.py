@@ -28,7 +28,8 @@ MIN_COMPONENT_PIXELS = 1024
 
 def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
         class_ids: np.ndarray, frozen_owner: np.ndarray,
-        composed_owner: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
+        composed_owner: np.ndarray | None = None,
+        anime_classes: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
     """Return (coat_owner, provisional_underlayer_mask, fail-closed receipt).
 
     This does not certify the provisional pixels as underlayer. Do not send
@@ -62,7 +63,11 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
             raise NeutralUnderlayerHold('HUE_TOPOLOGY_HOLD:' + str(exc)) from exc
         provenance_stage = 'hue_replay'
         input_promotions = 0
+        independent_class30_evidence_verified = False
     else:
+        # Class30 is a SegFormer category, not independent garment evidence.
+        # Every newly promoted class30 source pixel requires frozen AnimeSeg
+        # generic-clothes support. Missing independent evidence fails closed.
         if (type(composed_owner) is not np.ndarray or composed_owner.dtype != np.uint8 or
             composed_owner.shape != shape or np.any(composed_owner > 2) or
             np.any((composed_owner > 0) & (source_rgba[..., 3] == 0)) or
@@ -80,6 +85,14 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
             np.any((composed_owner > 0) & (frozen_owner == 0) &
                    (class_ids != 30)) or np.any(composed_owner == 1)):
             raise NeutralUnderlayerHold('INVALID_COMPOSED_OWNER_PROVENANCE')
+        newly_owned = (composed_owner > 0) & (frozen_owner == 0)
+        if np.any(newly_owned):
+            if (type(anime_classes) is not np.ndarray or
+                anime_classes.dtype != np.uint8 or anime_classes.shape != shape):
+                raise NeutralUnderlayerHold('COMPOSED_INDEPENDENT_OBSERVER_REQUIRED')
+            if np.any(newly_owned & (anime_classes != 10)):
+                raise NeutralUnderlayerHold('COMPOSED_CLASS30_INDEPENDENT_SUPPORT_HOLD')
+        independent_class30_evidence_verified = bool(np.any(newly_owned))
         # A class32 label alone does not authorize arbitrary coat/sleeve
         # deletion. Recompute the pinned source-only hue abstention from the
         # original frozen owner, then reject any extra composed-owner erasure.
@@ -133,6 +146,7 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
         'schema': 'minimalizer/local-l02/neutral-underlayer-preservation-shadow/v1',
         'provenance_stage': provenance_stage,
         'composed_owner_input_promotions': input_promotions,
+        'composed_class30_independent_support_verified': independent_class30_evidence_verified,
         'candidate_source_pixels': int(np.count_nonzero(candidate)),
         'candidate_components_8': int(np.count_nonzero(keep)),
         'coat_abstained_source_pixels': int(np.count_nonzero((frozen_owner == 2) & (coat == 0))),
