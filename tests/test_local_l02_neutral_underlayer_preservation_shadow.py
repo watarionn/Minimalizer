@@ -187,7 +187,7 @@ def test_composed_cannot_resurrect_source_hue_abstention(monkeypatch):
     """Topology counts and deletion-subset checks miss coat re-admission."""
     rgba, cls, frozen = fake_input()
     hue_reference = frozen.copy()
-    hue_reference[20:40, 4:44] = 0  # class32 was abstained by frozen hue
+    hue_reference[24:44, 4:44] = 0  # class32 abstained without splitting coat
     # A composed owner that reassigns the removed cuff to coat used to pass:
     # it has no extra erasures and its 4/8 component counts are unchanged.
     composed = frozen.copy()
