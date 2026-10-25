@@ -17,6 +17,26 @@ MIN_OWNER_CONTACT_FRACTION = 0.10
 MIN_INDEPENDENT_GENERIC_CLOTHES = 32
 
 
+def _abstain_unsupported_class30_subcomponents(eligible, class_ids, anime_classes):
+    """Withhold class30 subcomponents lacking their *own* independent evidence.
+
+    In a mixed class30/32 island, class32 model support must not authorize
+    class30 pixels by inheritance. Reuse the existing 32px observer minimum,
+    with no manual annotations or new per-character threshold. Research only.
+    """
+    class30 = eligible & (class_ids == 30)
+    labels, n = ndimage.label(class30, structure=np.ones((3, 3), dtype=bool))
+    if n == 0:
+        return eligible, 0, 0
+    support = np.bincount(labels[class30 & (anime_classes == 10)],
+                          minlength=n + 1)
+    supported = support >= MIN_INDEPENDENT_GENERIC_CLOTHES
+    supported[0] = False
+    withheld = class30 & ~supported[labels]
+    return (eligible & ~withheld, int(np.count_nonzero(withheld)),
+            int(np.count_nonzero(~supported[1:])))
+
+
 def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
                                                anime_classes, baseline_owner, eligible_classes=(32,)):
     shape = getattr(baseline_owner, 'shape', None)
@@ -38,6 +58,11 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
     st8 = np.ones((3, 3), dtype=bool)
     eligible = (np.isin(class_ids, eligible_classes) & (baseline_owner == 0) &
                 (source_rgba[..., 3] > 0))
+    withheld_class30_px = withheld_class30_components = 0
+    if eligible_classes == (30, 32):
+        eligible, withheld_class30_px, withheld_class30_components = (
+            _abstain_unsupported_class30_subcomponents(
+                eligible, class_ids, anime_classes))
     islands, n_islands = ndimage.label(eligible, structure=st8)
     sizes = np.bincount(islands.ravel())
     contact = ndimage.binary_dilation(baseline_owner > 0, structure=st8) & eligible
@@ -110,6 +135,9 @@ def propose_contact_density_partition_shadow(*, source_rgba, class_ids,
         'source_only_eligible_px':int(np.count_nonzero(possible)),
         'new_source_supported_px':int(np.count_nonzero((baseline_owner == 0)&(out > 0))),
         'eligible_components':int(np.count_nonzero(keep_ids)),
+        'class30_independent_support_min_px':MIN_INDEPENDENT_GENERIC_CLOTHES,
+        'class30_without_independent_support_abstained_px':withheld_class30_px,
+        'class30_without_independent_support_abstained_components':withheld_class30_components,
         'frozen_owner_changes':0,
         'human_annotations_used_for_inference':False,
         'known_case_explored':True,
