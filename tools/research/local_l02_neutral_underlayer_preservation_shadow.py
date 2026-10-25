@@ -141,3 +141,50 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
         'Phase4': 'FAIL', 'L02': 'HOLD', 'L03': 'NO_GO',
         'Golden': 'HOLD', 'production': 'NO_GO',
     }
+
+
+def propose_neutral_underlayer_boundary_core_shadow(*, source_rgba: np.ndarray,
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        composed_owner: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, dict]:
+    """Retain only the 2-pixel-interior of unapproved neutral source islands.
+
+    The 2px boundary band is an EXPOSED H06 research hypothesis, not a learned
+    skin/coat classifier. No semantic ownership, renderer use, or quality PASS
+    is authorized. If erosion splits or erases any original candidate island,
+    fail closed rather than silently dropping an important sleeve component.
+    """
+    coat, provisional, receipt = propose_neutral_underlayer_preservation_shadow(
+        source_rgba=source_rgba, class_ids=class_ids,
+        frozen_owner=frozen_owner, composed_owner=composed_owner)
+    structure = np.ones((3, 3), dtype=bool)
+    core = ndimage.binary_erosion(
+        provisional, structure=structure, iterations=2, border_value=0)
+    original_labels, original_n = ndimage.label(
+        provisional, structure=structure)
+    core_labels, core_n = ndimage.label(core, structure=structure)
+    if original_n == 0 or core_n != original_n:
+        raise NeutralUnderlayerHold('BOUNDARY_CORE_COMPONENT_RETENTION_HOLD')
+    pairs = np.unique(
+        np.stack((original_labels[core], core_labels[core]), axis=1), axis=0)
+    if (len(pairs) != original_n or
+        len(np.unique(pairs[:, 0])) != original_n or
+        len(np.unique(pairs[:, 1])) != core_n):
+        raise NeutralUnderlayerHold('BOUNDARY_CORE_COMPONENT_IDENTITY_HOLD')
+    if (np.any(core & (coat > 0)) or
+        np.any(core & (source_rgba[..., 3] == 0)) or
+        np.any(core & ~provisional)):
+        raise NeutralUnderlayerHold('BOUNDARY_CORE_SOURCE_OR_OWNER_HOLD')
+    return coat, core, {
+        **receipt,
+        'schema': 'minimalizer/local-l02/neutral-boundary-core-shadow/v1',
+        'original_provisional_source_pixels': int(np.count_nonzero(provisional)),
+        'boundary_abstained_source_pixels': int(np.count_nonzero(provisional & ~core)),
+        'core_source_pixels': int(np.count_nonzero(core)),
+        'boundary_uncertainty_pixels': 2,
+        'core_components_8': int(core_n),
+        'underlayer_semantic_owner_authorized': False,
+        'known_case_exposed': True,
+        'unseen_signed_blind': 'PENDING',
+        'Phase4': 'FAIL', 'L02': 'HOLD', 'L03': 'NO_GO',
+        'Golden': 'HOLD', 'production': 'NO_GO',
+    }
