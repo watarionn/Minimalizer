@@ -84,7 +84,9 @@ def propose_neutral_underlayer_preservation_shadow(*, source_rgba: np.ndarray,
             hue_reference, _ = propose_hue_extended_owner_shadow(
                 source_rgba=source_rgba, class_ids=class_ids,
                 frozen_owner=frozen_owner)
-        except ExtendedOwnerHold as exc:
+        except ValueError as exc:
+            # Hue/seed-contact/topology stages use distinct ValueError HOLD
+            # types; none may escape as an unverified composed provenance.
             raise NeutralUnderlayerHold(
                 'COMPOSED_HUE_PROVENANCE_UNVERIFIED:' + str(exc)) from exc
         if np.any((frozen_owner > 0) & (composed_owner == 0) &
