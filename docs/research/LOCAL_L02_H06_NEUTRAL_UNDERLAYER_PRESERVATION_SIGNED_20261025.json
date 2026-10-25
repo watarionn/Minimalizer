@@ -106,5 +106,36 @@
     "L03": "NO_GO",
     "Golden": "HOLD",
     "production": "NO_GO"
+  },
+  "composed_class32_hue_provenance_negative": {
+    "status": "SIGNED_SOURCE_ONLY_NEGATIVE_VERIFIED_GUARD_DRAFT",
+    "signed_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "source_archive_sha256_verified": true,
+    "review_manifest_members_verified": 19,
+    "run30_manifest_members_verified": 7,
+    "anime_manifest_members_verified": 5,
+    "unauthorized_class32_erasure_pixels": 9,
+    "frozen_coat_components_4_before_after": [
+      9,
+      9
+    ],
+    "frozen_coat_components_8_before_after": [
+      8,
+      8
+    ],
+    "removed_pixels_in_frozen_seed_hue_domain": true,
+    "hue_conflict_predicate_for_removed_pixels": false,
+    "source_only_predicate_regression": "PASS",
+    "code_change": "composed_owner class32 deletions must be subset of pinned source-only hue replay deletions",
+    "code_and_tests_registered_in_draft": true,
+    "full_pytest_and_signed_composed_frontier_replay_after_guard": "NOT_RUN",
+    "new_accepted_P0": 0,
+    "new_accepted_P1": 0,
+    "known_P0_unresolved": 3,
+    "Phase4": "FAIL",
+    "L02": "HOLD",
+    "L03": "NO_GO",
+    "Golden": "HOLD",
+    "production": "NO_GO"
   }
 }
