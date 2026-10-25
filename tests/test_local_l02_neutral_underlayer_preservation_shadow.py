@@ -181,3 +181,31 @@ def test_composed_unverifiable_hue_reference_fails_closed(monkeypatch, hold_type
         m.propose_neutral_underlayer_preservation_shadow(
             source_rgba=rgba, class_ids=cls, frozen_owner=owner,
             composed_owner=owner.copy())
+
+
+def test_composed_cannot_resurrect_source_hue_abstention(monkeypatch):
+    """Topology counts and deletion-subset checks miss coat re-admission."""
+    rgba, cls, frozen = fake_input()
+    hue_reference = frozen.copy()
+    hue_reference[20:40, 4:44] = 0  # class32 was abstained by frozen hue
+    # A composed owner that reassigns the removed cuff to coat used to pass:
+    # it has no extra erasures and its 4/8 component counts are unchanged.
+    composed = frozen.copy()
+    for connectivity in (1, 2):
+        structure = ndimage.generate_binary_structure(2, connectivity)
+        assert ndimage.label(frozen == 2, structure)[1] == ndimage.label(
+            composed == 2, structure)[1]
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow',
+                        lambda **kwargs: (hue_reference, {}))
+    with pytest.raises(m.NeutralUnderlayerHold,
+                       match='COMPOSED_HUE_ABSTENTION_RESURRECTION'):
+        m.propose_neutral_underlayer_preservation_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=frozen,
+            composed_owner=composed)
+    # Keeping the hue abstention is allowed; the coat is never promoted.
+    kept, candidate, receipt = m.propose_neutral_underlayer_preservation_shadow(
+        source_rgba=rgba, class_ids=cls, frozen_owner=frozen,
+        composed_owner=hue_reference.copy())
+    assert np.array_equal(kept, hue_reference)
+    assert not np.any(candidate & (kept > 0))
+    assert receipt['Phase4'] == 'FAIL'
