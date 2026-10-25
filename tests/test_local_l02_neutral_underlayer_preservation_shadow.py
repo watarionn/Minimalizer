@@ -209,3 +209,63 @@ def test_composed_cannot_resurrect_source_hue_abstention(monkeypatch):
     assert np.array_equal(kept, hue_reference)
     assert not np.any(candidate & (kept > 0))
     assert receipt['Phase4'] == 'FAIL'
+
+
+def test_boundary_core_keeps_two_coherent_source_islands(monkeypatch):
+    """Only source-backed cuff interiors survive; no owner is promoted."""
+    rgba = np.zeros((140, 140, 4), dtype=np.uint8)
+    rgba[..., :3] = [240, 240, 240]
+    rgba[..., 3] = 255
+    cls = np.full((140, 140), 32, dtype=np.uint8)
+    owner = np.zeros((140, 140), dtype=np.uint8)
+    for left, right in ((10, 60), (80, 130)):
+        owner[10:70, left:right] = 2
+        cls[10:20, left:right] = 10
+    def hue_two(*, source_rgba, class_ids, frozen_owner):
+        out = frozen_owner.copy()
+        out[20:70, 10:60] = 0
+        out[20:70, 80:130] = 0
+        return out, {}
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow', hue_two)
+    monkeypatch.setattr(m, '_assert_component_identity', lambda *args: 1)
+    coat, core, receipt = m.propose_neutral_underlayer_boundary_core_shadow(
+        source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+    assert core.sum() == 2 * 46 * 46
+    assert receipt['original_provisional_source_pixels'] == 5000
+    assert receipt['boundary_abstained_source_pixels'] == 5000 - core.sum()
+    assert receipt['core_components_8'] == 2
+    assert not np.any(core & (coat > 0))
+    assert np.all(owner[core] == 2)
+    assert receipt['underlayer_semantic_owner_authorized'] is False
+    assert receipt['Phase4'] == 'FAIL'
+
+
+def test_boundary_core_rejects_eroded_bridge_fragmentation(monkeypatch):
+    """A narrow connection may not silently disappear to improve metrics."""
+    rgba = np.zeros((120, 120, 4), dtype=np.uint8)
+    rgba[..., 3] = 255
+    owner = np.zeros((120, 120), dtype=np.uint8)
+    cls = np.zeros((120, 120), dtype=np.uint8)
+    candidate = np.zeros((120, 120), dtype=bool)
+    candidate[20:65, 10:50] = True
+    candidate[20:65, 70:110] = True
+    candidate[41:43, 50:70] = True
+    assert ndimage.label(candidate, structure=np.ones((3, 3)))[1] == 1
+    monkeypatch.setattr(
+        m, 'propose_neutral_underlayer_preservation_shadow',
+        lambda **kwargs: (owner.copy(), candidate.copy(), {
+            'schema': 'minimalizer/local-l02/test-source-only/v1'}))
+    with pytest.raises(m.NeutralUnderlayerHold,
+                       match='BOUNDARY_CORE_COMPONENT_RETENTION_HOLD'):
+        m.propose_neutral_underlayer_boundary_core_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner)
+
+
+def test_boundary_core_refuses_zero_candidate(monkeypatch):
+    rgba, cls, owner = fake_input()
+    monkeypatch.setattr(m, 'propose_hue_extended_owner_shadow', fake_hue)
+    monkeypatch.setattr(m, '_assert_component_identity', lambda *args: 1)
+    with pytest.raises(m.NeutralUnderlayerHold,
+                       match='BOUNDARY_CORE_COMPONENT_RETENTION_HOLD'):
+        m.propose_neutral_underlayer_boundary_core_shadow(
+            source_rgba=rgba, class_ids=cls, frozen_owner=owner)
