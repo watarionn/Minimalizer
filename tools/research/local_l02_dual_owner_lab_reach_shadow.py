@@ -11,6 +11,7 @@ source, class observation and composed owner SHA before invoking this function.
 from __future__ import annotations
 
 import cv2
+import hashlib
 import numpy as np
 from scipy import ndimage
 
@@ -44,7 +45,8 @@ def _component_identity(before: np.ndarray, after: np.ndarray, owner_id: int,
 
 def propose_dual_owner_lab_reach_shadow(*, source_rgba: np.ndarray,
                                          class_ids: np.ndarray,
-                                         composed_owner: np.ndarray
+                                         composed_owner: np.ndarray,
+                                         expected_composed_owner_sha256: str
                                          ) -> tuple[np.ndarray, dict]:
     """Propose only original-source class32 additions to a frozen dual owner.
 
@@ -60,6 +62,13 @@ def propose_dual_owner_lab_reach_shadow(*, source_rgba: np.ndarray,
         not composed_owner.size or source_rgba.shape[:2] != composed_owner.shape or
         class_ids.shape != composed_owner.shape):
         raise DualOwnerLabReachHold('INVALID_SOURCE_OR_MODEL_CONTRACT')
+    if (not isinstance(expected_composed_owner_sha256, str) or
+        len(expected_composed_owner_sha256) != 64 or
+        any(c not in '0123456789abcdef' for c in expected_composed_owner_sha256)):
+        raise DualOwnerLabReachHold('MISSING_OR_INVALID_COMPOSED_OWNER_PIN')
+    actual_owner_sha256 = hashlib.sha256(composed_owner.tobytes(order='C')).hexdigest()
+    if actual_owner_sha256 != expected_composed_owner_sha256:
+        raise DualOwnerLabReachHold('COMPOSED_OWNER_SHA_MISMATCH')
     before = composed_owner
     alpha = source_rgba[..., 3]
     if (np.any(before > 2) or np.any(class_ids >= 47) or
@@ -70,6 +79,7 @@ def propose_dual_owner_lab_reach_shadow(*, source_rgba: np.ndarray,
     receipt = {
         'schema': 'minimalizer/local-l02/dual-owner-lab-reach-shadow/v1',
         'known_cases_exposed': True,
+        'verified_composed_owner_sha256': actual_owner_sha256,
         'new_unseen_signed_blind': 'PENDING',
         'human_labels_used_for_inference': False,
         'semantic_owner_authorized': False,
