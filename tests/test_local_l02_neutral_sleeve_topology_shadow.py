@@ -92,3 +92,33 @@ def test_budget_failure_is_not_quality_pass():
         propose_neutral_sleeve_abstention(
             rgba=rgba, class_ids=cls, frozen_owner=owner,
             max_owner_pixels=10)
+
+def test_frozen_class30_extension_is_not_removed_as_neutral_class32():
+    rgba, cls, owner = scene()
+    cls[70:85, 140:150] = 30
+    out, info = propose_neutral_sleeve_abstention(
+        rgba=rgba, class_ids=cls, frozen_owner=owner)
+    assert info['removed'] == 300
+    assert np.all(out[70:85, 140:150] == 2)
+    assert np.all(out[70:85, 150:170] == 0)
+    assert np.all(out[10:140, 10:140] == 2)
+    assert info['Phase4'] == 'FAIL'
+    assert info['owner_promotion_authorized'] is False
+
+
+def test_frozen_class30_without_class10_seed_abstains():
+    rgba, cls, owner = scene()
+    cls[10:140, 10:140] = 30
+    out, info = propose_neutral_sleeve_abstention(
+        rgba=rgba, class_ids=cls, frozen_owner=owner)
+    assert np.array_equal(out, owner)
+    assert info['decision'] == 'ABSTAIN_MIXED_OR_NO_COAT_SEED'
+
+
+def test_class30_must_not_be_claimed_by_jacket_owner():
+    rgba, cls, owner = scene()
+    cls[70:85, 140:150] = 30
+    owner[70:85, 140:150] = 1
+    with pytest.raises(NeutralSleeveHold, match='SOURCE_ALPHA_OR_OWNER_CLASS_CONFLICT'):
+        propose_neutral_sleeve_abstention(
+            rgba=rgba, class_ids=cls, frozen_owner=owner)
