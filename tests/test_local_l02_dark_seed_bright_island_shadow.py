@@ -73,3 +73,19 @@ def test_non_outerwear_owner_map_fails_closed_before_erosion():
     rgba[32:63, 32:63, :3] = 240
     with pytest.raises(ValueError, match="UNSUPPORTED_OWNER_IDS"):
         propose(rgba, cls, owner)
+
+
+def test_swapped_jacket_coat_seed_fails_closed():
+    """Owner=2 cannot claim a class5 jacket seed as coat material."""
+    rgba, cls, owner = frame()
+    owner[20:40, 20:40] = 2
+    with pytest.raises(ValueError, match="OWNER_CLASS_PROVENANCE_MISMATCH"):
+        propose(rgba, cls, owner)
+
+
+def test_non_garment_class_inside_valid_owner_id_fails_closed():
+    """An ID in 0/1/2 is not sufficient evidence of garment provenance."""
+    rgba, cls, owner = frame()
+    cls[20:40, 20:40] = 7
+    with pytest.raises(ValueError, match="OWNER_CLASS_PROVENANCE_MISMATCH"):
+        propose(rgba, cls, owner)
