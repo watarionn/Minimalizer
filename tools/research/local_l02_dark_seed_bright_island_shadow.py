@@ -102,6 +102,10 @@ def propose_dark_seed_abstention(
             class_ids.shape != frozen_owner.shape or
             source_rgba.shape[:2] != frozen_owner.shape):
         raise ValueError("source RGBA, uint8 classes, and uint8 owner shapes required")
+    # The input is an exclusive outerwear map, not a full-body owner map.
+    # A foreign owner (skin, hair, underlayer) must never be abstained here.
+    if np.any(frozen_owner > 2):
+        raise ValueError("UNSUPPORTED_OWNER_IDS: expected unknown=0, jacket=1, coat=2")
     if np.any((frozen_owner != 0) & (source_rgba[:, :, 3] == 0)):
         raise ValueError("frozen owner contains pixels outside source alpha")
     lum = cv2.cvtColor(source_rgba[:, :, :3], cv2.COLOR_RGB2LAB)[:, :, 0].astype(np.int16)
