@@ -106,6 +106,13 @@ def propose_dark_seed_abstention(
     # A foreign owner (skin, hair, underlayer) must never be abstained here.
     if np.any(frozen_owner > 2):
         raise ValueError("UNSUPPORTED_OWNER_IDS: expected unknown=0, jacket=1, coat=2")
+    # A valid numeric owner ID is insufficient: preserve the source-model
+    # jacket/coat provenance before any subtractive bright-island operation.
+    if (np.any((frozen_owner == 1) &
+               ~np.isin(class_ids, (5, 29, 30, 31, 32))) or
+        np.any((frozen_owner == 2) &
+               ~np.isin(class_ids, (10, 29, 30, 31, 32)))):
+        raise ValueError("OWNER_CLASS_PROVENANCE_MISMATCH")
     if np.any((frozen_owner != 0) & (source_rgba[:, :, 3] == 0)):
         raise ValueError("frozen owner contains pixels outside source alpha")
     lum = cv2.cvtColor(source_rgba[:, :, :3], cv2.COLOR_RGB2LAB)[:, :, 0].astype(np.int16)
