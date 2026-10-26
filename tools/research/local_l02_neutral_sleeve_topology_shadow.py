@@ -93,9 +93,13 @@ def propose_neutral_sleeve_abstention(*, rgba, class_ids, frozen_owner,
             frozen_owner.shape != shape or np.any(frozen_owner > 2)):
         raise NeutralSleeveHold('INVALID_FROZEN_OWNER')
     selected = frozen_owner > 0
+    # Current main H06 owner may contain independently frozen class30
+    # extension pixels. Treat them as immutable provenance, never a neutral
+    # class32 deletion candidate or newly promoted owner.
+    frozen_class30 = (frozen_owner == 2) & (class_ids == 30)
     if (np.any(selected & (rgba[:, :, 3] == 0)) or
             np.any((frozen_owner == 1) & ~np.isin(class_ids, (5, 32))) or
-            np.any((frozen_owner == 2) & ~np.isin(class_ids, (10, 32)))):
+            np.any((frozen_owner == 2) & ~np.isin(class_ids, (10, 30, 32)))):
         raise NeutralSleeveHold('SOURCE_ALPHA_OR_OWNER_CLASS_CONFLICT')
     if int(selected.sum()) > max_owner_pixels or max_restore_pixels < 1:
         raise NeutralSleeveHold('OWNER_OR_RESTORE_BUDGET')
@@ -124,7 +128,9 @@ def propose_neutral_sleeve_abstention(*, rgba, class_ids, frozen_owner,
     keep, restored = _restore_four_connected(selected, remove.copy(), max_restore_pixels)
     if (ndi.label(keep, ndi.generate_binary_structure(2, 1))[1] != before4 or
             ndi.label(keep, ndi.generate_binary_structure(2, 2))[1] != before8 or
-            np.any(keep & ~selected) or np.any((selected & ~keep) & (class_ids != 32))):
+            np.any(keep & ~selected) or np.any((selected & ~keep) & (class_ids != 32)) or
+            np.any(frozen_class30 & ~keep)):
+
         raise NeutralSleeveHold('FROZEN_TOPOLOGY_OR_CLASS_REGRESSION')
     result = frozen_owner.copy()
     result[selected & ~keep] = 0
