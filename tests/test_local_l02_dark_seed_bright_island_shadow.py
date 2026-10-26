@@ -42,7 +42,8 @@ def test_light_garment_abstains():
 
 def test_no_seed_abstains():
     rgba, cls, owner = frame()
-    cls[cls == 5] = 7
+    # A class32 sleeve is valid owner=1 provenance but has no class5 seed.
+    cls[cls == 5] = 32
     assert np.array_equal(propose(rgba, cls, owner), owner)
 
 
@@ -62,6 +63,8 @@ def test_invalid_shapes_fail_closed():
 def test_owner_ids_never_reassigned():
     rgba, cls, owner = frame()
     owner[12:48, 12:84] = 2
+    # The coat region must be class10, not a class5 jacket in disguise.
+    cls[12:48, 12:84] = 10
     rgba[32:63, 32:63, :3] = 240
     result = propose(rgba, cls, owner)
     assert np.all((result == 0) | (result == owner))
