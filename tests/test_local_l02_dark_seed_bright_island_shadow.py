@@ -65,3 +65,11 @@ def test_owner_ids_never_reassigned():
     rgba[32:63, 32:63, :3] = 240
     result = propose(rgba, cls, owner)
     assert np.all((result == 0) | (result == owner))
+
+def test_non_outerwear_owner_map_fails_closed_before_erosion():
+    """A full-body owner map must never be treated as outerwear-only."""
+    rgba, cls, owner = frame()
+    owner[20:40, 20:40] = 3  # separate underlayer/skin owner, not garment
+    rgba[32:63, 32:63, :3] = 240
+    with pytest.raises(ValueError, match="UNSUPPORTED_OWNER_IDS"):
+        propose(rgba, cls, owner)
