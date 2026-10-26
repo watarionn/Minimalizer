@@ -26,3 +26,46 @@ H06 candidate owner uint8 C-order SHA-256 `3257ed1aefde4a4de7c313f62e95c6c27d22d
 Source-free focused regression **10 PASS** locally; two signed known-source replays deterministic. Need exact GitHub blob readback, PR head CI, current-main composed H06 owner comparison, H04 authenticated alignment, 4/8 critical-part identity (not merely counts), independent unseen signed blind cohort, model licence and user Golden/iPhone acceptance. Do not merge into production inference or claim Phase4 PASS. Officially accepted rendered P0/P1 improvements **0/0**; unresolved H04/H06/H08 **3**.
 
 Private **lossless uint8 owner PNG** and source-dependent visual comparison were saved to the existing non-shared Drive evidence folder and independently downloaded again. The PNG byte SHA-256 is `3814cfa600d08abd3d1f684fe0766fe6b5446ab6660b288b3c12c4e959c32247`; decoding the cloud copy reproduces the exact H06 candidate owner SHA `3257ed1aefde4a4de7c313f62e95c6c27d22d731eba606b21a41b1ee1340adf5`. The private visual JPEG cloud copy SHA-256 is `3d0dd3d2cffa77901981c7df454a07a74dbd4ee475da7d57cf4492a5ec977720`. The local NPZ/ZIP transport copy is **not** claimed uploaded. No private images, NPZ, masks, human annotation geometry, or coordinates belong in GitHub.
+
+## 2026-10-26: current-main dominance check and class30 provenance correction
+
+This addendum compares **the same signed H06 reviewed-label definition** across the
+historical Run30 neutral shadow and the separately documented, source-verified
+current-main H06 composed owner. It is **not** a newly executed current-main
+composed-owner replay; the main candidate SHA and aggregate postscore come from
+`docs/research/LOCAL_L02_H06_H08_RESIDUAL_TAXONOMY_SIGNED_20261025.md`.
+
+| Signed H06 reviewed-only score | Run30 baseline | Neutral shadow #442 | Current-main composed owner (recorded) |
+| --- | ---: | ---: | ---: |
+| Correct outerwear TP | 291,088 | **290,758** | **294,020** |
+| Known false owner FP | 11,551 | **1,382** | **1,077** |
+| Missing outerwear FN | 23,735 | **24,065** | **20,803** |
+| Known underlayer FP | 11,326 | **1,249** | Not separately verified here |
+| Known arm FP | 225 | **133** | Not separately verified here |
+
+The neutral candidate's exact uint8 owner SHA `3257ed1aefde4a4de7c313f62e95c6c27d22d731eba606b21a41b1ee1340adf5`
+was independently reproduced from the signed H06 embedded WebP
+(`c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`),
+frozen Run30 owner and signed SegFormer class IDs. The cloud-preserved
+lossless PNG decoded to the identical owner bytes. Human masks were opened
+only **after** this SHA was fixed. The neutral shadow is **dominated** by the
+recorded current-main composed owner: 3,262 fewer correct garment pixels
+and 305 more known incorrect owner pixels. Thus **#442 must not merge as
+a quality improvement** even though it improves historical Run30.
+
+The original #442 implementation rejected any H06 frozen class30 owner
+extension as an owner/class conflict, so it was not compatible with the
+current-main class30-capable provenance. The source-free research function
+now permits **already-frozen class30 coat-owner pixels only**, never proposes
+new class30 ownership and never deletes those pixels. It still only removes
+eligible class32 pixels, and refuses class30 claimed by jacket owner.
+Three additional isolated negative tests passed. The exact signed H06 Run30
+replay is unchanged (10,755 removed; 148 original-owner bridge pixels restored;
+4/8 component counts 9/8). Signed H08 mixed-owner replay remains an unchanged
+abstention. This is **compatibility hardening, not current-main P0 improvement**.
+
+Current-main composed-owner replay with this updated class30-aware candidate,
+complete visual critical-part retention, full GitHub-head CI, and unseen
+signed blind evaluation are still NOT_VERIFIED. No Phase4 promotion, PR merge,
+Golden change, production change, or B/Public modification is authorized.
+Accepted rendered P0/P1 improvements: **0/0**; unresolved H04/H06/H08: **3**.
