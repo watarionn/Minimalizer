@@ -77,3 +77,36 @@ def test_missing_external_pin_rejected():
     kw['expected_class_ids_sha256'] = ''
     with pytest.raises(adapter.SignedDualOwnerInputHold, match='MISSING_EXTERNAL_SHA256_PIN'):
         adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+def test_reject_mocked_shadow_erasure_after_valid_pins(monkeypatch):
+    kw = fixture()
+    def corrupt(**inputs):
+        out = inputs['composed_owner'].copy()
+        out[8, 3] = 0
+        return out, {'new_source_pixels': 0}
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', corrupt)
+    with pytest.raises(adapter.SignedDualOwnerInputHold,
+                       match='SHADOW_POSTCONDITION_HOLD:FROZEN_OWNER_MODIFIED'):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+def test_reject_mocked_shadow_nonopaque_addition_after_valid_pins(monkeypatch):
+    kw = fixture()
+    kw['source_rgba'] = kw['source_rgba'].copy()
+    kw['source_rgba'][16, 6, 3] = 128
+    # Re-encode and independently pin this altered synthetic input.
+    buf = io.BytesIO()
+    Image.fromarray(kw['source_rgba'], 'RGBA').save(buf, format='PNG')
+    kw['encoded_source'] = buf.getvalue()
+    kw['expected_encoded_source_sha256'] = hashlib.sha256(kw['encoded_source']).hexdigest()
+    kw['expected_decoded_rgba_sha256'] = hashlib.sha256(
+        kw['source_rgba'].tobytes(order='C')).hexdigest()
+    def corrupt(**inputs):
+        out = inputs['composed_owner'].copy()
+        out[16, 6] = 1
+        return out, {'new_source_pixels': 1}
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', corrupt)
+    with pytest.raises(adapter.SignedDualOwnerInputHold,
+                       match='SHADOW_POSTCONDITION_HOLD:UNSUPPORTED_OR_NONOPAQUE_ADDITION'):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
