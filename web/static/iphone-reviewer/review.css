@@ -1,0 +1,11 @@
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;color:#172538;background:#f8fafb;touch-action:pan-y}
+*{box-sizing:border-box}body{margin:0;padding:env(safe-area-inset-top) max(10px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(10px,env(safe-area-inset-left));max-width:840px;margin-inline:auto;font-size:15px}
+header{padding:12px 6px 4px}h1{font-size:20px;margin:0 0 4px}h2{font-size:17px;margin:0 0 10px}.muted{color:#526478;font-size:13px;line-height:1.65;margin:8px 0}
+.panel{margin:10px 0;background:#fff;border:1px solid #ccd7e3;border-radius:12px;padding:12px}.sticky{position:sticky;top:0;z-index:3;box-shadow:0 2px 10px #263b5115}
+.topbar,.tools,.actions,.segmented{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.topbar{justify-content:space-between;margin-bottom:9px}.tools{margin:8px 0}
+label{font-weight:600;font-size:13px}button,select,input[type=number],.fileButton{font:inherit;color:inherit;background:#fff;border:1px solid #8f9eae;border-radius:9px;padding:10px;min-height:42px}button:focus-visible,select:focus-visible{outline:3px solid #2975c3}button{cursor:pointer;touch-action:manipulation}button.selected,.primary{background:#185cb8;color:#fff;border-color:#185cb8}.primary{font-weight:700}select{max-width:min(89vw,370px);font-size:16px}input[type=number]{width:78px;font-size:16px}input[type=range]{max-width:110px}.segmented{gap:3px}.actions{margin-top:10px}
+.fileButton{display:inline-flex;position:relative;background:#eaf3ff;border-color:#94b9e0;cursor:pointer;margin-top:4px}.fileButton input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.viewerFrame{width:100%;height:min(56vh,560px);min-height:310px;overflow:auto;overscroll-behavior:contain;border:2px solid #687a8f;border-radius:6px;background:#e1e7ed;touch-action:none}
+#drawing{display:block;width:340px;height:340px;image-rendering:pixelated;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+[hidden]{display:none!important}#status{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(min-width:700px){.viewerFrame{max-width:680px;margin:auto}}
