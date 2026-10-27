@@ -29,6 +29,9 @@ The adapter was run locally with authentic H08 and H06 source, class, AnimeSeg, 
 
 These are **reproductions of a previously exposed known-case candidate, not newly accepted P0 improvements**. H06 unchanged: reviewed true outerwear 291,088, known false-owner 11,551, missing 23,735. H04 was not rerun. No new blind character was available. Labels were used **only after the output had been frozen** for scoring; no human annotations or coordinates entered inference.
 
+
+**Independent visual inspection:** the H08 added source pixels visibly extend the right-side jacket/sleeve edge in the owner-only comparison, but the opposite sleeve and much of the whole-person silhouette remain absent. This is a meaningful *candidate* coverage change, not a complete character or P0 acceptance. The private comparison preview existed only in a temporary isolated workspace; no cloud upload or human Golden approval occurred.
+
 ## Ship / remaining gates
 
 Two source-free code/test files added to A-only Draft PR #445. No merge and no production changes. Accepted P0/P1 improvements **0/0**, unresolved major cases **H04/H06/H08 = 3**. No new private candidate archive was uploaded; Drive read-after-write for this run is **not established**. Do not treat local temporary arrays as preserved private evidence.
