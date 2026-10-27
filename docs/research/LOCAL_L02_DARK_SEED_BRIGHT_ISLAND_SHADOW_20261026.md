@@ -47,3 +47,25 @@ Candidate owner raw uint8 SHA-256: H04 `dfd05c84c3f4b1c92a5f9833c900f4f8cf2a4308
 - A lossless private candidate-owner PNG, source comparison PNG and private receipt were generated. Upload to the **existing** non-shared Drive folder was attempted through the mounted Google Drive Library route, but all three uploads returned `container_session_unavailable`. **Cloud preservation and read-after-write are NOT verified; do not treat these artifacts as delivered.** No alternate public storage, raw source, mask or coordinate upload was attempted. The source-free code and this aggregate report remain in the A-only GitHub Draft branch.
 
 **Integration verdict remains Draft/HOLD:** formally accepted P0 0, P1 0, known major unresolved 3; no merge or production owner change. Missing: independent unseen signed blind, critical-part/semantic owner PASS, full exact-head CI, source replay/visual Golden and owner iPhone acceptance. Lane B, Public/C08, LocalWorker and Golden untouched.
+
+
+## 2026-10-27 dark-texture preservation regression (A-only, still HOLD)
+
+An independent code review of the exact GitHub source blob `6b5186b14d47113a012019af33fd1505b6afe1a9` found that 3x3 `uniform_filter(bright) >= 0.7` could include a *dark center* surrounded by eight bright pixels. The old source-only proposal therefore erased dark garment texture despite its claim to abstain only on bright islands. In a source-free 192x192 patterned negative, **900 of 900 genuinely dark original-owner dots were wrongly erased**, while 4/8 topology counts could still appear valid. This is a potentially visible texture/owner-integrity regression, not evidence of 900 real-image errors.
+
+The correction intersects the smoothed bright consensus with the original source-only `bright` predicate before component selection. The exact old GitHub module was reproduced locally by Git blob SHA. The new synthetic negative **fails on the old blob and passes on the fixed blob**; the exact updated source and test blobs passed **10/10 focused pytest** locally. No human masks or coordinates entered the proposal.
+
+Four existing private signed archives were read from the canonical non-shared Drive evidence folder and their ZIP SHA pins matched. ReviewedEvidence/Run30/AnimeSeg internal SHA manifests passed **19/19, 7/7, 5/5**. Signed H04/H06/H08 source raw SHA matched the independent review audit. The three source-only candidates were frozen and SHA-256 hashed **before** human masks were opened for postscore.
+
+| Signed exposed Run30 | Previous PR #443 owner | Corrected owner |
+| --- | ---: | ---: |
+| H04 known false outerwear | 3,642 | **3,644** |
+| H04 reviewed true outerwear | 49,381 | **49,383** |
+| H04 owner pixels abstained | 786 | **782** |
+| H06/H08 owner changes | 0 / 0 | **0 / 0** |
+
+Corrected H04 owner uint8 SHA-256: `70b42cb8a20f4145122bb32e9c0052d0616649ff6c2e8a7b23d5ea30016acb06`. H04 original Run30 owner SHA `5b56899313d57b1677cb6c30676fe2e60c9fa141331a379aff7ee7a0e6101b5e`. Against original Run30, the corrected H04 known FP is **4,423 -> 3,644** (779 fewer) and true garment is **49,386 -> 49,383** (3 lost). The four restored pixels contain 2 reviewed true garment and 2 reviewed known non-garment. The known H04 accessory defect remains visibly incomplete. This is a source-only guard correction, **not** a resolved P0/P1 case or a new unseen-character result.
+
+Exact updated Git blobs: source `976fbe4a965b8fa5d0d5a9653725f463b113f772`; focused test `39f6dd2552c9f3e919d6209192792ad6ffeb47f1`. Full repository CI and current-main complete Phase4 replay remain unverified. Private images, NPZ, owner masks and coordinates were not uploaded to GitHub or modified on Drive. No production imports or B/Public/LocalWorker/Golden changes.
+
+**Integration decision:** remain Draft/HOLD, no merge as a quality PASS. Accepted P0 0 / P1 0; H04/H06/H08 major unresolved cases 3. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO. Prioritize independent semantic H06 underlayer/coat and H08 sleeve/arm separation rather than further 1px optimization.
