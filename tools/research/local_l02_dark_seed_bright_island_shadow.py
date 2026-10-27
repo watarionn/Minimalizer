@@ -132,7 +132,7 @@ def propose_dark_seed_abstention(
             if median_lum >= 64:
                 continue
             bright = component & (lum >= median_lum + 25)
-            consensus = uniform_filter(bright.astype(np.float32), size=3, mode="constant") >= 0.7
+            consensus = (uniform_filter(bright.astype(np.float32), size=3, mode="constant") >= 0.7) & bright
             islands, ni = label(consensus, _FOUR)
             for island_id in range(1, ni + 1):
                 island = islands == island_id
