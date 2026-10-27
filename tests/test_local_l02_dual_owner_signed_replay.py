@@ -94,3 +94,10 @@ def test_wrong_signed_class_rejected(tmp_path):
     np.savez_compressed(kw['class_npz_path'], classids=classes)
     with pytest.raises(SignedReplayHold, match='SIGNED_ADAPTER_HOLD:INDEPENDENT_CLASS_SHA_MISMATCH'):
         run_pinned_replay(**kw)
+
+
+def test_corrupt_npz_fails_closed_without_private_traceback(tmp_path):
+    kw, _ = fixture(tmp_path)
+    kw['class_npz_path'].write_bytes(b'not a zip archive')
+    with pytest.raises(SignedReplayHold, match='INVALID_PINNED_NPZ'):
+        run_pinned_replay(**kw)
