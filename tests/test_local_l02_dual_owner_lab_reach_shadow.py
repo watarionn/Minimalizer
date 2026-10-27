@@ -80,3 +80,42 @@ def test_single_owner_abstains_even_with_valid_pin():
     assert np.array_equal(out, owner)
     assert receipt['dual_owner_domain'] is False
     assert receipt['new_source_pixels'] == 0
+
+
+def test_current_main_owner_and_contact_audits_are_attached():
+    rgba, cls, owner = fixture()
+    result, receipt = run(rgba, cls, owner, digest(owner))
+    transition = receipt['frozen_owner_transition_audit']
+    contacts = receipt['cross_owner_contact_audit']
+    assert transition['schema'] == 'minimalizer/local-l02/frozen-owner-transition-audit/v1'
+    assert transition['frozen_owner_pixels_modified'] == 0
+    assert transition['newly_assigned_pixels'] == receipt['new_source_pixels']
+    assert contacts['schema'] == 'minimalizer/local-l02/cross-owner-contact-edge-gate/v1'
+    assert contacts['new_cross_owner_4_edges'] == 0
+    assert contacts['new_cross_owner_diagonal_edges'] == 0
+    assert receipt['Phase4'] == 'FAIL'
+    assert np.array_equal(result[owner > 0], owner[owner > 0])
+
+
+def test_main_frozen_owner_contract_rejection_is_not_suppressed(monkeypatch):
+    import local_l02_dual_owner_lab_reach_shadow as shadow
+    rgba, cls, owner = fixture()
+
+    def reject(**kwargs):
+        raise shadow.FrozenOwnerTransitionHold('FORCED_FROZEN_OWNER_NEGATIVE')
+
+    monkeypatch.setattr(shadow, 'audit_frozen_owner_transition', reject)
+    with pytest.raises(DualOwnerLabReachHold, match='MAIN_OWNER_CONTRACT_HOLD:FORCED_FROZEN_OWNER_NEGATIVE'):
+        run(rgba, cls, owner, digest(owner))
+
+
+def test_main_cross_owner_contract_rejection_is_not_suppressed(monkeypatch):
+    import local_l02_dual_owner_lab_reach_shadow as shadow
+    rgba, cls, owner = fixture()
+
+    def reject(**kwargs):
+        raise shadow.CrossOwnerContactHold('FORCED_CONTACT_NEGATIVE')
+
+    monkeypatch.setattr(shadow, 'verify_no_new_cross_owner_contacts', reject)
+    with pytest.raises(DualOwnerLabReachHold, match='MAIN_OWNER_CONTRACT_HOLD:FORCED_CONTACT_NEGATIVE'):
+        run(rgba, cls, owner, digest(owner))
