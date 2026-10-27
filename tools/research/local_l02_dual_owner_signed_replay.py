@@ -52,7 +52,7 @@ def _read_npz_array(path: Path, key: str) -> np.ndarray:
             array = archive[key]
     except SignedReplayHold:
         raise
-    except (OSError, ValueError, KeyError, EOFError) as exc:
+    except (OSError, ValueError, KeyError, EOFError, zipfile.BadZipFile) as exc:
         raise SignedReplayHold('INVALID_PINNED_NPZ') from exc
     if (type(array) is not np.ndarray or array.dtype != np.uint8 or
             array.ndim != 2 or not array.size or array.size > 16_000_000):
@@ -94,7 +94,7 @@ def run_pinned_replay(*, source_path: Path, class_npz_path: Path,
             rgba = np.asarray(im.convert('RGBA'))
     except SignedReplayHold:
         raise
-    except (OSError, UnidentifiedImageError, ValueError) as exc:
+    except (OSError, UnidentifiedImageError, ValueError, Image.DecompressionBombError) as exc:
         raise SignedReplayHold('SOURCE_DECODE_FAILED') from exc
     classes = _read_npz_array(class_npz_path, 'classids')
     owner = _read_npz_array(owner_npz_path, 'owner')
