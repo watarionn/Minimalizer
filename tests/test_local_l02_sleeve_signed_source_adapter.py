@@ -47,7 +47,8 @@ def test_valid_signed_shadow_does_not_promote_quality():
     out, receipt = propose_signed_sleeve_contact_safe_shadow(**x)
     assert receipt['proposal_owner_sha256'] == _sha(out.tobytes())
     assert receipt['Phase4'] == 'FAIL' and receipt['L02'] == 'HOLD'
-    assert receipt['external_class_anime_candidate_owner_pins_verified']
+    assert receipt['supplied_class_anime_candidate_owner_digests_matched']
+    assert receipt['external_pin_provenance_verified'] is False
     assert np.all(out[x['frozen_owner'] > 0] == x['frozen_owner'][x['frozen_owner'] > 0])
 
 
