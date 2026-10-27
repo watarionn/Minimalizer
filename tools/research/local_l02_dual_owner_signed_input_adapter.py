@@ -13,6 +13,9 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError
 
 from local_l02_dual_owner_lab_reach_shadow import propose_dual_owner_lab_reach_shadow
+from local_l02_signed_shadow_output_gate import (
+    SignedShadowOutputHold, verify_signed_shadow_output,
+)
 
 
 class SignedDualOwnerInputHold(ValueError):
@@ -76,8 +79,16 @@ def propose_signed_dual_owner_lab_reach_shadow(
         composed_owner=composed_owner,
         expected_composed_owner_sha256=expected_composed_owner_sha256,
     )
+    try:
+        postcondition = verify_signed_shadow_output(
+            source_rgba=source_rgba, class_ids=class_ids,
+            before=composed_owner, after=proposed, receipt=receipt,
+        )
+    except SignedShadowOutputHold as exc:
+        raise SignedDualOwnerInputHold('SHADOW_POSTCONDITION_HOLD:' + str(exc)) from exc
     return proposed, {
         **receipt,
+        'signed_shadow_postcondition_audit': postcondition,
         'signed_source_encoded_and_decoded_verified': True,
         'independent_class_bytes_verified': True,
         'frozen_owner_bytes_verified': True,
