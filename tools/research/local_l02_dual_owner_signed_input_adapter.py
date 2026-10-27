@@ -74,15 +74,25 @@ def propose_signed_dual_owner_lab_reach_shadow(
         raise SignedDualOwnerInputHold('INDEPENDENT_CLASS_SHA_MISMATCH')
     if hashlib.sha256(composed_owner.tobytes(order='C')).hexdigest() != expected_composed_owner_sha256:
         raise SignedDualOwnerInputHold('FROZEN_OWNER_SHA_MISMATCH')
+    frozen_owner_before_shadow = composed_owner.copy()
     proposed, receipt = propose_dual_owner_lab_reach_shadow(
         source_rgba=source_rgba, class_ids=class_ids,
         composed_owner=composed_owner,
         expected_composed_owner_sha256=expected_composed_owner_sha256,
     )
+    if (hashlib.sha256(composed_owner.tobytes(order='C')).hexdigest()
+            != expected_composed_owner_sha256):
+        raise SignedDualOwnerInputHold('SHADOW_MUTATED_FROZEN_OWNER')
+    if (hashlib.sha256(class_ids.tobytes(order='C')).hexdigest()
+            != expected_class_ids_sha256):
+        raise SignedDualOwnerInputHold('SHADOW_MUTATED_INDEPENDENT_CLASS')
+    if (hashlib.sha256(source_rgba.tobytes(order='C')).hexdigest()
+            != expected_decoded_rgba_sha256):
+        raise SignedDualOwnerInputHold('SHADOW_MUTATED_SIGNED_SOURCE')
     try:
         postcondition = verify_signed_shadow_output(
             source_rgba=source_rgba, class_ids=class_ids,
-            before=composed_owner, after=proposed, receipt=receipt,
+            before=frozen_owner_before_shadow, after=proposed, receipt=receipt,
         )
     except SignedShadowOutputHold as exc:
         raise SignedDualOwnerInputHold('SHADOW_POSTCONDITION_HOLD:' + str(exc)) from exc
