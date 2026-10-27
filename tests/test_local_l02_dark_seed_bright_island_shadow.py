@@ -92,3 +92,23 @@ def test_non_garment_class_inside_valid_owner_id_fails_closed():
     cls[20:40, 20:40] = 7
     with pytest.raises(ValueError, match="OWNER_CLASS_PROVENANCE_MISMATCH"):
         propose(rgba, cls, owner)
+
+
+def test_bright_island_consensus_cannot_erase_dark_patterned_garment_pixels():
+    """A 3x3 majority is not proof that the center is a bright accessory."""
+    rgba, cls, owner = frame(n=192)
+    rgba[12:180, 12:180, :3] = (20, 20, 20)
+    rgba[12:180, 12:180, 3] = 255
+    owner[12:180, 12:180] = 1
+    cls[12:180, 12:180] = 5
+    rgba[48:144, 48:144, :3] = 240
+    rgba[51:141:3, 51:141:3, :3] = 20
+    dark_pattern = np.zeros(owner.shape, dtype=bool)
+    dark_pattern[51:141:3, 51:141:3] = True
+    assert np.count_nonzero(dark_pattern) == 900
+    result = propose(rgba, cls, owner)
+    assert np.all(result[dark_pattern] == 1)
+    assert np.all((result == 0) | (result == owner))
+    for conn in (1, 2):
+        st = generate_binary_structure(2, conn)
+        assert label(result != 0, st)[1] == label(owner != 0, st)[1]
