@@ -18,7 +18,7 @@ class SleeveNoMergeHold(ValueError):
 def _neighbors(connectivity):
     n = ((-1,0),(0,-1),(0,1),(1,0))
     if connectivity==8:
-        n += ((-1,-1),(-1,1),(-1,1),(1,1))
+        n += ((-1,-1),(-1,1),(1,-1),(1,1))
     return n
 
 
@@ -64,7 +64,7 @@ def _cut_collisions(frozen, current, owner_id, connectivity):
         a=comp[ys,xs];b=comp[yt,xt]
         conflict=(a>0)&(b>0)&(a!=b)
         boundary[ys,xs]|=conflict
-        boundary[yt,xs]|=conflict
+        boundary[yt,xt]|=conflict
     removed=boundary & (current==owner_id) & (frozen==0)
     current[removed]=0
     # Strip candidate fragments disconnected from their original owner.
