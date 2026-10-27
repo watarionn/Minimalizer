@@ -110,3 +110,18 @@ def test_reject_mocked_shadow_nonopaque_addition_after_valid_pins(monkeypatch):
     with pytest.raises(adapter.SignedDualOwnerInputHold,
                        match='SHADOW_POSTCONDITION_HOLD:UNSUPPORTED_OR_NONOPAQUE_ADDITION'):
         adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+@pytest.mark.parametrize('target,reason', [
+    ('composed_owner', 'SHADOW_MUTATED_FROZEN_OWNER'),
+    ('class_ids', 'SHADOW_MUTATED_INDEPENDENT_CLASS'),
+    ('source_rgba', 'SHADOW_MUTATED_SIGNED_SOURCE'),
+])
+def test_reject_shadow_inplace_mutation_of_verified_input(monkeypatch, target, reason):
+    kw = fixture()
+    def corrupt(**inputs):
+        inputs[target].flat[0] ^= 1
+        return inputs['composed_owner'].copy(), {'new_source_pixels': 0}
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', corrupt)
+    with pytest.raises(adapter.SignedDualOwnerInputHold, match=reason):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
