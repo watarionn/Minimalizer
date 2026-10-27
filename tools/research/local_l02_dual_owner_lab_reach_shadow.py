@@ -14,6 +14,12 @@ import cv2
 import hashlib
 import numpy as np
 from scipy import ndimage
+from local_l02_cross_owner_contact_gate import (
+    verify_no_new_cross_owner_contacts, CrossOwnerContactHold,
+)
+from local_l02_frozen_owner_transition_audit import (
+    audit_frozen_owner_transition, FrozenOwnerTransitionHold,
+)
 
 
 class DualOwnerLabReachHold(ValueError):
@@ -151,7 +157,17 @@ def propose_dual_owner_lab_reach_shadow(*, source_rgba: np.ndarray,
         np.any((out == 2) & (before == 0) &
                ndimage.binary_dilation(out == 1, structure=structure8))):
         raise DualOwnerLabReachHold('NEW_CROSS_OWNER_CONTACT')
-    return out, {**receipt, 'dual_owner_domain': True,
+    # Use the current-main authoritative source-only safety contracts rather
+    # than duplicating a weaker private staging gate. These checks do not
+    # authorize semantic ownership or relax Phase4/Golden HOLD.
+    try:
+        transition_audit = audit_frozen_owner_transition(before=before, after=out)
+        contact_audit = verify_no_new_cross_owner_contacts(before=before, after=out)
+    except (FrozenOwnerTransitionHold, CrossOwnerContactHold) as exc:
+        raise DualOwnerLabReachHold('MAIN_OWNER_CONTRACT_HOLD:' + str(exc)) from exc
+    return out, {**receipt, 'frozen_owner_transition_audit': transition_audit,
+                 'cross_owner_contact_audit': contact_audit,
+                 'dual_owner_domain': True,
                  'new_source_pixels': int(np.count_nonzero((before == 0) & (out > 0))),
                  'source_alpha_expansion': 0, 'frozen_owner_erasure': 0,
                  'class32_only': True,
