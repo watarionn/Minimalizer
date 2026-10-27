@@ -82,11 +82,14 @@ def propose_signed_sleeve_contact_safe_shadow(*, encoded_source: bytes,
             np.any((frozen_owner > 0) & (proposal != frozen_owner)) or
             np.any((proposal > 0) & (source_rgba[..., 3] == 0))):
         raise SleeveSignedSourceHold('INVALID_SHADOW_OUTPUT')
+    if any(np.shares_memory(proposal, a) for a in arrays):
+        raise SleeveSignedSourceHold('SHADOW_ALIASES_SIGNED_INPUT')
     return proposal, {
         **audit, 'schema': 'minimalizer/local-l02/signed-sleeve-contact-safe/v1',
         'proposal_owner_sha256': _digest(proposal),
-        'external_encoded_and_decoded_source_verified': True,
-        'external_class_anime_candidate_owner_pins_verified': True,
+        'supplied_source_digest_and_decode_matched': True,
+        'supplied_class_anime_candidate_owner_digests_matched': True,
+        'external_pin_provenance_verified': False,
         'signed_inputs_immutable_after_shadow': True,
         'known_cases_exposed': True, 'semantic_quality_pass': False,
         'Phase4': 'FAIL', 'L02': 'HOLD', 'L03': 'NO_GO',
