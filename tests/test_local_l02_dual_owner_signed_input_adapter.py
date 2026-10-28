@@ -37,7 +37,7 @@ def test_authentic_inputs_reach_research_shadow(monkeypatch):
     seen = []
     def shadow(**inputs):
         seen.append(inputs)
-        return inputs['composed_owner'].copy(), {'schema': 'research-only'}
+        return inputs['composed_owner'].copy(), {'schema': 'research-only', 'new_source_pixels': 0}
     monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', shadow)
     proposed, receipt = adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
     assert len(seen) == 1
