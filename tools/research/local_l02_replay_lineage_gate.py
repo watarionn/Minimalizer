@@ -7,6 +7,7 @@ an exact-main or Phase4 acceptance receipt.
 """
 from __future__ import annotations
 
+import ast
 import hashlib
 from pathlib import Path
 
@@ -15,7 +16,7 @@ class ReplayLineageHold(ValueError):
     """The imported research code does not match the reviewed PR lineage."""
 
 
-# GitHub contents API Git-blob SHA1, read from exact PR #445 head 00c84d19.
+# GitHub contents API Git-blob SHA1, read from exact PR #445 head 2bfbb29a.
 # These are code blobs only. No private source, mask, coordinates or weights.
 PR_445_REPLAY_BLOBS = {
     'local_l02_no_merge_signed_replay': 'e2097a31c943623018f3483b323dbcaa4785283c',
@@ -25,6 +26,7 @@ PR_445_REPLAY_BLOBS = {
     'local_l02_composed_dual_contact_shadow': '2296cbc1607f833a6a91409b0d705561947943d1',
     'local_l02_cross_owner_selective_veto_shadow': '5483df20e05364f3aec9b547275d3c4978eb36c5',
     'local_l02_cross_owner_contact_gate': 'd5c1c99b50acbe94db094675170d6f3689f50b13',
+    'local_l02_frozen_owner_transition_audit': 'b284d5699424284d7b9d72cf62be8e7ff2306a5c',
     'local_l02_class32_independent_contact_shadow': '7834468a5ec1d999a8ce8bbcb5fd6f0f09e56e43',
     'local_l02_hue_extended_owner_shadow': '553c1e9142c1c34463bc85964a66a0692614d16d',
     'local_l02_hue_topology_repair_shadow': '664f6bc0769189daff1dca50efbaa1420b0807da',
@@ -44,8 +46,25 @@ def _git_blob_sha(data: bytes) -> str:
     return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest()
 
 
+def _local_imports(data: bytes, name: str) -> set[str]:
+    """Inspect pinned source for any unpinned local research dependency."""
+    try:
+        tree = ast.parse(data.decode('utf-8'))
+    except (SyntaxError, UnicodeDecodeError) as exc:
+        raise ReplayLineageHold('INVALID_PINNED_SOURCE_SYNTAX:' + name) from exc
+    imports = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            if node.module.startswith('local_l02_'):
+                imports.add(node.module)
+        elif isinstance(node, ast.Import):
+            imports.update(alias.name for alias in node.names
+                           if alias.name.startswith('local_l02_'))
+    return imports
+
+
 def _verify_lineage(root: Path, pins: dict[str, str]) -> dict:
-    """Pure source-only verifier for pinned dependencies."""
+    """Pure source-only verifier for pinned dependencies and local imports."""
     if (type(pins) is not dict or not pins or any(
             type(k) is not str or not k.startswith('local_l02_') or
             '/' in k or '\\' in k or '..' in k or
@@ -57,8 +76,11 @@ def _verify_lineage(root: Path, pins: dict[str, str]) -> dict:
         path = root / (name + '.py')
         if path.is_symlink() or not path.is_file() or path.stat().st_size > 1_000_000:
             raise ReplayLineageHold('MISSING_OR_UNSAFE_DEPENDENCY:' + name)
-        if _git_blob_sha(path.read_bytes()) != sha:
+        data = path.read_bytes()
+        if _git_blob_sha(data) != sha:
             raise ReplayLineageHold('PR_L02_DEPENDENCY_BLOB_MISMATCH:' + name)
+        if _local_imports(data, name) - pins.keys():
+            raise ReplayLineageHold('UNPINNED_LOCAL_REPLAY_IMPORT:' + name)
     return {
         'schema': 'minimalizer/local-l02/exact-pr-replay-lineage/v1',
         'verified_dependency_blobs': len(pins),
