@@ -39,6 +39,11 @@ PR_445_REPLAY_BLOBS = {
     'local_l02_color_owner_coherent_abstain_shadow': 'bd30b03b29ebafabbbeaca32136f42dd9bce595a',
     'local_l02_color_owner_conflict_shadow': '3407b3dcec493e82312f0e277e0b917edff35635',
     'local_l02_class30_source_extension_shadow': 'c4e6a1d09697fd4b47970f5bea08762159b30772',
+    # The signed Run30 dual-owner adapter also executes these three modules.
+    # They must be pinned before the runner reads any private source bytes.
+    'local_l02_dual_owner_lab_reach_shadow': '1bfe6ef0008784e6b3981e185646a02ffb239124',
+    'local_l02_dual_owner_signed_input_adapter': '3cd59897ec9e9e84e30337a4c18222c69c69b662',
+    'local_l02_signed_shadow_output_gate': '1de4565d35c95bc33e2f25c042ee9892d1973295',
 }
 
 
