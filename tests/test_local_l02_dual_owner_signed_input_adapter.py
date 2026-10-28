@@ -125,3 +125,33 @@ def test_reject_shadow_inplace_mutation_of_verified_input(monkeypatch, target, r
     monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', corrupt)
     with pytest.raises(adapter.SignedDualOwnerInputHold, match=reason):
         adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+@pytest.mark.parametrize('alias_kind', [
+    'frozen_owner', 'frozen_owner_view', 'class_ids', 'rgba_channel',
+])
+def test_reject_shadow_output_alias_of_authenticated_input(monkeypatch, alias_kind):
+    kw = fixture()
+    def shadow(**inputs):
+        if alias_kind == 'frozen_owner':
+            proposed = inputs['composed_owner']
+        elif alias_kind == 'frozen_owner_view':
+            proposed = inputs['composed_owner'].view()
+        elif alias_kind == 'class_ids':
+            proposed = inputs['class_ids']
+        else:
+            proposed = inputs['source_rgba'][..., 0]
+        return proposed, {'new_source_pixels': 0}
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', shadow)
+    with pytest.raises(adapter.SignedDualOwnerInputHold,
+                       match='SHADOW_OUTPUT_ALIASES_SIGNED_INPUT'):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+def test_reject_shadow_output_nonarray_before_postcondition(monkeypatch):
+    kw = fixture()
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow',
+                        lambda **_inputs: (None, {'new_source_pixels': 0}))
+    with pytest.raises(adapter.SignedDualOwnerInputHold,
+                       match='INVALID_SHADOW_OUTPUT_TYPE'):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
