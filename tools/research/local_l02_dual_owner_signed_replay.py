@@ -17,9 +17,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
-from local_l02_dual_owner_signed_input_adapter import (
-    SignedDualOwnerInputHold, propose_signed_dual_owner_lab_reach_shadow,
-)
 from local_l02_replay_lineage_gate import ReplayLineageHold, verify_pr_replay_lineage
 
 
@@ -75,6 +72,11 @@ def run_pinned_replay(*, source_path: Path, class_npz_path: Path,
         lineage = verify_pr_replay_lineage()
     except ReplayLineageHold as exc:
         raise SignedReplayHold('PR_DEPENDENCY_LINEAGE_HOLD:' + str(exc)) from exc
+    # Import the pinned adapter only after its Git blob and transitive imports
+    # are checked. A top-level import would execute unverified code first.
+    from local_l02_dual_owner_signed_input_adapter import (
+        SignedDualOwnerInputHold, propose_signed_dual_owner_lab_reach_shadow,
+    )
     manifest_bytes = _read_bounded(manifest_path, 64 * 1024)
     if _sha256(manifest_bytes) != expected_manifest_sha256:
         raise SignedReplayHold('MANIFEST_SHA256_MISMATCH')
