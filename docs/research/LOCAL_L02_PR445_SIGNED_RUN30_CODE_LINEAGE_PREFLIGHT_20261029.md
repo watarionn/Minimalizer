@@ -18,9 +18,13 @@ The three newly pinned module Git blobs matched the exact remote PR head after t
 
 The exact-head GitHub Actions workflow-run list, check-runs and commit status returned no runs/checks at inspection. No new private H04/H06/H08 replay or independent visual score was produced in this step; the private evidence ZIPs were not newly downloaded or written. The previously reported exposed H08 improvement is **not** promoted to accepted P0/P1. H04/H06/H08 remain unresolved.
 
+## Actual repository verification route
+
+The repository's canonical `.github/workflows/README.md` explicitly says **GitHub Actions are not the execution platform** and identifies `scripts/Test-MergeReadiness.ps1` on the owner PC / authorized remote execution as the pre-merge verification path. The present `Test-MergeReadiness.ps1` checks general compile, stable tests, Phase16 corpus and local server smoke, but its explicit pytest list does **not** include the new L02 tests. Therefore **zero Actions runs on this PR head is expected and cannot be reported as a passing CI result**. A real acceptance run needs BOTH the repository's adopted merge-readiness command and the exact-head L02 source-only tests, with signed receipts and read-after-write. Do not silently switch on or edit unrelated GitHub workflows to manufacture a CI signal. No owner-PC execution was performed in this checkpoint.
+
 ## Next acceptance gates
 
-1. Execute the **exact PR-head** source-only regression suite and full CI, including the new negative pre-private-read gate.
+1. Execute the **exact PR-head** L02 source-only regression suite, including the new negative pre-private-read gate, and the adopted `scripts/Test-MergeReadiness.ps1` route on an authorized owner PC. Record both receipts; GitHub Actions is not the adopted CI platform.
 2. Resolve source-only Phase4 semantic owner/critical-part/connectivity FAIL and H06 frozen underlayer FP, H08 sleeve loss, H04 regression. Do not use reviewed labels as inference inputs.
 3. Only after Phase4 source-only PASS, run independently pinned private replay, score known labels post-inference and compare visually; obtain a genuinely unseen signed blind cohort for generalization.
 4. Keep original private RGB/alpha, owner NPZ, masks and comparison images exclusively in the established non-shared Drive hierarchy with cloud read-after-write. No source pixels or human coordinates in GitHub.
