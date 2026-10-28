@@ -18,6 +18,7 @@ from local_l02_no_merge_signed_replay import (
 )
 from local_l02_composed_dual_contact_shadow import propose_composed_dual_contact_shadow
 from local_l02_enclosed_class32_shadow import propose_enclosed_class32_shadow
+from local_l02_replay_lineage_gate import verify_pr_replay_lineage
 
 PINNED_GUARDED_WRAPPER_SHA256 = 'b49d3c0744c838715e44b7405ec0b621c8b356c1de710eff7b803ed71bc196a7'
 
@@ -33,6 +34,7 @@ PINNED_STRICT = {
 def replay(private_dir: Path, case: str) -> dict:
     if case not in PINNED_COMPOSED:
         raise ValueError('ONLY_PINNED_EXPOSED_CASES')
+    lineage = verify_pr_replay_lineage()  # public code only, before any private archive read
     actual_wrapper_sha = hashlib.sha256(
         (Path(__file__).parent / 'local_l02_composed_dual_contact_shadow.py').read_bytes()
     ).hexdigest()
@@ -92,6 +94,7 @@ def replay(private_dir: Path, case: str) -> dict:
         'guarded_wrapper_sha256': actual_wrapper_sha,
         'staged_overlay_only_not_main': True,
         'archive_manifest_checks': verified,
+        'pr_dependency_lineage': lineage,
         'source_only_composed_sha256': composed_sha,
         'source_only_strict_sha256': strict_sha,
         'composed_stage': meta1['schema'],
