@@ -89,6 +89,13 @@ def propose_signed_dual_owner_lab_reach_shadow(
     if (hashlib.sha256(source_rgba.tobytes(order='C')).hexdigest()
             != expected_decoded_rgba_sha256):
         raise SignedDualOwnerInputHold('SHADOW_MUTATED_SIGNED_SOURCE')
+    # A valid SHA pin does not prevent a shadow from returning a writable
+    # alias of an authenticated input. Never hand that alias to callers.
+    if type(proposed) is not np.ndarray:
+        raise SignedDualOwnerInputHold('INVALID_SHADOW_OUTPUT_TYPE')
+    if any(np.shares_memory(proposed, verified) for verified in
+           (source_rgba, class_ids, composed_owner)):
+        raise SignedDualOwnerInputHold('SHADOW_OUTPUT_ALIASES_SIGNED_INPUT')
     try:
         postcondition = verify_signed_shadow_output(
             source_rgba=source_rgba, class_ids=class_ids,
