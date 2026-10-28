@@ -62,6 +62,17 @@ def test_untrusted_receipt_count_rejected():
         verify_signed_shadow_output(**kw)
 
 
+@pytest.mark.parametrize('invalid', [None, False, '0', 1])
+def test_missing_or_malformed_pixel_receipt_rejected(invalid):
+    kw = sample()
+    if invalid is None:
+        kw['receipt'].pop('new_source_pixels')
+    else:
+        kw['receipt']['new_source_pixels'] = invalid
+    with pytest.raises(SignedShadowOutputHold, match='SHADOW_RECEIPT_PIXEL_COUNT_MISMATCH'):
+        verify_signed_shadow_output(**kw)
+
+
 def test_new_owner_contact_rejected():
     kw = sample()
     kw['before'][15:20, 15:20] = 1
