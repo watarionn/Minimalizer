@@ -20,6 +20,7 @@ from PIL import Image, UnidentifiedImageError
 from local_l02_dual_owner_signed_input_adapter import (
     SignedDualOwnerInputHold, propose_signed_dual_owner_lab_reach_shadow,
 )
+from local_l02_replay_lineage_gate import ReplayLineageHold, verify_pr_replay_lineage
 
 
 class SignedReplayHold(ValueError):
@@ -68,6 +69,12 @@ def run_pinned_replay(*, source_path: Path, class_npz_path: Path,
             len(expected_manifest_sha256) != 64 or
             any(c not in '0123456789abcdef' for c in expected_manifest_sha256)):
         raise SignedReplayHold('MISSING_EXTERNAL_MANIFEST_SHA256')
+    # Source-only code provenance first: reject stale/partial PR dependencies
+    # before opening the signed manifest, source image, or private NPZ files.
+    try:
+        lineage = verify_pr_replay_lineage()
+    except ReplayLineageHold as exc:
+        raise SignedReplayHold('PR_DEPENDENCY_LINEAGE_HOLD:' + str(exc)) from exc
     manifest_bytes = _read_bounded(manifest_path, 64 * 1024)
     if _sha256(manifest_bytes) != expected_manifest_sha256:
         raise SignedReplayHold('MANIFEST_SHA256_MISMATCH')
@@ -116,6 +123,7 @@ def run_pinned_replay(*, source_path: Path, class_npz_path: Path,
         'case': manifest['case'],
         'stage': 'RUN30_HISTORICAL',
         'manifest_sha256': expected_manifest_sha256,
+        'pr_dependency_lineage': lineage,
         'proposal_owner_sha256': _sha256(proposal.tobytes(order='C')),
         'new_source_pixels_unscored': receipt['new_source_pixels'],
         'signed_source_encoded_and_decoded_verified': receipt['signed_source_encoded_and_decoded_verified'],
