@@ -10,7 +10,9 @@ import pytest
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
+import local_l02_dual_owner_signed_replay as runner
 from local_l02_dual_owner_signed_replay import run_pinned_replay, SignedReplayHold
+from local_l02_replay_lineage_gate import ReplayLineageHold
 
 
 def fixture(tmp_path):
@@ -51,6 +53,8 @@ def test_real_adapter_path_stays_research_only(tmp_path):
     kw, _ = fixture(tmp_path)
     receipt = run_pinned_replay(**kw)
     assert receipt['signed_source_encoded_and_decoded_verified']
+    assert receipt['pr_dependency_lineage']['verified_dependency_blobs'] == 23
+    assert receipt['pr_dependency_lineage']['provenance_scope'] == 'PR_445_ONLY_NOT_MAIN'
     assert receipt['frozen_owner_transition_audit']['frozen_owner_pixels_modified'] == 0
     assert receipt['Phase4'] == 'FAIL' and receipt['production'] == 'NO_GO'
     assert receipt['new_unseen_signed_blind'] == 'PENDING'
@@ -100,4 +104,15 @@ def test_corrupt_npz_fails_closed_without_private_traceback(tmp_path):
     kw, _ = fixture(tmp_path)
     kw['class_npz_path'].write_bytes(b'not a zip archive')
     with pytest.raises(SignedReplayHold, match='INVALID_PINNED_NPZ'):
+        run_pinned_replay(**kw)
+
+
+def test_stale_pr_dependency_rejected_before_any_private_file_read(tmp_path, monkeypatch):
+    kw, _ = fixture(tmp_path)
+    def fail_lineage():
+        raise ReplayLineageHold('PR_L02_DEPENDENCY_BLOB_MISMATCH:local_l02_dual_owner_lab_reach_shadow')
+    monkeypatch.setattr(runner, 'verify_pr_replay_lineage', fail_lineage)
+    monkeypatch.setattr(runner, '_read_bounded',
+                        lambda *_args, **_kwargs: pytest.fail('private file read before code provenance'))
+    with pytest.raises(SignedReplayHold, match='PR_DEPENDENCY_LINEAGE_HOLD'):
         run_pinned_replay(**kw)
