@@ -33,9 +33,9 @@ def verify_signed_shadow_output(*, source_rgba: np.ndarray,
     if np.any(added & ((class_ids != 32) | (source_rgba[..., 3] != 255))):
         raise SignedShadowOutputHold('UNSUPPORTED_OR_NONOPAQUE_ADDITION')
     n_added = int(np.count_nonzero(added))
-    if ('new_source_pixels' in receipt and
-            (type(receipt['new_source_pixels']) is not int or
-             receipt['new_source_pixels'] != n_added)):
+    if ('new_source_pixels' not in receipt or
+            type(receipt['new_source_pixels']) is not int or
+            receipt['new_source_pixels'] != n_added):
         raise SignedShadowOutputHold('SHADOW_RECEIPT_PIXEL_COUNT_MISMATCH')
     if n_added:
         eight = np.ones((3, 3), dtype=bool)
