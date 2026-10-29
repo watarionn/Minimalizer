@@ -1,5 +1,24 @@
 # L02 exposed H08 independent-clothes component shadow (2026-10-29)
 
+## 2026-10-29 correction: compare against the stronger staged composed/strict frontier
+
+**Decision: the Run30-only +18,785px Anime10 result is historically real, but is not an incremental P0/P1 improvement over the already stronger staged composed/strict pipeline. Do not promote or merge the Run30 Anime10 shadow on that basis.** This correction supersedes any interpretation of the earlier Run30 comparison as the current best quality frontier.
+
+Fresh readback of GitHub main `4a4348990084848c981811b414e6221411271f84` and Draft PR #445 at head `8f9dd8f81a2a4c5394b1d17091d7112ad17933e6`. Canonical non-shared Drive private evidence ZIP pins matched ReviewedEvidence `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`, Run30 `6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c`, SleeveSemantic `a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7`, and AnimeSeg offline384 `9a3f27edac23e14c219ff3a743c85321519cbe7c621c3f962d19e84ad6eb1e26`. The source-free 2026-10-23 staging archive `c442c661c10b74fbeaa98c84c077466cfaef50421abbfa2b5aa645268b1560bc` passed 98/98 member SHA checks; private reviewed/owner/AnimeSeg member checks passed 19/7/5. The signed H08 source WebP SHA was verified before inference. No reviewed labels were supplied to inference.
+
+| Signed H08 exposed case, postscore-only | True outerwear owned | Known outerwear FN | Known false owner |
+| --- | ---: | ---: | ---: |
+| Historical Run30 owner | 96,535 | 60,035 | 0 |
+| Run30 + Anime10 shadow (earlier isolated result) | 115,320 | 41,250 | 0 |
+| **2026-10-23 staged composed owner, freshly replayed** | **136,780** | **19,790** | **0** |
+| **Staged composed + strict enclosed class32, freshly replayed** | **137,261** | **19,309** | **0** |
+
+The signed staged composed H08 owner SHA is `3e46769428946d54f0cc441ead77699a81839cd8e372ca39212e5b7825ee4a1a`; the strict owner SHA is `32bb5266a479ce64571f190ffebe90b50c01329598408019b363c5ab0c9f0778`. Both exactly matched their pre-existing source-only pins. The strict stage added 484 source-only pixels to composed, of which 481 were reviewed outerwear and 3 were unreviewed unknown; known false owner remained zero, and the existing 4/8 owner component counts were preserved. This is **historical staged exact-output replay**, not current-main end-to-end replay or an unseen holdout.
+
+A separate **local source-only mirror, not byte-identical exact PR-head execution**, of the Anime10 component hypothesis stacked on composed added only 174 pixels (173 reviewed outerwear, 1 unknown), leaving 19,617 known FN. The older no-merge sleeve adapter correctly **failed closed** with `FROZEN_OWNER_OUTSIDE_CANDIDATE` when given composed owner, so it must not be silently reused by widening its original candidate contract. Neither finding supports a new major-quality fix.
+
+**Priority correction:** Stop optimizing Run30-only sleeve gains as though they were ahead of composed/strict. The actual staged H08 frontier still misses **19,309** reviewed outerwear pixels; H06 composed still retains **1,077** known underlayer false-owner pixels. Target independently justified semantic evidence and exact-current-main owner reconstruction first. Do not tune to exposed labels, treat unknown as negative, or interpret this as Phase4 quality PASS. Accepted P0/P1 fixes **0/0**, H04/H06/H08 unresolved **3**, PR Draft/unmerged, L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO.
+
 **Research-only, not accepted P0/P1 or current-main quality approval.** This is an A-only source-free evidence note for PR #445. No original images, private masks, NPZ, human coordinates, or private comparison board are committed.
 
 ## Source and authority boundary
