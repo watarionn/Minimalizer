@@ -1,15 +1,23 @@
-"""Source-free lineage and postscore ordering guards for the staged strict replay.
+"""Source-free strict-replay ordering tests for deferred executable imports.
 
-These checks do not assert semantic owner quality or unknown-character PASS.
+The runner intentionally imports executable stages only after lineage and
+wrapper verification. Patch the actual import targets, not removed runner
+module globals. These tests do not assert semantic owner quality.
 """
 import hashlib
+import sys
+import types
+
 import numpy as np
 import pytest
+
 from tools.research import local_l02_canonical_strict_signed_replay as m
 
 
 def test_guarded_wrapper_source_pin_is_exact_and_distinct_from_stale_h08():
-    actual = hashlib.sha256((m.Path(m.__file__).parent / 'local_l02_composed_dual_contact_shadow.py').read_bytes()).hexdigest()
+    actual = hashlib.sha256(
+        (m.Path(m.__file__).parent / 'local_l02_composed_dual_contact_shadow.py').read_bytes()
+    ).hexdigest()
     assert actual == m.PINNED_GUARDED_WRAPPER_SHA256
     assert m.PINNED_COMPOSED['H08'] == '3e46769428946d54f0cc441ead77699a81839cd8e372ca39212e5b7825ee4a1a'
     assert m.PINNED_STRICT['H08'] == '32bb5266a479ce64571f190ffebe90b50c01329598408019b363c5ab0c9f0778'
@@ -17,12 +25,13 @@ def test_guarded_wrapper_source_pin_is_exact_and_distinct_from_stale_h08():
 
 
 def test_wrapper_drift_fails_before_private_archive_read(monkeypatch, tmp_path):
+    monkeypatch.setattr(m, 'verify_pr_replay_lineage',
+                        lambda: {'verified_dependency_blobs': 23})
     monkeypatch.setattr(m, 'PINNED_GUARDED_WRAPPER_SHA256', '0' * 64)
-    def no_read(*a, **k):
-        raise AssertionError('PRIVATE_READ_BEFORE_SOURCE_PIN')
-    monkeypatch.setattr(m, 'verify_archives', no_read)
+    # No private archives exist. The guard must fail before any stage import.
     with pytest.raises(ValueError, match='GUARDED_STAGING_WRAPPER_SHA_MISMATCH'):
         m.replay(tmp_path, 'H08')
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_rejects_unpinned_character_before_private_read(tmp_path):
@@ -42,18 +51,15 @@ def test_proposals_frozen_and_pinned_before_human_postscore(monkeypatch, tmp_pat
     strict = composed.copy()
     strict[2, 2] = 1
     events = []
-    monkeypatch.setattr(m, 'verify_archives', lambda _: {'verified': 1})
-    monkeypatch.setattr(m, 'load_source_only', lambda *a: (rgba, classes, frozen, classes.copy()))
+
     def first(**kwargs):
         events.append('compose')
         return composed.copy(), {'schema': 'compose'}
+
     def second(**kwargs):
         events.append('strict')
         return strict.copy(), {'schema': 'strict'}
-    monkeypatch.setattr(m, 'propose_composed_dual_contact_shadow', first)
-    monkeypatch.setattr(m, 'propose_enclosed_class32_shadow', second)
-    monkeypatch.setattr(m, 'PINNED_COMPOSED', {'H08': hashlib.sha256(composed.tobytes()).hexdigest()})
-    monkeypatch.setattr(m, 'PINNED_STRICT', {'H08': hashlib.sha256(strict.tobytes()).hexdigest()})
+
     def postscore(*args):
         events.append('postscore')
         assert events[:2] == ['compose', 'strict']
@@ -61,9 +67,37 @@ def test_proposals_frozen_and_pinned_before_human_postscore(monkeypatch, tmp_pat
         tp = int(np.count_nonzero(owner))
         return {'TP': tp, 'known_FP': 0, 'known_FN': 3 - tp,
                 'known_arm_FP': 0, 'known_underlayer_FP': 0}
-    monkeypatch.setattr(m, 'postscore', postscore)
-    # The private human masks are intentionally absent: it must fail closed
-    # *after* both pinned proposals and postscore, never before the freeze.
+
+    # These are synthetic import targets for the runner's *deferred* imports.
+    # No real stage code or human reference is executed in this test.
+    replay_stage = types.ModuleType('local_l02_no_merge_signed_replay')
+    replay_stage.REVIEW = 'missing_human_review.zip'
+    replay_stage.verify_archives = lambda _: {'verified': 1}
+    replay_stage.load_source_only = lambda *a: (rgba, classes, frozen, classes.copy())
+    replay_stage.postscore = postscore
+    replay_stage.components = lambda owner: {1: 1, 2: 0}
+    composed_stage = types.ModuleType('local_l02_composed_dual_contact_shadow')
+    composed_stage.propose_composed_dual_contact_shadow = first
+    strict_stage = types.ModuleType('local_l02_enclosed_class32_shadow')
+    strict_stage.propose_enclosed_class32_shadow = second
+
+    for name, module in (
+        ('local_l02_no_merge_signed_replay', replay_stage),
+        ('local_l02_composed_dual_contact_shadow', composed_stage),
+        ('local_l02_enclosed_class32_shadow', strict_stage),
+    ):
+        monkeypatch.setitem(sys.modules, name, module)
+
+    monkeypatch.setattr(m, 'verify_pr_replay_lineage',
+                        lambda: {'verified_dependency_blobs': 23})
+    monkeypatch.setattr(m, 'PINNED_COMPOSED',
+                        {'H08': hashlib.sha256(composed.tobytes()).hexdigest()})
+    monkeypatch.setattr(m, 'PINNED_STRICT',
+                        {'H08': hashlib.sha256(strict.tobytes()).hexdigest()})
+
+    # The missing human ZIP must fail only after both proposals are SHA-pinned,
+    # source-only conditions pass, and both postscores run.
     with pytest.raises(FileNotFoundError):
         m.replay(tmp_path, 'H08')
     assert events == ['compose', 'strict', 'postscore', 'postscore']
+    assert list(tmp_path.iterdir()) == []
