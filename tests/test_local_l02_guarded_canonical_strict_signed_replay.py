@@ -98,9 +98,23 @@ def test_proposals_frozen_and_pinned_before_human_postscore(monkeypatch, tmp_pat
     monkeypatch.setattr(m, 'PINNED_STRICT',
                         {'H08': hashlib.sha256(strict.tobytes()).hexdigest()})
 
+    # Synthetic in-memory doubles intentionally bypass only the cache guard.
+    monkeypatch.setattr(m, '_reject_cached_replay_stages', lambda: None)
+
     # The missing human ZIP must fail only after both proposals are SHA-pinned,
     # source-only conditions pass, and both postscores run.
     with pytest.raises(FileNotFoundError):
         m.replay(tmp_path, 'H08')
     assert events == ['compose', 'strict', 'postscore', 'postscore']
     assert list(tmp_path.iterdir()) == []
+
+def test_preloaded_stage_rejected_before_private_archive_read(monkeypatch, tmp_path):
+    # Exact disk SHA cannot prove that an already-imported module is current.
+    monkeypatch.setattr(m, 'verify_pr_replay_lineage',
+                        lambda: {'verified_dependency_blobs': 23})
+    stale = types.ModuleType('local_l02_no_merge_signed_replay')
+    monkeypatch.setitem(sys.modules, 'local_l02_no_merge_signed_replay', stale)
+    with pytest.raises(ValueError, match='PRELOADED_REPLAY_STAGE_HOLD'):
+        m.replay(tmp_path, 'H08')
+    assert list(tmp_path.iterdir()) == []
+
