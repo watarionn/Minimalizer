@@ -118,3 +118,22 @@ def test_preloaded_stage_rejected_before_private_archive_read(monkeypatch, tmp_p
         m.replay(tmp_path, 'H08')
     assert list(tmp_path.iterdir()) == []
 
+
+
+@pytest.mark.parametrize('module_name', [
+    'local_l02_frozen_owner_transition_audit',
+    'local_l02_cross_owner_contact_gate',
+    'local_l02_sleeve_no_merge_shadow',
+])
+def test_preloaded_transitive_dependency_rejected_before_private_read(
+        monkeypatch, tmp_path, module_name):
+    # The disk blob may be correct while a cached transitive helper is stale.
+    # An exact-PR replay must fail closed before loading any private source.
+    assert module_name in m.PR_445_REPLAY_BLOBS
+    monkeypatch.setattr(m, 'verify_pr_replay_lineage',
+                        lambda: {'verified_dependency_blobs': 23})
+    monkeypatch.setitem(sys.modules, module_name, types.ModuleType(module_name))
+    with pytest.raises(ValueError, match='PRELOADED_REPLAY_STAGE_HOLD') as err:
+        m.replay(tmp_path, 'H08')
+    assert module_name in str(err.value)
+    assert list(tmp_path.iterdir()) == []
