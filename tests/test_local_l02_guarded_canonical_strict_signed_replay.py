@@ -11,6 +11,9 @@ import types
 import numpy as np
 import pytest
 
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
+
 from tools.research import local_l02_canonical_strict_signed_replay as m
 
 
