@@ -1,6 +1,10 @@
 """Fail-closed source-only stage composition. No private/annotation input."""
 import numpy as np
 import pytest
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
+
 from tools.research import local_l02_composed_dual_contact_shadow as m
 
 
