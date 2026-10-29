@@ -26,6 +26,19 @@ PINNED_STRICT = {
     'H08': '32bb5266a479ce64571f190ffebe90b50c01329598408019b363c5ab0c9f0778',
 }
 
+def _reject_cached_replay_stages() -> None:
+    """Do not execute stale in-memory stage code after verifying disk blobs."""
+    import sys
+    stages = (
+        'local_l02_no_merge_signed_replay',
+        'local_l02_composed_dual_contact_shadow',
+        'local_l02_enclosed_class32_shadow',
+    )
+    cached = sorted(name for name in stages if name in sys.modules)
+    if cached:
+        raise ValueError('PRELOADED_REPLAY_STAGE_HOLD:' + ','.join(cached))
+
+
 def replay(private_dir: Path, case: str) -> dict:
     if case not in PINNED_COMPOSED:
         raise ValueError('ONLY_PINNED_EXPOSED_CASES')
@@ -35,6 +48,9 @@ def replay(private_dir: Path, case: str) -> dict:
     ).hexdigest()
     if actual_wrapper_sha != PINNED_GUARDED_WRAPPER_SHA256:
         raise ValueError('GUARDED_STAGING_WRAPPER_SHA_MISMATCH')
+    # A file SHA does not authenticate an already-imported Python module.
+    # Refuse stale sys.modules entries before any executable stage is used.
+    _reject_cached_replay_stages()
     # Import executable research modules only after exact PR blob lineage and
     # guarded-wrapper SHA verification. Neither guard opens private evidence.
     # This prevents stale modules from running import-time code before checks.
