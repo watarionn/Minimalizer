@@ -13,11 +13,6 @@ import json
 from pathlib import Path
 from zipfile import ZipFile
 import numpy as np
-from local_l02_no_merge_signed_replay import (
-    REVIEW, verify_archives, load_source_only, postscore, components,
-)
-from local_l02_composed_dual_contact_shadow import propose_composed_dual_contact_shadow
-from local_l02_enclosed_class32_shadow import propose_enclosed_class32_shadow
 from local_l02_replay_lineage_gate import verify_pr_replay_lineage
 
 PINNED_GUARDED_WRAPPER_SHA256 = 'b49d3c0744c838715e44b7405ec0b621c8b356c1de710eff7b803ed71bc196a7'
@@ -40,6 +35,14 @@ def replay(private_dir: Path, case: str) -> dict:
     ).hexdigest()
     if actual_wrapper_sha != PINNED_GUARDED_WRAPPER_SHA256:
         raise ValueError('GUARDED_STAGING_WRAPPER_SHA_MISMATCH')
+    # Import executable research modules only after exact PR blob lineage and
+    # guarded-wrapper SHA verification. Neither guard opens private evidence.
+    # This prevents stale modules from running import-time code before checks.
+    from local_l02_no_merge_signed_replay import (
+        REVIEW, verify_archives, load_source_only, postscore, components,
+    )
+    from local_l02_composed_dual_contact_shadow import propose_composed_dual_contact_shadow
+    from local_l02_enclosed_class32_shadow import propose_enclosed_class32_shadow
     verified = verify_archives(private_dir)
     rgba, class_ids, frozen, anime = load_source_only(private_dir, case)
     # IMPORTANT: do not open human labels or use any annotation coordinates here.
