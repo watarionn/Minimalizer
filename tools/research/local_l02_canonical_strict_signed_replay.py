@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 from zipfile import ZipFile
 import numpy as np
-from local_l02_replay_lineage_gate import verify_pr_replay_lineage
+from local_l02_replay_lineage_gate import verify_pr_replay_lineage, PR_445_REPLAY_BLOBS
 
 PINNED_GUARDED_WRAPPER_SHA256 = 'b49d3c0744c838715e44b7405ec0b621c8b356c1de710eff7b803ed71bc196a7'
 
@@ -29,12 +29,10 @@ PINNED_STRICT = {
 def _reject_cached_replay_stages() -> None:
     """Do not execute stale in-memory stage code after verifying disk blobs."""
     import sys
-    stages = (
-        'local_l02_no_merge_signed_replay',
-        'local_l02_composed_dual_contact_shadow',
-        'local_l02_enclosed_class32_shadow',
-    )
-    cached = sorted(name for name in stages if name in sys.modules)
+    # Every transitive dependency verified on disk must also be absent from
+    # the import cache. Checking only the three directly imported stages lets
+    # a stale cached helper silently override an authenticated on-disk blob.
+    cached = sorted(name for name in PR_445_REPLAY_BLOBS if name in sys.modules)
     if cached:
         raise ValueError('PRELOADED_REPLAY_STAGE_HOLD:' + ','.join(cached))
 
