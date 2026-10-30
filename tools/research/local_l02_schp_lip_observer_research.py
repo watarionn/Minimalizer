@@ -1,0 +1,146 @@
+"""Offline, observer-only SCHP LIP20 research. Never assigns an L02 owner.
+
+Requires an externally authenticated signed source and local ONNX checkpoint.
+No network, annotations, owner changes, or production/Golden approval.
+LIP training-data rights are noncommercial: research only pending clearance.
+"""
+from __future__ import annotations
+
+import hashlib
+import io
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, UnidentifiedImageError
+
+SIZE = 473
+MEAN = np.array([0.406, 0.456, 0.485], dtype=np.float32)
+STD = np.array([0.225, 0.224, 0.229], dtype=np.float32)
+RELEVANT = {2: 'hair', 5: 'upper_clothes', 7: 'coat',
+            14: 'left_arm', 15: 'right_arm'}
+
+
+class SCHPResearchHold(ValueError):
+    """Missing provenance or invalid observer-only inference output."""
+
+
+def _pin(s: str) -> bool:
+    return type(s) is str and len(s) == 64 and all(c in '0123456789abcdef' for c in s)
+
+
+def _sha(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+def _validate_signed_source(*, encoded_source: bytes, source_rgba: np.ndarray,
+                            expected_encoded_sha256: str,
+                            expected_rgba_sha256: str) -> None:
+    if (type(encoded_source) is not bytes or not encoded_source or
+            len(encoded_source) > 32 * 1024 * 1024 or
+            type(source_rgba) is not np.ndarray or
+            source_rgba.dtype != np.uint8 or source_rgba.ndim != 3 or
+            source_rgba.shape[-1] != 4 or not source_rgba.size or
+            source_rgba.shape[0] * source_rgba.shape[1] > 16_000_000):
+        raise SCHPResearchHold('INVALID_SIGNED_SOURCE')
+    if not _pin(expected_encoded_sha256) or not _pin(expected_rgba_sha256):
+        raise SCHPResearchHold('MISSING_EXTERNAL_SOURCE_PINS')
+    if _sha(encoded_source) != expected_encoded_sha256 or _sha(source_rgba.tobytes()) != expected_rgba_sha256:
+        raise SCHPResearchHold('SIGNED_SOURCE_SHA_MISMATCH')
+    try:
+        with Image.open(io.BytesIO(encoded_source)) as img:
+            if getattr(img, 'n_frames', 1) != 1 or img.size != (source_rgba.shape[1], source_rgba.shape[0]):
+                raise SCHPResearchHold('SIGNED_SOURCE_FRAME_OR_DIMENSION_MISMATCH')
+            decoded = np.asarray(img.convert('RGBA'))
+    except SCHPResearchHold:
+        raise
+    except (OSError, ValueError, UnidentifiedImageError) as exc:
+        raise SCHPResearchHold('SIGNED_SOURCE_DECODE_FAILED') from exc
+    if not np.array_equal(decoded, source_rgba):
+        raise SCHPResearchHold('SIGNED_SOURCE_RGBA_BYTES_MISMATCH')
+
+
+def _prepare(source_rgba: np.ndarray) -> np.ndarray:
+    """Match upstream SCHP LIP processor: white RGBA composite, RGB, 473 bilinear.
+
+    The white composite is a predeclared research choice for transparent art,
+    not a proven training-domain equivalent. Never infer from review labels.
+    """
+    img = Image.fromarray(source_rgba, 'RGBA')
+    white = Image.new('RGBA', img.size, (255, 255, 255, 255))
+    rgb = Image.alpha_composite(white, img).convert('RGB')
+    resized = np.asarray(rgb.resize((SIZE, SIZE), Image.Resampling.BILINEAR), dtype=np.float32) / 255.0
+    normalized = (resized - MEAN) / STD
+    return np.ascontiguousarray(normalized.transpose(2, 0, 1)[None, ...], dtype=np.float32)
+
+
+def _decode_logits(logits: np.ndarray, source_alpha: np.ndarray) -> np.ndarray:
+    if (type(logits) is not np.ndarray or logits.dtype not in (np.float32, np.float64) or
+            logits.shape != (1, 20, SIZE, SIZE) or not np.isfinite(logits).all()):
+        raise SCHPResearchHold('INVALID_SCHP_LIP20_LOGITS')
+    labels = np.argmax(logits[0], axis=0).astype(np.uint8)
+    # Label nearest-neighbour projection is a declared research choice, not a
+    # learned or review-fitted resampler. Keep source-alpha eligibility separate.
+    projected = np.asarray(Image.fromarray(labels).resize(
+        (source_alpha.shape[1], source_alpha.shape[0]), Image.Resampling.NEAREST)).copy()
+    projected[source_alpha == 0] = 0
+    return projected
+
+
+def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
+                         expected_encoded_sha256: str, expected_rgba_sha256: str,
+                         onnx_path: Path, expected_onnx_sha256: str,
+                         expected_model_revision: str) -> tuple[np.ndarray, dict]:
+    """Offline model-only observer. Caller must store class maps in private Drive.
+
+    No human labels, source-specific thresholds, owner masks, or remote inference.
+    Source pins and checkpoint pin must originate outside this function.
+    """
+    _validate_signed_source(encoded_source=encoded_source, source_rgba=source_rgba,
+                            expected_encoded_sha256=expected_encoded_sha256,
+                            expected_rgba_sha256=expected_rgba_sha256)
+    if (not _pin(expected_onnx_sha256) or not isinstance(onnx_path, Path) or
+            not onnx_path.is_file() or type(expected_model_revision) is not str or
+            len(expected_model_revision) != 40 or
+            any(c not in '0123456789abcdef' for c in expected_model_revision)):
+        raise SCHPResearchHold('MISSING_LOCAL_PINNED_ONNX')
+    # Stream the model hash to avoid loading a 68MB checkpoint into memory.
+    digest = hashlib.sha256()
+    with onnx_path.open('rb') as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b''):
+            digest.update(chunk)
+    if digest.hexdigest() != expected_onnx_sha256:
+        raise SCHPResearchHold('ONNX_SHA_MISMATCH')
+    try:
+        import onnxruntime as ort
+    except ImportError as exc:
+        raise SCHPResearchHold('ONNXRUNTIME_NOT_INSTALLED') from exc
+    opts = ort.SessionOptions()
+    opts.intra_op_num_threads = 4
+    session = ort.InferenceSession(str(onnx_path), sess_options=opts,
+                                   providers=['CPUExecutionProvider'])
+    if (len(session.get_inputs()) != 1 or session.get_inputs()[0].name != 'pixel_values' or
+            'logits' not in {o.name for o in session.get_outputs()} or
+            session.get_providers() != ['CPUExecutionProvider']):
+        raise SCHPResearchHold('UNEXPECTED_ONNX_INTERFACE_OR_PROVIDER')
+    logits = session.run(['logits'], {'pixel_values': _prepare(source_rgba)})[0]
+    classes = _decode_logits(logits, source_rgba[..., 3])
+    opaque = source_rgba[..., 3] > 0
+    counts = {name: int(np.count_nonzero((classes == cid) & opaque))
+              for cid, name in RELEVANT.items()}
+    receipt = {
+        'schema': 'minimalizer/local-l02/schp-lip20-offline-observer/v1',
+        'model_repo': 'pirocheto/schp-lip-20',
+        'model_revision': expected_model_revision,
+        'checkpoint_sha256': expected_onnx_sha256,
+        'class_map_sha256_private': _sha(classes.tobytes()),
+        'source_rgba_sha256': expected_rgba_sha256,
+        'relevant_class_counts_opaque_only': counts,
+        'input_size': [SIZE, SIZE], 'white_alpha_composite': True,
+        'unknown_not_treated_as_negative': True,
+        'human_annotations_used': False, 'owner_modified': False,
+        'noncommercial_research_only': True,
+        'dataset_licence_production_cleared': False,
+        'quality': 'UNASSESSED', 'Phase4': 'FAIL', 'L02': 'HOLD',
+        'L03': 'NO_GO', 'Golden': 'HOLD', 'production': 'NO_GO',
+    }
+    return classes, receipt
