@@ -118,12 +118,14 @@ def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
     if (onnx_path.name != SCHP_LIP20_INT8_FILENAME or
             onnx_path.stat().st_size != SCHP_LIP20_INT8_SIZE):
         raise SCHPResearchHold('UNVERIFIED_SCHP_CHECKPOINT_FILE')
-    # Stream the model hash to avoid loading a 68MB checkpoint into memory.
-    digest = hashlib.sha256()
+    # Authenticate the exact immutable bytes that ONNX Runtime will execute.
+    # A path can be replaced after a streaming hash (TOCTOU). Reading one
+    # bounded 68MB snapshot costs temporary RAM but prevents path re-open races.
     with onnx_path.open('rb') as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b''):
-            digest.update(chunk)
-    if digest.hexdigest() != expected_onnx_sha256:
+        model_bytes = f.read(SCHP_LIP20_INT8_SIZE + 1)
+    if len(model_bytes) != SCHP_LIP20_INT8_SIZE:
+        raise SCHPResearchHold('UNVERIFIED_SCHP_CHECKPOINT_FILE')
+    if _sha(model_bytes) != expected_onnx_sha256:
         raise SCHPResearchHold('ONNX_SHA_MISMATCH')
     try:
         import onnxruntime as ort
@@ -131,7 +133,7 @@ def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
         raise SCHPResearchHold('ONNXRUNTIME_NOT_INSTALLED') from exc
     opts = ort.SessionOptions()
     opts.intra_op_num_threads = 4
-    session = ort.InferenceSession(str(onnx_path), sess_options=opts,
+    session = ort.InferenceSession(model_bytes, sess_options=opts,
                                    providers=['CPUExecutionProvider'])
     if (len(session.get_inputs()) != 1 or session.get_inputs()[0].name != 'pixel_values' or
             'logits' not in {o.name for o in session.get_outputs()} or
