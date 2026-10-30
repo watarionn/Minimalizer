@@ -9,6 +9,7 @@ import pytest
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
+import local_l02_schp_lip_observer_research as schp
 from local_l02_schp_lip_observer_research import (
     SIZE, SCHPResearchHold, _decode_logits, _prepare,
     _validate_signed_source, run_offline_observer,
@@ -73,7 +74,7 @@ def test_missing_or_wrong_model_pin_fails_before_import(tmp_path):
     s = signed()
     fake = tmp_path / 'checkpoint.onnx'
     fake.write_bytes(b'not-a-model')
-    with pytest.raises(SCHPResearchHold, match='ONNX_SHA_MISMATCH'):
+    with pytest.raises(SCHPResearchHold, match='UNVERIFIED_SCHP_CHECKPOINT_PIN'):
         run_offline_observer(**s, onnx_path=fake, expected_onnx_sha256='0' * 64, expected_model_revision='a' * 40)
     with pytest.raises(SCHPResearchHold, match='MISSING_LOCAL_PINNED_ONNX'):
         run_offline_observer(**s, onnx_path=fake, expected_onnx_sha256='invalid', expected_model_revision='a' * 40)
@@ -82,8 +83,12 @@ def test_missing_or_wrong_model_pin_fails_before_import(tmp_path):
 def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
     import types
     s = signed()
-    model = tmp_path / 'fake.onnx'
+    model = tmp_path / schp.SCHP_LIP20_INT8_FILENAME
     model.write_bytes(b'synthetic-model-bytes-only')
+    # The fake model is only accepted by this isolated test's monkeypatch.
+    # Real inference is hard-pinned to the public checkpoint SHA and size.
+    monkeypatch.setattr(schp, 'SCHP_LIP20_INT8_SHA256', hashlib.sha256(model.read_bytes()).hexdigest())
+    monkeypatch.setattr(schp, 'SCHP_LIP20_INT8_SIZE', model.stat().st_size)
 
     class FakeSession:
         def __init__(self, path, sess_options, providers):
@@ -109,7 +114,7 @@ def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
     classes, receipt = run_offline_observer(
         **s, onnx_path=model,
         expected_onnx_sha256=hashlib.sha256(model.read_bytes()).hexdigest(),
-        expected_model_revision='a' * 40)
+        expected_model_revision=schp.SCHP_LIP20_INT8_REVISION)
     assert np.array_equal(before, s['source_rgba'])
     assert np.all(classes[before[..., 3] > 0] == 7)
     assert receipt['relevant_class_counts_opaque_only']['coat'] == 6
@@ -118,3 +123,10 @@ def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
     assert receipt['dataset_licence_production_cleared'] is False
     assert receipt['Phase4'] == 'FAIL'
     assert receipt['production'] == 'NO_GO'
+
+
+def test_public_checkpoint_pin_contract_is_fixed():
+    assert schp.SCHP_LIP20_INT8_REVISION == '3cc2b2d00b16840652c1b7845fd78466dae7f157'
+    assert schp.SCHP_LIP20_INT8_SHA256 == '871c9e209dc67d6be61c73dcc79cb49e638fcf5bbc35a19b4c7429eba0bfc046'
+    assert schp.SCHP_LIP20_INT8_SIZE == 68314352
+    assert schp.SCHP_LIP20_INT8_FILENAME == 'schp-lip-20-int8-static.onnx'
