@@ -153,3 +153,58 @@ def test_checkpoint_file_identity_and_size_fail_closed(tmp_path):
     kwargs['expected_onnx_sha256'] = 'f' * 64
     with pytest.raises(SCHPResearchHold, match='UNVERIFIED_SCHP_CHECKPOINT_PIN'):
         run_offline_observer(**kwargs)
+
+
+def test_signed_source_validation_returns_independent_readonly_snapshot():
+    s = signed()
+    verified = _validate_signed_source(**s)
+    before = verified.copy()
+    s['source_rgba'][:] = 0
+    assert np.array_equal(verified, before)
+    assert not np.shares_memory(verified, s['source_rgba'])
+    assert not verified.flags.writeable
+    with pytest.raises(ValueError):
+        verified[1, 1, 0] = 0
+
+
+def test_caller_mutation_after_signed_validation_does_not_change_inference(monkeypatch, tmp_path):
+    import types
+    s = signed()
+    model = tmp_path / schp.SCHP_LIP20_INT8_FILENAME
+    model.write_bytes(b'isolated-fake-onnx')
+    pinned = hashlib.sha256(model.read_bytes()).hexdigest()
+    monkeypatch.setattr(schp, 'SCHP_LIP20_INT8_SHA256', pinned)
+    monkeypatch.setattr(schp, 'SCHP_LIP20_INT8_SIZE', model.stat().st_size)
+
+    class FakeSession:
+        def __init__(self, model_blob, sess_options, providers):
+            assert model_blob == b'isolated-fake-onnx'
+            assert providers == ['CPUExecutionProvider']
+            # Mutate caller-owned source after validation but before preprocessing.
+            s['source_rgba'][:] = 0
+        def get_inputs(self):
+            return [types.SimpleNamespace(name='pixel_values')]
+        def get_outputs(self):
+            return [types.SimpleNamespace(name='logits')]
+        def get_providers(self):
+            return ['CPUExecutionProvider']
+        def run(self, outputs, feeds):
+            assert outputs == ['logits']
+            # The original brown opaque pixel must survive, not turn white.
+            center = feeds['pixel_values'][0, :, SIZE // 2, SIZE // 2]
+            expected = (np.array([120, 90, 40], np.float32) / 255 - schp.MEAN) / schp.STD
+            assert np.allclose(center, expected, atol=1e-4)
+            logits = np.zeros((1, 20, SIZE, SIZE), np.float32)
+            logits[0, 7] = 1
+            return [logits]
+
+    fake_ort = types.SimpleNamespace(SessionOptions=lambda: types.SimpleNamespace(),
+                                     InferenceSession=FakeSession)
+    monkeypatch.setitem(sys.modules, 'onnxruntime', fake_ort)
+    classes, receipt = run_offline_observer(
+        **s, onnx_path=model, expected_onnx_sha256=pinned,
+        expected_model_revision=schp.SCHP_LIP20_INT8_REVISION)
+    assert np.count_nonzero(s['source_rgba']) == 0
+    assert receipt['relevant_class_counts_opaque_only']['coat'] == 6
+    assert np.count_nonzero(classes == 7) == 6
+    assert receipt['Phase4'] == 'FAIL'
