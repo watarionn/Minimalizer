@@ -41,7 +41,7 @@ def _sha(b: bytes) -> str:
 
 def _validate_signed_source(*, encoded_source: bytes, source_rgba: np.ndarray,
                             expected_encoded_sha256: str,
-                            expected_rgba_sha256: str) -> None:
+                            expected_rgba_sha256: str) -> np.ndarray:
     if (type(encoded_source) is not bytes or not encoded_source or
             len(encoded_source) > 32 * 1024 * 1024 or
             type(source_rgba) is not np.ndarray or
@@ -51,19 +51,24 @@ def _validate_signed_source(*, encoded_source: bytes, source_rgba: np.ndarray,
         raise SCHPResearchHold('INVALID_SIGNED_SOURCE')
     if not _pin(expected_encoded_sha256) or not _pin(expected_rgba_sha256):
         raise SCHPResearchHold('MISSING_EXTERNAL_SOURCE_PINS')
-    if _sha(encoded_source) != expected_encoded_sha256 or _sha(source_rgba.tobytes()) != expected_rgba_sha256:
+    # Freeze caller-owned mutable pixels before checking the external pins.
+    # A concurrent caller mutation after validation must never affect inference.
+    verified_rgba = np.array(source_rgba, copy=True, order='C')
+    verified_rgba.setflags(write=False)
+    if _sha(encoded_source) != expected_encoded_sha256 or _sha(verified_rgba.tobytes()) != expected_rgba_sha256:
         raise SCHPResearchHold('SIGNED_SOURCE_SHA_MISMATCH')
     try:
         with Image.open(io.BytesIO(encoded_source)) as img:
-            if getattr(img, 'n_frames', 1) != 1 or img.size != (source_rgba.shape[1], source_rgba.shape[0]):
+            if getattr(img, 'n_frames', 1) != 1 or img.size != (verified_rgba.shape[1], verified_rgba.shape[0]):
                 raise SCHPResearchHold('SIGNED_SOURCE_FRAME_OR_DIMENSION_MISMATCH')
             decoded = np.asarray(img.convert('RGBA'))
     except SCHPResearchHold:
         raise
     except (OSError, ValueError, UnidentifiedImageError) as exc:
         raise SCHPResearchHold('SIGNED_SOURCE_DECODE_FAILED') from exc
-    if not np.array_equal(decoded, source_rgba):
+    if not np.array_equal(decoded, verified_rgba):
         raise SCHPResearchHold('SIGNED_SOURCE_RGBA_BYTES_MISMATCH')
+    return verified_rgba
 
 
 def _prepare(source_rgba: np.ndarray) -> np.ndarray:
@@ -102,7 +107,7 @@ def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
     No human labels, source-specific thresholds, owner masks, or remote inference.
     Source pins and checkpoint pin must originate outside this function.
     """
-    _validate_signed_source(encoded_source=encoded_source, source_rgba=source_rgba,
+    verified_rgba = _validate_signed_source(encoded_source=encoded_source, source_rgba=source_rgba,
                             expected_encoded_sha256=expected_encoded_sha256,
                             expected_rgba_sha256=expected_rgba_sha256)
     if (not _pin(expected_onnx_sha256) or not isinstance(onnx_path, Path) or
@@ -139,9 +144,9 @@ def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
             'logits' not in {o.name for o in session.get_outputs()} or
             session.get_providers() != ['CPUExecutionProvider']):
         raise SCHPResearchHold('UNEXPECTED_ONNX_INTERFACE_OR_PROVIDER')
-    logits = session.run(['logits'], {'pixel_values': _prepare(source_rgba)})[0]
-    classes = _decode_logits(logits, source_rgba[..., 3])
-    opaque = source_rgba[..., 3] > 0
+    logits = session.run(['logits'], {'pixel_values': _prepare(verified_rgba)})[0]
+    classes = _decode_logits(logits, verified_rgba[..., 3])
+    opaque = verified_rgba[..., 3] > 0
     counts = {name: int(np.count_nonzero((classes == cid) & opaque))
               for cid, name in RELEVANT.items()}
     receipt = {
