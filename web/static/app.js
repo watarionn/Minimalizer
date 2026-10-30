@@ -1,8 +1,46 @@
-// Shared UI, independent of Local and Public compute routes.
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
-const SUPPORTED_MIME_TYPES = new Set(["image/png","image/jpeg","image/webp"]);
-const compute = window.MinimalizerComputeRoute;
-if (!compute || typeof compute.minimalize !== "function") throw new Error("Compute route missing.");
+const SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const LOCAL_WORKER_LOOPBACK_BASE = "http://127.0.0.1:28765";
+const LOCAL_WORKER_TAILSCALE_BASE = "https://ywshtmr.tail8fd68c.ts.net:28765";
+const LOCAL_WORKER_HEALTH_TIMEOUT_MS = 15000;
+const LOCAL_WORKER_STORAGE_KEY = "minimalizer.localWorkerEnabled";
+const LOCAL_WORKER_MODE_STORAGE_KEY = "minimalizer.localWorkerMode";
+
+const pageParams = new URLSearchParams(window.location.search);
+const localWorkerParam = pageParams.get("localWorker");
+const zeroBase2Requested = pageParams.get("engine") === "zerobase2";
+if (localWorkerParam === "1") {
+  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "loopback");
+} else if (localWorkerParam === "tailscale") {
+  window.localStorage.setItem(LOCAL_WORKER_STORAGE_KEY, "1");
+  window.localStorage.setItem(LOCAL_WORKER_MODE_STORAGE_KEY, "tailscale");
+} else if (localWorkerParam === "0") {
+  window.localStorage.removeItem(LOCAL_WORKER_STORAGE_KEY);
+  window.localStorage.removeItem(LOCAL_WORKER_MODE_STORAGE_KEY);
+}
+
+function localWorkerEnabled() {
+  return window.localStorage.getItem(LOCAL_WORKER_STORAGE_KEY) === "1";
+}
+
+function localWorkerMode() {
+  return window.localStorage.getItem(LOCAL_WORKER_MODE_STORAGE_KEY) === "tailscale"
+    ? "tailscale"
+    : "loopback";
+}
+
+function localWorkerBase() {
+  return localWorkerMode() === "tailscale"
+    ? LOCAL_WORKER_TAILSCALE_BASE
+    : LOCAL_WORKER_LOOPBACK_BASE;
+}
+
+function localWorkerDisplayName() {
+  return localWorkerMode() === "tailscale"
+    ? "Tailscale Local Worker"
+    : "Local Worker";
+}
 
 const elements = {
   dropZone: document.querySelector("#drop-zone"),
@@ -40,7 +78,17 @@ const elements = {
   engineBadge: document.querySelector("#engine-badge"),
 };
 
-const state = {file:null,sourceUrl:null,resultUrl:null,resultBlob:null,resultFilename:"minimalized.png",busy:false};
+const state = {
+  file: null,
+  sourceUrl: null,
+  resultUrl: null,
+  resultBlob: null,
+  resultFilename: "minimalized.png",
+  busy: false,
+  engineVersion: "",
+  localWorkerStatus: localWorkerEnabled() ? "enabled" : "disabled",
+  localWorkerFallbackReason: "",
+};
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -53,7 +101,33 @@ function setStatus(message = "", isError = false) {
   elements.status.classList.toggle("is-error", isError);
 }
 
-function refreshEngineBadge() { elements.engineBadge.textContent = compute.label; }
+function refreshEngineBadge() {
+  const parts = [];
+  if (state.engineVersion) parts.push(`Engine v${state.engineVersion}`);
+  if (localWorkerEnabled()) {
+    const workerName = localWorkerDisplayName();
+    const labels = {
+      enabled: `${workerName}優先`,
+      checking: `${workerName}接続確認中`,
+      ready: `${workerName}接続済み`,
+      fallback: "Railway fallback",
+    };
+    parts.push(labels[state.localWorkerStatus] || `${workerName}優先`);
+  }
+  if (parts.length > 0) elements.engineBadge.textContent = parts.join(" · ");
+}
+
+function localWorkerFallbackMessage(reason = "") {
+  const tailscale = localWorkerMode() === "tailscale";
+  const suffix = reason === "timeout"
+    ? "接続確認がタイムアウトしました。"
+    : reason === "not-ready"
+      ? "Local Workerは起動していますが準備完了ではありません。"
+      : tailscale
+        ? "携帯のTailscale接続とPC側のTailscale Serve / Local Workerを確認してください。"
+        : "ブラウザのローカルネットワーク権限、またはLocal Workerの起動状態を確認してください。";
+  return `${localWorkerDisplayName()}に接続できなかったためRailway fallbackを使用します。 ${suffix}`;
+}
 
 function currentMode() {
   return elements.modeInputs.find((input) => input.checked)?.value || "standard";
@@ -95,11 +169,11 @@ function updateModeUi() {
       ? "背景と色ファミリーを整理し、特徴色 v5でColor Stripを生成中…"
       : "代表色と特徴色を評価してColor Stripを生成中…";
   } else {
-    elements.modeDescription.textContent = compute.description;
+    elements.modeDescription.textContent = "現在の高精度Minimalizer 2.0でミニマル化します。方式を選ぶ必要はありません。";
     elements.resultTitle.textContent = "ミニマル化結果";
     elements.minimalizeButton.textContent = "ミニマル化";
     elements.processingTitle.textContent = "ミニマル化しています";
-    elements.processingCopy.textContent = compute.processingCopy;
+    elements.processingCopy.textContent = "人物と背景の構造を解析し、必要なかたちだけに整理中…";
     elements.colorStripOptions.open = false;
   }
 
@@ -176,6 +250,14 @@ function setFile(file) {
     : "画像を読み込みました。ミニマル化できます。");
 }
 
+function buildV2FormData() {
+  const form = new FormData();
+  form.append("file", state.file, state.file.name || "image");
+  form.append("preset", "minimal");
+  form.append("include_facets", "true");
+  return form;
+}
+
 function buildColorStripFormData(outputFormat) {
   const form = new FormData();
   form.append("file", state.file, state.file.name || "image");
@@ -193,21 +275,95 @@ function buildColorStripFormData(outputFormat) {
   return form;
 }
 
-async function requestBrowserColorStrip(outputFormat) {
-  const engine = window.MinimalizerBrowserColorStrip;
-  if (!engine || typeof engine.create !== "function") {
-    throw new Error("Browser Color Strip engine is unavailable.");
+async function fetchLocalWorker(path, options = {}, timeoutMs = 0) {
+  const controller = new AbortController();
+  const timer = timeoutMs > 0
+    ? window.setTimeout(() => controller.abort(), timeoutMs)
+    : null;
+  try {
+    const requestOptions = {
+      ...options,
+      mode: "cors",
+      signal: controller.signal,
+    };
+    if (localWorkerMode() === "loopback") {
+      requestOptions.targetAddressSpace = "loopback";
+    }
+    const request = new Request(`${localWorkerBase()}${path}`, requestOptions);
+    return await fetch(request);
+  } finally {
+    if (timer !== null) window.clearTimeout(timer);
   }
-  const result = await engine.create(state.file, {
-    colorCount: Number(elements.stripColors.value),
-    similarity: Number(elements.colorSimilarity.value),
-    selectionMode: elements.stripSelectionMode.value,
-    sizeMode: elements.stripSizeMode.value,
-    order: elements.stripOrder.value,
-    orientation: elements.stripOrientation.value,
-    outputFormat,
+}
+
+async function probeLocalWorker() {
+  if (!localWorkerEnabled()) return { ready: false, reason: "disabled" };
+  state.localWorkerStatus = "checking";
+  state.localWorkerFallbackReason = "";
+  refreshEngineBadge();
+  setStatus(
+    localWorkerMode() === "tailscale"
+      ? "Tailscale経由で自宅PCのLocal Workerへ接続しています。"
+      : "Local Workerへ接続しています。初回はブラウザのローカルネットワークアクセスを許可してください。",
+  );
+  try {
+    const response = await fetchLocalWorker(
+      "/health",
+      { method: "GET" },
+      LOCAL_WORKER_HEALTH_TIMEOUT_MS,
+    );
+    if (!response.ok) return { ready: false, reason: `health-${response.status}` };
+    const payload = await response.json();
+    if (payload?.worker !== "local-compute-v1" || payload?.ready !== true) {
+      return { ready: false, reason: "not-ready" };
+    }
+    state.localWorkerStatus = "ready";
+    refreshEngineBadge();
+    return { ready: true, reason: "" };
+  } catch (error) {
+    return {
+      ready: false,
+      reason: error instanceof DOMException && error.name === "AbortError"
+        ? "timeout"
+        : "permission-or-offline",
+    };
+  }
+}
+
+async function requestStandardV2() {
+  let fallbackReason = "";
+  if (localWorkerEnabled()) {
+    const probe = await probeLocalWorker();
+    if (probe.ready) {
+      try {
+        const response = await fetchLocalWorker(zeroBase2Requested ? "/api/zerobase2/minimalize" : "/api/v2/minimalize", {
+          method: "POST",
+          body: buildV2FormData(),
+        });
+        if (response.ok || response.status === 400 || response.status === 415) {
+          state.localWorkerStatus = "ready";
+          refreshEngineBadge();
+          return { response, compute: "local-worker", fallbackReason: "" };
+        }
+        fallbackReason = `worker-${response.status}`;
+      } catch (error) {
+        fallbackReason = error instanceof DOMException && error.name === "AbortError"
+          ? "timeout"
+          : "permission-or-offline";
+      }
+    } else {
+      fallbackReason = probe.reason;
+    }
+    state.localWorkerStatus = "fallback";
+    state.localWorkerFallbackReason = fallbackReason;
+    refreshEngineBadge();
+    setStatus(localWorkerFallbackMessage(fallbackReason), true);
+  }
+  const response = await fetch("/api/v2/minimalize", {
+    method: "POST",
+    body: buildV2FormData(),
   });
-  return result.response;
+  return { response, compute: "railway", fallbackReason };
 }
 
 async function responseError(response) {
@@ -263,12 +419,15 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
 
   try {
     let response;
-    let computeRoute = "browser";
+    let computeRoute = "railway";
     let fallbackReason = "";
     if (colorStrip) {
-      response = await requestBrowserColorStrip(outputFormat);
+      response = await fetch("/api/minimalize", {
+        method: "POST",
+        body: buildColorStripFormData(outputFormat),
+      });
     } else {
-      const result = await compute.minimalize(state.file, setStatus);
+      const result = await requestStandardV2();
       response = result.response;
       computeRoute = result.compute;
       fallbackReason = result.fallbackReason || "";
@@ -289,52 +448,58 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.downloadRow.hidden = false;
 
       const responseMode = response.headers.get("x-minimalizer-mode");
-      const responseRoute = response.headers.get("x-minimalizer-route");
       const v2Contract = response.headers.get("x-minimalizer-v2-contract-version");
-      const qualityTier = response.headers.get("x-minimalizer-quality-tier");
-      const engineName = response.headers.get("x-minimalizer-engine");
       const shapes = response.headers.get("x-minimalizer-shape-count");
-      const inputSha = response.headers.get("x-minimalizer-input-sha256");
-      const inputRgbSha = response.headers.get("x-minimalizer-input-rgb-sha256");
-      const inputAlphaSha = response.headers.get("x-minimalizer-input-alpha-sha256");
-      const inputSize = response.headers.get("x-minimalizer-input-size");
-      const inputBytes = response.headers.get("x-minimalizer-input-bytes");
       const colorCount = response.headers.get("x-minimalizer-color-count");
       const size = response.headers.get("x-minimalizer-analysis-size");
       const colorSelectionMode = response.headers.get("x-minimalizer-color-selection-mode");
       const colorSizeMode = response.headers.get("x-minimalizer-color-size-mode");
       const colorOrder = response.headers.get("x-minimalizer-color-order");
       const colorOrientation = response.headers.get("x-minimalizer-color-orientation");
-      const browserQualityProfile = response.headers.get("x-minimalizer-browser-quality-profile");
-      const modeLabel = responseMode === "color_strip" ? "Color Strip" : compute.resultLabel(response);
+      const modeLabel = v2Contract
+        ? (computeRoute === "local-worker" ? "Minimalizer 2.0 Local" : "Minimalizer 2.0")
+        : responseMode === "color_strip" ? "Color Strip" : "Minimalizer";
 
       const colorOptionLabel = responseMode === "color_strip"
         ? colorStripOptionLabel(colorSelectionMode, colorSizeMode, colorOrder, colorOrientation)
         : "";
 
       const analysis = response.headers.get("x-minimalizer-analysis");
-      const computeLabel = responseMode === "color_strip" ? "Browser Color Strip"
-        : (computeRoute === "local-worker" ? "Local" : "Browser");
+      const workerLabel = localWorkerDisplayName();
+      const computeLabel = computeRoute === "local-worker"
+        ? analysis ? `${workerLabel} · ${analysis}` : workerLabel
+        : fallbackReason ? "Railway fallback" : "Railway";
       elements.resultMeta.textContent = [
         modeLabel,
         computeLabel,
-        engineName || "",
-        qualityTier ? `quality=${qualityTier}` : "",
         responseMode === "color_strip" && colorCount ? `${colorCount} colors` : shapes ? `${shapes} shapes` : "",
-        inputSize ? `src=${inputSize}` : "",
-        inputBytes ? `bytes=${inputBytes}` : "",
-        inputSha ? `file=${inputSha.slice(0, 12)}` : "",
-        inputRgbSha ? `rgb=${inputRgbSha.slice(0, 12)}` : "",
-        inputAlphaSha ? `alpha=${inputAlphaSha === "none" ? "none" : inputAlphaSha.slice(0, 12)}` : "",
         colorOptionLabel,
         size || "",
       ].filter(Boolean).join(" · ");
     }
 
     if (download) downloadBlob(blob, filename);
-    if (download) setStatus(`${label}を保存しました。`);
-    else if (colorStrip) setStatus("Color Stripが完成しました。");
-    else setStatus(compute.successMessage(response, fallbackReason));
+    if (download) {
+      if (fallbackReason) {
+        setStatus(
+          `${label}をRailway fallbackで保存しました。 ${localWorkerFallbackMessage(fallbackReason)}`,
+          true,
+        );
+      } else {
+        setStatus(`${label}を保存しました。`);
+      }
+    } else {
+      const completionMessage = colorStrip
+        ? "Color Stripが完成しました。"
+        : computeRoute === "local-worker"
+          ? localWorkerMode() === "tailscale"
+            ? "Tailscale経由のローカル高精度Workerでミニマル化が完了しました。"
+            : "ローカル高精度Workerでミニマル化が完了しました。"
+          : fallbackReason
+            ? `Railway fallbackでミニマル化が完了しました。 ${localWorkerFallbackMessage(fallbackReason)}`
+            : "Railwayでミニマル化が完了しました。";
+      setStatus(completionMessage, Boolean(fallbackReason));
+    }
   } catch (error) {
     if (preview && !state.resultBlob) {
       elements.resultEmpty.hidden = false;
@@ -431,10 +596,26 @@ for (const input of elements.modeInputs) {
 
 updateModeUi();
 refreshEngineBadge();
-setStatus(compute.initialStatus);
+if (localWorkerEnabled()) {
+  setStatus(
+    localWorkerMode() === "tailscale"
+      ? "Tailscale Local Worker優先モードです。携帯のTailscaleを接続した状態でミニマル化してください。"
+      : "Local Worker優先モードです。ミニマル化時に接続確認します。初回はブラウザのローカルネットワークアクセスを許可してください。",
+  );
+}
 
 window.addEventListener("beforeunload", () => {
   if (state.sourceUrl) URL.revokeObjectURL(state.sourceUrl);
   if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
 });
+
+fetch("/health")
+  .then((response) => response.ok ? response.json() : null)
+  .then((payload) => {
+    if (payload?.engine_version) {
+      state.engineVersion = payload.engine_version;
+      refreshEngineBadge();
+    }
+  })
+  .catch(() => {});
 
