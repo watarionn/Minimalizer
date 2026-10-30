@@ -1,0 +1,115 @@
+{
+  "config": {
+    "cell_size": 300,
+    "columns": 4,
+    "first_bad_stage_rule": "first-visual-break",
+    "human_review_status": "pass",
+    "stage_order": [
+      "input",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+      "09",
+      "10",
+      "11",
+      "12"
+    ]
+  },
+  "config_sha256": "0dffca4c4994da9ad1eee84e357823a92fb050c846a9f1b96adac6ba7a800bbe",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 340,
+    "pixel_width": 340
+  },
+  "determinism_policy": "fixed-stage-order-fixed-grid-fixed-resampling",
+  "diagnostic_policy": {
+    "first_bad_stage_rule": true,
+    "human_visual_review_recorded": true,
+    "no_later_stage_masking": true
+  },
+  "inputs": {
+    "phase03": {
+      "03_subject_overlay.png": "54597466554ff894f7e3c7942940220bf1d1c661e358d9c847d7bc53f6b2615e",
+      "stage.json": "d9e1c68fb8da5770fe5f52c89c6e269d1037c69cc9c1d002e76c6468ba904bdd"
+    },
+    "phase04": {
+      "04_part_overlay.png": "1b4dadd30d6a12fad62414f0e3dde875466b2c188dfefdb7e52355ac2a7fa24d",
+      "stage.json": "13e14b8f81066e12fa1df57572ab67d85b657d5c79f3cbf89fc3951df0a215f4"
+    },
+    "phase05": {
+      "05_structure_graph_overlay.png": "fd6b98c405d254fe35f8d1707052fd6855238a5778d3ed4b353453b659a3fc92",
+      "stage.json": "15fd29588574410ee5771a2e6bdc11399f3cfb123bd3c2b8203ed337dbe1891f"
+    },
+    "phase06": {
+      "06_region_binding.png": "ed4fd447a9c2cd88d8232faaa998cf0b7848cf89703a09c91ceab587291fe2e2",
+      "stage.json": "4cd9358e289bfe30800c9f49795a779915cd268ab5cc110599d884e74c146f4c"
+    },
+    "phase07": {
+      "07_mass_blocks.png": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "stage.json": "aee8d505b0b5da429c4acdf7df72fa5a0468659498d6a7f25456fb0089ff489d"
+    },
+    "phase08": {
+      "08_pruned_masses.png": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "stage.json": "a07f3b00c179f1c8e322f72ea3c19ab9e729a32d1184b2d900d8bd073c805915"
+    },
+    "phase09": {
+      "09_palette_preview.png": "2c346967d6c8751e24f0b29cefd0a205844173d51a9518d80e4cda30274e6119",
+      "stage.json": "f1ae99584307ef6eda80bcd667adaff5e5ce8a8951ec27751c4a2aaf7488bff4"
+    },
+    "phase10": {
+      "10_selected_primitives.png": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9",
+      "stage.json": "975d46d0579900b7dba9fbf2de097c039ee00923ce5a5c57b1735b21bf956cb7"
+    },
+    "phase11": {
+      "11_composed_minimal.png": "c700f23c13fa7feb2835efc0b001bc4580697bbb9d06c5041a2d7ab1671490cc",
+      "stage.json": "c4fe9640bc94a05f316f257ab95ac992d8c933cf9b75571f3b767b98e4fe4660"
+    },
+    "phase12": {
+      "12_final.png": "91af617ef2f1b5d7394f88bf40be66f577204762bcdaa286edd74bffd850f2f5",
+      "stage.json": "ec97ff018b36f89c45bfd242016090b7fa90b021dc86ede364e13ee9665089f4"
+    },
+    "source": {
+      "path": "Hyakuto-Kyoko_list_thumb.png",
+      "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2"
+    }
+  },
+  "metrics": {
+    "board_cell_size": 300,
+    "board_columns": 4,
+    "first_machine_bad_stage_id": null,
+    "human_first_bad_stage_id": null,
+    "human_review_status": "pass",
+    "mandatory_stage_count": 11,
+    "mandatory_stage_present_count": 11,
+    "pass": true,
+    "upstream_all_machine_pass": true
+  },
+  "outputs": {
+    "13_debug_board.png": "b26793e9a794feadb7bfb00bcc9916c82253af3bc1a74ffe33d6fab1a674f143",
+    "13_stage_index.json": "f15bedaad1907b8dd0aa742a9e29a3245fe2a1aee08e1d72440a8afa15939868",
+    "metrics.json": "bd61ce192ec2b63bd4f91ce593c29d2d3211294650e357f591c49a8c97b5e88c",
+    "preview.png": "b26793e9a794feadb7bfb00bcc9916c82253af3bc1a74ffe33d6fab1a674f143"
+  },
+  "phase": 13,
+  "producer": "minimalizer-zerobase2-phase13",
+  "producer_version": "0.1",
+  "provenance_policy": {
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden"
+  },
+  "source": {
+    "height": 340,
+    "path": "Hyakuto-Kyoko_list_thumb.png",
+    "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+    "width": 340
+  },
+  "stage": "stage_visualizer_debug_board"
+}
