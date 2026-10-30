@@ -54,6 +54,13 @@ def propose_signed_dual_owner_lab_reach_shadow(
             expected_encoded_source_sha256, expected_decoded_rgba_sha256,
             expected_class_ids_sha256, expected_composed_owner_sha256)):
         raise SignedDualOwnerInputHold('MISSING_EXTERNAL_SHA256_PIN')
+    # Freeze all three caller-owned arrays before authentication. A caller may
+    # mutate its buffers while the shadow runs; inference must use exactly the
+    # pixels/classes/owner that passed the external SHA checks, not live aliases.
+    caller_inputs = (source_rgba, class_ids, composed_owner)
+    source_rgba = np.array(source_rgba, copy=True, order='C')
+    class_ids = np.array(class_ids, copy=True, order='C')
+    composed_owner = np.array(composed_owner, copy=True, order='C')
     if hashlib.sha256(encoded_source).hexdigest() != expected_encoded_source_sha256:
         raise SignedDualOwnerInputHold('ENCODED_SOURCE_SHA_MISMATCH')
     try:
@@ -94,7 +101,7 @@ def propose_signed_dual_owner_lab_reach_shadow(
     if type(proposed) is not np.ndarray:
         raise SignedDualOwnerInputHold('INVALID_SHADOW_OUTPUT_TYPE')
     if any(np.shares_memory(proposed, verified) for verified in
-           (source_rgba, class_ids, composed_owner)):
+           (*caller_inputs, source_rgba, class_ids, composed_owner)):
         raise SignedDualOwnerInputHold('SHADOW_OUTPUT_ALIASES_SIGNED_INPUT')
     try:
         postcondition = verify_signed_shadow_output(
