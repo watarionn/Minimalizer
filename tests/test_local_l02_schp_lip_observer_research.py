@@ -130,3 +130,22 @@ def test_public_checkpoint_pin_contract_is_fixed():
     assert schp.SCHP_LIP20_INT8_SHA256 == '871c9e209dc67d6be61c73dcc79cb49e638fcf5bbc35a19b4c7429eba0bfc046'
     assert schp.SCHP_LIP20_INT8_SIZE == 68314352
     assert schp.SCHP_LIP20_INT8_FILENAME == 'schp-lip-20-int8-static.onnx'
+
+
+def test_checkpoint_file_identity_and_size_fail_closed(tmp_path):
+    s = signed()
+    fake = tmp_path / 'unrelated.onnx'
+    fake.write_bytes(b'wrong-model')
+    kwargs = dict(**s, onnx_path=fake,
+                  expected_model_revision=schp.SCHP_LIP20_INT8_REVISION,
+                  expected_onnx_sha256=schp.SCHP_LIP20_INT8_SHA256)
+    with pytest.raises(SCHPResearchHold, match='UNVERIFIED_SCHP_CHECKPOINT_FILE'):
+        run_offline_observer(**kwargs)
+    fake = tmp_path / schp.SCHP_LIP20_INT8_FILENAME
+    fake.write_bytes(b'wrong-model')
+    kwargs['onnx_path'] = fake
+    with pytest.raises(SCHPResearchHold, match='UNVERIFIED_SCHP_CHECKPOINT_FILE'):
+        run_offline_observer(**kwargs)
+    kwargs['expected_onnx_sha256'] = 'f' * 64
+    with pytest.raises(SCHPResearchHold, match='UNVERIFIED_SCHP_CHECKPOINT_PIN'):
+        run_offline_observer(**kwargs)
