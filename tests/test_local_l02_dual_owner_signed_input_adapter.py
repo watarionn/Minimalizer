@@ -155,3 +155,36 @@ def test_reject_shadow_output_nonarray_before_postcondition(monkeypatch):
     with pytest.raises(adapter.SignedDualOwnerInputHold,
                        match='INVALID_SHADOW_OUTPUT_TYPE'):
         adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+
+
+def test_caller_mutation_after_pins_cannot_change_authenticated_shadow(monkeypatch):
+    kw = fixture()
+    expected = {key: kw[key].copy() for key in
+                ('source_rgba', 'class_ids', 'composed_owner')}
+
+    def shadow(**inputs):
+        # Simulate a concurrent caller changing every original input after
+        # signed verification but before the shadow reads its arguments.
+        for key in expected:
+            kw[key].fill(0)
+            assert np.array_equal(inputs[key], expected[key])
+            assert not np.shares_memory(inputs[key], kw[key])
+        return inputs['composed_owner'].copy(), {
+            'schema': 'research-only', 'new_source_pixels': 0}
+
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', shadow)
+    proposed, receipt = adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
+    assert np.array_equal(proposed, expected['composed_owner'])
+    assert receipt['signed_source_encoded_and_decoded_verified']
+    assert receipt['Phase4'] == 'FAIL'
+
+
+def test_reject_shadow_output_alias_of_mutable_original_caller_owner(monkeypatch):
+    kw = fixture()
+    original = kw['composed_owner']
+    def shadow(**_inputs):
+        return original, {'new_source_pixels': 0}
+    monkeypatch.setattr(adapter, 'propose_dual_owner_lab_reach_shadow', shadow)
+    with pytest.raises(adapter.SignedDualOwnerInputHold,
+                       match='SHADOW_OUTPUT_ALIASES_SIGNED_INPUT'):
+        adapter.propose_signed_dual_owner_lab_reach_shadow(**kw)
