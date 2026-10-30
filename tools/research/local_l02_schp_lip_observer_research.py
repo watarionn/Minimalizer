@@ -19,6 +19,13 @@ STD = np.array([0.225, 0.224, 0.229], dtype=np.float32)
 RELEVANT = {2: 'hair', 5: 'upper_clothes', 7: 'coat',
             14: 'left_arm', 15: 'right_arm'}
 
+# Immutable public HF/Xet LFS metadata, ONNX-int8 addition commit 3cc2b2d.
+# These pins identify the actual checkpoint, not a caller-supplied arbitrary SHA.
+SCHP_LIP20_INT8_REVISION = '3cc2b2d00b16840652c1b7845fd78466dae7f157'
+SCHP_LIP20_INT8_SHA256 = '871c9e209dc67d6be61c73dcc79cb49e638fcf5bbc35a19b4c7429eba0bfc046'
+SCHP_LIP20_INT8_SIZE = 68314352
+SCHP_LIP20_INT8_FILENAME = 'schp-lip-20-int8-static.onnx'
+
 
 class SCHPResearchHold(ValueError):
     """Missing provenance or invalid observer-only inference output."""
@@ -103,6 +110,14 @@ def run_offline_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
             len(expected_model_revision) != 40 or
             any(c not in '0123456789abcdef' for c in expected_model_revision)):
         raise SCHPResearchHold('MISSING_LOCAL_PINNED_ONNX')
+    # A syntactically valid 40-hex revision and arbitrary caller hash do not
+    # establish the official ONNX checkpoint. Fail before importing the model.
+    if (expected_model_revision != SCHP_LIP20_INT8_REVISION or
+            expected_onnx_sha256 != SCHP_LIP20_INT8_SHA256):
+        raise SCHPResearchHold('UNVERIFIED_SCHP_CHECKPOINT_PIN')
+    if (onnx_path.name != SCHP_LIP20_INT8_FILENAME or
+            onnx_path.stat().st_size != SCHP_LIP20_INT8_SIZE):
+        raise SCHPResearchHold('UNVERIFIED_SCHP_CHECKPOINT_FILE')
     # Stream the model hash to avoid loading a 68MB checkpoint into memory.
     digest = hashlib.sha256()
     with onnx_path.open('rb') as f:
