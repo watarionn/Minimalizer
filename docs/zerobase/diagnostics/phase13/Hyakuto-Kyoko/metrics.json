@@ -1,0 +1,11 @@
+{
+  "board_cell_size": 300,
+  "board_columns": 4,
+  "first_machine_bad_stage_id": null,
+  "human_first_bad_stage_id": null,
+  "human_review_status": "pass",
+  "mandatory_stage_count": 11,
+  "mandatory_stage_present_count": 11,
+  "pass": true,
+  "upstream_all_machine_pass": true
+}
