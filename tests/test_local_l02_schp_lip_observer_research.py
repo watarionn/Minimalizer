@@ -91,8 +91,12 @@ def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
     monkeypatch.setattr(schp, 'SCHP_LIP20_INT8_SIZE', model.stat().st_size)
 
     class FakeSession:
-        def __init__(self, path, sess_options, providers):
-            assert path == str(model)
+        def __init__(self, model_blob, sess_options, providers):
+            # Simulate replacement of the file after authentication. The
+            # session must receive the verified immutable bytes, not a path.
+            assert type(model_blob) is bytes
+            assert model_blob == b'synthetic-model-bytes-only'
+            model.write_bytes(b'replaced-after-verified-snapshot')
             assert providers == ['CPUExecutionProvider']
         def get_inputs(self):
             return [types.SimpleNamespace(name='pixel_values')]
