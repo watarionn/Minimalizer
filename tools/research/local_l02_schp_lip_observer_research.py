@@ -16,7 +16,7 @@ from PIL import Image, UnidentifiedImageError
 SIZE = 473
 MEAN = np.array([0.406, 0.456, 0.485], dtype=np.float32)
 STD = np.array([0.225, 0.224, 0.229], dtype=np.float32)
-RELEVANT = {2: 'hair', 5: 'upper_clothes', 7: 'coat',
+RELEVANT = {2: 'hair', 3: 'glove', 5: 'upper_clothes', 7: 'coat',
             14: 'left_arm', 15: 'right_arm'}
 
 # Immutable public HF/Xet LFS metadata, ONNX-int8 addition commit 3cc2b2d.
