@@ -40,3 +40,17 @@ This document and the exact observer/test sources were copied without private by
 ## 2026-10-31 glove-subpart receipt correction (research-only)
 
 The upstream pinned LIP20 label map explicitly defines `3=Glove` (see the model's `configuration_schp.py`). The isolated observer's receipt previously omitted that class from its *aggregate* `RELEVANT` counts, although the returned private full class map still contained it. The A-only module now includes `glove` in opaque-source-only counts, with exact class-ID and fake-session receipt assertions. This allows the next independent H06 class32 sleeve-versus-handwear/underlayer diagnostic to inspect a *positive glove prediction* rather than equating lack of coat with underlayer. A glove prediction is not proof of all underlayer classes, nor authorization to veto an owner pixel. The frozen model has **not** been executed on H04/H06/H08; this correction is **not** a P0/P1 visual fix. Original source, private masks and postscore labels are never inference inputs. Licence, unseen-blind, Phase4, Golden and production HOLD gates remain unchanged.
+
+## 2026-10-31 signed H04/H06/H08 input-byte preflight (source-free)
+
+This is a **new offline input-provenance prerequisite**, not SCHP inference, a new owner candidate, or a P0/P1 visual improvement. The established non-shared Drive `chatGPT及びCodex用/Minimalizer/10_Artifact_Library/03_Private_Research_Evidence` was read directly. The original reviewed-evidence ZIP SHA-256 is `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`; its **19/19 internal member SHA-256** matched. The embedded signed image dataURLs were decoded independently, then encoded-source SHA-256, decoded RGBA shape and source-alpha opaque counts were compared to the *pre-existing* signed review audit. All three matched the audit without changing a byte.
+
+| Exposed signed case | Encoded original SHA-256 | Decoded RGBA SHA-256 | RGBA shape (H,W,4) | Source alpha opaque pixels |
+| --- | --- | --- | --- | ---: |
+| H04 | `7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3` | `4eaf402c1375cad2f4d5d0f3350458ef7a80e9ceb9ca2b4a157d0d66651545f4` | 1400×453×4 | 241,182 |
+| H06 | `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8` | `c4c4891542c80d9d2f61c45c1b6794722e5dfceed837179ae83352995e4522b5` | 2000×2000×4 | 602,869 |
+| H08 | `759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e` | `5107f0eeb3b950b8e93ceb3fb6f98c52ecf6e2ce94d39c1ee606f3fad1e8026c` | 2000×2000×4 | 536,859 |
+
+These externally authenticated source pins can be supplied to the **existing** isolated offline SCHP observer only after the exact ONNX checkpoint bytes are independently obtained and SHA-verified. The present preflight did **not** execute the GitHub observer module, obtain or run the 68,314,352-byte ONNX checkpoint, produce a class map, or evaluate any owner change. Do not feed the reviewed human masks into inference; those remain postscore-only. The PR #445 current-head 23/23 Git blob dependency check is separate from this source preflight and is **not** exact PR runtime/Phase4 acceptance.
+
+**Accepted P0 0 / P1 0; H04/H06/H08 unresolved 3. No owner promotion, no merge. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO.** Original/private image bytes, masks, NPZ and human coordinates remain solely in the established non-shared Drive, never in this PR.
