@@ -122,6 +122,8 @@ def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
     assert np.array_equal(before, s['source_rgba'])
     assert np.all(classes[before[..., 3] > 0] == 7)
     assert receipt['relevant_class_counts_opaque_only']['coat'] == 6
+    # LIP20 class 3 is Glove; count it independently of coat and arm.
+    assert receipt['relevant_class_counts_opaque_only']['glove'] == 0
     assert receipt['human_annotations_used'] is False
     assert receipt['owner_modified'] is False
     assert receipt['dataset_licence_production_cleared'] is False
@@ -130,6 +132,7 @@ def test_local_fake_session_observer_only_and_no_release(monkeypatch, tmp_path):
 
 
 def test_public_checkpoint_pin_contract_is_fixed():
+    assert schp.RELEVANT[3] == 'glove'
     assert schp.SCHP_LIP20_INT8_REVISION == '3cc2b2d00b16840652c1b7845fd78466dae7f157'
     assert schp.SCHP_LIP20_INT8_SHA256 == '871c9e209dc67d6be61c73dcc79cb49e638fcf5bbc35a19b4c7429eba0bfc046'
     assert schp.SCHP_LIP20_INT8_SIZE == 68314352
@@ -206,5 +209,7 @@ def test_caller_mutation_after_signed_validation_does_not_change_inference(monke
         expected_model_revision=schp.SCHP_LIP20_INT8_REVISION)
     assert np.count_nonzero(s['source_rgba']) == 0
     assert receipt['relevant_class_counts_opaque_only']['coat'] == 6
+    # LIP20 class 3 is Glove; count it independently of coat and arm.
+    assert receipt['relevant_class_counts_opaque_only']['glove'] == 0
     assert np.count_nonzero(classes == 7) == 6
     assert receipt['Phase4'] == 'FAIL'
