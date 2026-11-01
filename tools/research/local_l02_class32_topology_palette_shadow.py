@@ -48,7 +48,10 @@ def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
     if not active:
         return False
     if len(active) == 1:
-        return True
+        # A 4-component count alone cannot detect terminal limb erosion:
+        # deleting successive endpoints can erase an entire thin sleeve/arm.
+        # Fail closed even when the deletion would keep component counts equal.
+        return False
     patch[1, 1] = False
     seen = set()
     stack = [active[0]]
