@@ -117,3 +117,21 @@ def test_changed_frozen_owner_rejected_before_proposal():
     x['frozen_owner'][40, 40] = 0
     with pytest.raises(SourceOnlyAbstentionHold, match='FROZEN_OWNER_SHA_MISMATCH'):
         propose_class32_competitor_abstention(**x)
+
+
+def test_preserves_frozen_arm_sleeve_contact_not_just_component_counts():
+    # A frozen arm (owner1) touches a class32 sleeve (owner2) at x37/38.
+    # Removing the sleeve boundary would disconnect their contact while
+    # both owner component counts could remain unchanged.
+    x = sample()
+    x['frozen_owner'][38:62, 37] = 1
+    x['expected_frozen_owner_sha256'] = hashlib.sha256(
+        x['frozen_owner'].tobytes(order='C')).hexdigest()
+    original = x['frozen_owner'].copy()
+    new, receipt = propose_class32_competitor_abstention(**x)
+    assert np.array_equal(new[39:61, 37:39], original[39:61, 37:39])
+    assert receipt['frozen_cross_owner_contact8_px'] > 0
+    assert receipt['frozen_cross_owner_contact8_preserved'] is True
+    assert receipt['owner_4_components_before'] == receipt['owner_4_components_after']
+    assert receipt['owner_8_components_before'] == receipt['owner_8_components_after']
+    assert receipt['quality'] == 'UNASSESSED'
