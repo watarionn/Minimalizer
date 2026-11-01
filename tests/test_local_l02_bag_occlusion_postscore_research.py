@@ -15,7 +15,7 @@ def fixture():
     opaque = np.array([[1, 1, 1], [1, 0, 0]], np.uint8)
     pos = np.array([[1, 0, 0], [1, 0, 0]], np.uint8)
     neg = np.array([[0, 1, 0], [0, 0, 0]], np.uint8)
-    ind = np.array([[1, 0, 1], [0, 0, 0]], np.uint8)
+    ind = np.array([[1, 1, 1], [0, 0, 0]], np.uint8)
     return dict(class_ids=c, owner=owner, opaque=opaque,
                 known_outerwear=pos, known_non_outerwear=neg,
                 garment_owner_id=2, independent_outerwear=ind)
@@ -27,7 +27,7 @@ def test_postscore_only_and_partition_no_mutation():
     assert (c['bag_class25_visible_px'], c['bag_class25_reviewed_outerwear_conflict_px'],
             c['bag_class25_reviewed_non_outerwear_px'], c['bag_class25_unknown_px'])==(3,1,1,1)
     assert (c['bag_class25_on_garment_owner_px'],c['bag_class25_unowned_px'],c['bag_class25_other_owner_px'])==(1,1,1)
-    assert (c['bag_class25_independent_outerwear_overlap_px'],c['bag_class25_independent_outerwear_reviewed_conflict_px'],c['bag_class25_independent_outerwear_unknown_px'])==(2,1,1)
+    assert (c['bag_class25_independent_outerwear_overlap_px'],c['bag_class25_independent_outerwear_reviewed_conflict_px'],c['bag_class25_independent_outerwear_reviewed_non_outerwear_px'],c['bag_class25_independent_outerwear_unknown_px'])==(3,1,1,1)
     assert r['metric_override_allowed'] is False and r['owner_modified'] is False
     assert r['Phase4']=='FAIL' and r['L02']=='HOLD' and r['production']=='NO_GO'
     assert all(np.array_equal(x[k],v) for k,v in originals.items())
