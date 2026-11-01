@@ -71,14 +71,24 @@ def audit_bag_occlusion_postscore(*, class_ids: np.ndarray, owner: np.ndarray,
         counts.update({
             'bag_class25_independent_outerwear_overlap_px': int(np.count_nonzero(bag & independent)),
             'bag_class25_independent_outerwear_reviewed_conflict_px': int(np.count_nonzero(bag & independent & positive)),
+            'bag_class25_independent_outerwear_reviewed_non_outerwear_px': int(np.count_nonzero(bag & independent & negative)),
             'bag_class25_independent_outerwear_unknown_px': int(np.count_nonzero(bag & independent & ~(positive | negative))),
         })
-    assert (counts['bag_class25_reviewed_outerwear_conflict_px'] +
+    # Fail closed even under `python -O`, which disables bare assert statements.
+    if (counts['bag_class25_reviewed_outerwear_conflict_px'] +
             counts['bag_class25_reviewed_non_outerwear_px'] +
-            counts['bag_class25_unknown_px'] == counts['bag_class25_visible_px'])
-    assert (counts['bag_class25_on_garment_owner_px'] +
+            counts['bag_class25_unknown_px'] != counts['bag_class25_visible_px']):
+        raise BagOcclusionAuditHold('REVIEW_PARTITION_INVARIANT')
+    if (counts['bag_class25_on_garment_owner_px'] +
             counts['bag_class25_unowned_px'] +
-            counts['bag_class25_other_owner_px'] == counts['bag_class25_visible_px'])
+            counts['bag_class25_other_owner_px'] != counts['bag_class25_visible_px']):
+        raise BagOcclusionAuditHold('OWNER_PARTITION_INVARIANT')
+    if independent is not None and (
+            counts['bag_class25_independent_outerwear_reviewed_conflict_px'] +
+            counts['bag_class25_independent_outerwear_reviewed_non_outerwear_px'] +
+            counts['bag_class25_independent_outerwear_unknown_px'] !=
+            counts['bag_class25_independent_outerwear_overlap_px']):
+        raise BagOcclusionAuditHold('INDEPENDENT_PARTITION_INVARIANT')
     return {
         'schema': 'minimalizer/local-l02/bag-occlusion-postscore/v1',
         'bag_class25_is_ground_truth': False,
