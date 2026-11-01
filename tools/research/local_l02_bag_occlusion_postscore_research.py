@@ -26,13 +26,19 @@ def audit_bag_occlusion_postscore(*, class_ids: np.ndarray, owner: np.ndarray,
     source-only predictions. Human masks are evaluation-only, never inputs to
     candidate generation. The caller is responsible for enforcing this order.
     """
-    if not isinstance(garment_owner_id, int) or type(garment_owner_id) is not int or not 1 <= garment_owner_id <= 254:
+    if type(garment_owner_id) is not int or garment_owner_id not in (1, 2):
         raise BagOcclusionAuditHold('INVALID_GARMENT_OWNER_ID')
     if (type(class_ids) is not np.ndarray or class_ids.dtype != np.uint8 or
             class_ids.ndim != 2 or not class_ids.size or
             class_ids.size > 16_000_000 or type(owner) is not np.ndarray or
             owner.dtype != np.uint8 or owner.shape != class_ids.shape):
         raise BagOcclusionAuditHold('INVALID_FROZEN_MODEL_OR_OWNER')
+    # Pinned SegFormer Fashion: 47 classes, IDs 0..46. Frozen Run30
+    # exclusive owner: 0=abstain, 1=jacket, 2=coat. Reject other IDs.
+    if np.any(class_ids >= 47):
+        raise BagOcclusionAuditHold('UNKNOWN_SEGFORMER_CLASS_ID')
+    if np.any(owner > 2):
+        raise BagOcclusionAuditHold('UNKNOWN_FROZEN_OWNER_ID')
     for name, mask in [('opaque', opaque), ('known_outerwear', known_outerwear),
                        ('known_non_outerwear', known_non_outerwear)]:
         if (type(mask) is not np.ndarray or mask.shape != class_ids.shape or
