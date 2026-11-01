@@ -83,3 +83,16 @@ def test_replay_deterministic():
     a, ar = propose_class32_competitor_abstention(**x)
     b, br = propose_class32_competitor_abstention(**x)
     assert np.array_equal(a, b) and ar == br
+
+
+def test_one_pixel_terminal_branch_not_eroded_by_component_count_only():
+    # A source-supported thin branch can disappear one endpoint at a time
+    # without changing the number of 4-connected owner components.
+    x = sample()
+    x['frozen_owner'][20, 8:12] = 2
+    x['class_ids'][20, 8:12] = 32
+    original = x['frozen_owner'].copy()
+    new, receipt = propose_class32_competitor_abstention(**x)
+    assert np.array_equal(new[20, 8:12], original[20, 8:12])
+    assert receipt['owner_4_components_before'] == receipt['owner_4_components_after']
+    assert receipt['quality'] == 'UNASSESSED'
