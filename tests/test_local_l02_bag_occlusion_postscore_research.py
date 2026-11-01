@@ -80,3 +80,24 @@ def test_independent_positive_outside_source_alpha_is_not_silently_ignored():
     x['independent_outerwear'][1, 1] = 1
     with pytest.raises(BagOcclusionAuditHold, match='INDEPENDENT_OBSERVER_OUTSIDE_SOURCE_ALPHA'):
         audit_bag_occlusion_postscore(**x)
+
+
+def test_segformer_class_id_must_match_pinned_47_class_taxonomy():
+    x = fixture()
+    x['class_ids'][0, 0] = 47
+    with pytest.raises(BagOcclusionAuditHold, match='UNKNOWN_SEGFORMER_CLASS_ID'):
+        audit_bag_occlusion_postscore(**x)
+
+
+def test_run30_owner_id_must_match_frozen_exclusive_taxonomy():
+    x = fixture()
+    x['owner'][0, 1] = 255
+    with pytest.raises(BagOcclusionAuditHold, match='UNKNOWN_FROZEN_OWNER_ID'):
+        audit_bag_occlusion_postscore(**x)
+
+
+def test_garment_owner_id_must_be_jacket_or_coat():
+    x = fixture()
+    x['garment_owner_id'] = 3
+    with pytest.raises(BagOcclusionAuditHold, match='INVALID_GARMENT_OWNER_ID'):
+        audit_bag_occlusion_postscore(**x)
