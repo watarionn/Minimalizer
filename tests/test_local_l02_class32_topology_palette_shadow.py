@@ -30,7 +30,9 @@ def sample():
     Image.fromarray(rgba).save(stream, format='PNG')
     raw = stream.getvalue()
     return dict(source_bytes=raw, expected_source_sha256=hashlib.sha256(raw).hexdigest(),
-                class_ids=cls, frozen_owner=owner)
+                class_ids=cls, frozen_owner=owner,
+                expected_class_ids_sha256=hashlib.sha256(cls.tobytes(order='C')).hexdigest(),
+                expected_frozen_owner_sha256=hashlib.sha256(owner.tobytes(order='C')).hexdigest())
 
 
 def test_shadow_only_and_original_immutable():
@@ -44,6 +46,8 @@ def test_shadow_only_and_original_immutable():
     assert receipt['Phase4'] == 'FAIL' and receipt['production'] == 'NO_GO'
     assert np.all((new == original) | ((original == 2) & (new == 0) & (x['class_ids'] == 32)))
     assert receipt['owner_4_components_before'] == receipt['owner_4_components_after']
+    assert receipt['owner_8_components_before'] == receipt['owner_8_components_after']
+    assert receipt['class_ids_sha_verified'] and receipt['frozen_owner_sha_verified']
     assert receipt['candidate_abstained_px'] == np.count_nonzero(new != original)
 
 
@@ -67,6 +71,7 @@ def test_invalid_taxonomy_rejected():
 
 def test_no_seed_abstains_without_changing_owner():
     x = sample(); x['class_ids'][x['class_ids'] == 2] = 0
+    x['expected_class_ids_sha256'] = hashlib.sha256(x['class_ids'].tobytes(order='C')).hexdigest()
     new, receipt = propose_class32_competitor_abstention(**x)
     assert receipt['reason'] == 'INSUFFICIENT_SOURCE_ONLY_SEEDS'
     assert np.array_equal(new, x['frozen_owner'])
@@ -91,8 +96,24 @@ def test_one_pixel_terminal_branch_not_eroded_by_component_count_only():
     x = sample()
     x['frozen_owner'][20, 8:12] = 2
     x['class_ids'][20, 8:12] = 32
+    x['expected_class_ids_sha256'] = hashlib.sha256(x['class_ids'].tobytes(order='C')).hexdigest()
+    x['expected_frozen_owner_sha256'] = hashlib.sha256(x['frozen_owner'].tobytes(order='C')).hexdigest()
     original = x['frozen_owner'].copy()
     new, receipt = propose_class32_competitor_abstention(**x)
     assert np.array_equal(new[20, 8:12], original[20, 8:12])
     assert receipt['owner_4_components_before'] == receipt['owner_4_components_after']
     assert receipt['quality'] == 'UNASSESSED'
+
+
+def test_changed_frozen_class_prediction_rejected_before_proposal():
+    x = sample()
+    x['class_ids'][40, 40] = 5
+    with pytest.raises(SourceOnlyAbstentionHold, match='CLASS_IDS_SHA_MISMATCH'):
+        propose_class32_competitor_abstention(**x)
+
+
+def test_changed_frozen_owner_rejected_before_proposal():
+    x = sample()
+    x['frozen_owner'][40, 40] = 0
+    with pytest.raises(SourceOnlyAbstentionHold, match='FROZEN_OWNER_SHA_MISMATCH'):
+        propose_class32_competitor_abstention(**x)
