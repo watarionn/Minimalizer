@@ -1,7 +1,7 @@
 """Pinned offline SCHP-ATR18 bag/arm observer, research only, no owner promotion.
 
-This module intentionally reuses the independently verified signed-source gate
-from the isolated LIP observer PR. No private images or masks leave the caller.
+Both ATR heads, when requested, come from one authenticated ONNX snapshot and
+one inference call. No private images, masks, or model weights are published.
 """
 from __future__ import annotations
 
@@ -43,15 +43,14 @@ def _decode(logits: np.ndarray, alpha: np.ndarray) -> np.ndarray:
     return projected
 
 
-def run_offline_atr_bag_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
-                                 expected_encoded_sha256: str, expected_rgba_sha256: str,
-                                 onnx_path: Path, expected_onnx_sha256: str,
-                                 expected_model_revision: str) -> tuple[np.ndarray, dict]:
-    """Return only private class IDs and source-free receipt; never an owner map.
-
-    Model bytes are never downloaded or inferred remotely. The exact upstream
-    ONNX checkpoint is required. Human labels and frozen owner are not inputs.
-    """
+def _run_verified_heads(*, encoded_source: bytes, source_rgba: np.ndarray,
+                        expected_encoded_sha256: str, expected_rgba_sha256: str,
+                        onnx_path: Path, expected_onnx_sha256: str,
+                        expected_model_revision: str,
+                        head_names: tuple[str, ...]) -> tuple[np.ndarray, list[np.ndarray]]:
+    """Verify immutable source and model, then run requested heads in one session."""
+    if head_names not in (('logits',), ('logits', 'parsing_logits')):
+        raise SCHPResearchHold('UNSUPPORTED_SCHP_ATR_HEAD_REQUEST')
     rgba = _validate_signed_source(
         encoded_source=encoded_source, source_rgba=source_rgba,
         expected_encoded_sha256=expected_encoded_sha256,
@@ -65,7 +64,7 @@ def run_offline_atr_bag_observer(*, encoded_source: bytes, source_rgba: np.ndarr
             onnx_path.name != MODEL_FILENAME or
             onnx_path.stat().st_size != MODEL_BYTES):
         raise SCHPResearchHold('UNVERIFIED_SCHP_ATR_CHECKPOINT_FILE')
-    # Immutable authenticated snapshot prevents path replacement during load.
+    # Authenticate the bounded snapshot actually passed to ONNX Runtime.
     with onnx_path.open('rb') as handle:
         model = handle.read(MODEL_BYTES + 1)
     if len(model) != MODEL_BYTES or _sha(model) != MODEL_SHA256:
@@ -80,13 +79,18 @@ def run_offline_atr_bag_observer(*, encoded_source: bytes, source_rgba: np.ndarr
                                    providers=['CPUExecutionProvider'])
     if (len(session.get_inputs()) != 1 or
             session.get_inputs()[0].name != 'pixel_values' or
-            'logits' not in {v.name for v in session.get_outputs()} or
+            not set(head_names).issubset({v.name for v in session.get_outputs()}) or
             session.get_providers() != ['CPUExecutionProvider']):
         raise SCHPResearchHold('UNEXPECTED_SCHP_ATR_INTERFACE_OR_PROVIDER')
-    ids = _decode(session.run(['logits'], {'pixel_values': _prepare(rgba)})[0],
-                  rgba[..., 3])
+    outputs = session.run(list(head_names), {'pixel_values': _prepare(rgba)})
+    if not isinstance(outputs, (list, tuple)) or len(outputs) != len(head_names):
+        raise SCHPResearchHold('INVALID_SCHP_ATR_HEAD_OUTPUT_COUNT')
+    return rgba, [_decode(head, rgba[..., 3]) for head in outputs]
+
+
+def _receipt(ids: np.ndarray, rgba: np.ndarray, expected_rgba_sha256: str) -> dict:
     opaque = rgba[..., 3] > 0
-    receipt = {
+    return {
         'schema': 'minimalizer/local-l02/schp-atr18-bag-observer/v1',
         'model_repo': 'pirocheto/schp-atr-18',
         'model_revision': REVISION,
@@ -104,4 +108,51 @@ def run_offline_atr_bag_observer(*, encoded_source: bytes, source_rgba: np.ndarr
         'Phase4': 'FAIL', 'L02': 'HOLD', 'L03': 'NO_GO',
         'Golden': 'HOLD', 'production': 'NO_GO',
     }
-    return ids, receipt
+
+
+def run_offline_atr_bag_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
+                                 expected_encoded_sha256: str, expected_rgba_sha256: str,
+                                 onnx_path: Path, expected_onnx_sha256: str,
+                                 expected_model_revision: str) -> tuple[np.ndarray, dict]:
+    """Backward-compatible raw fusion-head observer, never an owner map."""
+    rgba, heads = _run_verified_heads(
+        encoded_source=encoded_source, source_rgba=source_rgba,
+        expected_encoded_sha256=expected_encoded_sha256,
+        expected_rgba_sha256=expected_rgba_sha256, onnx_path=onnx_path,
+        expected_onnx_sha256=expected_onnx_sha256,
+        expected_model_revision=expected_model_revision,
+        head_names=('logits',))
+    ids = heads[0]
+    return ids, _receipt(ids, rgba, expected_rgba_sha256)
+
+
+def run_offline_atr_dual_head_observer(*, encoded_source: bytes, source_rgba: np.ndarray,
+                                       expected_encoded_sha256: str, expected_rgba_sha256: str,
+                                       onnx_path: Path, expected_onnx_sha256: str,
+                                       expected_model_revision: str) -> tuple[np.ndarray, np.ndarray, dict]:
+    """Freeze both model heads from the SAME authenticated session before scoring.
+
+    No review annotations or owner map enter inference. The caller must cloud-
+    preserve private maps and the receipt before any postscore human comparison.
+    """
+    from local_l02_atr_dual_head_disagreement_research import audit_atr_head_disagreement
+
+    rgba, heads = _run_verified_heads(
+        encoded_source=encoded_source, source_rgba=source_rgba,
+        expected_encoded_sha256=expected_encoded_sha256,
+        expected_rgba_sha256=expected_rgba_sha256, onnx_path=onnx_path,
+        expected_onnx_sha256=expected_onnx_sha256,
+        expected_model_revision=expected_model_revision,
+        head_names=('logits', 'parsing_logits'))
+    raw_ids, refined_ids = heads
+    audit = audit_atr_head_disagreement(
+        raw_ids=raw_ids, refined_ids=refined_ids, source_alpha=rgba[..., 3])
+    receipt = _receipt(raw_ids, rgba, expected_rgba_sha256)
+    receipt['schema'] = 'minimalizer/local-l02/schp-atr18-dual-head-observer/v1'
+    receipt['raw_head'] = 'logits'
+    receipt['refined_head'] = 'parsing_logits'
+    receipt['raw_class_map_sha256_private'] = _sha(raw_ids.tobytes())
+    receipt['refined_class_map_sha256_private'] = _sha(refined_ids.tobytes())
+    receipt['head_disagreement'] = audit['counts']
+    receipt['head_selection_authorized'] = False
+    return raw_ids, refined_ids, receipt
