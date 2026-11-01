@@ -54,6 +54,10 @@ def audit_bag_occlusion_postscore(*, class_ids: np.ndarray, owner: np.ndarray,
     # Class 25 is a tentative bag prediction, not permission to relabel.
     bag = (class_ids == BAG_CLASS_ID) & visible
     independent = independent_outerwear.astype(bool) if independent_outerwear is not None else None
+    # Independent model positives outside the signed source-alpha domain are
+    # invalid provenance, not silent negatives or harmless ignored pixels.
+    if independent is not None and np.any(independent & ~visible):
+        raise BagOcclusionAuditHold('INDEPENDENT_OBSERVER_OUTSIDE_SOURCE_ALPHA')
     counts = {
         'bag_class25_visible_px': int(np.count_nonzero(bag)),
         'bag_class25_reviewed_outerwear_conflict_px': int(np.count_nonzero(bag & positive)),
