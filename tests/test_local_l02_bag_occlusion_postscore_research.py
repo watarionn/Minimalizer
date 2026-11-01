@@ -71,3 +71,12 @@ def test_bad_owner_and_source_rejected():
     x=fixture();x['class_ids']=x['class_ids'].astype(np.int16)
     with pytest.raises(BagOcclusionAuditHold,match='INVALID_FROZEN_MODEL_OR_OWNER'):
         audit_bag_occlusion_postscore(**x)
+
+
+def test_independent_positive_outside_source_alpha_is_not_silently_ignored():
+    x = fixture()
+    # The signed source is transparent here; the independent model must not
+    # supply positive pixels outside it, even if bag metrics would ignore them.
+    x['independent_outerwear'][1, 1] = 1
+    with pytest.raises(BagOcclusionAuditHold, match='INDEPENDENT_OBSERVER_OUTSIDE_SOURCE_ALPHA'):
+        audit_bag_occlusion_postscore(**x)
