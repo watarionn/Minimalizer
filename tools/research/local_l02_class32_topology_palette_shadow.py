@@ -37,6 +37,18 @@ def _components8(mask: np.ndarray) -> int:
     return int(n - 1)
 
 
+def _frozen_cross_owner_contact8(owner: np.ndarray) -> np.ndarray:
+    """Preserve every original 8-neighbour contact between distinct owners.
+
+    Per-owner component counts can remain unchanged while a sleeve loses
+    contact with an adjacent arm. Contact pixels must not be abstained.
+    """
+    kernel = np.ones((3, 3), dtype=np.uint8)
+    near_1 = cv2.dilate((owner == 1).astype(np.uint8), kernel) != 0
+    near_2 = cv2.dilate((owner == 2).astype(np.uint8), kernel) != 0
+    return ((owner == 1) & near_2) | ((owner == 2) & near_1)
+
+
 def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
     """Sufficient (conservative) local test for 4-connected owner retention."""
     h, w = mask.shape
@@ -113,6 +125,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 re.fullmatch(r'[0-9a-f]{64}', expected) is None or
                 hashlib.sha256(array.tobytes(order='C')).hexdigest() != expected):
             raise SourceOnlyAbstentionHold(label + '_SHA_MISMATCH')
+    protected_contacts = _frozen_cross_owner_contact8(frozen_owner)
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
@@ -137,7 +150,8 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             dgarment = np.linalg.norm(values - garment_color, axis=1)
             dcompetitor = np.linalg.norm(values - competitor_color, axis=1)
             eligible = ((dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
-                        (MIN_DISTANCE_RATIO * dcompetitor < dgarment))
+                        (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
+                        ~protected_contacts[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
             order = np.argsort(distances, kind='stable')
@@ -165,6 +179,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     after8 = [_components8(result == owner_id) for owner_id in (1, 2)]
     changed = result != frozen_owner
     if (before != after or before8 != after8 or
+            np.any(changed & protected_contacts) or
             np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
             np.any(result > frozen_owner) or np.any((result != 0) & ~opaque) or
@@ -174,6 +189,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'schema': 'minimalizer/local-l02/class32-topology-palette-shadow/v1',
         'reason': reason,
         'candidate_abstained_px': count,
+        'frozen_cross_owner_contact8_px': int(protected_contacts.sum()),
+        'frozen_cross_owner_contact8_preserved': bool(np.array_equal(
+            result[protected_contacts], frozen_owner[protected_contacts])),
         'class2_is_ground_truth_negative': False,
         'uses_human_labels': False,
         'source_sha_verified': True,
