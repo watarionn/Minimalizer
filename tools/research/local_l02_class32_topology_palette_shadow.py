@@ -32,6 +32,11 @@ def _components4(mask: np.ndarray) -> int:
     return int(n - 1)
 
 
+def _components8(mask: np.ndarray) -> int:
+    n, _ = cv2.connectedComponents(mask.astype(np.uint8), connectivity=8)
+    return int(n - 1)
+
+
 def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
     """Sufficient (conservative) local test for 4-connected owner retention."""
     h, w = mask.shape
@@ -69,7 +74,8 @@ def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
 
 def propose_class32_competitor_abstention(*, source_bytes: bytes,
         expected_source_sha256: str, class_ids: np.ndarray,
-        frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
+        frozen_owner: np.ndarray, expected_class_ids_sha256: str,
+        expected_frozen_owner_sha256: str) -> tuple[np.ndarray, dict]:
     """Return a *shadow-only* owner copy and source-free integrity receipt.
 
     Fixed class2 vs class5/10 Lab rule; no case-specific parameter overrides.
@@ -100,6 +106,13 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     opaque = rgba[:, :, 3] > 0
     if np.any((frozen_owner != 0) & ~opaque):
         raise SourceOnlyAbstentionHold('OWNER_OUTSIDE_SIGNED_ALPHA')
+    for expected, array, label in (
+            (expected_class_ids_sha256, class_ids, 'CLASS_IDS'),
+            (expected_frozen_owner_sha256, frozen_owner, 'FROZEN_OWNER')):
+        if (type(expected) is not str or
+                re.fullmatch(r'[0-9a-f]{64}', expected) is None or
+                hashlib.sha256(array.tobytes(order='C')).hexdigest() != expected):
+            raise SourceOnlyAbstentionHold(label + '_SHA_MISMATCH')
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
@@ -107,6 +120,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     count = 0
     separation = None
     before = [_components4(frozen_owner == owner_id) for owner_id in (1, 2)]
+    before8 = [_components8(frozen_owner == owner_id) for owner_id in (1, 2)]
     if int(garment_seed.sum()) < MIN_SEED_PIXELS or int(competitor_seed.sum()) < MIN_SEED_PIXELS:
         reason = 'INSUFFICIENT_SOURCE_ONLY_SEEDS'
     else:
@@ -148,8 +162,10 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 pending = blocked
             reason = 'SHADOW_ABSTENTION' if count else 'NO_TOPOLOGY_SAFE_CANDIDATE'
     after = [_components4(result == owner_id) for owner_id in (1, 2)]
+    after8 = [_components8(result == owner_id) for owner_id in (1, 2)]
     changed = result != frozen_owner
-    if (before != after or np.any(changed & (class_ids != 32)) or
+    if (before != after or before8 != after8 or
+            np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
             np.any(result > frozen_owner) or np.any((result != 0) & ~opaque) or
             int(np.count_nonzero(changed)) != count):
@@ -161,6 +177,10 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'class2_is_ground_truth_negative': False,
         'uses_human_labels': False,
         'source_sha_verified': True,
+        'class_ids_sha_verified': True,
+        'frozen_owner_sha_verified': True,
+        'owner_8_components_before': before8,
+        'owner_8_components_after': after8,
         'owner_4_components_before': before,
         'owner_4_components_after': after,
         'candidate_only': True,
