@@ -160,7 +160,7 @@ def _scan_order_sensitivity_receipt(positive: np.ndarray,
         'scan_order_changed_px': count,
         'scan_order_owner_conflict_px': int(np.count_nonzero(conflicting_owner)),
         'reverse_assigned_positive_px': reverse_receipt['assigned_positive_px'],
-        'scan_order_quality_gate': 'HOLD' if count else 'NOT_SUFFICIENT',
+        'scan_order_quality_gate': 'FAIL' if count else 'NOT_SUFFICIENT',
         'scan_order_audit_uses_human_labels': False,
     }
 
@@ -182,4 +182,5 @@ def propose_pinned_run30_class32_frontier_positive(*, case_id: str,
         'positive_evidence_reason': evidence_receipt['reason'],
         **receipt,
         **order_audit,
+        'quality': 'FAIL' if order_audit['scan_order_stability'] == 'FAIL' else receipt['quality'],
     }
