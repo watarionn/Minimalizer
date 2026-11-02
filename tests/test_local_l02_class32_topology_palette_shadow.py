@@ -11,7 +11,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
 from local_l02_class32_topology_palette_shadow import (
     propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
-    PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold,
+    PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold, _safe_to_remove,
 )
 
 
@@ -163,3 +163,20 @@ def test_run30_known_case_pins_are_distinct_and_exact_sha256_only():
     for triple in PINNED_RUN30_4_TRIPLES.values():
         assert len(triple) == 3
         assert all(len(v) == 64 and set(v) <= set('0123456789abcdef') for v in triple)
+
+
+def test_class32_abstention_cannot_create_four_neighbour_background_hole():
+    # A 3x3 all-foreground patch except its lower-right corner has a
+    # diagonal background neighbour. Removing its centre keeps owner
+    # components unchanged but creates a NEW 4-connected background hole.
+    owner_mask = np.ones((7, 7), dtype=bool)
+    owner_mask[4, 4] = False
+    assert _safe_to_remove(owner_mask, 3, 3) is False
+
+
+def test_class32_abstention_allows_locally_simple_background_boundary():
+    # Guard must not veto every safe boundary pixel; background remains
+    # connected in both 4- and 8-neighbour definitions.
+    owner_mask = np.ones((7, 7), dtype=bool)
+    owner_mask[2:5, 5] = False
+    assert _safe_to_remove(owner_mask, 3, 4) is True
