@@ -29,3 +29,23 @@ H08 assigns 8,964 pixels to owner1 and 8,851 to owner2. Its original and propose
 - No independent sleeve-vs-arm/underlayer semantic authority; 91 unknown pixels are not negatives. Source-only Phase4 owner exclusivity and topology are necessary but insufficient for critical-part, occlusion, and whole-character quality PASS. H06 true coat preservation and major H04/H06/H08 missing regions remain unresolved.
 
 **Next gates:** full PR-head QA and dependency validation, canonical private cloud preservation/readback, independent licensed garment/arm/underlayer semantics, source-only Phase4 critical-part/occlusion PASS, then Phase5 real-source replay, genuinely unseen signed blind, model/data rights and human Golden approval. No Lane B, Public/C08, LocalWorker production, Golden, or iPhone acceptance changes.
+
+
+## 2026-11-03 signed-source traversal-order P1 owner instability (new, FAIL)
+
+The 32-pass row-major frontier result is **not invariant to pixel traversal order**. This is a meaningful owner-identity risk even though both results retain 4/8-connected component counts and enclosed-hole counts. Independent NumPy/SciPy mirror runs used the **same SHA-pinned H08 signed source, class map and Run30 owner**, with only the source-only candidate traversal reversed; no human coordinates or masks entered inference.
+
+| H08 source-only variant | Newly assigned | Reviewed outerwear (postscore) | Reviewed non-outerwear (postscore) | Unknown |
+| --- | ---: | ---: | ---: | ---: |
+| Raster, existing research shadow | 17,815 | 17,724 | 0 | 91 |
+| Reversed raster, independent mirror | 16,959 | 16,762 | **25** | 172 |
+
+The two candidate maps differ at **9,503 pixels**, including **479 pixels assigned to conflicting nonzero owner IDs**. Both retain frozen 4/8 component counts `[29,22,14,11]` and hole counts `[3,1,3,1]`. A source-only 4-neighbour geodesic audit also found **121 raster-assigned pixels closer to the opposite frozen owner** and **21 equal-distance ties**. These are uncertainty signals, not ground-truth owner labels. The human masks were loaded **only after** candidate maps and the source-only diagnostic were frozen. No unknown pixel was scored as negative.
+
+A two-order intersection is **not** a safe automatic repair: the raw intersection assigns 12,396 pixels but increases 4/8 component counts to `[70,63,18,15]`. Pruning all new disconnected islands restores original component/hole counts but retains only 3,632 pixels, less than the earlier 5,807-pixel shadow. A 4-neighbour geodesic-priority alternative preserves topology with 11,447 assigned pixels (11,398 reviewed outerwear, zero reviewed non-outerwear, 49 unknown), but is not a proven quality improvement or independent semantic observer. **Do not choose the most favorable postscore or promote either alternative.**
+
+**Source-only code safety correction:** the PR frontier helper now supports a private reverse traversal and its pinned wrapper automatically emits `scan_order_stability=FAIL`, `scan_order_changed_px`, `scan_order_owner_conflict_px`, and `scan_order_quality_gate=HOLD` whenever traversal changes ownership. Two new source-free negative/positive regressions exercise competing-owner ambiguity and a stable one-owner strip. The returned owner remains the original research shadow; this audit does not promote, overwrite or rewrite Golden. The independent mirror confirmed the signed H08 instability; **full exact-PR-head Python QA and signed replay of the newly committed wrapper remain unverified**.
+
+H06 was also checked with a predeclared source-only two-pixel medial-axis corridor guard. It protected only 16 additional reviewed true-coat pixels while retaining 906 more known false-owner pixels compared with the independent 7,296-pixel baseline removal. **Rejected** as a worse tradeoff, not added to the inference code.
+
+**Accepted P0/P1 quality fixes 0/0; unresolved H04/H06/H08 3/3.** H08 traversal-order stability is an additional **FAIL** for Phase4 semantic ownership, independent of unchanged topology. No blind generalization, licence clearance, Golden approval or production authorization. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO. Source originals, owner arrays, labels and coordinate-bearing diagnostics remain private; no B/Public/Worker change.
