@@ -83,7 +83,7 @@ class FrontierShadowTest(unittest.TestCase):
         raster, _ = _frontier_safe_exclusive_assign(e, o)
         audit = _scan_order_sensitivity_receipt(e, o, raster)
         self.assertEqual(audit['scan_order_stability'], 'FAIL')
-        self.assertEqual(audit['scan_order_quality_gate'], 'HOLD')
+        self.assertEqual(audit['scan_order_quality_gate'], 'FAIL')
         self.assertGreater(audit['scan_order_owner_conflict_px'], 0)
         self.assertGreater(audit['scan_order_changed_px'], 0)
         self.assertFalse(audit['scan_order_audit_uses_human_labels'])
