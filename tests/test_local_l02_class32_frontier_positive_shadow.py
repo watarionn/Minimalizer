@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 from tools.research.local_l02_class32_frontier_positive_shadow import (
     _frontier_safe_exclusive_assign,
+    _scan_order_sensitivity_receipt,
     propose_pinned_run30_class32_frontier_positive,
 )
 from tools.research.local_l02_class32_topology_palette_shadow import SourceOnlyAbstentionHold
@@ -69,6 +70,35 @@ class FrontierShadowTest(unittest.TestCase):
                 case_id='unknown', source_bytes=b'',
                 class_ids=np.zeros((3, 3), np.uint8),
                 frozen_owner=np.zeros((3, 3), np.uint8))
+
+
+    def test_scan_order_competing_owners_fail_closed(self):
+        # Both traversals preserve topology but choose different owner IDs.
+        # This is a semantic ownership hazard, not a numerical IoU issue.
+        o = np.zeros((20, 30), np.uint8)
+        o[8:11, 2:5] = 1
+        o[8:11, 11:14] = 2
+        e = np.zeros(o.shape, bool)
+        e[8:11, 5:11] = True
+        raster, _ = _frontier_safe_exclusive_assign(e, o)
+        audit = _scan_order_sensitivity_receipt(e, o, raster)
+        self.assertEqual(audit['scan_order_stability'], 'FAIL')
+        self.assertEqual(audit['scan_order_quality_gate'], 'HOLD')
+        self.assertGreater(audit['scan_order_owner_conflict_px'], 0)
+        self.assertGreater(audit['scan_order_changed_px'], 0)
+        self.assertFalse(audit['scan_order_audit_uses_human_labels'])
+
+    def test_scan_order_single_owner_stable(self):
+        o = np.zeros((18, 18), np.uint8)
+        o[5:8, 3:6] = 1
+        e = np.zeros(o.shape, bool)
+        e[5:8, 6:10] = True
+        raster, _ = _frontier_safe_exclusive_assign(e, o)
+        audit = _scan_order_sensitivity_receipt(e, o, raster)
+        self.assertEqual(audit['scan_order_stability'], 'PASS')
+        self.assertEqual(audit['scan_order_changed_px'], 0)
+        self.assertEqual(audit['scan_order_owner_conflict_px'], 0)
+
 
 if __name__ == '__main__':
     unittest.main()
