@@ -66,13 +66,30 @@ def _topology_safe_exclusive_assign(positive: np.ndarray,
     owner4 = _single_original_owner_touch(component4, count4, frozen_owner, _CROSS)
     owner8 = _single_original_owner_touch(component8, count8, frozen_owner, _SQUARE)
     eligible = positive & (owner4[component4] != 0) & (owner4[component4] == owner8[component8])
+    # A component-count check alone misses an enclosed negative-space hole
+    # being filled (e.g. an arm opening), even though owner count is unchanged.
+    # Preserve all original 4/8 enclosed void pixels, without human labels.
+    enclosed = np.zeros(positive.shape, dtype=bool)
+    for oid in (1, 2):
+        original = frozen_owner == oid
+        for structure in (_CROSS, _SQUARE):
+            enclosed |= ndi.binary_fill_holes(original, structure=structure) & ~original
+    abstained_enclosed = int(np.count_nonzero(eligible & enclosed))
+    eligible &= ~enclosed
     proposed = frozen_owner.copy()
     proposed[eligible] = owner4[component4[eligible]]
     before = [int(ndi.label(frozen_owner == oid, structure=structure)[1])
               for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
     after = [int(ndi.label(proposed == oid, structure=structure)[1])
              for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
-    if (before != after or np.any((proposed != frozen_owner) & ~eligible) or
+    holes_before = [int(ndi.label(ndi.binary_fill_holes(frozen_owner == oid, structure=structure)
+                                   & (frozen_owner != oid), structure=structure)[1])
+                    for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
+    holes_after = [int(ndi.label(ndi.binary_fill_holes(proposed == oid, structure=structure)
+                                  & (proposed != oid), structure=structure)[1])
+                   for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
+    if (before != after or holes_before != holes_after or
+            np.any((proposed != frozen_owner) & ~eligible) or
             np.any((proposed != frozen_owner) & (frozen_owner != 0)) or
             np.any((proposed != frozen_owner) & (proposed == 0))):
         raise SourceOnlyAbstentionHold('EXCLUSIVE_POSITIVE_TOPOLOGY_FAIL')
@@ -84,7 +101,11 @@ def _topology_safe_exclusive_assign(positive: np.ndarray,
         'assigned_owner2_px': int(np.count_nonzero(eligible & (proposed == 2))),
         'original_owner_4_8_components': before,
         'proposed_owner_4_8_components': after,
+        'original_owner_4_8_enclosed_holes': holes_before,
+        'proposed_owner_4_8_enclosed_holes': holes_after,
+        'abstained_enclosed_void_px': abstained_enclosed,
         'exclusive_4_8_component_gate_pass': True,
+        'enclosed_void_4_8_gate_pass': True,
     }
 
 
