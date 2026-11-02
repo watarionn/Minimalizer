@@ -137,6 +137,7 @@ def test_preserves_frozen_arm_sleeve_contact_not_just_component_counts():
     assert receipt['owner_8_components_before'] == receipt['owner_8_components_after']
     assert receipt['quality'] == 'UNASSESSED'
 
+
 def test_run30_pinned_replay_rejects_unlisted_case_without_fallback():
     x = sample()
     with pytest.raises(SourceOnlyAbstentionHold, match='UNPINNED_RUN30_CASE'):
