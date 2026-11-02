@@ -7,6 +7,7 @@ from tools.research.local_l02_class32_frontier_positive_shadow import (
     propose_pinned_run30_class32_frontier_positive,
 )
 from tools.research.local_l02_class32_topology_palette_shadow import SourceOnlyAbstentionHold
+from unittest.mock import patch
 
 
 class FrontierShadowTest(unittest.TestCase):
@@ -98,6 +99,48 @@ class FrontierShadowTest(unittest.TestCase):
         self.assertEqual(audit['scan_order_stability'], 'PASS')
         self.assertEqual(audit['scan_order_changed_px'], 0)
         self.assertEqual(audit['scan_order_owner_conflict_px'], 0)
+
+
+    def test_pinned_wrapper_returns_frozen_owner_on_conflict(self):
+        o = np.zeros((20, 30), np.uint8)
+        o[8:11, 2:5] = 1
+        o[8:11, 11:14] = 2
+        e = np.zeros(o.shape, bool)
+        e[8:11, 5:11] = True
+        evidence = {'source_class_owner_sha_pinned': True, 'reason': 'synthetic'}
+        with patch(
+            'tools.research.local_l02_class32_frontier_positive_shadow.'
+            'propose_pinned_run30_class32_positive', return_value=(e, evidence)
+        ):
+            got, receipt = propose_pinned_run30_class32_frontier_positive(
+                case_id='synthetic', source_bytes=b'',
+                class_ids=np.zeros(o.shape, np.uint8), frozen_owner=o)
+        np.testing.assert_array_equal(got, o)
+        self.assertEqual(receipt['quality'], 'FAIL')
+        self.assertEqual(receipt['scan_order_stability'], 'FAIL')
+        self.assertTrue(receipt['returned_frozen_owner_on_scan_instability'])
+        self.assertGreater(receipt['rejected_unstable_candidate_px'], 0)
+        self.assertEqual(receipt['assigned_positive_px'], 0)
+        self.assertEqual(receipt['abstained_positive_px'], int(e.sum()))
+
+    def test_pinned_wrapper_keeps_stable_candidate_unassessed(self):
+        o = np.zeros((18, 18), np.uint8)
+        o[5:8, 3:6] = 1
+        e = np.zeros(o.shape, bool)
+        e[5:8, 6:10] = True
+        evidence = {'source_class_owner_sha_pinned': True, 'reason': 'synthetic'}
+        with patch(
+            'tools.research.local_l02_class32_frontier_positive_shadow.'
+            'propose_pinned_run30_class32_positive', return_value=(e, evidence)
+        ):
+            got, receipt = propose_pinned_run30_class32_frontier_positive(
+                case_id='synthetic', source_bytes=b'',
+                class_ids=np.zeros(o.shape, np.uint8), frozen_owner=o)
+        self.assertGreater(np.count_nonzero(got != o), 0)
+        self.assertEqual(receipt['quality'], 'UNASSESSED')
+        self.assertEqual(receipt['scan_order_stability'], 'PASS')
+        self.assertFalse(receipt['returned_frozen_owner_on_scan_instability'])
+        self.assertEqual(receipt['rejected_unstable_candidate_px'], 0)
 
 
 if __name__ == '__main__':
