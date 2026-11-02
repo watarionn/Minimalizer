@@ -10,7 +10,8 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
 from local_l02_class32_topology_palette_shadow import (
-    propose_class32_competitor_abstention, SourceOnlyAbstentionHold,
+    propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
+    PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold,
 )
 
 
@@ -135,3 +136,29 @@ def test_preserves_frozen_arm_sleeve_contact_not_just_component_counts():
     assert receipt['owner_4_components_before'] == receipt['owner_4_components_after']
     assert receipt['owner_8_components_before'] == receipt['owner_8_components_after']
     assert receipt['quality'] == 'UNASSESSED'
+
+def test_run30_pinned_replay_rejects_unlisted_case_without_fallback():
+    x = sample()
+    with pytest.raises(SourceOnlyAbstentionHold, match='UNPINNED_RUN30_CASE'):
+        propose_pinned_run30_4_shadow(case_id='H99', source_bytes=x['source_bytes'],
+                                      class_ids=x['class_ids'], frozen_owner=x['frozen_owner'])
+
+
+def test_run30_pinned_replay_rejects_self_signed_synthetic_or_cross_run_mix():
+    # Self-calculated hashes pass the generic research helper, but cannot
+    # authenticate a frozen source/class/owner provenance triple.
+    x = sample()
+    generic, receipt = propose_class32_competitor_abstention(**x)
+    assert generic.shape == x['class_ids'].shape
+    assert receipt['source_sha_verified'] and receipt['class_ids_sha_verified']
+    with pytest.raises(SourceOnlyAbstentionHold, match='RUN30_PROVENANCE_TRIPLE_MISMATCH'):
+        propose_pinned_run30_4_shadow(case_id='H06', source_bytes=x['source_bytes'],
+                                      class_ids=x['class_ids'], frozen_owner=x['frozen_owner'])
+
+
+def test_run30_known_case_pins_are_distinct_and_exact_sha256_only():
+    assert set(PINNED_RUN30_4_TRIPLES) == {'H04', 'H06', 'H08'}
+    assert len(set(PINNED_RUN30_4_TRIPLES.values())) == 3
+    for triple in PINNED_RUN30_4_TRIPLES.values():
+        assert len(triple) == 3
+        assert all(len(v) == 64 and set(v) <= set('0123456789abcdef') for v in triple)
