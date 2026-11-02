@@ -230,6 +230,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'Golden': 'HOLD', 'production': 'NO_GO',
     }
 
+
 def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
         class_ids: np.ndarray, frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
     """Fail-closed historical signed replay; never infer provenance from caller hashes.
