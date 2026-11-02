@@ -173,8 +173,30 @@ def propose_pinned_run30_class32_frontier_positive(*, case_id: str,
         case_id=case_id, source_bytes=source_bytes,
         class_ids=class_ids, frozen_owner=frozen_owner,
     )
-    result, receipt = _frontier_safe_exclusive_assign(positive, frozen_owner)
-    order_audit = _scan_order_sensitivity_receipt(positive, frozen_owner, result)
+    candidate, receipt = _frontier_safe_exclusive_assign(positive, frozen_owner)
+    order_audit = _scan_order_sensitivity_receipt(positive, frozen_owner, candidate)
+    unstable = order_audit['scan_order_stability'] == 'FAIL'
+    # A FAIL must not return an unsafe candidate map for downstream reuse.
+    # Retain source-free diagnostics, but return the exact frozen owner on
+    # traversal-dependent ownership. No postscore labels enter this decision.
+    if unstable:
+        receipt = {
+            **receipt,
+            'rejected_unstable_candidate_px': receipt['assigned_positive_px'],
+            'assigned_positive_px': 0,
+            'assigned_owner1_px': 0,
+            'assigned_owner2_px': 0,
+            'abstained_positive_px': receipt['positive_evidence_px'],
+            'returned_frozen_owner_on_scan_instability': True,
+        }
+        result = frozen_owner.copy()
+    else:
+        receipt = {
+            **receipt,
+            'rejected_unstable_candidate_px': 0,
+            'returned_frozen_owner_on_scan_instability': False,
+        }
+        result = candidate
     return result, {
         'schema': 'minimalizer/l02/class32-frontier-positive-shadow/v1',
         'case': case_id,
@@ -182,5 +204,5 @@ def propose_pinned_run30_class32_frontier_positive(*, case_id: str,
         'positive_evidence_reason': evidence_receipt['reason'],
         **receipt,
         **order_audit,
-        'quality': 'FAIL' if order_audit['scan_order_stability'] == 'FAIL' else receipt['quality'],
+        'quality': 'FAIL' if unstable else receipt['quality'],
     }
