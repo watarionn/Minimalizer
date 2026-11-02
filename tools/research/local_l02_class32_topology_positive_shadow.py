@@ -76,8 +76,40 @@ def _topology_safe_exclusive_assign(positive: np.ndarray,
             enclosed |= ndi.binary_fill_holes(original, structure=structure) & ~original
     abstained_enclosed = int(np.count_nonzero(eligible & enclosed))
     eligible &= ~enclosed
-    proposed = frozen_owner.copy()
-    proposed[eligible] = owner4[component4[eligible]]
+    if np.count_nonzero(eligible) > 100_000:
+        raise SourceOnlyAbstentionHold('EXCLUSIVE_POSITIVE_GROWTH_BUDGET')
+    # Deterministic source-only simple-point growth. A full component may
+    # close many new arm/sleeve voids while preserving foreground components.
+    # Admit a pixel only if its *current* 3x3 same-owner neighbourhood is
+    # one connected group under BOTH 4 and 8 connectivity. Retry deferred
+    # pixels after neighbours grow; bound passes and abstain on leftovers.
+    padded = np.pad(frozen_owner, 1)
+    pending = [(int(y), int(x)) for y, x in np.argwhere(eligible)]
+    growth_passes = 0
+    for _ in range(64):
+        if not pending:
+            break
+        growth_passes += 1
+        next_pending = []
+        admitted_this_pass = 0
+        for y, x in pending:
+            oid = int(owner4[component4[y, x]])
+            patch = padded[y:y + 3, x:x + 3] == oid
+            if not (patch[0, 1] or patch[1, 0] or
+                    patch[1, 2] or patch[2, 1]):
+                next_pending.append((y, x))
+                continue
+            if (ndi.label(patch, structure=_CROSS)[1] != 1 or
+                    ndi.label(patch, structure=_SQUARE)[1] != 1):
+                next_pending.append((y, x))
+                continue
+            padded[y + 1, x + 1] = oid
+            admitted_this_pass += 1
+        pending = next_pending
+        if not admitted_this_pass:
+            break
+    proposed = padded[1:-1, 1:-1].copy()
+    admitted = proposed != frozen_owner
     before = [int(ndi.label(frozen_owner == oid, structure=structure)[1])
               for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
     after = [int(ndi.label(proposed == oid, structure=structure)[1])
@@ -89,21 +121,23 @@ def _topology_safe_exclusive_assign(positive: np.ndarray,
                                   & (proposed != oid), structure=structure)[1])
                    for oid in (1, 2) for structure in (_CROSS, _SQUARE)]
     if (before != after or holes_before != holes_after or
-            np.any((proposed != frozen_owner) & ~eligible) or
-            np.any((proposed != frozen_owner) & (frozen_owner != 0)) or
-            np.any((proposed != frozen_owner) & (proposed == 0))):
+            np.any(admitted & ~eligible) or
+            np.any(admitted & (frozen_owner != 0)) or
+            np.any(admitted & (proposed == 0))):
         raise SourceOnlyAbstentionHold('EXCLUSIVE_POSITIVE_TOPOLOGY_FAIL')
     return proposed, {
         'source_only_positive_px': int(positive.sum()),
-        'assigned_positive_px': int(eligible.sum()),
-        'abstained_positive_px': int(positive.sum() - eligible.sum()),
-        'assigned_owner1_px': int(np.count_nonzero(eligible & (proposed == 1))),
-        'assigned_owner2_px': int(np.count_nonzero(eligible & (proposed == 2))),
+        'assigned_positive_px': int(admitted.sum()),
+        'abstained_positive_px': int(positive.sum() - admitted.sum()),
+        'assigned_owner1_px': int(np.count_nonzero(admitted & (proposed == 1))),
+        'assigned_owner2_px': int(np.count_nonzero(admitted & (proposed == 2))),
         'original_owner_4_8_components': before,
         'proposed_owner_4_8_components': after,
         'original_owner_4_8_enclosed_holes': holes_before,
         'proposed_owner_4_8_enclosed_holes': holes_after,
         'abstained_enclosed_void_px': abstained_enclosed,
+        'simple_point_abstained_px': int(np.count_nonzero(eligible & ~admitted)),
+        'simple_point_growth_passes': growth_passes,
         'exclusive_4_8_component_gate_pass': True,
         'enclosed_void_4_8_gate_pass': True,
     }
