@@ -22,7 +22,7 @@ Canonical existing private Drive evidence ZIP SHA-256 pins were verified for rev
 | H06 | 0 | 0 | 0 | 0 | 0 | `[0,0,9,8]` unchanged |
 | H08 | 31,505 | **6,047** | **5,962** | **0 known** | **85** | `[29,22,14,11]` unchanged |
 
-H08's 6,047 new owner pixels lie in a visible sleeve/cuff region of the signed original. The private original-versus-candidate diagnostic was inspected; no generated RGB pixels were used as evidence. The **25,458 remaining positive-evidence pixels abstain** because of component ambiguity, absent contact or topology constraints. This is a **new partial P0 sleeve recovery candidate**, not an accepted P0 fix: 85 newly assigned pixels lack human labels, independent sleeve-vs-arm/underlayer semantics and full occlusion/critical-part validation are still missing. No claim of H06 repair, H04 repair, unknown generalization or actual Phase5 replay.
+H08's **labelled-only Run30 owner IoU increases 0.616561 → 0.654640** (reviewed garment FN **60,035 → 54,073**, known FP remains **0**); this is a known-character postscore, not blind quality proof. H08's 6,047 new owner pixels lie in a visible sleeve/cuff region of the signed original. The private original-versus-candidate diagnostic was inspected; no generated RGB pixels were used as evidence. The **25,458 remaining positive-evidence pixels abstain** because of component ambiguity, absent contact or topology constraints. This is a **new partial P0 sleeve recovery candidate**, not an accepted P0 fix: 85 newly assigned pixels lack human labels, independent sleeve-vs-arm/underlayer semantics and full occlusion/critical-part validation are still missing. No claim of H06 repair, H04 repair, unknown generalization or actual Phase5 replay.
 
 ## Verification and integration gates
 
