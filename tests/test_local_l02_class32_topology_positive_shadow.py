@@ -60,17 +60,23 @@ class TopologyPositiveTest(unittest.TestCase):
         self.assertEqual(receipt['original_owner_4_8_enclosed_holes'],
                          receipt['proposed_owner_4_8_enclosed_holes'])
 
-    def test_new_enclosed_void_creation_fails_closed(self):
-        # Closing an open U can create a new void without changing owner count.
+    def test_new_enclosed_void_creation_abstains_at_closure(self):
+        # Closing an open U would create a new void with unchanged owner count.
+        # Grow the safe portion and abstain at the closure, rather than fail
+        # the entire source-only candidate.
         o = np.zeros((16, 16), np.uint8)
         o[3:12, 3] = 1
         o[3:12, 11] = 1
         o[11, 3:12] = 1
         e = np.zeros_like(o, dtype=bool)
         e[3, 4:11] = True
-        with self.assertRaisesRegex(SourceOnlyAbstentionHold,
-                                    'EXCLUSIVE_POSITIVE_TOPOLOGY_FAIL'):
-            _topology_safe_exclusive_assign(e, o)
+        got, receipt = _topology_safe_exclusive_assign(e, o)
+        self.assertLess(receipt['assigned_positive_px'], int(e.sum()))
+        self.assertGreater(receipt['assigned_positive_px'], 0)
+        self.assertEqual(receipt['original_owner_4_8_enclosed_holes'],
+                         receipt['proposed_owner_4_8_enclosed_holes'])
+        self.assertEqual(receipt['original_owner_4_8_components'],
+                         receipt['proposed_owner_4_8_components'])
 
     def test_nonempty_occupied_evidence_rejected(self):
         o = np.zeros((8, 8), np.uint8)
