@@ -52,3 +52,21 @@ The three existing private canonical ZIP archives (reviewed originals, frozen cl
 **Known-character postscore, not blind:** H08 newly assigned **5,726 reviewed outerwear**, **0 known arm/underlayer/hair false positives**, **81 unknown**. Labelled-only known IoU **0.616561→0.653133**, reviewed outerwear FN **60,035→54,309**, known FP remains 0. H04/H06 remain unchanged. This is a **partial visible-sleeve P0 candidate**, not an accepted complete P0 fix or actual rendered-image improvement. Independent semantic evidence, full critical-part/occlusion review, unknown-character blind and Golden approval remain missing.
 
 A new PRIVATE evidence ZIP containing candidate owner maps, internal SHA manifest and private postscore receipt was generated locally and checked, but upload to the exact canonical Drive folder failed with `container_session_unavailable`. **Cloud preservation and read-after-write are NOT COMPLETE**. No private original, NPZ, mask or coordinates were committed to GitHub. Accepted complete P0/P1 fixes **0/0**; unresolved major cases **3/3**. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO. No B/Public/Worker/Golden change.
+
+
+## 2026-11-02 cross-PR quality-frontier reconciliation (source-free; no new replay)
+
+**Decision: do not present this Run30-only 5,807px H08 recovery as an incremental improvement over the already stronger historical composed/strict frontier in Draft PR #445.** Both observations concern the same exposed signed H08 review cohort, but their owner-map lineages differ. No pixel-wise overlay or compatibility between these two outputs has been established; these are postscore aggregate comparisons, not an executable combined pipeline.
+
+| Frozen known-H08 research lineage | Reviewed true outerwear owned | Reviewed outerwear FN | Known false owner | Caveat |
+| --- | ---: | ---: | ---: | --- |
+| Run30 baseline | 96,535 | 60,035 | 0 | PR #449's original owner domain |
+| PR #449 topology-safe Run30 shadow | 102,261 | 54,309 | 0 | 5,807 assigned, 5,726 reviewed outerwear, 81 unknown; no Phase4/Phase5 |
+| PR #445 historical composed | 136,780 | 19,790 | 0 | Separate historical staged owner SHA |
+| PR #445 historical composed + strict | **137,261** | **19,309** | **0** | Historical replay, not exact current-main or release PASS |
+
+The PR #449 Run30-only candidate has **35,000 fewer reviewed true outerwear pixels** than PR #445's historical strict candidate (137,261 - 102,261), but **this difference is not a measured regression caused by applying PR #449 to strict**. It is a comparison of different owner baselines. The historical strict owner SHA is `32bb5266a479ce64571f190ffebe90b50c01329598408019b363c5ab0c9f0778`; its upstream replay lineage must be reconciled against current main before combining or attributing results.
+
+**Integration consequence:** retain PR #449's topology and provenance guards as research-only candidates, but stop iterating Run30-only sleeve pixels as though they establish a new best H08 frontier. Next meaningful work is exact-current-main/PR #445 composed-owner reconstruction, signed source/owner lineage verification, and a source-only compatibility/negative-regression check for the topology guard on that owner domain. A rejected `FROZEN_OWNER_OUTSIDE_CANDIDATE` must remain rejected; do not widen the contract or use human labels to force compatibility. Independently address H06's 208 genuine-coat erasure and 1,077 historical staged underlayer false-owner pixels, then Phase4 critical-part/occlusion, semantic and exclusivity checks.
+
+This is a **documented integration-priority correction only**, not new image inference, QA, an accepted P0/P1 repair, a merge, or cloud evidence preservation. Accepted complete P0/P1 **0/0**; H04/H06/H08 **3 unresolved**. L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO. No B L04/L07, Public/C08, LocalWorker production, Golden or iPhone acceptance change.
