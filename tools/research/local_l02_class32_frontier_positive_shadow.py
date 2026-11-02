@@ -36,13 +36,16 @@ def _topology_counts(owner: np.ndarray) -> tuple[list[int], list[int]]:
 
 
 def _frontier_safe_exclusive_assign(positive: np.ndarray,
-                                    frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
+                                    frozen_owner: np.ndarray, *,
+                                    _scan_order: str = 'raster') -> tuple[np.ndarray, dict]:
     """Grow only original unowned evidence into one locally unambiguous owner.
 
     Unlike all-or-nothing component ownership, each pixel must have exactly
     one 4-connected and 8-neighbour semantic owner at admission time. This
     can leave gaps; it never infers garment identity from reviewed labels.
     """
+    if _scan_order not in ('raster', 'reverse'):
+        raise SourceOnlyAbstentionHold('INVALID_FRONTIER_SCAN_ORDER')
     if (type(positive) is not np.ndarray or type(frozen_owner) is not np.ndarray or
             positive.dtype != np.bool_ or frozen_owner.dtype != np.uint8 or
             positive.ndim != 2 or positive.shape != frozen_owner.shape or
@@ -63,6 +66,8 @@ def _frontier_safe_exclusive_assign(positive: np.ndarray,
     result = frozen_owner.copy()
     height, width = result.shape
     pending = [(int(y), int(x)) for y, x in np.argwhere(eligible)]
+    if _scan_order == 'reverse':
+        pending.reverse()
     passes = 0
     for _ in range(_MAX_PASSES):
         if not pending:
@@ -133,6 +138,33 @@ def _frontier_safe_exclusive_assign(positive: np.ndarray,
     }
 
 
+
+def _scan_order_sensitivity_receipt(positive: np.ndarray,
+                                    frozen_owner: np.ndarray,
+                                    raster_owner: np.ndarray) -> dict:
+    """Independent traversal perturbation; no labels or private coordinates leave.
+
+    Connectivity/hole counts alone do not prove semantic owner identity.
+    A reverse traversal must not silently change owner identity or admission.
+    This is a fail-closed research gate, not a method for choosing the better
+    known-case postscore. Neither candidate is automatically promoted.
+    """
+    reverse_owner, reverse_receipt = _frontier_safe_exclusive_assign(
+        positive, frozen_owner, _scan_order='reverse')
+    changed = raster_owner != reverse_owner
+    conflicting_owner = ((raster_owner != 0) & (reverse_owner != 0) &
+                         (raster_owner != reverse_owner))
+    count = int(np.count_nonzero(changed))
+    return {
+        'scan_order_stability': 'FAIL' if count else 'PASS',
+        'scan_order_changed_px': count,
+        'scan_order_owner_conflict_px': int(np.count_nonzero(conflicting_owner)),
+        'reverse_assigned_positive_px': reverse_receipt['assigned_positive_px'],
+        'scan_order_quality_gate': 'HOLD' if count else 'NOT_SUFFICIENT',
+        'scan_order_audit_uses_human_labels': False,
+    }
+
+
 def propose_pinned_run30_class32_frontier_positive(*, case_id: str,
         source_bytes: bytes, class_ids: np.ndarray,
         frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
@@ -142,10 +174,12 @@ def propose_pinned_run30_class32_frontier_positive(*, case_id: str,
         class_ids=class_ids, frozen_owner=frozen_owner,
     )
     result, receipt = _frontier_safe_exclusive_assign(positive, frozen_owner)
+    order_audit = _scan_order_sensitivity_receipt(positive, frozen_owner, result)
     return result, {
         'schema': 'minimalizer/l02/class32-frontier-positive-shadow/v1',
         'case': case_id,
         'pinned_source_class_owner': evidence_receipt['source_class_owner_sha_pinned'],
         'positive_evidence_reason': evidence_receipt['reason'],
         **receipt,
+        **order_audit,
     }
