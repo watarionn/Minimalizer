@@ -60,6 +60,37 @@ def _components8(mask: np.ndarray) -> int:
     return int(n - 1)
 
 
+def _local_background_components(mask: np.ndarray, connectivity: int) -> int:
+    """Count 4/8-connected negative-space components within a 3x3 patch.
+
+    Conservative local condition: preserving counts in both connectivities
+    rejects creation/closure of a small void even when the foreground owner
+    component count stays constant. Full-image hole checks are still required
+    before any Phase4 promotion.
+    """
+    steps = ((-1, 0), (1, 0), (0, -1), (0, 1))
+    if connectivity == 8:
+        steps += ((-1, -1), (-1, 1), (1, -1), (1, 1))
+    seen = set()
+    count = 0
+    for y in range(3):
+        for x in range(3):
+            if not mask[y, x] or (y, x) in seen:
+                continue
+            count += 1
+            seen.add((y, x))
+            stack = [(y, x)]
+            while stack:
+                cy, cx = stack.pop()
+                for dy, dx in steps:
+                    ny, nx = cy + dy, cx + dx
+                    if (0 <= ny < 3 and 0 <= nx < 3 and
+                            mask[ny, nx] and (ny, nx) not in seen):
+                        seen.add((ny, nx))
+                        stack.append((ny, nx))
+    return count
+
+
 def _frozen_cross_owner_contact8(owner: np.ndarray) -> np.ndarray:
     """Preserve every original 8-neighbour contact between distinct owners.
 
@@ -92,6 +123,7 @@ def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
         # deleting successive endpoints can erase an entire thin sleeve/arm.
         # Fail closed even when the deletion would keep component counts equal.
         return False
+    original_background = ~patch
     patch[1, 1] = False
     seen = set()
     stack = [active[0]]
@@ -104,7 +136,17 @@ def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
             ny, nx = yy + dy, xx + dx
             if 0 <= ny < 3 and 0 <= nx < 3 and patch[ny, nx] and (ny, nx) not in seen:
                 stack.append((ny, nx))
-    return all(p in seen for p in active)
+    if not all(p in seen for p in active):
+        return False
+    # A stable foreground component count alone permits creating a new
+    # enclosed negative-space hole. Require both 4/8 local background
+    # component counts to stay unchanged; conservatively abstain otherwise.
+    new_background = ~patch
+    return all(
+        _local_background_components(original_background, connectivity) ==
+        _local_background_components(new_background, connectivity)
+        for connectivity in (4, 8)
+    )
 
 
 def propose_class32_competitor_abstention(*, source_bytes: bytes,
