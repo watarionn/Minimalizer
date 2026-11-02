@@ -47,6 +47,31 @@ class TopologyPositiveTest(unittest.TestCase):
         got, _ = _topology_safe_exclusive_assign(e, o)
         np.testing.assert_array_equal(got, o)
 
+    def test_existing_enclosed_arm_opening_is_not_filled(self):
+        # Owner component counts alone miss loss of a hole in the silhouette.
+        o = np.zeros((16, 16), np.uint8)
+        o[3:12, 3:12] = 1
+        o[5:10, 5:10] = 0
+        e = np.zeros_like(o, dtype=bool)
+        e[5:10, 5:10] = True
+        got, receipt = _topology_safe_exclusive_assign(e, o)
+        np.testing.assert_array_equal(got, o)
+        self.assertEqual(receipt['abstained_enclosed_void_px'], 25)
+        self.assertEqual(receipt['original_owner_4_8_enclosed_holes'],
+                         receipt['proposed_owner_4_8_enclosed_holes'])
+
+    def test_new_enclosed_void_creation_fails_closed(self):
+        # Closing an open U can create a new void without changing owner count.
+        o = np.zeros((16, 16), np.uint8)
+        o[3:12, 3] = 1
+        o[3:12, 11] = 1
+        o[11, 3:12] = 1
+        e = np.zeros_like(o, dtype=bool)
+        e[3, 4:11] = True
+        with self.assertRaisesRegex(SourceOnlyAbstentionHold,
+                                    'EXCLUSIVE_POSITIVE_TOPOLOGY_FAIL'):
+            _topology_safe_exclusive_assign(e, o)
+
     def test_nonempty_occupied_evidence_rejected(self):
         o = np.zeros((8, 8), np.uint8)
         o[2, 2] = 1
