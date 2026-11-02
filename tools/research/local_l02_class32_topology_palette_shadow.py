@@ -22,6 +22,29 @@ MAX_COMPETITOR_DISTANCE_LAB = 12.0
 MIN_DISTANCE_RATIO = 2.0
 
 
+# SHA-256 digests are source-free identifiers, NOT image bytes or human labels.
+# Frozen from the existing signed ReviewedEvidence, SleeveSemantic and Run30
+# private Drive bundles. These are known-case 4-neighbour historical inputs
+# only; this registry must never be interpreted as unknown-character proof.
+PINNED_RUN30_4_TRIPLES = {
+    'H04': (
+        '7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3',
+        '389d5975cb66cbc7ca64d27bbd6b1950abce40f6399096d651e86996afd8b1b6',
+        '5b56899313d57b1677cb6c30676fe2e60c9fa141331a379aff7ee7a0e6101b5e',
+    ),
+    'H06': (
+        'c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8',
+        '06e02c257d982a4da45ee8f77da8730d91615502eaa2cc9e438068e69e1e286a',
+        '4be9ae240b8d32cc6b0923371f5c5b3a6159196ba819aa0b7044c06740a7b317',
+    ),
+    'H08': (
+        '759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e',
+        'd6ff3cee53338711f6dc253dc423d772f52d7cce711d3311a6497002739976f5',
+        '43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52',
+    ),
+}
+
+
 class SourceOnlyAbstentionHold(ValueError):
     """Fail closed on untrusted or mismatched source/model/owner inputs."""
 
@@ -206,3 +229,35 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'L02': 'HOLD', 'Phase4': 'FAIL', 'L03': 'NO_GO',
         'Golden': 'HOLD', 'production': 'NO_GO',
     }
+
+def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
+        class_ids: np.ndarray, frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
+    """Fail-closed historical signed replay; never infer provenance from caller hashes.
+
+    The generic research function accepts caller-provided expected digests and
+    cannot authenticate a run. This wrapper binds source, class prediction and
+    owner together against the independently pinned Run30 4-neighbour bundle.
+    Unknown signed images require a separately reviewed frozen manifest, not
+    a relaxed fallback to these known-character pins.
+    """
+    if type(case_id) is not str or case_id not in PINNED_RUN30_4_TRIPLES:
+        raise SourceOnlyAbstentionHold('UNPINNED_RUN30_CASE')
+    if (type(source_bytes) is not bytes or
+            type(class_ids) is not np.ndarray or type(frozen_owner) is not np.ndarray or
+            class_ids.dtype != np.uint8 or frozen_owner.dtype != np.uint8):
+        raise SourceOnlyAbstentionHold('INVALID_PINNED_RUN30_INPUT')
+    actual = (hashlib.sha256(source_bytes).hexdigest(),
+              hashlib.sha256(class_ids.tobytes(order='C')).hexdigest(),
+              hashlib.sha256(frozen_owner.tobytes(order='C')).hexdigest())
+    expected = PINNED_RUN30_4_TRIPLES[case_id]
+    if actual != expected:
+        raise SourceOnlyAbstentionHold('RUN30_PROVENANCE_TRIPLE_MISMATCH')
+    result, receipt = propose_class32_competitor_abstention(
+        source_bytes=source_bytes, expected_source_sha256=expected[0],
+        class_ids=class_ids, frozen_owner=frozen_owner,
+        expected_class_ids_sha256=expected[1],
+        expected_frozen_owner_sha256=expected[2],
+    )
+    receipt['run30_4_provenance_pinned'] = True
+    receipt['run30_case'] = case_id
+    return result, receipt
