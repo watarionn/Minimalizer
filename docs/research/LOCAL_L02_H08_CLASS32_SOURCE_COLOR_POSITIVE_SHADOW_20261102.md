@@ -27,7 +27,7 @@ H08 mask SHA-256 `1f2415cbaf04e146582d41eedad1ca72e3e18963fe5ac14ca4700c658703bc
 ## Source and preservation
 
 - Canonical private Drive source ZIP SHA-256: ReviewedEvidence `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`; SleeveSemantic `a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7`; Run30 owner `6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c`. The three archive bytes were retrieved from the existing non-shared Drive and independently SHA-checked.
-- A deterministic private ZIP with candidate NPZ masks and H08 source overlay was locally built and its six internal entries checked; SHA-256 `9827b6704bda2bd61faeb27940906a2263d9ebdfdb079be15719b183369ac9a8`. **Canonical Drive upload returned `container_session_unavailable`, so this new ZIP is NOT cloud-preserved and must not be counted as a shipped private artifact.** No raw source, mask, NPZ, image, or coordinates are committed to GitHub.
+- A private ZIP with candidate NPZ masks and H08 source overlay was locally built and its six internal entries checked; SHA-256 `9827b6704bda2bd61faeb27940906a2263d9ebdfdb079be15719b183369ac9a8`. **Canonical Drive upload returned `container_session_unavailable`, so this new ZIP is NOT cloud-preserved and must not be counted as a shipped private artifact.** No raw source, mask, NPZ, image, or coordinates are committed to GitHub.
 - The new module's exact Git blob and fail-closed source-free tests are in PR #449; isolated tests 4/4 PASS. This is not full exact-head repository QA or model licensing clearance.
 
 ## Next quality gate
