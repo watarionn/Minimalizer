@@ -108,3 +108,26 @@ An independent NumPy/OpenCV/SciPy reconstruction (NOT byte-exact current PR-head
 **New P0 risk localization:** the 239 erased genuine-coat pixels are distributed across **10 four-connected loss components**, the largest containing **141 pixels**. This is not proof that the losses are harmless boundary noise. H06's full-frame owner2 enclosed-hole counts remain **25→25 (4-neighbour)** and **17→17 (8-neighbour)**; unchanged global topology does **not** imply garment retention. H04 and H08 owner candidates remained unchanged in the mirror. H06's frozen 8-neighbour cross-owner contact mask is empty, so that guard cannot resolve its underlayer-vs-coat semantic confusion.
 
 A new private-only candidate-owner/overlay/postscore ZIP was constructed and internally SHA-checked (`e7d86272ca6268a78c43e121afd935d707c6055fcd22fe344c6035f0499a765d`), but uploading it to the existing non-shared Drive folder failed with `container_session_unavailable`. **Do not count it as remotely preserved or source it from GitHub.** Existing canonical private source archives remain unchanged. This is a diagnostic quality **FAIL**, not an admitted P0 fix, a full exact-head QA, or an unknown-character blind. Accepted P0/P1=0/0; unresolved H04/H06/H08=3; Draft unmerged; L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO. Next priority remains independently licensed coat/underlayer/arm semantics and a no-true-coat-erasure Phase4 replay, not another known-case threshold tweak.
+
+
+## 2026-11-03 opt-in garment-seed-scale retention candidate (known H06, HOLD)
+
+A new **opt-in**, source-only conservative retention guard was added to the A-only research helper. The existing default candidate is unchanged. With the opt-in enabled, the frozen class5/10 garment-owner pixels determine a geometric scale: the median interior Euclidean distance to their boundary. An existing class32 owner pixel within that distance of the garment seed is **protected from deletion**. This uses signed RGB/alpha, frozen class IDs and frozen owner only. It does not use human masks, annotations, coordinates, newly generated pixels or independent-model claims. The geometric rule was devised after examining known H06; **it is an exposed known-case hypothesis, not unseen-character generalization**.
+
+Authenticated source-only inputs were read from the canonical private Drive bundles: ReviewedEvidence ZIP SHA-256 `6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`, SleeveSemantic `a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7`, Run30 4-neighbour owner `6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c`. H06 signed source, class and owner byte SHA-256 all matched the pinned registry. An **independently reconstructed** source-only replay, not the exact updated GitHub module, produced the following postscore after the proposal was frozen:
+
+| Known H06 Run30 source-only shadow | Existing reconstructed candidate | New guarded reconstruction |
+| --- | ---: | ---: |
+| Total class32 owner pixels abstained | 7,296 | **6,872** |
+| Reviewed incorrect owner removed | 6,847 | **6,701** |
+| Reviewed correct garment accidentally removed | **239** | **10** |
+| Unreviewed pixels removed (unknown, not negatives) | 210 | 161 |
+| Known incorrect owner remaining | 4,704 | 4,850 |
+| Owner2 4/8 components | 9/8 | 9/8 |
+| Owner2 4/8 enclosed holes | 25/17 | 25/17 |
+
+The source-only garment-seed interior median was **28.861739 px**, protecting **18,973** pre-existing class32 owner pixels. The new reconstruction retained **229 more reviewed correct garment pixels**, at the cost of retaining **146 more known incorrect owner pixels**. This is a material *known-case trade-off*, not an accepted P0 fix. **Ten correct garment pixels are still erased**, 4,850 known incorrect H06 owner pixels remain, and the actual visual garment/arm/cuff semantics are unresolved. H04's frozen garment/competitor color separation is below the existing guard's fixed minimum (no abstention), while H08 has no occupied class32 owner target for this removal helper. Neither H04 nor H08 major defect is resolved.
+
+The A-only GitHub helper now supports `protect_garment_seed_scale=True` as a strictly boolean opt-in, preserving default behavior and the pinned source/class/owner replay contract. A postcondition and source-free receipt record the protected-owner invariant. Three source-free negative/contract regression tests were added. **The updated GitHub code and tests have been written and read back, but their exact-head execution, full canonical QA and exact signed replay have NOT yet passed.** The independent reconstruction above must not be mislabeled exact-head QA or merged into Phase4.
+
+**Accepted real-image P0=0, P1=0; H04/H06/H08 unresolved=3.** PR remains Draft, unmerged. Source-only Phase4 critical-part/occlusion and no-erasure promotion gate FAIL; independent garment/skin/underlayer observer, genuine unseen signed blind, model rights, exact-head QA, private replay Drive cloud read-after-write and human Golden are pending. **L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO.** No B L04/L07, Public/C08, LocalWorker production or Golden changes.
