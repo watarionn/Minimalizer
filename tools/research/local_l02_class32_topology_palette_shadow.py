@@ -13,6 +13,7 @@ import re
 
 import cv2
 import numpy as np
+from scipy import ndimage as ndi
 from PIL import Image, UnidentifiedImageError
 
 MAX_PIXELS = 16_000_000
@@ -152,13 +153,16 @@ def _safe_to_remove(mask: np.ndarray, y: int, x: int) -> bool:
 def propose_class32_competitor_abstention(*, source_bytes: bytes,
         expected_source_sha256: str, class_ids: np.ndarray,
         frozen_owner: np.ndarray, expected_class_ids_sha256: str,
-        expected_frozen_owner_sha256: str) -> tuple[np.ndarray, dict]:
+        expected_frozen_owner_sha256: str,
+        protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
     """Return a *shadow-only* owner copy and source-free integrity receipt.
 
     Fixed class2 vs class5/10 Lab rule; no case-specific parameter overrides.
     Never adds pixels or changes class5/10 owner. No human labels or masks.
     All resulting owner maps remain research-only and private.
     """
+    if type(protect_garment_seed_scale) is not bool:
+        raise SourceOnlyAbstentionHold('INVALID_SEED_SCALE_GUARD_MODE')
     if (type(source_bytes) is not bytes or not source_bytes or
             type(expected_source_sha256) is not str or
             re.fullmatch(r'[0-9a-f]{64}', expected_source_sha256) is None or
@@ -194,6 +198,19 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
+    # Optional source-only geometry hypothesis: preserve class32 owner pixels
+    # within one median garment-seed interior radius. The median is computed
+    # from frozen class5/10 owner pixels, never from human annotations.
+    # This was proposed after inspecting known H06 and is NOT a blind PASS.
+    seed_scale_px = None
+    protected_seed_scale = np.zeros(frozen_owner.shape, dtype=bool)
+    if protect_garment_seed_scale and int(garment_seed.sum()) >= MIN_SEED_PIXELS:
+        seed_interior = ndi.distance_transform_edt(garment_seed)
+        seed_scale_px = float(np.median(seed_interior[garment_seed]))
+        protected_seed_scale = (
+            (class_ids == 32) & (frozen_owner != 0) &
+            (ndi.distance_transform_edt(~garment_seed) <= seed_scale_px)
+        )
     reason = 'NO_CANDIDATE'
     count = 0
     separation = None
@@ -216,7 +233,8 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             dcompetitor = np.linalg.norm(values - competitor_color, axis=1)
             eligible = ((dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
                         (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
-                        ~protected_contacts[ys, xs])
+                        ~protected_contacts[ys, xs] &
+                        ~protected_seed_scale[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
             order = np.argsort(distances, kind='stable')
@@ -245,6 +263,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     changed = result != frozen_owner
     if (before != after or before8 != after8 or
             np.any(changed & protected_contacts) or
+            np.any(changed & protected_seed_scale) or
             np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
             np.any(result > frozen_owner) or np.any((result != 0) & ~opaque) or
@@ -257,6 +276,12 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'frozen_cross_owner_contact8_px': int(protected_contacts.sum()),
         'frozen_cross_owner_contact8_preserved': bool(np.array_equal(
             result[protected_contacts], frozen_owner[protected_contacts])),
+        'seed_scale_guard_enabled': protect_garment_seed_scale,
+        'seed_scale_px': seed_scale_px,
+        'seed_scale_guarded_owner_px': int(protected_seed_scale.sum()),
+        'seed_scale_guard_preserved': bool(np.array_equal(
+            result[protected_seed_scale], frozen_owner[protected_seed_scale])),
+        'seed_scale_exposed_known_case_not_blind': protect_garment_seed_scale,
         'class2_is_ground_truth_negative': False,
         'uses_human_labels': False,
         'source_sha_verified': True,
@@ -274,7 +299,8 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
 
 
 def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
-        class_ids: np.ndarray, frozen_owner: np.ndarray) -> tuple[np.ndarray, dict]:
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
     """Fail-closed historical signed replay; never infer provenance from caller hashes.
 
     The generic research function accepts caller-provided expected digests and
@@ -283,6 +309,8 @@ def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
     Unknown signed images require a separately reviewed frozen manifest, not
     a relaxed fallback to these known-character pins.
     """
+    if type(protect_garment_seed_scale) is not bool:
+        raise SourceOnlyAbstentionHold('INVALID_SEED_SCALE_GUARD_MODE')
     if type(case_id) is not str or case_id not in PINNED_RUN30_4_TRIPLES:
         raise SourceOnlyAbstentionHold('UNPINNED_RUN30_CASE')
     if (type(source_bytes) is not bytes or
@@ -300,6 +328,7 @@ def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
         class_ids=class_ids, frozen_owner=frozen_owner,
         expected_class_ids_sha256=expected[1],
         expected_frozen_owner_sha256=expected[2],
+        protect_garment_seed_scale=protect_garment_seed_scale,
     )
     receipt['run30_4_provenance_pinned'] = True
     receipt['run30_case'] = case_id
