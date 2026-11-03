@@ -180,3 +180,44 @@ def test_class32_abstention_allows_locally_simple_background_boundary():
     owner_mask = np.ones((7, 7), dtype=bool)
     owner_mask[2:5, 5] = False
     assert _safe_to_remove(owner_mask, 3, 4) is True
+
+
+def test_opt_in_seed_scale_guard_preserves_source_only_garment_neighborhood():
+    # The radius is derived from the frozen garment seed, not review labels.
+    # This is a conservative research veto, not proof of semantic quality.
+    x = sample()
+    original = x['frozen_owner'].copy()
+    guarded, receipt = propose_class32_competitor_abstention(
+        **x, protect_garment_seed_scale=True)
+    assert receipt['seed_scale_guard_enabled'] is True
+    assert receipt['seed_scale_px'] is not None
+    assert receipt['seed_scale_px'] > 0
+    assert receipt['seed_scale_guarded_owner_px'] > 0
+    assert receipt['seed_scale_guard_preserved'] is True
+    assert receipt['seed_scale_exposed_known_case_not_blind'] is True
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
+    assert np.array_equal(x['frozen_owner'], original)
+    assert np.all((guarded == original) | ((original != 0) & (guarded == 0)))
+    assert receipt['candidate_abstained_px'] == np.count_nonzero(guarded != original)
+
+
+def test_seed_scale_guard_requires_explicit_boolean_opt_in():
+    x = sample()
+    with pytest.raises(SourceOnlyAbstentionHold, match='INVALID_SEED_SCALE_GUARD_MODE'):
+        propose_class32_competitor_abstention(
+            **x, protect_garment_seed_scale='yes')
+    with pytest.raises(SourceOnlyAbstentionHold, match='INVALID_SEED_SCALE_GUARD_MODE'):
+        propose_pinned_run30_4_shadow(
+            case_id='H06', source_bytes=x['source_bytes'],
+            class_ids=x['class_ids'], frozen_owner=x['frozen_owner'],
+            protect_garment_seed_scale=1)
+
+
+def test_seed_scale_guard_does_not_bypass_pinned_run30_provenance():
+    x = sample()
+    with pytest.raises(SourceOnlyAbstentionHold, match='RUN30_PROVENANCE_TRIPLE_MISMATCH'):
+        propose_pinned_run30_4_shadow(
+            case_id='H06', source_bytes=x['source_bytes'],
+            class_ids=x['class_ids'], frozen_owner=x['frozen_owner'],
+            protect_garment_seed_scale=True)
