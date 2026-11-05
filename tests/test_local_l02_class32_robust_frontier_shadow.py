@@ -4,6 +4,7 @@ import hashlib
 import numpy as np
 from tools.research.local_l02_class32_robust_frontier_shadow import (
     _robust_two_order_candidate, propose_semantic_observer_gated_frontier,
+    propose_semantic_owner_abstention,
     propose_pinned_run30_class32_robust_frontier_shadow,
 )
 from tools.research.local_l02_class32_topology_palette_shadow import SourceOnlyAbstentionHold
@@ -143,6 +144,43 @@ class RobustFrontierTest(unittest.TestCase):
             propose_semantic_observer_gated_frontier(
                 positive=positive, frozen_owner=owner, observer=observer,
                 expected_observer_sha256=hashlib.sha256(observer.tobytes()).hexdigest())
+
+
+    def test_removal_separate_from_growth_and_preserves_known_garment(self):
+        owner = np.zeros((18, 18), np.uint8)
+        owner[4:12, 4:12] = 2
+        obs = np.zeros(owner.shape, np.uint8)
+        obs[5:7, 5:7] = 1  # correct garment: must not be removed
+        obs[4, 5:8] = 2  # explicit non-garment at edge
+        digest = hashlib.sha256(obs.tobytes()).hexdigest()
+        got, receipt = propose_semantic_owner_abstention(
+            frozen_owner=owner, independent_observer=obs,
+            expected_observer_sha256=digest)
+        np.testing.assert_array_equal(got[obs == 1], owner[obs == 1])
+        self.assertEqual(int(np.count_nonzero(got == 1)), 0)
+        self.assertEqual(receipt['Phase4'], 'FAIL')
+        self.assertFalse(receipt['observer_independence_verified'])
+
+    def test_removal_topology_split_abstains(self):
+        owner = np.zeros((11, 13), np.uint8)
+        owner[4:7, 2:5] = 2
+        owner[4:7, 8:11] = 2
+        owner[5, 5:8] = 2
+        obs = np.zeros(owner.shape, np.uint8)
+        obs[5, 6] = 2
+        got, receipt = propose_semantic_owner_abstention(
+            frozen_owner=owner, independent_observer=obs,
+            expected_observer_sha256=hashlib.sha256(obs.tobytes()).hexdigest())
+        np.testing.assert_array_equal(got, owner)
+        self.assertEqual(receipt['status'], 'ABSTAIN_TOPOLOGY')
+
+    def test_removal_invalid_evidence_fails_closed(self):
+        owner = np.zeros((5, 5), np.uint8)
+        obs = np.zeros(owner.shape, np.uint8)
+        with self.assertRaisesRegex(SourceOnlyAbstentionHold, 'SHA_MISMATCH'):
+            propose_semantic_owner_abstention(
+                frozen_owner=owner, independent_observer=obs,
+                expected_observer_sha256='0' * 64)
 
 
 if __name__ == '__main__':
