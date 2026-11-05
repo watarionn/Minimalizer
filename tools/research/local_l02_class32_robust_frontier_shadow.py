@@ -187,3 +187,48 @@ def propose_pinned_run30_class32_robust_frontier_shadow(*, case_id: str,
         'pinned_source_class_owner': evidence['source_class_owner_sha_pinned'],
         'positive_evidence_reason': evidence['reason'],
     }
+
+
+def propose_semantic_observer_gated_frontier(*, positive: np.ndarray,
+        frozen_owner: np.ndarray, observer: np.ndarray,
+        expected_observer_sha256: str) -> tuple[np.ndarray, dict]:
+    """Conservative research gate for a separately frozen semantic observer.
+
+    Observer 0=unknown, 1=garment, 2=non-garment. Only explicit garment
+    evidence may enable positive growth; unknown and non-garment abstain.
+    The supplied digest checks byte integrity, NOT independent provenance.
+    Human review masks must never be supplied as an observer.
+    """
+    import hashlib
+    import re
+
+    if (type(observer) is not np.ndarray or observer.dtype != np.uint8 or
+            observer.ndim != 2 or observer.shape != frozen_owner.shape or
+            observer.size > _MAX_PIXELS or np.any(observer > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_SEMANTIC_OBSERVER')
+    if (type(expected_observer_sha256) is not str or
+            re.fullmatch(r'[0-9a-f]{64}', expected_observer_sha256) is None or
+            hashlib.sha256(observer.tobytes(order='C')).hexdigest() !=
+            expected_observer_sha256):
+        raise SourceOnlyAbstentionHold('SEMANTIC_OBSERVER_SHA_MISMATCH')
+    if (type(positive) is not np.ndarray or positive.dtype != np.bool_ or
+            positive.shape != observer.shape):
+        raise SourceOnlyAbstentionHold('INVALID_SEMANTIC_POSITIVE')
+    gated = positive & (observer == 1)
+    result, receipt = _robust_two_order_candidate(gated, frozen_owner)
+    if np.any((result != frozen_owner) & (observer != 1)):
+        raise SourceOnlyAbstentionHold('SEMANTIC_OBSERVER_POSTCONDITION_FAIL')
+    return result, {
+        **receipt,
+        'semantic_observer_integrity_sha_verified': True,
+        'semantic_observer_independence_verified': False,
+        'semantic_observer_unknown_abstained_px': int(
+            np.count_nonzero(positive & (observer == 0))),
+        'semantic_observer_nongarment_abstained_px': int(
+            np.count_nonzero(positive & (observer == 2))),
+        'ungated_positive_px': int(positive.sum()),
+        'semantic_observer_is_not_human_label': 'CALLER_MUST_VERIFY',
+        'quality': 'UNASSESSED' if receipt['topology_integrity'] == 'PASS' else 'FAIL',
+        'Phase4': 'FAIL',
+        'L02': 'HOLD',
+    }
