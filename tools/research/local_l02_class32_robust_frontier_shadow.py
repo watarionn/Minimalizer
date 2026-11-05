@@ -202,6 +202,11 @@ def propose_semantic_observer_gated_frontier(*, positive: np.ndarray,
     import hashlib
     import re
 
+    if (type(frozen_owner) is not np.ndarray or
+            frozen_owner.dtype != np.uint8 or frozen_owner.ndim != 2 or
+            not 0 < frozen_owner.size <= _MAX_PIXELS or
+            np.any(frozen_owner > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_SEMANTIC_OWNER')
     if (type(observer) is not np.ndarray or observer.dtype != np.uint8 or
             observer.ndim != 2 or observer.shape != frozen_owner.shape or
             observer.size > _MAX_PIXELS or np.any(observer > 2)):
