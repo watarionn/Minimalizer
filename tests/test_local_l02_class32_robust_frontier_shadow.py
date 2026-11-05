@@ -1,8 +1,9 @@
 """Source-free regressions; these are not image quality or blind PASS."""
 import unittest
+import hashlib
 import numpy as np
 from tools.research.local_l02_class32_robust_frontier_shadow import (
-    _robust_two_order_candidate,
+    _robust_two_order_candidate, propose_semantic_observer_gated_frontier,
     propose_pinned_run30_class32_robust_frontier_shadow,
 )
 from tools.research.local_l02_class32_topology_palette_shadow import SourceOnlyAbstentionHold
@@ -95,6 +96,39 @@ class RobustFrontierTest(unittest.TestCase):
         o = np.zeros((6, 6), np.uint8)
         with self.assertRaisesRegex(SourceOnlyAbstentionHold, 'INVALID_ROBUST'):
             _robust_two_order_candidate(np.zeros(o.shape, np.uint8), o)
+
+
+    def test_semantic_observer_abstains_on_unknown_and_nongarment(self):
+        owner = np.zeros((18, 24), np.uint8)
+        owner[5:8, 2:5] = 1
+        positive = np.zeros(owner.shape, bool)
+        positive[5:8, 5:18] = True
+        observer = np.zeros(owner.shape, np.uint8)
+        observer[5:8, 5:9] = 1
+        observer[5:8, 12:18] = 2
+        digest = hashlib.sha256(observer.tobytes()).hexdigest()
+        got, receipt = propose_semantic_observer_gated_frontier(
+            positive=positive, frozen_owner=owner, observer=observer,
+            expected_observer_sha256=digest)
+        np.testing.assert_array_equal(got[observer != 1], owner[observer != 1])
+        self.assertEqual(receipt['semantic_observer_unknown_abstained_px'], 9)
+        self.assertEqual(receipt['semantic_observer_nongarment_abstained_px'], 18)
+        self.assertFalse(receipt['semantic_observer_independence_verified'])
+        self.assertEqual(receipt['Phase4'], 'FAIL')
+
+    def test_semantic_observer_sha_and_taxonomy_fail_closed(self):
+        owner = np.zeros((12, 12), np.uint8)
+        positive = np.zeros(owner.shape, bool)
+        observer = np.zeros(owner.shape, np.uint8)
+        with self.assertRaisesRegex(SourceOnlyAbstentionHold, 'SHA_MISMATCH'):
+            propose_semantic_observer_gated_frontier(
+                positive=positive, frozen_owner=owner, observer=observer,
+                expected_observer_sha256='0' * 64)
+        observer[2, 2] = 3
+        with self.assertRaisesRegex(SourceOnlyAbstentionHold, 'INVALID_SEMANTIC_OBSERVER'):
+            propose_semantic_observer_gated_frontier(
+                positive=positive, frozen_owner=owner, observer=observer,
+                expected_observer_sha256=hashlib.sha256(observer.tobytes()).hexdigest())
 
 
 if __name__ == '__main__':
