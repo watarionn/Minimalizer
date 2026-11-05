@@ -116,6 +116,20 @@ class RobustFrontierTest(unittest.TestCase):
         self.assertFalse(receipt['semantic_observer_independence_verified'])
         self.assertEqual(receipt['Phase4'], 'FAIL')
 
+    def test_semantic_owner_malformed_fails_closed(self):
+        observer = np.zeros((8, 8), np.uint8)
+        positive = np.zeros((8, 8), bool)
+        digest = hashlib.sha256(observer.tobytes()).hexdigest()
+        for bad_owner in (None, np.zeros((8, 8), np.int32),
+                          np.zeros((8, 8, 1), np.uint8),
+                          np.full((8, 8), 3, np.uint8)):
+            with self.subTest(owner_type=str(type(bad_owner))):
+                with self.assertRaisesRegex(SourceOnlyAbstentionHold,
+                                            'INVALID_SEMANTIC_OWNER'):
+                    propose_semantic_observer_gated_frontier(
+                        positive=positive, frozen_owner=bad_owner,
+                        observer=observer, expected_observer_sha256=digest)
+
     def test_semantic_observer_sha_and_taxonomy_fail_closed(self):
         owner = np.zeros((12, 12), np.uint8)
         positive = np.zeros(owner.shape, bool)
