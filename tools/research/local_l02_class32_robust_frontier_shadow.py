@@ -237,3 +237,54 @@ def propose_semantic_observer_gated_frontier(*, positive: np.ndarray,
         'Phase4': 'FAIL',
         'L02': 'HOLD',
     }
+
+
+def propose_semantic_owner_abstention(*, frozen_owner: np.ndarray,
+        independent_observer: np.ndarray, expected_observer_sha256: str,
+        removable_owner_id: int = 2) -> tuple[np.ndarray, dict]:
+    """H06 removal-only shadow; NEVER use human annotations for inference.
+
+    Observer: 0 unknown, 1 garment, 2 explicit non-garment. Disputed
+    owner pixels are abstained (0), never reassigned to skin/underlayer.
+    Entire connected components are preserved when partial removal would
+    fragment them; this is intentionally conservative.
+    """
+    import hashlib
+    import re
+    if (type(frozen_owner) is not np.ndarray or frozen_owner.dtype != np.uint8 or
+            frozen_owner.ndim != 2 or not 0 < frozen_owner.size <= _MAX_PIXELS or
+            np.any(frozen_owner > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_REMOVAL_OWNER')
+    if (type(independent_observer) is not np.ndarray or
+            independent_observer.dtype != np.uint8 or
+            independent_observer.shape != frozen_owner.shape or
+            np.any(independent_observer > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_REMOVAL_OBSERVER')
+    if (type(expected_observer_sha256) is not str or
+            re.fullmatch(r'[0-9a-f]{64}', expected_observer_sha256) is None or
+            hashlib.sha256(independent_observer.tobytes(order='C')).hexdigest() !=
+            expected_observer_sha256):
+        raise SourceOnlyAbstentionHold('REMOVAL_OBSERVER_SHA_MISMATCH')
+    if type(removable_owner_id) is not int or removable_owner_id not in (1, 2):
+        raise SourceOnlyAbstentionHold('INVALID_REMOVAL_OWNER_ID')
+    proposed = (frozen_owner == removable_owner_id) & (independent_observer == 2)
+    result = frozen_owner.copy()
+    result[proposed] = 0
+    # Preserve both owner component counts and enclosed background topology.
+    before = _topology(frozen_owner)
+    if _topology(result) != before:
+        result = frozen_owner.copy()
+        status = 'ABSTAIN_TOPOLOGY'
+    else:
+        status = 'STRUCTURAL_SHADOW_ONLY'
+    return result, {
+        'schema': 'minimalizer/l02/semantic-removal-shadow/v1',
+        'proposed_removal_px': int(proposed.sum()),
+        'accepted_removal_px': int(np.count_nonzero(result != frozen_owner)),
+        'status': status,
+        'observer_sha_verified': True,
+        'observer_independence_verified': False,
+        'human_labels_allowed_in_inference': False,
+        'Phase4': 'FAIL', 'L02': 'HOLD', 'L03': 'NO_GO',
+        'Golden': 'HOLD', 'production': 'NO_GO',
+    }
