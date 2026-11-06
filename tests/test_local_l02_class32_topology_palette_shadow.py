@@ -287,3 +287,34 @@ def test_class32_owner_island_connectivity_is_preserved():
             receipt['class32_owner_islands4_after'])
     assert receipt['quality'] == 'UNASSESSED'
     assert receipt['Phase4'] == 'FAIL'
+
+
+def test_class32_garment_seam_is_preserved_per_frozen_owner():
+    # Class32 is adjacent to class10 garment. A sleeve can lose its seam
+    # without changing the owner's total number of connected components.
+    # This source-only structural veto is NOT semantic owner proof.
+    x = sample()
+    original = x['frozen_owner'].copy()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['frozen_class32_garment_seam8_px'] > 0
+    assert receipt['frozen_class32_garment_seam8_preserved'] is True
+    assert np.array_equal(original, x['frozen_owner'])
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
+
+
+def test_garment_seam_guard_does_not_grant_wrong_owner_authority():
+    x = sample()
+    x['frozen_owner'][39:61, 38:50] = 1
+    x['expected_frozen_owner_sha256'] = hashlib.sha256(
+        x['frozen_owner'].tobytes(order='C')).hexdigest()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    for owner_id in (1, 2):
+        garment = ((x['class_ids'] == 5) | (x['class_ids'] == 10)) & (
+            x['frozen_owner'] == owner_id)
+        from scipy import ndimage as ndi
+        adjacent = ndi.binary_dilation(garment, structure=np.ones((3, 3), bool))
+        seam = (x['class_ids'] == 32) & (x['frozen_owner'] == owner_id) & adjacent
+        assert np.array_equal(result[seam], x['frozen_owner'][seam])
+    assert receipt['frozen_class32_garment_seam8_preserved'] is True
+    assert receipt['quality'] == 'UNASSESSED'
