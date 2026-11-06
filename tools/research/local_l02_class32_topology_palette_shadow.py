@@ -230,6 +230,17 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         if positive_positions.size:
             _, first = np.unique(flat_labels[positive_positions], return_index=True)
             protected_island_anchors.flat[positive_positions[first]] = True
+    # Freeze the source-predicted sleeve-to-garment seam for each owner.
+    # Owner component counts alone cannot detect loss of a garment seam
+    # when the same owner remains connected through a different route.
+    garment_by_owner = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0)
+    protected_garment_seam = np.zeros(frozen_owner.shape, dtype=bool)
+    for owner_id in (1, 2):
+        near_garment = cv2.dilate(
+            (garment_by_owner & (frozen_owner == owner_id)).astype(np.uint8),
+            np.ones((3, 3), dtype=np.uint8)) != 0
+        protected_garment_seam |= ((class_ids == 32) &
+                                   (frozen_owner == owner_id) & near_garment)
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
@@ -271,6 +282,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                         (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
                         ~protected_contacts[ys, xs] &
                         ~protected_island_anchors[ys, xs] &
+                        ~protected_garment_seam[ys, xs] &
                         ~protected_seed_scale[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
@@ -319,6 +331,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             class32_islands_before != class32_islands_after or
             np.any(changed & protected_contacts) or
             np.any(changed & protected_island_anchors) or
+            np.any(changed & protected_garment_seam) or
             np.any(changed & protected_seed_scale) or
             np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
@@ -334,6 +347,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'class32_owner_islands4_after': int(sum(class32_islands_after)),
         'class32_owner_island_connectivity_preserved': (
             class32_islands_before == class32_islands_after),
+        'frozen_class32_garment_seam8_px': int(protected_garment_seam.sum()),
+        'frozen_class32_garment_seam8_preserved': bool(np.array_equal(
+            result[protected_garment_seam], frozen_owner[protected_garment_seam])),
         'class32_island_anchors_preserved': bool(np.array_equal(
             result[protected_island_anchors], frozen_owner[protected_island_anchors])),
         'frozen_cross_owner_contact8_preserved': bool(np.array_equal(
