@@ -295,11 +295,24 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                     break
                 pending = blocked
             reason = 'SHADOW_ABSTENTION' if count else 'NO_TOPOLOGY_SAFE_CANDIDATE'
+    # A surviving single anchor is not enough: deleting a class32 bridge
+    # can split a sleeve into disconnected fragments while the owner's
+    # overall body remains connected through other classes. Freeze the
+    # source-predicted class32/owner topology independently of body topology.
+    class32_islands_after = [
+        _components4((class_ids == 32) & (result == owner_id))
+        for owner_id in (1, 2)
+    ]
+    class32_islands_before = [
+        _components4((class_ids == 32) & (frozen_owner == owner_id))
+        for owner_id in (1, 2)
+    ]
     after = [_components4(result == owner_id) for owner_id in (1, 2)]
     after8 = [_components8(result == owner_id) for owner_id in (1, 2)]
     voids_after = [[_enclosed_owner_voids(result == oid, k) for k in (4, 8)] for oid in (1, 2)]
     changed = result != frozen_owner
     if (before != after or before8 != after8 or voids_before != voids_after or
+            class32_islands_before != class32_islands_after or
             np.any(changed & protected_contacts) or
             np.any(changed & protected_island_anchors) or
             np.any(changed & protected_seed_scale) or
@@ -314,6 +327,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'candidate_abstained_px': count,
         'frozen_cross_owner_contact8_px': int(protected_contacts.sum()),
         'class32_owner_islands4_before': int(anchor_count),
+        'class32_owner_islands4_after': int(sum(class32_islands_after)),
+        'class32_owner_island_connectivity_preserved': (
+            class32_islands_before == class32_islands_after),
         'class32_island_anchors_preserved': bool(np.array_equal(
             result[protected_island_anchors], frozen_owner[protected_island_anchors])),
         'frozen_cross_owner_contact8_preserved': bool(np.array_equal(
