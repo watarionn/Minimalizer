@@ -243,3 +243,17 @@ def test_whole_image_void_integrity_receipt_is_fail_closed():
     assert receipt['owner_enclosed_voids_4_8_before'] == receipt['owner_enclosed_voids_4_8_after']
     assert np.array_equal(x['frozen_owner'], sample()['frozen_owner'])
     assert receipt['quality'] == 'UNASSESSED'
+
+
+def test_class32_island_anchor_survives_abstention():
+    # Source-predicted class32 can disappear inside an otherwise connected
+    # owner component without changing the owner component count.
+    x = sample()
+    before = x['frozen_owner'].copy()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['class32_owner_islands4_before'] >= 1
+    assert receipt['class32_island_anchors_preserved'] is True
+    assert np.count_nonzero((x['class_ids'] == 32) & (result != 0)) >= 1
+    assert np.array_equal(before, x['frozen_owner'])
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
