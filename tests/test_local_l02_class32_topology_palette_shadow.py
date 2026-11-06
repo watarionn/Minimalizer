@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research
 from local_l02_class32_topology_palette_shadow import (
     propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
     PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold, _safe_to_remove,
+    _enclosed_owner_voids,
 )
 
 
@@ -221,3 +222,24 @@ def test_seed_scale_guard_does_not_bypass_pinned_run30_provenance():
             case_id='H06', source_bytes=x['source_bytes'],
             class_ids=x['class_ids'], frozen_owner=x['frozen_owner'],
             protect_garment_seed_scale=True)
+
+
+def test_full_image_void_counter_detects_opening_and_closed_hole():
+    # A 4/8-owner component may remain intact while a new silhouette void
+    # appears. Border-connected background is NOT an enclosed hole.
+    owner = np.zeros((13, 13), dtype=bool)
+    owner[2:11, 2:11] = True
+    assert [_enclosed_owner_voids(owner, k) for k in (4, 8)] == [0, 0]
+    owner[6, 6] = False
+    assert [_enclosed_owner_voids(owner, k) for k in (4, 8)] == [1, 1]
+    owner[2:7, 6] = False
+    assert [_enclosed_owner_voids(owner, k) for k in (4, 8)] == [0, 0]
+
+
+def test_whole_image_void_integrity_receipt_is_fail_closed():
+    x = sample()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['owner_enclosed_voids_preserved'] is True
+    assert receipt['owner_enclosed_voids_4_8_before'] == receipt['owner_enclosed_voids_4_8_after']
+    assert np.array_equal(x['frozen_owner'], sample()['frozen_owner'])
+    assert receipt['quality'] == 'UNASSESSED'
