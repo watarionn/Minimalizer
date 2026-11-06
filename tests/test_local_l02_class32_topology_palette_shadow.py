@@ -275,3 +275,15 @@ def test_touching_class32_islands_of_different_owners_have_separate_anchors():
                                 (result == owner_id)) >= 1
     assert receipt['quality'] == 'UNASSESSED'
     assert receipt['Phase4'] == 'FAIL'
+
+
+def test_class32_owner_island_connectivity_is_preserved():
+    # A class32 sleeve can fragment while its owner stays connected through
+    # neighbouring garment classes. Track the sleeve topology separately.
+    x = sample()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['class32_owner_island_connectivity_preserved'] is True
+    assert (receipt['class32_owner_islands4_before'] ==
+            receipt['class32_owner_islands4_after'])
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
