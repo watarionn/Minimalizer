@@ -215,16 +215,21 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     # island survives. Freeze one source-predicted anchor per 4-connected
     # class32/owner island before considering any deletions. This is a
     # conservative structural veto, not a semantic garment classifier.
-    class32_owner = (class_ids == 32) & (frozen_owner != 0)
-    anchor_labels, anchor_count = ndi.label(
-        class32_owner, structure=ndi.generate_binary_structure(2, 1))
+    # Label islands PER FROZEN OWNER. Two adjacent class32 regions belonging
+    # to different owners must never share a single survival anchor: doing so
+    # could erase the sleeve of one owner while preserving the other.
     protected_island_anchors = np.zeros(frozen_owner.shape, dtype=bool)
-    # O(image pixels), rather than scanning the image once per island.
-    flat_labels = anchor_labels.ravel()
-    positive_positions = np.flatnonzero(flat_labels)
-    if positive_positions.size:
-        _, first = np.unique(flat_labels[positive_positions], return_index=True)
-        protected_island_anchors.flat[positive_positions[first]] = True
+    anchor_count = 0
+    for owner_id in (1, 2):
+        owner_class32 = (class_ids == 32) & (frozen_owner == owner_id)
+        labels, n = ndi.label(
+            owner_class32, structure=ndi.generate_binary_structure(2, 1))
+        anchor_count += int(n)
+        flat_labels = labels.ravel()
+        positive_positions = np.flatnonzero(flat_labels)
+        if positive_positions.size:
+            _, first = np.unique(flat_labels[positive_positions], return_index=True)
+            protected_island_anchors.flat[positive_positions[first]] = True
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
