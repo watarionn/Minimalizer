@@ -292,12 +292,27 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         if separation < MIN_COLOR_SEPARATION_LAB:
             reason = 'INSUFFICIENT_COLOR_SEPARATION'
         else:
+            # A pooled garment median can be dominated by the other owner.
+            # Only compare class32 with the SAME owner's garment seeds.
+            # Without sufficient same-owner evidence, abstain rather than
+            # using another character's garment as negative evidence.
             target = (class_ids == 32) & (frozen_owner != 0) & opaque
             ys, xs = np.where(target)
             values = lab[ys, xs]
-            dgarment = np.linalg.norm(values - garment_color, axis=1)
+            dgarment = np.full(len(ys), np.inf, dtype=np.float32)
+            owner_seed_supported = np.zeros(len(ys), dtype=bool)
+            for owner_id in (1, 2):
+                same_owner_seed = garment_seed & (frozen_owner == owner_id)
+                if int(same_owner_seed.sum()) < MIN_SEED_PIXELS:
+                    continue
+                same_owner_median = np.median(lab[same_owner_seed], axis=0)
+                selected = frozen_owner[ys, xs] == owner_id
+                dgarment[selected] = np.linalg.norm(
+                    values[selected] - same_owner_median, axis=1)
+                owner_seed_supported[selected] = True
             dcompetitor = np.linalg.norm(values - competitor_color, axis=1)
-            eligible = ((dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
+            eligible = (owner_seed_supported &
+                        (dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
                         (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
                         ~protected_contacts[ys, xs] &
                         ~protected_island_anchors[ys, xs] &
