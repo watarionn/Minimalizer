@@ -219,10 +219,12 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     anchor_labels, anchor_count = ndi.label(
         class32_owner, structure=ndi.generate_binary_structure(2, 1))
     protected_island_anchors = np.zeros(frozen_owner.shape, dtype=bool)
-    for island_id in range(1, anchor_count + 1):
-        positions = np.flatnonzero(anchor_labels == island_id)
-        if positions.size:
-            protected_island_anchors.flat[int(positions[positions.size // 2])] = True
+    # O(image pixels), rather than scanning the image once per island.
+    flat_labels = anchor_labels.ravel()
+    positive_positions = np.flatnonzero(flat_labels)
+    if positive_positions.size:
+        _, first = np.unique(flat_labels[positive_positions], return_index=True)
+        protected_island_anchors.flat[positive_positions[first]] = True
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
