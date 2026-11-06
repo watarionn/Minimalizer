@@ -209,6 +209,25 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 re.fullmatch(r'[0-9a-f]{64}', expected) is None or
                 hashlib.sha256(array.tobytes(order='C')).hexdigest() != expected):
             raise SourceOnlyAbstentionHold(label + '_SHA_MISMATCH')
+    # A globally pooled garment median is not a reliable semantic veto for
+    # multi-colour garments. Preserve class32 pixels whose quantized ORIGINAL
+    # RGB is also observed in a frozen, same-owner class5/10 garment seed.
+    # This is conservative evidence of ambiguity, not positive garment truth.
+    # The class2 competitor remains a prediction, never a labelled negative.
+    source_rgb5 = (rgba[:, :, :3] >> 3).astype(np.uint16)
+    source_rgb5_key = ((source_rgb5[:, :, 0] << 10) |
+                       (source_rgb5[:, :, 1] << 5) |
+                       source_rgb5[:, :, 2])
+    protected_owner_palette = np.zeros(frozen_owner.shape, dtype=bool)
+    for owner_id in (1, 2):
+        seed = (((class_ids == 5) | (class_ids == 10)) &
+                (frozen_owner == owner_id) & opaque)
+        if np.any(seed):
+            palette = np.unique(source_rgb5_key[seed])
+            target32 = ((class_ids == 32) &
+                        (frozen_owner == owner_id) & opaque)
+            protected_owner_palette[target32] = np.isin(
+                source_rgb5_key[target32], palette)
     protected_contacts = _frozen_cross_owner_contact8(frozen_owner)
     # A class32 island can be part of a much larger owner component.
     # Preserving owner component counts alone cannot prove that this sleeve
@@ -283,6 +302,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                         ~protected_contacts[ys, xs] &
                         ~protected_island_anchors[ys, xs] &
                         ~protected_garment_seam[ys, xs] &
+                        ~protected_owner_palette[ys, xs] &
                         ~protected_seed_scale[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
@@ -332,6 +352,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             np.any(changed & protected_contacts) or
             np.any(changed & protected_island_anchors) or
             np.any(changed & protected_garment_seam) or
+            np.any(changed & protected_owner_palette) or
             np.any(changed & protected_seed_scale) or
             np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
@@ -347,6 +368,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'class32_owner_islands4_after': int(sum(class32_islands_after)),
         'class32_owner_island_connectivity_preserved': (
             class32_islands_before == class32_islands_after),
+        'same_owner_palette_ambiguity_protected_px': int(protected_owner_palette.sum()),
+        'same_owner_palette_ambiguity_preserved': bool(np.array_equal(
+            result[protected_owner_palette], frozen_owner[protected_owner_palette])),
         'frozen_class32_garment_seam8_px': int(protected_garment_seam.sum()),
         'frozen_class32_garment_seam8_preserved': bool(np.array_equal(
             result[protected_garment_seam], frozen_owner[protected_garment_seam])),
