@@ -257,3 +257,21 @@ def test_class32_island_anchor_survives_abstention():
     assert np.array_equal(before, x['frozen_owner'])
     assert receipt['quality'] == 'UNASSESSED'
     assert receipt['Phase4'] == 'FAIL'
+
+
+def test_touching_class32_islands_of_different_owners_have_separate_anchors():
+    # Adjacent sleeve/arm predictions are one class32 connected component
+    # if owner IDs are ignored. Each frozen owner needs its OWN anchor.
+    x = sample()
+    x['frozen_owner'][39:61, 38:50] = 1
+    x['expected_frozen_owner_sha256'] = hashlib.sha256(
+        x['frozen_owner'].tobytes(order='C')).hexdigest()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['class32_owner_islands4_before'] >= 2
+    assert receipt['class32_island_anchors_preserved'] is True
+    for owner_id in (1, 2):
+        assert np.count_nonzero((x['class_ids'] == 32) &
+                                (x['frozen_owner'] == owner_id) &
+                                (result == owner_id)) >= 1
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
