@@ -210,6 +210,19 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 hashlib.sha256(array.tobytes(order='C')).hexdigest() != expected):
             raise SourceOnlyAbstentionHold(label + '_SHA_MISMATCH')
     protected_contacts = _frozen_cross_owner_contact8(frozen_owner)
+    # A class32 island can be part of a much larger owner component.
+    # Preserving owner component counts alone cannot prove that this sleeve
+    # island survives. Freeze one source-predicted anchor per 4-connected
+    # class32/owner island before considering any deletions. This is a
+    # conservative structural veto, not a semantic garment classifier.
+    class32_owner = (class_ids == 32) & (frozen_owner != 0)
+    anchor_labels, anchor_count = ndi.label(
+        class32_owner, structure=ndi.generate_binary_structure(2, 1))
+    protected_island_anchors = np.zeros(frozen_owner.shape, dtype=bool)
+    for island_id in range(1, anchor_count + 1):
+        positions = np.flatnonzero(anchor_labels == island_id)
+        if positions.size:
+            protected_island_anchors.flat[int(positions[positions.size // 2])] = True
     result = frozen_owner.copy()
     garment_seed = ((class_ids == 5) | (class_ids == 10)) & (frozen_owner != 0) & opaque
     competitor_seed = (class_ids == 2) & opaque
@@ -250,6 +263,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             eligible = ((dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
                         (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
                         ~protected_contacts[ys, xs] &
+                        ~protected_island_anchors[ys, xs] &
                         ~protected_seed_scale[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
@@ -280,6 +294,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     changed = result != frozen_owner
     if (before != after or before8 != after8 or voids_before != voids_after or
             np.any(changed & protected_contacts) or
+            np.any(changed & protected_island_anchors) or
             np.any(changed & protected_seed_scale) or
             np.any(changed & (class_ids != 32)) or
             np.any(changed & (frozen_owner == 0)) or
@@ -291,6 +306,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'reason': reason,
         'candidate_abstained_px': count,
         'frozen_cross_owner_contact8_px': int(protected_contacts.sum()),
+        'class32_owner_islands4_before': int(anchor_count),
+        'class32_island_anchors_preserved': bool(np.array_equal(
+            result[protected_island_anchors], frozen_owner[protected_island_anchors])),
         'frozen_cross_owner_contact8_preserved': bool(np.array_equal(
             result[protected_contacts], frozen_owner[protected_contacts])),
         'seed_scale_guard_enabled': protect_garment_seed_scale,
