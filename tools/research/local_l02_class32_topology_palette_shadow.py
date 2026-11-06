@@ -92,6 +92,21 @@ def _local_background_components(mask: np.ndarray, connectivity: int) -> int:
     return count
 
 
+def _enclosed_owner_voids(mask: np.ndarray, connectivity: int) -> int:
+    """Count enclosed background components; exclude all border-connected voids.
+
+    A preserved owner-component count is insufficient to preserve silhouette
+    openings. Both 4/8 definitions are audited, independent of human labels.
+    """
+    structure = ndi.generate_binary_structure(2, 1 if connectivity == 4 else 2)
+    labels, n = ndi.label(~mask, structure=structure)
+    if n == 0:
+        return 0
+    border = np.unique(np.concatenate((
+        labels[0, :], labels[-1, :], labels[:, 0], labels[:, -1])))
+    return int(n - len(border[border != 0]))
+
+
 def _frozen_cross_owner_contact8(owner: np.ndarray) -> np.ndarray:
     """Preserve every original 8-neighbour contact between distinct owners.
 
@@ -216,6 +231,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
     separation = None
     before = [_components4(frozen_owner == owner_id) for owner_id in (1, 2)]
     before8 = [_components8(frozen_owner == owner_id) for owner_id in (1, 2)]
+    voids_before = [[_enclosed_owner_voids(frozen_owner == oid, k) for k in (4, 8)] for oid in (1, 2)]
     if int(garment_seed.sum()) < MIN_SEED_PIXELS or int(competitor_seed.sum()) < MIN_SEED_PIXELS:
         reason = 'INSUFFICIENT_SOURCE_ONLY_SEEDS'
     else:
@@ -260,8 +276,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             reason = 'SHADOW_ABSTENTION' if count else 'NO_TOPOLOGY_SAFE_CANDIDATE'
     after = [_components4(result == owner_id) for owner_id in (1, 2)]
     after8 = [_components8(result == owner_id) for owner_id in (1, 2)]
+    voids_after = [[_enclosed_owner_voids(result == oid, k) for k in (4, 8)] for oid in (1, 2)]
     changed = result != frozen_owner
-    if (before != after or before8 != after8 or
+    if (before != after or before8 != after8 or voids_before != voids_after or
             np.any(changed & protected_contacts) or
             np.any(changed & protected_seed_scale) or
             np.any(changed & (class_ids != 32)) or
@@ -287,6 +304,9 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         'source_sha_verified': True,
         'class_ids_sha_verified': True,
         'frozen_owner_sha_verified': True,
+        'owner_enclosed_voids_4_8_before': voids_before,
+        'owner_enclosed_voids_4_8_after': voids_after,
+        'owner_enclosed_voids_preserved': voids_before == voids_after,
         'owner_8_components_before': before8,
         'owner_8_components_after': after8,
         'owner_4_components_before': before,
