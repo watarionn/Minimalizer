@@ -318,3 +318,23 @@ def test_garment_seam_guard_does_not_grant_wrong_owner_authority():
         assert np.array_equal(result[seam], x['frozen_owner'][seam])
     assert receipt['frozen_class32_garment_seam8_preserved'] is True
     assert receipt['quality'] == 'UNASSESSED'
+
+
+def test_same_owner_source_palette_ambiguity_veto_is_fail_closed():
+    # A garment can have a secondary colour that is absent from its global
+    # median. Its original RGB match must not be removed as a class2-like
+    # sleeve candidate merely because the pooled median is different.
+    x = sample()
+    rgba = np.asarray(Image.open(io.BytesIO(x['source_bytes'])).convert('RGBA')).copy()
+    rgba[6:8, 40:42, :3] = [240, 240, 238]  # same-owner class10 seed
+    stream = io.BytesIO()
+    Image.fromarray(rgba).save(stream, format='PNG')
+    x['source_bytes'] = stream.getvalue()
+    x['expected_source_sha256'] = hashlib.sha256(x['source_bytes']).hexdigest()
+    original = x['frozen_owner'].copy()
+    result, receipt = propose_class32_competitor_abstention(**x)
+    assert receipt['same_owner_palette_ambiguity_protected_px'] > 0
+    assert receipt['same_owner_palette_ambiguity_preserved'] is True
+    assert result[45, 45] == original[45, 45]
+    assert receipt['quality'] == 'UNASSESSED'
+    assert receipt['Phase4'] == 'FAIL'
