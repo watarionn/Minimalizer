@@ -274,6 +274,8 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                         ~protected_seed_scale[ys, xs])
             ys, xs, distances = ys[eligible], xs[eligible], dcompetitor[eligible]
             owner_masks = {oid: result == oid for oid in (1, 2)}
+            sleeve_masks = {oid: (class_ids == 32) & (result == oid)
+                            for oid in (1, 2)}
             order = np.argsort(distances, kind='stable')
             # Revisit blocked interior points after safe boundary deletions.
             # No new candidate pixels are introduced between passes.
@@ -284,8 +286,10 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 for idx in pending:
                     y, x = int(ys[idx]), int(xs[idx])
                     oid = int(result[y, x])
-                    if _safe_to_remove(owner_masks[oid], y, x):
+                    if (_safe_to_remove(owner_masks[oid], y, x) and
+                            _safe_to_remove(sleeve_masks[oid], y, x)):
                         owner_masks[oid][y, x] = False
+                        sleeve_masks[oid][y, x] = False
                         result[y, x] = 0
                         count += 1
                         removed_this_pass += 1
