@@ -1,5 +1,6 @@
 // Cache only the private app shell, never user images, outputs or API responses.
-const CACHE = "minimalizer-local-shell-v1";
+const GENERATION = "minimalizer-local-20261107-1";
+const CACHE = "minimalizer-local-shell-" + GENERATION;
 const ASSETS = ["/", "/static/styles.css", "/static/color-strip.css", "/static/app.js",
   "/static/browser-feature-palette.js", "/static/browser-color-strip.js",
   "/local-static/local-route.js", "/local-static/icon.svg"];
