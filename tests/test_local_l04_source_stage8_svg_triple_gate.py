@@ -105,6 +105,18 @@ def test_external_markup_is_rejected(tmp_path):
         _evaluate(paths)
 
 
+def test_empty_expanded_svg_geometry_is_rejected(tmp_path):
+    paths = _fixture(tmp_path)
+    source, stage8, svg = paths
+    empty_svg = b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    svg.write_bytes(empty_svg)
+    record = json.loads(stage8.read_text(encoding="utf-8"))
+    record["expanded_svg_sha256"] = _sha(empty_svg)
+    stage8.write_text(json.dumps(record, separators=(",", ":")), encoding="utf-8")
+    with pytest.raises(gate.L04Hold, match="EMPTY_EXPANDED_SVG_GEOMETRY"):
+        _evaluate(paths)
+
+
 def test_bad_quality_metrics_remain_hold(tmp_path):
     paths = _fixture(tmp_path)
     source, stage8, svg = paths

@@ -63,6 +63,13 @@ def _validate_svg(svg_bytes: bytes) -> None:
     tag = root.tag.rsplit("}", 1)[-1] if isinstance(root.tag, str) else ""
     if tag != "svg":
         raise L04Hold("EXPANDED_SVG_ROOT_NOT_SVG")
+    geometry_tags = {"path", "polygon", "polyline", "rect", "circle",
+                     "ellipse", "line"}
+    if not any(
+            isinstance(node.tag, str) and
+            node.tag.rsplit("}", 1)[-1] in geometry_tags
+            for node in root.iter()):
+        raise L04Hold("EMPTY_EXPANDED_SVG_GEOMETRY")
 
 
 def evaluate_paths(*, source_path: Path, stage8_json_path: Path,
