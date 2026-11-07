@@ -19,8 +19,8 @@ was relabeled as formal evidence.
 ## Current protected state
 
 - `main` baseline: `d7caae3bc9500a63c021e7cc51594a7f8084c7cc`.
-- Lane A Draft PR #449 head: `a6ba9743f8918f1cca6c37c0c24e470d152beb00`.
-- Lane B Draft PR #451 head: `11f47ea07b23281c431954bf757c5d140044831e`.
+- Lane A Draft PR #449 head: `0e6d37df`.
+- Lane B Draft PR #451 head: `4980b5c4`.
 - Public/C08, LocalWorker production, Golden, signed originals, and main are
   unchanged.
 
@@ -106,6 +106,27 @@ was relabeled as formal evidence.
   Phase5 transition, production use, Public/C08 changes, or a `main` merge.
   The independent blind holdout and license gates remain mandatory, and the
   owner-authority Drive record has not been rewritten by this note.
+- The latest 2026-11-08 Drive additions include an owner-chat authorization
+  record whose scope is continued H06/H08 evidence work and non-destructive
+  integration only. It explicitly does not waive independent blind review or
+  provenance requirements; cryptographic owner signature and independent human
+  review are both `false`, and production is not authorized by that record
+  alone.
+- The added evidence matrix identifies the remaining missing items as an
+  independent reviewer identity/signature, semantic critical-part and
+  occlusion sign-off, an authenticated signed execution receipt, primary-source
+  third-party license/provenance, and complete private-Drive readback.
+- Historical leave-one-character-out evaluation exists from 2026-10-16, but is
+  low-performing: H06 labelled-only IoU `0.032561` and positive recall
+  `0.03258`; H08 labelled-only IoU `0.017511` and positive recall `0.018105`.
+  It has no reviewer identity or signed independent blind attestation and is a
+  `FAIL/NO_GO` result, not a new acceptance run.
+- Existing human-owner comparisons are post-score evidence only: H06 outerwear
+  recall `0.924608`, nonzero-owner IoU `0.714958`, labelled fraction
+  `0.552717`; H08 outerwear recall `0.616561`, nonzero-owner IoU `0.601899`,
+  labelled fraction `0.319633`. Unlabelled pixels remain unknown, and H08's
+  zero underlayer count is not a negative finding. The gate remains
+  `HOLD_PENDING_INDEPENDENT_BLIND_REVIEW_AND_OWNER_AUTHORITY`.
 - Lane A H06 remains candidate-only: four source-only removals were proposed,
   one independently observed garment pixel was restored, no accepted P0/P1
   improvement was established, and Phase4 remains `FAIL`.
