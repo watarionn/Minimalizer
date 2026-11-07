@@ -1,0 +1,24 @@
+{
+  "schema": "minimalizer/l02/reviewed-human-mask-coverage-sourcefree/v1",
+  "owner_private_receipt_sha256": "414b6e1a1698ba8150d22911826935e55d01e9f5a318b0fcc8d5d99193282515",
+  "H06": {
+    "human_npz_sha256": "12729c8d591049dae8e3ab0383d1b92daf03a10a6a8177d0c10008723d1a3bb6",
+    "opaque_px": 602869,
+    "labelled_px": 333216,
+    "labelled_fraction": 0.552717,
+    "outerwear_px": 314823,
+    "underlayer_px": 13057,
+    "arm_skin_px": 5336
+  },
+  "H08": {
+    "human_npz_sha256": "7f9da92edfc8a0bf78a307a2e02ba3141096d23f4a17e89c863d5990b4cfab2f",
+    "opaque_px": 536859,
+    "labelled_px": 171598,
+    "labelled_fraction": 0.319633,
+    "outerwear_px": 156570,
+    "underlayer_px": 0,
+    "arm_skin_px": 15028
+  },
+  "note": "Existing human reviewed labels are not independent blind holdout. Zero underlayer for H08 is unknown, not negative.",
+  "gate": "HOLD"
+}
