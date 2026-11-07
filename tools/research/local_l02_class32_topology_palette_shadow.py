@@ -289,8 +289,8 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
         garment_color = np.median(lab[garment_seed], axis=0)
         competitor_color = np.median(lab[competitor_seed], axis=0)
         separation = float(np.linalg.norm(garment_color - competitor_color))
-        if separation < MIN_COLOR_SEPARATION_LAB:
-            reason = 'INSUFFICIENT_COLOR_SEPARATION'
+        if not np.isfinite(separation):
+            raise SourceOnlyAbstentionHold('INVALID_SOURCE_COLOR_STATISTICS')
         else:
             # A pooled garment median can be dominated by the other owner.
             # Only compare class32 with the SAME owner's garment seeds.
@@ -301,6 +301,7 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
             values = lab[ys, xs]
             dgarment = np.full(len(ys), np.inf, dtype=np.float32)
             owner_seed_supported = np.zeros(len(ys), dtype=bool)
+            owner_color_separated = np.zeros(len(ys), dtype=bool)
             for owner_id in (1, 2):
                 same_owner_seed = garment_seed & (frozen_owner == owner_id)
                 if int(same_owner_seed.sum()) < MIN_SEED_PIXELS:
@@ -310,8 +311,14 @@ def propose_class32_competitor_abstention(*, source_bytes: bytes,
                 dgarment[selected] = np.linalg.norm(
                     values[selected] - same_owner_median, axis=1)
                 owner_seed_supported[selected] = True
+                # A pooled garment median can mask a valid owner-specific
+                # separation (or falsely authorize the other owner).
+                # Require separation for the candidate's OWN garment seed.
+                owner_color_separated[selected] = (
+                    np.linalg.norm(same_owner_median - competitor_color) >=
+                    MIN_COLOR_SEPARATION_LAB)
             dcompetitor = np.linalg.norm(values - competitor_color, axis=1)
-            eligible = (owner_seed_supported &
+            eligible = (owner_seed_supported & owner_color_separated &
                         (dcompetitor <= MAX_COMPETITOR_DISTANCE_LAB) &
                         (MIN_DISTANCE_RATIO * dcompetitor < dgarment) &
                         ~protected_contacts[ys, xs] &
