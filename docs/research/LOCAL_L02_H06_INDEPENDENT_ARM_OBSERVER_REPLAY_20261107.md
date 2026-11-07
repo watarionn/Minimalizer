@@ -36,3 +36,17 @@ The requested ATR dual-head replay was attempted with the same authenticated mod
 - `Phase4=FAIL`, `L02=HOLD`, `Golden=HOLD`, `production=NO_GO`.
 
 The private class maps and source-free receipts were uploaded to the existing private research evidence folder and downloaded again. Array SHA-256 and receipt pins matched after readback. No private image, NPZ, coordinate or annotation geometry is included here.
+
+## Exact-head source-free QA readback
+
+At PR #449 HEAD `b4163e95368cbb8fe68f7431e5945bf0e754d7fd`, the five A-only
+class32 shadow suites were rerun with the repository research path explicitly
+added to `PYTHONPATH`: **66 passed, 4 subtests passed**. This covers the
+color-positive, frontier-positive, robust-frontier, topology/palette and
+topology-positive modules. Python compilation and `git diff --check` also pass.
+
+The broader historical `tests/test_local_l02_*.py` collection is not a valid
+single-suite result in the stock interpreter: six unrelated legacy tests stop
+during collection because their optional scikit-learn dependency is absent.
+That environment limitation does not weaken the focused PR-head result above;
+those legacy tests were not silently counted as passed.
