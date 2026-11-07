@@ -56,6 +56,27 @@ was relabeled as formal evidence.
   `1EBhNsm8lyWhUPPnKixI1iUh7VB9ZdrS9`,
   `1Rd693ShfN95Ixn007q832BEgej5Vhkkq`, and
   `1IJCGoObRgTbMv0A7l6RfDd1GAvRiMM--`.
+- The follow-up 2026-11-08 package added five source-free records plus an
+  independent-array topology audit. The new manifest's five byte counts and
+  SHA-256 values match the downloaded records. The observer record labels the
+  H06/H08 outputs as frozen existing results, not a fresh independent blind
+  run; H06 agreement over union is `0.542694` with `269653` unknown source
+  pixels, and H08 is `0.605198` with `365261` unknown source pixels.
+- The blind-holdout record reports no independently witnessed protocol/result,
+  no evaluator identity, and unverified observer/evaluator independence. The
+  owner record has `authorized_at=null`, `authorized_by=null`,
+  `owner_authority=NOT_GRANTED`, and `production_allowed=false`. The
+  license/provenance record keeps dataset and model licenses
+  `NOT_VERIFIED`, SCHP outputs `RESEARCH_ONLY`, and
+  `production_license_cleared=false`.
+- The structural receipt reports only existing Codex exact-replay shadow
+  topology; clothing retention, critical parts, exclusive owner, holes,
+  occlusion, and wrong arm/underwear owner removal remain
+  `NOT_INDEPENDENTLY_VERIFIED`. The topology audit explicitly is not an
+  independent blind human review and lists no owner authorization or
+  production-license clearance.
+- The follow-up package therefore leaves the gate unchanged:
+  `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`.
 - A follow-up 2026-11-08 research-only package was read back from the same
   private Drive folder. Its SHA manifest matches the five downloaded
   source-free records by byte count and SHA-256. The added observer record
