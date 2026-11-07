@@ -11,6 +11,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
 from local_l02_class32_topology_palette_shadow import (
     propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
+    protect_independent_garment_observers,
     PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold, _safe_to_remove,
     _enclosed_owner_voids,
 )
@@ -234,6 +235,46 @@ def test_full_image_void_counter_detects_opening_and_closed_hole():
     assert [_enclosed_owner_voids(owner, k) for k in (4, 8)] == [1, 1]
     owner[2:7, 6] = False
     assert [_enclosed_owner_voids(owner, k) for k in (4, 8)] == [0, 0]
+
+
+def test_independent_garment_guard_only_restores_explicit_positive_pixels():
+    candidate = np.zeros((8, 8), dtype=np.uint8)
+    frozen = np.zeros((8, 8), dtype=np.uint8)
+    frozen[3:5, 3:5] = 2
+    candidate[3:5, 3:5] = 2
+    candidate[3, 3] = 0
+    observer = np.zeros((8, 8), dtype=np.uint8)
+    observer[3, 3] = 4
+    digest = hashlib.sha256(observer.tobytes(order='C')).hexdigest()
+    guarded, receipt = protect_independent_garment_observers(
+        candidate_owner=candidate, frozen_owner=frozen,
+        observer_maps=(('synthetic', observer, digest, (4,)),))
+    assert guarded[3, 3] == 2
+    assert np.array_equal(guarded, frozen)
+    assert receipt['observer_guard_restored_px'] == 1
+    assert receipt['unknown_not_treated_as_negative'] is True
+
+
+def test_independent_garment_guard_rejects_unpinned_observer_map():
+    candidate = np.zeros((4, 4), dtype=np.uint8)
+    frozen = np.zeros((4, 4), dtype=np.uint8)
+    observer = np.zeros((4, 4), dtype=np.uint8)
+    with pytest.raises(SourceOnlyAbstentionHold, match='INVALID_OBSERVER_GUARD_ENTRY'):
+        protect_independent_garment_observers(
+            candidate_owner=candidate, frozen_owner=frozen,
+            observer_maps=(('synthetic', observer, '0' * 64, (4,)),))
+
+
+def test_independent_garment_guard_never_promotes_owner():
+    candidate = np.zeros((4, 4), dtype=np.uint8)
+    frozen = np.zeros((4, 4), dtype=np.uint8)
+    observer = np.ones((4, 4), dtype=np.uint8) * 4
+    digest = hashlib.sha256(observer.tobytes(order='C')).hexdigest()
+    guarded, receipt = protect_independent_garment_observers(
+        candidate_owner=candidate, frozen_owner=frozen,
+        observer_maps=(('synthetic', observer, digest, (4,)),))
+    assert np.array_equal(guarded, frozen)
+    assert receipt['owner_promotions'] == 0
 
 
 def test_whole_image_void_integrity_receipt_is_fail_closed():

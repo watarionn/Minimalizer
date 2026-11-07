@@ -45,6 +45,16 @@ PINNED_RUN30_4_TRIPLES = {
     ),
 }
 
+# Independent source-only observer identifiers. These hashes identify frozen
+# private class maps; the maps themselves never belong in GitHub. The guard
+# below can only restore a candidate pixel to its already-frozen owner when an
+# observer explicitly predicts a garment class. Observer absence is never used
+# as a negative label or as authority to remove pixels.
+H06_ATR18_CLASS_MAP_SHA256 = (
+    '334b4037bf25eed152339a435a031bc2a073fff1459574470523b56046c980a3')
+H06_LIP20_CLASS_MAP_SHA256 = (
+    '4d025535f1d2e1bac65f534e757e10a5c312ca5213ce4b4d2d0c4aaa72f23db9')
+
 
 class SourceOnlyAbstentionHold(ValueError):
     """Fail closed on untrusted or mismatched source/model/owner inputs."""
@@ -460,3 +470,93 @@ def propose_pinned_run30_4_shadow(*, case_id: str, source_bytes: bytes,
     receipt['run30_4_provenance_pinned'] = True
     receipt['run30_case'] = case_id
     return result, receipt
+
+
+def protect_independent_garment_observers(*, candidate_owner: np.ndarray,
+        frozen_owner: np.ndarray,
+        observer_maps: tuple[tuple[str, np.ndarray, str, tuple[int, ...]], ...]
+        ) -> tuple[np.ndarray, dict]:
+    """Restore only candidate erasures with explicit observer garment evidence.
+
+    This is a post-proposal protection guard, never an owner promotion step.
+    Each observer map is authenticated by its frozen private array SHA and
+    supplies explicit positive garment classes. Pixels absent from an observer
+    remain unknown and do not authorize removal.
+    """
+    if (type(candidate_owner) is not np.ndarray or
+            candidate_owner.dtype != np.uint8 or candidate_owner.ndim != 2 or
+            not candidate_owner.size or type(frozen_owner) is not np.ndarray or
+            frozen_owner.dtype != np.uint8 or frozen_owner.shape != candidate_owner.shape or
+            np.any(candidate_owner > 2) or np.any(frozen_owner > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_OBSERVER_GUARD_OWNER_INPUT')
+    if (np.any((candidate_owner > 0) &
+               ((frozen_owner == 0) | (candidate_owner != frozen_owner))) or
+            not isinstance(observer_maps, tuple) or not observer_maps):
+        raise SourceOnlyAbstentionHold('INVALID_OBSERVER_GUARD_PROVENANCE')
+    restore = np.zeros(candidate_owner.shape, dtype=bool)
+    observer_receipts = {}
+    for item in observer_maps:
+        if (not isinstance(item, tuple) or len(item) != 4):
+            raise SourceOnlyAbstentionHold('INVALID_OBSERVER_GUARD_ENTRY')
+        name, observed, expected_sha, garment_classes = item
+        if (not isinstance(name, str) or not name or
+                type(observed) is not np.ndarray or observed.dtype != np.uint8 or
+                observed.shape != candidate_owner.shape or
+                type(expected_sha) is not str or
+                re.fullmatch(r'[0-9a-f]{64}', expected_sha) is None or
+                hashlib.sha256(observed.tobytes(order='C')).hexdigest() != expected_sha or
+                not isinstance(garment_classes, tuple) or not garment_classes or
+                any(type(cls) is not int or not 0 <= cls <= 255
+                    for cls in garment_classes)):
+            raise SourceOnlyAbstentionHold('INVALID_OBSERVER_GUARD_ENTRY')
+        positive = np.isin(observed, garment_classes)
+        restore |= positive & (candidate_owner == 0) & (frozen_owner > 0)
+        observer_receipts[name] = {
+            'class_map_sha_verified': True,
+            'explicit_garment_classes': list(garment_classes),
+            'positive_opaque_owner_px': int(np.count_nonzero(
+                positive & (frozen_owner > 0))),
+        }
+    result = candidate_owner.copy()
+    result[restore] = frozen_owner[restore]
+    if (np.any((result > 0) & (frozen_owner == 0)) or
+            np.any((result > 0) & (result != frozen_owner))):
+        raise SourceOnlyAbstentionHold('OBSERVER_GUARD_OWNER_POSTCONDITION_FAIL')
+    return result, {
+        'schema': 'minimalizer/local-l02/independent-garment-observer-guard/v1',
+        'observer_receipts': observer_receipts,
+        'observer_guard_restored_px': int(np.count_nonzero(restore)),
+        'owner_promotions': 0,
+        'human_labels_used': False,
+        'unknown_not_treated_as_negative': True,
+        'candidate_only': True,
+        'quality': 'UNASSESSED', 'Phase4': 'FAIL', 'L02': 'HOLD',
+        'Golden': 'HOLD', 'production': 'NO_GO',
+    }
+
+
+def propose_pinned_h06_with_independent_garment_guard(*, source_bytes: bytes,
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        atr18_class_ids: np.ndarray, lip20_class_ids: np.ndarray,
+        protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
+    """Replay H06 then protect explicit ATR/LIP garment-positive pixels."""
+    if (type(atr18_class_ids) is not np.ndarray or
+            type(lip20_class_ids) is not np.ndarray or
+            atr18_class_ids.dtype != np.uint8 or lip20_class_ids.dtype != np.uint8 or
+            atr18_class_ids.shape != class_ids.shape or
+            lip20_class_ids.shape != class_ids.shape):
+        raise SourceOnlyAbstentionHold('INVALID_H06_OBSERVER_MAPS')
+    candidate, receipt = propose_pinned_run30_4_shadow(
+        case_id='H06', source_bytes=source_bytes, class_ids=class_ids,
+        frozen_owner=frozen_owner,
+        protect_garment_seed_scale=protect_garment_seed_scale)
+    guarded, guard_receipt = protect_independent_garment_observers(
+        candidate_owner=candidate, frozen_owner=frozen_owner,
+        observer_maps=(
+            ('ATR18', atr18_class_ids, H06_ATR18_CLASS_MAP_SHA256, (4,)),
+            ('LIP20', lip20_class_ids, H06_LIP20_CLASS_MAP_SHA256, (5, 7)),
+        ))
+    receipt['independent_garment_guard'] = guard_receipt
+    receipt['candidate_abstained_px'] = int(np.count_nonzero(guarded != frozen_owner))
+    receipt['observer_guard_restored_px'] = guard_receipt['observer_guard_restored_px']
+    return guarded, receipt
