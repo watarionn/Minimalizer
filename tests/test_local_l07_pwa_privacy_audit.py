@@ -13,11 +13,13 @@ ROUTE=(ROOT/"local_worker/frontend/local-route.js").read_text(encoding="utf-8")
 def test_actual_local_serviceworker_static_privacy_contract():
     r=verify_serviceworker(SW)
     assert r["shell_asset_count"]==len(ALLOWED_SHELL)
+    assert r["generation"]=="minimalizer-local-20261107-1"
     assert r["cache_api_responses"] is False
     assert r["cache_user_images"] is False
 
 def test_actual_local_route_stays_private_and_no_store():
     r=verify_local_route(ROUTE)
+    assert r["service_worker_generation"]=="minimalizer-local-20261107-1"
     assert r["no_browser_fallback"] is True
     assert r["live_iphone_e2e_verified"] is False
 
@@ -73,3 +75,9 @@ def test_static_audit_never_claims_live_iphone_or_release():
     r=audit(ROOT)
     assert r["L07_actual_live_iphone"]=="NOT_TESTED"
     assert r["L08_release"]=="NOT_APPROVED"
+
+def test_generation_mismatch_is_rejected():
+    bad=ROUTE.replace("minimalizer-local-20261107-1","minimalizer-local-20261107-2")
+    sw_report=verify_serviceworker(SW)
+    route_report=verify_local_route(bad)
+    assert sw_report["generation"] != route_report["service_worker_generation"]
