@@ -18,7 +18,7 @@ The canonical private Drive ReviewedEvidence, SleeveSemantic and Run30 owner arc
 - SleeveSemantic: a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7
 - Run30 owner: 6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c
 
-Signed source bytes, class and frozen owner SHA triples matched the pinned PR-head constants for H04/H06/H08. The independently reconstructed source-only positive observer produced 6/0/31,505 positive pixels respectively. The **exact new core function** was executed on those frozen arrays. Human-reviewed masks were opened only after freezing candidate outputs for postscore. Unknown pixels were not treated as negatives.
+Signed source bytes, class and frozen owner SHA triples matched the pinned PR-head constants for H04/H06/H08. The source-only positive observer produced 6/0/31,505 positive pixels respectively. The **exact current branch import chain** was executed on the frozen H08 arrays at A code head `3299dea03d20d30cf0741a113eac269577bd51f8` (the later `4551304d` commit only records this replay). Human-reviewed masks were opened only after freezing candidate outputs for postscore. Unknown pixels were not treated as negatives.
 
 | Exposed case | New owner px | Reviewed correct outerwear | Reviewed known non-outerwear FP | Unknown | 4/8 topology |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -32,7 +32,7 @@ A private visual board shows a substantial **partial** H08 sleeve owner recovery
 
 ## Verification, preservation and next gates
 
-- The new source module and eight isolated source-free tests ran locally: **8/8 PASS**, compileall PASS. Existing imported observers were stubbed in these tests. Signed replay executed the exact new core but used an independently reconstructed pinned positive-evidence function. **Full exact PR-head canonical QA and exact full import-chain replay are still pending.** Synthetic test counts are not quality PASS.
+- The A targeted test set ran locally: **41 PASS, 4 subtests PASS** across the topology-palette and robust-frontier modules; compile/import and the exact signed H06/H08 replays also passed. The replay used the current branch import chain and the pinned source/class/owner triples; human masks were postscore-only. **Full repository CI, unseen signed blind, and Phase4 semantic/critical-part QA remain pending.** Synthetic and known-case counts are not quality PASS.
 - A private ZIP with H08 candidate owner NPZ, signed-source visual comparison and manifest was generated, member SHA checked: LaneA_L02_H08_RobustFrontier_KnownCase_PRIVATE_20261103.zip, full SHA-256 01e9ecb0b4d126d036969330f78a0b20351a2331503b756a43588b3278b5633a. Upload to the established non-shared Drive evidence folder failed twice with container_session_unavailable. **Not cloud-preserved; no cloud read-after-write.** No private image, mask, annotation, coordinates or owner NPZ in GitHub.
 - This known-case hypothesis has no truly unseen signed blind evaluation, independent licensed garment/skin/underlayer observer, Phase4 critical-part and occlusion PASS, full-model/data rights signoff or Golden human review.
 
