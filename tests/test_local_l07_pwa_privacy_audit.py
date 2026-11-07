@@ -14,6 +14,7 @@ def test_actual_local_serviceworker_static_privacy_contract():
     r=verify_serviceworker(SW)
     assert r["shell_asset_count"]==len(ALLOWED_SHELL)
     assert r["generation"]=="minimalizer-local-20261107-1"
+    assert r["cache_cleanup_namespace_scoped"] is True
     assert r["cache_api_responses"] is False
     assert r["cache_user_images"] is False
 
@@ -42,6 +43,10 @@ def test_fetch_origin_check_removed_is_rejected():
 def test_get_only_check_removed_is_rejected():
     with pytest.raises(PrivacyHold):
         verify_serviceworker(SW.replace('event.request.method !== "GET"', 'false'))
+
+def test_foreign_cache_cleanup_is_rejected():
+    bad=SW.replace('key.startsWith(CACHE_PREFIX) && key !== CACHE', 'true')
+    with pytest.raises(PrivacyHold):verify_serviceworker(bad)
 
 def test_whitelist_check_removed_is_rejected():
     with pytest.raises(PrivacyHold):

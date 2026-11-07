@@ -43,8 +43,12 @@ def verify_serviceworker(source:str):
     if len(set(assets))!=len(assets) or frozenset(assets)!=ALLOWED_SHELL:
         raise PrivacyHold("SW_SHELL_ALLOWLIST_CHANGED_REVIEW_REQUIRED")
     tight=code.replace(" ","").replace("\n","").replace("\t","")
-    if 'constCACHE="minimalizer-local-shell-"+GENERATION;' not in tight:
+    if ('constCACHE_PREFIX="minimalizer-local-shell-";' not in tight or
+            'constCACHE=CACHE_PREFIX+GENERATION;' not in tight):
         raise PrivacyHold("SW_CACHE_NOT_GENERATION_PINNED")
+    if ('key.startsWith(CACHE_PREFIX)&&key!==CACHE' not in tight or
+            'keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE)' not in tight):
+        raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
     for fragment in (
@@ -61,6 +65,7 @@ def verify_serviceworker(source:str):
             "generation":gm.group(1),
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
+            "cache_cleanup_namespace_scoped":True,
             "offline_shell_fallback":True,
             "live_browser_e2e_verified":False}
 
