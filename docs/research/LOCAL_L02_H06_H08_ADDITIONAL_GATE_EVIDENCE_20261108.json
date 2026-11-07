@@ -13,13 +13,15 @@
     "owner_authority": "1gd40KOGCDW-8YioLxP1HkzpSE_BOoXoM",
     "license_provenance": "1AXP4gTh19JtTybgP6CHmoaYOpeId5MZT",
     "structural_receipt": "11PgIzjusmH9U57_b1zS7jJkEWWazIQaD",
-    "sha256_manifest": "1aRZPpykko9Q36-LC8yN9NVbWVb5u7gSh"
+    "sha256_manifest": "1aRZPpykko9Q36-LC8yN9NVbWVb5u7gSh",
+    "independent_array_topology_audit": "1gY6DiF6T5N-8TykrxL6Dnd7AW1G-WPnX"
   },
   "frozen_observer_evidence": {
     "deepfashion2_model_sha256": "485bc106721febbd82fe24297e12a9fb49a435a552afff1e6b76308716555f76",
     "replay2_sourcefree_sha256": "c0c92e20b876fa624e0969841560c87c90eb1b2f2219edc37b203dc2eb6df80e",
     "deepfashion_sourcefree_sha256": "3476993af9ff78553b056ce7b4d30f7ae65885eec8a7a58141b2cf2fe046a6f0",
-    "codex_exact_replay_sourcefree_sha256": "05e9a11ba6d7660aa3779e65eadf0189b12b677262032d663573f5ccc234736d"
+    "codex_exact_replay_sourcefree_sha256": "05e9a11ba6d7660aa3779e65eadf0189b12b677262032d663573f5ccc234736d",
+    "independent_array_topology_audit_sha256": "0cf28c482649dd458d2ae95c0515988367cbfca7e0c7453cacf48452467ad3d3"
   },
   "rules": {
     "human_labels_as_inference_input": false,
@@ -30,8 +32,9 @@
     "independent_blind_holdout": "NOT_VERIFIED",
     "owner_authority": "NOT_GRANTED",
     "production_license_cleared": false,
-    "independent_structural_gate": "NOT_VERIFIED",
-    "github_raw_private_data": "NONE"
+    "independent_structural_gate": "PARTIAL_NUMERIC_ONLY_SEMANTICS_NOT_VERIFIED",
+    "github_raw_private_data": "NONE",
+    "array_topology_recomputation": "PASS_FOR_NUMERIC_ARRAY_CHECKS_ONLY"
   },
   "gate": {
     "L02": "HOLD",
