@@ -78,6 +78,13 @@ was relabeled as formal evidence.
   lists no owner authorization or production license clearance.
 - Therefore the new package improves evidence completeness but does not
   change the gate: `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`.
+- On 2026-11-08 the owner explicitly authorized the bounded H06/H08 research
+  review and candidate-evaluation continuation in the collaboration thread.
+  Scope is limited to reviewing the provenance package and running
+  source-only candidate checks; it does not authorize a Phase4 override,
+  Phase5 transition, production use, Public/C08 changes, or a `main` merge.
+  The independent blind holdout and license gates remain mandatory, and the
+  owner-authority Drive record has not been rewritten by this note.
 - Lane A H06 remains candidate-only: four source-only removals were proposed,
   one independently observed garment pixel was restored, no accepted P0/P1
   improvement was established, and Phase4 remains `FAIL`.
