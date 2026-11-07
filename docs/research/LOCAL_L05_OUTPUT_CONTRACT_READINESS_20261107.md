@@ -29,3 +29,11 @@ No source image, NPZ, mask, coordinate, comparison image, secret, Public/C08
 asset, Golden asset, or production state was changed. L05 cannot be promoted
 from this TestClient result; the remaining gate is an owner-authorized private
 HTTPS PC/iPhone run with PNG input/output and failure-path readback.
+
+The source-free `tools/research/local_l05_owner_run_receipt.py` validator and
+`tests/test_local_l05_owner_run_receipt.py` define the readback contract for
+that future owner run. It requires private HTTPS, verified owner/origin/Tailnet
+identity, `/health` readiness, both PNG success routes, 415/429/503 failure
+paths, Retry-After readback, and input/output file hashes. It deliberately
+returns `L05_formal=HOLD` and `production_release=NO_GO`; it cannot substitute
+for the real request or physical-device acceptance.
