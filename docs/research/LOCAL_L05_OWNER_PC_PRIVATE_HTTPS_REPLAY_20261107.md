@@ -24,6 +24,21 @@ hashes.
   This is a real fallback-triggering failure, not a fabricated success.
 - Invalid upload content type: HTTP 415 with the expected rejection body.
 
+## CMD loopback recheck after protected-runtime restoration
+
+The owner reran the signed H06 WebP through the protected LocalWorker loopback
+from `cmd.exe` after the Draft replay was complete. The private HTTPS request
+without the owner identity header correctly returned HTTP 403 and was not
+counted as a generation failure. The loopback recheck returned a successful
+PNG response with `Content-Type: image/png`, source size `2000x2000`, output
+size `400x400`, processing `61632.5ms`, and output PNG SHA-256
+`f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`.
+The input source SHA-256 remained
+`c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`.
+The receipt files remain in the owner's private temporary directory outside
+GitHub. This is loopback runtime evidence, not private-HTTPS owner acceptance
+and not physical iPhone acceptance.
+
 ## Post-activation replay
 
 After the owner temporarily disabled the Startup launcher for the old worker,
