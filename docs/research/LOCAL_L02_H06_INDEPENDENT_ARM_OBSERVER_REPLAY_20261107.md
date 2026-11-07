@@ -24,12 +24,14 @@ Both runs used CPU-only offline inference, the existing fail-closed adapters, th
 
 The five-pixel delta refers only to the already-frozen source-only candidate count; no private coordinates are stored in this repository. The observer outputs do not provide a positive arm/coat owner signal at those pixels. Their class-0 absence cannot be used as a negative semantic label, so the observers do not authorize a larger H06 removal or an owner reassignment.
 
+The A shadow now has a source-only post-proposal guard, `protect_independent_garment_observers`. It restores a candidate erasure when ATR18 explicitly predicts `upper_clothes` or LIP20 explicitly predicts `upper_clothes/coat`, after verifying the frozen private class-map SHA. It never promotes an owner and never treats observer absence as negative evidence. On exact H06 replay, this guard restored one ATR18-positive pixel and changed the candidate from five removals to four.
+
 The requested ATR dual-head replay was attempted with the same authenticated model bytes. The exact model exposes only `logits`; the adapter-required `parsing_logits` output is absent. The adapter returned `UNEXPECTED_SCHP_ATR_INTERFACE_OR_PROVIDER` and no dual-head map was accepted. This is a fail-closed interface finding, not a quality result.
 
 ## Gate result
 
-- Existing H06 class32 shadow remains the bounded candidate: correct-garment loss `0`, five pixels removed before reviewed postscore, four reviewed wrong-owner pixels and one unknown pixel observed after freeze.
-- Independent ATR/LIP evidence adds no authorized H06 owner removal and no accepted P0/P1 improvement.
+- Existing H06 class32 shadow remains the bounded candidate: correct-garment loss `0`, four pixels removed after the observer guard, four reviewed wrong-owner pixels and zero unknown pixels removed after freeze.
+- Independent ATR/LIP evidence authorizes protection of one explicit garment-positive pixel, but adds no new H06 owner removal and no accepted P0/P1 improvement.
 - Human labels remain postscore-only; unknown pixels remain unknown, not negative.
 - `Phase4=FAIL`, `L02=HOLD`, `Golden=HOLD`, `production=NO_GO`.
 
