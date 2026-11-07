@@ -31,6 +31,31 @@ was relabeled as formal evidence.
 - No official Local Stage8 source JSON plus expanded SVG triple was found in
   the bounded Drive or local-PC inventory. Public Stage8 and manual trace
   artifacts are not substitutes.
+- Compact A evidence uploaded to private Drive on 2026-11-07 was read back by
+  file ID on 2026-11-08. The four entries referenced by the SHA-256 manifest
+  matched the downloaded bytes exactly; the package contains no source image
+  bytes. H06 is bound to signed source SHA
+  `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8` and H08
+  to `759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e`.
+- The compact provenance record states
+  `human_annotations_used_in_inference=false` and `unknown_as_negative=false`,
+  but also `independent_blind_holdout=NOT_VERIFIED`,
+  `owner_authority=NOT_GRANTED`, `production_license_cleared=false`, and
+  `status=RESEARCH_ONLY`.
+- The frozen H06/H08 result record is explicitly `not_new_inference=true`.
+  H06 reports known-only IoU/recall `0.627044`, known false positives `0`,
+  and `3216` unknown predicted pixels. H08 reports known-only IoU `0.606773`,
+  recall `0.61955`, known false positives `3297`, and `8160` unknown predicted
+  pixels.
+- The formal status record remains `L02=HOLD`, `Phase4=FAIL`, and
+  `production=NO_GO`; all requested structural checks remain
+  `NOT_INDEPENDENTLY_VERIFIED`. This is an integrity/readback PASS, not a
+  Phase4 PASS, and authorizes no owner promotion, Phase5 transition, merge, or
+  production change. Drive IDs: `1QiQY2GQ4-WjTfZIbHT35NrIcZvRk3evM`,
+  `1bVdYVz3hidYEt2EifN6nHs1punKJ8nF9`,
+  `1EBhNsm8lyWhUPPnKixI1iUh7VB9ZdrS9`,
+  `1Rd693ShfN95Ixn007q832BEgej5Vhkkq`, and
+  `1IJCGoObRgTbMv0A7l6RfDd1GAvRiMM--`.
 - Lane A H06 remains candidate-only: four source-only removals were proposed,
   one independently observed garment pixel was restored, no accepted P0/P1
   improvement was established, and Phase4 remains `FAIL`.
