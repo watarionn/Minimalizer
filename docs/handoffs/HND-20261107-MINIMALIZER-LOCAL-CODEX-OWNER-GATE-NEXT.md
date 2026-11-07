@@ -9,8 +9,8 @@ Golden update, or production change.
 ## Current protected state
 
 - `main` baseline: `d7caae3bc9500a63c021e7cc51594a7f8084c7cc`.
-- Lane A Draft PR #449 head: `acbc9ca4df7d0114c744b77eee6c511da3a22081`.
-- Lane B Draft PR #451 head: `39b9281087ded96e54bab5f364f94cb737fe81e1`.
+- Lane A Draft PR #449 head: `89141c1a42510e217e17b6c0f836bed2f482706c`.
+- Lane B Draft PR #451 head: `11f47ea07b23281c431954bf757c5d140044831e`.
 - Public/C08, LocalWorker production, Golden, signed originals, and main are
   unchanged.
 
@@ -24,8 +24,14 @@ Golden update, or production change.
 - Lane A H06 remains candidate-only: four source-only removals were proposed,
   one independently observed garment pixel was restored, no accepted P0/P1
   improvement was established, and Phase4 remains `FAIL`.
-- Lane B L04 remains `HOLD`; L07 static QA and L05 TestClient QA do not prove
-  private HTTPS, browser, or physical iPhone behavior.
+- Lane B L04 remains `HOLD`; the official signed original, Stage8 JSON, and
+  expanded SVG triple is still absent from the bounded inventory.
+- Lane B L05 owner-PC private HTTPS replay is now complete for the concurrency
+  path: V2 returned a PNG and a concurrent second request returned HTTP 429
+  with `Retry-After: 2`. The receipt is source-free and preserved on the B
+  handoff; physical iPhone acceptance remains separate and unattempted.
+- After the replay, LocalWorker was restored to the protected production
+  runtime. The Draft worker was not left active on the production port.
 
 ## Required owner-side inputs
 
@@ -37,10 +43,8 @@ Golden update, or production change.
    with exact SHA-256 values and cross-links. The triple must contain non-empty
    geometry, source-owner exactness, protected face/arm exactness, and exact
    silhouette measurements.
-3. Lane B L05/L07: an owner-authorized private HTTPS PC run with PNG input,
-   PNG output, rejection/429/worker-unavailable paths, and response/file
-   readback. Physical iPhone acceptance is deferred until production
-   reflection, as previously specified.
+3. Lane B L05/L07: physical iPhone acceptance after an owner-authorized
+   production reflection, plus the remaining browser/input/output checks.
 
 ## Release rule
 
