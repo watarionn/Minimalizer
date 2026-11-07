@@ -56,11 +56,20 @@ def test_network_identity_is_required(field):
         audit_receipt(receipt)
 
 
-def test_both_png_routes_are_required():
+def test_v2_png_route_is_required():
     receipt = _receipt()
     receipt["success"] = receipt["success"][:1]
-    with pytest.raises(L05Hold, match="BOTH_PNG_ROUTES_REQUIRED"):
+    with pytest.raises(L05Hold, match="V2_PNG_ROUTE_REQUIRED"):
         audit_receipt(receipt)
+
+
+def test_v2_success_with_zerobase2_runtime_failure_is_valid_fallback():
+    receipt = _receipt()
+    receipt["success"] = [receipt["success"][1]]
+    result = audit_receipt(receipt)
+    assert result["v2_png_verified"] is True
+    assert result["zerobase2_png_verified"] is False
+    assert result["zerobase2_fallback_verified"] is True
 
 
 def test_missing_readback_is_rejected():

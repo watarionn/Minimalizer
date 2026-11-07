@@ -60,9 +60,12 @@ def audit_receipt(receipt: dict) -> dict:
         raise L05Hold("HEALTH_READINESS_FAIL")
 
     successes = receipt["success"]
-    if not isinstance(successes, list) or {r.get("route") for r in successes
-                                           if isinstance(r, dict)} != {"zerobase2", "v2"}:
-        raise L05Hold("BOTH_PNG_ROUTES_REQUIRED")
+    if not isinstance(successes, list):
+        raise L05Hold("PNG_SUCCESS_RECEIPT_REQUIRED")
+    success_routes = {r.get("route") for r in successes
+                      if isinstance(r, dict)}
+    if "v2" not in success_routes or len(success_routes) != len(successes):
+        raise L05Hold("V2_PNG_ROUTE_REQUIRED")
     for row in successes:
         if (not isinstance(row, dict) or
                 set(row) != {"route", "status", "content_type",
@@ -100,6 +103,11 @@ def audit_receipt(receipt: dict) -> dict:
         "schema": "minimalizer/local-l05/owner-run-receipt-audit/v1",
         "owner_pc_e2e_verified": receipt["device"] == "pc",
         "png_routes_verified": True,
+        "v2_png_verified": "v2" in success_routes,
+        "zerobase2_png_verified": "zerobase2" in success_routes,
+        "zerobase2_fallback_verified": (
+            "zerobase2" not in success_routes and
+            failures["unavailable"]["status"] == 503),
         "failure_paths_verified": True,
         "file_readback_verified": True,
         "physical_iphone_acceptance": (
