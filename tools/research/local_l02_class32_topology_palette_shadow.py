@@ -540,7 +540,8 @@ def propose_pinned_h06_with_independent_garment_guard(*, source_bytes: bytes,
         atr18_class_ids: np.ndarray, lip20_class_ids: np.ndarray,
         protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
     """Replay H06 then protect explicit ATR/LIP garment-positive pixels."""
-    if (type(atr18_class_ids) is not np.ndarray or
+    if (type(class_ids) is not np.ndarray or class_ids.dtype != np.uint8 or
+            type(atr18_class_ids) is not np.ndarray or
             type(lip20_class_ids) is not np.ndarray or
             atr18_class_ids.dtype != np.uint8 or lip20_class_ids.dtype != np.uint8 or
             atr18_class_ids.shape != class_ids.shape or
