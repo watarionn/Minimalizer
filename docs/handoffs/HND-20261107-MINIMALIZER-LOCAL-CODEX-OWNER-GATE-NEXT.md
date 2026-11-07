@@ -19,7 +19,7 @@ was relabeled as formal evidence.
 ## Current protected state
 
 - `main` baseline: `d7caae3bc9500a63c021e7cc51594a7f8084c7cc`.
-- Lane A Draft PR #449 head: `89141c1a42510e217e17b6c0f836bed2f482706c`.
+- Lane A Draft PR #449 head: `a6ba9743f8918f1cca6c37c0c24e470d152beb00`.
 - Lane B Draft PR #451 head: `11f47ea07b23281c431954bf757c5d140044831e`.
 - Public/C08, LocalWorker production, Golden, signed originals, and main are
   unchanged.
@@ -34,6 +34,12 @@ was relabeled as formal evidence.
 - Lane A H06 remains candidate-only: four source-only removals were proposed,
   one independently observed garment pixel was restored, no accepted P0/P1
   improvement was established, and Phase4 remains `FAIL`.
+- The existing local ATR18/LIP20 observer maps were read back against their
+  pinned class-map SHA values and replayed with H06. The result remained
+  `SHADOW_ABSTENTION`, four changed owner pixels, one observer restoration,
+  `quality=UNASSESSED`, `Phase4=FAIL`, and `production=NO_GO`. Their own
+  receipts do not authorize owner promotion (`owner_promotion_authorized=false`
+  / research-only licensing), so they remain protective evidence only.
 - Lane B L04 remains `HOLD`; the official signed original, Stage8 JSON, and
   expanded SVG triple is still absent from the bounded inventory.
 - Lane B L05 owner-PC private HTTPS replay is now complete for the concurrency
