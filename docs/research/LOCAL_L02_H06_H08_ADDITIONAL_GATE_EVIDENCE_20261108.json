@@ -1,0 +1,42 @@
+{
+  "schema": "minimalizer/l02/h06-h08-evidence-index/v1",
+  "date": "2026-11-08",
+  "scope": "source-free research-only evidence index; not owner authorization",
+  "sources": {
+    "H06": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "H08": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e"
+  },
+  "drive_folder_id": "1UB71VOrzbUVSKSPL2Sqg84uHFgK8E7W7",
+  "drive_evidence": {
+    "observer": "1NhNZ72PguPADOUopoBhPJ-j5abYWlAPS",
+    "blind_holdout": "1IHADVklBx3dqxcsOtXwMQ7jrzvF-b_4c",
+    "owner_authority": "1gd40KOGCDW-8YioLxP1HkzpSE_BOoXoM",
+    "license_provenance": "1AXP4gTh19JtTybgP6CHmoaYOpeId5MZT",
+    "structural_receipt": "11PgIzjusmH9U57_b1zS7jJkEWWazIQaD",
+    "sha256_manifest": "1aRZPpykko9Q36-LC8yN9NVbWVb5u7gSh"
+  },
+  "frozen_observer_evidence": {
+    "deepfashion2_model_sha256": "485bc106721febbd82fe24297e12a9fb49a435a552afff1e6b76308716555f76",
+    "replay2_sourcefree_sha256": "c0c92e20b876fa624e0969841560c87c90eb1b2f2219edc37b203dc2eb6df80e",
+    "deepfashion_sourcefree_sha256": "3476993af9ff78553b056ce7b4d30f7ae65885eec8a7a58141b2cf2fe046a6f0",
+    "codex_exact_replay_sourcefree_sha256": "05e9a11ba6d7660aa3779e65eadf0189b12b677262032d663573f5ccc234736d"
+  },
+  "rules": {
+    "human_labels_as_inference_input": false,
+    "unknown_as_negative": false,
+    "raw_images_npz_masks_coordinates_on_github": false
+  },
+  "verification": {
+    "independent_blind_holdout": "NOT_VERIFIED",
+    "owner_authority": "NOT_GRANTED",
+    "production_license_cleared": false,
+    "independent_structural_gate": "NOT_VERIFIED",
+    "github_raw_private_data": "NONE"
+  },
+  "gate": {
+    "L02": "HOLD",
+    "Phase4": "FAIL",
+    "Phase5": "NOT_PROMOTED",
+    "Production": "NO_GO"
+  }
+}
