@@ -148,3 +148,5 @@ The current A branch HEAD `3299dea03d20d30cf0741a113eac269577bd51f8` was replaye
 | Phase4 / L02 / production | FAIL / HOLD / NO_GO |
 
 This is an exact-head integrity and no-erasure replay, not a semantic quality PASS. The remaining H06 wrong-owner pixels require a separately authenticated observer that distinguishes explicit non-garment from unknown; the existing observer agreement artifact is positive shadow evidence only and cannot authorize deletion by absence. No owner promotion, merge, or production change follows from this replay.
+
+The source-free H06/H08 candidate owner maps and replay receipts were preserved privately with the H08 exact-replay record; no source image, review mask or coordinate data was added to GitHub.
