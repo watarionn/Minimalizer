@@ -1,0 +1,9 @@
+# MinimalizerPublic StructuralRecovery P0 Stage175: ACTUAL CI 596 PASS, Golden HOLD
+
+Date 2026-10-13 JST. Research PR #393 Draft, branch `research/minimalizerpublic-p0-stage136-155-20261013`.
+**Actual executable/test commit** `a86d9125f3922f7586df2c4b04f75c6c31fcf2d9`.
+GitHub Actions [run 38337012073](https://github.com/watarionn/Minimalizer/actions/runs/38337012073), job `115099275523`, `success`. Decoded runner log: **596 tests / 596 PASS / 0 fail / 0 skipped / 0 cancelled**. Stage155 had 564; 32 more Stage156–175 tests.
+
+PRIVATE verified SHA-original GC001/Raden Chrome runs: **12/12** (2 original cases × 3 source-observed RGB edge-guard configurations × 340 and 680 raster resolutions). In all cases Chrome-raster SVG exactly equaled the computed palette with **zero SVG-vs-expected channel mismatches and zero fractional alpha**. Real original RGB mismatches remain nonzero and were counted, with a strong original color edge loss count **0** within the same UNTRUSTED role and threshold. GC001 tile32/color2 changed 6,991 (ungarded) -> 3,437 (guarded), 4,000 -> 17,192 rectangle vertices. Raden tile32/color2 changed 18,052 -> 15,242, 8,568 -> 18,980 vertices. Other verified options are preserved in the research report and PRIVATE original-derived Chrome JSON.
+
+NO independently authenticated human reviewers, NO human source semantic pixels, NO genuine full-character body/hand/hair/neckwear Golden. Historical **full-character** Stage8 polygon caps still GC001 3604>1887 and Raden 2370>1412 FAIL. These SVGs are untrusted historic owner **partial** RGB masks, NOT a new fullbody reconstruction, even if some source-only RGB edges are exact. No real iPhone Safari HTTPS for the new experiments or exercised rollback. Research PR stays **Draft / GOLDEN HOLD / unmerged**, normal main/Public/Stage51/Local and live Stage135 preview unchanged. Original RGB/derived SVG remain PRIVATE Drive-only; GitHub source-free algorithms/tests/docs.
