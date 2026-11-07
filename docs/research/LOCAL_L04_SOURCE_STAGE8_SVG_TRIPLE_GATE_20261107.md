@@ -26,3 +26,5 @@ Public/C08, Golden, Local production, or iPhone state was changed.
 The formal owner-side gate remains pending until the actual private three-point
 set and its independent receipt are available. Do not infer a formal L04 pass
 from this source-free test result.
+
+Implementation commit: `20e2e2be` (PR #451, Draft; not merged).
