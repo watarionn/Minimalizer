@@ -50,3 +50,19 @@ single-suite result in the stock interpreter: six unrelated legacy tests stop
 during collection because their optional scikit-learn dependency is absent.
 That environment limitation does not weaken the focused PR-head result above;
 those legacy tests were not silently counted as passed.
+
+## Fresh Drive source readback
+
+The private Drive archive `MinimalizerLocal_L02_ReviewedEvidence_PRIVATE_20261016.zip`
+(`1JDW3cvOnEXNHVcQUllw0aJ9felKT_uqc`) was fetched again on this continuation:
+size **1,702,152 bytes**, archive SHA-256
+`6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598`.
+`signed_human_review/H06_trace.json` contains `H06.webp`; decoding its data URL
+produced **129,956 bytes** with source SHA-256
+`c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`.
+
+Using that freshly read-back source with the pinned class/owner arrays and the
+PR #449 current HEAD `d519030bc2f6877721e3a1aecd307e984d9f36d5` guard reproduced candidate SHA-256
+`87278640b0761e6d3aa572cb37156f13ee09bc8c9ebaef133445ffec63bbfa76`, four
+candidate erasures and one explicit garment-positive observer restoration.
+This is byte-level source replay evidence, not a Phase4 or production pass.
