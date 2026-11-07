@@ -1,0 +1,23 @@
+{
+  "schema": "minimalizer/l02/nao-request-evidence-matrix/v1",
+  "request_id": "minimalizer-l02-h06-h08-formal-evidence-completion-20261108-v1",
+  "scope": "H06/H08 evidence addition, not full L02 completion",
+  "existing": {
+    "human_H06_trace_sha256": "a6ea6b0f8e40d079ba477534252267b7f2e2becd18a4cf082a3caf04c443582a",
+    "human_H08_trace_sha256": "27dfc44b9acf01ca64ceb27161ca0886213d76bb4ac1534ee837666b232b222e",
+    "historical_leave_one_character_out": "2026-10-16; H06 IoU 0.032561, H08 IoU 0.017511",
+    "topology_receipt_sha256": "0cf28c482649dd458d2ae95c0515988367cbfca7e0c7453cacf48452467ad3d3",
+    "human_coverage_receipt_sha256": "414b6e1a1698ba8150d22911826935e55d01e9f5a318b0fcc8d5d99193282515",
+    "human_vs_owner_receipt_sha256": "46f5d46b4788917b432635c6eb67eeed27357863b9c26112ca986a1d106dd2a5",
+    "owner_chat_authorization": "recorded in PR #452",
+    "commercial_decision": "user says cleared"
+  },
+  "missing": {
+    "blind_reviewer_attestation": "No independent reviewer identity or signature verified",
+    "semantic_structural_signoff": "Numerical topology exists; semantic critical-part/occlusion not signed off",
+    "fixed_owner_action": "No authenticated signed execution receipt verified",
+    "third_party_license": "Primary-source model/data/training provenance not verified",
+    "private_drive_readback": "Not all newest receipts uploaded and independently read back"
+  },
+  "guard": "No private pixels, masks or polygon coordinates included. Missing evidence must not be fabricated."
+}
