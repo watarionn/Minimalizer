@@ -24,28 +24,51 @@ hashes.
   This is a real fallback-triggering failure, not a fabricated success.
 - Invalid upload content type: HTTP 415 with the expected rejection body.
 
+## Post-activation replay
+
+After the owner temporarily disabled the Startup launcher for the old worker,
+the Draft #451 worker was started from its isolated worktree on the existing
+loopback port. Tailscale Serve remained unchanged and continued to proxy the
+private HTTPS port to `127.0.0.1:28764`.
+
+- The first concurrent V2 request returned HTTP 200 `image/png`, source size
+  `2000x2000`, output size `400x400`, processing `52944.1ms`, and output PNG
+  SHA-256
+  `f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`.
+- The second concurrent V2 request returned HTTP 429 with
+  `Retry-After: 2` and the busy response body. Its response was not treated as
+  an image.
+- The private HTTPS origin was echoed by CORS, and the saved PNG and busy body
+  were read back from the owner-PC receipt directory.
+- The signed H06 input SHA-256 remained
+  `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`.
+
+This is the first actual private-HTTPS concurrency receipt after the
+`asyncio.to_thread` correction in `66aeee60` (included in PR head
+`b5c6747af1dd40cb686d9fd0be8ca78b935022d5`).
+
 ## Concrete failure
 
-The live worker did **not** produce HTTP 429 plus `Retry-After: 2` for a
-concurrent second request. Requests were serialized and both completed with
-HTTP 200. The cause is that the current live worker executes its CPU-bound
-function synchronously inside an `async def`, blocking the event loop before a
-second request can reach the non-blocking process-lock check.
+Before activation, the live worker did **not** produce HTTP 429 plus
+`Retry-After: 2` for a concurrent second request. Requests were serialized and
+both completed with HTTP 200. The cause was that the old live worker executed
+its CPU-bound function synchronously inside an `async def`, blocking the event
+loop before a second request could reach the non-blocking process-lock check.
 
 The Draft branch contains the bounded correction in commit `66aeee60`:
 `asyncio.to_thread` surrounds both CPU-heavy routes, and
 `tests/test_local_worker_concurrency.py` verifies that the second concurrent
 request receives HTTP 429 and `Retry-After: 2`. Focused A/B source QA after the
-change is **52 passed**. The live Worker was not modified by this replay.
+change is **52 passed**.
 
 ## Gate decision and next action
 
-- Actual PC/private HTTPS: **partial evidence, FAIL on concurrent 429**.
+- Actual PC/private HTTPS after Draft activation: **PASS for concurrent 429 and
+  Retry-After readback**.
 - PNG input/output and ZeroBase2 fallback: observed.
 - iPhone acceptance: **not attempted**; defer until production reflection.
 - L05 formal: `HOLD`; production: `NO_GO`.
 
-After an owner-authorized activation of the Draft LocalWorker fix, rerun the
-private HTTPS replay and require a real 429/Retry-After readback before marking
-the owner-run receipt complete. Do not merge or promote from this partial
-receipt.
+The concurrency receipt is complete for the owner-PC private HTTPS replay. Do
+not merge or promote from this evidence alone: the physical iPhone acceptance
+and remaining L05 release gates are still separate.
