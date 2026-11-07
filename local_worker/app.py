@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from pathlib import Path
@@ -368,7 +369,8 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             # or depend on its 6 GiB free-RAM admission threshold.
             # _process_lock still enforces one active LocalWorker job.
             try:
-                result, summary = _run_zerobase2(input_path)
+                result, summary = await asyncio.to_thread(
+                    _run_zerobase2, input_path)
             except Exception as exc:
                 logger.exception("ZeroBase2 production minimalization failed")
                 detail = str(exc)
@@ -436,7 +438,8 @@ async def minimalize_local(
             # Owner-only PWA image processing is excluded from RRM admission.
             # Preserve _process_lock and the ordinary runtime error handling.
             try:
-                result, selection = _run_high_quality(
+                result, selection = await asyncio.to_thread(
+                    _run_high_quality,
                     input_path,
                     preset=preset,
                     include_facets=include_facets,

@@ -1,5 +1,7 @@
 // Cache only the private app shell, never user images, outputs or API responses.
-const CACHE = "minimalizer-local-shell-v1";
+const GENERATION = "minimalizer-local-20261107-1";
+const CACHE_PREFIX = "minimalizer-local-shell-";
+const CACHE = CACHE_PREFIX + GENERATION;
 const ASSETS = ["/", "/static/styles.css", "/static/color-strip.css", "/static/app.js",
   "/static/browser-feature-palette.js", "/static/browser-color-strip.js",
   "/local-static/local-route.js", "/local-static/icon.svg"];
@@ -8,7 +10,8 @@ self.addEventListener("install", event => {
 });
 self.addEventListener("activate", event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(
-    keys.filter(key => key !== CACHE).map(key => caches.delete(key))
+    keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE)
+      .map(key => caches.delete(key))
   )).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", event => {

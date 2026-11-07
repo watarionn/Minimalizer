@@ -56,6 +56,10 @@ window.MinimalizerComputeRoute = Object.freeze({
   },
 });
 if ("serviceWorker" in navigator) {
-  addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  const SERVICE_WORKER_GENERATION = "minimalizer-local-20261107-1";
+  addEventListener("load", () => navigator.serviceWorker.register(
+    "/sw.js?generation=" + encodeURIComponent(SERVICE_WORKER_GENERATION),
+    {updateViaCache: "none"}
+  ).catch(() => {}));
 }
 })();

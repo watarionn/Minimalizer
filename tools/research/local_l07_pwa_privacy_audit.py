@@ -15,6 +15,8 @@ ALLOWED_SHELL=frozenset((
 ))
 FORBIDDEN_ASSET_PREFIXES=("/api/","/uploads/","/private/","/artifacts/","/user/")
 BLOCKED_APIS=("cache.put(","caches.put(","cache.add(","importScripts(","eval(","new Function(")
+GENERATION_RE=re.compile(r'const\s+GENERATION\s*=\s*["\']([^"\']+)["\']\s*;')
+ROUTE_GENERATION_RE=re.compile(r'SERVICE_WORKER_GENERATION\s*=\s*["\']([^"\']+)["\']')
 
 class PrivacyHold(ValueError):pass
 
@@ -25,6 +27,9 @@ def verify_serviceworker(source:str):
     if not isinstance(source,str) or len(source)>200000:
         raise PrivacyHold("SW_SOURCE_INVALID")
     code=_strip_line_comments(source)
+    gm=GENERATION_RE.search(code)
+    if not gm or not re.fullmatch(r'minimalizer-local-[0-9]{8}-[0-9]+',gm.group(1)):
+        raise PrivacyHold("SW_GENERATION_PIN_MISSING")
     m=re.search(r"\bconst\s+ASSETS\s*=\s*(\[[\s\S]*?\])\s*;",code)
     if not m:raise PrivacyHold("SW_SHELL_ASSET_ARRAY_MISSING")
     try:assets=json.loads(m.group(1))
@@ -38,6 +43,12 @@ def verify_serviceworker(source:str):
     if len(set(assets))!=len(assets) or frozenset(assets)!=ALLOWED_SHELL:
         raise PrivacyHold("SW_SHELL_ALLOWLIST_CHANGED_REVIEW_REQUIRED")
     tight=code.replace(" ","").replace("\n","").replace("\t","")
+    if ('constCACHE_PREFIX="minimalizer-local-shell-";' not in tight or
+            'constCACHE=CACHE_PREFIX+GENERATION;' not in tight):
+        raise PrivacyHold("SW_CACHE_NOT_GENERATION_PINNED")
+    if ('key.startsWith(CACHE_PREFIX)&&key!==CACHE' not in tight or
+            'keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE)' not in tight):
+        raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
     for fragment in (
@@ -51,31 +62,48 @@ def verify_serviceworker(source:str):
     if tight.count('self.addEventListener("fetch"')!=1:
         raise PrivacyHold("SW_UNEXPECTED_EXTRA_FETCH_HANDLER")
     return {"status":"STATIC_SW_PRIVACY_CONTRACT_PASS",
+            "generation":gm.group(1),
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
+            "cache_cleanup_namespace_scoped":True,
             "offline_shell_fallback":True,
             "live_browser_e2e_verified":False}
 
 def verify_local_route(source:str):
     if not isinstance(source,str) or len(source)>100000:raise PrivacyHold("LOCAL_ROUTE_INVALID")
     code=_strip_line_comments(source)
+    gm=ROUTE_GENERATION_RE.search(code)
+    if not gm or not re.fullmatch(r'minimalizer-local-[0-9]{8}-[0-9]+',gm.group(1)):
+        raise PrivacyHold("ROUTE_SW_GENERATION_PIN_MISSING")
     required=('window.MinimalizerComputeRoute = Object.freeze({',
               'fetch("/health"', 'fetch("/api/zerobase2/minimalize"',
               'fetch("/api/v2/minimalize"','cache:"no-store"')
     if any(piece not in code for piece in required):
         raise PrivacyHold("LOCAL_ROUTE_CONTRACT_MISSING")
+    tight=code.replace(" ","").replace("\n","").replace("\t","")
+    if any(piece not in tight for piece in (
+            'navigator.serviceWorker.register(',
+            '"/sw.js?generation="+encodeURIComponent(SERVICE_WORKER_GENERATION)',
+            'updateViaCache:"none"')):
+        raise PrivacyHold("LOCAL_ROUTE_SW_UPDATE_CONTRACT_MISSING")
     if "MinimalizerBrowserFallback" in code or "browser-fallback.js" in code:
         raise PrivacyHold("LOCAL_ROUTE_BROWSER_DOWNGRADE")
-    return {"status":"STATIC_LOCAL_ROUTE_ISOLATED","no_browser_fallback":True,
+    return {"status":"STATIC_LOCAL_ROUTE_ISOLATED",
+            "service_worker_generation":gm.group(1),
+            "no_browser_fallback":True,
             "no_store_requests":True,"live_iphone_e2e_verified":False}
 
 def audit(repo_root:Path):
     if not isinstance(repo_root,Path):raise PrivacyHold("REPO_ROOT_REQUIRED")
     sw=(repo_root/"local_worker/frontend/sw.js").read_text(encoding="utf-8")
     route=(repo_root/"local_worker/frontend/local-route.js").read_text(encoding="utf-8")
-    return {"schema":"minimalizer/local-l07/privacy-static/v1",
-            "serviceworker":verify_serviceworker(sw),
-            "route":verify_local_route(route),
+    serviceworker=verify_serviceworker(sw)
+    route_report=verify_local_route(route)
+    if serviceworker["generation"] != route_report["service_worker_generation"]:
+        raise PrivacyHold("SW_GENERATION_MISMATCH")
+    return {"schema":"minimalizer/local-l07/privacy-static/v2",
+            "serviceworker":serviceworker,
+            "route":route_report,
             "production_changes":False,
             "L07_actual_live_iphone":"NOT_TESTED",
             "L08_release":"NOT_APPROVED"}
