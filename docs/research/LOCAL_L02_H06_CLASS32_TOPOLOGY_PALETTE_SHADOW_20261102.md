@@ -131,3 +131,20 @@ The source-only garment-seed interior median was **28.861739 px**, protecting **
 The A-only GitHub helper now supports `protect_garment_seed_scale=True` as a strictly boolean opt-in, preserving default behavior and the pinned source/class/owner replay contract. A postcondition and source-free receipt record the protected-owner invariant. Three source-free negative/contract regression tests were added. **The updated GitHub code and tests have been written and read back, but their exact-head execution, full canonical QA and exact signed replay have NOT yet passed.** The independent reconstruction above must not be mislabeled exact-head QA or merged into Phase4.
 
 **Accepted real-image P0=0, P1=0; H04/H06/H08 unresolved=3.** PR remains Draft, unmerged. Source-only Phase4 critical-part/occlusion and no-erasure promotion gate FAIL; independent garment/skin/underlayer observer, genuine unseen signed blind, model rights, exact-head QA, private replay Drive cloud read-after-write and human Golden are pending. **L02 HOLD / Phase4 FAIL / L03 NO_GO / Golden HOLD / production NO_GO.** No B L04/L07, Public/C08, LocalWorker production or Golden changes.
+
+### 2026-11-07 exact-head signed replay
+
+The current A branch HEAD `3299dea03d20d30cf0741a113eac269577bd51f8` was replayed locally with the pinned H06 Run30 4-neighbour source/class/owner triple. The signed source SHA, frozen class SHA and frozen owner SHA all matched the registry. The replay remained source-only and did not accept review masks as inputs.
+
+| Exact-head H06 shadow | Result |
+| --- | ---: |
+| class32 owner pixels abstained | 5 |
+| reviewed underlayer owner removed | 1 |
+| reviewed arm owner removed | 3 |
+| reviewed correct outerwear removed | 0 |
+| reviewed unknown owner removed | 1 |
+| owner 4/8 components | unchanged: 9/8 |
+| owner enclosed holes 4/8 | unchanged: 25/17 |
+| Phase4 / L02 / production | FAIL / HOLD / NO_GO |
+
+This is an exact-head integrity and no-erasure replay, not a semantic quality PASS. The remaining H06 wrong-owner pixels require a separately authenticated observer that distinguishes explicit non-garment from unknown; the existing observer agreement artifact is positive shadow evidence only and cannot authorize deletion by absence. No owner promotion, merge, or production change follows from this replay.
