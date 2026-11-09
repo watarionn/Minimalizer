@@ -20,5 +20,9 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin || !ASSETS.includes(url.pathname)) return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  // Query strings are allowed on shell requests, but the installed cache is
+  // keyed by the generation's canonical pathname.  Never let an offline
+  // query miss that generation's cached shell.
+  const cacheRequest = new Request(new URL(url.pathname, self.location.origin).href);
+  event.respondWith(fetch(event.request).catch(() => caches.match(cacheRequest)));
 });

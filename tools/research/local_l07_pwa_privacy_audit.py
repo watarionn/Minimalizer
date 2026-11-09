@@ -58,7 +58,8 @@ def verify_serviceworker(source:str):
         'url.origin!==self.location.origin',
         '!ASSETS.includes(url.pathname)',
         'cache.addAll(ASSETS)',
-        'event.respondWith(fetch(event.request).catch(()=>caches.match(event.request)))',
+        'constcacheRequest=newRequest(newURL(url.pathname,self.location.origin).href);',
+        'event.respondWith(fetch(event.request).catch(()=>caches.match(cacheRequest)))',
     ):
         if fragment not in tight:raise PrivacyHold("SW_PRIVACY_GUARD_MISSING:"+fragment)
     if tight.count('self.addEventListener("fetch"')!=1:

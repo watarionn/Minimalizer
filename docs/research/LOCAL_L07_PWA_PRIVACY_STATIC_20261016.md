@@ -15,6 +15,12 @@ waits for the browser's normal next-navigation activation. The static audit
 rejects either immediate-claim API so a future edit cannot silently reintroduce
 cross-generation control of an open page.
 
+Offline fallback also canonicalizes an allowed shell request to its pathname
+before `caches.match`. A query-bearing shell request therefore falls back to
+the installed generation entry instead of missing because the cache key has no
+query string; API, upload, and arbitrary image requests remain outside the
+fetch handler.
+
 Two source-free research files are added:
 - `tools/research/local_l07_pwa_privacy_audit.py` for fail-closed static privacy contract checks; intended usage `python tools/research/local_l07_pwa_privacy_audit.py .`.
 - `tests/test_local_l07_pwa_privacy_audit.py` with explicit negative cases for API and image cache poisoning, removed origin/GET/allowlist checks, dynamic cache.put, second fetch handler, browser downgrade, absent health/BEST paths and false live-test claims.
