@@ -35,6 +35,13 @@ MinimalizerLocal は二本の独立した開発線を持つ。
 
 ただし、H08 の最終 owner-authority receipt はまだ作成・読戻しが必要である。これは license gate ではなく、どの frozen inference output を誰が Phase4 判定対象として認可したかを固定する作業である。
 
+現時点で混同してはいけない候補は二つある。
+
+- 新規 source-only SegFormer 推論の H08 prediction SHA は `8e3613bf90202a5a04a58f53b7ba66e755a601494e37fac1a5137ad06bcf4275`。これは衣装 prediction であり、owner promotion ではない。
+- 既存 H08 owner-promotion replay は frozen owner SHA `43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52` を入力に 591px を候補割当した historical candidate で、receipt 自身が `owner_promotion_authorized=false` と記録している。
+
+よって receipt 作成の最初の操作は、Phase4 判定対象にする **owner map の byte SHA と producer/config SHA を一組だけ選ぶこと**である。prediction の評価結果を owner-authority と取り違えない。
+
 ## 4. 現行ゲートと一本道
 
 ### A: L02 / Phase4
