@@ -105,6 +105,24 @@ def test_external_markup_is_rejected(tmp_path):
         _evaluate(paths)
 
 
+@pytest.mark.parametrize(("svg_bytes", "reason"), (
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><script>1</script><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_CONTENT:script"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.invalid/x"/><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_CONTENT:image"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><use href="data:image/svg+xml,x"/><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_EXTERNAL_REFERENCE"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg" onload="run()"><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_EVENT_ATTRIBUTE"),
+))
+def test_embedded_or_external_svg_content_is_rejected(tmp_path, svg_bytes, reason):
+    paths = _fixture(tmp_path)
+    source, stage8, svg = paths
+    svg.write_bytes(svg_bytes)
+    with pytest.raises(gate.L04Hold, match=reason):
+        _evaluate(paths)
+
+
 def test_empty_expanded_svg_geometry_is_rejected(tmp_path):
     paths = _fixture(tmp_path)
     source, stage8, svg = paths

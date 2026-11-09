@@ -16,10 +16,15 @@ owner exactness, and source silhouette equality. A numerical pass only produces
 an independently-reviewable candidate; the result always reports `L04_formal:
 HOLD`, `release_authorized: false`, and `production_release: NO_GO`.
 
+The expanded SVG parser is also fail-closed against executable or embedded
+content: DTD/entities, script-like tags, raster/media/embed elements, inline
+event attributes, and external `href`/`src` schemes are rejected. Internal
+fragment references remain parseable, but they do not create formal acceptance.
+
 Synthetic source-free tests in
-`tests/test_local_l04_source_stage8_svg_triple_gate.py` passed **6/6**. They
-cover exact-triple readback, signed-source tamper, expanded-SVG tamper, manifest
-cross-link mismatch, unsafe SVG markup, and failed quality metrics. No private
+`tests/test_local_l04_source_stage8_svg_triple_gate.py` cover exact-triple
+readback, SVG content isolation, signed-source tamper, expanded-SVG tamper,
+manifest cross-link mismatch, unsafe SVG markup, and failed quality metrics. No private
 image, Stage8 JSON, mask, coordinate, or SVG was copied into GitHub, and no
 Public/C08, Golden, Local production, or iPhone state was changed.
 
