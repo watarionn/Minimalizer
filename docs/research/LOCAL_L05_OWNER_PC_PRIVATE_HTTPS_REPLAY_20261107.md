@@ -144,3 +144,14 @@ in the owner private store and has SHA-256
   `production_release=NO_GO` until a physical iPhone acceptance receipt exists.
 
 No Public/C08, Golden, signed source, L02, or L04 artifact changed.
+
+## 2026-11-09 iPhone-origin correction
+
+The production origin configuration initially contained only the distinct
+Public deployment origin. That caused the private Local PWA's browser Origin
+to be rejected before upload. The allowed-origin configuration was corrected
+to retain the Public origin and add only the exact private-tailnet HTTPS
+origin. After a LocalWorker restart, a private HTTPS `GET /health` and an
+`OPTIONS` preflight carrying that exact Origin each returned HTTP 200 with
+`Access-Control-Allow-Origin` set to the private origin. No wildcard origin
+and no authentication bypass was introduced.
