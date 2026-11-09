@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `54654bfac80550a4fe565de694c39d30b47b5703` |
-| Lane A PR #449 | Draft / head `378b642b604555633ccd7b83173bd508cad02ee8` |
+| Lane A PR #449 | Draft / head `6c086e4d8b552c76380fe3bf810e2e15b2f4381c` |
 | Lane B PR #451 | 過去のB成果を保持。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -95,6 +95,7 @@ AのPhase4がFAILなら完成にはならない。
 ではなく、現在候補に束縛されたPhase4 receiptと、Phase4後に作るH04を含むL04三点セットである。
 
 なお、H06/H08の数画素候補では根本品質に届かないことが判明したため、開発方式を
-全体owner再構成へ切り替えた。詳細は
-`docs/research/LOCAL_L02_SCALE_RESET_20261110.md` を正本とする。
+全体owner再構成へ切り替えた。開発サイクル、候補にしない変更、完了判定は
+`docs/research/LOCAL_L02_DEVELOPMENT_METHOD_RESET_20261110.md`、実装土台と
+残差の詳細は `docs/research/LOCAL_L02_SCALE_RESET_20261110.md` を正本とする。
 
