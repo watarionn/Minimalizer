@@ -43,6 +43,8 @@ MinimalizerLocal は二本の独立した開発線を持つ。
 
 よって receipt 作成の最初の操作は、Phase4 判定対象にする **owner map の byte SHA と producer/config SHA を一組だけ選ぶこと**である。prediction の評価結果を owner-authority と取り違えない。
 
+選定済みの対象と認可範囲は [H08 owner-authority receipt](../handoffs/HND-20261109-MINIMALIZER-LOCAL-H08-OWNER-AUTHORITY-RECEIPT.md) に固定する。
+
 ## 4. 現行ゲートと一本道
 
 ### A: L02 / Phase4
