@@ -94,6 +94,10 @@ was relabeled as formal evidence.
   package pass for source SHA, RGBA dimensions, alpha exclusion, and unknown
   handling; `human_labels_used_for_inference=false` and
   `unknown_as_negative=false` are preserved.
+- The bundled `verify_h06_h08_submission.py` was re-run against the extracted
+  private package and completed with `AUDIT_CREATED`; H06/H08 source SHA,
+  dimensions, RGBA/alpha bounds, and numeric 4/8 topology measurements were
+  reproduced. This remains an audit/reproducibility PASS only.
 - The evaluator-independence record identifies the reviewer only by a claimed
   name, marks developer separation and prior-access checks as
   `SELF_ATTESTED_ONLY` / `NOT_VERIFIED`, and records no verified signature.
