@@ -1,128 +1,149 @@
-# L02開発方式の再設計: 画素修正ではなく失敗クラスを解消する
+# L02開発方式の再設計: 局所パッチをやめ、全身候補を一括判定する
 
 更新日: 2026-11-10
 
-## 決定
+## この文書の位置づけ
 
-H06の4画素除去、H08の591画素回復のような小規模な差分を、候補の更新として
-繰り返さない。これは品質改善の開発単位になっていないため、既存のshadow結果と
-して保存するだけにする。
+これはAの実装手順を決める正本である。数画素の差分、observerの追加回数、metricsの改善量を成果として数えない。H04/H06/H08を同じ入力契約・同じ候補契約・同じ品質ゲートで処理し、失敗クラス全体が解消されたかだけを判定する。
 
-今後のAは、次の単位で進める。
+現在の状態は変えない。
 
 ```text
-失敗クラスを特定
-  -> 画像全体を再観測
-  -> 意味領域をcomponent単位で再構成
-  -> H04/H06/H08を同じ契約で一括凍結
-  -> 構造・意味・視覚を一度に評価
-  -> 合格なら次段階、失敗なら仮説を破棄
+A L02       HOLD
+Phase4      FAIL
+Phase5      NO_GO
+L04 handoff false
+Golden      HOLD
+production  NO_GO
 ```
 
-## これまでの方法をやめる理由
+## 何が問題だったか
 
-post-freeze診断では、旧候補の変更量に対して残差が大きすぎる。
+これまでの開発単位は、腕・袖・下着・正衣装の意味境界を解決しないまま、既存ownerへ少数画素を足し引きすることだった。実際に、旧候補は次の規模だった。
 
-| case | 旧候補の変更 | 残っている診断残差 |
+| case | 旧候補の変更 | 残っている失敗の規模 |
 |---|---:|---:|
 | H06 | 4px除去 | known-negative owner 11,547px、unknown predicted 80,766px |
 | H08 | 591px回復 | known-positive未回復 59,444px、unknown predicted 3,814px |
 | H04 | 0px変更 | known-negative owner 4,423px |
 
-この状態で4pxや591pxを追加しても、腕・袖・下着・正衣装・遮蔽の意味境界は
-解決しない。したがって「差分が出た」ことを成果とみなさず、失敗クラス全体を
-解消できたかだけを見る。
+この差は「あと数画素直せば完成する」という状態ではない。ownerの意味づけ、遮蔽、unknownの扱い、全身構造の再構成が未解決である。したがって、局所パッチを再開しない。
 
-## 新しい開発サイクル
+## 今後の開発単位
 
-### 1. 現状を凍結する
+Aの一回の開発成果は、H04/H06/H08を同じ実装で処理した一つの**全身候補パッケージ**とする。全身候補には少なくとも次を含める。
 
-- signed source、source SHA、現在のowner、既存候補のSHAを保存する。
-- 旧候補は `historical / superseded / not-formal` として参照専用にする。
-- 旧ownerを次の推論の入力にしない。
-- Phase4 FAILの候補をPhase5やL04へ渡さない。
+- signed source manifest と source SHA
+- source-only observer bundle のモデル、revision、重みSHA、出力SHA
+- 排他的な意味owner map
+- `unknown` map と遮蔽／不確実領域
+- 4連結・8連結、穴、source alpha、component、接触関係の構造検査結果
+- 正衣装保持、腕・袖・下着の誤owner除去、遮蔽順序の意味評価
+- 通常倍率の全体表示、変更componentの拡大表示、before/afterのfreeze SHA
+- 人手評価は推論後だけに行ったことを示すreceipt
 
-### 2. 失敗を画素ではなく意味クラスで分類する
+部分的なowner修正を候補へ合成する関数は、この経路に置かない。意味を決められないcomponentは既存ownerで埋めず、component単位でunknownへ退避する。
 
-最初に、全身について次を一枚の診断表へまとめる。
+## 開発サイクル
 
-- 正衣装が消える領域
-- 腕・手・袖の誤owner領域
-- 下着・肌・装飾の誤owner領域
-- 遮蔽順序が不明な領域
-- source alpha外、穴、孤立成分、連結成分の分断
-- observer間で一致しない領域
+```text
+┌──────────────┐
+│ 0. 基準凍結   │  signed source / 現行候補 / SHA / 旧資料を固定
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ 1. 失敗分類   │  画素ではなく意味クラスを分類
+│                │  正衣装 / 腕袖 / 下着 / 遮蔽 / unknown / 構造
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ 2. 全身再構成  │  H04/H06/H08を同じsource-only実装で一括生成
+│                │  observer不一致はunknown、既存ownerは入力にしない
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ 3. 一括評価    │  構造 + 意味 + 通常倍率の視覚レビューを同じfreezeで実施
+└──────┬───────┘
+       │
+       ├─ FAIL: 候補を捨てる。局所修正・閾値後合わせ・追加receiptをしない
+       │        失敗クラスまたは観測／モデルの前提を変更して2へ戻る
+       │
+       └─ PASS: Phase4正式receiptを作り、初めてPhase5へ進む
+                         ▼
+              Bへ exact handoff → L04三点照合 → L05/L07 → Golden → 本番 → iPhone
+```
 
-この表を作れない局所修正は実装しない。既知ラベルはこの工程の診断には使えるが、
-推論入力や閾値決定には使わない。
+## ゲートの意味
 
-### 3. source-only observerを束ねる
+### G0: 基準凍結
 
-各observerは署名済み元画像だけを入力にし、モデル、revision、重みSHA、出力SHAを
-固定する。人手mask、owner番号、レビューJSONは入力から排除する。未知画素は陰性に
-しない。
+署名済み元画像、現行候補、source SHA、過去候補の位置づけを一枚の台帳へ固定する。ここでローカルとGitHubのheadを照合する。headが一致しない場合は品質実装を進めず、まず台帳と作業経路を直す。
 
-observerの一致はowner権限ではない。observerが一致しない成分は、その成分全体を
-unknownに退避する。
+### G1: 全身候補
 
-### 4. component単位で意味ownerを再構成する
+H04/H06/H08を同じ観測層・同じcomponent規則・同じunknown規則で処理する。既知ラベル、人手mask、既存owner、レビューJSONは推論入力にしない。unknownを陰性扱いしない。
 
-数画素を追加・削除する関数は正式候補の経路に置かない。衣装、袖、腕、下着、遮蔽の
-候補を画像全体から作り、8連結component、穴、接触関係、排他的owner、source alphaを
-同時に再計算する。
+新しいobserverを追加しても、それだけではG1を通過しない。observerは観測資料であり、衣装ownerの権限ではない。observerが増えただけでmetricsを積み上げたり、候補を作ったりしない。
 
-意味を決められないcomponentは、既存ownerを部分的に壊さず、component全体をunknown
-にする。正衣装の保護と誤owner除去を同じ再構成で扱う。
+### G2: 独立Phase4
 
-### 5. 三例を同じ実装で一括凍結する
+推論後にのみ人手評価を行い、次を一つのfreeze SHAに結ぶ。
 
-H06だけに効く閾値、H04へ後合わせした閾値、特定の既知maskに合わせた補正は採用しない。
-H04/H06/H08を同じobserver bundle、同じcomponent規則、同じreceipt schemaで処理する。
-一例だけ改善して他例が悪化した場合、その仮説は不採用にする。
+- 未見データ
+- 推論前ラベル非使用
+- 開発側から独立した評価者
+- 腕、袖、下着、遮蔽、正衣装保持の意味評価
+- 排他的owner、4/8連結、穴、source alpha、unknownの扱い
+- 通常倍率で変更を確認できる視覚レビュー
 
-### 6. レビュー可能な大きさで評価する
+「変更結果が受け入れられない」が「変更が小さすぎる」という意味なら、品質不良のNOではなく、正式候補にしないという判定にする。小さい差分を重ねてレビューを通すことは禁止する。失敗クラス全体を含む候補を作り直す。
 
-候補は通常倍率の全体画像、変更componentの拡大画像、owner別before/after、意味コメント
-を一つのfreeze SHAに束縛する。
+### G3: Bへの引き渡し
 
-「変更結果を視覚的に受け入れられる」がNOで、その理由が「変更が小さすぎる」なら、
-品質が悪いと解釈せず、正式候補として提出しない。候補を作り直し、失敗クラス全体を
-含む変更に戻る。
+G2がH04/H06/H08すべてで独立PASSした場合だけ、Aのfreeze SHAをBへ渡す。Bは画像の意味ownerを修正しない。Bの担当は次だけである。
 
-## 実装しない変更
+- 元画像・Stage8 JSON・展開SVGの三点照合
+- SVG/PNGの表示と予算
+- generation-pinned Service Worker
+- private HTTPS、PC、Safari/PWA、障害系、offline復帰
+- production反映後の実機iPhone受入
 
-次のどれかに該当する変更は、作業成果として数えない。
+Bのsource/runtime QA PASSは保持するが、AのPhase4 FAILを補うものではない。
 
-- 既存ownerを数画素だけ削る、戻す、橋渡しする。
-- class11一律保護、class32単純OR/AND、既知例への閾値後合わせ。
-- H04の結果や人手maskをH06/H08の推論へ移植する。
-- observerの不在を陰性として扱う。
-- metricsだけを改善し、腕・下着・遮蔽・正衣装の意味を説明できない。
-- 通常倍率で差分を確認できない候補をPhase4へ送る。
+## データの置き場所と寿命
 
-## 現在の大きな実装単位
+### 必ず正本として保持するもの
 
-1. H06/H08で取得済みのSapiens2、DeepFashion2、SCHP ATR18、SCHP LIP20を、source-only
-   observer bundleとしてSHA固定する。
-2. observerの出力を衣装・下着・腕・袖・遮蔽のcomponent graphへ変換し、全componentの
-   owner候補またはunknownを決める。
-3. 同じgraphをH04へ適用し、三例を一括freezeする。
-4. freeze後にのみ人手評価を行い、Phase4の正式receiptへまとめる。
-5. Phase4が三例とも独立PASSのときだけPhase5 exact replay、L04三点セット、Bへのhandoffへ進む。
+- signed source と source SHA対応表
+- G1候補のfreeze receipt、observerのrevision／重み／出力SHA
+- G2正式Phase4 receiptと独立評価の署名・時刻・評価者結び付け
+- Phase5、L04三点セット、L05/L07の実通信・障害系・実機記録
+- GitHubのsource-freeコード、テスト、メトリクス、台帳、PR／commit SHA
 
-この順序を完了するまで、BのL04/L05/L07実装、Service Worker世代、production runtimeは
-変更しない。Bの既存QA PASSは保持するが、Aの品質FAILを解消したことにはしない。
+### 保持するが正式入力に戻さないもの
 
-## 完了判定
+- 旧Run、旧NPZ、旧mask、旧座標、旧SVG、旧Stage8、旧cap試行
+- 既知例への閾値後合わせ結果
+- 数画素だけを変更した候補
+- observer追加だけで候補化されなかった出力
 
-この方式の成果はコミット数や候補数ではなく、次の全てで判定する。
+これらは非公開Driveで `historical / superseded / not-formal` として保存する。GitHubへ原画像、NPZ、mask、座標、比較画像は入れない。削除ではなく、正式経路から隔離する。
 
-- 三例でsource SHAとobserver SHAが一致する。
-- 推論前に人手ラベルを見ていないことがreceiptで再現できる。
-- unknownを陰性にしていない。
-- 正衣装保持、誤owner除去、腕・袖・下着・遮蔽の意味がcomponent単位で説明できる。
-- 排他的owner、4/8連結、穴、遮蔽、source alphaの構造検査が通る。
-- 通常倍率と拡大倍率の視覚レビューが同じfreeze SHAに対して行われる。
-- Phase4が独立PASSになるまでPhase5、L04、Golden、本番へ進めない。
+## 直ちに止めること
 
-現状はこの判定を満たしていないため、`L02=HOLD / Phase4=FAIL / Phase5=NO_GO / Golden=HOLD / production=NO_GO` を維持する。
+- H06の数画素除去、H08の数百画素回復の追加
+- ケース別閾値、class11一律保護、class32単純OR/AND
+- observerの不一致を陰性へ変換すること
+- metricsだけを改善するための形態学的な橋渡し・穴埋め
+- Phase4 FAIL候補のPhase5、L04、Golden、本番への昇格
+- 同じ候補についてreceiptだけを作り直すこと
+
+## 次の実作業
+
+1. 現行A候補、旧候補、observer出力、評価資料をG0台帳へ分類する。
+2. H04/H06/H08の「意味クラス別の失敗表」を一枚に固定する。画素差分表は補助資料にする。
+3. その失敗表を解消できる全身owner再構成の設計を一つだけ選ぶ。選べない場合は、追加実験ではなく「意味ownerを決める観測が不足」としてAをBLOCKEDにする。
+4. 一つの全身候補を三例同時に作り、G1→G2を通す。FAILなら候補を破棄し、局所修正へ戻らない。
+5. G2 PASS後にのみ、既存Bへexact handoffする。
+
+この順序で、コミット数・実験数・追加receipt数ではなく、完成に必要な品質上の不確実性を一つずつ消す。
