@@ -104,3 +104,14 @@ Loopback Worker was read back once from `127.0.0.1:28764`:
 This is a loopback runtime smoke receipt only. It is not private-HTTPS
 acceptance, production reflection, or iPhone acceptance; L05 remains `HOLD`
 and production remains `NO_GO`.
+
+## 2026-11-09 second protected loopback readback
+
+Without changing worker configuration, the same repository corpus input was
+posted again to `127.0.0.1:28764/api/v2/minimalize`. The response was HTTP 200
+with `Content-Type: image/png`, `3774` bytes, and output SHA-256
+`9f8b7c5d2940a416559b52cda0ec393372d49d0ea351be8bd7b9c6234a7cc49e`.
+The following `/health` response remained `ready=true`, with active route
+`zerobase2` and `zerobase2_authorized=true`. This is a repeatable loopback
+smoke check only; it does not change the private-HTTPS, production, or
+physical-iPhone gates.
