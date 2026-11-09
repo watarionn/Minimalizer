@@ -77,6 +77,42 @@ was relabeled as formal evidence.
   production-license clearance.
 - The follow-up package therefore leaves the gate unchanged:
   `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`.
+
+## 2026-11-09 independent-review submission delta
+
+- A new private package was added to the same Drive folder:
+  `Minimalizer_L02_H06_H08_独立評価受領証拠_完全版_20261109.zip` (Drive ID
+  `1Koj-q4nNTewb6rhhyMYg7EDTxTlFyPnj`). The cloud raw download was read back
+  to the private local evidence directory with size `401938` bytes and ZIP
+  SHA-256 `f4c28f6167cdac5e61945185d19783009e52a035c1ee1599a4e2eb73d68ff80f`.
+  Its internal manifest was checked after extraction: all **13/13** listed
+  files matched their declared byte counts and SHA-256 values, including the
+  signed H06/H08 source bytes.
+- The submission includes H06/H08 evaluation masks, a results JSON, a
+  technical verification script, evaluator-independence record, license
+  record, and source-free manifest. The structural checks recorded in the
+  package pass for source SHA, RGBA dimensions, alpha exclusion, and unknown
+  handling; `human_labels_used_for_inference=false` and
+  `unknown_as_negative=false` are preserved.
+- The evaluator-independence record identifies the reviewer only by a claimed
+  name, marks developer separation and prior-access checks as
+  `SELF_ATTESTED_ONLY` / `NOT_VERIFIED`, and records no verified signature.
+  The reviewer mask audit is therefore received and preserved, but is not an
+  independently authenticated review.
+- The package compares the masks with **frozen developer-produced Run30
+  outputs**; `new_inference=NOT_PERFORMED`, `independent_blind_model_inference`
+  is `NOT_VERIFIED`, and H06/H08 are the previously specified known cases.
+  Green/red coverage, 4/8 connectivity, and hole counts are numeric reference
+  measurements only. Critical parts, occlusion, correct clothing retention,
+  and wrong arm/underlayer owner removal remain `NOT_VERIFIED`.
+- The accompanying license record keeps source rights, reviewer mask rights,
+  third-party model/data licenses, and commercial distribution
+  `NOT_VERIFIED`. No new signed independent execution receipt or independent
+  unseen-character holdout was supplied.
+- This is a **Drive preservation/readback PASS**, not a semantic quality PASS:
+  newly verified P0/P1 improvements remain `0`, and the release gate remains
+  `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`. Keep #449 Draft, do not
+  promote Phase5, merge `main`, or alter Public/C08/Golden/LocalWorker.
 - A follow-up 2026-11-08 research-only package was read back from the same
   private Drive folder. Its SHA manifest matches the five downloaded
   source-free records by byte count and SHA-256. The added observer record
