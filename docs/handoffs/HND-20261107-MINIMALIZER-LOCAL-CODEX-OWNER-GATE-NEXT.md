@@ -369,6 +369,25 @@ was relabeled as formal evidence.
   authority, owner promotion authorization, Phase4, Golden, and production
   remain unresolved. Keep `L02=HOLD`, `Phase4=FAIL`, and `production=NO_GO`.
 
+## 2026-11-09 H04 inherited-observer replay rejected
+
+- The signed H04 source and the pinned inherited soft-observer archive were
+  replayed through `run_local_l02_owner_topology_shadow.py` without loading
+  human masks or polygons into the runner. Source integrity, signed foreground
+  union, protected-owner equality, leaf exclusivity, component counts, and
+  neck-to-torso spacing all passed. The frozen candidate transferred
+  `41,507` pixels to `major_clothing` (`6,331` from hair, `35,169` from torso,
+  and `7` from unknown); private candidate NPZ SHA is
+  `ebd6579b508a9a5b123601f186266ab4b9f71000ebe0a4e6b0f523754b02841b`.
+- Post-freeze independent-mask scoring found `38,292` transferred outerwear
+  pixels, `3,048` known non-outerwear pixels, and `167` unknown pixels. The
+  candidate therefore does not pass semantic exclusive-owner quality.
+- More importantly, the inherited observer receipt declares
+  `H04_training_labels_used=true`. It is not admissible as a label-free blind
+  inference input, even though the runner itself did not read the masks. The
+  candidate is rejected and is not integrated, promoted, or used as a P0/P1
+  fix. No private candidate artifact was copied into GitHub.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
