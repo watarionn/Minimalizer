@@ -48,6 +48,13 @@ _COUNT_FIELDS = (
     "removed_unknown_px",
     "owner_promotions",
 )
+_OWNER_AUTHORITY_BINDINGS = (
+    "authority_receipt_verified",
+    "bound_to_case",
+    "bound_to_source_sha",
+    "bound_to_prediction_sha",
+    "bound_to_observer_sha",
+)
 
 
 def _require_flags(values: Mapping[str, object], names: tuple[str, ...], label: str):
@@ -75,9 +82,9 @@ def evaluate_frozen_candidate(*, review: Mapping[str, object],
     A PASS requires at least one known wrong-owner removal or garment addition,
     no known garment loss, no known wrong-owner addition, no unknown mutation,
     and either zero owner promotions or a separate explicit authority receipt
-    for them. Unknown pixels are excluded from quality counts, but any
-    candidate mutation in unknown is rejected rather than treated as a negative
-    result.
+    bound to the exact case, source, frozen prediction, and observer output.
+    Unknown pixels are excluded from quality counts, but any candidate mutation
+    in unknown is rejected rather than treated as a negative result.
     """
     if authority is None:
         authority = {}
@@ -127,6 +134,10 @@ def evaluate_frozen_candidate(*, review: Mapping[str, object],
                 "AUTHORITY_MISSING_OR_NONBOOLEAN:owner_promotion_authorized")
         elif not promotion_auth:
             failures.append("AUTHORITY_FAIL:owner_promotion_authorized")
+        else:
+            for name in _OWNER_AUTHORITY_BINDINGS:
+                if authority.get(name) is not True:
+                    failures.append("AUTHORITY_BINDING_FAIL:" + name)
     if (counts["added_known_positive_garment_px"] == 0 and
             counts["removed_known_negative_owner_px"] == 0):
         failures.append("NO_VERIFIED_QUALITY_IMPROVEMENT")
