@@ -10,6 +10,8 @@ from PIL import Image
 from tools.research.local_l02_source_owner_reconstruction import (
     SourceOwnerReconstructionHold,
     assert_owner_assignment_is_separate,
+    reconcile_garment_components,
+    reconcile_observer_union_components,
     reconstruct_source_regions,
 )
 
@@ -81,3 +83,46 @@ def test_signed_source_and_class_map_are_bound():
             class_ids=classes,
             expected_class_map_sha256="0" * 64,
         )
+
+
+def test_observer_disagreement_abstains_the_entire_component():
+    garment = np.zeros((8, 9), dtype=bool)
+    garment[1:3, 1:3] = True
+    garment[5:7, 5:7] = True
+    first = np.zeros((8, 9), dtype=np.uint8)
+    second = np.zeros((8, 9), dtype=np.uint8)
+    first[1:3, 1:3] = 1
+    first[5:7, 5:7] = 1
+    second[1, 1] = 1  # Partial evidence must not produce a pixel patch.
+    second[5:7, 5:7] = 1
+
+    consensus, abstained, decisions = reconcile_garment_components(
+        garment_mask=garment,
+        observer_masks=(
+            ("observer-a", first, hashlib.sha256(first.tobytes()).hexdigest(), "a"),
+            ("observer-b", second, hashlib.sha256(second.tobytes()).hexdigest(), "b"),
+        ),
+    )
+
+    assert int(consensus.sum()) == 4
+    assert int(abstained.sum()) == 4
+    assert np.all(abstained[1:3, 1:3])
+    assert [item.decision for item in decisions] == ["DISAGREEMENT", "CONSENSUS"]
+
+
+def test_observer_union_can_restore_a_large_component_without_pixel_patching():
+    first = np.zeros((8, 9), dtype=np.uint8)
+    second = np.zeros((8, 9), dtype=np.uint8)
+    first[1:5, 1:5] = 1
+    second[3:7, 3:7] = 1
+    consensus, abstained, decisions = reconcile_observer_union_components(
+        observer_masks=(
+            ("observer-a", first, hashlib.sha256(first.tobytes()).hexdigest(), "a"),
+            ("observer-b", second, hashlib.sha256(second.tobytes()).hexdigest(), "b"),
+        ),
+    )
+
+    assert len(decisions) == 1
+    assert decisions[0].decision == "CONSENSUS"
+    assert int(consensus.sum()) == 28
+    assert not np.any(abstained)

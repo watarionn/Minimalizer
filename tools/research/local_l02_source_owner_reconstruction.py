@@ -103,6 +103,14 @@ class ReconstructionEvidence:
         return result
 
 
+@dataclass(frozen=True)
+class ComponentObserverDecision:
+    component_id: int
+    area: int
+    observer_positive_pixels: tuple[int, ...]
+    decision: str
+
+
 def _sha256(data: bytes | np.ndarray) -> str:
     if isinstance(data, bytes):
         return hashlib.sha256(data).hexdigest()
@@ -232,3 +240,151 @@ def assert_owner_assignment_is_separate(evidence: ReconstructionEvidence) -> Non
     """Fail closed if a caller tries to treat observation as an owner result."""
     if evidence.owner_assignment != "ABSTAIN_UNTIL_INDEPENDENT_OWNER_AUTHORITY":
         raise SourceOwnerReconstructionHold("OWNER_AUTHORITY_NOT_SEPARATE")
+
+
+def reconcile_garment_components(
+    *,
+    garment_mask: np.ndarray,
+    observer_masks: tuple[tuple[str, np.ndarray, str, str], ...],
+) -> tuple[np.ndarray, np.ndarray, tuple[ComponentObserverDecision, ...]]:
+    """Reconcile independent positive observers at whole-component granularity.
+
+    ``observer_masks`` entries are ``(name, mask, expected_sha256, model_id)``.
+    A garment component is a candidate only when every observer positively
+    observes the complete component.  Components with partial or missing
+    agreement are not trimmed: the complete component is returned in
+    ``abstained``.  This deliberately trades recall for semantic safety while
+    the owner-authority stage is still being developed.
+    """
+    if (
+        type(garment_mask) is not np.ndarray
+        or garment_mask.dtype != np.bool_
+        or garment_mask.ndim != 2
+        or not garment_mask.size
+    ):
+        raise SourceOwnerReconstructionHold("INVALID_GARMENT_COMPONENT_MASK")
+    if not isinstance(observer_masks, tuple) or not observer_masks:
+        raise SourceOwnerReconstructionHold("INDEPENDENT_OBSERVERS_REQUIRED")
+    names: set[str] = set()
+    validated: list[np.ndarray] = []
+    for item in observer_masks:
+        if not isinstance(item, tuple) or len(item) != 4:
+            raise SourceOwnerReconstructionHold("INVALID_INDEPENDENT_OBSERVER_ENTRY")
+        name, mask, expected_sha256, model_id = item
+        if (
+            type(name) is not str
+            or not name
+            or name in names
+            or type(model_id) is not str
+            or not model_id
+            or type(mask) is not np.ndarray
+            or mask.dtype != np.uint8
+            or mask.shape != garment_mask.shape
+            or np.any(mask > 1)
+            or type(expected_sha256) is not str
+            or len(expected_sha256) != 64
+            or _sha256(mask) != expected_sha256
+        ):
+            raise SourceOwnerReconstructionHold("INVALID_INDEPENDENT_OBSERVER_ENTRY")
+        names.add(name)
+        validated.append(mask.astype(bool))
+
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(
+        garment_mask.astype(np.uint8), connectivity=8
+    )
+    consensus = np.zeros_like(garment_mask)
+    abstained = np.zeros_like(garment_mask)
+    decisions: list[ComponentObserverDecision] = []
+    for component_id in range(1, count):
+        component = labels == component_id
+        observations = tuple(int(np.count_nonzero(mask & component)) for mask in validated)
+        area = int(stats[component_id, cv2.CC_STAT_AREA])
+        decision = "CONSENSUS" if all(value == area for value in observations) else (
+            "DISAGREEMENT" if any(value > 0 for value in observations) else "UNOBSERVED"
+        )
+        if decision == "CONSENSUS":
+            consensus |= component
+        else:
+            abstained |= component
+        decisions.append(
+            ComponentObserverDecision(
+                component_id=component_id,
+                area=area,
+                observer_positive_pixels=observations,
+                decision=decision,
+            )
+        )
+    if np.any(consensus & abstained) or not np.array_equal(consensus | abstained, garment_mask):
+        raise SourceOwnerReconstructionHold("COMPONENT_PARTITION_FAILED")
+    return consensus, abstained, tuple(decisions)
+
+
+def reconcile_observer_union_components(
+    *,
+    observer_masks: tuple[tuple[str, np.ndarray, str, str], ...],
+) -> tuple[np.ndarray, np.ndarray, tuple[ComponentObserverDecision, ...]]:
+    """Build whole components from the union of source-only observers.
+
+    This is the larger-scale alternative to intersecting or patching a frozen
+    owner.  Every input mask is independently authenticated and the union is
+    partitioned into 8-connected components.  A complete union component is a
+    candidate only when every observer contributes evidence somewhere inside
+    it; otherwise the complete component is unknown.  No pixel is promoted by
+    itself and no owner number is produced.
+    """
+    if not isinstance(observer_masks, tuple) or not observer_masks:
+        raise SourceOwnerReconstructionHold("INDEPENDENT_OBSERVERS_REQUIRED")
+    masks: list[np.ndarray] = []
+    names: set[str] = set()
+    shape: tuple[int, int] | None = None
+    for item in observer_masks:
+        if not isinstance(item, tuple) or len(item) != 4:
+            raise SourceOwnerReconstructionHold("INVALID_INDEPENDENT_OBSERVER_ENTRY")
+        name, mask, expected_sha256, model_id = item
+        if (
+            type(name) is not str
+            or not name
+            or name in names
+            or type(model_id) is not str
+            or not model_id
+            or type(mask) is not np.ndarray
+            or mask.dtype != np.uint8
+            or mask.ndim != 2
+            or np.any(mask > 1)
+            or (shape is not None and mask.shape != shape)
+            or (shape is None and not mask.size)
+            or type(expected_sha256) is not str
+            or len(expected_sha256) != 64
+            or _sha256(mask) != expected_sha256
+        ):
+            raise SourceOwnerReconstructionHold("INVALID_INDEPENDENT_OBSERVER_ENTRY")
+        names.add(name)
+        shape = mask.shape
+        masks.append(mask.astype(bool))
+    union = np.logical_or.reduce(masks)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(
+        union.astype(np.uint8), connectivity=8
+    )
+    consensus = np.zeros_like(union)
+    abstained = np.zeros_like(union)
+    decisions: list[ComponentObserverDecision] = []
+    for component_id in range(1, count):
+        component = labels == component_id
+        area = int(stats[component_id, cv2.CC_STAT_AREA])
+        observations = tuple(int(np.count_nonzero(mask & component)) for mask in masks)
+        decision = "CONSENSUS" if all(value > 0 for value in observations) else "UNOBSERVED"
+        if decision == "CONSENSUS":
+            consensus |= component
+        else:
+            abstained |= component
+        decisions.append(
+            ComponentObserverDecision(
+                component_id=component_id,
+                area=area,
+                observer_positive_pixels=observations,
+                decision=decision,
+            )
+        )
+    if np.any(consensus & abstained) or not np.array_equal(consensus | abstained, union):
+        raise SourceOwnerReconstructionHold("COMPONENT_PARTITION_FAILED")
+    return consensus, abstained, tuple(decisions)
