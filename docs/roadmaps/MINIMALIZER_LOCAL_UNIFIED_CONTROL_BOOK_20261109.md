@@ -115,5 +115,78 @@ L04 の vertex 方針決定や iPhone/Golen の受入だけは所有者判断が
 
 1. 本書の各現行参照が GitHub/Drive/ローカルで読戻し可能である。
 2. A/B の active gate、履歴、必須保持物、整理候補が区分済みである。
-3. A の次は H08 owner-authority receipt、B の次は L04 vertex-policy owner decision と明確である。
+3. A の次は H08の残存誤owner/FNのfirst-bad-stage分離、B の次は L04 vertex-policy owner decision と明確である。
 4. 未承認の削除、branch merge、production 変更を行っていない。
+
+## 9. 完成までの全工程図
+
+```mermaid
+flowchart TD
+    S[統合台帳・retention policy\nPR #453] --> A0
+    S --> B0
+
+    subgraph A[Lane A — L02 実画像品質]
+      A0[H08 authority receipt 固定\n完了: Phase4 FAIL] --> A1[H08: 誤owner 4,049pxと\n衣装FN 243,186pxの first-bad-stage 分離]
+      A1 --> A2[最小 source-only 修正\n人手ラベルは後評価のみ]
+      A2 --> A3[署名済み入力で freeze →\n独立後評価]
+      A3 --> A4{H08 Phase4 PASS?}
+      A4 -- No --> A1
+      A4 -- Yes --> A5[H08 Phase5 exact replay]
+      A5 --> A6[H06: 正衣装保持と\n腕・下着誤owner除去]
+      A6 --> A7{H06 Phase4/5 PASS?}
+      A7 -- No --> A6
+      A7 -- Yes --> A8[H04: 誤検出修復]
+      A8 --> A9{H04 Phase4/5 PASS?}
+      A9 -- No --> A8
+      A9 -- Yes --> A10[A全case independent visual review]
+      A10 --> A11{L02 quality PASS?}
+      A11 -- No --> A1
+    end
+
+    subgraph B[Lane B — L04 / L07 / L05]
+      B0[L04 v2三点照合\nsource-preservingは確認済み] --> B1{vertex cap方針\n所有者決定}
+      B1 -- 現状cap維持 --> B2[低頂点表現を再設計・QA]
+      B1 -- 版付きcap変更 --> B3[新cap方針とrollbackを固定]
+      B2 --> B4{L04 formal PASS?}
+      B3 --> B4
+      B4 -- No --> B2
+      B4 -- Yes --> B5[L07: generation-pinned SW\n実機safe activation]
+      B5 --> B6{SW migration/rollback PASS?}
+      B6 -- No --> B5
+      B6 -- Yes --> B7[L05: private HTTPS PC E2E\nPNG/SVG/reselect/429/stale/offline]
+      B7 --> B8{PC private HTTPS PASS?}
+      B8 -- No --> B7
+      B8 -- Yes --> B9[iPhone production acceptance]
+      B9 --> B10{本人受入 PASS?}
+      B10 -- No --> B7
+    end
+
+    A11 -- Yes --> I[統合release候補]
+    B10 -- Yes --> I
+    I --> G[Golden visual approval\n所有者操作]
+    G --> R[release / rollback readback]
+```
+
+### 工程一覧と完了条件
+
+| 順 | lane | 工程 | 現在地 | 次へ進む条件 |
+| ---: | --- | --- | --- | --- |
+| 0 | 共通 | 台帳・保存区分・現行SHAの固定 | 完了 | PR #453を正本として更新可能にする。 |
+| 1 | A | H08 Phase4 receipt | 完了、FAIL | 固定candidateの残存誤owner/FNをfirst-bad-stageへ帰属する。 |
+| 2 | A | H08最小修正と独立Phase4 | 未着手 | 正衣装・腕/下着・遮蔽・exclusive owner・4/8・holes・critical partsを同時にPASS。 |
+| 3 | A | H08 Phase5 exact replay | 未着手 | H08 Phase4単独PASS。 |
+| 4 | A | H06 修正とPhase4/5 | 未着手 | 正衣装を失わず誤ownerを除去し、unknownを陰性化しない。 |
+| 5 | A | H04 修正とPhase4/5 | 未着手 | 誤検出を除去し、Aの既存PASSを回帰させない。 |
+| 6 | A | L02全case visual review | 未着手 | H04/H06/H08すべての独立評価とvisual reviewがPASS。 |
+| 7 | B | L04 vertex方針 | **所有者判断待ち** | `1887`維持か、版付き新cap/rollbackかを決定。 |
+| 8 | B | L04 formal三点gate | HOLD | signed original・Stage8 JSON・SVG・budgetを同じ方針でPASS。 |
+| 9 | B | L07実機safe migration | HOLD | 世代固定、deferred activation、rollback、非cache境界を実機でPASS。 |
+| 10 | B | L05 PC private HTTPS | HOLD | actual input/output、PNG/SVG、reselect SHA、429/stale/offline/cold-warmをPASS。 |
+| 11 | B | iPhone受入 | 未着手 | 本番反映後、本人が実機で受入。 |
+| 12 | 統合 | Golden / release | **所有者操作** | A品質、B運用、iPhone受入がすべてPASSし、Golden目視承認を得る。 |
+
+### 並行できる範囲
+
+- AのH08/H06/H04は、前caseがFAILならそのcase内でのみ修正する。別caseへ品質PASSを横流ししない。
+- BはAの具体的な修正待ち中、L04のread-only三点QA、L07 source QA、L05 receipt整備を独立して進められる。
+- L04 vertex cap方針、iPhone受入、Goldenは所有者判断まで進めない。その他は具体的FAILの修正として継続する。
