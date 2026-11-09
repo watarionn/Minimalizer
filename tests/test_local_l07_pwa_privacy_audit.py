@@ -52,6 +52,12 @@ def test_whitelist_check_removed_is_rejected():
     with pytest.raises(PrivacyHold):
         verify_serviceworker(SW.replace('!ASSETS.includes(url.pathname)', 'false'))
 
+def test_query_shell_fallback_is_generation_canonical():
+    with pytest.raises(PrivacyHold):
+        verify_serviceworker(SW.replace(
+            'const cacheRequest = new Request(new URL(url.pathname, self.location.origin).href);',
+            'const cacheRequest = event.request;'))
+
 def test_dynamic_cache_put_rejected():
     with pytest.raises(PrivacyHold):
         verify_serviceworker(SW+'\ncache.put(event.request, response);\n')
