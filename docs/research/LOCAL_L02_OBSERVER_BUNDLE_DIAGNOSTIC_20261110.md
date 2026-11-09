@@ -51,6 +51,23 @@ H06ではLIP coatの意味精度は高いが再現が低く、H08ではLIP coat�
 3. observer間の一致はowner権限ではないため、境界の根拠が足りない部分は部分的な
    pixel patchではなく、意味region全体をunknownにする必要がある。
 
+## contact-aware graphの実画像結果
+
+全役割unionの粗さを解消するため、役割ごとのregionを保持して、重なりと8近傍接触を
+edgeとして記録する実装を追加した。これはowner割当ではなく、遮蔽・境界を次に判定
+するための入力である。
+
+| case | role regions | contact edges | unknown |
+|---|---:|---:|---:|
+| H06 | 86 | 54 | 52,428px |
+| H08 | 62 | 47 | 106,004px |
+
+接触edgeの内訳は、H06がarm-garment 8、arm-upper_clothing 8、garment-outerwear 5、
+garment-upper_clothing 26、outerwear-upper_clothing 7。H08がarm-garment 16、
+arm-outerwear 6、arm-upper_clothing 5、garment-outerwear 7、garment-upper_clothing 8、
+outerwear-upper_clothing 5だった。これにより、腕と衣装を一つの巨大成分へまとめず、
+意味境界候補として保持できる。
+
 ## 次の大きな実装単位
 
 `contact-aware role graph`を作る。
