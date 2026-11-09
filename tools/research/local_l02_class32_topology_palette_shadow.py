@@ -657,3 +657,56 @@ def propose_pinned_h06_with_independent_garment_guard(*, source_bytes: bytes,
     receipt['candidate_abstained_px'] = int(np.count_nonzero(guarded != frozen_owner))
     receipt['observer_guard_restored_px'] = guard_receipt['observer_guard_restored_px']
     return guarded, receipt
+
+
+def propose_pinned_h06_with_combined_garment_guard(*, source_bytes: bytes,
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        atr18_class_ids: np.ndarray, lip20_class_ids: np.ndarray,
+        garment_prediction: np.ndarray,
+        expected_prediction_sha256: str,
+        protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
+    """Apply both positive-only garment guards in a fixed, fail-closed order.
+
+    The pinned class32 removal candidate is produced first, then explicit
+    ATR/LIP garment positives restore only erased frozen-owner pixels, and
+    finally the separately frozen source-only model prediction can restore
+    only its own positive erased pixels. Neither guard removes an owner or
+    promotes a new owner, and unknown/zero observations remain abstentions.
+    This is still a research candidate and never a Phase4 or production path.
+    """
+    guarded, receipt = propose_pinned_h06_with_independent_garment_guard(
+        source_bytes=source_bytes, class_ids=class_ids,
+        frozen_owner=frozen_owner, atr18_class_ids=atr18_class_ids,
+        lip20_class_ids=lip20_class_ids,
+        protect_garment_seed_scale=protect_garment_seed_scale,
+    )
+    expected_source_sha256 = PINNED_RUN30_4_TRIPLES['H06'][0]
+    final, prediction_receipt = protect_source_only_garment_prediction(
+        candidate_owner=guarded, frozen_owner=frozen_owner,
+        source_bytes=source_bytes,
+        expected_source_sha256=expected_source_sha256,
+        garment_prediction=garment_prediction,
+        expected_prediction_sha256=expected_prediction_sha256,
+    )
+    if np.any((final > 0) & (frozen_owner == 0)) or np.any(
+            (final > 0) & (final != frozen_owner)):
+        raise SourceOnlyAbstentionHold('COMBINED_GARMENT_GUARD_POSTCONDITION_FAIL')
+    receipt['combined_garment_guard'] = {
+        'order': ['ATR18_LIP20_POSITIVE_ONLY',
+                  'SOURCE_ONLY_MODEL_POSITIVE_ONLY'],
+        'observer_guard_restored_px': receipt['observer_guard_restored_px'],
+        'source_only_prediction_guard_restored_px': prediction_receipt[
+            'guard_restored_px'],
+        'owner_promotions': 0,
+        'human_labels_used': False,
+        'unknown_not_treated_as_negative': True,
+        'candidate_only': True,
+        'quality': 'UNASSESSED', 'Phase4': 'FAIL',
+        'L02': 'HOLD', 'Golden': 'HOLD', 'production': 'NO_GO',
+    }
+    receipt['source_only_garment_prediction_guard'] = prediction_receipt
+    receipt['candidate_abstained_px'] = int(np.count_nonzero(
+        final != frozen_owner))
+    receipt['combined_guard_restored_px'] = int(np.count_nonzero(
+        (frozen_owner > 0) & (guarded == 0) & (final > 0)))
+    return final, receipt
