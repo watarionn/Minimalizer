@@ -25,8 +25,12 @@ from tools.research.local_l02_class32_topology_palette_shadow import (
 )
 
 MAX_PIXELS = 16_000_000
-SAPIENS2_ARM_CLASSES = (5, 6, 7, 10, 14, 15, 16, 20)
-SAPIENS2_GARMENT_CLASSES = (1, 12, 13, 23)
+# DOME_CLASSES_29 arm-only classes: Left/Right lower and upper arm.
+SAPIENS2_ARM_CLASSES = (7, 11, 16, 20)
+# Hands are distinct DOME classes. They veto sleeve recovery, but are not
+# sufficient authority for removing an existing garment owner.
+SAPIENS2_ARM_OR_HAND_CLASSES = (6, 7, 11, 15, 16, 20)
+SAPIENS2_GARMENT_CLASSES = (1, 13, 23)
 
 
 def _sha(value: np.ndarray) -> str:
@@ -120,6 +124,7 @@ def remove_sapiens2_arm_owner(*, source_bytes: bytes,
     return result, {
         "schema": "minimalizer/local-l02/sapiens2-arm-guard-shadow/v1",
         "sapiens2_arm_classes": list(SAPIENS2_ARM_CLASSES),
+        "sapiens2_arm_or_hand_veto_classes": list(SAPIENS2_ARM_OR_HAND_CLASSES),
         "sapiens2_garment_classes_protected": list(SAPIENS2_GARMENT_CLASSES),
         "selected_explicit_arm_px": int(selected.sum()),
         "removed_explicit_arm_px": removed,
@@ -146,7 +151,7 @@ def veto_sapiens2_arm_evidence(*, positive_evidence: np.ndarray,
             positive_evidence.shape != sapiens_classes.shape or
             expected_sapiens_sha256 != _sha(sapiens_classes)):
         raise SourceOnlyAbstentionHold("SAPIENS2_ARM_VETO_INPUT_MISMATCH")
-    arm = np.isin(sapiens_classes, SAPIENS2_ARM_CLASSES)
+    arm = np.isin(sapiens_classes, SAPIENS2_ARM_OR_HAND_CLASSES)
     protected = positive_evidence & arm
     result = positive_evidence & ~arm
     return result, {

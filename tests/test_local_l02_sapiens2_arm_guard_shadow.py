@@ -22,7 +22,7 @@ def sample():
     owner[5:18, 5:15] = 1
     owner[9:12, 15:18] = 1
     sapiens = np.zeros_like(owner)
-    sapiens[9:12, 15:18] = 5
+    sapiens[9:12, 15:18] = 7
     return stream.getvalue(), owner, sapiens
 
 
@@ -43,7 +43,7 @@ def test_explicit_arm_removal_is_source_only_and_topology_safe():
 
 def test_garment_class_is_never_removed():
     source, owner, sapiens = sample()
-    sapiens[sapiens == 5] = 12
+    sapiens[sapiens == 7] = 23
     digest = hashlib.sha256(source).hexdigest()
     observer_digest = hashlib.sha256(sapiens.tobytes(order="C")).hexdigest()
     result, receipt = remove_sapiens2_arm_owner(
