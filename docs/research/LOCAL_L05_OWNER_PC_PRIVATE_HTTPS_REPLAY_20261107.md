@@ -155,3 +155,22 @@ origin. After a LocalWorker restart, a private HTTPS `GET /health` and an
 `OPTIONS` preflight carrying that exact Origin each returned HTTP 200 with
 `Access-Control-Allow-Origin` set to the private origin. No wildcard origin
 and no authentication bypass was introduced.
+
+## 2026-11-09 physical iPhone acceptance
+
+The owner completed the physical acceptance on iPhone against the private
+HTTPS production endpoint. The raw screenshots and acceptance receipt are
+stored only in the owner private Drive; their source-free receipt SHA-256 is
+`06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`.
+
+- Safari displayed a completed PNG result and the ZeroBase2 BEST success
+  status.
+- The installed PWA also displayed a completed PNG result and the ZeroBase2
+  BEST success status.
+- The owner completed an airplane-mode round trip and confirmed that the
+  private Local PWA continued to work after connectivity was restored.
+- A separate iPhone result visibly handled a ZeroBase2 503 by switching to
+  Local V2 and completing a PNG result. This is a controlled fallback, not a
+  false ZeroBase2-success claim.
+
+Together with the production PC receipt, this closes the L05 device gate.

@@ -27,7 +27,7 @@ Two source-free research files are added:
 
 **Test evidence boundary:** the focused suite includes the generation pin and foreign-cache cleanup negative case. The static audit returns `STATIC_SW_PRIVACY_CONTRACT_PASS`, generation `minimalizer-local-20261107-1`, and `STATIC_LOCAL_ROUTE_ISOLATED`. This is not a live e2e or proof that all browser update, Origin, Tailscale, Safari or device flows succeed.
 
-Remaining L07 true pre-release work: test a running LocalWorker `Origin`, Tailscale owner identity, preflight, unauthorized GETs and 429 lock behavior; Safari install/save/offline/online/abort/restore; Service Worker update and cache invalidation with real browser/OS; response headers and memory/cold startup. Do NOT sign off L07 from these read-only checks. No exact runtime SHA check or iPhone user acceptance performed. L02 research continues independently.
+At the time of this static audit, remaining L07 work included a running LocalWorker `Origin`, Tailscale owner identity, preflight, device-browser lifecycle and physical iPhone acceptance. Do NOT sign off solely from these read-only checks. The later production and iPhone evidence below closes the L07 device gate; L02 research continues independently.
 
 Security/quality non-promotion: user-supplied source pixels, private NPZ, canonical Phase4 owners and manual Golden unchanged; no generated visible pixels; no eyes/nose/mouth/brows drawn; Public/C08 and Local production untouched.
 
@@ -48,3 +48,14 @@ with the exact registered script URL:
 This proves a real browser registered the production generation-pinned worker,
 in addition to the static audit. It does not substitute for physical iPhone
 install/offline/update acceptance, which remains the final L07/L05 device gate.
+
+## 2026-11-09 physical iPhone acceptance
+
+The owner accepted the private Local PWA on iPhone: Safari and the installed
+PWA each completed a PNG operation, and an airplane-mode round trip followed
+by restored connectivity continued to work. The private evidence receipt has
+SHA-256 `06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`;
+raw screenshots remain outside GitHub. The observed fallback from a ZeroBase2
+503 to a successful Local V2 result is consistent with the no-browser-fallback
+contract. This closes the L07 iPhone device gate without changing Public/C08,
+Golden, signed originals, or L02/L04 artifacts.
