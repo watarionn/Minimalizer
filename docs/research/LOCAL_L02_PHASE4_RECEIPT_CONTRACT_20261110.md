@@ -15,7 +15,20 @@ Each of H04, H06, and H08 must include the pinned signed source SHA, the exact
 candidate-array SHA from `SAPIENS2_CANDIDATE_FREEZE_RECEIPT.json`, and positive
 checks for garment preservation, justified wrong-owner removal, exclusive
 sleeve recovery ownership, occlusion/critical-part preservation, visual
-acceptability, and unknown-not-negative handling.
+regression acceptability, and unknown-not-negative handling.
+
+The human form must keep these two questions separate:
+
+- `visual_regression_acceptable`: did the candidate introduce an unacceptable
+  visible regression? This is a quality decision and is required for Phase4.
+- `change_visibility_sufficient`: was the candidate delta large enough to judge
+  the intended correction at normal viewing scale? This is a diagnostic field.
+
+An answer such as “the difference is too small to see” is **not** equivalent to
+“the result is visually unacceptable.” It sets
+`change_visibility_sufficient=false` and requires a magnified/cropped review or
+an explicit follow-up, while leaving `visual_regression_acceptable` unanswered.
+It must not be silently converted into either a Phase4 PASS or a quality FAIL.
 
 The verifier can return `Phase4: PASS` only. Its output always remains
 `Phase5: NO_GO`, `Golden: HOLD`, and `production: NO_GO`; later promotion is a
