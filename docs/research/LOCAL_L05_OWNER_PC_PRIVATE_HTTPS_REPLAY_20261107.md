@@ -87,3 +87,20 @@ change is **52 passed**.
 The concurrency receipt is complete for the owner-PC private HTTPS replay. Do
 not merge or promote from this evidence alone: the physical iPhone acceptance
 and remaining L05 release gates are still separate.
+
+## 2026-11-09 protected loopback smoke readback
+
+Without changing the worker configuration, the currently running protected
+Loopback Worker was read back once from `127.0.0.1:28764`:
+
+- `/health`: HTTP 200, `ready=true`, `worker=local-compute-v1`, active route
+  `zerobase2`, `zerobase2_authorized=true`.
+- `/api/v2/minimalize` with the repository test image
+  `Oozora-Subaru_list_thumb.png`: HTTP 200, `Content-Type: image/png`,
+  response size `3774` bytes, output SHA-256
+  `9f8b7c5d2940a416559b52cda0ec393372d49d0ea351be8bd7b9c6234a7cc49e`.
+- A second `/health` read after processing remained HTTP 200 and ready.
+
+This is a loopback runtime smoke receipt only. It is not private-HTTPS
+acceptance, production reflection, or iPhone acceptance; L05 remains `HOLD`
+and production remains `NO_GO`.
