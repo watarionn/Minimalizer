@@ -68,6 +68,39 @@ def _render_alpha(svg: Path, png: Path, chrome: Path) -> np.ndarray:
     return np.asarray(Image.open(png).convert("RGBA"), dtype=np.uint8)[..., 3] > 0
 
 
+def _horizontal_corrections(
+    missing: np.ndarray, owner_label: np.ndarray,
+) -> list[tuple[int, int, int, str]]:
+    """Return maximal same-owner horizontal runs for exact alpha corrections.
+
+    Each returned run becomes one SVG rectangle.  The representation is
+    lossless for the missing source-alpha pixels, while avoiding four SVG
+    vertices for every individual pixel in a contiguous scanline segment.
+    """
+    if missing.shape != owner_label.shape:
+        raise ValueError("missing/owner label shape mismatch")
+    corrections: list[tuple[int, int, int, str]] = []
+    for y in range(missing.shape[0]):
+        xs = np.flatnonzero(missing[y])
+        if not len(xs):
+            continue
+        start = previous = int(xs[0])
+        owner_index = int(owner_label[y, start])
+        for raw_x in xs[1:]:
+            x = int(raw_x)
+            next_owner = int(owner_label[y, x])
+            if x == previous + 1 and next_owner == owner_index:
+                previous = x
+                continue
+            owner = OWNERS[owner_index] if owner_index >= 0 else "unknown"
+            corrections.append((start, y, previous - start + 1, owner))
+            start = previous = x
+            owner_index = next_owner
+        owner = OWNERS[owner_index] if owner_index >= 0 else "unknown"
+        corrections.append((start, y, previous - start + 1, owner))
+    return corrections
+
+
 def run(*, source: Path, case_dir: Path, output_dir: Path,
         source_ring_cap: int, expanded_svg_cap: int, chrome: Path) -> dict[str, Any]:
     source = source.resolve()
@@ -129,15 +162,11 @@ def run(*, source: Path, case_dir: Path, output_dir: Path,
     extra = rendered & ~source_alpha
     if np.any(extra):
         raise ValueError(f"CHROMIUM_SOURCE_ALPHA_EXTRA:{int(extra.sum())}")
-    corrections: list[tuple[int, int, str]] = []
-    for y, x in zip(*np.where(missing)):
-        owner_index = int(owner_label[y, x])
-        owner = OWNERS[owner_index] if owner_index >= 0 else "unknown"
-        corrections.append((int(x), int(y), owner))
-    for index, (x, y, owner) in enumerate(corrections):
+    corrections = _horizontal_corrections(missing, owner_label)
+    for index, (x, y, width, owner) in enumerate(corrections):
         vertices += 4
         chunks.insert(-1, f'<rect id="source-edge-{index}" data-owner="{owner}" '
-                      f'x="{x}" y="{y}" width="1" height="1" fill="{COLOURS[owner]}"/>')
+                      f'x="{x}" y="{y}" width="{width}" height="1" fill="{COLOURS[owner]}"/>')
     svg_path.write_text("".join(chunks), encoding="utf-8", newline="\n")
     rendered = _render_alpha(svg_path, png_path, chrome)
     alpha_xor = int(np.count_nonzero(rendered ^ source_alpha))

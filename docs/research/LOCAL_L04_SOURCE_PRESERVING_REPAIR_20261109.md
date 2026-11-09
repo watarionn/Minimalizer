@@ -31,3 +31,22 @@ into a PASS.
 Next: obtain or explicitly approve a versioned Local vertex policy, or develop
 a source-preserving representation whose measured geometry really fits that
 policy. No Public/C08, Golden, LocalWorker, or signed original was changed.
+
+## 2026-11-09 same-owner correction-run compaction
+
+The exact-replay repair originally emitted one four-vertex rectangle for every
+missing raster pixel. It now combines horizontally contiguous missing pixels
+only when they have the same source-only owner. This preserves the exact
+source alpha, owner replay and protected face/arm owners; it neither reads
+human review material nor alters any cap.
+
+| Case | Exact vertices before | Exact vertices after | Exact owner / protected / silhouette |
+|---|---:|---:|---|
+| H06 | 72,201 | 63,857 | 0 / 0 / 0 mismatch pixels |
+| H08 | 56,249 | 48,445 | 0 / 0 / 0 mismatch pixels |
+
+The remaining non-correction contour geometry alone is 13,249 vertices for
+H06 and 10,877 for H08, already above the inherited 1,887 cap. The new
+private triples passed hash linkage and all exactness checks but failed both
+source-ring and expanded-SVG budget checks. This is a measured policy conflict,
+not a reason to silently replace the cap or call L04 complete.
