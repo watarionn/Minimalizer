@@ -68,16 +68,21 @@ def _require_flags(values: Mapping[str, object], names: tuple[str, ...], label: 
 
 def evaluate_frozen_candidate(*, review: Mapping[str, object],
                               structural: Mapping[str, object],
-                              metrics: Mapping[str, object]) -> dict:
+                              metrics: Mapping[str, object],
+                              authority: Mapping[str, object] | None = None) -> dict:
     """Return a non-promoting case-level Phase4 decision.
 
     A PASS requires at least one known wrong-owner removal or garment addition,
     no known garment loss, no known wrong-owner addition, no unknown mutation,
-    and zero owner promotions. Unknown pixels are excluded from quality counts,
-    but any candidate mutation in unknown is rejected rather than treated as a
-    negative result.
+    and either zero owner promotions or a separate explicit authority receipt
+    for them. Unknown pixels are excluded from quality counts, but any
+    candidate mutation in unknown is rejected rather than treated as a negative
+    result.
     """
-    if not all(isinstance(x, Mapping) for x in (review, structural, metrics)):
+    if authority is None:
+        authority = {}
+    if not all(isinstance(x, Mapping) for x in
+               (review, structural, metrics, authority)):
         raise Phase4Hold("INVALID_PHASE4_EVIDENCE_MAPPING")
     failures = _require_flags(review, _REVIEW_FLAGS, "review")
     failures += _require_flags(structural, _STRUCTURAL_FLAGS, "structural")
@@ -116,7 +121,12 @@ def evaluate_frozen_candidate(*, review: Mapping[str, object],
     if counts["removed_known_positive_garment_px"] != 0:
         failures.append("KNOWN_GARMENT_LOSS")
     if counts["owner_promotions"] != 0:
-        failures.append("OWNER_PROMOTION_NOT_ALLOWED")
+        promotion_auth = authority.get("owner_promotion_authorized")
+        if type(promotion_auth) is not bool:
+            failures.append(
+                "AUTHORITY_MISSING_OR_NONBOOLEAN:owner_promotion_authorized")
+        elif not promotion_auth:
+            failures.append("AUTHORITY_FAIL:owner_promotion_authorized")
     if (counts["added_known_positive_garment_px"] == 0 and
             counts["removed_known_negative_owner_px"] == 0):
         failures.append("NO_VERIFIED_QUALITY_IMPROVEMENT")
