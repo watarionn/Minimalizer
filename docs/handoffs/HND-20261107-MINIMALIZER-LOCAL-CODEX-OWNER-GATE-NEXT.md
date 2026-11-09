@@ -113,6 +113,11 @@ was relabeled as formal evidence.
   third-party model/data licenses, and commercial distribution
   `NOT_VERIFIED`. No new signed independent execution receipt or independent
   unseen-character holdout was supplied.
+- On 2026-11-09 JST the owner stated in the collaboration thread that the
+  license confirmation is complete and approved. Record this as the owner-side
+  commercial-use decision `USER_CONFIRMED_CLEARED`; it does not rewrite the
+  Drive package's objective `NOT_VERIFIED` fields for third-party model/data
+  licensing or replace primary-source license evidence.
 - This is a **Drive preservation/readback PASS**, not a semantic quality PASS:
   newly verified P0/P1 improvements remain `0`, and the release gate remains
   `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`. Keep #449 Draft, do not
