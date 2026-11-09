@@ -32,3 +32,10 @@ Public/C08, Golden, Local production, or iPhone state was changed.
 The formal owner-side gate remains pending until the actual private three-point
 set and its independent receipt are available. Do not infer a formal L04 pass
 from this source-free test result.
+
+## Lane boundary
+
+This gate's `L04_formal=HOLD` result is an A-owned image-quality and
+vertex-policy decision. It is not the Lane B delivery status. Lane B separately
+verifies exact triple linkage, safe SVG and browser rendering without changing
+or judging A's image; see `LOCAL_L04_DELIVERY_COMPLETION_20261109.md`.
