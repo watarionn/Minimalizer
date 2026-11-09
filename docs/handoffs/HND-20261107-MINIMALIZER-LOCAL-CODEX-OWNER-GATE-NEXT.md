@@ -122,6 +122,37 @@ was relabeled as formal evidence.
   newly verified P0/P1 improvements remain `0`, and the release gate remains
   `L02=HOLD`, `Phase4=FAIL`, `production=NO_GO`. Keep #449 Draft, do not
   promote Phase5, merge `main`, or alter Public/C08/Golden/LocalWorker.
+
+## 2026-11-09 source-only new inference receipt
+
+- A new isolated CPU inference was executed after the blind review masks were
+  supplied, using only the SHA-pinned signed H06/H08 source WebP files. The
+  inference process received neither the review JSON nor either human mask;
+  `human_masks_used_in_inference=false`, `review_json_used_in_inference=false`,
+  and `unknown_as_negative=false` are recorded in the private receipt.
+- Model provenance was fixed to `sayeed99/segformer-b2-fashion`, revision
+  `e82089f3b76fdc5522727f6e793ff3d470c15e74`, with weights SHA
+  `47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1`,
+  config SHA `44b342a5e9301a1716dac8a56537e82acfdae8f0597069b0414b7704e39b8705`,
+  and processor SHA
+  `6073ac6a37530ed2a19443d6a748f5579887b3ae48f6730073954b0b38cf3fd6`.
+- Source-only output SHA/counts: H06
+  `5dadf0fc88f0b52c57d29151933979057651e2bd036c20eff4d3d9b2db9e3f25`,
+  `336792` nonzero pixels; H08
+  `8e3613bf90202a5a04a58f53b7ba66e755a601494e37fac1a5137ad06bcf4275`,
+  `100349` nonzero pixels. Both predictions have zero pixels outside signed
+  source alpha. H06 differs from the prior frozen Run30 owner mask by
+  `46613` pixels; H08 is byte-identical at the boolean-mask level.
+- Only after output SHA freeze, the corrected signed review masks were used for
+  post-inference scoring. H06: IoU `0.650551`, positive recall `0.654365`,
+  known-negative FP `2985`, unknown predicted `699`. H08: IoU `0.278827`,
+  positive recall `0.282152`, known-negative FP `4049`, unknown predicted
+  `483`. Transparent painted pixels were excluded and unknown remained
+  unknown.
+- This closes the **new-inference execution** evidence gap, but it is not a
+  semantic owner-quality PASS: H08 remains weak, the raw class5/class10 output
+  is not yet an exclusive owner repair, and no new accepted P0/P1 improvement
+  is claimed. Keep `Phase4=FAIL`, `L02=HOLD`, `production=NO_GO`.
 - A follow-up 2026-11-08 research-only package was read back from the same
   private Drive folder. Its SHA manifest matches the five downloaded
   source-free records by byte count and SHA-256. The added observer record
