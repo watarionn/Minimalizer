@@ -18,6 +18,14 @@
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
+2026-11-10の読み取り専用B再検証では、PR #451 head
+`c593b46c53c28127b08d74d2ce733045495b5577` に対してL04/L05/L07/Workerの
+focused suiteが `46 passed`。Service Worker generation pin、shell-only cache、
+no-store route、offline shell fallback、L05 concurrency契約を静的に確認した。
+これはBのsource/runtime QAであり、production反映・実機iPhone受入・L04正式三点
+セットの完成を意味しない。L07監査自身も `L07_actual_live_iphone=NOT_TESTED`、
+`L08_release=NOT_APPROVED` を返している。
+
 ## AとBの役割
 
 ```text
