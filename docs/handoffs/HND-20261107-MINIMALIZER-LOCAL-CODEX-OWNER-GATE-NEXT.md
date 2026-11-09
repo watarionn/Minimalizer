@@ -190,6 +190,21 @@ was relabeled as formal evidence.
 - After the replay, LocalWorker was restored to the protected production
   runtime. The Draft worker was not left active on the production port.
 
+## 2026-11-09 owner decision: remove the documentary license gate
+
+- The owner explicitly decided that a separate documentary license-evidence
+  gate is not applicable to this project because the expected evidence does
+  not exist and must not become an indefinite completion blocker.
+- From this point, license/provenance documentation is removed from the
+  **release-blocking gate list** and is handled as an owner-accepted
+  commercial-use responsibility (`USER_CONFIRMED_CLEARED`). Historical Drive
+  records that say `NOT_VERIFIED` remain unchanged as historical observations;
+  they are not relabeled as objective verification.
+- This decision supersedes earlier wording in this handoff that listed a
+  license gate as mandatory. It does not waive independent blind evaluation,
+  semantic critical-part/occlusion review, exclusive-owner checks, Phase4,
+  physical-device acceptance, or the A/B branch and production protections.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
@@ -207,5 +222,5 @@ was relabeled as formal evidence.
 
 Keep #449 and #451 Draft. Do not promote Phase5, merge to `main`, change
 Public/C08 or production, or treat static/TestClient results as device
-acceptance until the owner-side gates above are read back and independently
-verified.
+acceptance until the remaining owner-side gates above are read back and
+independently verified.
