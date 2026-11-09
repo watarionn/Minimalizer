@@ -1,10 +1,14 @@
 """Source-free topology and abstention regression. No private images/masks."""
+import hashlib
 import unittest
+from unittest.mock import patch
 import numpy as np
 from scipy import ndimage as ndi
 
 from tools.research.local_l02_class32_topology_positive_shadow import (
-    _topology_safe_exclusive_assign, propose_pinned_run30_class32_topology_positive,
+    _topology_safe_exclusive_assign,
+    propose_pinned_h08_with_independent_observer_positive,
+    propose_pinned_run30_class32_topology_positive,
 )
 from tools.research.local_l02_class32_topology_palette_shadow import SourceOnlyAbstentionHold
 
@@ -91,6 +95,41 @@ class TopologyPositiveTest(unittest.TestCase):
                 case_id='unknown', source_bytes=b'bad',
                 class_ids=np.zeros((2, 2), np.uint8),
                 frozen_owner=np.zeros((2, 2), np.uint8))
+
+    def test_h08_independent_observer_intersects_positive_evidence(self):
+        owner = np.zeros((12, 12), np.uint8)
+        owner[4:7, 2:5] = 1
+        class_ids = np.zeros_like(owner)
+        source_evidence = np.zeros_like(owner, dtype=bool)
+        source_evidence[4:7, 5:9] = True
+        independent = np.zeros_like(owner)
+        independent[4:7, 5:7] = 1
+        expected = hashlib.sha256(independent.tobytes(order='C')).hexdigest()
+        with patch(
+                'tools.research.local_l02_class32_topology_positive_shadow.'
+                'propose_pinned_run30_class32_positive',
+                return_value=(source_evidence, {'reason': 'TEST_SOURCE_ONLY'})), \
+                patch('tools.research.local_l02_class32_topology_positive_shadow.'
+                      'H08_DEEPFASHION_ONLY_SHA256', expected):
+            got, receipt = propose_pinned_h08_with_independent_observer_positive(
+                source_bytes=b'test-source', class_ids=class_ids,
+                frozen_owner=owner, independent_positive=independent,
+                expected_independent_positive_sha256=expected)
+        self.assertEqual(int((got != owner).sum()), 6)
+        self.assertTrue(np.all(got[4:7, 5:7] == 1))
+        self.assertEqual(int((got[4:7, 7:9] != owner[4:7, 7:9]).sum()), 0)
+        self.assertTrue(receipt['independent_observer_sha_verified'])
+        self.assertTrue(receipt['independent_model_evidence'])
+        self.assertFalse(receipt['human_labels_in_inference'])
+
+    def test_h08_independent_observer_sha_is_fail_closed(self):
+        independent = np.zeros((4, 4), np.uint8)
+        with self.assertRaisesRegex(SourceOnlyAbstentionHold,
+                                    'INVALID_INDEPENDENT_OBSERVER_INPUT'):
+            propose_pinned_h08_with_independent_observer_positive(
+                source_bytes=b'test-source', class_ids=np.zeros((4, 4), np.uint8),
+                frozen_owner=np.zeros((4, 4), np.uint8),
+                independent_positive=independent, expected_independent_positive_sha256='0' * 64)
 
 
 if __name__ == '__main__':

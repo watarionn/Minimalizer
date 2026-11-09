@@ -6,6 +6,8 @@ component can be assigned. All other candidate pixels remain unowned.
 """
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 from scipy import ndimage as ndi
 
@@ -18,6 +20,13 @@ from tools.research.local_l02_class32_topology_palette_shadow import (
 
 _CROSS = ndi.generate_binary_structure(2, 1)
 _SQUARE = ndi.generate_binary_structure(2, 2)
+
+# Private-only output digest for the independent DeepFashion2 observer's H08
+# ``deepfashion_only`` positive map.  The array is supplied by the caller and
+# never stored in this repository.  This is an integrity pin, not a semantic
+# promotion or a substitute for the independent review gate.
+H08_DEEPFASHION_ONLY_SHA256 = (
+    '3dd9b6e01d2584247543abbe64f543e1ec1d0d55ab6231d3d7d2783a2d0cbcfa')
 
 
 def _single_original_owner_touch(component_ids: np.ndarray, count: int,
@@ -159,6 +168,67 @@ def propose_pinned_run30_class32_topology_positive(*, case_id: str,
         **topology,
         'human_labels_in_inference': False,
         'independent_model_evidence': False,
+        'quality': 'UNASSESSED', 'L02': 'HOLD', 'Phase4': 'FAIL',
+        'L03': 'NO_GO', 'Golden': 'HOLD', 'production': 'NO_GO',
+    }
+
+
+def propose_pinned_h08_with_independent_observer_positive(*, source_bytes: bytes,
+        class_ids: np.ndarray, frozen_owner: np.ndarray,
+        independent_positive: np.ndarray,
+        expected_independent_positive_sha256: str) -> tuple[np.ndarray, dict]:
+    """Propose H08 sleeve recovery only where a second observer is positive.
+
+    The existing source-only class32/color evidence is intersected with a
+    separately produced DeepFashion2 positive map before the exclusive 4/8
+    topology assignment.  The observer can therefore add only pixels already
+    proposed by the signed-source hypothesis, and only a component touching a
+    single frozen owner may receive that owner.  No review mask or human label
+    is accepted here; observer absence remains unknown rather than negative.
+    """
+    if (type(independent_positive) is not np.ndarray or
+            independent_positive.dtype != np.uint8 or
+            independent_positive.ndim != 2 or
+            independent_positive.shape != frozen_owner.shape or
+            np.any(independent_positive > 1) or
+            type(expected_independent_positive_sha256) is not str or
+            len(expected_independent_positive_sha256) != 64 or
+            any(ch not in '0123456789abcdef'
+                for ch in expected_independent_positive_sha256) or
+            expected_independent_positive_sha256 !=
+            H08_DEEPFASHION_ONLY_SHA256):
+        raise SourceOnlyAbstentionHold('INVALID_INDEPENDENT_OBSERVER_INPUT')
+    actual_observer_sha256 = hashlib.sha256(
+        independent_positive.tobytes(order='C')).hexdigest()
+    if actual_observer_sha256 != expected_independent_positive_sha256:
+        raise SourceOnlyAbstentionHold('INDEPENDENT_OBSERVER_SHA_MISMATCH')
+    if (type(class_ids) is not np.ndarray or class_ids.dtype != np.uint8 or
+            type(frozen_owner) is not np.ndarray or frozen_owner.dtype != np.uint8):
+        raise SourceOnlyAbstentionHold('INVALID_INDEPENDENT_OBSERVER_OWNER_INPUT')
+    evidence, source_receipt = propose_pinned_run30_class32_positive(
+        case_id='H08', source_bytes=source_bytes, class_ids=class_ids,
+        frozen_owner=frozen_owner)
+    intersected = evidence & (independent_positive == 1)
+    proposed, topology = _topology_safe_exclusive_assign(
+        intersected, frozen_owner)
+    return proposed, {
+        'schema': 'minimalizer/l02/h08-independent-observer-topology-positive-shadow/v1',
+        'case': 'H08',
+        'source_class_owner_pinned': True,
+        'source_positive_evidence_px': int(evidence.sum()),
+        'independent_observer_positive_px': int(
+            np.count_nonzero(independent_positive)),
+        'intersected_positive_evidence_px': int(intersected.sum()),
+        'independent_observer_sha256': actual_observer_sha256,
+        'independent_observer_sha_verified': True,
+        'independent_observer_model': 'HasanKabir23/Yolov26s-DeepFashion2',
+        'human_labels_in_inference': False,
+        'unknown_not_treated_as_negative': True,
+        'owner_promotion_authorized': False,
+        'candidate_only': True,
+        'independent_model_evidence': True,
+        'source_evidence_receipt': source_receipt,
+        **topology,
         'quality': 'UNASSESSED', 'L02': 'HOLD', 'Phase4': 'FAIL',
         'L03': 'NO_GO', 'Golden': 'HOLD', 'production': 'NO_GO',
     }

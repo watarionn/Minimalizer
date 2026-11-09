@@ -341,6 +341,34 @@ was relabeled as formal evidence.
   This remains a research candidate only; no Phase4, Phase5, main, Public,
   C08, Golden or production change follows from this integration.
 
+## 2026-11-09 H08 independent-observer positive intersection
+
+- Added the source-free
+  `propose_pinned_h08_with_independent_observer_positive` entrypoint. It
+  intersects the signed-source class32/color-positive evidence with the
+  provenance-pinned H08 `deepfashion_only` positive map from the independent
+  DeepFashion2 observer, then applies the existing exclusive 4/8 owner and
+  enclosed-hole gate. The observer array is caller-supplied and private; its
+  exact SHA is bound in code as
+  `3dd9b6e01d2584247543abbe64f543e1ec1d0d55ab6231d3d7d2783a2d0cbcfa`.
+  Human masks and review JSON are not accepted by the inference function, and
+  absent observer pixels remain unknown rather than negative.
+- Exact signed H08 replay passed source/class/owner/observer SHA checks,
+  owner exclusivity, 4/8 component preservation, and enclosed-hole
+  preservation. It assigned `591` pixels (`588` owner 1, `3` owner 2) in the
+  private candidate. After output freeze, the supplied review mask was used
+  only for postscore: IoU improved `0.278827 -> 0.280547`, recall
+  `0.282152 -> 0.283892`, known-negative FP stayed `4049` and the known-
+  negative FP rate stayed `0.020791`; `483` unknown predictions remained
+  excluded from the score. Private receipt SHA is
+  `F629B92CEA072835E8B986048714423B78D00F8897C78B67A327C86A08C33E6D`.
+- Added source-free regression coverage for observer intersection and
+  fail-closed observer SHA handling. The L02-focused suite is now
+  `428 passed, 46 subtests passed`. This is a research candidate and a
+  diagnostic improvement only: independent semantic sleeve-vs-arm/underlayer
+  authority, owner promotion authorization, Phase4, Golden, and production
+  remain unresolved. Keep `L02=HOLD`, `Phase4=FAIL`, and `production=NO_GO`.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
