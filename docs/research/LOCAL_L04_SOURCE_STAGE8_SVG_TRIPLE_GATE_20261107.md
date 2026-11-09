@@ -28,3 +28,26 @@ set and its independent receipt are available. Do not infer a formal L04 pass
 from this source-free test result.
 
 Implementation commit: `20e2e2be` (PR #451, Draft; not merged).
+
+## 2026-11-09 read-only Drive intake reconciliation
+
+A read-only fetch of the owner-private receipt
+`Minimalizer_LaneB_L04_RealSourceBytes_IntakeReceipt_20261025_1021.md`
+confirmed the byte identity of the genuine Local research originals, without
+copying any private image, mask, coordinate, JSON, or SVG into this repository:
+
+- H06 signed original SHA-256:
+  `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`
+- H08 signed original SHA-256:
+  `759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e`
+- The receipt explicitly classifies the result as source-byte consistency only,
+  not official Stage8 acceptance.
+- Its real-byte negative intake returned `HOLD` with
+  `NOT_PROVEN_LOCAL_ORIGIN`; the reviewed annotation JSON/SVG was not relabeled
+  as the official Stage8 source-ring pair.
+
+The formal L04 owner operation is therefore unchanged: provide owner-authorized
+linkage to one exact source SHA, the authentic Stage8 source-ring JSON, the
+authentic expanded SVG, and an independently attested provenance/equivalence
+receipt. Until those four items are read back and verified, L04 remains
+`HOLD` and production remains `NO_GO`.
