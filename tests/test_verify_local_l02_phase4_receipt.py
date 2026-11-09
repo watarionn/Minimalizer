@@ -48,7 +48,8 @@ def receipt(**overrides):
             "wrong_owner_removed_only_where_justified": True,
             "sleeve_recovery_owner_exclusive": True,
             "occlusion_and_critical_parts_preserved": True,
-            "visual_difference_acceptable": True,
+            "visual_regression_acceptable": True,
+            "change_visibility_sufficient": True,
             "unknown_not_negative": True,
         }
     result.update(overrides)
@@ -91,3 +92,11 @@ def test_freeze_label_leak_holds():
     frozen["human_labels_used"] = True
     with pytest.raises(gate.Phase4ReceiptHold, match="FREEZE_LABEL_LEAK_FLAG"):
         gate.verify_phase4_receipt(receipt(), frozen)
+
+
+def test_too_small_visual_delta_holds_without_relabeling_as_quality_fail():
+    review = receipt()
+    review["cases"]["H08"]["change_visibility_sufficient"] = False
+    with pytest.raises(gate.Phase4ReceiptHold) as exc:
+        gate.verify_phase4_receipt(review, freeze_receipt())
+    assert "CASE_FLAG_FAIL:H08:change_visibility_sufficient" in exc.value.failures

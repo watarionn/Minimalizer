@@ -40,7 +40,8 @@ CASE_TRUE_FLAGS = (
     "wrong_owner_removed_only_where_justified",
     "sleeve_recovery_owner_exclusive",
     "occlusion_and_critical_parts_preserved",
-    "visual_difference_acceptable",
+    "visual_regression_acceptable",
+    "change_visibility_sufficient",
     "unknown_not_negative",
 )
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
