@@ -8,6 +8,7 @@ import pytest
 from tools.research.local_l02_observer_component_graph import (
     ObserverComponentGraphHold,
     ObserverMask,
+    build_contact_aware_role_graph,
     build_observer_component_graph,
 )
 
@@ -66,3 +67,22 @@ def test_observer_hash_mismatch_fails_closed():
 
     with pytest.raises(ObserverComponentGraphHold, match="INVALID_OBSERVER_ENTRY"):
         build_observer_component_graph(source_alpha=alpha, observers=(bad,))
+
+
+def test_contact_aware_graph_keeps_touching_roles_as_separate_regions():
+    alpha = np.ones((8, 9), dtype=bool)
+    garment = np.zeros((8, 9), dtype=np.uint8)
+    arm = np.zeros((8, 9), dtype=np.uint8)
+    garment[1:4, 1:4] = 1
+    arm[3:6, 3:6] = 1
+
+    graph = build_contact_aware_role_graph(
+        source_alpha=alpha,
+        observers=(_observer("garment-model", "garment", garment), _observer("arm-model", "arm", arm)),
+    )
+
+    assert len(graph.regions) == 2
+    assert len(graph.contacts) == 1
+    assert graph.contacts[0].overlap_pixels == 1
+    assert graph.contacts[0].adjacent_pixels > 0
+    assert graph.unknown_not_treated_as_negative is True
