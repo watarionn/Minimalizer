@@ -322,6 +322,25 @@ was relabeled as formal evidence.
   repository. Repository state remains `L02=HOLD`, `Phase4=FAIL`,
   `production=NO_GO`; #449 and #451 remain Draft.
 
+## 2026-11-09 combined H06 protection entrypoint
+
+- Commit `499151c4` adds the source-free
+  `propose_pinned_h06_with_combined_garment_guard` entrypoint. It fixes the
+  integration gap without changing the removal rule: the pinned class32
+  candidate runs first, ATR18/LIP20 explicit garment positives restore only
+  erased frozen-owner pixels, and the separately frozen source-only model
+  prediction then applies the same positive-only restoration rule. Zero or
+  unknown observations never authorize deletion, and no new owner is promoted.
+- The exact signed H06 replay reproduced the prior result through this single
+  entrypoint: four removals remain after one ATR/LIP restoration, the new
+  source-only model restores zero, and the combined candidate has the same
+  diagnostic IoU `0.737672` and known-negative FP rate `0.043031` as the
+  independently guarded candidate. Source SHA, prediction-array SHA, alpha,
+  owner exclusivity, 4/8 components and enclosed holes passed.
+- The source-free A suite at the new head is `426 passed, 46 subtests passed`.
+  This remains a research candidate only; no Phase4, Phase5, main, Public,
+  C08, Golden or production change follows from this integration.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
