@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `54654bfac80550a4fe565de694c39d30b47b5703` |
-| Lane A PR #449 | Draft / head `6c086e4d8b552c76380fe3bf810e2e15b2f4381c` |
+| Lane A PR #449 | Draft / head `932ba6df1704bfd81d7e11f78764727e1f87e662` |
 | Lane B PR #451 | 過去のB成果を保持。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
