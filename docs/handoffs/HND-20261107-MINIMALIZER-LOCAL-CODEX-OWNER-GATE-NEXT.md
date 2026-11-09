@@ -410,6 +410,19 @@ was relabeled as formal evidence.
   passes. No private masks, NPZs, coordinates, or comparison images were
   added to GitHub.
 
+## 2026-11-09 H08 frozen postscore gate readback
+
+- The exact H08 independent-observer candidate was also evaluated after output
+  freeze. It added `591` owner pixels (`588` owner 1, `3` owner 2), all `591`
+  scored as known-positive garment pixels; known-negative additions and
+  unknown mutations were `0`, and topology/holes remained structurally valid.
+- The non-promoting gate returned `case_phase4=HOLD` with the single failure
+  `OWNER_PROMOTION_NOT_ALLOWED`. This is consistent with the frozen receipt's
+  `owner_promotion_authorized=false`: the candidate is useful research
+  evidence, but the bounded owner authorization does not authorize formal
+  owner promotion or Phase5. `phase5_authorized=false`, `L02=HOLD`, and
+  `production=NO_GO` remain unchanged.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
