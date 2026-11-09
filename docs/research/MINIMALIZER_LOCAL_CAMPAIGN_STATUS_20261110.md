@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `54654bfac80550a4fe565de694c39d30b47b5703` |
-| Lane A PR #449 | Draft / head `291616c09571af133d8123281b6a1d3d0c415e88` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102`（GitHub remote headを正本としてreadback） |
 | Lane B PR #451 | 過去のB成果を保持。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -79,17 +79,12 @@ AのPhase4がFAILなら完成にはならない。
 
 ## 次に実行する工程
 
-1. 旧H06 4px/H08 591px候補を正式候補から外し、全身観測層の成分集合を凍結する。
-2. H06の全成分を袖・腕・下着・正衣装・遮蔽の意味領域へ再構成する。既存ownerは
-   比較専用とし、推論入力に戻さない。
-3. H08、H04へ同じ観測→成分再構成契約を適用する。ケース別閾値後合わせは禁止する。
-4. H04/H06/H08の全ケースで、署名、未見、推論前ラベル非使用、独立評価、意味評価、
-   unknown非陰性、freeze順序、排他的owner、4/8連結、穴、遮蔽、正衣装保持を確認する。
-5. Phase4が全ケースで独立PASSになった場合だけPhase5 exact replayへ進む。
-4. Phase5成果からH04を含むL04正式三点セットを作り、元画像・Stage8 JSON・展開SVG・
-   manifest・gate resultを相互照合する。現行L04 cap方針は勝手に変更しない。
-5. その後にBの既存L05/L07証拠を候補へ接続し、production反映後に実機iPhone受入、
-   Golden承認、rollback readbackを行う。
+具体的な順序と、局所修正を再開しない条件は
+`docs/research/LOCAL_L02_DEVELOPMENT_METHOD_RESET_20261110.md`を正本とする。
+現時点の次作業は、旧候補を正式入力から隔離したうえで、H04/H06/H08の意味クラス別
+失敗表を一枚に固定し、三例同時の全身候補を作るための設計を一つに絞ることである。
+Phase4が全ケースで独立PASSになった場合だけPhase5 exact replay、L04正式三点セット、
+Golden、本番、実機iPhone受入へ進む。
 
 現時点では、新しいB実装や本番変更を行わない。正式に足りないのは、追加の実験数
 ではなく、現在候補に束縛されたPhase4 receiptと、Phase4後に作るH04を含むL04三点セットである。
