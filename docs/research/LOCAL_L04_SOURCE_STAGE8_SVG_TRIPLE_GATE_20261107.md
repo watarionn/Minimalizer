@@ -18,8 +18,9 @@ HOLD`, `release_authorized: false`, and `production_release: NO_GO`.
 
 The expanded SVG parser is also fail-closed against executable or embedded
 content: DTD/entities, script-like tags, raster/media/embed elements, inline
-event attributes, and external `href`/`src` schemes are rejected. Internal
-fragment references remain parseable, but they do not create formal acceptance.
+event attributes, and non-fragment `href`/`src` references are rejected.
+Internal fragment references remain parseable, but they do not create formal
+acceptance.
 
 Synthetic source-free tests in
 `tests/test_local_l04_source_stage8_svg_triple_gate.py` cover exact-triple

@@ -112,6 +112,12 @@ def test_external_markup_is_rejected(tmp_path):
      "UNSAFE_EXPANDED_SVG_CONTENT:image"),
     (b'<svg xmlns="http://www.w3.org/2000/svg"><use href="data:image/svg+xml,x"/><path d="M0 0h1"/></svg>',
      "UNSAFE_EXPANDED_SVG_EXTERNAL_REFERENCE"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><use href="javascript:run()"/><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_EXTERNAL_REFERENCE"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><use href="//example.invalid/x"/><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_EXTERNAL_REFERENCE"),
+    (b'<svg xmlns="http://www.w3.org/2000/svg"><FOREIGNOBJECT/><path d="M0 0h1"/></svg>',
+     "UNSAFE_EXPANDED_SVG_CONTENT:FOREIGNOBJECT"),
     (b'<svg xmlns="http://www.w3.org/2000/svg" onload="run()"><path d="M0 0h1"/></svg>',
      "UNSAFE_EXPANDED_SVG_EVENT_ATTRIBUTE"),
 ))
