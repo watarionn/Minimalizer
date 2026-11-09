@@ -16,6 +16,7 @@ observerとして渡し、8連結unionをcomponent単位で調べた。
 
 | case | observer観測 | unknown | union components | role conflict | role evidence |
 |---|---:|---:|---:|---:|---:|
+| H04 | 220,455px | 20,727px | 48 | 3 | 45 |
 | H06 | 550,441px | 52,428px | 42 | 3 | 39 |
 | H08 | 430,855px | 106,004px | 33 | 1 | 32 |
 
@@ -38,6 +39,11 @@ H06の最大衝突componentは534,538px、H08の最大衝突componentは422,174p
 | H08 LIP coat | 228,022 | 154,818 | 5,906 | 67,298 | 5,906 | 0 |
 | H08 ATR∩LIP | 192,555 | 139,283 | 678 | 52,594 | 678 | 0 |
 
+H04の追加post-freeze診断は、ATR upperがknown-negative 28,488px、LIP coatが
+74,716px、ATR∩LIPでも23,311pxだった。したがってH04へH06/H08のobserverや閾値を
+移植する候補は作らない。三例で同じobserver bundleを実行できたことと、三例で意味
+ownerが成立したことは別である。
+
 H06ではLIP coatの意味精度は高いが再現が低く、H08ではLIP coatの再現は高いが腕の
 混入が残る。単純なobserver OR/ANDやケース別閾値では、正衣装と腕の意味を両例で
 同時に満たせない。
@@ -59,10 +65,13 @@ edgeとして記録する実装を追加した。これはowner割当ではな�
 
 | case | role regions | contact edges | unknown |
 |---|---:|---:|---:|
+| H04 | 184 | 172 | 20,727px |
 | H06 | 86 | 54 | 52,428px |
 | H08 | 62 | 47 | 106,004px |
 
-接触edgeの内訳は、H06がarm-garment 8、arm-upper_clothing 8、garment-outerwear 5、
+接触edgeの内訳は、H04がarm-garment 65、arm-outerwear 11、arm-upper_clothing 3、
+garment-outerwear 59、garment-upper_clothing 19、outerwear-upper_clothing 15。H06が
+arm-garment 8、arm-upper_clothing 8、garment-outerwear 5、
 garment-upper_clothing 26、outerwear-upper_clothing 7。H08がarm-garment 16、
 arm-outerwear 6、arm-upper_clothing 5、garment-outerwear 7、garment-upper_clothing 8、
 outerwear-upper_clothing 5だった。これにより、腕と衣装を一つの巨大成分へまとめず、
