@@ -39,6 +39,7 @@ MinimalizerLocal は二本の独立した開発線を持つ。
 
 - 新規 source-only SegFormer 推論の H08 prediction SHA は `8e3613bf90202a5a04a58f53b7ba66e755a601494e37fac1a5137ad06bcf4275`。これは衣装 prediction であり、owner promotion ではない。
 - 既存 H08 owner-promotion replay は frozen owner SHA `43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52` を入力に 591px を候補割当した historical candidate で、receipt 自身が `owner_promotion_authorized=false` と記録している。
+- 独立評価 package の `H08_OWNER_4_PRIVATE.npz` は SHA `0a352e424c993deac3494c1b9fbf8716fb4cfd7fe78fa688f197eadc0c3607be` だが、現時点の source-free receipt には producer/config と Phase4 candidate への来歴結合がない。これを authority receipt の対象に選ばない。
 
 よって receipt 作成の最初の操作は、Phase4 判定対象にする **owner map の byte SHA と producer/config SHA を一組だけ選ぶこと**である。prediction の評価結果を owner-authority と取り違えない。
 
