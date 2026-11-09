@@ -30,8 +30,8 @@ Status: **対象固定済み / Phase4 は未判定 / promotion は未認可**
 
 ## 次の必須作業
 
-1. この frozen owner map を入力に、実際に評価する candidate owner output の bytes SHA、producer/code SHA、config SHA を一つの Phase4 receipt に記録する。
-2. signed RGB/alpha、exclusive owner、4/8連結、holes、critical parts、occlusion、正衣装保持、誤owner除去、unknown分離を独立評価する。
+1. materialized candidate とprivate receiptは [H08 Phase4 materialized receipt](../research/LOCAL_L02_H08_PHASE4_MATERIALIZED_RECEIPT_20261109.md) に記録済みで、結果は FAIL である。
+2. H08の残存誤ownerと衣装FNの最初の失敗点を分離する。固定済み対象を別owner mapへ差替えない。
 3. Phase4 が独立PASSするまで、Phase5、Golden、productionへ昇格しない。
 
 ## 認可根拠

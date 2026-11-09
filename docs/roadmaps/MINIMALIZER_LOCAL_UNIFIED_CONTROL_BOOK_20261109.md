@@ -49,7 +49,7 @@ MinimalizerLocal は二本の独立した開発線を持つ。
 
 ### A: L02 / Phase4
 
-1. **H08 owner-authority receipt** を source SHA、inference code/config SHA、frozen output SHA、独立評価 receipt SHA、評価者区分、Phase4 判定対象で構成する。人手マスクは後評価専用であり、推論入力にしない。
+1. **H08 owner-authority receipt** は対象固定とmaterialized replayまで完了したが、Phase4は FAIL である。次のH08作業は固定candidateをbaselineに、残存誤ownerと衣装FNの最初の失敗点を分離する。人手マスクは後評価専用であり、推論入力にしない。
 2. H06/H08/H04 を同じ Phase4 contract で再判定する。RGB/alpha、source SHA、exclusive owner、4/8 連結、holes、critical parts、occlusion、正衣装保持、誤 owner 除去、unknown 分離を記録する。
 3. Phase4 が独立して PASS した case だけ Phase5 exact replay へ進める。Phase5 の PASS を Phase4 の代用にしない。
 4. A の全対象が Phase4/Phase5 と visual review を満たすまで L02=HOLD、Golden=HOLD、production=NO_GO を維持する。
