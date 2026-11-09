@@ -9,7 +9,9 @@ the LocalWorker route.
 `tools/research/local_l02_sapiens2_arm_guard_shadow.py` adds a pinned,
 source-only Sapiens2 observer guard:
 
-- explicit Sapiens2 arm classes can remove pixels only from an existing owner;
+- explicit Sapiens2 lower/upper-arm classes can remove pixels only from an
+  existing owner; hand classes veto sleeve recovery but do not authorize
+  removing an existing garment owner;
 - explicit garment classes, frozen cross-owner contacts, alpha-outside pixels,
   topology-breaking pixels, and all absent/unknown observations abstain;
 - H08 positive evidence is vetoed at explicit arm pixels before exclusive
@@ -35,21 +37,36 @@ the arrays:
 | H06 | `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8` | `080ad3245586d471130afc6f4853e76739dd74fbb7c4c898795d246cc78cf83a` |
 | H08 | `759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e` | `e3d54bea29d1569e16b2aa18e4a6bd34c37d76530449c73114e5511b3b3e4423` |
 
-## Post-freeze review result
+## Corrected class-map result
 
-The candidate owner arrays were frozen before opening the independent review
-arrays. The private review score is a diagnostic, not a formal quality gate;
-unlabelled pixels remain unknown.
+The first private exploratory run used an incorrect class set that included
+foot/sock IDs and omitted the upper-arm ID. Its output was not promoted and is
+discarded from the review packet. The corrected DOME 29 mapping is:
+
+- removal authority: `Left/Right_Lower_Arm`, `Left/Right_Upper_Arm`;
+- recovery veto: the same four classes plus `Left/Right_Hand`;
+- garment preservation: `Apparel`, `Lower_Clothing`, `Upper_Clothing`.
+
+The corrected candidate owner arrays were frozen before opening the
+independent review arrays. The private review score is a diagnostic, not a
+formal quality gate; unlabelled pixels remain unknown.
 
 | case | frozen IoU | candidate IoU | delta | owner change |
 | --- | ---: | ---: | ---: | ---: |
-| H06 | 0.891885 | 0.892027 | +0.000142 | remove 54 |
+| H06 | 0.891885 | 0.891896 | +0.000011 | remove 4 |
 | H08 | 0.616561 | 0.620336 | +0.003775 | restore 591 |
-| H04 | 0.866497 | 0.871057 | +0.004560 | remove 395 |
+| H04 | 0.866497 | 0.866497 | +0.000000 | unchanged |
 
-H06 known-negative FP changed from 11,551 to 11,499. H04 known-negative FP
-changed from 4,423 to 4,073. H08's 591 recovered pixels passed the existing
+H06 known-negative FP changed from 11,551 to 11,547. H04 known-negative FP is
+unchanged at 4,423. H08's 591 recovered pixels passed the existing
 exclusive owner, 4/8 component, and enclosed-void checks.
+
+The H06 four-pixel removal is the pre-existing pinned Run30 candidate; the
+corrected Sapiens2 arm guard removed zero additional H06 pixels. The H08 591
+pixels are the pre-existing independent-observer candidate; the corrected
+Sapiens2 arm/hand veto did not change its assigned count. Therefore this
+Sapiens2 observer is preserved as a fail-closed negative result, not claimed as
+the missing H06/H04 quality repair.
 
 ## Current gate
 
