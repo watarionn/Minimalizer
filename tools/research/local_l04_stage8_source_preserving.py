@@ -41,7 +41,7 @@ def sha256(path: Path) -> str:
 
 def _path_from_mask(mask: np.ndarray) -> tuple[str, int]:
     contours, _ = cv2.findContours(
-        mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE
+        mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
     )
     parts: list[str] = []
     vertices = 0
