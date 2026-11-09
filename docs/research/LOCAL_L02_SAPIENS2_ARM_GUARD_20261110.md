@@ -68,10 +68,29 @@ Sapiens2 arm/hand veto did not change its assigned count. Therefore this
 Sapiens2 observer is preserved as a fail-closed negative result, not claimed as
 the missing H06/H04 quality repair.
 
+## Supplementary pose observation
+
+A separate source-only Sapiens2 Pose 0.4B run was then performed after the
+candidate arrays were frozen. It used the same three signed source bytes and a
+full-image bounding box; owner arrays, review masks, and labels were not read
+during inference. The checkpoint SHA-256 is
+`f1b7b0e5423d667634a355dd86a14c5b03d243f2ac77943301c7db9f93329106`.
+
+| case | pose keypoints SHA-256 | pose scores SHA-256 |
+| --- | --- | --- |
+| H04 | `98fdc95222c4bdf00767f896dbe9d303254545e1e2398ea073e4d5c4a96467d3` | `70c0468aba9d17e06dbb5f75306657bf4a32fa760dd14c0f72851614fc0d9344` |
+| H06 | `50cb0a9ed5a5cf21a43e8d0f27114cd5b1fc1e3096f6f48e70f909d6f2418a86` | `768b4954381d34ca912431f4a9f41f846934b8316e4af371cc5edc32967c7f42` |
+| H08 | `59be22f6d901e9c71771ad7e86edc8176f2a279d2efd784d25ec95ad5db2afac` | `05ad9064ffb9f0bef7ad707e20c0be4898f436d085fb66acdf6f7fa0a87b93e7` |
+
+This is supplementary anatomical evidence only. It does not define a pixel
+owner, does not authorize candidate changes, and does not replace the required
+candidate-specific independent visual/semantic review. It is included in the
+private v3 review packet for traceability.
+
 ## Current gate
 
 The code and negative tests are preserved in commit
-`84aef9c2fe0a9342730ad8a06f83ed2d4e432e2d` on Draft PR #449.
+`4b613374864cc40e98bc43a992d75d492196eaa2` on Draft PR #449.
 
 - focused A tests: `48 passed`;
 - repository-wide unrelated baseline issue: the existing browser fallback
