@@ -2,6 +2,7 @@
 import hashlib
 import io
 import sys
+from unittest.mock import patch
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research'))
 from local_l02_class32_topology_palette_shadow import (
     propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
+    propose_pinned_h06_with_combined_garment_guard,
     protect_independent_garment_observers,
     protect_source_only_garment_prediction,
     PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold, _safe_to_remove,
@@ -353,6 +355,29 @@ def test_source_only_garment_prediction_rejects_output_hash_and_transparency():
     with pytest.raises(SourceOnlyAbstentionHold,
                        match='GARMENT_PREDICTION_SHA_MISMATCH'):
         protect_source_only_garment_prediction(**kwargs)
+
+
+def test_combined_h06_guard_is_positive_only_and_ordered():
+    frozen = np.zeros((8, 8), dtype=np.uint8)
+    frozen[2:6, 2:6] = 2
+    candidate = frozen.copy()
+    candidate[2, 2] = 0
+    prediction = np.zeros_like(frozen)
+    module_name = 'local_l02_class32_topology_palette_shadow'
+    with patch(module_name + '.propose_pinned_h06_with_independent_garment_guard',
+               return_value=(candidate, {'observer_guard_restored_px': 1})), \
+         patch(module_name + '.protect_source_only_garment_prediction',
+               return_value=(candidate, {'guard_restored_px': 0})):
+        result, receipt = propose_pinned_h06_with_combined_garment_guard(
+            source_bytes=b'signed', class_ids=np.zeros_like(frozen),
+            frozen_owner=frozen, atr18_class_ids=np.zeros_like(frozen),
+            lip20_class_ids=np.zeros_like(frozen), garment_prediction=prediction,
+            expected_prediction_sha256='0' * 64)
+    np.testing.assert_array_equal(result, candidate)
+    assert receipt['combined_garment_guard']['order'] == [
+        'ATR18_LIP20_POSITIVE_ONLY', 'SOURCE_ONLY_MODEL_POSITIVE_ONLY']
+    assert receipt['combined_garment_guard']['owner_promotions'] == 0
+    assert receipt['combined_garment_guard']['unknown_not_treated_as_negative'] is True
 
 
 def test_whole_image_void_integrity_receipt_is_fail_closed():
