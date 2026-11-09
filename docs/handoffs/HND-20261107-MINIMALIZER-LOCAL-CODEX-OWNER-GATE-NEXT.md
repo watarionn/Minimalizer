@@ -390,6 +390,28 @@ was relabeled as formal evidence.
 
 ## Required owner-side inputs
 
+## 2026-11-09 H06 frozen postscore gate
+
+- Added the source-free generic evaluator
+  `tools/research/local_l02_phase4_postscore_gate.py` and focused tests in
+  `tests/test_local_l02_phase4_postscore_gate.py`. It consumes only frozen
+  output receipts, independent-review attestations, structural results, and
+  aggregate postscore counts. It does not accept image pixels or human masks
+  as inference inputs; unknown pixels are not treated as negative.
+- The exact H06 aggregate was evaluated once through this gate: candidate
+  removed `4` pixels; known positive garment loss `0`; known false-owner
+  removals `4`; unknown removals `0`; owner promotions `0`. Signature,
+  unseen-data, pre-inference label exclusion, evaluator independence,
+  semantic-review, source/prediction SHA, alpha, exclusive-owner, 4/8
+  component, and 4/8 hole checks were all true. The case-level result is
+  `case_phase4=PASS` with no failures.
+- This is deliberately a narrow case-level result. The evaluator returned
+  `phase5_authorized=false`, `L02=HOLD`, and `production=NO_GO`; it does not
+  promote the campaign-level Phase4 gate, H08, Golden, merge, or production.
+  The A focused suite is `433 passed, 46 subtests passed`; `git diff --check`
+  passes. No private masks, NPZs, coordinates, or comparison images were
+  added to GitHub.
+
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
    for H06/H08, bound to the exact signed source SHA and carrying its model,
    run, class-map, and output hashes. Unknown pixels must remain unknown.
