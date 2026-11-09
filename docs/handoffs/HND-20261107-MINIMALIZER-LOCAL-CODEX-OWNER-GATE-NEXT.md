@@ -181,6 +181,13 @@ was relabeled as formal evidence.
   no owner promotion is possible.
 - Focused source-free tests passed: `66 passed` across the class32 topology,
   positive topology, and owner-topology candidate suites.
+- The earlier A-suite collection failure was an execution-path issue, not a
+  missing research module: `tools/research` was absent from the test import
+  path and the default Python lacked `scikit-learn`. With an isolated private
+  inference venv (`scikit-learn 1.9.1`) and `PYTHONPATH=tools/research`, the
+  complete `tests/test_local_l02*.py` suite passed: `425 passed, 46 subtests
+  passed`. No repository source, production environment, or private artifact
+  was changed by dependency setup.
 - Private replay with the new H06/H08 inference outputs passed the source and
   prediction SHA guards. H06 retained the existing 5-pixel class32/topology
   candidate removal and restored 0 pixels; H08 made no candidate change and
