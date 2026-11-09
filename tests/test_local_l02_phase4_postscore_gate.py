@@ -83,3 +83,27 @@ def test_structural_failure_holds():
         review=REVIEW, structural=structural, metrics=metrics())
     assert result["case_phase4"] == "HOLD"
     assert "structural_FAIL:holes8_pass" in result["failures"]
+
+
+def test_owner_promotion_requires_separate_explicit_authority():
+    result = gate.evaluate_frozen_candidate(
+        review=REVIEW, structural=STRUCTURAL,
+        metrics=metrics(candidate_added_px=6, candidate_removed_px=0,
+                        added_known_positive_garment_px=6,
+                        removed_known_negative_owner_px=0,
+                        owner_promotions=6))
+    assert result["case_phase4"] == "HOLD"
+    assert "AUTHORITY_MISSING_OR_NONBOOLEAN:owner_promotion_authorized" in result["failures"]
+
+
+def test_explicit_owner_promotion_authority_allows_case_quality_pass_only():
+    result = gate.evaluate_frozen_candidate(
+        review=REVIEW, structural=STRUCTURAL,
+        metrics=metrics(candidate_added_px=6, candidate_removed_px=0,
+                        added_known_positive_garment_px=6,
+                        removed_known_negative_owner_px=0,
+                        owner_promotions=6),
+        authority={"owner_promotion_authorized": True})
+    assert result["case_phase4"] == "PASS"
+    assert result["phase5_authorized"] is False
+    assert result["L02"] == "HOLD"

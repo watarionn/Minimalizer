@@ -406,7 +406,7 @@ was relabeled as formal evidence.
 - This is deliberately a narrow case-level result. The evaluator returned
   `phase5_authorized=false`, `L02=HOLD`, and `production=NO_GO`; it does not
   promote the campaign-level Phase4 gate, H08, Golden, merge, or production.
-  The A focused suite is `433 passed, 46 subtests passed`; `git diff --check`
+  The A focused suite is `435 passed, 46 subtests passed`; `git diff --check`
   passes. No private masks, NPZs, coordinates, or comparison images were
   added to GitHub.
 
@@ -416,12 +416,15 @@ was relabeled as formal evidence.
   freeze. It added `591` owner pixels (`588` owner 1, `3` owner 2), all `591`
   scored as known-positive garment pixels; known-negative additions and
   unknown mutations were `0`, and topology/holes remained structurally valid.
-- The non-promoting gate returned `case_phase4=HOLD` with the single failure
-  `OWNER_PROMOTION_NOT_ALLOWED`. This is consistent with the frozen receipt's
-  `owner_promotion_authorized=false`: the candidate is useful research
-  evidence, but the bounded owner authorization does not authorize formal
-  owner promotion or Phase5. `phase5_authorized=false`, `L02=HOLD`, and
-  `production=NO_GO` remain unchanged.
+- The gate now accepts a separate `authority` mapping, so owner promotion is
+  evaluated only when an explicit `owner_promotion_authorized=true` receipt is
+  supplied; this does not authorize Phase5. The actual H08 receipt has
+  `owner_promotion_authorized=false`, so the non-promoting gate returns
+  `case_phase4=HOLD` with `AUTHORITY_FAIL:owner_promotion_authorized`.
+  The candidate is useful research evidence, but the bounded owner
+  authorization does not authorize formal owner promotion or Phase5.
+  `phase5_authorized=false`, `L02=HOLD`, and `production=NO_GO` remain
+  unchanged.
 
 ## Required owner-side inputs
 
