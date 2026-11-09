@@ -15,8 +15,8 @@ source-preserving candidate, not a budget waiver or release authorization.
 
 | Case | Source-owner mismatch | Protected face/arm mismatch | Chromium silhouette XOR | Vertices | Budget |
 |---|---:|---:|---:|---:|---|
-| H06 | 0 | 0 | 0 | 89162 | FAIL |
-| H08 | 0 | 0 | 0 | 70521 | FAIL |
+| H06 | 0 | 0 | 0 | 72201 | FAIL |
+| H08 | 0 | 0 | 0 | 56249 | FAIL |
 
 The triple hash gate passed for both cases. The only numerical L04 failure in
 this candidate is the inherited `1887` vertex cap, which is unconfirmed as a
