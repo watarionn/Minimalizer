@@ -38,6 +38,25 @@ H06の4画素除去、H08の591画素回復のような凍結ownerへの微小�
    └─ 凍結 → full-image / magnified semantic review → Phase4
 ```
 
+### 2026-11-10 実装済みの土台
+
+`tools/research/local_l02_source_owner_reconstruction.py` を追加した。この段階は
+owner番号を生成するものではなく、署名済み原画像とSHA固定済みSapiens2 class map
+だけから、画像全体の `upper_clothing`、`lower_clothing`、`garment`、`arm`、
+`unknown` を排他的に再構成する観測層である。
+
+- H06: garment 542,016px、43個の8連結成分、arm 4,686px、unknown 56,167px
+- H08: garment 394,027px、41個の8連結成分、arm 10,236px、unknown 132,596px
+- source SHA と class-map SHA を実行時に照合し、透明画素を候補に含めない
+- 既存owner、評価マスク、レビューJSONはAPI入力に存在しない
+- unknown は陰性に変換せず、owner番号への割当は
+  `ABSTAIN_UNTIL_INDEPENDENT_OWNER_AUTHORITY` として停止する
+
+これは数画素修正の置き換えとなる全身観測の実装であり、まだPhase4候補ではない。
+次の大きな実装単位は、この成分集合を袖・腕・下着・正衣装・遮蔽の意味領域へ
+独立観測で割り当てるowner-authority層である。根拠が一致しない成分は成分全体を
+unknownへ退避し、既存ownerの一部だけを削る処理には戻さない。
+
 ### 実装ルール
 
 1. 人手マスク・レビューJSONは推論入力に渡さない。推論後の評価だけに使う。
