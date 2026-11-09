@@ -153,6 +153,43 @@ was relabeled as formal evidence.
   semantic owner-quality PASS: H08 remains weak, the raw class5/class10 output
   is not yet an exclusive owner repair, and no new accepted P0/P1 improvement
   is claimed. Keep `Phase4=FAIL`, `L02=HOLD`, `production=NO_GO`.
+
+## 2026-11-09 owner correction for the independent review record
+
+- The owner corrected the compact internal JSON's stale implementation fields:
+  the supplied H06/H08 review is the signed review already stored in the
+  private Drive package, not a second review artifact. Treat its signature as
+  `VERIFIED`; do not rescan the Drive for another signed blind result.
+- The owner confirmed all four semantic/protocol answers are YES for both
+  cases: the data was unseen, labels were not available before inference, the
+  evaluator was independent of development, and arm/underlayer/occlusion plus
+  correct-clothing-retention meaning review was completed. The signed masks
+  remain post-inference evaluation inputs only.
+- The earlier `NOT_VERIFIED` / `NOT_PERFORMED` values in the internal JSON are
+  retained as implementation-error history, not as the current owner decision.
+  This correction changes evidence interpretation, not the source-only
+  inference receipt or any production artifact.
+
+## 2026-11-09 source-only garment protection implementation
+
+- Added the source-free `protect_source_only_garment_prediction` guard and its
+  pinned Run30 replay wrapper in
+  `tools/research/local_l02_class32_topology_palette_shadow.py`. It verifies
+  the signed source SHA, prediction-array SHA, source alpha bounds, and frozen
+  owner provenance. It restores only positive garment predictions from a
+  candidate erasure; prediction zero is never treated as a negative label and
+  no owner promotion is possible.
+- Focused source-free tests passed: `66 passed` across the class32 topology,
+  positive topology, and owner-topology candidate suites.
+- Private replay with the new H06/H08 inference outputs passed the source and
+  prediction SHA guards. H06 retained the existing 5-pixel class32/topology
+  candidate removal and restored 0 pixels; H08 made no candidate change and
+  restored 0 pixels. Post-score comparison therefore accepts no new P0/P1
+  improvement: H06 known-negative FP changed `3926 -> 3923`, but positive TP
+  changed `378629 -> 378627`; H08 was unchanged. This is a safety/code-path
+  PASS, not a semantic quality PASS.
+- Keep `Phase4=FAIL`, `L02=HOLD`, `production=NO_GO`; no Golden, Public/C08,
+  LocalWorker, Phase5, or `main` change is authorized by this candidate.
 - A follow-up 2026-11-08 research-only package was read back from the same
   private Drive folder. Its SHA manifest matches the five downloaded
   source-free records by byte count and SHA-256. The added observer record

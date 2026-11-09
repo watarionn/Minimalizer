@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools' / 'research
 from local_l02_class32_topology_palette_shadow import (
     propose_class32_competitor_abstention, propose_pinned_run30_4_shadow,
     protect_independent_garment_observers,
+    protect_source_only_garment_prediction,
     PINNED_RUN30_4_TRIPLES, SourceOnlyAbstentionHold, _safe_to_remove,
     _enclosed_owner_voids,
 )
@@ -275,6 +276,83 @@ def test_independent_garment_guard_never_promotes_owner():
         observer_maps=(('synthetic', observer, digest, (4,)),))
     assert np.array_equal(guarded, frozen)
     assert receipt['owner_promotions'] == 0
+
+
+def test_source_only_garment_prediction_restores_only_positive_erasure():
+    candidate = np.zeros((8, 8), dtype=np.uint8)
+    frozen = np.zeros((8, 8), dtype=np.uint8)
+    frozen[3:5, 3:5] = 2
+    candidate[3:5, 3:5] = 2
+    candidate[3, 3] = 0
+    prediction = np.zeros((8, 8), dtype=np.uint8)
+    prediction[3, 3] = 1
+    source = np.zeros((8, 8, 4), dtype=np.uint8)
+    source[:, :, 3] = 255
+    stream = io.BytesIO()
+    Image.fromarray(source, 'RGBA').save(stream, format='PNG')
+    source_raw = stream.getvalue()
+    guarded, receipt = protect_source_only_garment_prediction(
+        candidate_owner=candidate, frozen_owner=frozen,
+        source_bytes=source_raw,
+        expected_source_sha256=hashlib.sha256(source_raw).hexdigest(),
+        garment_prediction=prediction,
+        expected_prediction_sha256=hashlib.sha256(
+            prediction.tobytes(order='C')).hexdigest())
+    assert np.array_equal(guarded, frozen)
+    assert receipt['guard_restored_px'] == 1
+    assert receipt['owner_promotions'] == 0
+    assert receipt['unknown_not_treated_as_negative'] is True
+
+
+def test_source_only_garment_prediction_zero_is_not_negative_or_owner_promotion():
+    candidate = np.zeros((8, 8), dtype=np.uint8)
+    frozen = np.zeros((8, 8), dtype=np.uint8)
+    frozen[3:5, 3:5] = 2
+    candidate[3:5, 3:5] = 2
+    prediction = np.zeros((8, 8), dtype=np.uint8)
+    source = np.zeros((8, 8, 4), dtype=np.uint8)
+    source[:, :, 3] = 255
+    stream = io.BytesIO()
+    Image.fromarray(source, 'RGBA').save(stream, format='PNG')
+    source_raw = stream.getvalue()
+    result, receipt = protect_source_only_garment_prediction(
+        candidate_owner=candidate, frozen_owner=frozen,
+        source_bytes=source_raw,
+        expected_source_sha256=hashlib.sha256(source_raw).hexdigest(),
+        garment_prediction=prediction,
+        expected_prediction_sha256=hashlib.sha256(
+            prediction.tobytes(order='C')).hexdigest())
+    assert np.array_equal(result, candidate)
+    assert receipt['guard_restored_px'] == 0
+    assert receipt['owner_promotions'] == 0
+
+
+def test_source_only_garment_prediction_rejects_output_hash_and_transparency():
+    source = np.zeros((8, 8, 4), dtype=np.uint8)
+    source[:, :, 3] = 255
+    source[0, 0, 3] = 0
+    stream = io.BytesIO()
+    Image.fromarray(source, 'RGBA').save(stream, format='PNG')
+    source_raw = stream.getvalue()
+    frozen = np.zeros((8, 8), dtype=np.uint8)
+    candidate = np.zeros((8, 8), dtype=np.uint8)
+    prediction = np.zeros((8, 8), dtype=np.uint8)
+    prediction[0, 0] = 1
+    kwargs = dict(
+        candidate_owner=candidate, frozen_owner=frozen,
+        source_bytes=source_raw,
+        expected_source_sha256=hashlib.sha256(source_raw).hexdigest(),
+        garment_prediction=prediction,
+        expected_prediction_sha256=hashlib.sha256(
+            prediction.tobytes(order='C')).hexdigest())
+    with pytest.raises(SourceOnlyAbstentionHold,
+                       match='GARMENT_PREDICTION_OUTSIDE_SIGNED_ALPHA'):
+        protect_source_only_garment_prediction(**kwargs)
+    prediction[0, 0] = 0
+    kwargs['expected_prediction_sha256'] = '0' * 64
+    with pytest.raises(SourceOnlyAbstentionHold,
+                       match='GARMENT_PREDICTION_SHA_MISMATCH'):
+        protect_source_only_garment_prediction(**kwargs)
 
 
 def test_whole_image_void_integrity_receipt_is_fail_closed():

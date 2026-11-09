@@ -535,6 +535,102 @@ def protect_independent_garment_observers(*, candidate_owner: np.ndarray,
     }
 
 
+def protect_source_only_garment_prediction(*, candidate_owner: np.ndarray,
+        frozen_owner: np.ndarray, source_bytes: bytes,
+        expected_source_sha256: str, garment_prediction: np.ndarray,
+        expected_prediction_sha256: str) -> tuple[np.ndarray, dict]:
+    """Restore only frozen-owner pixels positively predicted as garment.
+
+    This is a source-bound post-proposal protection step.  A zero prediction
+    is deliberately not interpreted as a negative label: only pixels that the
+    independently frozen source-only model positively predicts as garment can
+    restore an erasure from ``candidate_owner``.  No owner is ever promoted,
+    and no human review artifact is accepted by this API.
+    """
+    if (type(candidate_owner) is not np.ndarray or
+            candidate_owner.dtype != np.uint8 or candidate_owner.ndim != 2 or
+            type(frozen_owner) is not np.ndarray or
+            frozen_owner.dtype != np.uint8 or
+            frozen_owner.shape != candidate_owner.shape or
+            np.any(candidate_owner > 2) or np.any(frozen_owner > 2)):
+        raise SourceOnlyAbstentionHold('INVALID_GARMENT_GUARD_OWNER_INPUT')
+    if (type(source_bytes) is not bytes or not source_bytes or
+            type(expected_source_sha256) is not str or
+            re.fullmatch(r'[0-9a-f]{64}', expected_source_sha256) is None or
+            hashlib.sha256(source_bytes).hexdigest() != expected_source_sha256):
+        raise SourceOnlyAbstentionHold('SIGNED_SOURCE_SHA_MISMATCH')
+    if (type(garment_prediction) is not np.ndarray or
+            garment_prediction.dtype != np.uint8 or
+            garment_prediction.shape != candidate_owner.shape or
+            np.any(garment_prediction > 1)):
+        raise SourceOnlyAbstentionHold('INVALID_GARMENT_PREDICTION')
+    if (type(expected_prediction_sha256) is not str or
+            re.fullmatch(r'[0-9a-f]{64}', expected_prediction_sha256) is None or
+            hashlib.sha256(garment_prediction.tobytes(order='C')).hexdigest() !=
+            expected_prediction_sha256):
+        raise SourceOnlyAbstentionHold('GARMENT_PREDICTION_SHA_MISMATCH')
+    try:
+        with Image.open(io.BytesIO(source_bytes)) as image:
+            rgba = np.asarray(image.convert('RGBA'))
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise SourceOnlyAbstentionHold('INVALID_SOURCE_IMAGE') from exc
+    if rgba.shape[:2] != candidate_owner.shape:
+        raise SourceOnlyAbstentionHold('SOURCE_OWNER_SHAPE_MISMATCH')
+    opaque = rgba[:, :, 3] != 0
+    if np.any((frozen_owner != 0) & ~opaque):
+        raise SourceOnlyAbstentionHold('OWNER_OUTSIDE_SIGNED_ALPHA')
+    if np.any((garment_prediction != 0) & ~opaque):
+        raise SourceOnlyAbstentionHold('GARMENT_PREDICTION_OUTSIDE_SIGNED_ALPHA')
+    if (np.any((candidate_owner > 0) &
+               ((frozen_owner == 0) | (candidate_owner != frozen_owner)))):
+        raise SourceOnlyAbstentionHold('INVALID_GARMENT_GUARD_PROVENANCE')
+
+    positive = garment_prediction == 1
+    restore = positive & (candidate_owner == 0) & (frozen_owner > 0)
+    result = candidate_owner.copy()
+    result[restore] = frozen_owner[restore]
+    if (np.any((result > 0) & (frozen_owner == 0)) or
+            np.any((result > 0) & (result != frozen_owner))):
+        raise SourceOnlyAbstentionHold('GARMENT_GUARD_OWNER_POSTCONDITION_FAIL')
+    return result, {
+        'schema': 'minimalizer/local-l02/source-only-garment-prediction-guard/v1',
+        'source_sha_verified': True,
+        'garment_prediction_sha_verified': True,
+        'positive_garment_prediction_px': int(np.count_nonzero(positive & opaque)),
+        'guard_restored_px': int(np.count_nonzero(restore)),
+        'owner_promotions': 0,
+        'human_labels_used': False,
+        'unknown_not_treated_as_negative': True,
+        'candidate_only': True,
+        'quality': 'UNASSESSED', 'Phase4': 'FAIL', 'L02': 'HOLD',
+        'Golden': 'HOLD', 'production': 'NO_GO',
+    }
+
+
+def propose_pinned_run30_4_shadow_with_source_only_garment_guard(*,
+        case_id: str, source_bytes: bytes, class_ids: np.ndarray,
+        frozen_owner: np.ndarray, garment_prediction: np.ndarray,
+        expected_prediction_sha256: str,
+        protect_garment_seed_scale: bool = False) -> tuple[np.ndarray, dict]:
+    """Replay the pinned class32 repair and apply a source-only garment guard."""
+    candidate, receipt = propose_pinned_run30_4_shadow(
+        case_id=case_id, source_bytes=source_bytes, class_ids=class_ids,
+        frozen_owner=frozen_owner,
+        protect_garment_seed_scale=protect_garment_seed_scale)
+    expected_source_sha256 = PINNED_RUN30_4_TRIPLES[case_id][0]
+    guarded, guard_receipt = protect_source_only_garment_prediction(
+        candidate_owner=candidate, frozen_owner=frozen_owner,
+        source_bytes=source_bytes,
+        expected_source_sha256=expected_source_sha256,
+        garment_prediction=garment_prediction,
+        expected_prediction_sha256=expected_prediction_sha256)
+    receipt['source_only_garment_prediction_guard'] = guard_receipt
+    receipt['candidate_abstained_px'] = int(
+        np.count_nonzero(guarded != frozen_owner))
+    receipt['owner_guard_restored_px'] = guard_receipt['guard_restored_px']
+    return guarded, receipt
+
+
 def propose_pinned_h06_with_independent_garment_guard(*, source_bytes: bytes,
         class_ids: np.ndarray, frozen_owner: np.ndarray,
         atr18_class_ids: np.ndarray, lip20_class_ids: np.ndarray,
