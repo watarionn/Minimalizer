@@ -30,6 +30,10 @@ _REQUIRED_NUMBERS = (
     "protected_face_arm_owner_mismatch_pixels",
     "source_silhouette_xor_pixels",
 )
+_FORBIDDEN_SVG_TAGS = frozenset({
+    "script", "foreignObject", "iframe", "object", "embed", "image",
+    "audio", "video", "canvas",
+})
 
 
 def _sha256(data: bytes) -> str:
@@ -63,6 +67,17 @@ def _validate_svg(svg_bytes: bytes) -> None:
     tag = root.tag.rsplit("}", 1)[-1] if isinstance(root.tag, str) else ""
     if tag != "svg":
         raise L04Hold("EXPANDED_SVG_ROOT_NOT_SVG")
+    for node in root.iter():
+        local_tag = node.tag.rsplit("}", 1)[-1] if isinstance(node.tag, str) else ""
+        if local_tag in _FORBIDDEN_SVG_TAGS:
+            raise L04Hold("UNSAFE_EXPANDED_SVG_CONTENT:" + local_tag)
+        for attr, value in node.attrib.items():
+            local_attr = attr.rsplit("}", 1)[-1].lower()
+            if local_attr.startswith("on"):
+                raise L04Hold("UNSAFE_EXPANDED_SVG_EVENT_ATTRIBUTE")
+            if local_attr in {"href", "src"} and re.match(
+                    r"(?i)^\s*(?:https?|file|data):", value):
+                raise L04Hold("UNSAFE_EXPANDED_SVG_EXTERNAL_REFERENCE")
     geometry_tags = {"path", "polygon", "polyline", "rect", "circle",
                      "ellipse", "line"}
     if not any(
