@@ -51,6 +51,8 @@ def verify_serviceworker(source:str):
         raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
+    if "skipWaiting(" in code or "clients.claim(" in code:
+        raise PrivacyHold("SW_IMMEDIATE_GENERATION_CLAIM")
     for fragment in (
         'event.request.method!=="GET"',
         'url.origin!==self.location.origin',
@@ -67,6 +69,7 @@ def verify_serviceworker(source:str):
             "cache_user_images":False,"cache_api_responses":False,
             "cache_cleanup_namespace_scoped":True,
             "offline_shell_fallback":True,
+            "generation_transition_waits_for_navigation":True,
             "live_browser_e2e_verified":False}
 
 def verify_local_route(source:str):

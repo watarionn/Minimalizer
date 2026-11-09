@@ -6,13 +6,16 @@ const ASSETS = ["/", "/static/styles.css", "/static/color-strip.css", "/static/a
   "/static/browser-feature-palette.js", "/static/browser-color-strip.js",
   "/local-static/local-route.js", "/local-static/icon.svg"];
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // Keep the old generation in control of already-open pages.  The new
+  // generation becomes active on the browser's normal next-navigation
+  // lifecycle, so one page cannot mix old JS with a new shell cache.
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
 });
 self.addEventListener("activate", event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(
     keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE)
       .map(key => caches.delete(key))
-  )).then(() => self.clients.claim()));
+  )));
 });
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
