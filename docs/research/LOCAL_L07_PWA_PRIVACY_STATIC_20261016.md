@@ -30,3 +30,21 @@ Two source-free research files are added:
 Remaining L07 true pre-release work: test a running LocalWorker `Origin`, Tailscale owner identity, preflight, unauthorized GETs and 429 lock behavior; Safari install/save/offline/online/abort/restore; Service Worker update and cache invalidation with real browser/OS; response headers and memory/cold startup. Do NOT sign off L07 from these read-only checks. No exact runtime SHA check or iPhone user acceptance performed. L02 research continues independently.
 
 Security/quality non-promotion: user-supplied source pixels, private NPZ, canonical Phase4 owners and manual Golden unchanged; no generated visible pixels; no eyes/nose/mouth/brows drawn; Public/C08 and Local production untouched.
+
+## 2026-11-09 production browser registration
+
+After PR #454 merged as main commit
+`c68dc17bdc2bd3b0ba0841b7108177553891913c`, the production LocalWorker was
+restarted from that exact checkout. Private HTTPS readback returned HTTP 200
+for `/`, `/sw.js`, and `/local-static/local-route.js`; the latter two were
+missing from the prior production checkout.
+
+An isolated, fresh-profile Chrome loaded the private-tailnet HTTPS entry page.
+Chrome's own DevTools target inventory then reported one active Service Worker
+with the exact registered script URL:
+
+`https://ywshtmr.tail8fd68c.ts.net:28765/sw.js?generation=minimalizer-local-20261107-1`.
+
+This proves a real browser registered the production generation-pinned worker,
+in addition to the static audit. It does not substitute for physical iPhone
+install/offline/update acceptance, which remains the final L07/L05 device gate.
