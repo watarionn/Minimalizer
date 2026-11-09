@@ -115,3 +115,62 @@ The following `/health` response remained `ready=true`, with active route
 `zerobase2` and `zerobase2_authorized=true`. This is a repeatable loopback
 smoke check only; it does not change the private-HTTPS, production, or
 physical-iPhone gates.
+
+## 2026-11-09 production reflection and private-HTTPS receipt
+
+PR #454 was merged as main commit
+`c68dc17bdc2bd3b0ba0841b7108177553891913c`. The actual production checkout was
+then moved from `6335f2a602a934f167466b6d9435bbec62d0799c` to that commit and
+the existing `127.0.0.1:28764` LocalWorker was restarted. The private-tailnet
+HTTPS endpoint was read back after the restart; it served the new PWA assets
+and its `/health` response was HTTP 200 with `ready=true`.
+
+The owner-PC private-HTTPS run used the signed H06 input only as runtime input;
+neither it nor any response body is in GitHub. The source-free record is held
+in the owner private store and has SHA-256
+`1f3c1fa14fd85143606a5ecb8018a8d835d6e582b546d579252a936b695579a8`.
+
+- V2 success: HTTP 200 `image/png`; signed input SHA-256
+  `c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8`;
+  output SHA-256
+  `f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`;
+  output readback passed.
+- Invalid upload type: HTTP 415.
+- A second concurrent V2 request: HTTP 429 with `Retry-After: 2`.
+- Image-declared, undecodable input: HTTP 503; this is recorded as the
+  unavailable/fallback failure path and never as a successful image.
+- The receipt validator confirmed PC E2E, V2 PNG, failure-path, and local-file
+  readback coverage. It intentionally retains `L05_formal=HOLD` and
+  `production_release=NO_GO` until a physical iPhone acceptance receipt exists.
+
+No Public/C08, Golden, signed source, L02, or L04 artifact changed.
+
+## 2026-11-09 iPhone-origin correction
+
+The production origin configuration initially contained only the distinct
+Public deployment origin. That caused the private Local PWA's browser Origin
+to be rejected before upload. The allowed-origin configuration was corrected
+to retain the Public origin and add only the exact private-tailnet HTTPS
+origin. After a LocalWorker restart, a private HTTPS `GET /health` and an
+`OPTIONS` preflight carrying that exact Origin each returned HTTP 200 with
+`Access-Control-Allow-Origin` set to the private origin. No wildcard origin
+and no authentication bypass was introduced.
+
+## 2026-11-09 physical iPhone acceptance
+
+The owner completed the physical acceptance on iPhone against the private
+HTTPS production endpoint. The raw screenshots and acceptance receipt are
+stored only in the owner private Drive; their source-free receipt SHA-256 is
+`06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`.
+
+- Safari displayed a completed PNG result and the ZeroBase2 BEST success
+  status.
+- The installed PWA also displayed a completed PNG result and the ZeroBase2
+  BEST success status.
+- The owner completed an airplane-mode round trip and confirmed that the
+  private Local PWA continued to work after connectivity was restored.
+- A separate iPhone result visibly handled a ZeroBase2 503 by switching to
+  Local V2 and completing a PNG result. This is a controlled fallback, not a
+  false ZeroBase2-success claim.
+
+Together with the production PC receipt, this closes the L05 device gate.
