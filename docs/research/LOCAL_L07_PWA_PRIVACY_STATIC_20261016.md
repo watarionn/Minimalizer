@@ -8,6 +8,13 @@ This work runs in parallel with the L02 garment/arm semantic hold. It stages a b
 
 The SW explicitly caches the fixed eight-file private app shell, including the entry page, JS/CSS and icon. It does NOT cache uploaded images, generated outputs, arbitrary GET responses or `/api/...` requests. Fetch events are intercepted only for **GET, same-origin, exactly-whitelisted pathnames** and otherwise bypass the worker fetch handler. The matching path uses network-first with cached shell fallback. The SW cache name and registration query are pinned to the same generation `minimalizer-local-20261107-1`, registration uses `updateViaCache: "none"`, and activation deletes only older caches in the `minimalizer-local-shell-` namespace; foreign caches are not deleted by this contract. The private adapter waits for the LocalWorker `/health` ready flag before requesting the BEST endpoint; it explicitly uses Local V2 fallback and has no BrowserFallback route. The exact source passed the fail-closed static inspection, not a simulated live Safari/browser test.
 
+The generation transition is now deliberately lifecycle-safe: the worker does
+not call `skipWaiting()` or `clients.claim()`. An already-open page therefore
+remains under its existing worker generation, while the newly installed shell
+waits for the browser's normal next-navigation activation. The static audit
+rejects either immediate-claim API so a future edit cannot silently reintroduce
+cross-generation control of an open page.
+
 Two source-free research files are added:
 - `tools/research/local_l07_pwa_privacy_audit.py` for fail-closed static privacy contract checks; intended usage `python tools/research/local_l07_pwa_privacy_audit.py .`.
 - `tests/test_local_l07_pwa_privacy_audit.py` with explicit negative cases for API and image cache poisoning, removed origin/GET/allowlist checks, dynamic cache.put, second fetch handler, browser downgrade, absent health/BEST paths and false live-test claims.

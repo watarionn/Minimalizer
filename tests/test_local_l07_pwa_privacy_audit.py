@@ -56,6 +56,11 @@ def test_dynamic_cache_put_rejected():
     with pytest.raises(PrivacyHold):
         verify_serviceworker(SW+'\ncache.put(event.request, response);\n')
 
+@pytest.mark.parametrize("claim",("self.skipWaiting();", "self.clients.claim();"))
+def test_immediate_generation_claim_is_rejected(claim):
+    with pytest.raises(PrivacyHold):
+        verify_serviceworker(SW+'\n'+claim+'\n')
+
 def test_unexpected_second_fetch_event_handler_rejected():
     with pytest.raises(PrivacyHold):
         verify_serviceworker(SW+'\nself.addEventListener("fetch", event=>{});\n')
