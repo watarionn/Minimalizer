@@ -280,6 +280,48 @@ was relabeled as formal evidence.
   semantic critical-part/occlusion review, exclusive-owner checks, Phase4,
   physical-device acceptance, or the A/B branch and production protections.
 
+## 2026-11-09 exact source-only inference and candidate replay
+
+- The corrected independent review package is treated as the signed review
+  already supplied on the private Drive: signature `VERIFIED`; H06/H08 source
+  was unseen; labels were not read before the source review; the reviewer was
+  independent; and arm, underlayer, occlusion, important-part and garment
+  meaning review were all `YES`. Unpainted mask pixels remain unknown. Earlier
+  contradictory internal JSON fields are stale implementation metadata, not a
+  request to locate a second review package.
+- A genuinely new inference was run after the source review using only the
+  two signed source images and a locally pinned `sayeed99/segformer-b2-fashion`
+  revision. The inference receipt records `human_masks_used_in_inference=false`
+  and `review_json_used_in_inference=false`; the masks were opened only after
+  the output arrays and SHA-256 values were frozen. H06 prediction array SHA is
+  `413735e90ff42381798948163c9c0966473ec616ea035684a8dc1f10962283ad` and H08
+  is `2ab16a864b23a9a178faf219512e4a7dbb255a659ddb57785c16292b3d008d6d`.
+- The current H06 pinned class32 candidate removes five owner pixels. The
+  independent ATR18/LIP20 positive-only protection guard restores one of those
+  pixels, leaving four removals; no owner promotion occurs. Source SHA,
+  observer-map SHA, alpha bounds, 4/8 connectivity and enclosed-hole
+  invariants all pass. The new source-only SegFormer garment guard restores
+  zero pixels and leaves the five-pixel raw candidate unchanged. The guard
+  therefore protects against an observed garment erasure but does not yet
+  produce an accepted P0/P1 improvement.
+- Post-inference H06 scoring against the supplied independent mask, with
+  unknown pixels excluded, was: frozen owner IoU `0.737669`, raw candidate
+  `0.737670`, ATR/LIP protected candidate `0.737672`; known-negative FP rate
+  changed `0.043064 -> 0.043031`, while recall changed `0.743427 -> 0.743425`.
+  This is a small diagnostic tradeoff, not a quality-gate PASS.
+- The source-only candidate survey also replayed the existing H08 sleeve
+  recovery hypotheses without reading masks during candidate generation.
+  Topology-positive recovery admitted `5,807` owner-1 pixels and improved the
+  post-inference diagnostic IoU `0.278827 -> 0.294053`; robust-frontier
+  recovery admitted `18,280` pixels and reached `0.330357`. Both preserve the
+  frozen 4/8 component and hole counts, but remain candidate-only: the latter
+  uses an exposed known-case margin and neither candidate has independent
+  sleeve-vs-arm/underlayer owner authority. They are not promoted or connected
+  to production.
+- Private source-free receipts for this replay are retained outside the
+  repository. Repository state remains `L02=HOLD`, `Phase4=FAIL`,
+  `production=NO_GO`; #449 and #451 remain Draft.
+
 ## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
