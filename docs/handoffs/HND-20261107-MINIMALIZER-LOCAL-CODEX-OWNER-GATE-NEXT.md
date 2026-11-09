@@ -388,8 +388,6 @@ was relabeled as formal evidence.
   candidate is rejected and is not integrated, promoted, or used as a P0/P1
   fix. No private candidate artifact was copied into GitHub.
 
-## Required owner-side inputs
-
 ## 2026-11-09 H06 frozen postscore gate
 
 - Added the source-free generic evaluator
@@ -411,6 +409,8 @@ was relabeled as formal evidence.
   The A focused suite is `433 passed, 46 subtests passed`; `git diff --check`
   passes. No private masks, NPZs, coordinates, or comparison images were
   added to GitHub.
+
+## Required owner-side inputs
 
 1. Lane A: an independently provenance-pinned garment/arm/underlayer observer
    for H06/H08, bound to the exact signed source SHA and carrying its model,
