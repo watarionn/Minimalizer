@@ -18,6 +18,13 @@
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
+2026-11-10の方式再設計として、Aのobserver能力ゲートをコミット
+`51a68bc0e06e7c12842eac6d84f1fc71dae318e5`へ固定し、PR #449のDraft headへ反映した。
+`tests/test_local_l02_observer_capability_gate.py`を含む対象テストは`15 passed`。
+この変更は候補画像を作らず、現行See-through body-part parserを
+`CAPABILITY_HOLD`（外衣・下着・袖・腕・遮蔽関係・instance grouping不足）として
+候補生成前に停止する。したがって、A/Bの品質状態は上表から昇格していない。
+
 2026-11-10の読み取り専用B再検証では、PR #451 head
 `c593b46c53c28127b08d74d2ce733045495b5577` に対してL04/L05/L07/Workerの
 focused suiteが `46 passed`。Service Worker generation pin、shell-only cache、
