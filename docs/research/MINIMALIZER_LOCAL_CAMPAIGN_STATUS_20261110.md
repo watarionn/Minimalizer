@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `509518569f838cb357b8b044086fb88825b71380` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `89ba294be271c68f77339493d531687901336360` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -57,6 +57,14 @@
   Bの完了記録を保護したまま、Aの六能力observer導入からGolden・本番受入までの順序を一枚にした。
 - 次の担当者がJSONを直接書かずに入力を揃えられるよう、checkpointまたは学習計画の
   受入条件を`docs/research/LOCAL_L02_OBSERVER_INTAKE_CHECKLIST_20261110.md`へ固定した。
+- 現行凍結候補に結び付いたPhase4用の人間向け記入フォーム生成器を
+  `tools/research/prepare_local_l02_phase4_receipt.py`へ追加した。`init`はfreeze receiptから
+  H04/H06/H08の候補SHAを自動転記し、記入者はJSONではなくテキストフォームだけを埋める。
+  `materialize`はフォーム、署名、時刻、三例の意味評価、unknown保持、現行candidate SHAを
+  既存verifierで再検証し、全条件を満たした場合だけPhase4 receipt JSONを生成する。未回答、
+  旧候補SHA、署名不足ではJSONを生成しない。準備器のfocused testは`10 passed`、A全体は
+  `479 passed / 46 subtests passed`、B回帰は`67 passed`である。手順の正本は
+  `docs/research/LOCAL_L02_PHASE4_RECEIPT_CONTRACT_20261110.md`。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
