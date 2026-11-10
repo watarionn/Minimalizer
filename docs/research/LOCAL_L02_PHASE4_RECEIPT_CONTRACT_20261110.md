@@ -33,3 +33,29 @@ It must not be silently converted into either a Phase4 PASS or a quality FAIL.
 The verifier can return `Phase4: PASS` only. Its output always remains
 `Phase5: NO_GO`, `Golden: HOLD`, and `production: NO_GO`; later promotion is a
 separate gate.
+
+## 人間がreceiptを作る手順
+
+人間はJSONを直接書かない。現行の凍結候補から、source-freeの記入用テキストを作る。
+
+```cmd
+py -3 tools/research/prepare_local_l02_phase4_receipt.py init ^
+  --freeze C:\path\to\SAPIENS2_CANDIDATE_FREEZE_RECEIPT.json ^
+  --output C:\path\to\PHASE4_REVIEW_FORM_CURRENT.txt
+```
+
+記入者はフォームの空欄だけを埋める。特に、`visual_regression_acceptable`（悪化がないか）と
+`change_visibility_sufficient`（意図した修復を通常倍率で判定できるか）は別々に回答する。
+差分が小さくて判定できない場合、後者を`NO`にし、前者を勝手に`YES`へ補完しない。
+
+記入後、現行freeze receiptとフォームを渡してJSON化する。
+
+```cmd
+py -3 tools/research/prepare_local_l02_phase4_receipt.py materialize ^
+  --freeze C:\path\to\SAPIENS2_CANDIDATE_FREEZE_RECEIPT.json ^
+  --form C:\path\to\PHASE4_REVIEW_FORM_CURRENT.txt ^
+  --output C:\path\to\PHASE4_INDEPENDENT_REVIEW.json
+```
+
+未回答、旧候補SHA、署名・時刻不足、三例のどれか一つでも不成立なら、JSONは生成されず
+`HOLD`になる。生成されたJSONもPhase5、Golden、本番を自動承認しない。
