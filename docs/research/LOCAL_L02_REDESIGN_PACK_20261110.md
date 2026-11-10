@@ -109,3 +109,18 @@ threshold・owner配列ではない。
 Phase5 exact replay、L04三点セット、L05/L07、Golden、本番、実機iPhoneへ進む。
 現時点のA/B状態は変わらず、`L02=HOLD / Phase4=FAIL / Phase5=NO_GO` である。
 
+## 2026-11-10 layered solver probeの判定
+
+外衣proposal、Sapiens2の腕観測、接触・遮蔽規則を組み合わせたsource-only probeを
+H04/H06/H08へ同じコード・同じ設定で実行した。人手mask、review JSON、凍結ownerは
+推論入力に使用していない。推論後の比較だけで確認した結果、変更はH04 148px、H06
+1,926px、H08 170pxであり、H06はIoUが`0.887601`から`0.885709`へ悪化した。
+
+これは「全身owner再構成」ではなく、既存Fashionpedia外衣proposalの周辺差分である。
+よってこのprobeは`MICRO_DELTA_ONLY`または`REGRESSION`として研究履歴へ隔離し、
+正式候補、Phase4、owner認可、L04 handoffには使用しない。
+
+この失敗に対する次の行動は、solverの追加修正ではない。外衣・袖・腕・下着・遮蔽関係・
+人物内instance結合を同時に観測できる実行可能observerを、モデル／重みSHA／出力契約
+まで含めて先に確定する。能力ゲートを通過できない限り、Aの候補生成を停止する。
+

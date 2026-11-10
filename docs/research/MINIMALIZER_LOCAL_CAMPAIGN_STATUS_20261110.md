@@ -135,3 +135,12 @@ Fashionpediaのshirt/topクラスを下着観測として足した派生はH04/H
 非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_BaseLayer_20261110` に履歴保存した。
 同一モデルのクラス追加は採用せず、active codeへ残さない。
 
+2026-11-10に実施したlayered garment solverの一括probeも正式候補にはしない。既存の
+Fashionpedia外衣proposalとほぼ同じmaskになり、H04/H06/H08の変更量は148/1,926/170px、
+H06はIoU悪化だったため、`MICRO_DELTA_ONLY / REGRESSION`として研究履歴に隔離した。
+これで「大きな設計名を付けた小差分」を成果として扱わないことを実測で確認した。
+
+今後は、observer能力ゲートを通過するまでAのsolver・閾値・receiptを増やさない。
+必要能力は外衣、袖、腕、下着、遮蔽関係、人物内instance結合の同時観測であり、
+モデル／重みSHA／出力契約が揃った構成だけをH04/H06/H08へ一括probeする。
+
