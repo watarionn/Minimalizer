@@ -34,17 +34,34 @@ H04/H06/H08について肯定されている。
 差分を視認できる十分な変更であることも証明されていない。`visual_regression_acceptable`
 と`change_visibility_sufficient`は別フィールドで受領しなければならない。
 
+## 現行凍結候補とのSHA照合
+
+ローカルに保全されていた
+`C:\Work\Temp\minimalizer-l02-review-packet-20261110`の
+`SAPIENS2_CANDIDATE_FREEZE_RECEIPT.json`と、上記Driveレビューの候補SHAを照合した。
+
+| case | Driveレビューが指すSHA | 現行arm-guarded候補SHA | 判定 |
+|---|---|---|---|
+| H04 | `5b56899313d57b1677cb6c30676fe2e60c9fa141331a379aff7ee7a0e6101b5e` | `36bbb7803fc8bc55186d78e02cb68d41487e7c784b53e0422cac971b39ae1840` | **不一致** |
+| H06 | `87278640b0761e6d3aa572cb37156f13ee09bc8c9ebaef133445ffec63bbfa76` | `6034f91150a49146a0ef8badd5d16c1ae5f659dc1db850a482426d01eda29335` | **不一致** |
+| H08 | `8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091` | `8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091` | 一致 |
+
+したがって、Driveレビューは「独立レビューが存在する」証拠としては保持するが、
+現行arm-guarded H04/H06/H08三例のcandidate-specific Phase4 receiptには昇格しない。
+ローカルのH04/H06/H08候補はsource-onlyで凍結されており、H04 395px、H06 54px、
+H08 591pxの差分を持つが、対応する三例一致のPhase4判定はまだない。
+
 ## 現行ゲート
 
 - 独立性・未見性・推論前ラベル非参照: `YES`（受領レビューの主張）
-- 意味評価: `YES`（受領レビューの主張）
+- 意味評価: `YES`（受領レビューの主張。H04/H06は現行凍結候補SHAと不一致）
 - H06/H08の差分視認性: `未完了`
 - H04の候補改善: `未成立`（変更画素0）
 - 現行L02/Phase4: `HOLD / FAIL`
 - Phase5、owner認可、Stage8、Golden、本番: `NO_GO`
 
 このレビューはSapiens2の小差分候補に対する評価であり、六能力observerの成立証拠でも、
-現在設計中の全身owner再構成候補のPhase4 PASSでもない。したがって、現在のA候補を昇格せず、
+現行arm-guarded候補三例のcandidate-specific Phase4 PASSでもない。したがって、現在のA候補を昇格せず、
 「通常倍率で判定できる大きさの三例一括候補を一つ作る」という開発方式を維持する。
 
 ## 次の実作業

@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `d92d5bf6b6d8d20a676920454cfb2ab7507acff0` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `509518569f838cb357b8b044086fb88825b71380` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -198,6 +198,10 @@ H06はIoU悪化だったため、`MICRO_DELTA_ONLY / REGRESSION`として研究�
 不合格ではなく、変更量が通常倍率では小さすぎて判定できないという意味だった。H04は変更画素0。
 この二つを混ぜないための差分記録は
 `docs/research/LOCAL_L02_REVIEW_DELTA_READBACK_20261110.md`である。
+
+その後、ローカルのSapiens2 arm-guarded凍結候補とDriveレビューの候補SHAを照合したところ、
+H08だけ一致し、H04/H06は旧base候補を指していた。したがってレビューの独立性・意味評価の
+主張は保持するが、現行三例候補のcandidate-specific Phase4 receiptには使わない。
 
 このレビューは小差分Sapiens2候補の確認であり、六能力observerの成立やPhase4 PASSではない。
 したがって、L02/Phase4の`HOLD / FAIL`、Phase5/owner認可/Stage8/Golden/productionの`NO_GO`を
