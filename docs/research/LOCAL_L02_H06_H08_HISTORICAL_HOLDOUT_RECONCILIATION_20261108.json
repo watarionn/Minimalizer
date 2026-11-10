@@ -1,0 +1,38 @@
+{
+  "schema": "minimalizer/l02/historical-holdout-reconciliation/v1",
+  "historical_evaluation_date": "2026-10-16",
+  "historical_method": "leave-one-character-out, H04/H06/H08, training on other two",
+  "inference_uses_manual_pixels_or_mask": false,
+  "folds": {
+    "H04": {
+      "labelled_only_iou": 0.005419,
+      "positive_recall": 0.005525
+    },
+    "H06": {
+      "labelled_only_iou": 0.032561,
+      "positive_recall": 0.03258
+    },
+    "H08": {
+      "labelled_only_iou": 0.017511,
+      "positive_recall": 0.018105
+    }
+  },
+  "human_editor_artifacts": {
+    "H06": {
+      "savedAt": "2026-10-16T00:22:49.751Z",
+      "shape_count": 7,
+      "json_sha256": "a6ea6b0f8e40d079ba477534252267b7f2e2becd18a4cf082a3caf04c443582a"
+    },
+    "H08": {
+      "savedAt": "2026-10-16T00:29:35.161Z",
+      "shape_count": 4,
+      "json_sha256": "27dfc44b9acf01ca64ceb27161ca0886213d76bb4ac1534ee837666b232b222e"
+    }
+  },
+  "assessment": "Historical character-held-out test exists; low performance; human editor JSON lacks reviewer identity and signed independent blind attestation",
+  "owner_authorization": "User explicitly authorized remaining work on 2026-11-08; not evidence of independent reviewer attestation",
+  "commercial_use": "User confirmed cleared",
+  "quality_gate": "FAIL",
+  "release_gate": "NO_GO",
+  "required_next": "Obtain historical reviewer independence attestation if available; otherwise new independent blind review, then rerun acceptance against precommitted quality thresholds. Do not promote failing model."
+}

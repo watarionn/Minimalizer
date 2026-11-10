@@ -1,0 +1,21 @@
+{
+  "schema": "minimalizer/l02/existing-human-owner-comparison-sourcefree/v1",
+  "private_receipt_sha256": "46f5d46b4788917b432635c6eb67eeed27357863b9c26112ca986a1d106dd2a5",
+  "H06": {
+    "outerwear_recall": 0.924608,
+    "nonzero_owner_iou": 0.714958,
+    "labelled_fraction": 0.552717
+  },
+  "H08": {
+    "outerwear_recall": 0.616561,
+    "nonzero_owner_iou": 0.601899,
+    "labelled_fraction": 0.319633
+  },
+  "limitations": [
+    "Existing annotations are not independent blind holdout",
+    "Owner nonzero is not guaranteed to be outerwear",
+    "Unlabelled is unknown not negative"
+  ],
+  "commercial_use": "USER_CONFIRMED_CLEARED_20261108; provenance record not independently inspected",
+  "gate": "HOLD_PENDING_INDEPENDENT_BLIND_REVIEW_AND_OWNER_AUTHORITY"
+}

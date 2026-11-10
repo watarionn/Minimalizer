@@ -1,0 +1,45 @@
+{
+  "schema": "minimalizer/l02/independent-array-topology-audit-sourcefree/v1",
+  "date": "2026-11-08",
+  "private_drive_file_id": "1gY6DiF6T5N-8TykrxL6Dnd7AW1G-WPnX",
+  "private_audit_sha256": "0cf28c482649dd458d2ae95c0515988367cbfca7e0c7453cacf48452467ad3d3",
+  "H06": {
+    "source_sha": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+    "observer_npz_sha": "bbf548a0d5d3bd0844af7becde9faa946b6b11b37a950ebe747477ebce2ac85e",
+    "observer_regions": {
+      "shared": 189054,
+      "segformer_only": 147738,
+      "deepfashion_only": 11570
+    },
+    "overlap_px": 0,
+    "components_4": 9,
+    "components_8": 8,
+    "holes_4": 25,
+    "holes_8": 17
+  },
+  "H08": {
+    "source_sha": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+    "observer_npz_sha": "64f673809f8951cf865176afd31118dd8000c1f8b7e3d1351552173c47e208ed",
+    "observer_regions": {
+      "shared": 78726,
+      "segformer_only": 21623,
+      "deepfashion_only": 29734
+    },
+    "overlap_px": 0,
+    "components_4": 27,
+    "components_8": 20,
+    "holes_4": 4,
+    "holes_8": 4
+  },
+  "limitations": {
+    "independent_blind_holdout": "NOT_VERIFIED",
+    "owner_authority": "NOT_GRANTED",
+    "semantic_review": "NOT_VERIFIED",
+    "production_license_cleared": false
+  },
+  "gate": {
+    "L02": "HOLD",
+    "Phase4": "FAIL",
+    "Production": "NO_GO"
+  }
+}
