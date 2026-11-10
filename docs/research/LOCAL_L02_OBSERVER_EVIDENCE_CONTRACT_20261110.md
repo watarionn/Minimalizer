@@ -19,17 +19,21 @@
 - `underlayer`: 下着・内側衣装領域
 - `sleeve`: 袖・衣装側の腕周辺領域
 - `arm`: 腕・手など身体側領域
-- `occlusion_relation`: 前後関係。`-1=behind`, `0=unknown`, `1=in_front`
+- `occlusion_relation`: role pairごとの前後関係。必須pairは
+  `outerwear/underlayer`, `sleeve/arm`, `garment/body`。各値は
+  `-1=behind`, `0=unknown`, `1=in_front`
 - `instance_grouping`: 人物内の衣装instance ID。`0`は未観測
 
 各maskまたは配列は、source alphaと同じ形状で、SHA-256、observer IDを持つ。
+遮蔽は一枚のdepthやscalar配列では代用できず、必須3 pairが揃わなければHOLDとする。
 source alpha外の正値、SHA不一致、型・形状不一致は即時HOLDとする。
 
 ## 実装
 
 `tools/research/local_l02_observer_evidence_contract.py` を追加した。
 
-- `assess_observer_evidence` は6能力の実配列を検査する
+- `assess_observer_evidence` は6能力の実配列を検査する。遮蔽は
+  `PairwiseRelationObservation`の必須3 pairで検査する
 - 完全な証拠でも返すのは `CAPABILITY_PASS_RESEARCH_ONLY`
 - owner promotion、Phase4、Phase5、Golden、productionの権限は付与しない
 - 必須能力の欠落は `CAPABILITY_HOLD`

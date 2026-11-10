@@ -25,6 +25,13 @@ REQUIRED_MASK_ROLES = frozenset({"outerwear", "underlayer", "sleeve", "arm"})
 REQUIRED_CAPABILITIES = frozenset(
     {*REQUIRED_MASK_ROLES, "occlusion_relation", "instance_grouping"}
 )
+REQUIRED_OCCLUSION_PAIRS = frozenset(
+    {
+        ("outerwear", "underlayer"),
+        ("sleeve", "arm"),
+        ("garment", "body"),
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -38,6 +45,15 @@ class RoleObservation:
 @dataclass(frozen=True)
 class ScalarObservation:
     capability: str
+    values: np.ndarray
+    expected_sha256: str
+    observer_id: str
+
+
+@dataclass(frozen=True)
+class PairwiseRelationObservation:
+    role_a: str
+    role_b: str
     values: np.ndarray
     expected_sha256: str
     observer_id: str
@@ -80,7 +96,7 @@ def assess_observer_evidence(
     *,
     source_alpha: np.ndarray,
     role_observations: tuple[RoleObservation, ...],
-    occlusion_relation: ScalarObservation | None,
+    occlusion_relation: tuple[PairwiseRelationObservation, ...] | None,
     instance_grouping: ScalarObservation | None,
     source_only: bool = True,
     human_labels_used: bool = False,
@@ -88,8 +104,8 @@ def assess_observer_evidence(
 ) -> ObserverEvidenceAssessment:
     """Validate a complete source-only observer evidence bundle.
 
-    ``occlusion_relation.values`` uses ``-1`` for behind, ``1`` for in front,
-    and ``0`` for unknown.  ``instance_grouping.values`` uses zero for
+    Each pairwise ``occlusion_relation.values`` array uses ``-1`` for behind,
+    ``1`` for in front, and ``0`` for unknown.  ``instance_grouping.values`` uses zero for
     ungrouped/unknown pixels and positive integer IDs for observed instances.
     Neither array assigns an owner; they are only evidence for a later
     component-level solver.
@@ -150,10 +166,7 @@ def assess_observer_evidence(
         if type(values) is not np.ndarray or values.dtype != dtype or values.shape != shape:
             raise ObserverEvidenceHold(f"INVALID_{capability.upper()}")
         _validate_sha(values, observation.expected_sha256, f"{capability.upper()}_SHA_MISMATCH")
-        if capability == "occlusion_relation":
-            if np.any(~np.isin(values, (-1, 0, 1))):
-                raise ObserverEvidenceHold("INVALID_OCCLUSION_VALUES")
-        elif allowed is not None and np.any(~np.isin(values, tuple(allowed))):
+        if allowed is not None and np.any(~np.isin(values, tuple(allowed))):
             raise ObserverEvidenceHold("INVALID_INSTANCE_VALUES")
 
     missing = tuple(sorted(REQUIRED_MASK_ROLES - seen_roles))
@@ -170,11 +183,31 @@ def assess_observer_evidence(
             reason="required role evidence is missing",
         )
 
-    validate_scalar(
-        occlusion_relation,
-        "occlusion_relation",
-        np.dtype(np.int8),
-    )
+    if not isinstance(occlusion_relation, tuple):
+        raise ObserverEvidenceHold("MISSING_OCCLUSION_RELATION")
+    seen_pairs: set[tuple[str, str]] = set()
+    for relation in occlusion_relation:
+        if not isinstance(relation, PairwiseRelationObservation):
+            raise ObserverEvidenceHold("INVALID_OCCLUSION_RELATION")
+        pair = (relation.role_a, relation.role_b)
+        if pair not in REQUIRED_OCCLUSION_PAIRS or pair in seen_pairs:
+            raise ObserverEvidenceHold("INVALID_OCCLUSION_PAIR")
+        if (
+            type(relation.observer_id) is not str
+            or not relation.observer_id
+            or relation.observer_id in seen_observers
+        ):
+            raise ObserverEvidenceHold("INVALID_SCALAR_OBSERVATION")
+        values = relation.values
+        if type(values) is not np.ndarray or values.dtype != np.int8 or values.shape != shape:
+            raise ObserverEvidenceHold("INVALID_OCCLUSION_RELATION")
+        _validate_sha(values, relation.expected_sha256, "OCCLUSION_RELATION_SHA_MISMATCH")
+        if np.any(~np.isin(values, (-1, 0, 1))):
+            raise ObserverEvidenceHold("INVALID_OCCLUSION_VALUES")
+        seen_pairs.add(pair)
+        seen_observers.add(relation.observer_id)
+    if seen_pairs != REQUIRED_OCCLUSION_PAIRS:
+        raise ObserverEvidenceHold("INCOMPLETE_OCCLUSION_PAIRS")
     validate_scalar(
         instance_grouping,
         "instance_grouping",
