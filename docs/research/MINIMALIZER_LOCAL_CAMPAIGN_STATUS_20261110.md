@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `ac39669de0990c98878e8916b3174a1eb7a5c3e3` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `18932952fcf8568e9d60a71719c8d071964d3a7e` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -26,8 +26,9 @@
   source-alpha、source-only、unknown保持、human label／既存owner不使用、役割重複、
   mask SHA／shape、遮蔽関係、instance groupingを検証し、欠落時はownerを生成せず
   `CAPABILITY_HOLD`で停止する。
-- A focused suiteは `38 passed`、Aの `test_local_l02_*.py` 全体は `472 passed / 46
-  subtests passed`。これは構造・契約テストのPASSであり、画像品質やPhase4 PASSではない。
+- Aの `test_local_l02_*.py` 全体は、依存済み隔離venvと`tools/research`を含む明示的な
+  import pathで再実行し、`472 passed`。これは構造・契約テストのPASSであり、画像品質や
+  Phase4 PASSではない。
 - Bの統合回帰（L04三点、L05 receipt、L07監査、Worker、handoff）は `67 passed`。
   Bの実装・source/runtime QAは完了状態を維持し、Aの品質判定は行わない。
 - 現行See-through出力は、外衣・下着・袖・腕・遮蔽関係・人物内instance groupingを
