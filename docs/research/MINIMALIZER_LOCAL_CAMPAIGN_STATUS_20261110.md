@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `18932952fcf8568e9d60a71719c8d071964d3a7e` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `d92d5bf6b6d8d20a676920454cfb2ab7507acff0` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -51,6 +51,10 @@
 - ルートIIの最初の実装として、訓練manifest検証器とテストを追加した。H04/H06/H08の
   holdout混入、人物単位のsplit漏洩、unknownの陰性化をfail-closedにするが、学習データや
   observer checkpoint自体はまだ生成しない。
+- A/Bを統合して進めるための人間向け実行ボードを
+  `docs/research/MINIMALIZER_LOCAL_CAMPAIGN_EXECUTION_BOARD_20261110.md`へ固定した。
+  正本として残すreceipt、研究履歴へ隔離するprobe、現行完成判定から外す一時物を分け、
+  Bの完了記録を保護したまま、Aの六能力observer導入からGolden・本番受入までの順序を一枚にした。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
