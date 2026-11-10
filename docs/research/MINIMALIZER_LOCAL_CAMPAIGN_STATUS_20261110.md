@@ -127,3 +127,7 @@ NPZ・receiptは非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_20261110
 次に進む条件は、数画素調整ではなく、外衣・下着・腕・遮蔽順序を同時に観測する
 source-only層の設計と三例一括実装である。
 
+Fashionpediaのshirt/topクラスを下着観測として足した派生はH04/H06/H08で改善せず、
+非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_BaseLayer_20261110` に履歴保存した。
+同一モデルのクラス追加は採用せず、active codeへ残さない。
+
