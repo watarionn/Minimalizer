@@ -51,6 +51,12 @@ H04/H06/H08について肯定されている。
 ローカルのH04/H06/H08候補はsource-onlyで凍結されており、H04 395px、H06 54px、
 H08 591pxの差分を持つが、対応する三例一致のPhase4判定はまだない。
 
+現行freeze receiptと、ローカルに残っていたPhase4 templateを
+`tools/research/verify_local_l02_phase4_receipt.py`へ渡した結果も`HOLD / NO_GO`だった。
+失敗理由は、templateが`PENDING`で署名・評価者・各case判定を持たないことに加え、
+H04/H06のcandidate SHAが現行freeze receiptと不一致であること。これはreceiptを自動補完せず、
+候補固有の独立評価結果が必要だという確認である。
+
 ## 現行ゲート
 
 - 独立性・未見性・推論前ラベル非参照: `YES`（受領レビューの主張）
