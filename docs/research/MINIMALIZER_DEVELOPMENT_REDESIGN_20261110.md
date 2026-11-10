@@ -218,6 +218,24 @@ Phase4、owner認可、Stage8昇格は行わない。実験コードと出力は
 observerの実行経路または重みを確定することである。実行可能なobserverがない間は、
 数値を作るための追加solver・閾値・receiptを作成しない。
 
+### 手元モデルの能力ゲート結果
+
+2026-11-10時点で手元にある重みと設定を、名前ではなく設定上の出力契約で確認した。
+
+| 手元の構成 | 設定上の出力 | 欠けている能力 | A1 |
+|---|---|---|---|
+| Fashionpedia SegFormer | garmentのsemantic class map | instance結合、遮蔽関係、人物内owner | 不通過 |
+| FASHN Human Parser | body/clothingのsemantic class map | garment instance、下着境界、遮蔽順序 | 不通過 |
+| Sapiens2 segmentation | body-partのsemantic class map | garment instance、衣服階層、遮蔽順序 | 不通過 |
+| Sapiens2 pose | pose/keypoint | garment mask、下着、衣服owner | 不通過 |
+| SCHP ATR/LIP | human parsingのsemantic class map | 外衣instance、衣服階層、遮蔽順序 | 不通過 |
+| CLIPSeg | text-conditioned binary segmentation | 安定した全カテゴリ同時出力、instance、遮蔽順序 | 不通過 |
+
+この結果、現在のローカル資産だけでA1を通過する構成は確認できない。したがって、
+これらを組み合わせた閾値調整やowner solverの追加は、同じmicro-delta loopへ戻るため
+実施しない。次の正式な開発入力は、必要能力を持つ実行可能checkpoint、またはその
+能力を学習・評価できる別工程の確定である。
+
 ## 公開仕様の確認先
 
 2026-11-10時点の設計調査で参照した公開ページ。ここで確認したのは能力の候補であり、
