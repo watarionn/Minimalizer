@@ -267,6 +267,7 @@ SAM2.1 Hiera Tinyをsource-onlyで三例一括probeした。固定プロンプ�
 | See-through LayerDiff3D + Marigold + body parser | アニメ向け23層、再構成、深度、topwear/handwear/legwear | underlayerの独立意味、遮蔽関係の保証、instance groupingのowner契約。H04/H08のbottomwearも空 | 研究観測のみ |
 | Sapiens2 segmentation | 29クラスの身体・apparel・腕・手のsemantic map | garment instance、underlayer、遮蔽順序 | 腕の診断のみ |
 | AnimeInstanceSegmentation / CartoonSegmentation | アニメ人物のinstance分離 | 衣装・袖・下着のpart semantics | 人物境界のみ |
+| Yet-Another-Anime-Segmenter | CondInst/SOLOv2によるアニメ人物instance segmentation | 外衣・袖・下層・遮蔽ownerのsemantic contract | instance補助候補のみ |
 | SPECTRUM | 研究上は衣服・身体partとinstance groupingを統合 | 現環境で固定できる実行checkpoint・アニメ領域の再現条件 | 調査候補、実装入力にしない |
 
 この表から、次の正式サイクルは既存候補への補修ではなく、次のどちらか一つになる。
@@ -314,6 +315,7 @@ H04だけの閾値調整も行わず、次はアニメ向け肌／衣装境界�
 Minimalizerへの採用・品質合格・owner権限を意味しない。
 
 - [Spectrum project](https://s-pectrum.github.io/): clothing/body-part parsingとinstance-level groupingを掲げる研究仕様。
+- [Yet-Another-Anime-Segmenter](https://github.com/zymk9/Yet-Another-Anime-Segmenter): アニメ人物のinstance segmentation実装。衣装・下層・遮蔽ownerの意味出力ではないため、補助instance層以上には採用しない。
 - [Multi-Human-Parsing](https://github.com/ZhaoJ9014/Multi-Human-Parsing): semantic partと人物identityを同時に扱う公開実装・データ仕様。
 - [FASHN Human Parser](https://huggingface.co/fashn-ai/fashn-human-parser): 18クラスのsemantic parsing仕様。instance帰属・遮蔽順序の根拠としては不十分。
 
