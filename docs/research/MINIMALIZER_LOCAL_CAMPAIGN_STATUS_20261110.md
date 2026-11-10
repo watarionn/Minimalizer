@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / head `5217dd6cc1d9114ac7d063a95e3175b91e645e81` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / head `c7ef952fba61bf338fa7b3231657690bbefeb750` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -39,9 +39,10 @@
   共通で観測できたのは`outerwear`相当と`sleeve`相当だけで、`arm/underlayer/
   occlusion_relation/instance_grouping`が欠落し、全例`CAPABILITY_HOLD`だった。
   `topwear`の改名、`handwear`の腕流用、depth・連結成分の遮蔽代用は採用しない。
-- 次のA工程は、同じ署名済みH04/H06/H08へ一括適用できる六能力observerまたは、
-  その能力を導入する実行可能な計画を確定すること。能力契約を満たすまで、閾値、
-  OR/AND、case別選択、数画素修正、Phase4 receiptの追加は行わない。
+- 次のA工程は、同じ署名済みH04/H06/H08へ一括適用できる六能力observer、または
+  その能力を導入・学習する実行可能な計画を確定すること。計画の正本は
+  `docs/research/LOCAL_L02_OBSERVER_ADOPTION_PLAN_20261110.md`である。能力契約を満たすまで、
+  閾値、OR/AND、case別選択、数画素修正、Phase4 receiptの追加は行わない。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
@@ -125,9 +126,10 @@ Phase4が全ケースで独立PASSになった場合だけPhase5 exact replay、
 Golden、本番、実機iPhone受入へ進む。
 
 現時点では、新しいB実装や本番変更を行わない。Aについても、現在候補へ数画素を
-足す実装は行わない。まずH04/H06/H08の失敗構造、observerの盲点、三例共通の
-owner再構成設計を一つの設計パックに固定する。設計パックが通るまで、候補生成・
-追加observer・閾値変更・receipt作成を成果として扱わない。
+足す実装は行わない。H04/H06/H08の失敗構造、observerの盲点、三例共通のowner再構成設計は
+設計パックへ固定済みであり、六能力の導入・学習計画も
+`LOCAL_L02_OBSERVER_ADOPTION_PLAN_20261110.md`へ固定した。計画上の能力ゲートを通るまで、
+候補生成・追加observer・閾値変更・receipt作成を成果として扱わない。
 
 設計パックの正本は
 `docs/research/LOCAL_L02_REDESIGN_PACK_20261110.md` とする。
