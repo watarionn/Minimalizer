@@ -186,6 +186,12 @@ H06/H08で腕と接触する大componentを全体unknownへ戻す安全策は、
 probeのNPZとreceiptは非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_20261110`
 へH04/H06/H08各2件、計6件保存し、ローカルとのファイルサイズreadbackを確認した。
 
+同じFashionpedia ontologyの固定base-layerクラス（shirt/blouse、top/t-shirt）を
+underlayer evidenceとして加えた派生probeも実行したが、H04 IoU `0.000057`、H06
+`0.327063`、H08 `0.000224`で改善しなかった。この派生は
+`Minimalizer_L02_ComponentOwnerSolver_BaseLayer_20261110` に6件保存し、正式経路から
+除外した。同一モデルのクラス追加では、外衣と下着の意味境界・遮蔽順序を解決できない。
+
 ## 追加の設計判定：人体パーサー単独の腕vetoは採用しない
 
 Fashionpedia outerwear候補の腕・手境界を補う目的で、別系統のFASHN Human Parserを
