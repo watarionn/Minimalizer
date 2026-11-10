@@ -34,6 +34,11 @@
   同時に満たすobserver evidence bundleになっておらず、候補側にもsource-alpha外の
   mask画素が確認されたため、正式入力として不採用。`L02=HOLD / Phase4=FAIL /
   Phase5=NO_GO / Golden=HOLD / production=NO_GO`を維持する。
+- 追加の実行checkpointとして、ローカルのSee-through SAM-HQ 19部位モデルを署名済み
+  H04/H06/H08へ同一条件でsource-only実行した。source alpha内へclipした後も、三例
+  共通で観測できたのは`outerwear`相当と`sleeve`相当だけで、`arm/underlayer/
+  occlusion_relation/instance_grouping`が欠落し、全例`CAPABILITY_HOLD`だった。
+  `topwear`の改名、`handwear`の腕流用、depth・連結成分の遮蔽代用は採用しない。
 - 次のA工程は、同じ署名済みH04/H06/H08へ一括適用できる六能力observerまたは、
   その能力を導入する実行可能な計画を確定すること。能力契約を満たすまで、閾値、
   OR/AND、case別選択、数画素修正、Phase4 receiptの追加は行わない。

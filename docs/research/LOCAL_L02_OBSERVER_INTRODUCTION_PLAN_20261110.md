@@ -99,3 +99,28 @@ L02: HOLD
 Phase4: FAIL
 Phase5: NO_GO
 ```
+
+## 2026-11-10 実行checkpoint: See-through SAM-HQ 19部位
+
+導入計画の第1段階として、ローカルに保持されていたSee-throughのSAM-HQ
+19部位モデルを、署名済みH04/H06/H08だけへ同一条件で新規実行した。レビューJSON、
+評価mask、既存ownerは推論前に読み込んでいない。モデルファイルSHAは
+`dda82b916f6c340bc5a6c3a077ff1214f9906906abe3707b1076d55b508f253f`、出力はRLE JSONで
+H04=`60f0ab68a8619f3a29ab5015c47e5183ec6f5686d75edca2a5401cec33dfacce`、
+H06=`663aaefb0a453ed9e0279093d4a68ed7842302a7d28f58369774456387d6e82e`、
+H08=`4cd0d52835995db7b7c50ba78f151a60d72c8e155456fbcda49d9f78ddf3e32f`である。
+
+出力には`topwear`と`handwear`は存在したが、`underlayer`、独立した`arm`、明示的な
+`occlusion_relation`、人物内`instance_grouping`は存在しなかった。各maskを署名済み
+source alpha内へクリップした後、observer evidence contractへ入力した結果は次の通り。
+
+| case | source-only | observed | missing | contract |
+|---|---|---|---|---|
+| H06 | yes | outerwear, sleeve | arm, underlayer, occlusion, instance | `CAPABILITY_HOLD` |
+| H08 | yes | outerwear, sleeve | arm, underlayer, occlusion, instance | `CAPABILITY_HOLD` |
+| H04 | yes | outerwear, sleeve | arm, underlayer, occlusion, instance | `CAPABILITY_HOLD` |
+
+この実行で、See-through SAM-HQを「六能力observer」として扱う誤認を除去できた。
+`topwear`を外衣へ改名したり、`handwear`を腕へ流用したり、depthや連結成分を
+遮蔽・instanceの代用にすることはしない。したがって正式候補、Phase4 receipt、
+Phase5、B handoffは増やさず、次の不足能力導入へ進む。
