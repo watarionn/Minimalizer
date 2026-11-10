@@ -237,6 +237,11 @@ observerの実行経路または重みを確定することである。実行可
 実施しない。次の正式な開発入力は、必要能力を持つ実行可能checkpoint、またはその
 能力を学習・評価できる別工程の確定である。
 
+この判定を手作業の解釈に戻さないため、能力契約を
+`tools/research/local_l02_observer_capability_gate.py`へ固定した。これは画像や評価ラベルを
+読まず、observerのrevision・重みSHA・出力契約だけを検査する。現在のSee-through body-part
+parserは`CAPABILITY_HOLD`であり、topwearからouterwearを推測する候補生成へは進めない。
+
 ### アニメ観測層の最初の一括probe
 
 元画像を確認した結果、H04/H06/H08は透過アニメ人物であり、実写ファッションモデルを
