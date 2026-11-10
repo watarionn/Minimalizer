@@ -3,7 +3,10 @@
 This module only reads the signed source image, Stage8 JSON and expanded SVG.
 It never rewrites geometry, changes Golden/Public assets, or authorizes release.
 The expected file hashes are supplied by an independently preserved receipt;
-the Stage8 JSON cross-links the source and expanded SVG hashes.
+the Stage8 JSON cross-links the source and expanded SVG hashes. Vertex counts
+are observed for diagnostics only. They are not a Local quality or acceptance
+cap because geometry encoding changes that number without changing the
+rendered result.
 """
 from __future__ import annotations
 
@@ -20,15 +23,20 @@ class L04Hold(ValueError):
 
 
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
-_SCHEMA = "minimalizer/local-l04/stage8-source-triple/v1"
+_SCHEMAS = frozenset({
+    "minimalizer/local-l04/stage8-source-triple/v1",
+    "minimalizer/local-l04/stage8-source-triple/v2",
+})
 _REQUIRED_NUMBERS = (
     "original_stage8_source_ring_vertices",
-    "original_stage8_source_ring_cap",
     "expanded_svg_vertices",
-    "expanded_svg_vertex_cap",
     "source_owner_mismatch_pixels",
     "protected_face_arm_owner_mismatch_pixels",
     "source_silhouette_xor_pixels",
+)
+_OPTIONAL_LEGACY_NUMBERS = (
+    "original_stage8_source_ring_cap",
+    "expanded_svg_vertex_cap",
 )
 _FORBIDDEN_SVG_TAGS = frozenset({
     "script", "foreignobject", "iframe", "object", "embed", "image",
@@ -115,7 +123,7 @@ def evaluate_paths(*, source_path: Path, stage8_json_path: Path,
         record = json.loads(stage8_bytes.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise L04Hold("INVALID_STAGE8_JSON") from exc
-    if not isinstance(record, dict) or record.get("schema") != _SCHEMA:
+    if not isinstance(record, dict) or record.get("schema") not in _SCHEMAS:
         raise L04Hold("INVALID_STAGE8_SCHEMA")
     case = record.get("case")
     if not isinstance(case, str) or not case.strip():
@@ -130,29 +138,31 @@ def evaluate_paths(*, source_path: Path, stage8_json_path: Path,
         value = record.get(key)
         if type(value) is not int or value < 0:
             raise L04Hold("INVALID_MEASUREMENT:" + key)
+    for key in _OPTIONAL_LEGACY_NUMBERS:
+        if key in record and (type(record[key]) is not int or record[key] < 0):
+            raise L04Hold("INVALID_MEASUREMENT:" + key)
     if (record["original_stage8_source_ring_vertices"] == 0 or
-            record["original_stage8_source_ring_cap"] == 0 or
-            record["expanded_svg_vertices"] == 0 or
-            record["expanded_svg_vertex_cap"] == 0):
-        raise L04Hold("INVALID_EMPTY_GEOMETRY_OR_ZERO_CAP")
+            record["expanded_svg_vertices"] == 0):
+        raise L04Hold("INVALID_EMPTY_GEOMETRY")
 
-    source_budget_ok = (record["original_stage8_source_ring_vertices"] <=
-                        record["original_stage8_source_ring_cap"])
-    svg_budget_ok = (record["expanded_svg_vertices"] <=
-                     record["expanded_svg_vertex_cap"])
     owner_ok = record["source_owner_mismatch_pixels"] == 0
     protected_ok = record["protected_face_arm_owner_mismatch_pixels"] == 0
     silhouette_ok = record["source_silhouette_xor_pixels"] == 0
-    numerical = source_budget_ok and svg_budget_ok and owner_ok and protected_ok and silhouette_ok
+    numerical = owner_ok and protected_ok and silhouette_ok
+    legacy_caps_present = any(key in record for key in _OPTIONAL_LEGACY_NUMBERS)
     return {
-        "schema": "minimalizer/local-l04/source-stage8-svg-triple-gate/v1",
+        "schema": "minimalizer/local-l04/source-stage8-svg-triple-gate/v2",
         "case": case,
         "signed_source_sha256": source_sha,
         "stage8_json_sha256": stage8_sha,
         "expanded_svg_sha256": svg_sha,
         "three_artifact_hashes_verified": True,
-        "source_budget_pass": source_budget_ok,
-        "expanded_svg_budget_pass": svg_budget_ok,
+        "vertex_budget_policy": "not_enforced",
+        "vertex_budget_enforced": False,
+        "source_vertices_observed": record["original_stage8_source_ring_vertices"],
+        "expanded_svg_vertices_observed": record["expanded_svg_vertices"],
+        "legacy_vertex_caps_present": legacy_caps_present,
+        "legacy_vertex_caps_ignored": legacy_caps_present,
         "source_owner_exact": owner_ok,
         "protected_face_arm_unchanged": protected_ok,
         "source_silhouette_exact": silhouette_ok,

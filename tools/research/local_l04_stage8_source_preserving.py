@@ -3,8 +3,8 @@
 The candidate deliberately keeps the full source-only owner masks instead of
 using Phase 11 simplification.  A local Chromium alpha replay adds only the
 source-supported missing edge pixels needed for raster equality.  This is a
-quality-preserving diagnostic candidate; the vertex budget remains an honest
-independent gate and is never waived.
+quality-preserving diagnostic candidate; vertex counts are recorded for
+diagnostics but are not an L04 acceptance cap.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ import numpy as np
 from PIL import Image
 
 
-SCHEMA = "minimalizer/local-l04/stage8-source-triple/v1"
+SCHEMA = "minimalizer/local-l04/stage8-source-triple/v2"
 OWNERS = (
     "accessory_or_held_object", "face", "hair", "head", "left_arm",
     "lower_body", "major_clothing", "neck", "right_arm", "torso", "unknown",
@@ -69,12 +69,10 @@ def _render_alpha(svg: Path, png: Path, chrome: Path) -> np.ndarray:
 
 
 def run(*, source: Path, case_dir: Path, output_dir: Path,
-        source_ring_cap: int, expanded_svg_cap: int, chrome: Path) -> dict[str, Any]:
+        chrome: Path) -> dict[str, Any]:
     source = source.resolve()
     case_dir = case_dir.resolve()
     output_dir = output_dir.resolve()
-    if source_ring_cap <= 0 or expanded_svg_cap <= 0:
-        raise ValueError("positive explicit vertex caps are required")
     if not source.is_file() or not (case_dir / "phase_04" / "part_masks").is_dir():
         raise ValueError("signed source or source-only Phase4 masks are missing")
     phase8 = case_dir / "phase_08" / "stage.json"
@@ -156,9 +154,8 @@ def run(*, source: Path, case_dir: Path, output_dir: Path,
         "expanded_svg_sha256": sha256(svg_path),
         "phase8_stage_json_sha256": sha256(phase8),
         "original_stage8_source_ring_vertices": vertices,
-        "original_stage8_source_ring_cap": source_ring_cap,
         "expanded_svg_vertices": vertices,
-        "expanded_svg_vertex_cap": expanded_svg_cap,
+        "vertex_budget_policy": "not_enforced",
         "source_owner_mismatch_pixels": owner_mismatch,
         "protected_face_arm_owner_mismatch_pixels": protected_mismatch,
         "source_silhouette_xor_pixels": alpha_xor,
@@ -166,7 +163,6 @@ def run(*, source: Path, case_dir: Path, output_dir: Path,
         "source_only_inference": True,
         "human_labels_used_for_inference": False,
         "unknown_pixels_treated_as_negative": False,
-        "cap_authority": "legacy-local-l04-cap-1887-unconfirmed-for-this-case",
         "formal_status": "HOLD",
         "production_release": "NO_GO",
     }
@@ -184,12 +180,9 @@ def main() -> int:
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--case-dir", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--source-ring-cap", required=True, type=int)
-    parser.add_argument("--expanded-svg-cap", required=True, type=int)
     parser.add_argument("--chrome", type=Path, default=Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"))
     args = parser.parse_args()
     print(json.dumps(run(source=args.source, case_dir=args.case_dir, output_dir=args.output_dir,
-                         source_ring_cap=args.source_ring_cap, expanded_svg_cap=args.expanded_svg_cap,
                          chrome=args.chrome), ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 

@@ -18,7 +18,7 @@ import numpy as np
 from PIL import Image
 
 
-SCHEMA = "minimalizer/local-l04/stage8-source-triple/v1"
+SCHEMA = "minimalizer/local-l04/stage8-source-triple/v2"
 
 
 def sha256(path: Path) -> str:
@@ -124,10 +124,7 @@ def _render_owner_and_silhouette(
     return rendered_owner, rendered, owner_mismatch, protected_mismatch, silhouette_xor
 
 
-def run(*, source: Path, case_dir: Path, output_dir: Path, source_ring_cap: int,
-        expanded_svg_cap: int) -> dict[str, Any]:
-    if source_ring_cap <= 0 or expanded_svg_cap <= 0:
-        raise ValueError("explicit positive vertex caps are required")
+def run(*, source: Path, case_dir: Path, output_dir: Path) -> dict[str, Any]:
     source = source.resolve()
     case_dir = case_dir.resolve()
     output_dir = output_dir.resolve()
@@ -238,9 +235,8 @@ def run(*, source: Path, case_dir: Path, output_dir: Path, source_ring_cap: int,
         "phase10_geometry_json_sha256": sha256(phase10_geometry),
         "phase11_composition_json_sha256": sha256(phase11_composition),
         "original_stage8_source_ring_vertices": source_vertices,
-        "original_stage8_source_ring_cap": source_ring_cap,
         "expanded_svg_vertices": source_vertices,
-        "expanded_svg_vertex_cap": expanded_svg_cap,
+        "vertex_budget_policy": "not_enforced",
         "source_owner_mismatch_pixels": owner_mismatch,
         "protected_face_arm_owner_mismatch_pixels": protected_mismatch,
         "source_silhouette_xor_pixels": silhouette_xor,
@@ -249,7 +245,6 @@ def run(*, source: Path, case_dir: Path, output_dir: Path, source_ring_cap: int,
         "human_labels_used_for_inference": False,
         "unknown_pixels_treated_as_negative": False,
         "stage8_geometry": safe_primitives,
-        "cap_authority": "legacy-local-l04-cap-1887-unconfirmed-for-this-case",
         "formal_status": "HOLD",
         "production_release": "NO_GO",
     }
@@ -275,13 +270,9 @@ def main() -> int:
     parser.add_argument("--source", required=True, type=Path)
     parser.add_argument("--case-dir", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--source-ring-cap", required=True, type=int)
-    parser.add_argument("--expanded-svg-cap", required=True, type=int)
     args = parser.parse_args()
     print(json.dumps(run(source=args.source, case_dir=args.case_dir,
-                         output_dir=args.output_dir,
-                         source_ring_cap=args.source_ring_cap,
-                         expanded_svg_cap=args.expanded_svg_cap),
+                         output_dir=args.output_dir),
                      ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 

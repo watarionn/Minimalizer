@@ -56,6 +56,8 @@ def test_exact_triple_is_verified_but_never_release_authorized(tmp_path):
     result = _evaluate(_fixture(tmp_path))
     assert result["three_artifact_hashes_verified"]
     assert result["numerical_candidate_eligible_for_independent_review"]
+    assert result["vertex_budget_policy"] == "not_enforced"
+    assert result["vertex_budget_enforced"] is False
     assert result["L04_formal"] == "HOLD"
     assert result["production_release"] == "NO_GO"
     assert not result["release_authorized"]
@@ -151,3 +153,19 @@ def test_bad_quality_metrics_remain_hold(tmp_path):
     assert result["three_artifact_hashes_verified"]
     assert not result["numerical_candidate_eligible_for_independent_review"]
     assert result["L04_formal"] == "HOLD"
+
+
+def test_legacy_vertex_caps_are_diagnostic_only(tmp_path):
+    paths = _fixture(tmp_path)
+    source, stage8, svg = paths
+    record = json.loads(stage8.read_text(encoding="utf-8"))
+    # Deliberately make the historical numbers impossible.  The current Local
+    # policy observes geometry cost but does not use a vertex cap for L04.
+    record["original_stage8_source_ring_cap"] = 1
+    record["expanded_svg_vertex_cap"] = 1
+    stage8.write_text(json.dumps(record, separators=(",", ":")), encoding="utf-8")
+    result = _evaluate(paths)
+    assert result["numerical_candidate_eligible_for_independent_review"]
+    assert result["vertex_budget_enforced"] is False
+    assert result["legacy_vertex_caps_present"] is True
+    assert result["legacy_vertex_caps_ignored"] is True

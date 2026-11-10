@@ -1,6 +1,7 @@
-# Local L04 source / Stage8 / expanded SVG lineage gate (2026-11-07)
+# Local L04 source / Stage8 / expanded SVG lineage gate (2026-11-07, revised 2026-11-10)
 
-**Source-free implementation and synthetic verification only. Formal L04: HOLD; Golden and production: NO_GO.**
+**Vertex-count cap removed from Local L04. Source-free implementation and
+synthetic verification only. Formal L04 and production remain separate gates.**
 
 The private Local L04 acceptance boundary now has a fail-closed read-only gate in
 `tools/research/local_l04_source_stage8_svg_triple_gate.py`. It requires the
@@ -10,11 +11,17 @@ The Stage8 JSON must cross-link the signed-image and expanded-SVG hashes. The
 gate also rejects empty artifacts, invalid Stage8 schema/measurements, unsafe
 DTD/entity markup, and non-SVG XML roots.
 
-The numerical checks preserve independent ledgers for the original Stage8 ring
-budget, expanded SVG vertex budget, source owner exactness, protected face/arm
-owner exactness, and source silhouette equality. A numerical pass only produces
-an independently-reviewable candidate; the result always reports `L04_formal:
-HOLD`, `release_authorized: false`, and `production_release: NO_GO`.
+The gate records original Stage8 and expanded-SVG vertex counts as diagnostics,
+but does not enforce a vertex-count cap. The old `1887`/`1412` values were
+historical case-specific references, not a Local runtime limit or image-quality
+criterion. The active checks are source owner exactness, protected face/arm
+owner exactness, and source silhouette equality. Resource safety is a separate
+operational measurement: bytes, parse/render time, memory, and timeout may be
+introduced only from measured Local behavior.
+
+The gate remains non-promoting: it reports exact triple integrity and candidate
+eligibility, while human review, production activation, and rollback remain
+separate gates.
 
 The expanded SVG parser is also fail-closed against executable or embedded
 content: DTD/entities, script-like tags, raster/media/embed elements, inline
@@ -29,9 +36,9 @@ manifest cross-link mismatch, unsafe SVG markup, and failed quality metrics. No 
 image, Stage8 JSON, mask, coordinate, or SVG was copied into GitHub, and no
 Public/C08, Golden, Local production, or iPhone state was changed.
 
-The formal owner-side gate remains pending until the actual private three-point
-set and its independent receipt are available. Do not infer a formal L04 pass
-from this source-free test result.
+The formal owner-side gate still requires the actual private three-point set and
+its independent receipt. The adopted no-vertex-cap policy does not itself prove
+browser or production acceptance.
 
 Implementation commit: `20e2e2be` (PR #451, Draft; not merged).
 
