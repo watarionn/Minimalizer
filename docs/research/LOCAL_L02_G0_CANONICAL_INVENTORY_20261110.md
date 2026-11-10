@@ -102,26 +102,53 @@ independent observer receiptとATR/LIP NPZがあり、H06の同名receiptはこ�
 4. 独立評価資料を候補SHAへ束縛した正式Phase4 receiptが、現行候補として完成していない。
 5. AのPhase4 FAILをBの表示QAで補うことはできない。
 
-## 次に選ぶ設計
+## 選択した全身再構成設計
 
-次の実装は、observerをさらに増やすことではなく、既存のsource-only observer bundleを
-入力にした**全身owner再構成層**とする。
+observerをさらに増やすのではなく、Fashionpediaの固定ontologyを持つsource-only
+instance segmentationを主衣装observerとして使い、既存ownerを入力にしない
+**全身outerwear owner再構成層**を実装した。
 
 ```text
-source-only observer role maps
+signed source
         ↓
-role-specific regions + contact/occlusion graph
+Fashionpedia jacket/coat/cardigan/vest/cape instances
         ↓
-coherent component単位の意味分割
+遮蔽で分断された同一instanceを一つのownerへ束ねる
         ↓
-exclusive owner / unknown / occlusion result
+exclusive outerwear owner / unknown / sleeve diagnostic
         ↓
 H04,H06,H08一括freeze → 構造・意味・通常倍率レビュー
 ```
 
-この層で最大衝突componentを三例同時に分割できない場合、閾値や画素パッチへ戻らず、
-「現在の観測だけではowner authorityが不足」と判定する。その場合はモデル／観測経路の
-変更を一回の設計変更として行い、局所候補は作らない。
+固定契約は次のとおりである。
+
+- model repo `resoa/garment-detector-seg`
+- revision `38c0c6bbb27537a76cbbc94a710d8b82fd721b50`
+- weights SHA-256 `aafefc440ea8f3f388e894a898e4270a2eeb6e38a3c3ffd3751d07d0f30b26bb`
+- 全case共通 confidence `0.30`
+- main outerwear class IDs `3,4,5,9,12`
+- sleeve classはownerへ昇格せず、独立診断として保持
+- 既存owner、human mask、review JSONは推論入力にしない
+
+実装は `tools/research/local_l02_fashionpedia_outerwear_reconstruction.py`、
+source-free構造テストは
+`tests/test_local_l02_fashionpedia_outerwear_reconstruction.py` に固定した。
+
+### 三例一括probeの結果
+
+以下は推論完了後にのみprivate reviewed maskで照合した診断値であり、閾値選択や推論
+入力には使っていない。正式Phase4の値ではない。
+
+| case | owner px | owner components | known TP | known FP | known FN | known-only IoU | status |
+|---|---:|---:|---:|---:|---:|---:|---|
+| H04 | 55,217 | 1 | 51,272 | 3,459 | 1,300 | 0.915065 | review pending |
+| H06 | 316,265 | 1 | 293,101 | 15,394 | 21,722 | 0.887601 | underlayer boundary unresolved |
+| H08 | 153,164 | 1 | 149,785 | 183 | 6,785 | 0.955548 | sleeve visual review pending |
+
+H06のknown FPが残っているため、このprobeをPhase4へ昇格しない。通常倍率previewは
+非公開Driveの `Minimalizer_L02_FashionpediaOuterwear_20261110` に、NPZ・receiptと同じ
+freezeで保存した。独立評価者がH06のカフス／下着、H08の袖、H04の正衣装保持を
+意味評価し、候補SHAへ署名を結び付けるまで `Phase4=FAIL` を維持する。
 
 ## G0判定
 
@@ -129,12 +156,12 @@ H04,H06,H08一括freeze → 構造・意味・通常倍率レビュー
 G0 source identity       PASS
 G0 source-only boundary  PASS
 G0 historical isolation  PASS
-G0 semantic owner        FAIL / 未実装
+G0 semantic owner        CANDIDATE GENERATED / review pending
 G0 candidate-bound Phase4 receipt  FAIL / 未結束
 L02                      HOLD
 Phase4                   FAIL
 Phase5                   NO_GO
 ```
 
-G0で確定したのは「どの資料を使うか」と「何が根本欠落か」までである。これを完了扱い
-せず、次は全身owner再構成層の設計レビューへ進む。
+G0で確定したのは正本・失敗クラス・全身候補生成層までである。候補はまだ正式品質成果
+ではない。次は同じfreezeに対する独立意味レビューと、H06の誤owner境界の判定へ進む。
