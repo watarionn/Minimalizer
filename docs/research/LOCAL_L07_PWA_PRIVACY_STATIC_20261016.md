@@ -30,3 +30,13 @@ Two source-free research files are added:
 Remaining L07 true pre-release work: test a running LocalWorker `Origin`, Tailscale owner identity, preflight, unauthorized GETs and 429 lock behavior; Safari install/save/offline/online/abort/restore; Service Worker update and cache invalidation with real browser/OS; response headers and memory/cold startup. Do NOT sign off L07 from these read-only checks. No exact runtime SHA check or iPhone user acceptance performed. L02 research continues independently.
 
 Security/quality non-promotion: user-supplied source pixels, private NPZ, canonical Phase4 owners and manual Golden unchanged; no generated visible pixels; no eyes/nose/mouth/brows drawn; Public/C08 and Local production untouched.
+
+## 2026-11-10 isolated runtime boundary check
+
+The current B worktree LocalWorker was started on an isolated loopback port and
+passed its `/health` ready check. The same runtime rejected a foreign Origin
+with HTTP 403, rejected a non-image upload with HTTP 415, and returned HTTP 429
+plus `Retry-After: 2` for the second of two concurrent image requests. This is
+an API boundary check only. It does not claim Service Worker lifecycle,
+offline/online recovery, Safari save/restart, production asset reflection, or
+iPhone acceptance; those remain the L07/L08 owner-device gates.

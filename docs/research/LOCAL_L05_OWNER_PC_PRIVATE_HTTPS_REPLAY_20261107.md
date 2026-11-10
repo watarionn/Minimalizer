@@ -115,3 +115,23 @@ The following `/health` response remained `ready=true`, with active route
 `zerobase2` and `zerobase2_authorized=true`. This is a repeatable loopback
 smoke check only; it does not change the private-HTTPS, production, or
 physical-iPhone gates.
+
+## 2026-11-10 B-worktree isolated runtime replay
+
+The current B branch was run on an isolated loopback port (`127.0.0.1:28774`)
+with the existing protected worker left untouched. The signed H06 and H08 WebP
+sources were submitted to `/api/v2/minimalize`.
+
+- H06: HTTP 200 `image/png`, 400x400, 10,366 bytes, processing
+  `50799.3ms`, output SHA-256
+  `f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`.
+- H08: HTTP 200 `image/png`, 400x400, 9,420 bytes, processing
+  `44965.6ms`, output SHA-256
+  `0d42327566e5d06dc433f8fd7e10108dd530fa75b7f6b9d29ad6ae675ce05f2b`.
+- A disallowed Origin returned HTTP 403; a `text/plain` upload returned HTTP
+  415.
+- Two concurrent H06 submissions returned one HTTP 200 PNG and one HTTP 429
+  with `Retry-After: 2`; the second response was JSON, not an image.
+
+This is current B-branch source/runtime evidence and does not replace owner-PC
+private-HTTPS, production-reflection, Safari/PWA, or physical-iPhone evidence.

@@ -33,6 +33,35 @@ The measurement uses the private artifact SHA values only.
 - If a runtime guard is later needed, it must be measured on the actual target
   runtime and expressed as an explicit bytes/time/memory/timeout contract.
 
+## 2026-11-10 isolated LocalWorker branch replay
+
+The B worktree was started on an isolated loopback port (`127.0.0.1:28774`)
+without changing the existing worker on port 28764. The signed H06/H08 source
+bytes were posted to the current `/api/v2/minimalize` route. Private PNG bytes
+and receipts remain outside GitHub.
+
+| Case | HTTP | Output bytes | Output PNG SHA-256 | Processing header |
+|---|---:|---:|---|---:|
+| H06 | 200 | 10,366 | `f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834` | 50,799.3 ms |
+| H08 | 200 | 9,420 | `0d42327566e5d06dc433f8fd7e10108dd530fa75b7f6b9d29ad6ae675ce05f2b` | 44,965.6 ms |
+
+The responses were `image/png`, `400x400`, `minimalizer2-local`, and carried
+the expected source size `2000x2000`, source-alpha preservation, contract
+version, and route metadata. The exact H06 response SHA matched the earlier
+private HTTPS replay; H08 is newly recorded as a source-free measurement.
+
+## Isolated failure and contention checks
+
+- A disallowed `Origin: https://example.invalid` returned HTTP 403 with
+  `Origin is not allowed.`
+- A `text/plain` upload returned HTTP 415 with the image-only rejection.
+- Two concurrent H06 requests produced one HTTP 200 PNG and one HTTP 429 with
+  `Retry-After: 2`; the 429 body was JSON and was not treated as an image.
+
+The isolated process was stopped after the checks. This proves current B-branch
+runtime behavior only; it does not authorize production reflection or iPhone
+acceptance.
+
 ## Gate status
 
 The source-preserving candidate's v2 triple readback is eligible for independent
