@@ -95,6 +95,28 @@ Aの未解決問題は「どの画素を数個動かすか」ではない。衣�
 既存owner、人手mask、レビューJSON、既知ラベルを推論入力に使わない。設計がこの条件を
 満たせない場合、追加の小修正をせずAをHOLDのままにする。
 
+### モデル選定の大きさを先に判定する
+
+次の大規模サイクルで、単にsemantic maskをもう一つ足すことはしない。候補モデルは
+実装前に、次の能力を一括で持つかを確認する。
+
+- garment / sleeve / arm / underlayerを同時に出せること
+- 同一人物の各部位を同じinstanceへ結び付けられること
+- 可視領域と遮蔽・接触境界を区別できること
+- H04/H06/H08へ同じ推論契約で実行できること
+- revision、重みSHA、出力SHAを凍結できること
+
+単一のsemantic parsingモデルは、衣服や腕のクラスを返せても、衣装のinstance帰属や
+遮蔽順序を保証しない。この不足をsolverの数画素補正で埋めない。候補モデルが実行可能な
+重み・コード・出力契約まで揃わなければ、A1は「観測層不足」としてHOLDにする。
+
+公開研究には、衣服・身体部位のpixel parsingとinstance-level groupingを一つのネット
+ワークで扱う設計がある。しかし、プロジェクトページ上で実行用コード・重みが確認できる
+までは、Minimalizerの候補として採用しない。また、multi-human parsingの公開実装は
+衣服カテゴリと人物identityを扱えるが、実行可能なcheckpointとH04/H06/H08への適用条件を
+先に確認する。つまり、モデル名や論文の存在を成果にせず、三例一括の再現可能な実行が
+確認できたものだけをA1の設計候補とする。
+
 ### A1の中止条件
 
 - H04/H06/H08で同じ規則を使えない
@@ -161,4 +183,13 @@ production     NO_GO
 遮蔽順序を同時に観測できる実行可能な構成として確定し、その構成でH04/H06/H08を
 一括処理できるかを検証する。構成が成立しなければ、候補生成を増やさず、具体的な
 観測不足を記録してAをHOLDする。
+
+## 公開仕様の確認先
+
+2026-11-10時点の設計調査で参照した公開ページ。ここで確認したのは能力の候補であり、
+Minimalizerへの採用・品質合格・owner権限を意味しない。
+
+- [Spectrum project](https://s-pectrum.github.io/): clothing/body-part parsingとinstance-level groupingを掲げる研究仕様。
+- [Multi-Human-Parsing](https://github.com/ZhaoJ9014/Multi-Human-Parsing): semantic partと人物identityを同時に扱う公開実装・データ仕様。
+- [FASHN Human Parser](https://huggingface.co/fashn-ai/fashn-human-parser): 18クラスのsemantic parsing仕様。instance帰属・遮蔽順序の根拠としては不十分。
 
