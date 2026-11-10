@@ -151,6 +151,22 @@ H06はIoU悪化だったため、`MICRO_DELTA_ONLY / REGRESSION`として研究�
 必要能力は外衣、袖、腕、下着、遮蔽関係、人物内instance結合の同時観測であり、
 モデル／重みSHA／出力契約が揃った構成だけをH04/H06/H08へ一括probeする。
 
+### 2026-11-10 大規模observer probeの結果
+
+Grounding-DINO + SAM2.1 Hiera Tinyを固定prompt・固定閾値でH04/H06/H08へ一括実行した。
+source-onlyであり、人手mask、review JSON、既存ownerは推論入力にしていない。これは
+候補作成ではなく、必要能力を持つかを判定するためのprobeである。
+
+結果は三例とも意味FAILだった。H04はarm/sleeve/shirtの各unionがsource alphaの
+約97%に達し、H06はarm約89%、sleeve/shirt約99%、H08はarm/sleeve約99%だった。
+overlayでも腕・袖が局所化されず、人物全体を覆った。固定prompt方式には可視衣服の
+前後関係を表す出力もないため、遮蔽関係能力も成立しない。
+
+判定は`OBSERVER_SEMANTIC_FAIL / CAPABILITY_HOLD`。大きな変更量を理由に候補化せず、
+Phase4、owner認可、Stage8、B handoffへは進めない。次に変えるのはpromptや数画素では
+なく、外衣・下着・袖・腕・遮蔽関係・instance結合を同時に出力できるアニメ向けobserver
+の実行可能なモデル／重み／出力契約である。
+
 その後、対象元画像が透過アニメ人物であることを確認したため、実写向けobserver群から
 アニメ向けSee-through body-part parserへ主観測層を切り替えた。`topwear OR (handwear
 AND NOT Sapiens2 arm)`の固定規則で一括candidateを作った結果、H04/H06/H08の変更量は

@@ -145,3 +145,34 @@ parserを主観測層に変更した。出力19部位のうち、衣装owner候�
 `outerwear`と`underlayer`を別々に観測すること、または可視衣服の前後関係を出力する
 ことを追加する。単一の`topwear` maskへ閾値を足す案は採用しない。
 
+## 2026-11-10 Grounding-DINO + SAM2 大規模観測器probeの判定
+
+小差分ループへ戻らないことを確認するため、固定プロンプトによる別系統の観測器を、
+H04/H06/H08へ同じ条件で一括実行した。入力は署名済み元画像だけであり、人手mask、
+review JSON、既存ownerは推論前に読み込んでいない。使用した構成はGrounding-DINOの
+language-guided box proposalとSAM2.1 Hiera Tinyのmask生成で、固定プロンプトは
+`jacket, coat, dress, shirt, blouse, top, arm, sleeve`、`box_threshold=0.25`、
+`text_threshold=0.20`である。SAM2の公開revisionは
+`c2ec8e14a185632b0a5d8b161928ceb50197eddc`。重みSHA-256は非公開run receiptのreadbackを
+正本とし、GitHub本文への長いハッシュ転記は行わない。
+全maskとreceiptは非公開証拠として保存し、GitHubには保存していない。
+
+結果は、腕・袖・下着候補の意味分離に失敗した。
+
+| case | source alpha | arm union | sleeve union | shirt union | 判定 |
+|---|---:|---:|---:|---:|---|
+| H04 | 241,182 | 233,660 | 233,868 | 234,019 | FAIL: ほぼ全身を覆う |
+| H06 | 602,869 | 533,702 | 594,627 | 594,817 | FAIL: ほぼ全身を覆う |
+| H08 | 536,859 | 534,330 | 534,156 | 162,357 | FAIL: 腕・袖がほぼ全身を覆う |
+
+通常倍率のoverlayでも三例とも腕・袖領域が局所化されず、人物全体が塗られた。
+これは候補の数画素不足ではなく、observerの意味能力不足である。また、固定プロンプト
+方式は可視衣服の前後関係を出力しないため、`occlusion_relation`も成立しない。
+したがって、このprobeは`CAPABILITY_HOLD / OBSERVER_SEMANTIC_FAIL`として履歴に隔離し、
+候補生成、Phase4、owner認可、Stage8、L04 handoffには使用しない。閾値・prompt・座標を
+H04/H06/H08へ合わせる追加調整も行わない。
+
+次に必要なのは、単語promptを増やすことではなく、外衣・下着・袖・腕・遮蔽関係・
+人物内instanceを同時に学習または明示出力できる、実行可能なアニメ向けobserverである。
+その能力とrevision／重みSHA／出力契約が揃うまで、Aのsolverとreceiptを増やさない。
+
