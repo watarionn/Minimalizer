@@ -84,7 +84,6 @@ def _validate_instance_masks(
         or instance_masks.dtype != np.bool_
         or instance_masks.ndim != 3
         or instance_masks.shape[1:] != source_alpha.shape
-        or instance_masks.shape[0] == 0
     ):
         raise ComponentOwnerSolverHold("INVALID_GARMENT_INSTANCES")
     if np.any(instance_masks & ~source_alpha[None, :, :]):
@@ -165,6 +164,7 @@ def solve_component_owners(
     labels, contact_count = _contact_labels(instance_masks)
     owner = np.zeros(source_alpha.shape, dtype=np.uint16)
     accepted: list[int] = []
+    instance_owner_ids: dict[int, int] = {}
     decisions: list[ContactDecision] = []
     next_owner_id = 1
 
@@ -191,10 +191,12 @@ def solve_component_owners(
         )
         if safe:
             instance_id = contained[0]
-            owner[instance_masks[instance_id] & contact] = next_owner_id
-            accepted.append(instance_id)
+            owner_id = instance_owner_ids.setdefault(instance_id, next_owner_id)
+            if owner_id == next_owner_id:
+                next_owner_id += 1
+                accepted.append(instance_id)
+            owner[instance_masks[instance_id] & contact] = owner_id
             decision = "ACCEPT_WHOLE_INSTANCE"
-            next_owner_id += 1
         else:
             decision = "ABSTAIN_WHOLE_CONTACT_COMPONENT"
         decisions.append(

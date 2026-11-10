@@ -230,6 +230,51 @@ def run_source_only_model(
     *, source_rgba: np.ndarray, model_path: Path
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
     """Run RF-DETR-Seg without any human or frozen-owner input."""
+    masks, class_ids, confidences, model_diagnostics = predict_source_only_detections(
+        source_rgba=source_rgba, model_path=model_path
+    )
+    result = reconstruct_outerwear_owner(
+        source_alpha=source_rgba[:, :, 3] != 0,
+        detection_masks=masks,
+        class_ids=class_ids,
+        confidences=confidences,
+    )
+    diagnostics = {
+        **model_diagnostics,
+        "schema": "minimalizer/local-l02/fashionpedia-outerwear-reconstruction/v1",
+        "source_only": True,
+        "human_annotations_used": False,
+        "review_json_used": False,
+        "frozen_owner_used": False,
+        "unknown_not_treated_as_negative": True,
+        "owner_promotion_authorized": False,
+        "quality": "UNASSESSED",
+        "Phase4": "FAIL",
+        "L02": "HOLD",
+        "production": "NO_GO",
+    }
+    return result.owner, result.unknown, result.observed, class_ids, {
+        **diagnostics,
+        "selected_main_instances": result.selected_main_instances,
+        "selected_sleeve_instances": result.selected_sleeve_instances,
+        "attached_sleeve_pixels": result.attached_sleeve_pixels,
+        "owner_components": [component.__dict__ for component in result.components],
+        "owner_pixels": int(np.count_nonzero(result.owner)),
+        "unknown_pixels": int(result.unknown.sum()),
+        "owner_array_sha256": _sha256(result.owner),
+        "unknown_array_sha256": _sha256(result.unknown.astype(np.uint8)),
+        "observed_array_sha256": _sha256(result.observed.astype(np.uint8)),
+    }
+
+
+def predict_source_only_detections(
+    *, source_rgba: np.ndarray, model_path: Path
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+    """Return fresh Fashionpedia detections from the signed source only.
+
+    This lower-level API exists so the component owner solver can consume
+    instance masks instead of reusing a previously materialized owner array.
+    """
     if (
         type(source_rgba) is not np.ndarray
         or source_rgba.dtype != np.uint8
@@ -257,42 +302,17 @@ def run_source_only_model(
     masks = np.asarray(detections.mask, dtype=bool)
     class_ids = np.asarray(detections.class_id, dtype=np.int64)
     confidences = np.asarray(detections.confidence, dtype=np.float32)
-    result = reconstruct_outerwear_owner(
-        source_alpha=source_rgba[:, :, 3] != 0,
-        detection_masks=masks,
-        class_ids=class_ids,
-        confidences=confidences,
-    )
-    diagnostics = {
-        "schema": "minimalizer/local-l02/fashionpedia-outerwear-reconstruction/v1",
+    return masks, class_ids, confidences, {
         "model_repo": MODEL_REPO,
         "model_revision": MODEL_REVISION,
         "model_weights_sha256": MODEL_WEIGHTS_SHA256,
         "confidence_threshold": FIXED_CONFIDENCE_THRESHOLD,
         "outerwear_class_ids": sorted(OUTERWEAR_CLASS_IDS),
         "sleeve_class_id": SLEEVE_CLASS_ID,
-        "source_only": True,
-        "human_annotations_used": False,
-        "review_json_used": False,
-        "frozen_owner_used": False,
-        "unknown_not_treated_as_negative": True,
-        "owner_promotion_authorized": False,
-        "quality": "UNASSESSED",
-        "Phase4": "FAIL",
-        "L02": "HOLD",
-        "production": "NO_GO",
-    }
-    return result.owner, result.unknown, result.observed, class_ids, {
-        **diagnostics,
-        "selected_main_instances": result.selected_main_instances,
-        "selected_sleeve_instances": result.selected_sleeve_instances,
-        "attached_sleeve_pixels": result.attached_sleeve_pixels,
-        "owner_components": [component.__dict__ for component in result.components],
-        "owner_pixels": int(np.count_nonzero(result.owner)),
-        "unknown_pixels": int(result.unknown.sum()),
-        "owner_array_sha256": _sha256(result.owner),
-        "unknown_array_sha256": _sha256(result.unknown.astype(np.uint8)),
-        "observed_array_sha256": _sha256(result.observed.astype(np.uint8)),
+        "detection_count": int(masks.shape[0]),
+        "detection_masks_sha256": _sha256(masks.astype(np.uint8)),
+        "class_ids_sha256": _sha256(class_ids),
+        "confidences_sha256": _sha256(confidences),
     }
 
 

@@ -163,6 +163,29 @@ H04も `0.915173` に留まり、単純な腕vetoを正式候補へ昇格する�
 接触componentを一括で意味分割するowner再構成層を必要とする。今回の値は設計棄却の
 diagnosticであり、候補へ画素修正を加える根拠にはしない。
 
+## component-level owner solver の実画像probe
+
+設計パックの新層を、既存ownerを入力せず、署名済みH04/H06/H08元画像から再取得した
+Fashionpedia instance maskと、source-only Sapiens2 arm maskへ接続した。underlayerの
+独立observerはまだ確定していないため、receiptは `underlayer_evidence_available=false`
+を明記している。これは推論後評価用の研究probeであり、Phase4候補ではない。
+
+人手visible maskは推論後の診断だけに使用した。結果は次のとおりで、H06/H08の大きな
+意味領域をunknownへ退避したため、品質合格には届かなかった。
+
+| case | probe prediction px | TP | known FP | FN | IoU | recall | 判定 |
+|---|---:|---:|---:|---:|---:|---:|---|
+| H04 | 40,011 | 37,177 | 2,017 | 15,395 | 0.681035 | 0.707164 | FAIL |
+| H06 | 104,501 | 102,967 | 0 | 211,856 | 0.327063 | 0.327063 | FAIL |
+| H08 | 336 | 35 | 0 | 156,535 | 0.000224 | 0.000224 | FAIL |
+
+H06/H08で腕と接触する大componentを全体unknownへ戻す安全策は、誤owner除去には
+効くが、正衣装の回復能力を失う。従って次に必要なのは閾値や数画素の緩和ではなく、
+外衣・下着・腕・遮蔽順序を同時に観測できる独立source-only層である。
+
+probeのNPZとreceiptは非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_20261110`
+へH04/H06/H08各2件、計6件保存し、ローカルとのファイルサイズreadbackを確認した。
+
 ## 追加の設計判定：人体パーサー単独の腕vetoは採用しない
 
 Fashionpedia outerwear候補の腕・手境界を補う目的で、別系統のFASHN Human Parserを

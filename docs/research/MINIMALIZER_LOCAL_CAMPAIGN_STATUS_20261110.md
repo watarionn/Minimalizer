@@ -121,3 +121,9 @@ Fashionpedia候補に対するFASHN人体パーサーの単純arm-vetoは、H06/
 サイズreadbackを確認した。腕union vetoと袖保護変種も三例横断では成立しなかったため、
 これらは設計棄却のdiagnosticとして保持し、正式候補やPhase4入力にはしない。
 
+component-level owner solverの実画像probeもH04/H06/H08で実行したが、underlayerの
+独立observerがない状態ではH06/H08の正衣装回復を失い、Phase4候補にならなかった。
+NPZ・receiptは非公開Driveの `Minimalizer_L02_ComponentOwnerSolver_20261110` に保存済み。
+次に進む条件は、数画素調整ではなく、外衣・下着・腕・遮蔽順序を同時に観測する
+source-only層の設計と三例一括実装である。
+
