@@ -97,6 +97,10 @@ owner再構成設計を一つの設計パックに固定する。設計パック
 設計パックの正本は
 `docs/research/LOCAL_L02_REDESIGN_PACK_20261110.md` とする。
 
+開発全体の工程と、「数画素の改善」を成果として扱わない判定は
+`docs/research/MINIMALIZER_DEVELOPMENT_REDESIGN_20261110.md` に固定した。以後の作業は
+この工程表に従い、A1の根本設計を通過するまでAの候補修正を行わない。
+
 設計パックに沿うsource-free骨格として、接触component単位のowner solver
 `tools/research/local_l02_component_owner_solver.py` と構造テストを追加した。
 腕／下着との衝突やinstance重複は部分修正せず、component全体をunknownへ戻す。
