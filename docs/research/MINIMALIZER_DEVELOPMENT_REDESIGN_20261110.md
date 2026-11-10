@@ -97,8 +97,9 @@ Aの未解決問題は「どの画素を数個動かすか」ではない。衣�
 
 ### モデル選定の大きさを先に判定する
 
-次の大規模サイクルで、単にsemantic maskをもう一つ足すことはしない。候補モデルは
-実装前に、次の能力を一括で持つかを確認する。
+次の大規模サイクルで、単にsemantic maskをもう一つ足すことはしない。候補となる
+source-only観測構成（単一モデルまたは役割を固定した少数のモデル群）は、実装前に
+次の能力を一括で持つかを確認する。
 
 - garment / sleeve / arm / underlayerを同時に出せること
 - 同一人物の各部位を同じinstanceへ結び付けられること
@@ -107,8 +108,9 @@ Aの未解決問題は「どの画素を数個動かすか」ではない。衣�
 - revision、重みSHA、出力SHAを凍結できること
 
 単一のsemantic parsingモデルは、衣服や腕のクラスを返せても、衣装のinstance帰属や
-遮蔽順序を保証しない。この不足をsolverの数画素補正で埋めない。候補モデルが実行可能な
-重み・コード・出力契約まで揃わなければ、A1は「観測層不足」としてHOLDにする。
+遮蔽順序を保証しない。この不足をsolverの数画素補正で埋めない。各観測層のコード・
+重み・出力契約が揃い、組み合わせ後のunknown規則まで再現できなければ、A1は
+「観測層不足」としてHOLDにする。
 
 公開研究には、衣服・身体部位のpixel parsingとinstance-level groupingを一つのネット
 ワークで扱う設計がある。しかし、プロジェクトページ上で実行用コード・重みが確認できる
@@ -192,4 +194,11 @@ Minimalizerへの採用・品質合格・owner権限を意味しない。
 - [Spectrum project](https://s-pectrum.github.io/): clothing/body-part parsingとinstance-level groupingを掲げる研究仕様。
 - [Multi-Human-Parsing](https://github.com/ZhaoJ9014/Multi-Human-Parsing): semantic partと人物identityを同時に扱う公開実装・データ仕様。
 - [FASHN Human Parser](https://huggingface.co/fashn-ai/fashn-human-parser): 18クラスのsemantic parsing仕様。instance帰属・遮蔽順序の根拠としては不十分。
+
+追加確認として、[clothes-segmentation](https://github.com/mxrxm/clothes-segmentation) は
+instance単位の衣服maskと23カテゴリ、実行用checkpointを公開している。一方で同資料自身が
+遮蔽衣服の不完全検出を制限として挙げているため、これは「garment proposal層」の候補で
+あって、腕・下着・遮蔽順序を解決する完成モデルではない。まずこのように役割を分けて
+能力不足を明示し、組み合わせ全体をH04/H06/H08で一括評価する。単独の見栄えや論文上の
+性能を理由に採用しない。
 
