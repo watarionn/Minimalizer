@@ -76,6 +76,23 @@ def test_arm_conflict_abstains_the_whole_contact_component_not_just_overlap():
     assert np.all(result.unknown[2:6, 3:8])
 
 
+def test_disconnected_parts_of_one_instance_keep_one_owner_id():
+    alpha = _source_alpha()
+    instances = np.zeros((1, *alpha.shape), dtype=bool)
+    instances[0, 2:4, 3:5] = True
+    instances[0, 6:8, 7:9] = True
+
+    result = solve_component_owners(
+        source_alpha=alpha,
+        instance_masks=instances,
+        instance_masks_sha256=_sha(instances),
+        role_masks=_roles(alpha),
+    )
+
+    assert result.accepted_instances == (0,)
+    assert set(np.unique(result.owner[result.owner != 0])) == {1}
+
+
 def test_overlapping_instances_are_not_resolved_by_pixel_priority():
     alpha = _source_alpha()
     instances = np.zeros((2, *alpha.shape), dtype=bool)
