@@ -29,7 +29,8 @@
 - Aの `test_local_l02_*.py` 全体は、依存済み隔離venvと`tools/research`を含む明示的な
   import pathで再実行し、`479 passed`。これは構造・契約テストのPASSであり、画像品質や
   Phase4 PASSではない。
-- Bの統合回帰（L04三点、L05 receipt、L07監査、Worker、handoff）は `67 passed`。
+- Bの統合回帰（L04三点、L05 receipt、L07監査、Worker、handoff）は同じ隔離venvで再実行し、
+  `67 passed`。Aの訓練manifest追加後もBの回帰は変わらない。
   Bの実装・source/runtime QAは完了状態を維持し、Aの品質判定は行わない。
 - 現行See-through出力は、外衣・下着・袖・腕・遮蔽関係・人物内instance groupingを
   同時に満たすobserver evidence bundleになっておらず、候補側にもsource-alpha外の
