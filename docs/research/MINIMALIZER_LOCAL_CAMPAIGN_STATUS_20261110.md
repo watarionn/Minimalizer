@@ -55,6 +55,8 @@
   `docs/research/MINIMALIZER_LOCAL_CAMPAIGN_EXECUTION_BOARD_20261110.md`へ固定した。
   正本として残すreceipt、研究履歴へ隔離するprobe、現行完成判定から外す一時物を分け、
   Bの完了記録を保護したまま、Aの六能力observer導入からGolden・本番受入までの順序を一枚にした。
+- 次の担当者がJSONを直接書かずに入力を揃えられるよう、checkpointまたは学習計画の
+  受入条件を`docs/research/LOCAL_L02_OBSERVER_INTAKE_CHECKLIST_20261110.md`へ固定した。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
