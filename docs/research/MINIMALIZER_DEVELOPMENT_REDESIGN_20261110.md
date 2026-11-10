@@ -257,6 +257,30 @@ SAM2.1 Hiera Tinyをsource-onlyで三例一括probeした。固定プロンプ�
 実施しない。次の正式な開発入力は、必要能力を持つ実行可能checkpoint、またはその
 能力を学習・評価できる別工程の確定である。
 
+### 観測技術の再選定結果
+
+「別のモデルを一つ足す」ことも、能力契約を満たさない限り開発成果に数えない。公開仕様と
+今回の三例実行を同じ表で判定した。
+
+| 構成 | できること | 欠けている正式能力 | 取扱い |
+|---|---|---|---|
+| See-through LayerDiff3D + Marigold + body parser | アニメ向け23層、再構成、深度、topwear/handwear/legwear | underlayerの独立意味、遮蔽関係の保証、instance groupingのowner契約。H04/H08のbottomwearも空 | 研究観測のみ |
+| Sapiens2 segmentation | 29クラスの身体・apparel・腕・手のsemantic map | garment instance、underlayer、遮蔽順序 | 腕の診断のみ |
+| AnimeInstanceSegmentation / CartoonSegmentation | アニメ人物のinstance分離 | 衣装・袖・下着のpart semantics | 人物境界のみ |
+| SPECTRUM | 研究上は衣服・身体partとinstance groupingを統合 | 現環境で固定できる実行checkpoint・アニメ領域の再現条件 | 調査候補、実装入力にしない |
+
+この表から、次の正式サイクルは既存候補への補修ではなく、次のどちらか一つになる。
+
+1. 6能力（外衣・下層・袖・腕・遮蔽関係・人物内instance結合）を満たすアニメ向けの
+   実行可能checkpointを、revision・重みSHA・出力契約付きで採用する。
+2. そのcheckpointが存在しない場合は、アニメ向けの衣装／身体part／遮蔽／instanceを
+   同時に学習する別プロジェクトを正式に開始し、データ・ライセンス・評価設計を先に
+   固定する。
+
+どちらも成立しない間は、閾値、OR/AND、形態学処理、数画素補正、候補receiptの追加を
+行わない。現状は「実装が少し足りない」のではなく、必要な意味ownerを観測する層が
+不足している状態である。
+
 この判定を手作業の解釈に戻さないため、能力契約を
 `tools/research/local_l02_observer_capability_gate.py`へ固定した。これは画像や評価ラベルを
 読まず、observerのrevision・重みSHA・出力契約だけを検査する。現在のSee-through body-part
