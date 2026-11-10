@@ -83,7 +83,8 @@ AのPhase4がFAILなら完成にはならない。
 `docs/research/LOCAL_L02_DEVELOPMENT_METHOD_RESET_20261110.md`を正本とする。
 現時点の次作業は、旧候補を正式入力から隔離したうえで、H04/H06/H08の意味クラス別
 失敗表を一枚に固定し、三例同時の全身outerwear候補を独立レビューへ渡すことである。
-G0台帳と候補の診断値は
+候補フォルダには人間向けの記入用紙
+`L02_INDEPENDENT_VISUAL_REVIEW_FORM_20261110.txt`を追加済み。G0台帳と候補の診断値は
 `docs/research/LOCAL_L02_G0_CANONICAL_INVENTORY_20261110.md` に固定した。
 Phase4が全ケースで独立PASSになった場合だけPhase5 exact replay、L04正式三点セット、
 Golden、本番、実機iPhone受入へ進む。
@@ -95,4 +96,8 @@ Golden、本番、実機iPhone受入へ進む。
 全体owner再構成へ切り替えた。開発サイクル、候補にしない変更、完了判定は
 `docs/research/LOCAL_L02_DEVELOPMENT_METHOD_RESET_20261110.md`、実装土台と
 残差の詳細は `docs/research/LOCAL_L02_SCALE_RESET_20261110.md` を正本とする。
+
+Fashionpedia候補に対するFASHN人体パーサーの単純arm-vetoは、H06/H08で腕観測が
+不足しtopが衣装全体を覆ったため設計棄却とした。これはG0台帳にsource-only診断として
+記録し、既存候補を画素単位で再編集する根拠にはしない。
 
