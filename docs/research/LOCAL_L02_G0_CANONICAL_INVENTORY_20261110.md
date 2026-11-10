@@ -150,6 +150,22 @@ H06のknown FPが残っているため、このprobeをPhase4へ昇格しない�
 freezeで保存した。独立評価者がH06のカフス／下着、H08の袖、H04の正衣装保持を
 意味評価し、候補SHAへ署名を結び付けるまで `Phase4=FAIL` を維持する。
 
+## 追加の設計判定：人体パーサー単独の腕vetoは採用しない
+
+Fashionpedia outerwear候補の腕・手境界を補う目的で、別系統のFASHN Human Parserを
+同じ署名済み元画像へsource-onlyで実行した。これは候補ownerや評価maskを入力していない。
+しかし出力はH06で `top=396,416px`、`arms=0px`、`hands=3,763px`、H08で
+`top=209,149px`、`arms=3px`、`hands=3,925px` だった。`top` がコート・下着を
+まとめて覆い、腕の観測も不足するため、これを単純な腕vetoやowner-authorityへ
+昇格すると、現在の誤owner問題を解決せず別の一括誤除去を作る。
+
+モデル重みSHA-256は
+`e43c8c8a9b04f28798f0a4630cf18caa2cdb27a0d454fae43a5716e6f7078244`、設定SHA-256は
+`87bd5b66419dbfa7c02cfbeb94e292454863b1606c5df29526b19a6c1de70d9f`。この観測は
+**採用候補ではなく設計棄却のsource-only診断**として固定する。次の実装は、人体パーサーの
+単純veto追加ではなく、衣装instanceと人体・遮蔽の意味を同時に扱える別の全身owner
+設計でなければならない。既存候補を画素単位で再編集しない。
+
 ## G0判定
 
 ```text
