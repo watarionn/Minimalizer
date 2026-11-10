@@ -44,6 +44,9 @@
   その能力を導入・学習する実行可能な計画を確定すること。計画の正本は
   `docs/research/LOCAL_L02_OBSERVER_ADOPTION_PLAN_20261110.md`である。能力契約を満たすまで、
   閾値、OR/AND、case別選択、数画素修正、Phase4 receiptの追加は行わない。
+- 公開候補の追加監査では、Spectrumは能力説明は有望だが実行可能checkpointを確認できず、
+  FASHN/Sapiens2/衣服instance segmentationも六能力を同時に満たさなかった。詳細は
+  `docs/research/LOCAL_L02_CHECKPOINT_AVAILABILITY_AUDIT_20261110.md`に固定した。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
