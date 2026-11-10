@@ -227,9 +227,14 @@ def materialize_receipt(
         receipt["cases"][case] = case_receipt  # type: ignore[index]
 
     try:
-        return verify_phase4_receipt(receipt, freeze_receipt)
+        verification = verify_phase4_receipt(receipt, freeze_receipt)
     except Phase4ReceiptHold as exc:
         raise Phase4PreparationHold("VERIFIER_HOLD:" + ",".join(exc.failures)) from exc
+    receipt["phase5"] = verification["phase5"]
+    receipt["golden"] = verification["golden"]
+    receipt["production"] = verification["production"]
+    receipt["verification"] = verification
+    return receipt
 
 
 def _cli() -> int:

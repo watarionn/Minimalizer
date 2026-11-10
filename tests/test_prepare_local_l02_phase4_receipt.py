@@ -83,6 +83,10 @@ def test_complete_form_materializes_only_after_verifier_passes():
     assert result["phase4"] == "PASS"
     assert result["phase5"] == "NO_GO"
     assert result["production"] == "NO_GO"
+    assert result["reviewer_id"] == "independent-reviewer-1"
+    assert result["signature_record"] == "signed-review-record-1"
+    assert result["cases"]["H06"]["candidate_sha256"] == "b" * 64
+    assert result["verification"]["phase4"] == "PASS"
 
 
 def test_old_candidate_hash_cannot_be_reused():
