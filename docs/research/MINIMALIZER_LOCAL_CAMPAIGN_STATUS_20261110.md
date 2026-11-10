@@ -10,13 +10,36 @@
 
 | 対象 | SHA / 状態 |
 |---|---|
-| 最新 `origin/main` | `54654bfac80550a4fe565de694c39d30b47b5703` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102`（GitHub remote headを正本としてreadback） |
-| Lane B PR #451 | 過去のB成果を保持。Aの品質候補をBへ混ぜない |
+| 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / head `eabda111f2f4f41d3f034ca2300c93eb4c24ebca` |
+| Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
+
+### 2026-11-10 最新readback
+
+上表とこの節が現在の判断であり、下に続く過去の記録は履歴として保持する。
+
+- Lane Aで `local_l02_observer_evidence_contract.py` と対応テストを追加した。
+  source-alpha、source-only、unknown保持、human label／既存owner不使用、役割重複、
+  mask SHA／shape、遮蔽関係、instance groupingを検証し、欠落時はownerを生成せず
+  `CAPABILITY_HOLD`で停止する。
+- A focused suiteは `38 passed`、Aの `test_local_l02_*.py` 全体は `472 passed / 46
+  subtests passed`。これは構造・契約テストのPASSであり、画像品質やPhase4 PASSではない。
+- Bの統合回帰（L04三点、L05 receipt、L07監査、Worker、handoff）は `67 passed`。
+  Bの実装・source/runtime QAは完了状態を維持し、Aの品質判定は行わない。
+- 現行See-through出力は、外衣・下着・袖・腕・遮蔽関係・人物内instance groupingを
+  同時に満たすobserver evidence bundleになっておらず、候補側にもsource-alpha外の
+  mask画素が確認されたため、正式入力として不採用。`L02=HOLD / Phase4=FAIL /
+  Phase5=NO_GO / Golden=HOLD / production=NO_GO`を維持する。
+- 次のA工程は、同じ署名済みH04/H06/H08へ一括適用できる六能力observerまたは、
+  その能力を導入する実行可能な計画を確定すること。能力契約を満たすまで、閾値、
+  OR/AND、case別選択、数画素修正、Phase4 receiptの追加は行わない。
+- 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
+  今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
+  import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
 
 2026-11-10の方式再設計として、Aのobserver能力ゲートをコミット
 `51a68bc0e06e7c12842eac6d84f1fc71dae318e5`へ固定し、PR #449のDraft headへ反映した。
