@@ -495,3 +495,47 @@ button:disabled { cursor: not-allowed; }
     transition-duration: .01ms !important;
   }
 }
+
+/* Public-only editorial layout. Keep the private Local page unchanged. */
+.public-page .site-header {
+  padding-bottom: 10px;
+}
+
+.public-page .page-shell {
+  padding-top: 16px;
+}
+
+.public-page__title {
+  margin: 0 0 18px;
+  font-size: clamp(17px, 2vw, 21px);
+  font-weight: 680;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+
+@media (max-width: 520px) {
+  .public-page .site-header {
+    padding-top: 16px;
+    padding-bottom: 8px;
+  }
+
+  .public-page .page-shell {
+    padding-top: 8px;
+  }
+
+  .public-page__title {
+    margin-bottom: 14px;
+    font-size: 17px;
+  }
+
+  .public-page .drop-zone,
+  .public-page .result-stage,
+  .public-page #source-preview,
+  .public-page #result-preview {
+    min-height: 250px;
+  }
+
+  .public-page .drop-empty {
+    padding: 22px 16px;
+  }
+}

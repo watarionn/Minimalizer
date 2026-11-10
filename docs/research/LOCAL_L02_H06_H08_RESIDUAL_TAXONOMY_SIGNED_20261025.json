@@ -1,0 +1,68 @@
+{
+  "schema": "minimalizer/local-l02/known-residual-taxonomy-signed-20261025/v1",
+  "date": "2026-10-25",
+  "canonical_main_at_start": "2ba81a827ada979252581fbe1fe662a35a9ffa50",
+  "private_archive_manifest_checks": {
+    "MinimalizerLocal_L02_ReviewedEvidence_PRIVATE_20261016.zip": 19,
+    "LaneA_L02_Run30_KnownCase_OwnerMasks_PRIVATE_20261019.zip": 7,
+    "Minimalizer_L02_AnimeSeg_H06_H08_Offline384_PRIVATE_20261015.zip": 5
+  },
+  "source_only_owner_frozen_before_postscore": true,
+  "human_annotations_used_for_inference": false,
+  "known_cases_exposed": [
+    "H06",
+    "H08"
+  ],
+  "H04": "NOT_REPLAYED",
+  "new_accepted_P0_improvements": 0,
+  "new_accepted_P1_improvements": 0,
+  "known_P0_cases_unresolved": 3,
+  "new_unseen_signed_blind": "PENDING",
+  "cases": {
+    "H06": {
+      "owner_sha256": "ceaae1199d673d07411bf120aca46f3415df69c0c5dee1395a2536d414b2602c",
+      "postscore": {
+        "known_outerwear_tp": 294020,
+        "known_false_owner_fp": 1077,
+        "known_outerwear_fn": 20803,
+        "unknown_assigned_not_counted_as_fp": 80597,
+        "missing_by_frozen_class": {
+          "0": 6042,
+          "7": 4203,
+          "25": 9913,
+          "30": 637,
+          "32": 8
+        },
+        "class32_only_max_possible_recovery": 8,
+        "known_fn_remaining_even_if_all_class32_recovered": 20795,
+        "known_fn_in_classes_0_2_7_requiring_independent_review": 10245
+      }
+    },
+    "H08": {
+      "owner_sha256": "94122b855f70347ff6f318e02bbfa03cddd77e74e76c3772bfe59011df0b0086",
+      "postscore": {
+        "known_outerwear_tp": 144221,
+        "known_false_owner_fp": 17,
+        "known_outerwear_fn": 12349,
+        "unknown_assigned_not_counted_as_fp": 5101,
+        "missing_by_frozen_class": {
+          "0": 3143,
+          "2": 2287,
+          "7": 900,
+          "29": 54,
+          "30": 1892,
+          "32": 4073
+        },
+        "class32_only_max_possible_recovery": 4073,
+        "known_fn_remaining_even_if_all_class32_recovered": 8276,
+        "known_fn_in_classes_0_2_7_requiring_independent_review": 6330
+      }
+    }
+  },
+  "L02": "HOLD",
+  "Phase4": "FAIL",
+  "L03": "NO_GO",
+  "Golden": "HOLD",
+  "production": "NO_GO",
+  "interpretation": "Known-case postscore only; no automatic owner promotion. Coarse H06 outerwear polygon overlaps visible bag; class25 is a conflict, not proven missing coat. Unknown is not negative."
+}

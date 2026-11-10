@@ -1,0 +1,115 @@
+{
+  "config": {
+    "cell_size": 300,
+    "columns": 4,
+    "first_bad_stage_rule": "first-visual-break",
+    "human_review_status": "pass",
+    "stage_order": [
+      "input",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+      "09",
+      "10",
+      "11",
+      "12"
+    ]
+  },
+  "config_sha256": "0dffca4c4994da9ad1eee84e357823a92fb050c846a9f1b96adac6ba7a800bbe",
+  "coordinate_space": {
+    "normalized_origin": "top-left",
+    "normalized_range": [
+      0.0,
+      1.0
+    ],
+    "pixel_height": 512,
+    "pixel_width": 512
+  },
+  "determinism_policy": "fixed-stage-order-fixed-grid-fixed-resampling",
+  "diagnostic_policy": {
+    "first_bad_stage_rule": true,
+    "human_visual_review_recorded": true,
+    "no_later_stage_masking": true
+  },
+  "inputs": {
+    "phase03": {
+      "03_subject_overlay.png": "4404c8fe172fffbf0968354746a5768f1ff1ae2c16cd51cb0b766c98b556dedc",
+      "stage.json": "3d8c90587d9dc51fb0e1b59f864a860f168359c138d4396bba28460083d49346"
+    },
+    "phase04": {
+      "04_part_overlay.png": "5fc44af2dde741d38013304538c70c965fbf2f7833b9e0602360381da71d14ce",
+      "stage.json": "d6927bbeb18cabeee6679c83c4256ef723d5de3cde1045d1e15de3f3e6cbe107"
+    },
+    "phase05": {
+      "05_structure_graph_overlay.png": "b430fdbd4d7b5bab6072b89f72a3647d57759141f5b42a80e3bef2a655e05fa7",
+      "stage.json": "c7633413b6b5adafdec0b377a38305eb9047358e3cee1e9eb08c045b312134e3"
+    },
+    "phase06": {
+      "06_region_binding.png": "345e6c3140c8522c7c0ba8d50cfaae7957f328d3c620777c8de9c252d68a3848",
+      "stage.json": "a42c808478d0a003e7f5f9d3ed90c5ce0870303f9371993950fbb1f8ef40cf12"
+    },
+    "phase07": {
+      "07_mass_blocks.png": "d1f6221683d7cedd020b0e65db74f55f73af56dbf1fe0b14ce962c5f3eac40ee",
+      "stage.json": "3f752d87995c98b0e4110ef1e8bffbc2a008c7e78e4397d11413090213c067a1"
+    },
+    "phase08": {
+      "08_pruned_masses.png": "524b6f85eea7ecc4785309a357d70dda1585631c8062c9119c57dee6dbe8c829",
+      "stage.json": "84b4dfa0698a91e08402b7750677b8a45c82234cb0b8e80258a4a1fe4b88ef57"
+    },
+    "phase09": {
+      "09_palette_preview.png": "b831a5f829c743a50a9bd1472ceae2c6df5dff57f503a790fae5553f5f0883f6",
+      "stage.json": "54b46752be3647765f997600357574b11da15ec94662749669d11cfa901e4168"
+    },
+    "phase10": {
+      "10_selected_primitives.png": "f73f020c26722260764621897d6f0a55d39846f2097d3fd992ef640f5d2fdd0c",
+      "stage.json": "4acf6b6ea653b57142a2e32d4e1791cae15c31300576e59694eb939aa35c509d"
+    },
+    "phase11": {
+      "11_composed_minimal.png": "8fceb04f3e52592bc3819f651672b6074b7605461c85a854410962125e58e511",
+      "stage.json": "9a3212682f1f8b5c00631ea44a4f63ccb7a5832764f4c7e393552ef9a5dcbf4f"
+    },
+    "phase12": {
+      "12_final.png": "6058afb85dc09c78a50c30f3877e2928c6ac9fb6f75d749f1177ba9905100523",
+      "stage.json": "07d35a34cf9140f39f07372f8298966d0c740616617922ee49c7a5d9a71945d2"
+    },
+    "source": {
+      "path": "Juufuutei-Raden_stylecal_source.png",
+      "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3"
+    }
+  },
+  "metrics": {
+    "board_cell_size": 300,
+    "board_columns": 4,
+    "first_machine_bad_stage_id": null,
+    "human_first_bad_stage_id": null,
+    "human_review_status": "pass",
+    "mandatory_stage_count": 11,
+    "mandatory_stage_present_count": 11,
+    "pass": true,
+    "upstream_all_machine_pass": true
+  },
+  "outputs": {
+    "13_debug_board.png": "df3924c1848fdecb05b33c72ca00ab00f23f49ecb4bb2f5a6b7bba6720adb7b7",
+    "13_stage_index.json": "a8df8f4b6fb2ce8a291b479b1923ec0f41e2507a00e3cffd2cf9ab832f848240",
+    "metrics.json": "bd61ce192ec2b63bd4f91ce593c29d2d3211294650e357f591c49a8c97b5e88c",
+    "preview.png": "df3924c1848fdecb05b33c72ca00ab00f23f49ecb4bb2f5a6b7bba6720adb7b7"
+  },
+  "phase": 13,
+  "producer": "minimalizer-zerobase2-phase13",
+  "producer_version": "0.1",
+  "provenance_policy": {
+    "generation": "forbidden",
+    "hidden_completion": "forbidden",
+    "inpainting": "forbidden"
+  },
+  "source": {
+    "height": 512,
+    "path": "Juufuutei-Raden_stylecal_source.png",
+    "sha256": "64022608d65006e7984a556c7140a3880a76b434e42b4ec9b3f48441dfeb87e3",
+    "width": 512
+  },
+  "stage": "stage_visualizer_debug_board"
+}

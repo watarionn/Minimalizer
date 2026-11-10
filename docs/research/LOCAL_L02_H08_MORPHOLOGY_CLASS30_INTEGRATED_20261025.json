@@ -1,0 +1,58 @@
+{
+  "schema": "minimalizer/local-l02/h08-morphology-before-class30-signed/v0",
+  "date": "2026-10-25",
+  "known_case_exposed": true,
+  "signed_source_and_observer_archives_sha_verified": true,
+  "private_member_sha_counts": {
+    "reviewed": 19,
+    "run30": 7,
+    "anime": 5
+  },
+  "pre_palette_h08_owner_sha256": "6472cfc419dfc8b2c97ff19350f1b53f31f82033bde3103851072d646d1db14f",
+  "current_frontier_h08_owner_sha256": "94122b855f70347ff6f318e02bbfa03cddd77e74e76c3772bfe59011df0b0086",
+  "morphology_before_optin_h08_sha256": "e44cd7eeb3e94842de0f37385f65d48ecf71544023f7a354fbd970788492bc4f",
+  "morphology_then_class30_without_veto_reassertion_sha256": "03fb95f1d59601c01be2f7ad25d86e4d5281445c5465948c8487971ad5251c7c",
+  "new_veto_preserving_h08_owner_sha256": "c3a7e642fe161207710bf59d7483bf77c9dd4e39549f0aff2483528696a3e0d2",
+  "latest_frontier_h08": {
+    "TP": 144221,
+    "known_FP": 17,
+    "known_arm_FP": 17,
+    "known_FN": 12349
+  },
+  "new_h08_candidate": {
+    "TP": 144056,
+    "known_FP": 0,
+    "known_arm_FP": 0,
+    "known_FN": 12514
+  },
+  "known_case_delta": {
+    "TP": -165,
+    "known_FP": -17,
+    "known_arm_FP": -17,
+    "known_FN": 165
+  },
+  "morphology_vetoed_px": 239,
+  "class30_optin_attempted_veto_resurrection_px": 27,
+  "veto_resurrected_after_final_px": 0,
+  "h04": {
+    "baseline_owner_unchanged": true,
+    "known_FP": 4423
+  },
+  "h06": {
+    "baseline_owner_unchanged": true,
+    "known_FP": 1077,
+    "known_FN": 20803
+  },
+  "source_only_targeted_tests": {
+    "passed": 38,
+    "subtests_passed": 4
+  },
+  "unseen_signed_blind": "PENDING",
+  "accepted_P0_resolved": 0,
+  "accepted_P1_resolved": 0,
+  "Phase4": "FAIL",
+  "L02": "HOLD",
+  "L03": "NO_GO",
+  "Golden": "HOLD",
+  "production": "NO_GO"
+}

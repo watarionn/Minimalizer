@@ -1,0 +1,59 @@
+{
+  "schema": "minimalizer/local-l02/h06-neutral-boundary-core-signed-known/v1",
+  "date_jst": "2026-10-26",
+  "scope": "A research-only; source-free known H06",
+  "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+  "private_archive_sha256": {
+    "reviewed": "6d7079b51c1d9e8c49e77af722252d2a466bcdfceb3e2851cf816265a3e17598",
+    "run30": "6ac735cc5105c860521b5d3dff567268a8b2a77d8195501d5046644b26ad1f5c",
+    "sleeve": "a4322f81a9b783bcad5dd21c2fe2ff5470af9399517f2aa88c9918345e3d7af7",
+    "anime": "9a3f27edac23e14c219ff3a743c85321519cbe7c621c3f962d19e84ad6eb1e26"
+  },
+  "member_manifest_pass": {
+    "reviewed": "19/19",
+    "run30": "7/7",
+    "anime": "5/5"
+  },
+  "source_only": {
+    "provisional_mask_sha256": "df86e0ad3b018e1c25a996c2d9d1788f58865b41a496780a5408a2acbaff770e",
+    "provisional_pixels": 10484,
+    "boundary_core_sha256": "70315230fd5bb68de8dde8afd6b2a68ae4a04970258f6e7f6fd87b9c13c5b1b0",
+    "core_pixels": 8781,
+    "boundary_abstained_pixels": 1703,
+    "boundary_uncertainty_pixels": 2,
+    "source_alpha_inside_pixels": 8781,
+    "coat_overlap_pixels": 0,
+    "components_8_before": 2,
+    "components_8_after": 2,
+    "generated_pixels": 0
+  },
+  "postscore_known_only": {
+    "provisional_reviewed_underlayer": 10177,
+    "provisional_known_arm": 49,
+    "provisional_known_coat": 8,
+    "provisional_unknown": 250,
+    "core_reviewed_underlayer": 8730,
+    "core_known_arm": 0,
+    "core_known_coat": 0,
+    "core_unknown": 51,
+    "correct_underlayer_abstained": 1447
+  },
+  "human_labels_used_for_inference": false,
+  "known_case_exposed": true,
+  "unseen_signed_blind": "PENDING",
+  "semantic_owner_authorized": false,
+  "accepted_rendered_P0_improvements": 0,
+  "accepted_rendered_P1_improvements": 0,
+  "unresolved_P0_cases": [
+    "H04",
+    "H06",
+    "H08"
+  ],
+  "exact_head_pytest": "NOT_VERIFIED",
+  "repository_ci": "NOT_VERIFIED",
+  "L02": "HOLD",
+  "Phase4": "FAIL",
+  "L03": "NO_GO",
+  "Golden": "HOLD",
+  "production": "NO_GO"
+}

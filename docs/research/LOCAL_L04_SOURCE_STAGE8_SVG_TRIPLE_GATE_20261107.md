@@ -64,3 +64,12 @@ linkage to one exact source SHA, the authentic Stage8 source-ring JSON, the
 authentic expanded SVG, and an independently attested provenance/equivalence
 receipt. Until those four items are read back and verified, L04 remains
 `HOLD` and production remains `NO_GO`.
+
+## Lane boundary
+
+The no-cap lineage result above is the active Local policy: vertex counts are
+diagnostic measurements and are not an L04 acceptance condition. The separate
+Lane B delivery audit in `LOCAL_L04_DELIVERY_COMPLETION_20261109.md` verifies
+only exact triple linkage, safe SVG content, and browser display. It reports
+`B_L04_delivery=PASS` without judging A-owned image quality, owner semantics,
+Golden quality, or release authorization.

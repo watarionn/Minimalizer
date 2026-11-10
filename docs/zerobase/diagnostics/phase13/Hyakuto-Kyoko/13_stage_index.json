@@ -1,0 +1,126 @@
+{
+  "case_id": "Hyakuto-Kyoko",
+  "first_bad_stage_rule": "Human review identifies the earliest visually broken stage. Later-stage correction must not hide that root cause.",
+  "first_machine_bad_stage_id": null,
+  "human_review": {
+    "first_bad_stage_id": null,
+    "note": "Diagnostic-2 Kyoko visual PASS after chromatic-hair guard; no first-bad stage.",
+    "status": "pass"
+  },
+  "phase": 13,
+  "schema_version": "1.0",
+  "stage_order": [
+    "input",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12"
+  ],
+  "stages": [
+    {
+      "artifact_name": "Hyakuto-Kyoko_list_thumb.png",
+      "label": "INPUT",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": null,
+      "sha256": "cb747da9cf8cecdf052608f4fd1093c647d5250486f72fed39368e96e9e533a2",
+      "stage_id": "input"
+    },
+    {
+      "artifact_name": "03_subject_overlay.png",
+      "label": "SUBJECT",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": 3,
+      "sha256": "54597466554ff894f7e3c7942940220bf1d1c661e358d9c847d7bc53f6b2615e",
+      "stage_id": "03"
+    },
+    {
+      "artifact_name": "04_part_overlay.png",
+      "label": "PARTS",
+      "machine_pass": null,
+      "mandatory": true,
+      "phase": 4,
+      "sha256": "1b4dadd30d6a12fad62414f0e3dde875466b2c188dfefdb7e52355ac2a7fa24d",
+      "stage_id": "04"
+    },
+    {
+      "artifact_name": "05_structure_graph_overlay.png",
+      "label": "GRAPH",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 5,
+      "sha256": "fd6b98c405d254fe35f8d1707052fd6855238a5778d3ed4b353453b659a3fc92",
+      "stage_id": "05"
+    },
+    {
+      "artifact_name": "06_region_binding.png",
+      "label": "BINDING",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 6,
+      "sha256": "ed4fd447a9c2cd88d8232faaa998cf0b7848cf89703a09c91ceab587291fe2e2",
+      "stage_id": "06"
+    },
+    {
+      "artifact_name": "07_mass_blocks.png",
+      "label": "MASSES",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 7,
+      "sha256": "3061b2811a83bd2b973b55b6dbb8d5d5b81dbfeffd87511ae5258dce338194da",
+      "stage_id": "07"
+    },
+    {
+      "artifact_name": "08_pruned_masses.png",
+      "label": "PRUNE",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 8,
+      "sha256": "29acc19a394ed68a81d91ae5f81a2ecbc552e1fe8f240b8afabd51ee96da591e",
+      "stage_id": "08"
+    },
+    {
+      "artifact_name": "09_palette_preview.png",
+      "label": "PALETTE",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 9,
+      "sha256": "2c346967d6c8751e24f0b29cefd0a205844173d51a9518d80e4cda30274e6119",
+      "stage_id": "09"
+    },
+    {
+      "artifact_name": "10_selected_primitives.png",
+      "label": "PRIMITIVES",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 10,
+      "sha256": "f76bfbdd48f62c7d09a086bb31e7f3e35e39472a60f9bc3b92a6b62d16c877a9",
+      "stage_id": "10"
+    },
+    {
+      "artifact_name": "11_composed_minimal.png",
+      "label": "COMPOSED",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 11,
+      "sha256": "c700f23c13fa7feb2835efc0b001bc4580697bbb9d06c5041a2d7ab1671490cc",
+      "stage_id": "11"
+    },
+    {
+      "artifact_name": "12_final.png",
+      "label": "FINAL",
+      "machine_pass": true,
+      "mandatory": true,
+      "phase": 12,
+      "sha256": "91af617ef2f1b5d7394f88bf40be66f577204762bcdaa286edd74bffd850f2f5",
+      "stage_id": "12"
+    }
+  ]
+}

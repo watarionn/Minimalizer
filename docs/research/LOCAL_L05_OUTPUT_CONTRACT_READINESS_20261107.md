@@ -37,23 +37,3 @@ identity, `/health` readiness, both PNG success routes, 415/429/503 failure
 paths, Retry-After readback, and input/output file hashes. It deliberately
 returns `L05_formal=HOLD` and `production_release=NO_GO`; it cannot substitute
 for the real request or physical-device acceptance.
-
-## 2026-11-10 read-only reconciliation
-
-The focused B source QA was rerun from the current Draft #451 head
-`c593b46c53c28127b08d74d2ce733045495b5577`:
-
-```text
-tests/test_local_worker.py
-tests/test_local_l04_source_stage8_svg_triple_gate.py
-tests/test_local_l05_owner_run_receipt.py
-tests/test_local_l07_pwa_privacy_audit.py
-tests/test_minimalizer_page_split.py
-64 passed in 4.14s
-```
-
-The static L07 audit returned `STATIC_SW_PRIVACY_CONTRACT_PASS` and
-`STATIC_LOCAL_ROUTE_ISOLATED`. It still returned
-`L07_actual_live_iphone=NOT_TESTED` and `L08_release=NOT_APPROVED`. No private
-source, output artifact, production asset, or worker configuration was changed
-by this reconciliation. B remains QA-ready but not formally released.
