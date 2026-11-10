@@ -202,3 +202,9 @@ instance単位の衣服maskと23カテゴリ、実行用checkpointを公開し�
 能力不足を明示し、組み合わせ全体をH04/H06/H08で一括評価する。単独の見栄えや論文上の
 性能を理由に採用しない。
 
+同じ確認で、[Multi-Human-Parsingの公開実装](https://github.com/ZhaoJ9014/Multi-Human-Parsing)
+はinstance/partの学習コードと評価コードを含むが、公開READMEの実行手順は学習と
+ImageNet事前学習重みの準備を前提としており、今回の三例に直ちに再現できる完成checkpoint
+としては扱わない。これは不採用の品質判定ではなく、実行可能性ゲート未通過という意味で
+履歴へ残す。
+
