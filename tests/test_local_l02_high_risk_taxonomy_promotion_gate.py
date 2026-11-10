@@ -148,3 +148,4 @@ def test_accessory_conflict_is_not_cleared_by_safe_class_support():
     assert a['reason'] == 'MODEL_CLASS_25_ACCESSORY_CONFLICT'
     assert a['semantic_promotion'] == 'HOLD'
     assert a['class25_accessory_conflict_pixels'] == 12
+
