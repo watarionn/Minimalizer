@@ -27,7 +27,7 @@
   mask SHA／shape、遮蔽関係、instance groupingを検証し、欠落時はownerを生成せず
   `CAPABILITY_HOLD`で停止する。
 - Aの `test_local_l02_*.py` 全体は、依存済み隔離venvと`tools/research`を含む明示的な
-  import pathで再実行し、`472 passed`。これは構造・契約テストのPASSであり、画像品質や
+  import pathで再実行し、`479 passed`。これは構造・契約テストのPASSであり、画像品質や
   Phase4 PASSではない。
 - Bの統合回帰（L04三点、L05 receipt、L07監査、Worker、handoff）は `67 passed`。
   Bの実装・source/runtime QAは完了状態を維持し、Aの品質判定は行わない。
