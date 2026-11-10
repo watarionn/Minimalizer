@@ -135,6 +135,14 @@ H04/H06/H08を同じ観測層・同じcomponent規則・同じunknown規則で�
 
 新しいobserverを追加しても、それだけではG1を通過しない。observerは観測資料であり、衣装ownerの権限ではない。observerが増えただけでmetricsを積み上げたり、候補を作ったりしない。
 
+G1の前に、`tools/research/local_l02_observer_capability_gate.py`で能力契約を検査する。
+正式な一括probeへ進めるobserverは、重みSHAとrevisionが固定され、同時に
+`outerwear / underlayer / sleeve / arm / occlusion_relation / instance_grouping`を
+出力契約として持たなければならない。欠けたobserverは`CAPABILITY_HOLD`とし、
+topwearへ後処理を足して不足能力を偽装しない。現在のSee-through body-part parserは
+このゲートで、`topwear`と`handwear`は持つが上記6能力を持たないため、候補生成前に
+停止する。
+
 ### G2: 独立Phase4
 
 推論後にのみ人手評価を行い、次を一つのfreeze SHAに結ぶ。

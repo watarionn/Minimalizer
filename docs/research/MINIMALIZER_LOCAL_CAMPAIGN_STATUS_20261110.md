@@ -153,3 +153,9 @@ AND NOT Sapiens2 arm)`の固定規則で一括candidateを作った結果、H04/
 
 次の開発はH04専用修正ではなく、アニメ向け肌／衣装境界observerの三例一括probeである。
 
+なお、observerを増やすこと自体を進捗に数えないため、出力能力の事前ゲートを
+`tools/research/local_l02_observer_capability_gate.py`へ追加した。現行See-through
+body-part parserは`CAPABILITY_HOLD`（outerwear / underlayer / sleeve / arm /
+occlusion_relation / instance_grouping不足）であり、ここを満たす実行可能構成が確定する
+まで、Aの候補・Phase4 receipt・Bへのhandoffは増やさない。
+
