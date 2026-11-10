@@ -110,7 +110,9 @@ Phase5、L04 formal handoff、Golden、本番反映はNO_GOのまま維持する
 1. `local_l02_observer_evidence_contract.py`をpairwise relation schemaへ拡張する。
 2. ルートIの候補checkpointを、三例一括の能力probeだけで比較する。
 3. ルートIが成立しなければ、annotation schema、学習split、loss、再現コマンドをsource-free
-   計画として固定し、私有データはDriveへ分離保存する。
+   計画として固定し、私有データはDriveへ分離保存する。訓練manifestは
+   `tools/research/local_l02_observer_training_manifest.py`で検証し、H04/H06/H08のholdout
+   混入、人物単位のsplit漏洩、unknownの陰性化をfail-closedにする。
 4. 六能力bundleがN0-N6を通ったときだけ、一つの全身candidate packageを生成する。
 5. 独立Phase4が三例PASSした後、Aのfreeze SHAをBへexact handoffする。
 

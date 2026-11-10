@@ -47,6 +47,9 @@
 - 公開候補の追加監査では、Spectrumは能力説明は有望だが実行可能checkpointを確認できず、
   FASHN/Sapiens2/衣服instance segmentationも六能力を同時に満たさなかった。詳細は
   `docs/research/LOCAL_L02_CHECKPOINT_AVAILABILITY_AUDIT_20261110.md`に固定した。
+- ルートIIの最初の実装として、訓練manifest検証器とテストを追加した。H04/H06/H08の
+  holdout混入、人物単位のsplit漏洩、unknownの陰性化をfail-closedにするが、学習データや
+  observer checkpoint自体はまだ生成しない。
 - 全体トップレベル回帰は `1565 passed / 13 failed / 46 subtests passed`。FAILは
   今回のA/B変更ではなく、旧Browser v11/v12期待値、既存missing fixture、Torchの
   import順、現行Web実装と旧テストの不整合であり、別修復対象として分離する。
