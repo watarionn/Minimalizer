@@ -194,15 +194,18 @@ Marigold depth、PSD組み立てまで完了した。人手ラベル、既存own
 |---|---|---|---|
 | H06 | 全体pipeline完了 | topwearに外衣・下層、handwearに袖・手領域、bottomwearに下衣が出力され再構成完了 | 有望だがPhase4未実施 |
 | H08 | 全体pipeline完了 | topwearに上着・下層、handwearに袖・手領域、再構成完了。ただしbottomwearは視覚的に使用不可 | 有望だがPhase4未実施 |
-| H04 | 未実行 | 現在の署名済み`UnseenTransfer`に正本元画像がない。連絡シート代用は禁止 | 入力待ち |
+| H04 | 全体pipeline完了 | topwearに外衣・下層、handwearに袖・腕領域、再構成完了。ただしbottomwearは視覚的に使用不可 | 有望だがPhase4未実施 |
 
 これはLangSAMの局所部位FAILや、以前の`topwear OR handwear`候補とは別の大きな観測器で
-あり、H06/H08の視覚的な意味分解能力は改善した。ただしH04が未実行で、H08の下衣層にも
-残差があるため、候補・Phase4・owner認可・Stage8 handoffには昇格しない。私的な重みSHA、
-source SHA、出力場所、判定は非公開receipt
+あり、三例すべてで全体実行と再構成まで確認できた。ただしH04/H08の下衣層が視覚的に
+使用できず、外衣・下層・袖・腕・遮蔽のowner権限も能力ゲートを通っていないため、候補・
+Phase4・owner認可・Stage8 handoffには昇格しない。私的な重みSHA、source SHA、出力場所、
+判定は非公開receipt
 `SEE_THROUGH_FULL_PIPELINE_PROBE_RECEIPT_20261110.json`に保存した。
 
-次の修正は画素単位ではなく、(1)署名済みH04正本の復元、(2)同一条件でH04を実行、
-(3)H06/H08/H04の外衣・下層・袖・腕・遮蔽・下衣を一括レビュー、(4)三例を満たした場合
-だけowner solverの設計へ進む、の順序に限定する。
+次の修正は画素単位ではなく、(1)三例共通で外衣・下層・袖・腕・遮蔽・人物内instanceを
+同時に観測できる能力ゲート済み構成を確定し、(2)その構成でH06/H08/H04の全身ownerを
+一つだけ再構成し、(3)下衣を含む意味クラス全体を一括レビューし、(4)三例すべてを満たした
+場合だけPhase4とowner認可へ進む、の順序に限定する。現在のSee-through全体pipelineは
+研究観測として保存するが、bottomwearの欠落と能力契約不足を理由に正式候補へはしない。
 
