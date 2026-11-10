@@ -111,3 +111,8 @@ Fashionpedia候補に対するFASHN人体パーサーの単純arm-vetoは、H06/
 不足しtopが衣装全体を覆ったため設計棄却とした。これはG0台帳にsource-only診断として
 記録し、既存候補を画素単位で再編集する根拠にはしない。
 
+追加のATR18/LIP20/FASHN observer出力は、非公開Driveの
+`Minimalizer_L02_IndependentObservers_20261110` に16件保存し、ローカルとのファイル名・
+サイズreadbackを確認した。腕union vetoと袖保護変種も三例横断では成立しなかったため、
+これらは設計棄却のdiagnosticとして保持し、正式候補やPhase4入力にはしない。
+

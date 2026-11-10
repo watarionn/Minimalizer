@@ -60,11 +60,12 @@ FASHN出力は全身再観測の資料として保存するが、receipt自身�
 | 旧 `FORMAL_GATE_VERIFICATION_STATUS.json` | `NOT_INDEPENDENTLY_VERIFIED_IN_THIS_RUN`を含む歴史台帳 |
 | 旧 `OBSERVER_PROVENANCE_LICENSE_AUTHORITY.json` | 旧来の保留記録。ライセンスゲートの正本にはしない |
 
-private Driveの既存observerフォルダは読み戻しできた。現時点の直下にはH04/H08の
-independent observer receiptとATR/LIP NPZがあり、H06の同名receiptはこのフォルダの
-直下にはない。これはDrive全体に存在しないという意味ではなく、現行フォルダのreadback
-事実である。新しい検索を広げず、正式候補を作る時点でsource・observer・receiptの
-格納先を一つに固定する。
+private Driveの `Minimalizer_L02_IndependentObservers_20261110` を読み戻し、
+H04/H06/H08のFASHN class map・observer receipt・独立observer receipt、H04/H08の
+SCHP ATR18/LIP20 class map、H06の既存ATR/LIP NPZとsource-free receiptを含む16件を
+確認した。Drive上のファイル名とサイズはローカル保存物と一致した。これらは全て研究観測
+であり、owner authorityやPhase4 PASSを付与しない。正式候補を作る時点では、source・
+observer・receiptの格納先とreadbackを一つのfreezeへ固定する。
 
 ## 意味クラス別失敗表
 
@@ -149,6 +150,18 @@ H06のknown FPが残っているため、このprobeをPhase4へ昇格しない�
 非公開Driveの `Minimalizer_L02_FashionpediaOuterwear_20261110` に、NPZ・receiptと同じ
 freezeで保存した。独立評価者がH06のカフス／下着、H08の袖、H04の正衣装保持を
 意味評価し、候補SHAへ署名を結び付けるまで `Phase4=FAIL` を維持する。
+
+## 追加の設計判定：腕observerの単純合成も採用しない
+
+新たに保存したATR18・LIP20・FASHNのsource-only出力を使い、推論後の診断として腕・手の
+union vetoを比較した。H06ではIoUが `0.887601` から `0.911191` へ改善する一方、H08は
+`0.955548` から `0.908489` へ低下し、正しい袖の回復を失った。袖診断maskで保護する
+変種も、H06 `0.887741`、H08 `0.950465` に留まり、同じ意味owner契約を三例で満たさない。
+H04も `0.915173` に留まり、単純な腕vetoを正式候補へ昇格する根拠にはならない。
+
+この結果から、次の候補はobserverのOR/ANDや腕除去ではなく、衣装・腕・下着・遮蔽の
+接触componentを一括で意味分割するowner再構成層を必要とする。今回の値は設計棄却の
+diagnosticであり、候補へ画素修正を加える根拠にはしない。
 
 ## 追加の設計判定：人体パーサー単独の腕vetoは採用しない
 
