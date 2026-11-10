@@ -182,3 +182,27 @@ body-part parserは`CAPABILITY_HOLD`（outerwear / underlayer / sleeve / arm /
 occlusion_relation / instance_grouping不足）であり、ここを満たす実行可能構成が確定する
 まで、Aの候補・Phase4 receipt・Bへのhandoffは増やさない。
 
+### 2026-11-10 大規模観測器の全体パイプラインprobe
+
+数画素のowner修正を繰り返さない方針に従い、body-part parser単体ではなく、See-throughの
+LayerDiff3D body/head分解、Marigold深度、PSD組み立てまでを一つの観測器として、固定seed・
+固定重み・固定解像度でsource-only実行した。H06/H08はLayerDiff body＋head 20 stepと
+Marigold depth、PSD組み立てまで完了した。人手ラベル、既存owner、レビュー結果は推論入力に
+使っていない。
+
+| 入力 | 実行結果 | 視覚probe | 正式判定 |
+|---|---|---|---|
+| H06 | 全体pipeline完了 | topwearに外衣・下層、handwearに袖・手領域、bottomwearに下衣が出力され再構成完了 | 有望だがPhase4未実施 |
+| H08 | 全体pipeline完了 | topwearに上着・下層、handwearに袖・手領域、再構成完了。ただしbottomwearは視覚的に使用不可 | 有望だがPhase4未実施 |
+| H04 | 未実行 | 現在の署名済み`UnseenTransfer`に正本元画像がない。連絡シート代用は禁止 | 入力待ち |
+
+これはLangSAMの局所部位FAILや、以前の`topwear OR handwear`候補とは別の大きな観測器で
+あり、H06/H08の視覚的な意味分解能力は改善した。ただしH04が未実行で、H08の下衣層にも
+残差があるため、候補・Phase4・owner認可・Stage8 handoffには昇格しない。私的な重みSHA、
+source SHA、出力場所、判定は非公開receipt
+`SEE_THROUGH_FULL_PIPELINE_PROBE_RECEIPT_20261110.json`に保存した。
+
+次の修正は画素単位ではなく、(1)署名済みH04正本の復元、(2)同一条件でH04を実行、
+(3)H06/H08/H04の外衣・下層・袖・腕・遮蔽・下衣を一括レビュー、(4)三例を満たした場合
+だけowner solverの設計へ進む、の順序に限定する。
+
