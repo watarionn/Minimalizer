@@ -82,8 +82,9 @@ AのPhase4がFAILなら完成にはならない。
 具体的な順序と、局所修正を再開しない条件は
 `docs/research/LOCAL_L02_DEVELOPMENT_METHOD_RESET_20261110.md`を正本とする。
 現時点の次作業は、旧候補を正式入力から隔離したうえで、H04/H06/H08の意味クラス別
-失敗表を一枚に固定し、三例同時の全身候補を作るための設計を一つに絞ることである。
-その基準台帳は `docs/research/LOCAL_L02_G0_CANONICAL_INVENTORY_20261110.md` に固定した。
+失敗表を一枚に固定し、三例同時の全身outerwear候補を独立レビューへ渡すことである。
+G0台帳と候補の診断値は
+`docs/research/LOCAL_L02_G0_CANONICAL_INVENTORY_20261110.md` に固定した。
 Phase4が全ケースで独立PASSになった場合だけPhase5 exact replay、L04正式三点セット、
 Golden、本番、実機iPhone受入へ進む。
 
