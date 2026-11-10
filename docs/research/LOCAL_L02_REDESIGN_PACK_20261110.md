@@ -53,6 +53,16 @@ signed source
        └─ conflictを成分全体で保留
 ```
 
+この責務の最初のsource-free実装を
+`tools/research/local_l02_component_owner_solver.py` に追加した。現段階では、
+候補instanceが腕／下着observerと衝突する接触component、または複数instanceが
+重なる接触componentを、部分削除せずcomponent全体unknownへ戻す。衝突のない単一
+instanceだけを新しいowner番号へ割り当てる。これは設計の骨格を検証する研究層であり、
+まだH04/H06/H08の実画像候補、Phase4、owner authorityを意味しない。
+
+次の大きな実装では、signed sourceから得た実observer出力をこのAPIへ束ね、三例を
+同じ契約で一括処理する。既存owner配列をこの層へ渡す引数は設けない。
+
 重要なのは、observerを増やすことではなく、observerの不一致を意味ownerへ変換する
 規則を根本から作ることである。意味を決められない領域は、既存ownerの都合で埋めず、
 成分全体をunknownとして凍結する。
