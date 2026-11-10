@@ -46,3 +46,7 @@ freeze receiptに束縛された候補との差分は次の通り。
    Phase4を昇格しない。
 
 このreadbackはsource-freeであり、原画像・マスク・NPZはGitHubへ保存しない。
+
+最新のDrive追加レビューの差分と、`visual_regression_acceptable`／
+`change_visibility_sufficient`の分離は、
+`LOCAL_L02_REVIEW_DELTA_READBACK_20261110.md`に固定した。

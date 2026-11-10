@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / latest code readback before this status entry `ba05f43287c829ea3e67738eb0c7e58c957e2196` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `ac39669de0990c98878e8916b3174a1eb7a5c3e3` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
@@ -176,6 +176,18 @@ Fashionpediaのshirt/topクラスを下着観測として足した派生はH04/H
 Fashionpedia外衣proposalとほぼ同じmaskになり、H04/H06/H08の変更量は148/1,926/170px、
 H06はIoU悪化だったため、`MICRO_DELTA_ONLY / REGRESSION`として研究履歴に隔離した。
 これで「大きな設計名を付けた小差分」を成果として扱わないことを実測で確認した。
+
+### 2026-11-10 最新独立レビュー差分
+
+非公開Driveの最新署名レビューをreadbackした。評価者の独立性、未見性、推論前ラベル非参照、
+腕・下着・遮蔽・正衣装保持の意味評価は肯定されている。ただしH06/H08の`いいえ`は画像品質の
+不合格ではなく、変更量が通常倍率では小さすぎて判定できないという意味だった。H04は変更画素0。
+この二つを混ぜないための差分記録は
+`docs/research/LOCAL_L02_REVIEW_DELTA_READBACK_20261110.md`である。
+
+このレビューは小差分Sapiens2候補の確認であり、六能力observerの成立やPhase4 PASSではない。
+したがって、L02/Phase4の`HOLD / FAIL`、Phase5/owner認可/Stage8/Golden/productionの`NO_GO`を
+維持する。次の候補は三例一括かつ通常倍率で意味改善を判定できる大きさにする。
 
 今後は、observer能力ゲートを通過するまでAのsolver・閾値・receiptを増やさない。
 必要能力は外衣、袖、腕、下着、遮蔽関係、人物内instance結合の同時観測であり、
