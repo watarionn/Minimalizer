@@ -230,11 +230,34 @@ observerの実行経路または重みを確定することである。実行可
 | Sapiens2 pose | pose/keypoint | garment mask、下着、衣服owner | 不通過 |
 | SCHP ATR/LIP | human parsingのsemantic class map | 外衣instance、衣服階層、遮蔽順序 | 不通過 |
 | CLIPSeg | text-conditioned binary segmentation | 安定した全カテゴリ同時出力、instance、遮蔽順序 | 不通過 |
+| See-through body-part parser | アニメ向け19部位（`topwear` / `handwear`を含む） | H04で手・袖の境界が粗く、独立Phase4未実施 | probe通過・候補HOLD |
 
 この結果、現在のローカル資産だけでA1を通過する構成は確認できない。したがって、
 これらを組み合わせた閾値調整やowner solverの追加は、同じmicro-delta loopへ戻るため
 実施しない。次の正式な開発入力は、必要能力を持つ実行可能checkpoint、またはその
 能力を学習・評価できる別工程の確定である。
+
+### アニメ観測層の最初の一括probe
+
+元画像を確認した結果、H04/H06/H08は透過アニメ人物であり、実写ファッションモデルを
+主観測層にしていたこと自体が根本的な設計誤りだった。そこでSee-throughのアニメ向け
+body-part checkpoint（observer commit `df019de5129d6c4b406587a14c3501669441a783`、
+checkpoint SHA-256 `dda82b916f6c340bc5a6c3a077ff1214f9906906abe3707b1076d55b508f253f`）を
+導入し、Sapiens2の腕観測を独立source-only層として組み合わせた。
+
+固定規則は全例共通で、`topwear OR (handwear AND NOT Sapiens2 arm classes)`。人手mask、
+review JSON、既存ownerは推論入力に使っていない。推論後の独立評価では次の結果だった。
+
+| case | 既存候補との差分 | known-only IoU | recall | 判定 |
+|---|---:|---:|---:|---|
+| H04 | 24,317 changed px | 0.657878 | 0.988606 | FAIL（誤owner過多） |
+| H06 | 77,556 changed px | 0.938469 | 0.980113 | 有望だがPhase4未実施 |
+| H08 | 74,230 changed px | 0.967945 | 0.993236 | 有望だがPhase4未実施 |
+
+これは数画素候補ではなく、観測モデルとowner規則を置き換えた大規模candidateである。
+ただしH04がFAILのため、Phase4、Phase5、owner認可、Stage8 handoffはまだ行わない。
+H04だけの閾値調整も行わず、次はアニメ向け肌／衣装境界を観測できる独立層を、同じ三例
+一括契約で追加probeする。
 
 ## 公開仕様の確認先
 

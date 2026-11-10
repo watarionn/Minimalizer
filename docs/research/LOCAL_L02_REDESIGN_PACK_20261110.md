@@ -124,3 +124,24 @@ H04/H06/H08へ同じコード・同じ設定で実行した。人手mask、revie
 人物内instance結合を同時に観測できる実行可能observerを、モデル／重みSHA／出力契約
 まで含めて先に確定する。能力ゲートを通過できない限り、Aの候補生成を停止する。
 
+## アニメ向けobserver一括probe
+
+署名済み元画像を目視確認し、対象が透過アニメ人物であることを確認した。実写向け
+Fashionpedia/FASHN/SCHP/Sapiens2を主観測層にする設計を撤回し、See-through body-part
+parserを主観測層に変更した。出力19部位のうち、衣装owner候補には`topwear`と
+`handwear`、独立腕観測にはSapiens2のarm classを使った。
+
+推論後の一括診断はH04/H06/H08でそれぞれ24,317 / 77,556 / 74,230 changed pxとなり、
+小差分ループではないことを確認した。ただしH04はknown-only IoU `0.657878`で誤ownerが
+多く、H06/H08だけを合格扱いにはしない。候補は`Phase4=FAIL / L02=HOLD`のままである。
+
+次に必要なのは、H04の肌と袖を区別できるアニメ向け独立観測層である。H04専用の
+閾値・座標・手修正は追加しない。三例同一契約で肌／衣装境界をprobeし、H04/H06/H08の
+全例が意味評価を通った場合だけ正式Phase4へ進める。
+
+追加のsource-only診断で、H04の残差は肌だけではないことも確認した。See-throughの
+`topwear`自体がH04のblazerと内側のshirtを一つのsemantic classへ畳み込むため、
+肌色除外を加えても外衣ownerの誤包含が残る。したがって次のobserver能力ゲートには、
+`outerwear`と`underlayer`を別々に観測すること、または可視衣服の前後関係を出力する
+ことを追加する。単一の`topwear` maskへ閾値を足す案は採用しない。
+

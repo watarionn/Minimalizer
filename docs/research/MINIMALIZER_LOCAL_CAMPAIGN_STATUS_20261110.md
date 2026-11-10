@@ -144,3 +144,12 @@ H06はIoU悪化だったため、`MICRO_DELTA_ONLY / REGRESSION`として研究�
 必要能力は外衣、袖、腕、下着、遮蔽関係、人物内instance結合の同時観測であり、
 モデル／重みSHA／出力契約が揃った構成だけをH04/H06/H08へ一括probeする。
 
+その後、対象元画像が透過アニメ人物であることを確認したため、実写向けobserver群から
+アニメ向けSee-through body-part parserへ主観測層を切り替えた。`topwear OR (handwear
+AND NOT Sapiens2 arm)`の固定規則で一括candidateを作った結果、H04/H06/H08の変更量は
+24,317/77,556/74,230px、known-only IoUは0.657878/0.938469/0.967945だった。H06/H08は
+有望だが、H04の誤owner過多により全体候補はFAIL。Phase4、owner認可、Stage8 handoffは
+行っていない。
+
+次の開発はH04専用修正ではなく、アニメ向け肌／衣装境界observerの三例一括probeである。
+
