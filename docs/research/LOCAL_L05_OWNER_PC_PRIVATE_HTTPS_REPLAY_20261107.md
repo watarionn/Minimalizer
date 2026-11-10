@@ -135,3 +135,17 @@ sources were submitted to `/api/v2/minimalize`.
 
 This is current B-branch source/runtime evidence and does not replace owner-PC
 private-HTTPS, production-reflection, Safari/PWA, or physical-iPhone evidence.
+
+## 2026-11-10 current private HTTPS readback
+
+Without changing the ordinary checkout, worker configuration, Tailscale Serve,
+or production files, the currently exposed private HTTPS endpoint was read back
+again. `/health` returned HTTP 200 with `ready=true`, active route `zerobase2`,
+and `zerobase2_authorized=true`. The signed H06 WebP returned HTTP 200
+`image/png`, source size `2000x2000`, analysis size `400x400`, 10,366 bytes,
+processing `52399.1ms`, and output PNG SHA-256
+`f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`.
+This exactly matches the isolated B-worktree H06 output SHA.
+
+This is a current private-HTTPS readback, not production reflection or physical
+iPhone acceptance; those gates remain separate.
