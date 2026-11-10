@@ -13,6 +13,8 @@ source-free台帳である。原画像、マスク、NPZ、比較画像は保存
 - reviewer: `Tento`
 - evaluated: `2026-11-10 07:47 JST`
 - response signature: `てんと`
+- clarification file: `PHASE4_VISUAL_REVIEW_CLARIFICATION_20261110.txt`
+- clarification URL: https://drive.google.com/file/d/1fJji_vT-RLbvImpVrKcqJ-bhIKqVIlVs/view?usp=drivesdk
 
 回答本文から、評価者は開発側ではなく、推論前にラベルまたは過去予測を見ていないと
 読み取れる。評価対象の意味評価（正衣装保持、誤owner除去、腕・下着・遮蔽・重要部位）も
