@@ -174,3 +174,19 @@ stored only in the owner private Drive; their source-free receipt SHA-256 is
   false ZeroBase2-success claim.
 
 Together with the production PC receipt, this closes the L05 device gate.
+
+## 2026-11-10 current B-branch readback
+
+The current B branch was also run in an isolated loopback worker without
+changing the production checkout. Signed H06/H08 WebP submissions returned
+HTTP 200 PNG results: H06 `50799.3ms`, 10,366 bytes, SHA-256
+`f5df72ca78e173b49c830d9e5724e26acfed18f9dc9667a713cd9edd12c64834`; H08
+`44965.6ms`, 9,420 bytes, SHA-256
+`0d42327566e5d06dc433f8fd7e10108dd530fa75b7f6b9d29ad6ae675ce05f2b`.
+The same worker returned 403 for a foreign Origin, 415 for `text/plain`, and
+one 429 with `Retry-After: 2` for the second concurrent H06 request.
+
+The current private HTTPS endpoint then returned `/health` HTTP 200 ready and
+the signed H06 output HTTP 200 PNG in `52399.1ms`, with the same output SHA as
+the isolated B branch. These are source-free runtime readbacks; raw artifacts
+remain in the private evidence store.
