@@ -209,3 +209,19 @@ Phase4・owner認可・Stage8 handoffには昇格しない。私的な重みSHA�
 場合だけPhase4とowner認可へ進む、の順序に限定する。現在のSee-through全体pipelineは
 研究観測として保存するが、bottomwearの欠落と能力契約不足を理由に正式候補へはしない。
 
+### 2026-11-10 解像度変更の一括反証
+
+H04について、LayerDiff部分だけを1280px・固定seed 42・固定NF4重み・30 step・source-onlyで
+一括実行した。topwear、handwear、legwearは大きく分離したが、bottomwearには元画像で可視
+根拠のない白い下着様レイヤーが出力された。解像度を上げても意味ownerの誤付与は解決せず、
+この経路は正式候補へ昇格しない。
+
+保存済みLayerDiff結果を使った新規MarigoldプロセスもCLIP埋め込み初期化時のCUDA illegal-
+memoryで停止した。深度・PSD・Stage8三点セットは未生成であり、これは品質PASSではなく
+実行環境FAILとして非公開実験履歴に隔離した。
+
+この結果を受け、次のA作業は解像度、閾値、OR/AND、形態学処理、数画素修正ではない。必要能力
+（可視層根拠、外衣、下層、袖、腕、遮蔽関係、人物内instance結合）を一つのobserver契約で
+満たす候補を確定し、H04/H06/H08を同一条件で一括評価するまで、Phase4・owner認可・Stage8
+handoffを増やさない。
+
