@@ -11,12 +11,29 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `89ba294be271c68f77339493d531687901336360` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `97bb0fe07b95b8dc5d0e55bd9f4aa790e2a0951d` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
-| A L02 / Phase4 | `HOLD` / `FAIL`（キャンペーン正式昇格なし） |
+| A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
+
+### 2026-11-11 candidate-specific Phase4 receipt readback
+
+現行freeze receiptに結び付いたH04/H06/H08の独立評価フォームを記入後、
+`C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\PHASE4_INDEPENDENT_REVIEW.json`
+へmaterializeした。candidate SHAはH04/H06/H08すべて現行freezeと一致し、署名、未見性、
+推論前ラベル非参照、評価者独立性、意味評価、unknown保持、三例のowner・遮蔽・視認性の
+全項目がverifierを通過した。
+
+- reviewer: `ponta`
+- reviewed_at_utc: `2026-11-11T09:00:00Z`
+- receipt: `phase4=PASS`
+- verifier: `phase4=PASS / phase5=NO_GO / golden=HOLD / production=NO_GO`
+- L02全体: `HOLD`（六能力observer／導入計画の正式ゲートは別に継続）
+
+このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、
+owner認可、Stage8、Golden、本番、Bへの品質handoffは自動昇格しない。
 
 ### 2026-11-10 最新readback
 
@@ -34,8 +51,9 @@
   Bの実装・source/runtime QAは完了状態を維持し、Aの品質判定は行わない。
 - 現行See-through出力は、外衣・下着・袖・腕・遮蔽関係・人物内instance groupingを
   同時に満たすobserver evidence bundleになっておらず、候補側にもsource-alpha外の
-  mask画素が確認されたため、正式入力として不採用。`L02=HOLD / Phase4=FAIL /
-  Phase5=NO_GO / Golden=HOLD / production=NO_GO`を維持する。
+  mask画素が確認されたため、observer能力入力としては不採用。L02は`HOLD`を維持するが、
+  現行arm-guarded候補のcandidate-specific receiptは別途`Phase4=PASS`となった。
+  `Phase5=NO_GO / Golden=HOLD / production=NO_GO`を維持する。
 - 追加の実行checkpointとして、ローカルのSee-through SAM-HQ 19部位モデルを署名済み
   H04/H06/H08へ同一条件でsource-only実行した。source alpha内へclipした後も、三例
   共通で観測できたのは`outerwear`相当と`sleeve`相当だけで、`arm/underlayer/

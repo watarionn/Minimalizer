@@ -3,6 +3,22 @@
 この文書は、非公開Driveに追加された最新レビューの差分だけを記録する
 source-free台帳である。原画像、マスク、NPZ、比較画像は保存しない。
 
+## 2026-11-11 現行候補のreceipt成立
+
+前節までの記録は、11月10日に受領したDriveレビューが旧候補SHAを指していた時点の
+readbackである。その後、現行freeze receiptから候補SHAを自動転記した日本語フォームを
+独立評価者が記入し、candidate-specific receiptをmaterializeした。
+
+- reviewer: `ponta`
+- reviewed_at_utc: `2026-11-11T09:00:00Z`
+- H04/H06/H08: source SHA・candidate SHAとも現行freezeと一致
+- verifier: `Phase4=PASS`
+- receipt: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\PHASE4_INDEPENDENT_REVIEW.json`
+- 後続ゲート: `Phase5=NO_GO / Golden=HOLD / production=NO_GO`
+
+したがって、旧Driveレビュー自体を現行receiptへ流用したのではなく、現行候補を一つの
+評価キットで再確認した結果として、candidate-specific Phase4だけが成立した。
+
 ## 受領した証拠
 
 - Drive file: `H04_H06_H08_Sapiens2_独立visual_review_signed_20261110.txt`
@@ -65,7 +81,9 @@ H04/H06のcandidate SHAが現行freeze receiptと不一致であること。こ�
 - 意味評価: `YES`（受領レビューの主張。H04/H06は現行凍結候補SHAと不一致）
 - H06/H08の差分視認性: `未完了`
 - H04の候補改善: `未成立`（変更画素0）
-- 現行L02/Phase4: `HOLD / FAIL`
+- 11月10日時点の旧Driveレビュー readback: `HOLD / FAIL`（履歴）
+- 現行L02全体: `HOLD`（observer能力ゲートは継続）
+- 現行candidate-specific Phase4 receipt: `PASS`
 - Phase5、owner認可、Stage8、Golden、本番: `NO_GO`
 
 このレビューはSapiens2の小差分候補に対する評価であり、六能力observerの成立証拠でも、
