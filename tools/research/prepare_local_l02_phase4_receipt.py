@@ -95,9 +95,10 @@ def render_review_form(freeze_receipt: Mapping[str, object]) -> str:
         "L02 candidate-specific Phase4 independent review form",
         f"form_schema: {FORM_SCHEMA}",
         "",
-        "# Reviewer fills the blank fields after inspecting the frozen candidate.",
-        "# Use YES or NO for boolean fields. Do not use labels as inference input.",
-        "# Keep visual regression and change visibility as separate decisions.",
+        "# 凍結候補を確認した独立評価者が記入する。JSONは直接編集しない。",
+        "# reviewer_id / reviewed_at_utc / signature_record は文字列、それ以外の判定欄は YES または NO。",
+        "# signature_verified に日時を入れない。日時は reviewed_at_utc と signature_record に記入する。",
+        "# visual_regression_acceptable と change_visibility_sufficient は別々に判定する。",
         "reviewer_id:",
         "reviewed_at_utc:",
         "signature_record:",
@@ -262,7 +263,17 @@ def _cli() -> int:
         print(f"PHASE4_RECEIPT_CREATED {args.output}")
         return 0
     except (OSError, json.JSONDecodeError, Phase4PreparationHold) as exc:
-        print(f"HOLD {exc}")
+        message = str(exc)
+        explanation = {
+            "UNANSWERED_OR_INVALID:signature_verified":
+                "signature_verified は YES または NO。日時は reviewed_at_utc / signature_record に記入します。",
+            "REVIEWER_ID_MISSING": "reviewer_id を記入します。",
+            "REVIEW_TIMESTAMP_MISSING": "reviewed_at_utc をUTC時刻で記入します。",
+            "SIGNATURE_RECORD_MISSING": "signature_record を記入します。",
+        }.get(message)
+        print(f"HOLD {message}")
+        if explanation:
+            print(f"説明: {explanation}")
         return 1
 
 
