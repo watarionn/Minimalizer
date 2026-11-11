@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `467eb8108c811391f0837a66481bc1919a4e3e42` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `7d25ffd9` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `NO_GO`（現行候補のexact replay未完了） |
@@ -33,6 +33,7 @@
 - L02全体: `HOLD`（六能力observer／導入計画の正式ゲートは別に継続）
 - H08 owner-authority receipt: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\H08_OWNER_AUTHORITY_RECEIPT.json`
 - H08 authority binding: source `759b...`, frozen owner `43d164...`, candidate `8daaf...`, observer `e3d54...`
+- Phase5 input preflight: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\PHASE5_INPUT_PREFLIGHT.json` (`HOLD`: current-candidate-bound full part-mask bundle missing)
 
 このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、
 owner認可、Stage8、Golden、本番、Bへの品質handoffは自動昇格しない。
