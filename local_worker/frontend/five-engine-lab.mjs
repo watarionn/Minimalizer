@@ -1,4 +1,5 @@
 // Local PWA research-only SVG candidate bank. Never mutates production Minimalizer output.
+import { readVTracerControls, writeVTracerControls, VTRACER_DEFAULTS } from "./vtracer-demo-options.mjs";
 // ImageTracerJS: pinned locally to v1.2.6 (Unlicense).
 // VTracer: uses the already-vendored browser WASM (release audit remains separate).
 const $ = (id) => document.getElementById(id);
@@ -8,6 +9,8 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
 const state = { source: null, sourceFile: null, sha: null, results: new Map(), busy: false };
 let vtracerInitPromise = null;
+let autoVTracerTimer = null;
+let pendingVTracerRun = false;
 
 // Keep untrusted imported SVGs out of the DOM. Preview only as isolated <img> blob URLs.
 function validatedSvg(value) {
@@ -62,6 +65,8 @@ function renderOriginal(canvas) {
   canvas.getContext("2d", { willReadFrequently: true }).putImageData(state.source, 0, 0);
 }
 function clearCandidates() {
+  clearTimeout(autoVTracerTimer);
+  pendingVTracerRun = false;
   for (const candidate of state.results.values()) URL.revokeObjectURL(candidate.url);
   state.results.clear();
   for (const id of IDS) {
@@ -118,7 +123,7 @@ async function imageSource(file) {
     URL.revokeObjectURL(local);
   }
 }
-async function runVTracer() {
+async function runVTracer(settings) {
   if (!vtracerInitPromise) {
     vtracerInitPromise = (async () => {
       const mod = await import("../static/vendor/vtracer-wasm/vtracer.mjs");
@@ -130,12 +135,7 @@ async function runVTracer() {
   }
   const trace = await vtracerInitPromise;
   const src = state.source;
-  return trace(new Uint8Array(src.data), src.width, src.height, {
-    binary: false, mode: "polygon", hierarchical: "stacked",
-    cornerThreshold: 60, lengthThreshold: 4, maxIterations: 10,
-    spliceThreshold: 45, filterSpeckle: 4, colorPrecision: 6,
-    layerDifference: 16, pathPrecision: 4
-  });
+  return trace(new Uint8Array(src.data), src.width, src.height, settings);
 }
 function runImageTracer() {
   if (!window.ImageTracer || typeof window.ImageTracer.imagedataToSVG !== "function")
@@ -204,7 +204,7 @@ function updateCard(id) {
   btn.addEventListener("click", () => { $("select-candidate").value = id; showSelected(); });
   slot.append(img,detail,btn);
 }
-async function registerCandidate(id, raw, source) {
+async function registerCandidate(id, raw, source, settings = null) {
   const svg = validatedSvg(raw);
   const url = blobURL(svg);
   let metrics;
@@ -212,7 +212,7 @@ async function registerCandidate(id, raw, source) {
   catch(err) { URL.revokeObjectURL(url); throw err; }
   const old = state.results.get(id);
   if (old) URL.revokeObjectURL(old.url);
-  state.results.set(id, {svg,url,metrics,source,sha:state.sha});
+  state.results.set(id, {svg,url,metrics,source,sha:state.sha,settings});
   updateCard(id);
   updateSelector();
 }
@@ -244,9 +244,10 @@ async function runOne(id) {
   await nextFrame();
   try {
     const sha = state.sha;
-    const svg = id === "vtracer" ? await runVTracer() : runImageTracer();
+    const settings = id === "vtracer" ? readVTracerControls() : null;
+    const svg = id === "vtracer" ? await runVTracer(settings) : runImageTracer();
     if(sha !== state.sha) throw new Error("入力画像が途中で変更された");
-    await registerCandidate(id, svg, "local");
+    await registerCandidate(id, svg, "local", settings);
     setStatus(id + " の研究候補を生成したよ");
   } catch(err) {
     setStatus(id + ": " + (err?.message || String(err)), true);
@@ -254,6 +255,11 @@ async function runOne(id) {
     state.busy = false;
     $("run-local").disabled = !state.source;
     for(const b of document.querySelectorAll("[data-run]")) b.disabled = !state.source;
+    if (pendingVTracerRun && state.source) {
+      pendingVTracerRun = false;
+      // Do not run VTracer recursively while another conversion is finishing.
+      setTimeout(() => { if (state.source) runOne("vtracer"); }, 0);
+    }
   }
 }
 $("run-local").addEventListener("click", async () => {
@@ -301,7 +307,42 @@ $("download-manifest").addEventListener("click", () => {
     width: state.source.width,
     height: state.source.height,
     candidates: Object.fromEntries(Array.from(state.results,([id,value]) =>
-      [id,{source:value.source,metrics:value.metrics}]))
+      [id,{source:value.source,metrics:value.metrics,settings:value.settings}]))
   };
   download(new Blob([JSON.stringify(payload,null,2)+"\n"],{type:"application/json"}),"minimalizer-lab-comparison.json");
 });
+
+function refreshVTracerControls() {
+  for (const field of document.querySelectorAll("#vtracer-settings input[type=range]")) {
+    const label = document.getElementById(field.id + "-value");
+    if (label) label.textContent = field.value;
+  }
+  const bw = $("vtracer-color-mode").value === "bw";
+  const spline = $("vtracer-mode").value === "spline";
+  for (const field of document.querySelectorAll('[data-condition="color"]')) field.hidden = bw;
+  for (const field of document.querySelectorAll('[data-condition="spline"]')) field.hidden = !spline;
+}
+function scheduleVTracerUpdate() {
+  clearTimeout(autoVTracerTimer);
+  if (!state.source) return;
+  setStatus("VTracerの設定を変更したよ。再変換すると反映されるよ。");
+  if (!$("vtracer-auto-update").checked) return;
+  autoVTracerTimer = setTimeout(() => {
+    if (state.busy) { pendingVTracerRun = true; return; }
+    runOne("vtracer");
+  }, 350);
+}
+for (const control of document.querySelectorAll("#vtracer-settings input, #vtracer-settings select")) {
+  control.addEventListener("input", refreshVTracerControls);
+  control.addEventListener("change", () => { refreshVTracerControls(); scheduleVTracerUpdate(); });
+}
+$("vtracer-reset").addEventListener("click", () => {
+  writeVTracerControls(document, VTRACER_DEFAULTS);
+  refreshVTracerControls();
+  scheduleVTracerUpdate();
+});
+$("vtracer-auto-update").addEventListener("change", () => {
+  if ($("vtracer-auto-update").checked) scheduleVTracerUpdate();
+  else clearTimeout(autoVTracerTimer);
+});
+refreshVTracerControls();
