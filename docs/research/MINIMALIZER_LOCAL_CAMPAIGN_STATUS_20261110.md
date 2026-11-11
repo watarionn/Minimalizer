@@ -1,6 +1,6 @@
 # MinimalizerLocal 統合キャンペーン現況・保存方針
 
-更新日: 2026-11-10
+更新日: 2026-11-11
 
 この文書は、Lane A（実画像品質）とLane B（L04/L05/L07統合）の現在地を
 一枚に固定するための source-free 台帳である。過去の実験結果を削除したり、
@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `97bb0fe07b95b8dc5d0e55bd9f4aa790e2a0951d` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `467eb8108c811391f0837a66481bc1919a4e3e42` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
