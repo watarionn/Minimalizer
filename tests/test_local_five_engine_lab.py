@@ -41,3 +41,24 @@ def test_pinned_imagetracer_license_and_no_public_asset():
     assert "The Unlicense / PUBLIC DOMAIN" in vendor
     assert "imagedataToSVG" in vendor
     assert not (ROOT / "web" / "static" / "vendor" / "imagetracer_v1.2.6.js").exists()
+
+
+def test_vtracer_demo_controls_are_local_only_and_match_pinned_wasm():
+    local = (LOCAL / "five-engine-lab.html").read_text(encoding="utf-8")
+    script = (LOCAL / "five-engine-lab.mjs").read_text(encoding="utf-8")
+    settings = (LOCAL / "vtracer-demo-options.mjs").read_text(encoding="utf-8")
+    public = (ROOT / "web/static/index.html").read_text(encoding="utf-8")
+    for name in (
+        "color-mode", "hierarchical", "mode", "filter-speckle",
+        "color-precision", "gradient-step", "corner-threshold",
+        "segment-length", "splice-threshold", "path-precision"
+    ):
+        assert f'id="vtracer-{name}"' in local
+    assert 'id="vtracer-auto-update"' in local
+    assert 'id="vtracer-reset"' in local
+    assert 'readVTracerControls()' in script
+    assert 'runVTracer(settings)' in script
+    assert 'settings:value.settings' in script
+    assert 'maxIterations: 10' in settings
+    assert "vtracer-demo-options.mjs" not in public
+    assert 'vtracer-demo-options.mjs' in script

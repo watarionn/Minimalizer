@@ -47,9 +47,51 @@ window.addEventListener("load", async () => {
     const v = document.querySelector('[data-slot="vtracer"] img');
     const j = document.querySelector('[data-slot="imagetracer"] img');
     const status = document.querySelector("#run-status").textContent;
+    if(!v || !j) throw new Error("baseline VTracer or ImageTracerJS missing");
+    document.querySelector("#vtracer-auto-update").checked = false;
+    const vectors = {};
+    async function runMode(name, mode, colorMode, hierarchical) {
+      const m = document.querySelector("#vtracer-mode");
+      const c = document.querySelector("#vtracer-color-mode");
+      const h = document.querySelector("#vtracer-hierarchical");
+      m.value = mode; m.dispatchEvent(new Event("change"));
+      c.value = colorMode; c.dispatchEvent(new Event("change"));
+      h.value = hierarchical; h.dispatchEvent(new Event("change"));
+      if (!document.querySelector('[data-run="vtracer"]')) throw new Error("run button missing");
+      document.querySelector('[data-run="vtracer"]').click();
+      let started = false;
+      for(let k=0;k<450;k++) {
+        if(document.querySelector('[data-run="vtracer"]').disabled) started = true;
+        if(started && !document.querySelector('[data-run="vtracer"]').disabled) break;
+        await pause(100);
+      }
+      if(document.querySelector('[data-run="vtracer"]').disabled)
+        throw new Error(name + " processing did not finish");
+      if(document.querySelector("#run-status").textContent.includes("失敗"))
+        throw new Error(name + " run failed");
+      const img = document.querySelector('[data-slot="vtracer"] img');
+      if(!img) throw new Error(name + " candidate missing");
+      const text = await (await fetch(img.src)).text();
+      if(!text.includes("<svg")) throw new Error(name + " not SVG");
+      vectors[name] = {bytes:text.length, shapes:(text.match(/<path\\b/g)||[]).length, content:text};
+    }
+    await runMode("pixel","pixel","color","stacked");
+    await runMode("polygon","polygon","color","cutout");
+    await runMode("binary","spline","bw","stacked");
+    const colorInputsHidden = Array.from(document.querySelectorAll('[data-condition="color"]')).every(el=>el.hidden);
+    document.querySelector("#vtracer-reset").click();
+    const defaultRestored = document.querySelector("#vtracer-mode").value === "spline" &&
+      document.querySelector("#vtracer-color-mode").value === "color" &&
+      document.querySelector("#vtracer-hierarchical").value === "stacked";
     const res = {vtracer:!!v,imagetracer:!!j,
       status,options:document.querySelector("#select-candidate").options.length,
-      source:document.querySelector("#source-status").textContent};
+      source:document.querySelector("#source-status").textContent,
+      pixel:vectors.pixel?.bytes>0,
+      polygon:vectors.polygon?.bytes>0,
+      binary:vectors.binary?.bytes>0,
+      distinct: vectors.pixel.content!==vectors.polygon.content &&
+        vectors.polygon.content!==vectors.binary.content,
+      colorInputsHidden,defaultRestored};
     out.textContent = "VTRACER_ROUTE_RESULT=" + JSON.stringify(res);
   }catch(e){
     out.textContent = "VTRACER_ROUTE_FAILURE=" + String(e);
@@ -106,6 +148,10 @@ def main():
         print(json.dumps(value,ensure_ascii=False))
         assert value["vtracer"] and value["imagetracer"], "One or both actual browser engines failed"
         assert value["options"] >= 3, "Two candidates were not registered"
+        assert all(value[k] for k in (
+            "pixel", "polygon", "binary", "distinct",
+            "colorInputsHidden", "defaultRestored"
+        )), "VTracer demo mode matrix failed"
         print("LOCAL_FIVE_ENGINE_CHROME_PASS")
     finally:
         server.shutdown()

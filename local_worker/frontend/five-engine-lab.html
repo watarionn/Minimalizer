@@ -57,20 +57,82 @@
       <h2 id="source-heading">1. 比較する元画像</h2>
       <div class="stack">
         <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" aria-label="比較用の画像を選択">
-        <label>解析の長辺 <select id="resolution"><option value="128">128 px（高速）</option><option value="192">192 px</option><option value="256" selected>256 px（標準）</option></select></label>
+        <label>解析の長辺 <select id="resolution"><option value="128">128 px（高速）</option><option value="192">192 px</option><option value="256" selected>256 px（標準）</option><option value="340">340 px</option><option value="512">512 px（高精細・処理重め）</option></select></label>
         <label>色数 <select id="colors"><option value="4">4</option><option value="8" selected>8</option><option value="12">12</option><option value="16">16</option></select></label>
       </div>
       <div class="preview"><canvas id="source-canvas" width="256" height="256" aria-label="元画像の縮小プレビュー"></canvas></div>
       <div class="status" id="source-status" role="status">画像を選ぶと比較できるよ。</div>
     </section>
+    <section class="panel" id="vtracer-demo-panel" aria-labelledby="vtracer-demo-heading">
+      <h2 id="vtracer-demo-heading">2. VTracer デモ設定</h2>
+      <p class="muted">公式Webデモの設定をLocal PWA内で操作できるようにしたよ。画像を選んで設定を変えると、VTracerのSVGを再生成できる。ImageTracerJSなどには影響しない。</p>
+      <div class="vtracer-toolbar">
+        <button type="button" id="vtracer-reset">初期設定に戻す</button>
+        <label><input id="vtracer-auto-update" type="checkbox" checked> 設定変更後に自動再変換</label>
+        <span class="vtracer-note">元画像とSVGの比較・SVG保存は下の候補カードからできる</span>
+      </div>
+      <div class="vtracer-settings" id="vtracer-settings">
+        <label>画像の扱い（Clustering）
+          <select id="vtracer-color-mode">
+            <option value="color" selected>Color（カラー）</option>
+            <option value="bw">B/W（白黒2値）</option>
+          </select>
+          <span class="setting-note">カラーのまま領域を分けるか、白黒の領域でトレースするか</span>
+        </label>
+        <label data-condition="color">領域の重ね方（Hierarchical）
+          <select id="vtracer-hierarchical">
+            <option value="stacked" selected>Stacked（重ねる）</option>
+            <option value="cutout">Cutout（切り抜く）</option>
+          </select>
+          <span class="setting-note">パーツを重ねるか、重ならない形に切り抜くか</span>
+        </label>
+        <label>輪郭の図形化（Curve Fitting）
+          <select id="vtracer-mode">
+            <option value="pixel">Pixel（元のピクセル輪郭）</option>
+            <option value="polygon">Polygon（多角形）</option>
+            <option value="spline" selected>Spline（滑らかな曲線）</option>
+          </select>
+          <span class="setting-note">輪郭の再現方法を切り替える</span>
+        </label>
+        <label>小領域の除去（Filter Speckle） <output id="vtracer-filter-speckle-value">4</output>
+          <input id="vtracer-filter-speckle" type="range" min="1" max="16" step="1" value="4">
+          <span class="setting-note">値が大きいほど小さい色面を省略</span>
+        </label>
+        <label data-condition="color">色の精度（Color Precision） <output id="vtracer-color-precision-value">6</output>
+          <input id="vtracer-color-precision" type="range" min="1" max="8" step="1" value="6">
+          <span class="setting-note">値が大きいほど元のRGBを細かく表現</span>
+        </label>
+        <label data-condition="color">色の層の差（Gradient Step） <output id="vtracer-gradient-step-value">16</output>
+          <input id="vtracer-gradient-step" type="range" min="0" max="255" step="1" value="16">
+          <span class="setting-note">値が大きいほど近い色の層を整理</span>
+        </label>
+        <label data-condition="spline">角の判定（Corner Threshold） <output id="vtracer-corner-threshold-value">60</output>
+          <input id="vtracer-corner-threshold" type="range" min="0" max="180" step="1" value="60">
+          <span class="setting-note">曲線の角を残すかどうかの判定</span>
+        </label>
+        <label data-condition="spline">線分長（Segment Length） <output id="vtracer-segment-length-value">4</output>
+          <input id="vtracer-segment-length" type="range" min="3.5" max="10" step="0.5" value="4">
+          <span class="setting-note">曲線の滑らかさに関係する分割の長さ</span>
+        </label>
+        <label data-condition="spline">接続角（Splice Threshold） <output id="vtracer-splice-threshold-value">45</output>
+          <input id="vtracer-splice-threshold" type="range" min="0" max="180" step="1" value="45">
+          <span class="setting-note">曲線の分割・接続を決める角度</span>
+        </label>
+        <label>SVG座標精度（詳細） <output id="vtracer-path-precision-value">4</output>
+          <input id="vtracer-path-precision" type="range" min="0" max="8" step="1" value="4">
+          <span class="setting-note">SVGの数値を出力する小数桁数</span>
+        </label>
+      </div>
+      <p class="vtracer-note">※ 現在の内蔵WASMはVTracer旧デモ相当の機能を使用。最新版1.0のWatershed・固定色パレット・Adaptive B/W・Simplifyなどはまだ搭載していない。</p>
+    </section>
     <section class="panel" aria-labelledby="candidate-heading">
-      <h2 id="candidate-heading">2. 各エンジンで候補を作る</h2>
+      <h2 id="candidate-heading">3. 各エンジンで候補を作る</h2>
       <p class="muted">VTracerとImageTracerJSはLocal PWA内で実行。Primitive・Geometrize・Primevalは公開デモで出力したSVGを取り込んで比較する。異なる実装の出力を同じものとして偽装しない。</p>
       <div class="stack"><button type="button" class="primary" id="run-local" disabled>ローカル2エンジンを実行</button><span id="run-status" role="status"></span></div>
       <div class="grids" id="engines">
         <article class="engine" data-engine="vtracer">
           <div class="stack"><h3>VTracer</h3><span class="badge">WASM実行</span></div>
-          <p class="muted">画像を色領域として追跡し、多角形SVGに変換。</p>
+          <p class="muted">デモ設定を使ってピクセル輪郭・多角形・スプラインをSVG化。</p>
           <button type="button" data-run="vtracer" disabled>実行</button>
           <div data-slot="vtracer"></div>
         </article>
@@ -104,7 +166,7 @@
       </div>
     </section>
     <section class="panel" aria-labelledby="comparison-heading">
-      <h2 id="comparison-heading">3. 候補を見比べる</h2>
+      <h2 id="comparison-heading">4. 候補を見比べる</h2>
       <div class="stack">
         <label for="select-candidate">候補</label>
         <select id="select-candidate"><option value="">先に候補を生成してね</option></select>
