@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17191b">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Minimalizer Local 本人専用・研究用の5エンジン比較室">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/local-static/icon.svg" type="image/svg+xml">
+  <title>5-Engine Lab | Minimalizer Local</title>
+  <style>
+    :root{font:16px/1.55 system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;color:#e7ecf1;background:#131719;color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0}
+    header,main,footer{max-width:1100px;margin:auto;padding:18px clamp(14px,4vw,32px)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #39434b}
+    a{color:#91dcfd}
+    h1{font-size:clamp(24px,4vw,34px);line-height:1.2;margin:.65em 0}
+    h2{font-size:20px;margin:0 0 12px}
+    p{margin:.5em 0 1em}
+    .muted,small{color:#aab9c4}
+    .panel{border:1px solid #3c4b53;border-radius:14px;background:#1c2429;padding:20px;margin:18px 0}
+    .warning{border-left:4px solid #d6aa62;padding:12px 16px;background:#2c2922}
+    .stack{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .grids{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}
+    .engine{border:1px solid #43535d;border-radius:12px;padding:16px;background:#202b31;min-width:0}
+    .engine h3{margin:0;font-size:19px}
+    .engine img{display:block;width:100%;max-height:260px;object-fit:contain;background:#0f1618;border:1px solid #3a464c;border-radius:10px;margin:12px 0}
+    .preview{display:flex;justify-content:center;background:#0e1519;border-radius:10px;padding:12px;min-height:150px}
+    canvas{display:block;max-width:100%;max-height:320px;image-rendering:auto}
+    button,.button,select,input[type=file]::file-selector-button{border-radius:9px;border:1px solid #748c98;background:#253640;color:#fff;padding:9px 12px;font:inherit;cursor:pointer;text-decoration:none}
+    button.primary{background:#136a83;border-color:#22b7d8}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    input[type=file]{max-width:100%;font:inherit}
+    input[type=number]{width:85px;background:#142026;color:#fff;border:1px solid #58707d;padding:8px;border-radius:7px;font:inherit}
+    output{font-variant-numeric:tabular-nums}
+    .status{min-height:2em;white-space:pre-wrap}
+    .stat{font-size:13px;color:#b5c8d3}
+    footer{font-size:13px;color:#b0bec7}
+    .badge{font-size:12px;padding:2px 8px;border:1px solid #4e7c8e;border-radius:999px;color:#b9eaff}
+    .badge.ext{border-color:#977a51;color:#ffe0a1}
+    .comparison{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+    .comparison img{width:100%;max-height:320px;object-fit:contain;background:#141c1f;border-radius:10px}
+    :focus-visible{outline:3px solid #ffca6c;outline-offset:2px}
+  </style>
+  <script src="/local-static/vendor/imagetracer_v1.2.6.js" defer></script>
+  <script type="module" src="/local-static/five-engine-lab.mjs"></script>
+</head>
+<body>
+  <header><strong>Minimalizer Local · 5-Engine Lab</strong><a href="/">ミニマル化へ戻る</a></header>
+  <main>
+    <h1>5つの図形化を比較する</h1>
+    <p>同じ元画像から候補を作り、形・色・誤差を見比べる研究専用のワークスペース。画像はLocal PWA上で処理し、外部デモを開いても自動送信しない。</p>
+    <div class="warning" role="note"><strong>本番変換とは独立。</strong> この画面は候補生成と比較だけを行い、ZeroBase2・Local V2・Golden・本番画像には反映しない。ピクセル差は参考値で、人物の正しさや顔パーツ非描画の保証ではない。外部デモへの画像のアップロードは各サイトの利用規約とプライバシーを確認してね。</div>
+    <section class="panel" aria-labelledby="source-heading">
+      <h2 id="source-heading">1. 比較する元画像</h2>
+      <div class="stack">
+        <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" aria-label="比較用の画像を選択">
+        <label>解析の長辺 <select id="resolution"><option value="128">128 px（高速）</option><option value="192">192 px</option><option value="256" selected>256 px（標準）</option></select></label>
+        <label>色数 <select id="colors"><option value="4">4</option><option value="8" selected>8</option><option value="12">12</option><option value="16">16</option></select></label>
+      </div>
+      <div class="preview"><canvas id="source-canvas" width="256" height="256" aria-label="元画像の縮小プレビュー"></canvas></div>
+      <div class="status" id="source-status" role="status">画像を選ぶと比較できるよ。</div>
+    </section>
+    <section class="panel" aria-labelledby="candidate-heading">
+      <h2 id="candidate-heading">2. 各エンジンで候補を作る</h2>
+      <p class="muted">VTracerとImageTracerJSはLocal PWA内で実行。Primitive・Geometrize・Primevalは公開デモで出力したSVGを取り込んで比較する。異なる実装の出力を同じものとして偽装しない。</p>
+      <div class="stack"><button type="button" class="primary" id="run-local" disabled>ローカル2エンジンを実行</button><span id="run-status" role="status"></span></div>
+      <div class="grids" id="engines">
+        <article class="engine" data-engine="vtracer">
+          <div class="stack"><h3>VTracer</h3><span class="badge">WASM実行</span></div>
+          <p class="muted">画像を色領域として追跡し、多角形SVGに変換。</p>
+          <button type="button" data-run="vtracer" disabled>実行</button>
+          <div data-slot="vtracer"></div>
+        </article>
+        <article class="engine" data-engine="imagetracer">
+          <div class="stack"><h3>ImageTracerJS</h3><span class="badge">JavaScript実行</span></div>
+          <p class="muted">減色して輪郭を追跡し、SVGに変換。</p>
+          <button type="button" data-run="imagetracer" disabled>実行</button>
+          <div data-slot="imagetracer"></div>
+        </article>
+        <article class="engine" data-engine="primitive">
+          <div class="stack"><h3>Primitive</h3><span class="badge ext">デモ → SVG取込</span></div>
+          <p class="muted">図形を順に追加して画像の差を減らす。</p>
+          <a class="button" href="https://primitive-playground.taiseiue.jp/" target="_blank" rel="noopener noreferrer">デモを開く</a>
+          <input type="file" accept=".svg,image/svg+xml" data-import="primitive" aria-label="Primitiveで作成したSVGを選ぶ">
+          <div data-slot="primitive"></div>
+        </article>
+        <article class="engine" data-engine="geometrize">
+          <div class="stack"><h3>Geometrize</h3><span class="badge ext">デモ → SVG取込</span></div>
+          <p class="muted">図形ごとの誤差を最適化する。</p>
+          <a class="button" href="https://www.samcodes.co.uk/project/geometrize-haxe-web/" target="_blank" rel="noopener noreferrer">デモを開く</a>
+          <input type="file" accept=".svg,image/svg+xml" data-import="geometrize" aria-label="Geometrizeで作成したSVGを選ぶ">
+          <div data-slot="geometrize"></div>
+        </article>
+        <article class="engine" data-engine="primeval">
+          <div class="stack"><h3>Primeval</h3><span class="badge ext">デモ → SVG取込</span></div>
+          <p class="muted">図形を追加した後も再最適化する。</p>
+          <a class="button" href="https://domoarigatomrburato.github.io/primeval/" target="_blank" rel="noopener noreferrer">デモを開く</a>
+          <input type="file" accept=".svg,image/svg+xml" data-import="primeval" aria-label="Primevalで作成したSVGを選ぶ">
+          <div data-slot="primeval"></div>
+        </article>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="comparison-heading">
+      <h2 id="comparison-heading">3. 候補を見比べる</h2>
+      <div class="stack">
+        <label for="select-candidate">候補</label>
+        <select id="select-candidate"><option value="">先に候補を生成してね</option></select>
+        <button id="download-svg" disabled>選択中のSVGを保存</button>
+        <button id="download-manifest" disabled>比較レポート JSON</button>
+      </div>
+      <div class="comparison">
+        <div><h3>元画像（縮小）</h3><div class="preview"><canvas id="comparison-canvas" width="256" height="256"></canvas></div></div>
+        <div><h3>選択した候補</h3><div class="preview"><img id="selected-preview" alt="選択したSVGのプレビュー" hidden></div><p id="selected-metrics" class="stat">未選択</p></div>
+      </div>
+    </section>
+    <p class="muted">次工程は、Minimalizerが承認した意味パーツとそのマスクごとに候補図形を作り、source alpha・人物構造・遮蔽を維持できた候補だけを採用すること。全画像のSVGを重ねるだけでは正しく融合できない。</p>
+  </main>
+  <footer>Local専用・比較結果は端末メモリ内のみ。ブラウザを閉じると候補は破棄される。外部スクリプト/CDNへの自動接続なし。</footer>
+</body>
+</html>
