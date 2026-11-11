@@ -13,6 +13,7 @@ ZeroBase Phase4部位分解が、Phase5構造グラフを通過するかを確�
 - Phase4: rtmlib `0.0.16`、CPU、balanced、MediaPipe意味ヒントなし
 - 人手ラベル・レビューJSON・評価マスク: 推論入力に未使用
 - private出力: `C:\Work\Temp\minimalizer-l02-source-phase4-20261111\artifacts`
+- Drive保全: [非公開アーカイブ](https://drive.google.com/file/d/1taCnt4Z_5Xg7Yharl0eJO1_JXWiHCcvR/view)（フォルダ `L02_SourceOnly_Phase4_Phase5_20261111`、SHA-256 `cd57907747671e28bc05cd72ae71baa9b8267fa196d4ab127abfdc71c89ab7f8`）
 
 ## 結果
 
