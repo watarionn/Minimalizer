@@ -1,6 +1,6 @@
 # Minimalizer Local PWA: 5-Engine Candidate Lab (2026-11-11)
 
-Status: **RESEARCH CANDIDATE / NO PRODUCTION PROMOTION / NO DEPLOYMENT / OWNER iPHONE QA REQUIRED**.
+Status: **RESEARCH-ONLY PRIVATE PWA PILOT / NO ENGINE PROMOTION / NO PUBLIC RELEASE / OWNER iPHONE QA REQUIRED**. The owner explicitly requested deployment of this opt-in comparison page on 2026-11-11; that permission does not waive separate Golden, source-owner, or external-license gates.
 
 ## Goal
 Allow the owner to experience and compare VTracer, ImageTracerJS, Primitive,
@@ -74,11 +74,9 @@ production converter.
 
 ## Verification evidence for this PR
 - Pinned ImageTracerJS source and Local link read back on GitHub.
-- The Lab module passed V8 syntax compilation, and the pinned ImageTracerJS
-  successfully generated a real SVG from synthetic 16x16 RGBA input in V8
-  (two paths). This is **not** an actual browser E2E or VTracer runtime test.
+- The Lab module passed V8 syntax compilation, and pinned ImageTracerJS generated a synthetic SVG from 16x16 RGBA input in V8 (two paths).
+- The added isolated **real Chrome** smoke `scripts/smoke_local_five_engine_lab_chrome.py` on owner PC YWSHTMR passed using an ephemeral localhost server: `{vtracer:true, imagetracer:true, options:3}`, and printed `LOCAL_FIVE_ENGINE_CHROME_PASS`. No live Worker, production page, or source image was changed by this test.
 - Static isolation and pinned vendor checks live in
   `tests/test_local_five_engine_lab.py`.
-- **Not performed yet:** LocalWorker HTTP smoke, real VTracer/ImageTracerJS
-  conversion on Safari/Chrome, pytest inside a repository checkout, full
-  third-party VTracer dependency notice audit, iPhone QA, merge, rollout.
+- Checkout pytest focused page split and Lab: **6 passed** on owner PC in an isolated worktree.
+- **Not performed yet:** live LocalWorker/private HTTPS route smoke, iPhone Safari/PWA, full third-party VTracer dependency notices audit, main merge and rollout. The true release status must be updated only after actual readback.
