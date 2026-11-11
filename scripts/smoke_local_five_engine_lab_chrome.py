@@ -96,7 +96,7 @@ def main():
     try:
         url = f"http://127.0.0.1:{server.server_port}/local-static/five-engine-lab.html"
         proc = subprocess.run(["node", str(DRIVER), url, "#five-engine-smoke-result"],
-                              cwd=ROOT, capture_output=True, text=True, timeout=100)
+                              cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=100)
         if proc.returncode:
             raise RuntimeError((proc.stdout + proc.stderr)[-1800:])
         marker = "VTRACER_ROUTE_RESULT="
