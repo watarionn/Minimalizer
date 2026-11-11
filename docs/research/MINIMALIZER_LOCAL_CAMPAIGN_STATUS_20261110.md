@@ -34,6 +34,7 @@
 - H08 owner-authority receipt: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\H08_OWNER_AUTHORITY_RECEIPT.json`
 - H08 authority binding: source `759b...`, frozen owner `43d164...`, candidate `8daaf...`, observer `e3d54...`
 - Phase5 input preflight: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\PHASE5_INPUT_PREFLIGHT.json` (`HOLD`: current-candidate-bound full part-mask bundle missing)
+- source-only Phase4/Phase5診断: `docs/research/LOCAL_L02_SOURCE_ONLY_PHASE4_PHASE5_REPLAY_20261111.md`（H04は`neck-attached-to-torso`欠落、H06/H08は構造PASS。ただし現行candidate boundではない）
 
 このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、
 owner認可、Stage8、Golden、本番、Bへの品質handoffは自動昇格しない。

@@ -98,6 +98,6 @@ Draft/NO_GOのまま固定する。
 
 ## 現在の停止理由
 
-コードのテスト不足ではない。Aの研究テストは `479 passed`、receipt準備・owner認可focused testは `14 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やPhase5 PASSを証明しない。現在の次の具体的入力は、現行候補へ結び付いた全身Phase4 part-mask bundleと、そこから再現できるPhase5実行記録である。
+コードのテスト不足ではない。Aの研究テストは `479 passed`、receipt準備・owner認可・Phase5入力監査focused testは `16 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やPhase5 PASSを証明しない。source-only部位分解の診断ではH06/H08が構造PASS、H04が`neck-attached-to-torso`欠落となった。現在の次の具体的入力は、現行候補へ結び付いた全身Phase4 part-mask bundleと、H04接続欠落を解消したうえで再現できるPhase5実行記録である。
 
 この入力が届くまで、旧候補の微修正やcap再調整は行わず、Bの完了記録とA/Bの正本境界を保護する。
