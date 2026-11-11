@@ -74,8 +74,9 @@ production converter.
 
 ## Verification evidence for this PR
 - Pinned ImageTracerJS source and Local link read back on GitHub.
-- Both JS modules have passed V8 syntax compilation in the source-readback
-  environment (this is **not** a browser E2E).
+- The Lab module passed V8 syntax compilation, and the pinned ImageTracerJS
+  successfully generated a real SVG from synthetic 16x16 RGBA input in V8
+  (two paths). This is **not** an actual browser E2E or VTracer runtime test.
 - Static isolation and pinned vendor checks live in
   `tests/test_local_five_engine_lab.py`.
 - **Not performed yet:** LocalWorker HTTP smoke, real VTracer/ImageTracerJS
