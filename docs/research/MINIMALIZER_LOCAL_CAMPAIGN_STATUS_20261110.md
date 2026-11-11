@@ -14,7 +14,7 @@
 | Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `467eb8108c811391f0837a66481bc1919a4e3e42` |
 | Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
-| Phase5 | `NO_GO`（Phase4独立PASS前は禁止） |
+| Phase5 | `NO_GO`（現行候補のexact replay未完了） |
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
@@ -31,6 +31,8 @@
 - receipt: `phase4=PASS`
 - verifier: `phase4=PASS / phase5=NO_GO / golden=HOLD / production=NO_GO`
 - L02全体: `HOLD`（六能力observer／導入計画の正式ゲートは別に継続）
+- H08 owner-authority receipt: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\H08_OWNER_AUTHORITY_RECEIPT.json`
+- H08 authority binding: source `759b...`, frozen owner `43d164...`, candidate `8daaf...`, observer `e3d54...`
 
 このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、
 owner認可、Stage8、Golden、本番、Bへの品質handoffは自動昇格しない。
