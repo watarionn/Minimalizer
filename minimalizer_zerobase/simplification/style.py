@@ -1851,6 +1851,10 @@ def _candidate_for_profile(
                 "lower-body-light-leg-and-foot-opening-plane",
             }
         )
+        source_replay = bool(
+            group.get("source_mask_replay")
+            or source_guided_kind.startswith("structural-source-repair-")
+        )
         if (
             profile.merge_gap_px > 0
             and not preserve_clothing_plane
@@ -1922,6 +1926,34 @@ def _candidate_for_profile(
             polygon_components.extend(simplified["components"])
             polygon_holes.extend(simplified["holes"])
             polygon_rings.extend(simplified["rings"])
+        if not polygon_components and source_replay:
+            # Very thin observed parts can have no valid polygon after
+            # contour approximation even though Phase 11 already contains a
+            # deterministic source-owned primitive. Preserve that primitive
+            # instead of silently dropping the semantic owner.
+            source_records = [
+                item
+                for item in baseline_primitives
+                if str(item["primitive_id"]) in set(group["source_ids"])
+            ]
+            for source_record in source_records:
+                source_copy = dict(source_record)
+                source_copy["phase12_profile"] = profile.name
+                source_copy["raster_index"] = int(group["first_order"])
+                source_copy["source_mask_replay"] = True
+                source_copy["source_mask_owner"] = str(
+                    group.get("source_mask_owner") or group["part"]
+                )
+                if source_guided_kind:
+                    source_copy["source_guided_kind"] = source_guided_kind
+                primitives.append(source_copy)
+                masks[str(source_copy["primitive_id"])] = baseline_masks.get(
+                    str(source_copy["primitive_id"]),
+                    rasterize_primitive_candidate(
+                        source_copy, width=width, height=height
+                    ),
+                )
+            continue
         if not polygon_components:
             continue
         primitive_id = f"phase12-{profile.name}-{group_index:04d}"
@@ -1952,10 +1984,6 @@ def _candidate_for_profile(
         # candidate/render mask; the polygon remains the deterministic export
         # description, but it must not be allowed to change components, holes,
         # or Euler characteristic during a second rasterization.
-        source_replay = bool(
-            group.get("source_mask_replay")
-            or source_guided_kind.startswith("structural-source-repair-")
-        )
         if source_replay:
             record["source_mask_replay"] = True
             record["source_mask_owner"] = str(group.get("source_mask_owner") or group["part"])

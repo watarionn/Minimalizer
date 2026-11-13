@@ -183,6 +183,27 @@ def test_sa1025_source_replay_consolidates_tiny_owned_components():
     )
 
 
+def test_sa1025_preserves_tiny_neck_when_source_graph_supports_the_owner():
+    masks = _source_masks()
+    neck = np.zeros_like(masks["neck"])
+    neck[67, 54:57] = True
+    masks["neck"] = neck
+    groups = _groups(masks)
+    row = next(item for item in groups if item["part"] == "neck")
+    row["mask"][:] = False
+
+    repaired, report = apply_structural_source_repair(
+        groups,
+        source_rgba=_source_rgba(),
+        source_part_masks=masks,
+        shape=(160, 120),
+    )
+
+    assert report["applied"] is True
+    assert report["micro_component_replay_parts"] == ["neck"]
+    assert np.array_equal(_union(repaired, "neck"), masks["neck"])
+
+
 def test_sa1024_reports_unknown_without_phase12_owner_as_unreplayable():
     masks = _source_masks()
     masks["unknown"][30:34, 20:24] = True
