@@ -1,6 +1,6 @@
 # MinimalizerLocal 統合キャンペーン現況・保存方針
 
-更新日: 2026-11-11
+更新日: 2026-11-13
 
 この文書は、Lane A（実画像品質）とLane B（L04/L05/L07統合）の現在地を
 一枚に固定するための source-free 台帳である。過去の実験結果を削除したり、
@@ -10,9 +10,9 @@
 
 | 対象 | SHA / 状態 |
 |---|---|
-| 最新 `origin/main` | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `7556fd53` |
-| Lane B PR #451 | mainへ統合済み（squash後の統合先は上記main SHA）。Aの品質候補をBへ混ぜない |
+| 最新 `origin/main` | `d1245412470501d81f4f61afb1706da79219cdc1` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `44aa7a5dc7dd7e360206aa74cdaf1817f72a8103` |
+| Lane B PR #451 | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。その後mainは更新済み。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `NO_GO`（現行候補のexact replay未完了） |
 | L04 handoff | `false` |
@@ -34,6 +34,7 @@
 - H08 owner-authority receipt: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\H08_OWNER_AUTHORITY_RECEIPT.json`
 - H08 authority binding: source `759b...`, frozen owner `43d164...`, candidate `8daaf...`, observer `e3d54...`
 - Phase5 input preflight: `C:\Work\Temp\minimalizer-l02-phase4-independent-review-kit-20261111\PHASE5_INPUT_PREFLIGHT.json` (`HOLD`: current-candidate-bound full part-mask bundle missing)
+- Phase5 bundle作成契約: `docs/research/LOCAL_L02_PHASE5_BUNDLE_CREATION_CONTRACT_20261113.md`。作成者（A開発側）と独立評価者を分離し、PNG実体・寸法・SHA・metrics・source/candidate bindingを監査する。現行キットの再監査も`HOLD / NO_GO`。
 - source-only Phase4/Phase5診断: `docs/research/LOCAL_L02_SOURCE_ONLY_PHASE4_PHASE5_REPLAY_20261111.md`（H04は`neck-attached-to-torso`欠落、H06/H08は構造PASS。ただし現行candidate boundではない）
 
 このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、

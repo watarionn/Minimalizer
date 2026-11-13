@@ -1,6 +1,6 @@
 # MinimalizerLocal 統合キャンペーン実行ボード
 
-更新日: 2026-11-11
+更新日: 2026-11-13
 対象: Lane A（実画像品質）と Lane B（L04/L05/L07 統合）  
 正本: `origin/main` と、Lane A の Draft PR #449 は分離して扱う。
 
@@ -9,6 +9,7 @@
 - **B は実装・統合QAとして完了記録を維持する。** `main` の L04/L05/L07 を作り直さない。
 - **A は未完了。** 現行候補のcandidate-specific Phase4はPASSし、H08 owner-authority receiptも成立したが、六能力observerの正式ゲートは未成立。L02はHOLD、Phase5・Golden・本番はNO_GO。
 - Aの不足は数画素の追加修正では解消しない。次に必要なのは、同じ未見holdoutへ一括適用できるobserverまたは学習・導入計画の実体である。
+- 現行candidate-bound Phase5 bundleの作成者はA開発側、独立評価者は凍結後の後評価者とする。作成手順と保存境界は`docs/research/LOCAL_L02_PHASE5_BUNDLE_CREATION_CONTRACT_20261113.md`に固定した。
 - `1887`など旧cap候補は現行方針では採用しない。削除はせず、正本・入力・候補から外した「歴史診断」としてのみ扱う。
 
 ## レーンの役割
