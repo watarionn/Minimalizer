@@ -66,15 +66,29 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - v9は監査JSONの出力先を修正する前の保存物として破棄扱いにし、評価対象にしない。
 - 差分確認キットv10: [Drive](https://drive.google.com/file/d/16K_q0dYh3u4WB0huSEWRbNFmQozNtoFn/view?usp=drivesdk), `911508` bytes / SHA-256 `7f251f64d031539b3fd08f87bc916275f91a78f1e6a58817570a57828b957624`。三点監査JSON、B delivery監査JSON、H08 owner認可、現候補metricsをすべて同梱し、Drive raw readback済み。v10を唯一の評価対象とし、v7/v8/v9は再回答に使わない。
 
+## 返却後の自動materialize
+
+独立評価者の既存回答は、回答票に記載された対象receipt SHAへだけ結び付く。今回受領した回答がv5候補receipt向けである場合、その回答をv10現候補の回答として読み替えない。v10向けの新しい回答票が返った場合だけ、次のコマンドで差分回答を現行receiptへ固定する。
+
+```cmd
+cd /d C:\Work\Projects\_worktrees\minimalizer-codex-h06
+python tools\research\materialize_local_l04_visual_delta_receipt.py ^
+  "<返却された差分回答.txt>" ^
+  "C:\Work\Temp\minimalizer-l04-independent-visual-delta-review-kit-20261113-v10" ^
+  --output "<保存先>\L04_INDEPENDENT_VISUAL_DELTA_RECEIPT.json"
+```
+
+この処理は、回答票の対象SHA、現行三点監査、B delivery監査、固定済みH08 owner認可receiptを機械的に照合する。不一致や未回答は`HOLD`で停止し、合格しても`L04_formal=PASS`と`Golden=PASS`までで、`production=NO_GO`および`release_authorized=false`を維持する。したがって、v5回答は履歴として保存し、v10の正式receiptへは自動流用しない。
+
 ## テスト
 
-- 変更対象およびL04確認系: `18 passed`
+- 変更対象およびL04確認系: `20 passed`
 - 全体pytestは既存`tests/zerobase`で`playwright`未導入によるcollection errorが発生。これは今回の差分の品質PASSとは別の環境ゲートとして記録する。
 
 ## 次の具体的工程
 
-1. 独立評価者は差分票4項目だけを現候補receipt SHAに対して回答する。
-2. 返却票を`verify_local_l04_visual_delta_review.py`で読み戻す。
+1. v5向けに返却済みの回答は履歴として固定し、v10向け回答とは区別する。
+2. v10向け回答が返った場合だけ、`verify_local_l04_visual_delta_review.py`と`materialize_local_l04_visual_delta_receipt.py`で読み戻す。
 3. 差分PASSなら、H06/H08 owner receiptと候補receiptを束ねてPhase4 formal reviewを更新する。
 4. H04またはH06が不合格なら、該当する具体的欠陥だけを修正し、同じ4問を無条件に繰り返さない。
 
