@@ -28,6 +28,7 @@
 - 完全版キット、formal receipt、B L05/L07 PC/iPhone receiptは同一Driveフォルダへ保存し、サイズreadback済み。
 - BはL04 delivery、L05 private HTTPS、L07 Service Worker、PC/iPhone/offline/fallback受入を完了記録として維持する。BはAの品質を判定しない。
 - 残る工程は、現行A候補をproductionへ採用するowner最終判断と、採用した場合の本番反映readback。現行A receiptの`production=NO_GO`はこの判断まで維持する。
+- L08 readiness監査はA formal/GoldenとB PC/iPhone実証を一括で`ready_for_owner_release=true`と判定した。ただしこれは本番認可ではなく、owner操作を必須とする。
 
 ### 2026-11-13 候補結合器の修正後
 
