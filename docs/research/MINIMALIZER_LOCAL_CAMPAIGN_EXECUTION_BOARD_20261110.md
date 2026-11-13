@@ -7,19 +7,27 @@
 ## まず結論
 
 - **B は実装・統合QAとして完了記録を維持する。** `main` の L04/L05/L07 を作り直さない。
-- **A は未完了。** 現行候補のcandidate-specific Phase4、candidate-bound Phase5 exact replay、H08 owner-authority receiptは成立したが、六能力observerとL04視覚Goldenの正式ゲートは未成立。L02はHOLD、L04 formal・Golden・本番はNO_GO。
+- **Aの現行候補ゲートは成立。** candidate-specific Phase4、candidate-bound Phase5 exact replay、H08 owner-authority receipt、v12独立視覚差分レビュー、L04 formal、Goldenは成立した。六能力observerを含むL02全体はHOLD、現行A候補のproduction/releaseはNO_GO。
 - candidate-bound Phase4 bundleはA開発側で生成済み。入力監査はREADY、Phase5構造はH04/H06/H08すべてPASS。H04はマスク変更なしで衣装経由の`neck-attached-to-torso`支持を記録した。
 - Aの不足は数画素の追加修正では解消しない。次に必要なのは、同じ未見holdoutへ一括適用できるobserverまたは学習・導入計画の実体である。
 - 現行candidate-bound Phase5 bundleの作成者はA開発側、独立評価者は凍結後の後評価者とする。作成手順と保存境界は`docs/research/LOCAL_L02_PHASE5_BUNDLE_CREATION_CONTRACT_20261113.md`に固定した。
 - `1887`など旧cap候補は現行方針では採用しない。削除はせず、正本・入力・候補から外した「歴史診断」としてのみ扱う。
 
-### 2026-11-13 独立視覚レビュー受領後の判定
+### 2026-11-13 v11独立視覚レビュー受領後の判定（履歴）
 
 - `mirano` の確認票をreadbackし、候補との結び付きを検証した。独立性・来歴照合・確認日時は成立。
 - H04は設問3 FAIL、H06は設問1/6 FAIL、H08は全設問PASS。
 - 全体欄の受入回答は詳細回答と矛盾するため、fail-closedで `review_gate=HOLD` とする。
 - 現行候補は正式L04三点セット、Golden、productionへ昇格しない。Bの実装QA完了記録は変更しない。
 - 次のA作業はH04/H06の腕・外衣・下層owner再構成を三例共通設計で見直すこと。数画素修正、cap再調整、同じ候補の小刻みな再提出はしない。
+
+### 2026-11-13 現行v12/v8候補の正本判定
+
+- 現行三点セットreceipt SHAは `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a`。v5の `d7faf590…ed2536` は履歴専用で、現行判定へ流用しない。
+- v12独立回答はH04/H06/H06 browser/H08、来歴照合、独立性、全体受入がすべてPASS。`L04_formal=PASS / Golden=PASS / release_authorized=false`。
+- 完全版キット、formal receipt、B L05/L07 PC/iPhone receiptは同一Driveフォルダへ保存し、サイズreadback済み。
+- BはL04 delivery、L05 private HTTPS、L07 Service Worker、PC/iPhone/offline/fallback受入を完了記録として維持する。BはAの品質を判定しない。
+- 残る工程は、現行A候補をproductionへ採用するowner最終判断と、採用した場合の本番反映readback。現行A receiptの`production=NO_GO`はこの判断まで維持する。
 
 ### 2026-11-13 候補結合器の修正後
 
