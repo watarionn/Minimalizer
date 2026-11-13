@@ -53,6 +53,9 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - 差分票: `L04差分独立視覚確認票.txt`
 - 形式: v5の不合格3項目 + H08無回帰1項目
 - 差分票が返るまで、L04 formal/Golden/productionは昇格しない。
+- private Drive保存: [差分確認キットv7](https://drive.google.com/file/d/1MURpGIbwFDZKgxjjAtj88vTp-YDbt-BJ/view?usp=drivesdk)
+- archive: `910009` bytes / SHA-256 `586f3c11c4aee2995b0fd207480b5aa1300cd774559beb1fce6425a7cc0570b1`
+- Drive raw readback: sizeとSHA-256がローカル生成物と一致。
 
 ## テスト
 
