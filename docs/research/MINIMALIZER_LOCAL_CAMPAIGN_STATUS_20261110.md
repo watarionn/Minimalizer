@@ -450,3 +450,11 @@ handoffを増やさない。
 - v5向け独立視覚回答はv5 receipt SHAの履歴であり、現行v10 receipt SHAへ流用しない。現行v10の独立視覚差分4項目は未返却のため、`L04 formal=HOLD / Golden=HOLD / production=NO_GO`を維持する。
 - 現行v10のsource、三点セット、H08 owner認可、B browser監査は、非公開Driveの[唯一評価対象フォルダ](https://drive.google.com/drive/folders/1ZM822kj4107n8rL3EhpnjUxqAmMi7JRI)へ保存済み。
 
+### 2026-11-13 v10差分回答の受領
+
+- 現行v10フォルダの確認票が更新され、対象receipt SHAは現行v10の`e5b0776638bc3e379be924b1594c9f1286be90a263c7aea7f71b18ee5107001b`と一致した。
+- 独立評価者の回答は、H04差分`いいえ`、H06意味保持差分`いいえ`、H06ブラウザ表示差分`はい`、H08無回帰`はい`。全体受入は`いいえ`。
+- 回答を`materialize_local_l04_visual_delta_receipt.py`へ実入力した結果は`HOLD REVIEW_GATE_NOT_PASS`。不合格回答の正式receiptは作成していない。
+- H04の腕・袖・下着相当境界とH06の人物・衣装・腕・遮蔽の意味保持が残ゲート。B表示接続とH08無回帰は受入済みだが、A意味品質のPASSではない。
+- `L04 formal=HOLD / Golden=HOLD / production=NO_GO`を維持し、数画素の追加修正や再レビューの無条件反復は行わない。
+
