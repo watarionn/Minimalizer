@@ -243,3 +243,22 @@ def test_tiny_neck_may_use_conservative_extended_torso_gap():
     assert relation.confidence <= 0.55
     assert "derived:tiny-neck-conservative-gap" in relation.evidence_refs
     assert graph.to_dict()["validation"]["pass"] is True
+
+
+def test_neck_can_attach_to_torso_through_occluding_major_clothing():
+    masks = _synthetic_masks()
+    masks["torso"][:] = False
+    masks["torso"][82:140, 38:82] = True
+    masks["major_clothing"][:] = False
+    masks["major_clothing"][66:83, 38:82] = True
+    graph = build_structural_layout_graph(masks)
+    relation = next(
+        item for item in graph.relations
+        if item.source_part == "neck"
+        and item.relation_kind == "attached_to"
+        and item.target_part == "torso"
+    )
+    assert "derived:neck-major-clothing-torso-support" in relation.evidence_refs
+    assert relation.measurements["neck_to_clothing_boundary_distance_px"] <= 8
+    assert relation.measurements["clothing_to_torso_boundary_distance_px"] <= 8
+    assert graph.to_dict()["validation"]["pass"] is True

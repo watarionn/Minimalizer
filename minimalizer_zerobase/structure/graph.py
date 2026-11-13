@@ -605,6 +605,43 @@ def build_structural_layout_graph(
             ),
             measurements={"boundary_distance_px": clothing_distance},
         )
+        # A garment can occlude the upper torso while remaining the only
+        # source-supported bridge between the neck and torso.  In that case a
+        # direct neck/torso boundary distance is not a valid attachment test:
+        # the semantic relation is still supported by neck -> clothing ->
+        # torso.  Record the transitive support explicitly instead of growing
+        # either mask or treating the occluded pixels as negative.
+        if "neck" in present_parts and "torso" in present_parts:
+            _, _, neck_clothing_distance = _closest_points(
+                masks["neck"], masks["major_clothing"]
+            )
+            has_direct_neck_torso = any(
+                relation.source_part == "neck"
+                and relation.relation_kind == "attached_to"
+                and relation.target_part == "torso"
+                for relation in relations
+            )
+            if (
+                neck_clothing_distance <= base_attachment_threshold
+                and not has_direct_neck_torso
+            ):
+                add_relation(
+                    "neck",
+                    "torso",
+                    "attached_to",
+                    0.55,
+                    (
+                        _mask_ref("neck"),
+                        _mask_ref("major_clothing"),
+                        _mask_ref("torso"),
+                        "derived:neck-major-clothing-torso-support",
+                    ),
+                    measurements={
+                        "neck_to_clothing_boundary_distance_px": neck_clothing_distance,
+                        "clothing_to_torso_boundary_distance_px": clothing_distance,
+                        "attachment_limit_px": base_attachment_threshold,
+                    },
+                )
 
     accessory = "accessory_or_held_object"
     if accessory in present_parts:
