@@ -5,6 +5,7 @@ from tools.research.audit_local_l02_phase5_input import PARTS
 from tools.research.build_local_l02_candidate_bound_phase4 import (
     CandidateBoundPhase4Hold,
     arbitrate_outerwear_over_arm_owners,
+    integrate_outerwear_owner_evidence,
     integrate_candidate_masks,
 )
 
@@ -88,6 +89,39 @@ def test_outerwear_component_reassigns_only_connected_arm_owner_pixels():
     assert not result["left_arm"][2:5, 0].any()
     assert result["major_clothing"][2:5, 0].all()
     assert result["torso"][2:4, 1:3].all()
+
+
+def test_independent_arm_observation_protects_exposed_arm_pixels():
+    base = base_masks()
+    outerwear = np.zeros((6, 6), dtype=bool)
+    outerwear[2:5, 0:3] = True
+    arm_observed = np.zeros((6, 6), dtype=bool)
+    arm_observed[3, 0] = True
+    result, stats = arbitrate_outerwear_over_arm_owners(
+        base, outerwear, np.ones((6, 6), dtype=bool), arm_observed
+    )
+    assert stats["arm_observed_pixels_protected"] == 1
+    assert stats["arm_owner_pixels_reassigned_to_clothing"] == 2
+    assert result["left_arm"][3, 0]
+    assert not result["major_clothing"][3, 0]
+    assert not result["left_arm"][2, 0]
+    assert result["major_clothing"][2, 0]
+
+
+def test_outerwear_owner_evidence_promotes_full_observed_garment_region():
+    base = base_masks()
+    owner = np.zeros((6, 6), dtype=np.uint16)
+    owner[2:5, 0:3] = 1
+    arm_observed = np.zeros((6, 6), dtype=bool)
+    arm_observed[3, 0] = True
+    result, stats = integrate_outerwear_owner_evidence(
+        base, owner, np.ones((6, 6), dtype=bool), arm_observed
+    )
+    assert stats["outerwear_owner_pixels_promoted"] == 8
+    assert stats["outerwear_owner_pixels_protected_by_arm_observer"] == 1
+    assert result["major_clothing"][2:5, 0:3].sum() == 8
+    assert result["left_arm"][3, 0]
+    assert not result["torso"][2:4, 1:3].any()
 
 
 def test_isolated_outerwear_arm_overlap_is_abstained():

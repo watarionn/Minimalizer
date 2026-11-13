@@ -7,12 +7,13 @@ replace an existing semantic owner. Protected and already-known semantic
 parts are never overwritten; only candidate pixels in unknown space can be
 promoted when their 8-connected component touches a clothing context.
 
-An optional independently generated outerwear observation can perform a
-separate owner arbitration pass.  That pass removes only existing arm-owner
-pixels that belong to a connected outerwear component which also touches a
-clothing context; it never promotes unknown pixels and never uses a human
-mask.  This is the H06/H08 sleeve-versus-arm correction, not a case-specific
-threshold or a visual-review override.
+    An optional independently generated outerwear observation can perform a
+    separate owner arbitration pass.  That pass removes only existing arm-owner
+    pixels that belong to a connected outerwear component which also touches a
+    clothing context, while preserving pixels supported by the same independent
+    arm observer.  It never promotes unknown pixels and never uses a human mask.
+    This is the H06/H08 sleeve-versus-arm correction, not a case-specific
+    threshold or a visual-review override.
 """
 from __future__ import annotations
 
@@ -167,6 +168,7 @@ def arbitrate_outerwear_over_arm_owners(
     masks: Mapping[str, np.ndarray],
     outerwear_observed: np.ndarray,
     source_alpha: np.ndarray,
+    arm_observed: np.ndarray | None = None,
 ) -> tuple[dict[str, np.ndarray], dict[str, int]]:
     """Move only authenticated outerwear-over-arm pixels to clothing.
 
@@ -187,6 +189,16 @@ def arbitrate_outerwear_over_arm_owners(
         raise CandidateBoundPhase4Hold("SOURCE_ALPHA_TYPE_INVALID")
     if np.any(outerwear_observed & ~source_alpha):
         raise CandidateBoundPhase4Hold("OUTERWEAR_EVIDENCE_OUTSIDE_SOURCE_ALPHA")
+    if arm_observed is None:
+        arm_observed = np.zeros_like(source_alpha)
+    if (
+        type(arm_observed) is not np.ndarray
+        or arm_observed.dtype != np.bool_
+        or arm_observed.shape != source_alpha.shape
+    ):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_TYPE_OR_SHAPE_INVALID")
+    if np.any(arm_observed & ~source_alpha):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_OUTSIDE_SOURCE_ALPHA")
     result = {part: np.asarray(masks[part], dtype=bool).copy() for part in PARTS}
     arm = result["left_arm"] | result["right_arm"]
     context = (
@@ -194,23 +206,97 @@ def arbitrate_outerwear_over_arm_owners(
         | result["lower_body"]
         | result["major_clothing"]
     ) & ~arm
-    observed = outerwear_observed & source_alpha
+    # The old integration passed the complete outerwear detector mask here.
+    # That mask includes garment regions but has no authority over exposed arm
+    # pixels.  Preserve the independent arm observation before connected
+    # component arbitration; otherwise a coat detector can recolor hands and
+    # exposed forearms as clothing.
+    observed = outerwear_observed & source_alpha & ~arm_observed
     labels, count = ndimage.label(observed, structure=np.ones((3, 3), dtype=np.uint8))
     reassign = np.zeros_like(observed)
     eligible_components = 0
     for label in range(1, int(count) + 1):
         component = labels == label
-        if np.any(component & arm) and np.any(component & context):
+        component_arm = component & arm & ~arm_observed
+        if np.any(component_arm) and np.any(component & context):
             eligible_components += 1
-            reassign |= component & arm
+            reassign |= component_arm
     result["left_arm"] &= ~reassign
     result["right_arm"] &= ~reassign
     result["major_clothing"] |= reassign
     return result, {
         "outerwear_observed_pixels": int(observed.sum()),
+        "arm_observed_pixels_protected": int(arm_observed.sum()),
         "outerwear_components": int(count),
         "eligible_outerwear_components": eligible_components,
         "arm_owner_pixels_reassigned_to_clothing": int(reassign.sum()),
+    }
+
+
+def integrate_outerwear_owner_evidence(
+    masks: Mapping[str, np.ndarray],
+    outerwear_owner: np.ndarray,
+    source_alpha: np.ndarray,
+    arm_observed: np.ndarray | None = None,
+) -> tuple[dict[str, np.ndarray], dict[str, int]]:
+    """Integrate a source-only outerwear instance map as garment evidence.
+
+    The previous Phase4 path consumed the observer's binary mask only as a
+    reason to delete arm owners.  That left the observer-positive garment
+    pixels unknown or owned by the old decomposition, so the rendered change
+    was mostly a small boundary delta.  Here the observer's complete instance
+    support is promoted to ``major_clothing`` after excluding protected parts
+    and independently observed arm pixels.  Existing non-protected owners are
+    removed only where this authenticated garment evidence wins, and unknown
+    remains unknown everywhere else.
+    """
+    if (
+        type(outerwear_owner) is not np.ndarray
+        or outerwear_owner.ndim != 2
+        or outerwear_owner.dtype.kind not in "iu"
+        or outerwear_owner.shape != source_alpha.shape
+        or np.any(outerwear_owner < 0)
+    ):
+        raise CandidateBoundPhase4Hold("OUTERWEAR_OWNER_TYPE_OR_SHAPE_INVALID")
+    if type(source_alpha) is not np.ndarray or source_alpha.dtype != np.bool_:
+        raise CandidateBoundPhase4Hold("SOURCE_ALPHA_TYPE_INVALID")
+    if np.any((outerwear_owner > 0) & ~source_alpha):
+        raise CandidateBoundPhase4Hold("OUTERWEAR_OWNER_OUTSIDE_SOURCE_ALPHA")
+    if arm_observed is None:
+        arm_observed = np.zeros_like(source_alpha)
+    if (
+        type(arm_observed) is not np.ndarray
+        or arm_observed.dtype != np.bool_
+        or arm_observed.shape != source_alpha.shape
+    ):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_TYPE_OR_SHAPE_INVALID")
+    if np.any(arm_observed & ~source_alpha):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_OUTSIDE_SOURCE_ALPHA")
+
+    result = {part: np.asarray(masks[part], dtype=bool).copy() for part in PARTS}
+    protected = np.zeros_like(source_alpha)
+    for part in PROTECTED_PARTS:
+        protected |= result[part]
+    observed = (outerwear_owner > 0) & source_alpha
+    promoted = observed & ~protected & ~arm_observed
+
+    removed_by_part: dict[str, int] = {}
+    for part in PARTS:
+        if part in ("major_clothing", "unknown"):
+            continue
+        removed = result[part] & promoted
+        removed_by_part[part] = int(removed.sum())
+        result[part] &= ~promoted
+    result["major_clothing"] |= promoted
+    result["unknown"] &= ~promoted
+
+    return result, {
+        "outerwear_owner_pixels_observed": int(observed.sum()),
+        "outerwear_owner_pixels_promoted": int(promoted.sum()),
+        "outerwear_owner_pixels_rejected_protected": int((observed & protected).sum()),
+        "outerwear_owner_pixels_protected_by_arm_observer": int((observed & arm_observed).sum()),
+        "arm_owner_pixels_reassigned_to_clothing": removed_by_part.get("left_arm", 0) + removed_by_part.get("right_arm", 0),
+        "outerwear_owner_conflict_pixels_removed": int(sum(removed_by_part.values())),
     }
 
 
@@ -220,7 +306,7 @@ def _write_mask(path: Path, mask: np.ndarray) -> None:
 
 def _load_outerwear_evidence(
     evidence_root: Path, case: str, source_alpha: np.ndarray, source_sha: str
-) -> tuple[np.ndarray, Mapping[str, object]]:
+) -> tuple[np.ndarray, np.ndarray, Mapping[str, object]]:
     evidence_path = evidence_root / f"{case}_LAYERED_GARMENT_OWNER_PRIVATE.npz"
     receipt_path = evidence_root / f"{case}_LAYERED_GARMENT_RECEIPT.json"
     if not evidence_path.is_file() or not receipt_path.is_file():
@@ -236,24 +322,38 @@ def _load_outerwear_evidence(
     ):
         raise CandidateBoundPhase4Hold(f"OUTERWEAR_EVIDENCE_PROVENANCE_INVALID:{case}")
     with np.load(evidence_path, allow_pickle=False) as archive:
-        if "outerwear_observed" not in archive.files or "source_alpha" not in archive.files:
+        if "outerwear_observed" not in archive.files or "owner" not in archive.files or "source_alpha" not in archive.files or "arm_mask" not in archive.files:
             raise CandidateBoundPhase4Hold(f"OUTERWEAR_EVIDENCE_SCHEMA_INVALID:{case}")
         outerwear = np.asarray(archive["outerwear_observed"])
+        owner = np.asarray(archive["owner"])
         evidence_alpha = np.asarray(archive["source_alpha"])
+        arm = np.asarray(archive["arm_mask"])
     if (
         outerwear.dtype != np.uint8
+        or owner.dtype.kind not in "iu"
         or evidence_alpha.dtype != np.uint8
+        or arm.dtype != np.uint8
         or outerwear.shape != source_alpha.shape
+        or owner.shape != source_alpha.shape
         or evidence_alpha.shape != source_alpha.shape
+        or arm.shape != source_alpha.shape
         or not np.isin(outerwear, (0, 1)).all()
+        or np.any(owner < 0)
         or not np.isin(evidence_alpha, (0, 1)).all()
+        or not np.isin(arm, (0, 1)).all()
         or not np.array_equal(evidence_alpha.astype(bool), source_alpha)
     ):
         raise CandidateBoundPhase4Hold(f"OUTERWEAR_EVIDENCE_ARRAY_INVALID:{case}")
-    return outerwear.astype(bool), {
+    if receipt.get("owner_array_sha256") != _sha256_bytes(owner.tobytes(order="C")):
+        raise CandidateBoundPhase4Hold(f"OUTERWEAR_OWNER_SHA_MISMATCH:{case}")
+    if receipt.get("arm_mask_sha256") != _sha256_bytes(arm.tobytes(order="C")):
+        raise CandidateBoundPhase4Hold(f"ARM_EVIDENCE_SHA_MISMATCH:{case}")
+    return owner, arm.astype(bool), {
         "receipt_sha256": _sha256_file(receipt_path),
         "evidence_file_sha256": _sha256_file(evidence_path),
         "evidence_path": evidence_path.name,
+        "arm_mask_sha256": str(receipt["arm_mask_sha256"]),
+        "owner_array_sha256": str(receipt["owner_array_sha256"]),
     }
 
 
@@ -266,7 +366,8 @@ def build_case_bundle(
     output_root: Path,
     expected_source_sha: str,
     expected_candidate_sha: str,
-    outerwear_observed: np.ndarray | None = None,
+    outerwear_owner: np.ndarray | None = None,
+    arm_observed: np.ndarray | None = None,
     outerwear_metadata: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     actual_source_sha = _sha256_file(source_path)
@@ -283,14 +384,14 @@ def build_case_bundle(
         raise CandidateBoundPhase4Hold(f"CANDIDATE_SHA_MISMATCH:{case}")
     result, stats = integrate_candidate_masks(base_masks, candidate, source_alpha)
     arbitration_stats: dict[str, int] = {}
-    if outerwear_observed is not None:
-        result, arbitration_stats = arbitrate_outerwear_over_arm_owners(
-            result, outerwear_observed, source_alpha
+    if outerwear_owner is not None:
+        result, arbitration_stats = integrate_outerwear_owner_evidence(
+            result, outerwear_owner, source_alpha, arm_observed
         )
         stats.update(arbitration_stats)
     integration_policy = (
-        "candidate-positive-garment-preserve-known-v3-outerwear-arm-arbitration"
-        if outerwear_observed is not None
+        "candidate-positive-garment-preserve-known-v5-outerwear-owner-integration"
+        if outerwear_owner is not None
         else "candidate-positive-garment-preserve-known-v2"
     )
 
@@ -327,7 +428,8 @@ def build_case_bundle(
             "review_labels_used_in_inference": False,
             "unknown_policy": "unconnected-candidate-pixels-become-unknown",
             "protected_parts": list(PROTECTED_PARTS),
-            "outerwear_observer_used": outerwear_observed is not None,
+            "outerwear_observer_used": outerwear_owner is not None,
+            "arm_observer_used_for_owner_arbitration": arm_observed is not None,
             "outerwear_observer_metadata": dict(outerwear_metadata or {}),
         },
         "source": {"path": source_path.name, "sha256": expected_source_sha, "width": width, "height": height},
@@ -364,10 +466,11 @@ def build_bundle(
             raise CandidateBoundPhase4Hold(f"PHASE4_CASE_MISSING:{case}")
         source_path = _source_path(source_root, case)
         source_alpha, _ = _load_source_alpha(source_path)
-        outerwear_observed = None
+        outerwear_owner = None
+        arm_observed = None
         outerwear_metadata: Mapping[str, object] | None = None
         if outerwear_evidence_root is not None:
-            outerwear_observed, outerwear_metadata = _load_outerwear_evidence(
+            outerwear_owner, arm_observed, outerwear_metadata = _load_outerwear_evidence(
                 outerwear_evidence_root, case, source_alpha, str(item["source_sha256"])
             )
         stages.append(build_case_bundle(
@@ -378,7 +481,8 @@ def build_bundle(
             output_root=output_root,
             expected_source_sha=str(item["source_sha256"]),
             expected_candidate_sha=str(item["candidate_sha256"]),
-            outerwear_observed=outerwear_observed,
+            outerwear_owner=outerwear_owner,
+            arm_observed=arm_observed,
             outerwear_metadata=outerwear_metadata,
         ))
     return stages
