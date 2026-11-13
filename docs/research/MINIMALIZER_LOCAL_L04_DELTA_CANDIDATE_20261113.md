@@ -60,6 +60,10 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - private Drive保存: [差分確認キットv8](https://drive.google.com/file/d/1_uoW2KD6bNFtwwvB1CmuEWV704gPmIUX/view?usp=drivesdk)
 - v8 archive: `912044` bytes / SHA-256 `3bad47f9ec90757aa4f05bae058181fab4f1f9d4063def2d1e64a7153353f2ca`
 - v8 Drive raw readback: sizeとSHA-256がローカル生成物と一致。
+- 再生成時にPhase4 `stage.json`と`metrics.json`のintegration policy不一致を発見し、同じv3 policyを両方へ記録する修正を適用した。見た目の修正ではなく、来歴の整合性修正である。
+- 修正後の現行候補receipt SHA-256: `e5b0776638bc3e379be924b1594c9f1286be90a263c7aea7f71b18ee5107001b`
+- 修正後の三点監査とB delivery監査: H04/H06/H08全例でfailures空、`B_L04_delivery=PASS`。
+- 差分確認キットv9: [Drive](https://drive.google.com/file/d/1_6ZJ2fdEciyjt__6Xn6zcM9mG_vdgzeI/view?usp=drivesdk), `910028` bytes / SHA-256 `4c6e5c1a7b4f0038b1e2fba99175797836edace8608e01bf9aecff61e682d489`。H08 owner認可と現候補metricsを同梱し、Drive raw readback済み。v9を評価対象とし、v7/v8は旧候補記録として再回答に使わない。
 
 ## テスト
 

@@ -288,6 +288,11 @@ def build_case_bundle(
             result, outerwear_observed, source_alpha
         )
         stats.update(arbitration_stats)
+    integration_policy = (
+        "candidate-positive-garment-preserve-known-v3-outerwear-arm-arbitration"
+        if outerwear_observed is not None
+        else "candidate-positive-garment-preserve-known-v2"
+    )
 
     phase4_dir = output_root / case / "phase_04"
     mask_dir = phase4_dir / "part_masks"
@@ -298,11 +303,7 @@ def build_case_bundle(
         "schema": "minimalizer/local-l02/candidate-bound-phase4-metrics/v1",
         "case": case,
         "phase": 4,
-        "integration_policy": (
-            "candidate-positive-garment-preserve-known-v3-outerwear-arm-arbitration"
-            if outerwear_observed is not None
-            else "candidate-positive-garment-preserve-known-v2"
-        ),
+        "integration_policy": integration_policy,
         "source_sha256": expected_source_sha,
         "candidate_sha256": expected_candidate_sha,
         "source_width": width,
@@ -321,7 +322,7 @@ def build_case_bundle(
         "producer": "minimalizer-l02-candidate-bound-phase4",
         "producer_version": "1.0",
         "config": {
-            "integration_policy": "candidate-positive-garment-preserve-known-v2",
+            "integration_policy": integration_policy,
             "candidate_labels_used_in_inference": False,
             "review_labels_used_in_inference": False,
             "unknown_policy": "unconnected-candidate-pixels-become-unknown",
