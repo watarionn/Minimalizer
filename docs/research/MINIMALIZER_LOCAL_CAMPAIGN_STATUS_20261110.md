@@ -125,6 +125,23 @@ H06の外衣・下層混同を増幅していた。
 v3候補は現行正式候補として扱わず、旧v3確認票のFAIL receiptとともに履歴へ固定する。
 v4は独立評価者が新たに確認するまで、L04 formal・Golden・本番へ進めない。
 
+### 2026-11-13 確認票再受領とキット完全性修正
+
+再受領した確認票は、H04設問3、H06設問1/6がFAIL、H08が全PASS、全体回答が「いいえ」だった。
+詳細回答をreadbackすると判定は `HOLD` になる。ただし、展開されたv4フォルダには確認票が参照する
+署名済み `sources/` と監査JSONが欠落しており、回答をv4候補へ正式に結び付けられなかった。
+この回答は `UNBOUND_V4_DIAGNOSTIC` として扱い、正式Golden receiptにはしない。
+
+この取り違えを再発させないため、`prepare_local_l04_visual_review_kit.py` に署名済み元画像と展開SVGの
+存在・一意性チェックを追加した。candidate triple監査、B delivery監査、Chrome実描画、署名済み元画像を
+すべて含む完全なv5キットを作成した。
+
+- [L04 independent visual review kit v5](https://drive.google.com/file/d/1p-c2huwl-thbXp97acYKGOMMqX0BB1r_/view?usp=drivesdk)
+- archive SHA-256: `05D4553B524906D218564FC2A0752F3436DD4C4320FEE03BF2BCCA638E2B310F`（1,008,246 bytes、Drive size readback一致）
+- v5 status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
+
+v5を独立評価者が確認して返すまでは、H04/H06のFAILを正式receiptとして確定せず、L04 formal・Golden・productionはHOLD/NO_GOを維持する。
+
 ### 2026-11-10 最新readback
 
 上表とこの節が現在の判断であり、下に続く過去の記録は履歴として保持する。

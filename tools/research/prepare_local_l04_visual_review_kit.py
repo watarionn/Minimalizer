@@ -114,6 +114,16 @@ def prepare(source: Path, destination: Path) -> dict[str, object]:
     source = source.resolve()
     destination = destination.resolve()
     receipt = _load_receipt(source)
+    sources = source / "sources"
+    if not sources.is_dir():
+        raise FileNotFoundError("レビューキットのsourcesフォルダがありません")
+    for case in CASES:
+        matches = sorted(sources.glob(f"{case}.*"))
+        if len(matches) != 1:
+            raise FileNotFoundError(f"署名済み元画像が一意ではありません: {case}")
+        expanded_svg = source / case / "expanded_stage8.svg"
+        if not expanded_svg.is_file():
+            raise FileNotFoundError(f"展開SVGがありません: {case}")
     if destination.exists():
         raise FileExistsError(f"出力先が既に存在します: {destination}")
     shutil.copytree(source, destination)
