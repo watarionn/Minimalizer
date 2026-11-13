@@ -76,12 +76,13 @@ A開発側の `tools/research/build_local_l04_candidate_triple.py` が、candida
 ### 2026-11-13 独立視覚Golden確認キット
 
 独立評価者がJSONを手書きせずに確認できるよう、
-`tools/research/prepare_local_l04_visual_review_kit.py`で候補三点セットと署名済み元画像を一つのレビュー用フォルダへ複製し、日本語説明と確認票を追加した。`tools/research/audit_local_l04_candidate_triple.py`で三点SHA・source-only・unknown・owner・silhouette・release閉鎖も監査した。確認票は回答を受け取るだけで、未回答のままreceiptを生成しない。
+`tools/research/prepare_local_l04_visual_review_kit.py`で候補三点セットと署名済み元画像を一つのレビュー用フォルダへ複製し、日本語説明と確認票を追加した。`tools/research/audit_local_l04_candidate_triple.py`で三点SHA・source-only・unknown・owner・silhouette・release閉鎖を監査し、`tools/research/audit_local_l04_candidate_b_delivery.py`でBのcross-linkとChrome実描画も監査した。確認票は回答を受け取るだけで、未回答のままreceiptを生成しない。
 
 - private folder: `L04_Independent_Visual_Review_20261113` (`1XgVU65zFOGbRl1eavWkFGL2z7e1Di-b6`)
-- review package: [L04 independent visual review kit v2](https://drive.google.com/file/d/1Euaamp0SyzBB_Yt3kDNvPzJzf_qVG5Sx/view?usp=drivesdk)
-- package SHA-256: `50228950E2102CB3483C3792B71C542C2EF0B2387BEF484B0E269DEE1602C246`（925,373 bytes、Drive size readback一致）
+- review package: [L04 independent visual review kit v3](https://drive.google.com/file/d/1WHJum-udzswbxRA127toNQNjSTgFz5xb/view?usp=drivesdk)
+- package SHA-256: `06C4D1E0093A771DAE72426B361080C16119C40DF8CB58026899F57D42D13AC9`（1,025,575 bytes、Drive size readback一致）
 - candidate-triple audit: `numerical_handoff_eligible=true`、failures `[]`、L04 formal `HOLD`、Golden `HOLD`、production `NO_GO`
+- B L04 delivery audit: H04/H06/H08すべて `B_L04_delivery=PASS`、cross-link verified、Chrome render `PASS`、`release_authorized=false`
 - status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
 
 ### 2026-11-10 最新readback
