@@ -108,10 +108,10 @@ Bの完了は「品質が合格した」という意味ではない。Bは表示
        └─ A final SHAを固定                             │
                                                         │
                                                         ▼
-       B接続: L04三点照合 → L05実入出力 → L07本番後iPhone
+       B接続: L04三点照合PASS → L05実入出力PASS → L07本番後iPhone PASS
                                                         │
                                                         ▼
-       Golden全件 → owner承認 → 本番反映 → 実機受入 → Preserve
+       v12 Golden PASS → owner最終採用判断 → A候補本番反映readback → Preserve
 ```
 
 ## 次に行う具体的作業
@@ -134,11 +134,11 @@ Bの完了は「品質が合格した」という意味ではない。Bは表示
 現行候補は三例のcandidate-specific Phase4独立PASSとH08 owner認可receiptまで成立し、candidate-bound
 全身Phase4 part-mask bundleも生成した。入力監査とPhase5 exact replayはH04/H06/H08すべてPASSした。
 H04はマスク変更ではなく、衣装が胴体前面を遮蔽する場合の首→衣装→胴体支持をグラフへ記録して解消した。
-旧L04/H06/H08 Stage8成果は流用しない。現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。candidate-triple専用監査もH04/H06/H08でfailures空、数値handoff eligibleとなった。さらにB L04 delivery auditで三例のcross-linkとChrome実描画をPASSした。独立評価者向けの確認票と一括レビューキットも非公開Driveへ保存済みである。次は独立視覚Golden受入、最終SHA固定、L05実入出力、L07本番後iPhone受入である。
+旧L04/H06/H08 Stage8成果は流用しない。現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。candidate-triple専用監査もH04/H06/H08でfailures空、数値handoff eligibleとなった。さらにB L04 delivery auditで三例のcross-linkとChrome実描画をPASSした。v12独立視覚回答により`L04_formal=PASS / Golden=PASS`となり、BのL05実入出力・L07本番後iPhone受入も別receiptでPASSした。現行A候補のproductionだけは`NO_GO`を維持する。
 FAIL/HOLDの候補はDraft/NO_GOのまま固定する。
 
 ## 現在の停止理由
 
-コードのテスト不足ではない。Aの研究テストは `479 passed`、candidate-bound生成・入力監査・グラフ修正のfocused testは `25 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やGoldenを証明しない。candidate-bound exact replayは三例PASS、L04三点セット候補の数値・alpha・SHAゲートもPASSとなった。現在の次の具体的作業は、L04候補を独立視覚Golden受入へ渡し、受入後の最終SHAを固定することである。
+コードのテスト不足ではない。Aの研究テスト、candidate-bound exact replay、L04三点セットの数値・alpha・SHA、v12独立Golden、BのPC/iPhone実機readbackは確認済みである。現在の残りは、六能力observerを含むL02全体の正式完了と、現行A候補をproductionへ採用するowner最終判断・反映後readbackである。Bの既存productionを再変更したり、v5回答を現行候補へ流用したりしない。
 
 この入力が届くまで、旧候補の微修正やcap再調整は行わず、Bの完了記録とA/Bの正本境界を保護する。
