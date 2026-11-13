@@ -63,6 +63,41 @@ def _path_from_mask(mask: np.ndarray) -> tuple[str, int]:
     return " ".join(chunks), vertices
 
 
+def _source_palette(
+    rgba: np.ndarray, masks: Mapping[str, np.ndarray]
+) -> dict[str, str]:
+    """Derive a stable flat palette from the signed source RGB pixels.
+
+    The old fixed palette assigned the same color to ``torso`` and
+    ``major_clothing``.  That hid the very owner boundary the L02 review is
+    meant to inspect.  Use only source RGB values, and sample each owner's
+    visible pixels after the established back-to-front order.  Empty visible
+    owners retain the deterministic fallback palette.
+    """
+    if (
+        not isinstance(rgba, np.ndarray)
+        or rgba.ndim != 3
+        or rgba.shape[2] != 4
+        or rgba.dtype != np.uint8
+    ):
+        raise L04CandidateHold("SOURCE_RGBA_INVALID_FOR_PALETTE")
+    alpha = rgba[..., 3] > 0
+    rgb = rgba[..., :3]
+    palette: dict[str, str] = {}
+    covered = np.zeros(alpha.shape, dtype=bool)
+    for owner in reversed(OWNERS):
+        mask = np.asarray(masks[owner], dtype=bool)
+        visible = mask & alpha & ~covered
+        samples = rgb[visible]
+        if samples.size == 0:
+            palette[owner] = COLOURS[owner]
+        else:
+            median = np.median(samples, axis=0).round().astype(np.uint8)
+            palette[owner] = "#" + "".join(f"{int(value):02x}" for value in median)
+        covered |= mask
+    return palette
+
+
 def _source_path(source_root: Path, case: str) -> Path:
     matches = sorted(source_root.glob(f"{case}.*"))
     if len(matches) != 1:
@@ -116,6 +151,7 @@ def build_case(*, case: str, source: Path, phase_root: Path, output_root: Path, 
         masks[owner] = mask
     union = np.logical_or.reduce(tuple(masks.values()))
     masks["unknown"] |= alpha & ~union
+    palette = _source_palette(rgba, masks)
 
     chunks = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
@@ -126,7 +162,7 @@ def build_case(*, case: str, source: Path, phase_root: Path, output_root: Path, 
         path_data, count = _path_from_mask(masks[owner])
         vertices += count
         if path_data:
-            chunks.append(f'<path data-owner="{owner}" fill="{COLOURS[owner]}" fill-rule="evenodd" d="{path_data}"/>')
+            chunks.append(f'<path data-owner="{owner}" fill="{palette[owner]}" fill-rule="evenodd" d="{path_data}"/>')
     chunks.append("</svg>\n")
     output_dir = output_root / case
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -142,7 +178,7 @@ def build_case(*, case: str, source: Path, phase_root: Path, output_root: Path, 
         for index, (y, x) in enumerate(zip(*np.where(missing))):
             vertices += 4
             chunks.insert(-1, f'<rect id="source-edge-{index}" data-owner="unknown" '
-                          f'x="{int(x)}" y="{int(y)}" width="1" height="1" fill="{COLOURS["unknown"]}"/>')
+                          f'x="{int(x)}" y="{int(y)}" width="1" height="1" fill="{palette["unknown"]}"/>')
         svg_path.write_text("".join(chunks), encoding="utf-8", newline="\n")
         rendered = _render_alpha(svg_path, replay_path, chrome, width, height)
     alpha_xor = int(np.count_nonzero(rendered ^ alpha))
@@ -154,6 +190,8 @@ def build_case(*, case: str, source: Path, phase_root: Path, output_root: Path, 
         "schema": "minimalizer/local-l04/stage8-source-triple/v2",
         "case": case,
         "pipeline": "zerobase2-phase4-candidate-bound-to-stage8-source-preserving",
+        "palette_policy": "signed-source-visible-owner-median-rgb-v1",
+        "palette": palette,
         "signed_source_sha256": source_sha,
         "candidate_sha256": candidate,
         "phase4_stage_json_sha256": sha256(stage4_path),

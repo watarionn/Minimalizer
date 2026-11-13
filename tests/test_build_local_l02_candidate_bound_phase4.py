@@ -4,6 +4,7 @@ import pytest
 from tools.research.audit_local_l02_phase5_input import PARTS
 from tools.research.build_local_l02_candidate_bound_phase4 import (
     CandidateBoundPhase4Hold,
+    arbitrate_outerwear_over_arm_owners,
     integrate_candidate_masks,
 )
 
@@ -73,3 +74,30 @@ def test_invalid_owner_and_alpha_outside_fail_closed():
     source_alpha[5, 5] = False
     with pytest.raises(CandidateBoundPhase4Hold, match="OUTSIDE_SOURCE_ALPHA"):
         integrate_candidate_masks(base, outside, source_alpha)
+
+
+def test_outerwear_component_reassigns_only_connected_arm_owner_pixels():
+    base = base_masks()
+    outerwear = np.zeros((6, 6), dtype=bool)
+    outerwear[2:5, 0:3] = True
+    result, stats = arbitrate_outerwear_over_arm_owners(
+        base, outerwear, np.ones((6, 6), dtype=bool)
+    )
+    assert stats["eligible_outerwear_components"] == 1
+    assert stats["arm_owner_pixels_reassigned_to_clothing"] == 3
+    assert not result["left_arm"][2:5, 0].any()
+    assert result["major_clothing"][2:5, 0].all()
+    assert result["torso"][2:4, 1:3].all()
+
+
+def test_isolated_outerwear_arm_overlap_is_abstained():
+    base = base_masks()
+    outerwear = np.zeros((6, 6), dtype=bool)
+    outerwear[2:5, 0] = True
+    result, stats = arbitrate_outerwear_over_arm_owners(
+        base, outerwear, np.ones((6, 6), dtype=bool)
+    )
+    assert stats["eligible_outerwear_components"] == 0
+    assert stats["arm_owner_pixels_reassigned_to_clothing"] == 0
+    assert result["left_arm"][2:5, 0].all()
+    assert not result["major_clothing"][2:5, 0].any()
