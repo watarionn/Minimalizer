@@ -11,10 +11,10 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `d1245412470501d81f4f61afb1706da79219cdc1` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `44aa7a5dc7dd7e360206aa74cdaf1817f72a8103` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `f48fa0d5d558974b77e9a04b0e3dfa21d8e33618` |
 | Lane B PR #451 | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。その後mainは更新済み。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
-| Phase5 | `NO_GO`（現行候補のexact replay未完了） |
+| Phase5 | `NO_GO`（candidate-bound入力はREADY。exact replayはH04 FAIL / H06・H08 PASS） |
 | L04 handoff | `false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
@@ -39,6 +39,26 @@
 
 このPASSは現行候補に対するPhase4独立評価の成立だけを示す。Phase5 exact replay、
 owner認可、Stage8、Golden、本番、Bへの品質handoffは自動昇格しない。
+
+### 2026-11-13 candidate-bound Phase4/Phase5 replay
+
+A開発側のcandidate-bound生成器
+`tools/research/build_local_l02_candidate_bound_phase4.py`を追加し、source-only部位分解と
+現行candidate ownerを統合した。衣装コンテキストへ8連結で接続するcandidate成分だけを
+`major_clothing`へ移し、既存腕・胴体・下半身からは排他的に除去した。顔・髪・首・アクセサリは
+保護し、接続しないcandidate画素は`unknown`へ戻した。人手レビュー入力は使っていない。
+
+- candidate-bound input audit: `READY` / `HOLD 0件`
+- H04 Phase5: `FAIL`、19 anchors / 12 relations、欠落 `neck-attached-to-torso`
+- H06 Phase5: `PASS`、24 anchors / 15 relations
+- H08 Phase5: `PASS`、24 anchors / 15 relations
+- private archive: [candidate-bound Phase4/Phase5 bundle](https://drive.google.com/file/d/1bbQ6SRO1KenFIJ2vEzdLf_kY-LhI_G4d/view?usp=drivesdk)
+- archive folder: `1LUCv247hqq4_OvyfFTxzzZOpoKEjrpfO`
+- archive SHA-256: `5de13e0c47de3acb8eb3ad991d883acf196c12b3c722122394048b0fa1b0f0de`（3,943,539 bytes）
+
+これはcandidate-boundの再現可能なPhase5入力と構造診断を得た記録であり、H04 FAILのためPhase5正式PASS、
+L04三点セット、Golden、本番、mergeを許可しない。H04の首-胴体接続を意味的に修復できる処理を確定し、
+三例を同一設定で再実行することが次の工程である。
 
 ### 2026-11-10 最新readback
 

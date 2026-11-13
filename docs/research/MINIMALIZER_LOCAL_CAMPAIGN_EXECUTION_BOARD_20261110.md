@@ -8,6 +8,7 @@
 
 - **B は実装・統合QAとして完了記録を維持する。** `main` の L04/L05/L07 を作り直さない。
 - **A は未完了。** 現行候補のcandidate-specific Phase4はPASSし、H08 owner-authority receiptも成立したが、六能力observerの正式ゲートは未成立。L02はHOLD、Phase5・Golden・本番はNO_GO。
+- candidate-bound Phase4 bundleはA開発側で生成済み。入力監査はREADY、Phase5構造はH06/H08 PASS・H04 FAIL（`neck-attached-to-torso`欠落）で、三例ゲートはNO_GOを維持する。
 - Aの不足は数画素の追加修正では解消しない。次に必要なのは、同じ未見holdoutへ一括適用できるobserverまたは学習・導入計画の実体である。
 - 現行candidate-bound Phase5 bundleの作成者はA開発側、独立評価者は凍結後の後評価者とする。作成手順と保存境界は`docs/research/LOCAL_L02_PHASE5_BUNDLE_CREATION_CONTRACT_20261113.md`に固定した。
 - `1887`など旧cap候補は現行方針では採用しない。削除はせず、正本・入力・候補から外した「歴史診断」としてのみ扱う。
@@ -91,14 +92,14 @@ Bの完了は「品質が合格した」という意味ではない。Bは表示
 
 ### 4. Phase4 PASS後にだけ下流へ渡す
 
-現行候補は三例のcandidate-specific Phase4独立PASSとH08 owner認可receiptまで成立した。
-ただしPhase5 exact replayの入力は別ゲートであり、現行候補へ正しく結び付いた全身Phase4
-part-mask bundleが揃うまで実行しない。旧L04/H06/H08 Stage8成果を現行候補へ流用しない。
-Phase5がPASSするまでL04正式三点セット、Golden、本番反映を行わない。FAIL/HOLDの候補は
-Draft/NO_GOのまま固定する。
+現行候補は三例のcandidate-specific Phase4独立PASSとH08 owner認可receiptまで成立し、candidate-bound
+全身Phase4 part-mask bundleも生成した。入力監査はREADYだが、Phase5 exact replayはH04の
+`neck-attached-to-torso`欠落でFAIL、H06/H08はPASSだった。旧L04/H06/H08 Stage8成果は流用しない。
+H04の意味的な接続修復を同一設定へ反映して三例を再実行し、Phase5が三例PASSするまでL04正式三点セット、
+Golden、本番反映を行わない。FAIL/HOLDの候補はDraft/NO_GOのまま固定する。
 
 ## 現在の停止理由
 
-コードのテスト不足ではない。Aの研究テストは `479 passed`、receipt準備・owner認可・Phase5入力監査focused testは `16 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やPhase5 PASSを証明しない。source-only部位分解の診断ではH06/H08が構造PASS、H04が`neck-attached-to-torso`欠落となった。現在の次の具体的入力は、現行候補へ結び付いた全身Phase4 part-mask bundleと、H04接続欠落を解消したうえで再現できるPhase5実行記録である。
+コードのテスト不足ではない。Aの研究テストは `479 passed`、candidate-bound生成・入力監査のfocused testは `7 passed`、receipt準備・owner認可の既存focused testは `16 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やPhase5三例PASSを証明しない。candidate-bound exact replayではH06/H08が構造PASS、H04が`neck-attached-to-torso`欠落となった。現在の次の具体的作業は、H04の意味的接続修復を実装し、三例を同一設定で再実行することである。
 
 この入力が届くまで、旧候補の微修正やcap再調整は行わず、Bの完了記録とA/Bの正本境界を保護する。
