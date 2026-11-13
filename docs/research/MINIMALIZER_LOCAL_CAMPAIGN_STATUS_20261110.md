@@ -142,6 +142,28 @@ v4は独立評価者が新たに確認するまで、L04 formal・Golden・本�
 
 v5を独立評価者が確認して返すまでは、H04/H06のFAILを正式receiptとして確定せず、L04 formal・Golden・productionはHOLD/NO_GOを維持する。
 
+### 2026-11-13 v5回答の照合とv6キット
+
+v5として返された確認票をv4の返却票と比較したところ、回答本文のSHA-256は
+`f579f1b3cac2cf96ad42690ff70035a0296584f56cff6bd641738f15b3aadf83`で一致し、確認日時も
+`2026-11-13 10:05`で一致した。内容はH04設問3、H06設問1/6がFAIL、H08が全PASSで、
+詳細回答だけを見れば判定は`HOLD`である。しかしv5フォームには現行candidate triple receiptの
+SHAを記入する欄がなく、回答をv5候補へ機械的にbindingできないため、新規の正式レビュー
+として扱わない。検証器は旧票を`MISSING_FIELD`でfail-closedに拒否する。
+
+再発防止として、確認票へ`L04_CANDIDATE_TRIPLE_RECEIPT.json`のSHA-256を自動転記し、
+readback時にキット内receiptと完全一致しない票を`REVIEW_BINDING_MISMATCH`として拒否する
+変更を追加した。候補・署名済み元画像・Stage8 JSON・展開SVG・両監査・Chrome実描画を含む
+v6キットを作成し、非公開Driveへ保存した。
+
+- [L04 independent visual review kit v6](https://drive.google.com/file/d/1lA3A18V38MSi3iO33I8zKjeoZYFf8IpY/view?usp=drivesdk)
+- archive SHA-256: `8285FF2C30328069E020FB282B1495E431B72561174D257696D396C7C060A2F1`（1,009,861 bytes、Drive size readback一致）
+- v6 status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
+
+次の正式工程は、独立評価者がv6フォームのreceipt SHAを保持したまま、v6内のH04/H06/H08元画像と
+展開SVGを再確認して返却すること。v5票の内容をv6の回答として流用せず、L04 formal・Golden・
+production・mergeは引き続きHOLD/NO_GOとする。
+
 ### 2026-11-10 最新readback
 
 上表とこの節が現在の判断であり、下に続く過去の記録は履歴として保持する。

@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import hashlib
 import json
+import pytest
 
-from tools.research.verify_local_l04_visual_review import readback_review
+from tools.research.verify_local_l04_visual_review import VisualReviewHold, readback_review
 
 
 def _package(tmp_path: Path) -> Path:
@@ -16,11 +18,20 @@ def _package(tmp_path: Path) -> Path:
         json.dumps({"B_L04_delivery": "PASS", "failures": [], "schema": "delivery"}),
         encoding="utf-8",
     )
+    (package / "L04_CANDIDATE_TRIPLE_RECEIPT.json").write_text(
+        json.dumps({"schema": "candidate-receipt", "candidate": "test"}),
+        encoding="utf-8",
+    )
     return package
 
 
 def _review(tmp_path: Path, h04: str = "はい") -> Path:
+    package = tmp_path / "package"
+    receipt_sha = hashlib.sha256(
+        (package / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+    ).hexdigest()
     lines = [
+        f"レビュー対象三点セットreceipt SHA-256（書き換え禁止）: {receipt_sha}",
         "確認者名: reviewer",
         "所属・立場（開発側との関係）: なし",
         "開発側から独立している: はい",
@@ -41,7 +52,8 @@ def _review(tmp_path: Path, h04: str = "はい") -> Path:
 
 
 def test_review_readback_holds_on_one_case_failure(tmp_path: Path):
-    result = readback_review(_review(tmp_path, h04="いいえ"), _package(tmp_path))
+    package = _package(tmp_path)
+    result = readback_review(_review(tmp_path, h04="いいえ"), package)
     assert result["review_gate"] == "HOLD"
     assert result["L04_formal"] == "HOLD"
     assert result["failure_reasons"] == {"H04": [1, 2, 3, 4, 5, 6]}
@@ -49,7 +61,25 @@ def test_review_readback_holds_on_one_case_failure(tmp_path: Path):
 
 
 def test_review_readback_passes_only_when_all_cases_are_yes(tmp_path: Path):
-    result = readback_review(_review(tmp_path), _package(tmp_path))
+    package = _package(tmp_path)
+    result = readback_review(_review(tmp_path), package)
     assert result["review_gate"] == "PASS"
     assert result["Golden"] == "PASS"
     assert result["production"] == "NO_GO"
+
+
+def test_review_readback_rejects_a_different_candidate_binding(tmp_path: Path):
+    package = _package(tmp_path)
+    review = _review(tmp_path)
+    text = review.read_text(encoding="utf-8")
+    review.write_text(
+        text.replace(
+            hashlib.sha256(
+                (package / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+            ).hexdigest(),
+            "0" * 64,
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(VisualReviewHold, match="REVIEW_BINDING_MISMATCH"):
+        readback_review(review, package)

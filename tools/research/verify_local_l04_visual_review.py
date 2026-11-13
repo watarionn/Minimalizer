@@ -79,6 +79,12 @@ def readback_review(review_path: Path, package: Path) -> dict[str, Any]:
     if not review_path.is_file():
         raise VisualReviewHold("REVIEW_FILE_REQUIRED")
     lines = [line.strip() for line in review_path.read_text(encoding="utf-8").splitlines()]
+    bound_receipt_sha = _line_value(lines, "レビュー対象三点セットreceipt SHA-256（書き換え禁止）:")
+    actual_receipt_sha = hashlib.sha256(
+        (package / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+    ).hexdigest()
+    if bound_receipt_sha.lower() != actual_receipt_sha:
+        raise VisualReviewHold("REVIEW_BINDING_MISMATCH")
     reviewer = _line_value(lines, "確認者名:")
     affiliation = _line_value(lines, "所属・立場（開発側との関係）:")
     independent = _answer(_line_value(lines, "開発側から独立している:"))
@@ -110,6 +116,7 @@ def readback_review(review_path: Path, package: Path) -> dict[str, Any]:
     return {
         "schema": "minimalizer/local-l04/independent-visual-review-readback/v1",
         "review_file_sha256": hashlib.sha256(review_path.read_bytes()).hexdigest(),
+        "review_binding_receipt_sha256": actual_receipt_sha,
         "reviewer": reviewer,
         "affiliation": affiliation,
         "reviewer_independent": independent == "はい",

@@ -8,6 +8,7 @@ results, and it never creates a Golden receipt from incomplete answers.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -68,9 +69,15 @@ def _write_instructions(destination: Path, receipt: dict[str, object]) -> None:
 
 
 def _write_form(destination: Path, receipt: dict[str, object]) -> None:
+    receipt_sha = hashlib.sha256(
+        (destination / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+    ).hexdigest()
     lines = [
         "Minimalizer L04 独立視覚Golden確認票",
         "この票はJSONではありません。テキストで回答し、回答後にそのまま返してください。",
+        "",
+        f"レビュー対象三点セットreceipt SHA-256（書き換え禁止）: {receipt_sha}",
+        "このSHAが一致しない確認票は、別候補の回答として扱い正式receiptにしません。",
         "",
         "確認者名: ",
         "所属・立場（開発側との関係）: ",
