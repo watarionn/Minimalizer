@@ -440,3 +440,13 @@ memoryで停止した。深度・PSD・Stage8三点セットは未生成であ�
 満たす候補を確定し、H04/H06/H08を同一条件で一括評価するまで、Phase4・owner認可・Stage8
 handoffを増やさない。
 
+### 2026-11-13 現行統合キャンペーンの再読出し
+
+この文書の過去節は履歴として保持し、現行判定は以下を正本とする。
+
+- Lane B PR #451は`616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。L04/L05/L07の実装・delivery証跡はAの意味品質と分離して保護する。
+- 現行A候補の三点監査はH04/H06/H08すべて`numerical_handoff_eligible=true`、B deliveryはChrome再描画を含め3例すべて`PASS`。頂点数は診断値であり、旧capは合否条件にしない。
+- L05/L07/LocalWorker回帰は今回の再実行で`48 passed`。Bのコード変更はこのA候補へ混ぜていない。
+- v5向け独立視覚回答はv5 receipt SHAの履歴であり、現行v10 receipt SHAへ流用しない。現行v10の独立視覚差分4項目は未返却のため、`L04 formal=HOLD / Golden=HOLD / production=NO_GO`を維持する。
+- 現行v10のsource、三点セット、H08 owner認可、B browser監査は、非公開Driveの[唯一評価対象フォルダ](https://drive.google.com/drive/folders/1ZM822kj4107n8rL3EhpnjUxqAmMi7JRI)へ保存済み。
+
