@@ -85,7 +85,25 @@ A開発側の `tools/research/build_local_l04_candidate_triple.py` が、candida
 - B L04 delivery audit: H04/H06/H08すべて `B_L04_delivery=PASS`、cross-link verified、Chrome render `PASS`、`release_authorized=false`
 - B L05 owner PC receipt再監査: private HTTPS、health 200/ready、PNG成功系、415/429（`Retry-After: 2`）/503、hash/file readbackをPASS。L05 formalはiPhone実機受入未実施のため `HOLD`
 - B L07静的監査: generation-pinned SW、shell-only cache、API/画像非cache、navigation待ちの世代移行をPASS。live browser/iPhoneは未実施
-- status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
+- status: `REVIEW_RECEIVED_HOLD` / `receipt_created=true` / `release_authorized=false`
+
+### 2026-11-13 独立視覚確認票のreadback
+
+独立評価者 `mirano` から確認票を受領し、A開発側の候補監査とB表示監査へ結び付けた
+readbackを生成した。確認日時は `2026-11-13 10:05 JST`、使用ブラウザはChrome、
+開発側から独立しているとの回答だった。
+
+- H04: 設問3が `いいえ`（腕が途中で別の色になる）
+- H06: 設問1と設問6が `いいえ`（衣装境界が分離されていない／表示を受け入れられない）
+- H08: 全6設問が `はい`
+- 全体欄の「三例すべてを視覚的に受入できる」は `はい` だが、上記詳細回答と矛盾するため、詳細回答を優先して不一致として記録
+- readback: [L04 independent visual review readback](https://drive.google.com/file/d/1DzdRbpISot9elf2EN-pcwhrF_8N6r1A3/view?usp=drivesdk)
+- Drive readback: `1,682 bytes`、親フォルダ `1XgVU65zFOGbRl1eavWkFGL2z7e1Di-b6`、メタデータ再読込済み
+- 判定: `review_gate=HOLD`、`L04_formal=HOLD`、`Golden=HOLD`、`production=NO_GO`
+
+これは数画素の不一致ではなく、H04の腕owner連続性とH06の外衣・下層の意味分離に関する
+根本品質FAILである。現行候補の再微修正、cap再調整、正式昇格は行わない。次は三例共通の
+owner再構成／観測設計を修正し、同一条件で新候補を一括生成してから再レビューする。
 
 ### 2026-11-10 最新readback
 
