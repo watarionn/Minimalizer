@@ -11,11 +11,11 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `d1245412470501d81f4f61afb1706da79219cdc1` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `f48fa0d5d558974b77e9a04b0e3dfa21d8e33618` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `8714b4a529c2cb3f3fee9bbf8f1df3a4c12dd40b` |
 | Lane B PR #451 | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。その後mainは更新済み。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
-| Phase5 | `NO_GO`（candidate-bound入力はREADY。exact replayはH04 FAIL / H06・H08 PASS） |
-| L04 handoff | `false` |
+| Phase5 | `PASS`（candidate-bound入力READY。H04/H06/H08 exact replay PASS） |
+| L04 candidate triple | numerical gate `PASS` / formal `HOLD` / `release_authorized=false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
 ### 2026-11-11 candidate-specific Phase4 receipt readback
@@ -49,16 +49,29 @@ A開発側のcandidate-bound生成器
 保護し、接続しないcandidate画素は`unknown`へ戻した。人手レビュー入力は使っていない。
 
 - candidate-bound input audit: `READY` / `HOLD 0件`
-- H04 Phase5: `FAIL`、19 anchors / 12 relations、欠落 `neck-attached-to-torso`
+- H04 Phase5: `PASS`、19 anchors / 13 relations、衣装経由の`neck-attached-to-torso`支持を記録
 - H06 Phase5: `PASS`、24 anchors / 15 relations
 - H08 Phase5: `PASS`、24 anchors / 15 relations
-- private archive: [candidate-bound Phase4/Phase5 bundle](https://drive.google.com/file/d/1bbQ6SRO1KenFIJ2vEzdLf_kY-LhI_G4d/view?usp=drivesdk)
+- private archive: [candidate-bound Phase4/Phase5 bundle v2](https://drive.google.com/file/d/1nm_CUvG5BiVHagezBSZDfxTiYAqTa-ks/view?usp=drivesdk)
 - archive folder: `1LUCv247hqq4_OvyfFTxzzZOpoKEjrpfO`
-- archive SHA-256: `5de13e0c47de3acb8eb3ad991d883acf196c12b3c722122394048b0fa1b0f0de`（3,943,539 bytes）
+- archive SHA-256: `76146fada3778f1fc5fc3d40c8c8f9326c8296e0dad3bb040b30c37d2a78d5b`（3,943,191 bytes、Drive size readback一致）
 
-これはcandidate-boundの再現可能なPhase5入力と構造診断を得た記録であり、H04 FAILのためPhase5正式PASS、
-L04三点セット、Golden、本番、mergeを許可しない。H04の首-胴体接続を意味的に修復できる処理を確定し、
-三例を同一設定で再実行することが次の工程である。
+これはcandidate-boundの再現可能なPhase5入力と構造診断を得た記録である。H04のマスクは変更せず、
+衣装が胴体前面を遮蔽している場合の首→衣装→胴体の支持関係をPhase5グラフへ追加し、三例の構造PASSを得た。
+Phase5の正式PASS後の次工程として、現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。視覚Goldenの独立受入は未実施なので、formal L04、Golden、本番、mergeはまだ許可しない。
+
+### 2026-11-13 L04 candidate triple
+
+A開発側の `tools/research/build_local_l04_candidate_triple.py` が、candidate-bound Phase4/Phase5出力と署名済み元画像を固定して、H04/H06/H08の元画像・Stage8 JSON・展開SVGを同一実行から生成した。旧Stage8や人手ラベルは入力に使っていない。
+
+- private package: [L04 candidate triple v2](https://drive.google.com/file/d/1DsZNkwrLbT59g7h6DKYsZc8Ix1eA-sjh/view?usp=drivesdk)
+- archive folder: `1barZrULXBv_-e8giGlQVSzS09aR9pCV-`
+- archive SHA-256: `1112f8d57eaaae70495b866517462b74cd914f35712bc76add475762e7d31dc9`（921,600 bytes、Drive size readback一致）
+- H04/H06/H08: `source_owner_exact=true`、`protected_owner_exact=true`、`silhouette_exact=true`、`three_artifact_hashes_verified=true`
+- L04 numerical candidate: `eligible_for_independent_review=true`
+- formal result: `L04_formal=HOLD`、`release_authorized=false`、Golden `HOLD`、production `NO_GO`
+
+この成果物はA開発側が作成した凍結候補であり、独立評価者が視覚受入を記録する前のレビュー対象である。独立視覚受入が全例で完了するまで、正式三点セットとして昇格しない。
 
 ### 2026-11-10 最新readback
 

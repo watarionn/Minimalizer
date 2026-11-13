@@ -7,8 +7,8 @@
 ## まず結論
 
 - **B は実装・統合QAとして完了記録を維持する。** `main` の L04/L05/L07 を作り直さない。
-- **A は未完了。** 現行候補のcandidate-specific Phase4はPASSし、H08 owner-authority receiptも成立したが、六能力observerの正式ゲートは未成立。L02はHOLD、Phase5・Golden・本番はNO_GO。
-- candidate-bound Phase4 bundleはA開発側で生成済み。入力監査はREADY、Phase5構造はH06/H08 PASS・H04 FAIL（`neck-attached-to-torso`欠落）で、三例ゲートはNO_GOを維持する。
+- **A は未完了。** 現行候補のcandidate-specific Phase4、candidate-bound Phase5 exact replay、H08 owner-authority receiptは成立したが、六能力observerとL04視覚Goldenの正式ゲートは未成立。L02はHOLD、L04 formal・Golden・本番はNO_GO。
+- candidate-bound Phase4 bundleはA開発側で生成済み。入力監査はREADY、Phase5構造はH04/H06/H08すべてPASS。H04はマスク変更なしで衣装経由の`neck-attached-to-torso`支持を記録した。
 - Aの不足は数画素の追加修正では解消しない。次に必要なのは、同じ未見holdoutへ一括適用できるobserverまたは学習・導入計画の実体である。
 - 現行candidate-bound Phase5 bundleの作成者はA開発側、独立評価者は凍結後の後評価者とする。作成手順と保存境界は`docs/research/LOCAL_L02_PHASE5_BUNDLE_CREATION_CONTRACT_20261113.md`に固定した。
 - `1887`など旧cap候補は現行方針では採用しない。削除はせず、正本・入力・候補から外した「歴史診断」としてのみ扱う。
@@ -18,7 +18,7 @@
 | レーン | 判定するもの | 現在地 | Aへの依存 |
 |---|---|---|---|
 | A | 元画像からの意味的owner、腕・下着・袖・遮蔽、正衣装保持 | **HOLD** | なし。ここが品質の正本 |
-| B/L04 | Aが確定した出力を三点セットで安全に表示・展開できるか | **実装QA完了記録を維持** | Aの最終SHAを受け取るまで正式handoffは不可 |
+| B/L04 | Aが確定した出力を三点セットで安全に表示・展開できるか | **実装QA完了記録を維持** | Aの視覚Golden受入と最終SHAを受け取るまで正式handoffは不可 |
 | B/L05 | 実際の入力→出力、PNG/SVG、失敗時応答、fallback | **実装QA完了記録を維持** | Aの最終候補接続は未実施 |
 | B/L07 | generation-pinned SW、private HTTPS、PC/iPhone、offline復帰 | **実装QA完了記録を維持** | 本番反映後のiPhone受入だけ残る |
 
@@ -93,13 +93,13 @@ Bの完了は「品質が合格した」という意味ではない。Bは表示
 ### 4. Phase4 PASS後にだけ下流へ渡す
 
 現行候補は三例のcandidate-specific Phase4独立PASSとH08 owner認可receiptまで成立し、candidate-bound
-全身Phase4 part-mask bundleも生成した。入力監査はREADYだが、Phase5 exact replayはH04の
-`neck-attached-to-torso`欠落でFAIL、H06/H08はPASSだった。旧L04/H06/H08 Stage8成果は流用しない。
-H04の意味的な接続修復を同一設定へ反映して三例を再実行し、Phase5が三例PASSするまでL04正式三点セット、
-Golden、本番反映を行わない。FAIL/HOLDの候補はDraft/NO_GOのまま固定する。
+全身Phase4 part-mask bundleも生成した。入力監査とPhase5 exact replayはH04/H06/H08すべてPASSした。
+H04はマスク変更ではなく、衣装が胴体前面を遮蔽する場合の首→衣装→胴体支持をグラフへ記録して解消した。
+旧L04/H06/H08 Stage8成果は流用しない。現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。次は独立視覚Golden受入、最終SHA固定、L05実入出力、L07本番後iPhone受入である。
+FAIL/HOLDの候補はDraft/NO_GOのまま固定する。
 
 ## 現在の停止理由
 
-コードのテスト不足ではない。Aの研究テストは `479 passed`、candidate-bound生成・入力監査のfocused testは `7 passed`、receipt準備・owner認可の既存focused testは `16 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やPhase5三例PASSを証明しない。candidate-bound exact replayではH06/H08が構造PASS、H04が`neck-attached-to-torso`欠落となった。現在の次の具体的作業は、H04の意味的接続修復を実装し、三例を同一設定で再実行することである。
+コードのテスト不足ではない。Aの研究テストは `479 passed`、candidate-bound生成・入力監査・グラフ修正のfocused testは `25 passed`、Bの統合回帰は `67 passed` だが、これは構造・契約の確認であり、六能力observerの意味品質やGoldenを証明しない。candidate-bound exact replayは三例PASS、L04三点セット候補の数値・alpha・SHAゲートもPASSとなった。現在の次の具体的作業は、L04候補を独立視覚Golden受入へ渡し、受入後の最終SHAを固定することである。
 
 この入力が届くまで、旧候補の微修正やcap再調整は行わず、Bの完了記録とA/Bの正本境界を保護する。
