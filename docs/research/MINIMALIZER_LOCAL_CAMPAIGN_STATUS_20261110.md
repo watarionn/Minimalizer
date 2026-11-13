@@ -18,6 +18,38 @@
 | L04 candidate triple | numerical gate `PASS` / formal `HOLD` / `release_authorized=false` |
 | Golden / production | `HOLD` / `NO_GO` |
 
+### 2026-11-13 v6構造修正とv11独立差分確認キット
+
+既存の返却回答は、ユーザーの最新確認に基づき、v5候補receipt SHA
+`d7faf5905a24a930963d6435d0864b735506112a867a84302efb75c753ed2536`に対する回答として扱う。
+v10または後続候補の視覚受入へ流用しない。
+
+v5で残ったH04/H06の意味品質FAILを、数画素の閾値調整ではなく、候補結合器が持つowner解釈の
+問題として修正した。署名済み元画像から作成済みのlayered garment owner配列を読み込み、
+保護部位と独立arm観測を先に除外したうえで、外衣ownerを既知の胴体・腕・下半身ownerから
+排他的に再構成する。人手ラベル、旧owner、評価票は推論入力に使わず、unknownは陰性化しない。
+
+- 実装commit: `026d8056`（PR #449 Draftへpush済み）
+- Phase4 policy: `candidate-positive-garment-preserve-known-v5-outerwear-owner-integration`
+- 外衣owner昇格 / 腕owner再割当: H04 `16,808 / 1,098`、H06 `291,388 / 75,169`、H08 `133,476 / 75,338`
+- Phase5 structural graph: H04/H06/H08 `PASS`
+- v6 L04三点セットreceipt SHA: `f2b6ea2e8c1f7ba3edc86b84697645ca1aa3123bdf2f56a776833a412156b35e`
+- 数値三点監査: `numerical_handoff_eligible=true`、failures `[]`
+- B L04 delivery: H04/H06/H08全例 `PASS`、三点SHA照合・cross-link・Chrome replayを確認、A品質は`NOT_JUDGED`
+- v6 packageの展開済みSVGをChromiumで目視確認し、H04/H06/H08で大きなowner領域の変化を確認。独立評価前のため視覚品質PASSとはしない。
+
+独立評価者向けには、v5の既知FAILだけを差分確認するv11キットを新規作成した。v5回答は履歴として
+引き継ぐが、v6の回答にはしない。v11は署名済み元画像、Stage8 JSON、展開SVG、三点監査、B監査、
+Chrome再描画、返却用の日本語票を一つのzipへまとめている。
+
+- Drive folder: [v11独立差分確認](https://drive.google.com/drive/folders/1rBSqgrpuRd2hoTE-Bt5QRBNHQTgrWf4J)
+- Drive zip: [Minimalizer_L04_現行候補_v11_独立差分確認_20261113.zip](https://drive.google.com/file/d/1Gq-2-4GHbUfV8euHxowdvfkBzNpVJG4M/view?usp=drivesdk)
+- zip: `1,015,921 bytes`、local SHA-256 `50ffe9392ab2248e01c597929edaa189c90d37df8609be09bc7219ce5413598c`、Drive size readback一致
+- receipt SHAは票内に固定し、回答がv6 receiptと一致しない場合はmaterializeしない。
+
+現在の判定は `L04 formal=HOLD`、`Golden=HOLD`、`production=NO_GO`。次に必要なのはv11票への独立視覚回答であり、
+回答が返るまで正式昇格・merge・本番反映は行わない。
+
 ### 2026-11-11 candidate-specific Phase4 receipt readback
 
 現行freeze receiptに結び付いたH04/H06/H08の独立評価フォームを記入後、
