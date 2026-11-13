@@ -21,6 +21,7 @@ QUESTION_COUNT = 6
 # stripped by ``_line_value``.  Accept both forms so the readback is strict
 # about the answer value without depending on which field supplied it.
 ANSWER_RE = re.compile(r"^(?:回答:\s*)?(はい|いいえ|保留)")
+CHECKBOX_ANSWER_RE = re.compile(r"\[([^\]]*)\]\s*(はい|いいえ|保留)")
 
 
 class VisualReviewHold(ValueError):
@@ -38,9 +39,13 @@ def _line_value(lines: list[str], prefix: str) -> str:
 
 def _answer(value: str) -> str:
     match = ANSWER_RE.match(value)
-    if not match:
-        raise VisualReviewHold(f"INVALID_ANSWER:{value}")
-    return match.group(1)
+    if match:
+        return match.group(1)
+    options = CHECKBOX_ANSWER_RE.findall(value)
+    selected = [answer for marker, answer in options if marker.strip()]
+    if len(selected) == 1:
+        return selected[0]
+    raise VisualReviewHold(f"INVALID_ANSWER:{value}")
 
 
 def _case_block(lines: list[str], case: str) -> list[str]:

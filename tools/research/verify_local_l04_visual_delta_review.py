@@ -9,7 +9,20 @@ import re
 from pathlib import Path
 from typing import Any
 
-from verify_local_l04_visual_review import VisualReviewHold, _load_audit, _line_value, _answer
+try:
+    from .verify_local_l04_visual_review import (
+        VisualReviewHold,
+        _load_audit,
+        _line_value,
+        _answer,
+    )
+except ImportError:  # pragma: no cover - direct CLI execution
+    from verify_local_l04_visual_review import (  # type: ignore
+        VisualReviewHold,
+        _load_audit,
+        _line_value,
+        _answer,
+    )
 
 
 ANSWER_RE = re.compile(r"^(?:回答:\s*)?(はい|いいえ|保留)")

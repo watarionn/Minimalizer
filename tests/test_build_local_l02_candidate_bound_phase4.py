@@ -5,6 +5,7 @@ from tools.research.audit_local_l02_phase5_input import PARTS
 from tools.research.build_local_l02_candidate_bound_phase4 import (
     CandidateBoundPhase4Hold,
     arbitrate_outerwear_over_arm_owners,
+    integrate_arm_owner_evidence,
     integrate_outerwear_owner_evidence,
     integrate_candidate_masks,
 )
@@ -135,3 +136,48 @@ def test_isolated_outerwear_arm_overlap_is_abstained():
     assert stats["arm_owner_pixels_reassigned_to_clothing"] == 0
     assert result["left_arm"][2:5, 0].all()
     assert not result["major_clothing"][2:5, 0].any()
+
+
+def test_anchored_arm_observation_repairs_nonprotected_owner_conflict():
+    base = base_masks()
+    arm_observed = np.zeros((6, 6), dtype=bool)
+    arm_observed[2:5, 0:2] = True
+    source_rgb = np.zeros((6, 6, 3), dtype=np.uint8)
+    source_rgb[:] = (220, 160, 130)
+    source_rgb[0, 0] = (0, 0, 0)
+    result, stats = integrate_arm_owner_evidence(
+        base, arm_observed, source_rgb, np.ones((6, 6), dtype=bool)
+    )
+    assert stats["arm_observer_anchored_components"] == 1
+    assert stats["arm_observer_pixels_promoted"] == 6
+    assert stats["arm_owner_conflict_pixels_removed"] == 2
+    assert result["left_arm"][2:5, 0:2].all()
+    assert not result["torso"][2:4, 1].any()
+
+
+def test_anchored_arm_observation_never_overwrites_protected_owner():
+    base = base_masks()
+    arm_observed = np.zeros((6, 6), dtype=bool)
+    arm_observed[0:3, 0:3] = True
+    source_rgb = np.full((6, 6, 3), (220, 160, 130), dtype=np.uint8)
+    result, stats = integrate_arm_owner_evidence(
+        base, arm_observed, source_rgb, np.ones((6, 6), dtype=bool)
+    )
+    assert stats["arm_observer_anchored_components"] == 1
+    assert result["face"][0, 2]
+    assert result["left_arm"][2, 0]
+
+
+def test_arm_observation_touching_both_sides_abstains():
+    base = base_masks()
+    base["right_arm"][2:5, 5] = True
+    arm_observed = np.zeros((6, 6), dtype=bool)
+    arm_observed[2:5, 0:6] = True
+    source_rgb = np.full((6, 6, 3), (220, 160, 130), dtype=np.uint8)
+    result, stats = integrate_arm_owner_evidence(
+        base, arm_observed, source_rgb, np.ones((6, 6), dtype=bool)
+    )
+    assert stats["arm_observer_ambiguous_components"] == 1
+    assert stats["arm_observer_pixels_promoted"] == 0
+    assert result["left_arm"][2:5, 0].all()
+    assert result["right_arm"][2:5, 5].all()

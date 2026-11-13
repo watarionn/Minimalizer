@@ -53,6 +53,24 @@ Chrome再描画、返却用の日本語票を一つのzipへまとめている�
 現在の判定は `L04 formal=HOLD`、`Golden=HOLD`、`production=NO_GO`。次に必要なのはv11票への独立視覚回答であり、
 回答が返るまで正式昇格・merge・本番反映は行わない。
 
+### 2026-11-13 H04腕owner根本修正とv12差分確認キット
+
+v11の回答はv6候補に対するものとして固定し、v5候補への既存回答をv6/v8へ流用しない。
+H04の「腕が変」は小さな画素差ではなく、独立arm観測が示す腕・手領域と、既存の胴体・衣装・下半身ownerの
+競合を候補結合器が解決できていない問題だった。そこで、SeeThroughの観測を六能力observerや正式owner認可として
+昇格せず、source-onlyの正のarm観測に限定して候補結合へ渡す共通ルールを追加した。
+
+- 実装: `integrate_arm_owner_evidence`。8連結成分が既存の片側arm ownerへ接続する場合だけ対象とし、保護ownerは上書きしない。source RGBから同一入力のarm seedに対するロバスト支持範囲を算出し、非保護の競合ownerだけをarmへ再割当する。unknownを陰性扱いせず、人手ラベル・レビュー票は推論入力に使わない。
+- arm観測のprivate sidecar manifestをH04/H06/H08で作成。正式Phase4権限・本番権限は明示的に`false`、L02能力ゲートは`HOLD`のまま。
+- v8 Phase4 metrics: H04 arm観測13,423px中8,542px、H06 4,686px中3,021px、H08 10,236px中6,291pxを候補ownerへ反映。各例とも未接続・曖昧成分は昇格せず、外衣統合も同じsource-only入力で再実行。
+- Phase5 structural graph: H04/H06/H08 `PASS`。candidate-bound Phase5 input audit `READY`。
+- v8 L04三点セットreceipt SHA: `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a`
+- v8 H04/H06/H08のsource・Stage8 JSON・expanded SVG三点照合: `numerical_handoff_eligible=true`、failures `[]`。Chromium alpha replayは全例`PASS`。
+- B delivery audit: H04/H06/H08全例`B_L04_delivery=PASS`、三点hash/cross-link/Chrome replayを確認。`A_L04_quality=NOT_JUDGED`、releaseは閉鎖。
+- v12 review kit: [Minimalizer L04 現行候補 v12](https://drive.google.com/file/d/1I-rzJa3BkAluxSlJjK1dguk9yVD_fcAB/view?usp=drivesdk)。zip SHA-256 `DEA77A7C083C38660277625B3B06CE2DED765820AB9394A753CDCF39CB1275DD`、915,920 bytes。v5 baseline receipt SHA `d7faf5905a24a930963d6435d0864b735506112a867a84302efb75c753ed2536`と、今回v8 receipt SHAを票へ固定した。
+
+判定は引き続き `L04 formal=HOLD`、`Golden=HOLD`、`production=NO_GO`。v12の独立差分回答が返るまで、Phase4正式昇格、merge、Golden、本番反映は行わない。
+
 ### 2026-11-11 candidate-specific Phase4 receipt readback
 
 現行freeze receiptに結び付いたH04/H06/H08の独立評価フォームを記入後、

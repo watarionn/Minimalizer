@@ -12,8 +12,11 @@ promoted when their 8-connected component touches a clothing context.
     pixels that belong to a connected outerwear component which also touches a
     clothing context, while preserving pixels supported by the same independent
     arm observer.  It never promotes unknown pixels and never uses a human mask.
-    This is the H06/H08 sleeve-versus-arm correction, not a case-specific
-    threshold or a visual-review override.
+    A bounded positive arm-observation pass may also repair non-protected owner
+    conflicts.  It requires one existing arm owner as the component anchor and
+    uses a source-colour support envelope learned from that arm owner; it does
+    not treat missing or unknown pixels as negative evidence.  Neither pass is
+    a six-capability observer claim or a visual-review override.
 """
 from __future__ import annotations
 
@@ -35,6 +38,7 @@ except ImportError:  # pragma: no cover - direct CLI execution
 
 PROTECTED_PARTS = ("head", "hair", "face", "neck", "accessory_or_held_object")
 CLOTHING_CONTEXT_PARTS = ("torso", "lower_body", "major_clothing", "unknown")
+ARM_PARTS = ("left_arm", "right_arm")
 
 
 class CandidateBoundPhase4Hold(ValueError):
@@ -233,6 +237,114 @@ def arbitrate_outerwear_over_arm_owners(
     }
 
 
+def integrate_arm_owner_evidence(
+    masks: Mapping[str, np.ndarray],
+    arm_observed: np.ndarray,
+    source_rgb: np.ndarray,
+    source_alpha: np.ndarray,
+) -> tuple[dict[str, np.ndarray], dict[str, int]]:
+    """Use positive arm observation to repair anchored owner conflicts.
+
+    This is intentionally narrower than a general semantic segmentation
+    result. Each 8-connected observer component must touch exactly one
+    existing arm owner. Protected owners are never overwritten. For the
+    remaining pixels, source RGB must be supported by the existing arm-owner
+    colour distribution using a fixed robust, per-input envelope. This lets
+    an exposed hand that was incorrectly covered by torso/clothing/lower-body
+    be recovered without turning an unrelated observer artifact into an arm.
+    """
+    if (
+        type(arm_observed) is not np.ndarray
+        or arm_observed.dtype != np.bool_
+        or arm_observed.ndim != 2
+        or arm_observed.shape != source_alpha.shape
+    ):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_TYPE_OR_SHAPE_INVALID")
+    if (
+        type(source_alpha) is not np.ndarray
+        or source_alpha.dtype != np.bool_
+        or type(source_rgb) is not np.ndarray
+        or source_rgb.dtype != np.uint8
+        or source_rgb.ndim != 3
+        or source_rgb.shape[:2] != source_alpha.shape
+        or source_rgb.shape[2] != 3
+    ):
+        raise CandidateBoundPhase4Hold("SOURCE_RGB_OR_ALPHA_TYPE_INVALID")
+    if np.any(arm_observed & ~source_alpha):
+        raise CandidateBoundPhase4Hold("ARM_EVIDENCE_OUTSIDE_SOURCE_ALPHA")
+
+    result = {part: np.asarray(masks[part], dtype=bool).copy() for part in PARTS}
+    seed = result["left_arm"] | result["right_arm"]
+    seed_pixels = seed & source_alpha
+    if not np.any(seed_pixels):
+        return result, {
+            "arm_observer_components": 0,
+            "arm_observer_anchored_components": 0,
+            "arm_observer_ambiguous_components": 0,
+            "arm_observer_pixels_observed": int(arm_observed.sum()),
+            "arm_observer_pixels_promoted": 0,
+            "arm_observer_pixels_rejected_colour": int(arm_observed.sum()),
+            "arm_owner_conflict_pixels_removed": 0,
+        }
+
+    # No case-specific colour constants: the support envelope is derived from
+    # the current arm owners for this signed source.
+    reference = source_rgb[seed_pixels].astype(np.int16)
+    median = np.median(reference, axis=0)
+    deviation = np.median(np.abs(reference - median), axis=0)
+    scale = 1.4826 * deviation + 1.0
+    reference_score = np.max(np.abs(reference - median) / scale, axis=1)
+    cutoff = float(np.quantile(reference_score, 0.995))
+    candidate_score = np.max(
+        np.abs(source_rgb.astype(np.int16) - median) / scale, axis=2
+    )
+    colour_supported = candidate_score <= cutoff
+
+    labels, count = ndimage.label(
+        arm_observed, structure=np.ones((3, 3), dtype=np.uint8)
+    )
+    protected = np.zeros_like(source_alpha)
+    for part in PROTECTED_PARTS:
+        protected |= result[part]
+    promoted = {part: np.zeros_like(source_alpha) for part in ARM_PARTS}
+    anchored = 0
+    ambiguous = 0
+    rejected_colour = 0
+    for label in range(1, int(count) + 1):
+        component = labels == label
+        touched = [part for part in ARM_PARTS if np.any(component & result[part])]
+        if len(touched) != 1:
+            ambiguous += 1
+            continue
+        anchored += 1
+        part = touched[0]
+        eligible = component & source_alpha & ~protected
+        unsupported = eligible & ~colour_supported
+        rejected_colour += int(unsupported.sum())
+        promoted[part] |= eligible & colour_supported
+
+    promoted_union = promoted["left_arm"] | promoted["right_arm"]
+    removed_by_part: dict[str, int] = {}
+    for part in PARTS:
+        if part in ARM_PARTS or part in PROTECTED_PARTS or part == "unknown":
+            continue
+        removed = result[part] & promoted_union
+        removed_by_part[part] = int(removed.sum())
+        result[part] &= ~promoted_union
+    for part in ARM_PARTS:
+        result[part] |= promoted[part]
+    result["unknown"] &= ~promoted_union
+    return result, {
+        "arm_observer_components": int(count),
+        "arm_observer_anchored_components": anchored,
+        "arm_observer_ambiguous_components": ambiguous,
+        "arm_observer_pixels_observed": int(arm_observed.sum()),
+        "arm_observer_pixels_promoted": int(promoted_union.sum()),
+        "arm_observer_pixels_rejected_colour": rejected_colour,
+        "arm_owner_conflict_pixels_removed": int(sum(removed_by_part.values())),
+    }
+
+
 def integrate_outerwear_owner_evidence(
     masks: Mapping[str, np.ndarray],
     outerwear_owner: np.ndarray,
@@ -357,6 +469,61 @@ def _load_outerwear_evidence(
     }
 
 
+def _load_arm_evidence(
+    evidence_root: Path, case: str, source_alpha: np.ndarray, source_sha: str
+) -> tuple[np.ndarray, Mapping[str, object]]:
+    """Load a private, source-only positive arm observation sidecar.
+
+    The sidecar binds the private NPZ and original observer receipt without
+    granting that observer formal Phase4 or production authority.
+    """
+    evidence_path = evidence_root / f"{case}_ANIME_BODY_PART_OWNER_PRIVATE.npz"
+    receipt_path = evidence_root / f"{case}_ANIME_BODY_PART_OWNER_RECEIPT.json"
+    manifest_path = evidence_root / f"{case}_ARM_OBSERVATION_MANIFEST.json"
+    if not evidence_path.is_file() or not receipt_path.is_file() or not manifest_path.is_file():
+        raise CandidateBoundPhase4Hold(f"ARM_EVIDENCE_MISSING:{case}")
+    receipt = _json(receipt_path)
+    manifest = _json(manifest_path)
+    if (
+        receipt.get("source_sha256") != source_sha
+        or receipt.get("source_only") is not True
+        or receipt.get("human_masks_used_in_inference") is not False
+        or receipt.get("review_json_used_in_inference") is not False
+        or receipt.get("frozen_owner_used_in_inference") is not False
+        or receipt.get("unknown_not_treated_as_negative") is not True
+        or manifest.get("source_sha256") != source_sha
+        or manifest.get("scope") != "positive-arm-observation-only"
+        or manifest.get("observer_receipt_sha256") != _sha256_file(receipt_path)
+        or manifest.get("evidence_file_sha256") != _sha256_file(evidence_path)
+    ):
+        raise CandidateBoundPhase4Hold(f"ARM_EVIDENCE_PROVENANCE_INVALID:{case}")
+    with np.load(evidence_path, allow_pickle=False) as archive:
+        if "sapiens_arm" not in archive.files or "alpha" not in archive.files:
+            raise CandidateBoundPhase4Hold(f"ARM_EVIDENCE_SCHEMA_INVALID:{case}")
+        arm = np.asarray(archive["sapiens_arm"])
+        evidence_alpha = np.asarray(archive["alpha"])
+    if (
+        arm.dtype != np.uint8
+        or evidence_alpha.dtype != np.uint8
+        or arm.shape != source_alpha.shape
+        or evidence_alpha.shape != source_alpha.shape
+        or not np.isin(arm, (0, 1)).all()
+        or not np.isin(evidence_alpha, (0, 1)).all()
+        or not np.array_equal(evidence_alpha.astype(bool), source_alpha)
+        or manifest.get("arm_array_sha256") != _sha256_bytes(arm.tobytes(order="C"))
+    ):
+        raise CandidateBoundPhase4Hold(f"ARM_EVIDENCE_ARRAY_INVALID:{case}")
+    return arm.astype(bool), {
+        "manifest_sha256": _sha256_file(manifest_path),
+        "observer_receipt_sha256": _sha256_file(receipt_path),
+        "evidence_file_sha256": _sha256_file(evidence_path),
+        "arm_array_sha256": str(manifest["arm_array_sha256"]),
+        "observer": receipt.get("observer"),
+        "observer_capability_status": receipt.get("L02"),
+        "observer_formal_phase4": receipt.get("phase4"),
+    }
+
+
 def build_case_bundle(
     *,
     case: str,
@@ -369,6 +536,7 @@ def build_case_bundle(
     outerwear_owner: np.ndarray | None = None,
     arm_observed: np.ndarray | None = None,
     outerwear_metadata: Mapping[str, object] | None = None,
+    arm_metadata: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     actual_source_sha = _sha256_file(source_path)
     if actual_source_sha != expected_source_sha:
@@ -384,14 +552,24 @@ def build_case_bundle(
         raise CandidateBoundPhase4Hold(f"CANDIDATE_SHA_MISMATCH:{case}")
     result, stats = integrate_candidate_masks(base_masks, candidate, source_alpha)
     arbitration_stats: dict[str, int] = {}
+    arm_stats: dict[str, int] = {}
+    if arm_observed is not None:
+        with Image.open(source_path) as image:
+            source_rgb = np.asarray(image.convert("RGB"), dtype=np.uint8)
+        result, arm_stats = integrate_arm_owner_evidence(
+            result, arm_observed, source_rgb, source_alpha
+        )
+        stats.update(arm_stats)
     if outerwear_owner is not None:
         result, arbitration_stats = integrate_outerwear_owner_evidence(
             result, outerwear_owner, source_alpha, arm_observed
         )
         stats.update(arbitration_stats)
     integration_policy = (
-        "candidate-positive-garment-preserve-known-v5-outerwear-owner-integration"
+        "candidate-positive-garment-preserve-known-v6-anchored-arm-and-outerwear-owner-integration"
         if outerwear_owner is not None
+        else "candidate-positive-garment-preserve-known-v6-anchored-arm-owner-integration"
+        if arm_observed is not None
         else "candidate-positive-garment-preserve-known-v2"
     )
 
@@ -431,6 +609,7 @@ def build_case_bundle(
             "outerwear_observer_used": outerwear_owner is not None,
             "arm_observer_used_for_owner_arbitration": arm_observed is not None,
             "outerwear_observer_metadata": dict(outerwear_metadata or {}),
+            "arm_observer_metadata": dict(arm_metadata or {}),
         },
         "source": {"path": source_path.name, "sha256": expected_source_sha, "width": width, "height": height},
         "l02_candidate": {
@@ -453,6 +632,7 @@ def build_bundle(
     receipt: Mapping[str, object], source_root: Path, base_root: Path,
     candidate_root: Path, output_root: Path,
     outerwear_evidence_root: Path | None = None,
+    arm_evidence_root: Path | None = None,
 ) -> list[dict[str, object]]:
     if receipt.get("phase4") != "PASS":
         raise CandidateBoundPhase4Hold("PHASE4_RECEIPT_NOT_PASS")
@@ -469,9 +649,14 @@ def build_bundle(
         outerwear_owner = None
         arm_observed = None
         outerwear_metadata: Mapping[str, object] | None = None
+        arm_metadata: Mapping[str, object] | None = None
         if outerwear_evidence_root is not None:
             outerwear_owner, arm_observed, outerwear_metadata = _load_outerwear_evidence(
                 outerwear_evidence_root, case, source_alpha, str(item["source_sha256"])
+            )
+        if arm_evidence_root is not None:
+            arm_observed, arm_metadata = _load_arm_evidence(
+                arm_evidence_root, case, source_alpha, str(item["source_sha256"])
             )
         stages.append(build_case_bundle(
             case=case,
@@ -484,6 +669,7 @@ def build_bundle(
             outerwear_owner=outerwear_owner,
             arm_observed=arm_observed,
             outerwear_metadata=outerwear_metadata,
+            arm_metadata=arm_metadata,
         ))
     return stages
 
@@ -496,11 +682,12 @@ def _cli() -> int:
     parser.add_argument("--candidate-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--outerwear-evidence-root", type=Path)
+    parser.add_argument("--arm-evidence-root", type=Path)
     args = parser.parse_args()
     try:
         stages = build_bundle(
             _json(args.receipt), args.source_root, args.base_root, args.candidate_root,
-            args.output_root, args.outerwear_evidence_root,
+            args.output_root, args.outerwear_evidence_root, args.arm_evidence_root,
         )
         print(json.dumps({"cases": len(stages), "status": "CANDIDATE_BOUND_PHASE4_BUILT"}, ensure_ascii=False))
         return 0

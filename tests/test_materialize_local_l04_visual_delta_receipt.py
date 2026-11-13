@@ -140,3 +140,20 @@ def test_materialize_rejects_missing_authority(tmp_path: Path) -> None:
     review = _review_text(package, baseline_sha)
     with pytest.raises(DeltaReceiptHold, match="MISSING_FILE"):
         materialize_delta_receipt(review, package)
+
+
+def test_materialize_accepts_marked_checkbox_answers(tmp_path: Path) -> None:
+    package, _ = _make_package(tmp_path)
+    baseline_sha = hashlib.sha256(
+        (tmp_path / "baseline" / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+    ).hexdigest()
+    review = _review_text(package, baseline_sha)
+    text = review.read_text(encoding="utf-8")
+    for answer in ("開発側から独立している", "差分4項目をすべて視覚的に受入できる",
+                   "今回のreceiptの数値来歴と実物表示を照合した", "独立性を確認した"):
+        text = text.replace(f"{answer}: はい", f"{answer}: [○] はい  [ ] いいえ")
+    for number in range(1, 5):
+        text = text.replace(f"回答: はい", "回答: [○] はい  [ ] いいえ", 1)
+    review.write_text(text, encoding="utf-8")
+    result = materialize_delta_receipt(review, package)
+    assert result["receipt_created"] is True
