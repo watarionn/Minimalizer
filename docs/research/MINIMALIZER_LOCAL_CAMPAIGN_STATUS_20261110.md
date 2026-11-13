@@ -11,7 +11,7 @@
 | 対象 | SHA / 状態 |
 |---|---|
 | 最新 `origin/main` | `d1245412470501d81f4f61afb1706da79219cdc1` |
-| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `8714b4a529c2cb3f3fee9bbf8f1df3a4c12dd40b` |
+| Lane A PR #449 | Draft / `research/local-l02-class32-topology-palette-shadow-20261102` / current head `9bfe5de1b41a9bdc5b2862f36298be777911f48a` |
 | Lane B PR #451 | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。その後mainは更新済み。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `PASS`（candidate-bound入力READY。H04/H06/H08 exact replay PASS） |
