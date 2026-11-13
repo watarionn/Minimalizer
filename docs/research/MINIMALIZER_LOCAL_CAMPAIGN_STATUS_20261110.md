@@ -83,6 +83,8 @@ A開発側の `tools/research/build_local_l04_candidate_triple.py` が、candida
 - package SHA-256: `06C4D1E0093A771DAE72426B361080C16119C40DF8CB58026899F57D42D13AC9`（1,025,575 bytes、Drive size readback一致）
 - candidate-triple audit: `numerical_handoff_eligible=true`、failures `[]`、L04 formal `HOLD`、Golden `HOLD`、production `NO_GO`
 - B L04 delivery audit: H04/H06/H08すべて `B_L04_delivery=PASS`、cross-link verified、Chrome render `PASS`、`release_authorized=false`
+- B L05 owner PC receipt再監査: private HTTPS、health 200/ready、PNG成功系、415/429（`Retry-After: 2`）/503、hash/file readbackをPASS。L05 formalはiPhone実機受入未実施のため `HOLD`
+- B L07静的監査: generation-pinned SW、shell-only cache、API/画像非cache、navigation待ちの世代移行をPASS。live browser/iPhoneは未実施
 - status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
 
 ### 2026-11-10 最新readback
