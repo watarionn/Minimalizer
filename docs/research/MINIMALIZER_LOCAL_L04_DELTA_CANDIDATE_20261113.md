@@ -56,6 +56,10 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - private Drive保存: [差分確認キットv7](https://drive.google.com/file/d/1MURpGIbwFDZKgxjjAtj88vTp-YDbt-BJ/view?usp=drivesdk)
 - archive: `910009` bytes / SHA-256 `586f3c11c4aee2995b0fd207480b5aa1300cd774559beb1fce6425a7cc0570b1`
 - Drive raw readback: sizeとSHA-256がローカル生成物と一致。
+- H08 owner認可と現候補の結び付きを確認し、`43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52` を差分キットv8へ同梱した。source SHAは `759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e`、候補SHAは `8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091`。
+- private Drive保存: [差分確認キットv8](https://drive.google.com/file/d/1_uoW2KD6bNFtwwvB1CmuEWV704gPmIUX/view?usp=drivesdk)
+- v8 archive: `912044` bytes / SHA-256 `3bad47f9ec90757aa4f05bae058181fab4f1f9d4063def2d1e64a7153353f2ca`
+- v8 Drive raw readback: sizeとSHA-256がローカル生成物と一致。
 
 ## テスト
 
