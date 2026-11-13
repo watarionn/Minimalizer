@@ -66,6 +66,7 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - v9は監査JSONの出力先を修正する前の保存物として破棄扱いにし、評価対象にしない。
 - 差分確認キットv10: [Drive](https://drive.google.com/file/d/16K_q0dYh3u4WB0huSEWRbNFmQozNtoFn/view?usp=drivesdk), `911508` bytes / SHA-256 `7f251f64d031539b3fd08f87bc916275f91a78f1e6a58817570a57828b957624`。三点監査JSON、B delivery監査JSON、H08 owner認可、現候補metricsをすべて同梱し、Drive raw readback済み。v10を唯一の評価対象とし、v7/v8/v9は再回答に使わない。
 - v10の展開済み現行候補フォルダ: [Drive folder](https://drive.google.com/drive/folders/1ZM822kj4107n8rL3EhpnjUxqAmMi7JRI)。zipを展開できない評価者向けに同じv10内容を階層付きで保存した。v5/v4/v3フォルダとは別物で、評価対象はこのv10フォルダだけである。
+- B接続監査をChromeで再実行し、H04/H06/H08の3例すべてで`three_artifact_hashes_verified=true`、`source_stage8_svg_cross_links_verified=true`、`browser_render.status=PASS`、`B_L04_delivery=PASS`を確認した。ブラウザ再描画監査JSONと画像はv10現行候補フォルダへ追加保存した。これはBの表示・配信確認であり、Aの意味品質やGolden承認を判定しない。
 - 2026-11-13に返却された`L04独立視覚Golden確認票`はv5フォルダ内の候補に対する回答だった。H04 Q3、H06 Q1/Q6が不合格、H08は全問受入だったが、対象receipt SHAの記載がv5と一致し、現行v10 receipt SHA `e5b077...7001b` とは一致しない。これはv10の正式回答としてmaterializeしない。
 
 ## 返却後の自動materialize
