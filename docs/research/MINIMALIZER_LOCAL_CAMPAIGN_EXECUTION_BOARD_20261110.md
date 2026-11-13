@@ -95,7 +95,7 @@ Bの完了は「品質が合格した」という意味ではない。Bは表示
 現行候補は三例のcandidate-specific Phase4独立PASSとH08 owner認可receiptまで成立し、candidate-bound
 全身Phase4 part-mask bundleも生成した。入力監査とPhase5 exact replayはH04/H06/H08すべてPASSした。
 H04はマスク変更ではなく、衣装が胴体前面を遮蔽する場合の首→衣装→胴体支持をグラフへ記録して解消した。
-旧L04/H06/H08 Stage8成果は流用しない。現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。次は独立視覚Golden受入、最終SHA固定、L05実入出力、L07本番後iPhone受入である。
+旧L04/H06/H08 Stage8成果は流用しない。現行candidateからL04三点セット候補を生成し、Chrome alpha replayと三点SHA照合まで完了した。独立評価者向けの確認票と一括レビューキットも非公開Driveへ保存済みである。次は独立視覚Golden受入、最終SHA固定、L05実入出力、L07本番後iPhone受入である。
 FAIL/HOLDの候補はDraft/NO_GOのまま固定する。
 
 ## 現在の停止理由

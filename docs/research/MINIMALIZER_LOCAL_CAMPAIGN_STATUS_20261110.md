@@ -73,6 +73,16 @@ A開発側の `tools/research/build_local_l04_candidate_triple.py` が、candida
 
 この成果物はA開発側が作成した凍結候補であり、独立評価者が視覚受入を記録する前のレビュー対象である。独立視覚受入が全例で完了するまで、正式三点セットとして昇格しない。
 
+### 2026-11-13 独立視覚Golden確認キット
+
+独立評価者がJSONを手書きせずに確認できるよう、
+`tools/research/prepare_local_l04_visual_review_kit.py`で候補三点セットと署名済み元画像を一つのレビュー用フォルダへ複製し、日本語説明と確認票を追加した。確認票は回答を受け取るだけで、未回答のままreceiptを生成しない。
+
+- private folder: `L04_Independent_Visual_Review_20261113` (`1XgVU65zFOGbRl1eavWkFGL2z7e1Di-b6`)
+- review package: [L04 independent visual review kit v1](https://drive.google.com/file/d/11UvXQ68pp-gIakI4RvpwAy_D06JM9XRb/view?usp=drivesdk)
+- package SHA-256: `1727893CB0AEEEFE5BAE19A2F59AED571DC78CF0770F39D198B03A46AF625288`（924,580 bytes、Drive size readback一致）
+- status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false`
+
 ### 2026-11-10 最新readback
 
 上表とこの節が現在の判断であり、下に続く過去の記録は履歴として保持する。
