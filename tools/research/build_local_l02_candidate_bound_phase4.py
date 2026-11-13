@@ -2,9 +2,10 @@
 
 This is a source-free-code entry point: source pixels, candidate arrays and
 generated masks stay outside Git.  It deliberately does not use review labels.
-The candidate is integrated as a garment owner only when its 8-connected
-component touches an existing clothing context.  Protected semantic parts are
-never overwritten; disconnected candidate pixels become explicit unknown.
+The candidate is treated as positive garment evidence, not as permission to
+replace an existing semantic owner. Protected and already-known semantic
+parts are never overwritten; only candidate pixels in unknown space can be
+promoted when their 8-connected component touches a clothing context.
 """
 from __future__ import annotations
 
@@ -103,7 +104,7 @@ def integrate_candidate_masks(
     candidate_owner: np.ndarray,
     source_alpha: np.ndarray,
 ) -> tuple[dict[str, np.ndarray], dict[str, int]]:
-    """Integrate a garment-owner candidate without overwriting protected parts."""
+    """Integrate positive garment evidence without reassigning known owners."""
     if candidate_owner.ndim != 2 or candidate_owner.dtype != np.uint8:
         raise CandidateBoundPhase4Hold("CANDIDATE_ARRAY_TYPE_OR_RANK_INVALID")
     if candidate_owner.shape != source_alpha.shape:
@@ -118,22 +119,29 @@ def integrate_candidate_masks(
     protected = np.zeros_like(candidate)
     for part in PROTECTED_PARTS:
         protected |= result[part]
+    known = np.zeros_like(candidate)
+    for part in PARTS:
+        if part != "unknown":
+            known |= result[part]
     context = np.zeros_like(candidate)
     for part in CLOTHING_CONTEXT_PARTS:
         context |= result[part]
+    context_touch = ndimage.binary_dilation(
+        context, structure=np.ones((3, 3), dtype=bool)
+    )
 
-    eligible = candidate & ~protected
+    # The research runners emit a full owner map. Its positive pixels are
+    # evidence, not a semantic replacement command. Preserve every known
+    # owner and let only unknown-space evidence compete for promotion.
+    eligible = candidate & ~protected & ~known
     labels, count = ndimage.label(eligible, structure=np.ones((3, 3), dtype=np.uint8))
     accepted = np.zeros_like(candidate)
     for label in range(1, int(count) + 1):
         component = labels == label
-        if np.any(component & context):
+        if np.any(component & context_touch):
             accepted |= component
     rejected = eligible & ~accepted
 
-    for part in PARTS:
-        if part != "major_clothing":
-            result[part] &= ~accepted
     result["major_clothing"] |= accepted
     result["unknown"] |= rejected
 
@@ -142,6 +150,7 @@ def integrate_candidate_masks(
         "accepted_garment_pixels": int(accepted.sum()),
         "rejected_unknown_pixels": int(rejected.sum()),
         "protected_candidate_pixels": int((candidate & protected).sum()),
+        "known_owner_conflict_pixels": int((candidate & ~protected & known).sum()),
         "candidate_components": int(count),
     }
     return result, stats
@@ -184,7 +193,7 @@ def build_case_bundle(
         "schema": "minimalizer/local-l02/candidate-bound-phase4-metrics/v1",
         "case": case,
         "phase": 4,
-        "integration_policy": "candidate-garment-component-connected-exclusive-v1",
+        "integration_policy": "candidate-positive-garment-preserve-known-v2",
         "source_sha256": expected_source_sha,
         "candidate_sha256": expected_candidate_sha,
         "source_width": width,
@@ -203,7 +212,7 @@ def build_case_bundle(
         "producer": "minimalizer-l02-candidate-bound-phase4",
         "producer_version": "1.0",
         "config": {
-            "integration_policy": "candidate-garment-component-connected-exclusive-v1",
+            "integration_policy": "candidate-positive-garment-preserve-known-v2",
             "candidate_labels_used_in_inference": False,
             "review_labels_used_in_inference": False,
             "unknown_policy": "unconnected-candidate-pixels-become-unknown",

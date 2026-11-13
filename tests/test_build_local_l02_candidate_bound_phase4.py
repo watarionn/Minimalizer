@@ -16,15 +16,29 @@ def base_masks(shape=(6, 6)):
     return masks
 
 
-def test_connected_garment_component_takes_exclusive_arm_owner():
+def test_known_arm_and_torso_owners_are_preserved_on_candidate_conflict():
     base = base_masks()
     candidate = np.zeros((6, 6), dtype=np.uint8)
     candidate[2:5, 0:3] = 1
     source_alpha = np.ones((6, 6), dtype=bool)
     result, stats = integrate_candidate_masks(base, candidate, source_alpha)
-    assert stats["accepted_garment_pixels"] == 9
-    assert result["major_clothing"][2:5, 0:3].all()
-    assert not result["left_arm"][2:5, 0].any()
+    assert stats["accepted_garment_pixels"] == 2
+    assert stats["known_owner_conflict_pixels"] == 7
+    assert result["left_arm"][2:5, 0].all()
+    assert result["torso"][2:4, 1:3].all()
+    assert result["major_clothing"][4, 1:3].all()
+    assert not result["major_clothing"][2:4, 0:3].any()
+
+
+def test_unknown_candidate_connected_to_clothing_is_promoted():
+    base = base_masks()
+    candidate = np.zeros((6, 6), dtype=np.uint8)
+    candidate[1, 1:3] = 1
+    source_alpha = np.ones((6, 6), dtype=bool)
+    result, stats = integrate_candidate_masks(base, candidate, source_alpha)
+    assert stats["accepted_garment_pixels"] == 2
+    assert result["major_clothing"][1, 1:3].all()
+    assert not result["unknown"][1, 1:3].any()
 
 
 def test_disconnected_candidate_becomes_unknown():

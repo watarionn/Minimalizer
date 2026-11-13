@@ -105,6 +105,26 @@ readbackを生成した。確認日時は `2026-11-13 10:05 JST`、使用ブラ�
 根本品質FAILである。現行候補の再微修正、cap再調整、正式昇格は行わない。次は三例共通の
 owner再構成／観測設計を修正し、同一条件で新候補を一括生成してから再レビューする。
 
+### 2026-11-13 候補結合器の根本修正と再レビューキット
+
+確認票のFAILを候補画像の微差ではなく、候補結合器の意味解釈まで遡って調査した。
+研究runnerの `candidate_owner` は全身owner mapなのに、旧結合器は正画素を衣装追加マスクと
+誤解し、既知の腕・髪・胴体まで `major_clothing` へ再割当していた。このためH04の腕色断裂と
+H06の外衣・下層混同を増幅していた。
+
+- `integrate_candidate_masks` を `candidate-positive-garment-preserve-known-v2` へ変更
+- 既知owner（腕・頭部・髪・胴体など）は候補で上書きしない
+- 未知領域の候補だけを衣装文脈へ接続して追加し、競合画素は既存ownerを保持
+- focused test: `7 passed`
+- 修正後のprivate candidate-bound Phase4/Phase5再生成: H04/H06/H08 structural graph `PASS`
+- 修正後L04三点セットは数値・alpha・三点SHAを再生成済み。ただし独立視覚確認前なので formal/Golden/productionはHOLD/NO_GO
+- 新レビューキット: [L04 independent visual review kit v4](https://drive.google.com/file/d/15-Bn1l0LxS63AuIw30MsTdWuXFvOzwU6/view?usp=drivesdk)
+- archive SHA-256: `F1A0C4518301C085E6F61943E50C12FCFB19133525AF620428F245D95B9B7BB0`（413,495 bytes、Drive size readback一致）
+- status: `READY_FOR_INDEPENDENT_VISUAL_REVIEW` / `receipt_created=false` / `release_authorized=false`
+
+v3候補は現行正式候補として扱わず、旧v3確認票のFAIL receiptとともに履歴へ固定する。
+v4は独立評価者が新たに確認するまで、L04 formal・Golden・本番へ進めない。
+
 ### 2026-11-10 最新readback
 
 上表とこの節が現在の判断であり、下に続く過去の記録は履歴として保持する。
