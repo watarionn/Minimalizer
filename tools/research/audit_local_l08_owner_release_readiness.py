@@ -15,8 +15,10 @@ from typing import Any, Mapping
 
 try:
     from .local_l05_owner_run_receipt import L05Hold, audit_receipt
+    from .local_l07_pwa_privacy_audit import PrivacyHold, audit as audit_l07
 except ImportError:  # pragma: no cover - direct CLI execution
     from local_l05_owner_run_receipt import L05Hold, audit_receipt  # type: ignore
+    from local_l07_pwa_privacy_audit import PrivacyHold, audit as audit_l07  # type: ignore
 
 
 class L08Hold(ValueError):
@@ -119,6 +121,7 @@ def audit_owner_release_readiness(
     iphone_receipt_path: Path,
     *,
     production_commit: str,
+    repository_root: Path,
 ) -> dict[str, Any]:
     if _COMMIT.fullmatch(production_commit) is None:
         raise L08Hold("EXPECTED_PRODUCTION_COMMIT_INVALID")
@@ -134,6 +137,14 @@ def audit_owner_release_readiness(
         "owner_pc_e2e_verified", "v2_png_verified", "failure_paths_verified", "file_readback_verified"
     )):
         raise L08Hold("B_PC_E2E_INCOMPLETE")
+    try:
+        l07 = audit_l07(repository_root)
+    except (OSError, PrivacyHold) as exc:
+        raise L08Hold(f"B_L07_STATIC:{exc}") from exc
+    if l07.get("serviceworker", {}).get("status") != "STATIC_SW_PRIVACY_CONTRACT_PASS":
+        raise L08Hold("B_L07_STATIC_SW")
+    if l07.get("route", {}).get("status") != "STATIC_LOCAL_ROUTE_ISOLATED":
+        raise L08Hold("B_L07_STATIC_ROUTE")
     iphone = _audit_iphone(_json(iphone_receipt_path), production_commit)
     return {
         "schema": "minimalizer/local-l08/owner-release-readiness/v1",
@@ -142,6 +153,7 @@ def audit_owner_release_readiness(
         "A_Golden": a["Golden"],
         "candidate_receipt_sha256": a["candidate_receipt_sha256"],
         "B_L05_pc_e2e": "PASS",
+        "B_L07_static": "PASS",
         "B_L05_L07_iphone": iphone,
         "production": "NO_GO",
         "release_authorized": False,
@@ -155,6 +167,7 @@ def main() -> int:
     parser.add_argument("pc_receipt", type=Path)
     parser.add_argument("iphone_receipt", type=Path)
     parser.add_argument("--production-commit", required=True)
+    parser.add_argument("--repository-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
@@ -163,6 +176,7 @@ def main() -> int:
             args.pc_receipt,
             args.iphone_receipt,
             production_commit=args.production_commit,
+            repository_root=args.repository_root,
         )
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"L08_OWNER_RELEASE_READINESS_PASS {args.output}")

@@ -60,7 +60,10 @@ def _files(tmp_path: Path) -> tuple[Path, Path, Path]:
 
 def test_owner_release_readiness_passes_without_authorizing_release(tmp_path: Path) -> None:
     a, pc, iphone = _files(tmp_path)
-    result = audit_owner_release_readiness(a, pc, iphone, production_commit=COMMIT)
+    result = audit_owner_release_readiness(
+        a, pc, iphone, production_commit=COMMIT,
+        repository_root=Path(__file__).resolve().parents[1],
+    )
     assert result["ready_for_owner_release"] is True
     assert result["production"] == "NO_GO"
     assert result["release_authorized"] is False
@@ -70,7 +73,10 @@ def test_owner_release_readiness_passes_without_authorizing_release(tmp_path: Pa
 def test_owner_release_readiness_rejects_wrong_current_production_commit(tmp_path: Path) -> None:
     a, pc, iphone = _files(tmp_path)
     with pytest.raises(L08Hold, match="IPHONE_PRODUCTION_COMMIT_MISMATCH"):
-        audit_owner_release_readiness(a, pc, iphone, production_commit="b" * 40)
+        audit_owner_release_readiness(
+            a, pc, iphone, production_commit="b" * 40,
+            repository_root=Path(__file__).resolve().parents[1],
+        )
 
 
 def test_owner_release_readiness_rejects_a_release_override(tmp_path: Path) -> None:
@@ -79,4 +85,7 @@ def test_owner_release_readiness_rejects_a_release_override(tmp_path: Path) -> N
     value["release_authorized"] = True
     _write(a, value)
     with pytest.raises(L08Hold, match="A_RELEASE_BOUNDARY_CHANGED"):
-        audit_owner_release_readiness(a, pc, iphone, production_commit=COMMIT)
+        audit_owner_release_readiness(
+            a, pc, iphone, production_commit=COMMIT,
+            repository_root=Path(__file__).resolve().parents[1],
+        )
