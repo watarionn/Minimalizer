@@ -89,6 +89,7 @@ v12確認票の返却回答は、現行v8三点セットreceipt SHA
 - H08 owner-authority receipt: SHA `50207cf17d22cca5c962500a4490de65f83073b2a031313521331dd304caae99`、凍結owner `43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52`へ結合済み。これはowner昇格の認可であり、本番認可ではない。
 - 完全版レビューキット: [v12 complete package](https://drive.google.com/file/d/1RpeFXmpCL-7diFPnhMYclpFSmG7-X6AE/view?usp=drivesdk)。SHA-256 `7765F0A2AF19D1DFF8362BB4CE902CE57C3E6B93E91A77DEA5884CED73F4D89A`（917,456 bytes）。authority、候補監査、source/Stage8/SVG、B delivery監査を同梱し、Driveサイズを再読出し済み。
 - L08 owner-release readiness: [readiness receipt v2](https://drive.google.com/file/d/1DHTkF63MFs0Jyi_cKJaPVcotzG-6jZ_t/view?usp=drivesdk)。SHA-256 `7E9F35FE97D8CC1EFD590E27BB3D436F567BA02B9DCB284BB3B091DBCD9DF33A`（601 bytes）。A formal/Golden、B L04 delivery、L05 PC E2E、L07 static、B iPhone/offline/fallbackを一括確認し、`ready_for_owner_release=true`だが`production=NO_GO`、`release_authorized=false`、`owner_action_required=true`。
+- 再監査（2026-11-13）では、現行三点セットのH04/H06/H08全例でsource・Stage8 JSON・展開SVGのSHA/cross-linkと数値handoffが`PASS`、B L04 deliveryも全例`PASS`・failures空となった。三点監査器は昇格を行わず formal/Golden を`HOLD`のまま保持する設計であり、現行のformal/Golden `PASS`はcandidate-bound独立視覚receiptとL08 v2のbindingで確定している。
 
 今回の実装修正は、旧生成パッケージの `candidate_audit.json` を正式監査名の安全な別名として読み込むこと、候補三点receiptに未収録のH08 candidate SHAを同一source SHAに結び付いたStage8 JSONから解決すること、L08 owner-release readinessにL07静的プライバシー／ローカル経路監査を fail-closed で結合することの三点である。人手ラベル・レビュー回答・v5 receiptは推論入力にしていない。A focused suiteは`22 passed`、B focused regressionは`52 passed`。
 
