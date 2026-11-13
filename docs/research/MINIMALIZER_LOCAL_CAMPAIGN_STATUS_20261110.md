@@ -15,8 +15,8 @@
 | Lane B PR #451 | `616d832e8223ba40dbf1030afd0bbc83f6f5b5df`でmainへ統合済み。その後mainは更新済み。Aの品質候補をBへ混ぜない |
 | A L02 / Phase4 | `HOLD` / `PASS`（candidate-specific receipt成立。L02能力ゲートは継続HOLD） |
 | Phase5 | `PASS`（candidate-bound入力READY。H04/H06/H08 exact replay PASS） |
-| L04 candidate triple | numerical gate `PASS` / formal `HOLD` / `release_authorized=false` |
-| Golden / production | `HOLD` / `NO_GO` |
+| L04 candidate triple | numerical gate `PASS` / formal `PASS` / `release_authorized=false` |
+| Golden / production | `PASS` / `NO_GO` |
 
 ### 2026-11-13 v6構造修正とv11独立差分確認キット
 
@@ -91,7 +91,17 @@ v12確認票の返却回答は、現行v8三点セットreceipt SHA
 
 今回の実装修正は、旧生成パッケージの `candidate_audit.json` を正式監査名の安全な別名として読み込むこと、候補三点receiptに未収録のH08 candidate SHAを同一source SHAに結び付いたStage8 JSONから解決することの二点だけである。人手ラベル・レビュー回答・v5 receiptは推論入力にしていない。A focused suiteは`19 passed`、B focused regressionは`52 passed`。
 
-次の残ゲートは、production `NO_GO`を維持したまま、ownerによる本番反映と実機受入の別工程を実施し、その実際の入出力・端末結果をreadbackすること。正式receiptのPASSだけでは本番昇格しない。
+次の残ゲートは、現行A候補を本番へ採用するかどうかのowner最終判断と、その候補に結び付いた本番反映readbackである。Bの既存production commitに対するPC/iPhone受入は別に成立しているが、それだけで現行A候補のreleaseを自動認可しない。
+
+### 2026-11-13 B L05/L07 production・実機readback
+
+Lane Bのproduction/runtime受入証拠を、過去の「未実施」記述と混同しないよう現行欄へ移した。
+
+- production commit: `c68dc17bdc2bd3b0ba0841b7108177553891913c`。`origin/main=d1245412470501d81f4f61afb1706da79219cdc1` の祖先であることを再確認。
+- PC private HTTPS receipt: [B L05 owner-PC receipt](https://drive.google.com/file/d/1tVI84sTVgBUdHpsdfak_qMDVL4Tx_SJ0/view?usp=drivesdk)。JSON SHA-256 `1F3C1FA14FD85143606A5ECB8018A8D835D6E582B546D579252A936B695579A8`（945 bytes）。health 200/ready、V2 PNG、415、429 + `Retry-After: 2`、503、入出力hash/file readbackを確認。
+- iPhone acceptance receipt: [B L05/L07 iPhone acceptance](https://drive.google.com/file/d/1bA3YeSHwuiZYEDqD2nL88_Ui2hiTyXtD/view?usp=drivesdk)。JSON SHA-256 `06F09CFBA8958A7214A86157EA19AD64C49C3BA876E65CA2C908C9CF70B91FEA`（862 bytes）。Safari、PWA、機内モード往復、ZeroBase2 503→Local V2 fallback、private Drive readbackを記録。
+- PC receipt単体validatorは物理iPhoneを含まないため意図的に`L05_formal=HOLD`を返すが、上記iPhone receiptとの組合せでBのdevice gateは`PASS`。L07のgeneration-pinned SW/static監査とfocused regression `52 passed`も維持。
+- これはB runtimeの受入証拠であり、現行AのL04 candidate tripleを本番へ昇格する認可ではない。現行A receiptは引き続き`L04_formal=PASS / Golden=PASS / production=NO_GO / release_authorized=false`。
 
 ### 2026-11-11 candidate-specific Phase4 receipt readback
 

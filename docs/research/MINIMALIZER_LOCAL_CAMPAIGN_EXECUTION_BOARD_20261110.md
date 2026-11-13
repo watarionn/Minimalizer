@@ -49,9 +49,9 @@
 | レーン | 判定するもの | 現在地 | Aへの依存 |
 |---|---|---|---|
 | A | 元画像からの意味的owner、腕・下着・袖・遮蔽、正衣装保持 | **HOLD** | なし。ここが品質の正本 |
-| B/L04 | Aが確定した出力を三点セットで安全に表示・展開できるか | **実装QA完了記録を維持** | Aの視覚Golden受入と最終SHAを受け取るまで正式handoffは不可 |
-| B/L05 | 実際の入力→出力、PNG/SVG、失敗時応答、fallback | **実装QA完了記録を維持** | Aの最終候補接続は未実施 |
-| B/L07 | generation-pinned SW、private HTTPS、PC/iPhone、offline復帰 | **実装QA完了記録を維持** | 本番反映後のiPhone受入だけ残る |
+| B/L04 | Aが確定した出力を三点セットで安全に表示・展開できるか | **実装QA・現行候補delivery監査完了** | Aの品質を代行せず、現行A候補のrelease認可は別ゲート |
+| B/L05 | 実際の入力→出力、PNG/SVG、失敗時応答、fallback | **実装QA・production/device readback完了** | 現行A候補を本番採用するowner判断は別工程 |
+| B/L07 | generation-pinned SW、private HTTPS、PC/iPhone、offline復帰 | **実装QA・B production/device readback完了** | 現行A候補のrelease認可とは独立。owner最終採用判断のみ残る |
 
 Bの完了は「品質が合格した」という意味ではない。Bは表示・配信・復旧の契約を検証し、Aの画像品質を代行判定しない。
 
