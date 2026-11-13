@@ -63,7 +63,8 @@ private stagingで差分確認キットv7を生成済み。GitHubへ元画像、
 - 再生成時にPhase4 `stage.json`と`metrics.json`のintegration policy不一致を発見し、同じv3 policyを両方へ記録する修正を適用した。見た目の修正ではなく、来歴の整合性修正である。
 - 修正後の現行候補receipt SHA-256: `e5b0776638bc3e379be924b1594c9f1286be90a263c7aea7f71b18ee5107001b`
 - 修正後の三点監査とB delivery監査: H04/H06/H08全例でfailures空、`B_L04_delivery=PASS`。
-- 差分確認キットv9: [Drive](https://drive.google.com/file/d/1_6ZJ2fdEciyjt__6Xn6zcM9mG_vdgzeI/view?usp=drivesdk), `910028` bytes / SHA-256 `4c6e5c1a7b4f0038b1e2fba99175797836edace8608e01bf9aecff61e682d489`。H08 owner認可と現候補metricsを同梱し、Drive raw readback済み。v9を評価対象とし、v7/v8は旧候補記録として再回答に使わない。
+- v9は監査JSONの出力先を修正する前の保存物として破棄扱いにし、評価対象にしない。
+- 差分確認キットv10: [Drive](https://drive.google.com/file/d/16K_q0dYh3u4WB0huSEWRbNFmQozNtoFn/view?usp=drivesdk), `911508` bytes / SHA-256 `7f251f64d031539b3fd08f87bc916275f91a78f1e6a58817570a57828b957624`。三点監査JSON、B delivery監査JSON、H08 owner認可、現候補metricsをすべて同梱し、Drive raw readback済み。v10を唯一の評価対象とし、v7/v8/v9は再回答に使わない。
 
 ## テスト
 
