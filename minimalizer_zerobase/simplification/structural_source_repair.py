@@ -151,6 +151,11 @@ def apply_structural_source_repair(
     ))
     source_graph = build_structural_layout_graph(source_masks)
     current_graph = build_structural_layout_graph(current_masks)
+    source_neck_has_confident_relation = any(
+        row.confidence >= 0.5
+        and (row.source_part == "neck" or row.target_part == "neck")
+        for row in source_graph.relations
+    )
 
     source_required = _required_relation_keys(source_graph)
     current_relations = {
@@ -288,8 +293,20 @@ def apply_structural_source_repair(
         }
 
     output = [dict(group) for group in groups if group.get("part") not in repaired_parts and group.get("part") != "__unbound__"]
+    micro_component_replay_parts: list[str] = []
     for part in repaired_parts:
         source_mask = _canonical_material_mask(source_masks[part], tiny_component_area_threshold=material_threshold)
+        if (
+            part == "neck"
+            and source_neck_has_confident_relation
+            and np.any(source_masks[part])
+            and not np.any(source_mask)
+        ):
+            # The neck can be a genuinely tiny, multi-component semantic
+            # owner. The generic material cutoff is for isolated noise and
+            # would erase all of it before Phase 12 can preserve the owner.
+            source_mask = source_masks[part].copy()
+            micro_component_replay_parts.append(part)
         existing = [group for group in groups if group.get("part") == part]
         if existing:
             # The repaired extent is owned by the immutable Phase 4 source
@@ -388,4 +405,5 @@ def apply_structural_source_repair(
         "source_outer_boundary_recall_before": boundary_recall,
         "minimum_outer_boundary_recall": _OUTER_BOUNDARY_MIN_RECALL,
         "unreplayable_parts": list(unreplayable_parts),
+        "micro_component_replay_parts": micro_component_replay_parts,
     }
