@@ -46,6 +46,8 @@ Chrome再描画、返却用の日本語票を一つのzipへまとめている�
 - Drive zip: [Minimalizer_L04_現行候補_v11_独立差分確認_20261113.zip](https://drive.google.com/file/d/1Gq-2-4GHbUfV8euHxowdvfkBzNpVJG4M/view?usp=drivesdk)
 - zip: `1,015,921 bytes`、local SHA-256 `50ffe9392ab2248e01c597929edaa189c90d37df8609be09bc7219ce5413598c`、Drive size readback一致
 - receipt SHAは票内に固定し、回答がv6 receiptと一致しない場合はmaterializeしない。
+- v11返却待ちの再確認として、現行ブランチでBのL05/L07、LocalWorker、L04 delivery監査を`52 passed`。
+- PR #451の統合コミット`616d832e8223ba40dbf1030afd0bbc83f6f5b5df`は、再確認時の`origin/main`（`d1245412470501d81f4f61afb1706da79219cdc1`）の祖先であることを確認した。
 
 現在の判定は `L04 formal=HOLD`、`Golden=HOLD`、`production=NO_GO`。次に必要なのはv11票への独立視覚回答であり、
 回答が返るまで正式昇格・merge・本番反映は行わない。
