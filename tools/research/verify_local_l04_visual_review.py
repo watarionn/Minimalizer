@@ -69,6 +69,12 @@ def _case_block(lines: list[str], case: str) -> list[str]:
 def _load_audit(package: Path) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
     candidate_path = package / "L04_CANDIDATE_TRIPLE_AUDIT.json"
     delivery_path = package / "B_L04_DELIVERY_AUDIT.json"
+    # Older preparation runs called the same candidate audit
+    # ``candidate_audit.json``.  Accept that exact fallback only when the
+    # content still passes the same numerical gate; never infer PASS from a
+    # missing or differently named audit.
+    if not candidate_path.is_file():
+        candidate_path = package / "candidate_audit.json"
     if not candidate_path.is_file() or not delivery_path.is_file():
         raise VisualReviewHold("PACKAGE_AUDIT_MISSING")
     candidate = json.loads(candidate_path.read_text(encoding="utf-8"))

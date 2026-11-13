@@ -157,3 +157,15 @@ def test_materialize_accepts_marked_checkbox_answers(tmp_path: Path) -> None:
     review.write_text(text, encoding="utf-8")
     result = materialize_delta_receipt(review, package)
     assert result["receipt_created"] is True
+
+
+def test_materialize_accepts_legacy_candidate_audit_filename(tmp_path: Path) -> None:
+    package, _ = _make_package(tmp_path)
+    audit_path = package / "L04_CANDIDATE_TRIPLE_AUDIT.json"
+    audit_path.rename(package / "candidate_audit.json")
+    baseline_sha = hashlib.sha256(
+        (tmp_path / "baseline" / "L04_CANDIDATE_TRIPLE_RECEIPT.json").read_bytes()
+    ).hexdigest()
+    review = _review_text(package, baseline_sha)
+    result = materialize_delta_receipt(review, package)
+    assert result["receipt_created"] is True

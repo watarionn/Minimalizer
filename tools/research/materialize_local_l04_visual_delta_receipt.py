@@ -56,7 +56,13 @@ def _candidate_binding(package: Path) -> tuple[Mapping[str, Any], dict[str, Any]
     receipt_cases = receipt.get("cases")
     if not isinstance(receipt_cases, list) or tuple(item.get("case") for item in receipt_cases) != CASES:
         raise DeltaReceiptHold("CANDIDATE_RECEIPT_CASES")
-    audit = _json(package / "L04_CANDIDATE_TRIPLE_AUDIT.json")
+    audit_path = package / "L04_CANDIDATE_TRIPLE_AUDIT.json"
+    # Older generated packages used the same audit content under the shorter
+    # filename.  Accept that filename only as a packaging alias; all binding
+    # and failure checks below remain mandatory.
+    if not audit_path.is_file():
+        audit_path = package / "candidate_audit.json"
+    audit = _json(audit_path)
     audit_cases = audit.get("cases")
     if not isinstance(audit_cases, Mapping):
         raise DeltaReceiptHold("CANDIDATE_AUDIT_CASES")
@@ -87,7 +93,16 @@ def _verify_h08_authority(package: Path, h08: Mapping[str, Any]) -> dict[str, An
         raise DeltaReceiptHold("H08_AUTHORITY_OWNER_SHA")
     if authority.get("source_sha256") != h08.get("source_sha256"):
         raise DeltaReceiptHold("H08_AUTHORITY_SOURCE_SHA")
-    if authority.get("prediction_sha256") != h08.get("candidate_sha256"):
+    prediction_sha = h08.get("candidate_sha256")
+    # The candidate-triple receipt schema predates the explicit candidate SHA
+    # field.  Resolve it from the same bound Stage8 JSON when the receipt does
+    # not carry it; never accept an unbound authority value.
+    if not isinstance(prediction_sha, str):
+        stage8 = _json(package / "H08" / "stage8_source_ring.json")
+        if stage8.get("signed_source_sha256") != h08.get("source_sha256"):
+            raise DeltaReceiptHold("H08_STAGE8_SOURCE_SHA")
+        prediction_sha = stage8.get("candidate_sha256")
+    if authority.get("prediction_sha256") != prediction_sha:
         raise DeltaReceiptHold("H08_AUTHORITY_CANDIDATE_SHA")
     required = (
         "owner_promotion_authorized",

@@ -71,6 +71,28 @@ H04の「腕が変」は小さな画素差ではなく、独立arm観測が示�
 
 判定は引き続き `L04 formal=HOLD`、`Golden=HOLD`、`production=NO_GO`。v12の独立差分回答が返るまで、Phase4正式昇格、merge、Golden、本番反映は行わない。
 
+### 2026-11-13 v12独立差分回答と正式receipt
+
+v12確認票の返却回答は、現行v8三点セットreceipt SHA
+`381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a`に対するものとして固定した。
+既存の回答 `d7faf5905a24a930963d6435d0864b735506112a867a84302efb75c753ed2536` はv5候補専用の履歴であり、
+現行候補の判定には流用しない。
+
+- reviewer: `tpa`、独立性 `はい`、確認日時 `2026-11-13 15:12 JST`、browser `chrome`
+- H04/H06/H06 browser/H08の差分4項目: すべて `はい`
+- 数値来歴・実物表示照合、独立性、全体受入: すべて `はい`
+- review readback: [v12 independent visual delta readback](https://drive.google.com/file/d/1k8FkwHun3r_y663pJpWDRf7cHeigBaIn/view?usp=drivesdk)
+- readback SHA-256: `B02C2B94974AA868320B05864DB3189752FDC6BB62680FD7987393101F5E9341`（1,124 bytes）
+- formal receipt: [v12 independent visual delta receipt](https://drive.google.com/file/d/1prmcOvGpeWMO4XMovRJM6wgqKss9fIto/view?usp=drivesdk)
+- formal receipt SHA-256: `674564D71989E412EBA86CAD3364BA1EBEBA1B73B0189896722D7308B38C2142`（3,900 bytes）
+- 判定: `review_gate=PASS`、`L04_formal=PASS`、`Golden=PASS`、`production=NO_GO`、`release_authorized=false`
+- H08 owner-authority receipt: SHA `50207cf17d22cca5c962500a4490de65f83073b2a031313521331dd304caae99`、凍結owner `43d164d934614fce104f5cd3da1519e95571d81c287c107b99cdf53db2766c52`へ結合済み。これはowner昇格の認可であり、本番認可ではない。
+- 完全版レビューキット: [v12 complete package](https://drive.google.com/file/d/1RpeFXmpCL-7diFPnhMYclpFSmG7-X6AE/view?usp=drivesdk)。SHA-256 `7765F0A2AF19D1DFF8362BB4CE902CE57C3E6B93E91A77DEA5884CED73F4D89A`（917,456 bytes）。authority、候補監査、source/Stage8/SVG、B delivery監査を同梱し、Driveサイズを再読出し済み。
+
+今回の実装修正は、旧生成パッケージの `candidate_audit.json` を正式監査名の安全な別名として読み込むこと、候補三点receiptに未収録のH08 candidate SHAを同一source SHAに結び付いたStage8 JSONから解決することの二点だけである。人手ラベル・レビュー回答・v5 receiptは推論入力にしていない。A focused suiteは`19 passed`、B focused regressionは`52 passed`。
+
+次の残ゲートは、production `NO_GO`を維持したまま、ownerによる本番反映と実機受入の別工程を実施し、その実際の入出力・端末結果をreadbackすること。正式receiptのPASSだけでは本番昇格しない。
+
 ### 2026-11-11 candidate-specific Phase4 receipt readback
 
 現行freeze receiptに結び付いたH04/H06/H08の独立評価フォームを記入後、
