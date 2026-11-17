@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `921ef937`（契約実装の基点 `00e9ebb9`） |
-| B L07候補 | `251a6b3b2f892663f5600adec2952b48e8a1e989` |
+| B L07候補 | `cadd6db51077d66cd44c752522c7d3384d7b4047` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -20,6 +20,7 @@
 - Bの三点配信監査は3/3 `PASS`。これはAの意味品質を判定しない。
 - 現行WorkerへのPC private HTTPSは、PNG成功2経路、415/429/503、入力・出力SHA読戻しを再確認した。iPhoneは現行Workerで未受入。
 - L07候補はcache-first、世代固定、クエリ/URLエンコード別名固定、旧世代保持を実装した。
+  この台帳のB候補SHAは、独立L04結合readbackまで含む現行PR #465の先端へ更新している。
 - 今回のL04結合テスト29件、L05/L07/release-bindingテスト36件、実SW Node 3件がPASS。
 
 ## 完成結合ゲートの現状
