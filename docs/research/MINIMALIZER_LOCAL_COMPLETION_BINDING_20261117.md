@@ -75,6 +75,9 @@
   `tools/research/bind_local_l02_phase4_candidate.py` と4件のfail-closedテストを追加した。
   三例のsource SHA・candidate配列SHAを明示するbinding manifestがない限り、採用候補
   `381b0b5a…` へ結合せずHOLDにする。今回の検証はPython `28 passed`、release権限は付与しない。
+- 実在する旧Phase4 receiptと既存のcandidate-bound Phase4 input manifestをこの検証器へ渡した
+  実行結果は `HOLD / INVALID_BINDING_SCHEMA` だった。既存manifestを正式bindingへ昇格させず、
+  新しい明示binding manifestの到着を要求する。
 
 ## 検証範囲の注意
 
