@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `05a397f3`（契約実装の基点 `00e9ebb9`） |
-| B L07候補 | `6c55ac97605e4b6eb84eedf08b9074fdee417603` |
+| B L07候補 | `a0df8be4d2ded58178704dc2c5791813fd713ecf` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -23,7 +23,9 @@
 - 現行WorkerへのPC private HTTPSは、PNG成功2経路、415/429/503、入力・出力SHA読戻しを再確認した。iPhoneは現行Workerで未受入。
 - L07候補はcache-first、世代固定、クエリ/URLエンコード別名固定、旧世代保持を実装した。
   この台帳のB候補SHAは、独立L04結合readbackまで含む現行PR #465の先端へ更新している。
-- 今回のL04/L05/L07/release-bindingテスト66件、実SW Node 3件がPASS。
+- 今回のL04/L05/L07/release-binding/receipt-auditテスト69件、実SW Node 3件がPASS。
+- `audit_local_completion_release.py` で、A、Phase4、Phase5、L04/L05/L07、
+  実機受入、回帰、保存の9 receiptをsource-freeに一括監査できる。
 
 ## 検証範囲の注意
 
