@@ -42,10 +42,12 @@ def _evidence():
         "output_sha_match": True,
     }
     l04 = {
+        "candidate_receipt_sha256": EXPECTED_CANDIDATE_RECEIPT_SHA256,
         "L04_formal": "PASS",
         "Golden": "PASS",
         "production": "GO",
         "release_authorized": True,
+        "triple_case_delivery_verified": True,
     }
     l05 = {
         "status": "PASS",
@@ -187,3 +189,17 @@ def test_current_iphone_acceptance_is_required():
     )
     assert result.status == "HOLD"
     assert "device acceptance iphone_pwa is not PASS" in result.failures
+
+
+def test_l04_quality_cannot_be_rebound_from_another_candidate():
+    a, phase4, phase5, l04, l05, l07, acceptance = _evidence()
+    l04["candidate_receipt_sha256"] = "0" * 64
+    result = assess_release_binding(
+        candidate_receipt_sha256=EXPECTED_CANDIDATE_RECEIPT_SHA256,
+        production_worker_commit=EXPECTED_PRODUCTION_WORKER_COMMIT,
+        a=a, phase4=phase4, phase5=phase5,
+        l04=l04, l05=l05, l07=l07, acceptance=acceptance,
+        owner_action_required=False,
+    )
+    assert result.status == "HOLD"
+    assert "L04 candidate binding mismatch" in result.failures

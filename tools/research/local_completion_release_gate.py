@@ -79,6 +79,10 @@ def assess_release_binding(
         ("release_authorized", True),
     ):
         _require_equal(failures, l04, key, expected)
+    if l04.get("candidate_receipt_sha256") != EXPECTED_CANDIDATE_RECEIPT_SHA256:
+        failures.append("L04 candidate binding mismatch")
+    if l04.get("triple_case_delivery_verified") is not True:
+        failures.append("L04 triple-case delivery is not PASS")
 
     _bind(failures, a, "A", require_worker=False)
     _require_true(
