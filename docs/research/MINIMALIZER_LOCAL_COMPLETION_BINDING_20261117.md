@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `b9c72162`（契約実装の基点 `a21f92f0`） |
-| B現行head | `100cd207bdace40b266969695dff87382f1623c2` |
+| B現行head | `f6ef427d3bf6d29f2ee91db6cf4a885b57de2527` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -23,6 +23,10 @@
   L04 production bundle loaderは候補SHA、H04/H06/H08各元画像・Stage8 JSON・展開SVGの
   9 SHA、相互リンク、安全なSVGを照合して `PASS` を返した。ブラウザ再展開も3/3 `PASS`。
   これは非公開bundleの準備完了であり、runtimeへの反映・実機受入を意味しない。
+- 現行runtimeの `local_worker/app.py` をsource比較したところ、正式L04 SVGの
+  `output_format` 分岐とbundle loader接続がまだ無かった。したがって、runtime反映bundleは
+  SW/local-routeだけでなく、このWorkerコードとL04 loaderを含む4ファイル構成へ修正した。
+  現行runtimeのSVG要求がPNG処理へ流れた実測もあり、L04通常入口は反映後に再受入する。
 - Aのsource-free外部入力到着台帳は `b9c72162` に更新され、六能力observer未到着の
   状態を現行B結合へ反映している。明示的な三組遮蔽契約、checkpoint/別人物学習の
   二経路intake監査、到着後のcmd runbookを追加したが、実資材はなお
