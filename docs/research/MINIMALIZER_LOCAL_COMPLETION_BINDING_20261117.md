@@ -112,6 +112,10 @@
   明示し、source監査receiptをruntime受入receiptへ誤流用できないようにした。
 - Phase4最終gateに、未見データ、推論前ラベル未使用、レビューJSON未使用を必須化し、
   candidate binding adapterの検証済みprovenanceを最終receiptへ引き継ぐようにした。
+- L06の現行候補結合adapterとcmd手順を追加した。Phase14 summary自身に候補SHAがなく、
+  ブラウザ/性能receiptも同じ候補SHAへ結合されていない場合は、旧Approved18→78結果を
+  現行候補へ流用せずHOLDにする。新adapterの選択テストは `43 passed`、`git diff --check`
+  もPASSした。
 
 ## 完成目標の正本
 
@@ -131,7 +135,7 @@
 | G6 | L04正式三点セットを昇格する | 元画像・Stage8 JSON・展開SVGを各SHAで照合し、独立レビュー、Golden、production bundleを同一候補へ結合 | 部分PASS / 昇格HOLD | G3/G5後にL04 formal/Golden/production GO、三点SHA一致、release falseが解除 |
 | G7 | L07を本番runtimeへ安全に反映する | source監査→owner承認済み反映→runtime SHA/SW generation/hash再読込→rollback確認。`caches.delete`等を禁止 | source PASS / runtime HOLD | runtime監査PASS、世代結合、旧世代保持、rollback可能、health 200、runtime errorなし |
 | G8 | L05を現行Workerで受入する | PC確認後、現行runtimeのiPhone Safari/PWAでPNG/SVG、機内モード復帰、429 Retry-After 2、503/fallback/再試行を実施 | PC PASS / iPhone HOLD | iPhone raw receiptのWorker SHAが `64cf…`、binding監査PASS、Drive readback PASS |
-| G9 | L06回帰と表示性能を結合する | Approved18→78、Golden、通常ブラウザ、PNG/SVG表示、性能を同一候補で確認 | 既存結果あり / 結合HOLD | 現行候補・Workerへ結合した回帰receiptがPASS |
+| G9 | L06回帰と表示性能を結合する | Approved18→78、Golden、通常ブラウザ、PNG/SVG表示、性能を同一候補で確認 | adapter実装済み / 現行証拠HOLD | 現行候補・Workerへ結合した回帰receiptがPASS |
 | G10 | 最終release gateを通す | A、Phase4、Phase5、L04、L05、L07、L06、保存のreceiptを一括監査 | HOLD | `release_authorized=true`以外を正式採用しない |
 | G11 | owner shipと保存を完了する | owner承認、許可対象だけを本番反映、PC/iPhone readback、Drive読戻し、source-free台帳更新 | 未実施 | 本番SHA、成果物SHA、独立評価、実機受入、復旧結果が同一版で一致 |
 

@@ -45,7 +45,7 @@ release gateで確認できる状態にする。v5、旧候補、旧Workerの証
 | M6 L04昇格 | 三点SHA、独立L04、Golden、production | L04 formal/Golden/production GO | M5待ち |
 | M7 L07反映 | source監査、owner反映、runtime監査、rollback確認 | runtime L07 PASS | HOLD: runtime不一致 |
 | M8 L05受入 | current WorkerでPC/iPhone Safari/PWA・障害系 | current iPhone binding PASS | HOLD: iPhone未取得 |
-| M9 L06結合 | Approved18→78、ブラウザ、性能 | current candidate regression PASS | 結合待ち |
+| M9 L06結合 | Approved18→78、ブラウザ、性能を現行候補へbinding adapterで結合 | current candidate regression PASS | adapter実装済み・現行証拠待ち |
 | M10 release | 9 receiptを一括監査 | `release_authorized=true` | HOLD |
 | M11 ship/preserve | owner承認、本番反映、Drive readback、rollback再確認 | final ledger/readback | 未実施 |
 
@@ -110,11 +110,20 @@ M9 L06回帰・性能 ─────────────────┘
 4. private Driveを読戻してSHAを確認し、GitHubにはsource-freeコード・テスト・メトリクス・
    台帳だけを残す。
 
+### 5. L06現行候補結合の追加手順
+
+1. Phase14 summaryへ採用候補SHAを明示し、Approved18/78とDiagnostic2の入力SHAを記録する。
+2. 同じ候補SHAを持つブラウザ表示・性能receiptを作成する。
+3. `bind_local_l06_regression_candidate.py`で両receiptとbinding SHAを監査する。
+4. 旧summaryに候補SHAがない場合は `SUMMARY_CANDIDATE_BINDING_MISSING_OR_MISMATCH` のまま止め、
+   旧結果を現行候補のL06 PASSへ読み替えない。
+
 ## 現在の停止点
 
 - M1: 六能力observerの実行可能checkpoint/SDKまたは別人物学習catalogが未到着。
 - M7: 本番runtimeは旧SW `minimalizer-local-20261107-1`で、旧世代cache削除のためL07 HOLD。
 - M8: 現行Worker `64cf…`に結び付いたiPhone receiptが未取得。
+- M9: 旧Phase14 regression summaryは現行候補SHAを持たないため、L06 adapterで結合HOLD。
 - M10/M11: 上記が未完了なので正式release、本番反映、完成宣言は不可。
 
 この文書は作業を小さな画素修正へ分解するためのものではなく、各ゲートを一度の構造的な
