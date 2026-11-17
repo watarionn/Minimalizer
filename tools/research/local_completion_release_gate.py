@@ -64,6 +64,8 @@ def assess_release_binding(
     l05: Mapping[str, Any],
     l07: Mapping[str, Any],
     acceptance: Mapping[str, Any],
+    regression: Mapping[str, Any],
+    preservation: Mapping[str, Any],
     owner_action_required: bool,
 ) -> ReleaseBindingAssessment:
     """Return PASS only for the complete A/B release evidence chain."""
@@ -154,6 +156,33 @@ def assess_release_binding(
             "rollback",
         ),
         "device acceptance",
+    )
+
+    _bind(failures, regression, "regression", require_worker=False)
+    _require_true(
+        failures,
+        regression,
+        (
+            "l06_golden_pass",
+            "approved18_to_78_pass",
+            "browser_render_pass",
+            "performance_pass",
+        ),
+        "regression",
+    )
+
+    _bind(failures, preservation, "preservation", require_worker=False)
+    _require_true(
+        failures,
+        preservation,
+        (
+            "release_sha_bound",
+            "artifact_sha_bound",
+            "private_drive_saved",
+            "private_drive_readback",
+            "source_free_ledger",
+        ),
+        "preservation",
     )
     if owner_action_required:
         failures.append("owner action required")
