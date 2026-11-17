@@ -66,7 +66,7 @@ pairの欠落は能力不足であり、depth画像一枚の存在だけではPA
 
 候補modelを見つけた場合は、名前や論文ではなく、次の順で採用可否を決める。
 
-1. ローカルでrevision、重みSHA、license metadata、推論依存関係を固定する。
+1. ローカルでrevision、重みSHA、推論依存関係を固定する。
 2. signed sourceだけを入力にして、H04/H06/H08を同一設定で一括実行する。
 3. 出力bundleが上記六能力schemaを満たすか、source-free contract testで検査する。
 4. H04/H06/H08すべてで非空の意味境界、unknown、pairwise遮蔽、instance IDが再現することを確認する。

@@ -12,6 +12,8 @@ Local source tree:
 C:\Work\Temp\minimalizer-model-availability-20261110
 ```
 
+Local upstream repository HEAD: `de6148ea06afc17e007271f5aff7990cb7bb2a31`.
+
 Upstream reference:
 
 ```text
@@ -61,6 +63,11 @@ The repository and annotation tools are present locally, but no MHP v2 image
 archive or trained checkpoint is present in the local tree. No training,
 checkpoint creation, or H04/H06/H08 inference was performed from this
 candidate.
+
+The connected private Drive was searched for `MHP` and `six capability
+observer` materials on 2026-11-17. No MHP archive or six-capability training
+checkpoint was identified; the returned items were unrelated or historical
+research notes. Existing private H04/H06/H08 evidence was not re-searched.
 
 ## Gate status
 

@@ -24,7 +24,16 @@ The previously missing exact signed H04/H06/H08 private review bundle was locate
 - [PR #410](https://github.com/watarionn/Minimalizer/pull/410), main `5072e8fe1c059addc3dbaef2e1a4f6120854cb4d`: source-only outerwear taxonomy gate. Generic AnimeSeg class `clothes` (H06/H08) is not jacket semantics; explicit `ABSTAIN_NO_OUTERWEAR_CLASS`, no owner promotion. Signed-source independent replay: labelled IoU H06 0.831542 and H08 0.742307, with unknown predictions 159478/38129 px respectively. 64 targeted+existing synthetic tests passed; no model rollout.
 - [PR #411](https://github.com/watarionn/Minimalizer/pull/411), main `468b389dca40ec9f823b64bce259e75d7315f9ec`: **real independent pretrained outerwear** YOLO26s DeepFashion2 (Apache-2.0 model card), ONNX SHA `485bc106721febbd82fe24297e12a9fb49a435a552afff1e6b76308716555f76`, 416px white RGBA-composited letterbox, CPU-only. Exact signed-source H04/H06/H08 labelled-only IoU **0.000000 / 0.627044 / 0.606773**, outwear detections **0 / 3 / 2**; H08 known-negative FP 0.219390. All 3 prediction masks and source-free report identical on two independent runs. 7 decoder synthetic tests passed; independent Golden visual review and full repository CI not run. The ONNX mask-decoding assumption remains research only.
 - Only source-free research code/tests/metrics/docs merged into main. Signed image pixels, hand drawings, mask NPZ and candidate visual exports remain private. Local Worker, Public/C08, scheduled campaign and release flags unchanged. **L02 HOLD / Golden HOLD / production NO_GO**. The private evidence ZIP `MinimalizerLocal_L02_DeepFashion2_OUTERWEAR_SHADOW_PRIVATE_20261016.zip` was written and re-read from the PC's existing mounted Drive folder; the Drive cloud connector did **not** yet return that new file, so do not say cloud sync verified. Keep the verified PC mounted file until provider read-after-write succeeds.
-- **Next actual quality step**: verify licensing, model SHA and bounded runtime for another truly garment-specific independent observer (e.g. `sayeed99/segformer-b2-fashion`, licence unresolved); infer signed H04/H06/H08 without user polygons, preserve explicit known negative versus unknown, and require actual cross-character quality before creating an exclusive Phase4 owner candidate. If rejected, retain negative evidence and do not falsely promote Phase4→5 or Golden. In parallel, non-destructive L07 SW/Origin/Tailscale audits are allowed. No new per-case threshold tuning to hide H04 failure.
+- **Next actual quality step**: pin model SHA and bounded runtime for another truly garment-specific independent observer; infer signed H04/H06/H08 without user polygons, preserve explicit known negative versus unknown, and require actual cross-character quality before creating an exclusive Phase4 owner candidate. If rejected, retain negative evidence and do not falsely promote Phase4→5 or Golden. In parallel, non-destructive L07 SW/Origin/Tailscale audits are allowed. No new per-case threshold tuning to hide H04 failure.
+
+## 2026-11-17 decision update
+
+The user-confirmed license/permission check is accepted and is no longer a
+separate L02 completion gate. The remaining gates are executable provenance
+(revision, weights SHA, source binding), the six-capability output contract,
+source-only inference, independent Phase4 semantics, and the later Golden and
+production gates. Historical notes above retain their original wording and
+must not be read as a current license blocker.
 
 
 ## 2026-10-16 research continuation after PR #412: SegFormer-B2 Fashion
