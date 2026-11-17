@@ -13,7 +13,7 @@ receiptではなく、下流工程へ進める条件を固定する台帳であ�
 | 項目 | 現在値 |
 |---|---|
 | GitHub main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
-| A branch | `codex/l02-h06-minimal-owner-repair-20261107` / `a10f6d2027fb582539bcd6cbc3b67676ab509b3a` |
+| A branch | `codex/l02-h06-minimal-owner-repair-20261107` / `0edc360f` (`fix_l02_require_unknown_masks`) |
 | 採用候補receipt | `381b0b5a...`（v5は対象外） |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | B統合 | PR #462 squash merge済み |
@@ -43,6 +43,7 @@ observer evidence contractは、次を満たさない出力を停止する。
 - 人物内instance grouping
 - source alpha内、配列SHA一致、unknownを陰性化しないこと
 - 人手ラベル・既存ownerを推論入力へ持ち込まないこと
+- roleごとに正のmaskと独立したunknown maskを持ち、unknownを陰性として暗黙補完しないこと
 
 See-through、Sapiens2、Fashionpedia、FASHN、Grounding-DINO/SAM2の既存資材は、
 この六能力を一つの実行可能bundleとして満たさない。See-throughのbody-part
