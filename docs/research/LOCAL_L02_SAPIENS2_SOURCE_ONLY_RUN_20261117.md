@@ -22,6 +22,20 @@ candidate.
 
 The private receipt and NPZ observations remain outside this repository.
 
+Drive preservation and readback:
+
+- Folder: `L02_Sapiens2_SourceOnly_20261117`
+- Folder ID: `1-8AYHzPOiLjPXAInagiLfFx1zfCwzYQB`
+- Receipt file ID: `1FMXbobnyrvHpi97mjPvVC5Inw4wRM8Um` (2,037 bytes)
+- H04 NPZ file ID: `1rMPMIfi8s4L8rwnXYs3VOqsKDALRCB-O` (13,189 bytes)
+- H06 NPZ file ID: `1g6dsRMJyEnRbU0OcSFwqzyiBF-PX8qX5` (26,091 bytes)
+- H08 NPZ file ID: `1imd9XlMBaxvGer_ZUX9i5-Jpd0jNmXAW` (22,238 bytes)
+
+All four files were fetched again from Drive after upload; names, MIME types,
+parent folder, and byte sizes matched the local upload set. The SHA-256 values
+below are the local bytes recorded in the receipt and are not inferred from
+Drive metadata alone.
+
 ## Source binding and observations
 
 | Case | Signed source SHA-256 | Shape | Arm pixels | Garment pixels | Outside-alpha pixels |
