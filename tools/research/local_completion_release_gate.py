@@ -175,7 +175,12 @@ def assess_release_binding(
     _require_true(
         failures,
         l07,
-        ("generation_pinned", "rollback_available"),
+        (
+            "generation_pinned",
+            "rollback_available",
+            "runtime_sw_audit_pass",
+            "runtime_generation_bound",
+        ),
         "L07",
     )
 

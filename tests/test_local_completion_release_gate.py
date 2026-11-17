@@ -68,6 +68,8 @@ def _evidence():
         "production_worker_commit": EXPECTED_PRODUCTION_WORKER_COMMIT,
         "generation_pinned": True,
         "rollback_available": True,
+        "runtime_sw_audit_pass": True,
+        "runtime_generation_bound": True,
     }
     acceptance = {
         "status": "PASS",

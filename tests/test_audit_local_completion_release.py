@@ -48,7 +48,8 @@ def _payloads():
         "l07": {
             "status": "PASS", "candidate_receipt_sha256": C,
             "production_worker_commit": W, "generation_pinned": True,
-            "rollback_available": True,
+            "rollback_available": True, "runtime_sw_audit_pass": True,
+            "runtime_generation_bound": True,
         },
         "acceptance": {
             "status": "PASS", "candidate_receipt_sha256": C, "production_worker_commit": W,
