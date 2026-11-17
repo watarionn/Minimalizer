@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `a21f92f0`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `bed1936f636b6759eb3cf6a6a043e445023882f2` |
+| B現行head | `6ce070132580a7f9f5fa41eb7a6ab13ba27fbc17` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -89,6 +89,10 @@
   `observer_capabilities` として個別照合する実装へ更新した。新規テストを含めPython `25 passed`。
 - 同じ最終gateに、L04の元画像・Stage8 JSON・展開SVGの個別SHA結合と、L07の世代固定・
   rollback可能性を必須化した。形式だけのL04/L07 PASSを正式releaseへ流用しない。
+- 実在するL04 v12 receiptへ更新後のadapterを適用し、三点SHA結合は `PASS`、独立レビューも
+  `PASS`のままだが、`production=NO_GO`、`release_authorized=false`、Phase5昇格未許可だった。
+  現行BのSW/route静的監査はgeneration `minimalizer-local-20261117-2`、世代固定・rollback保持・
+  offline shellを `PASS` としたが、`live_iphone_e2e_verified=false`、実機受入には流用しない。
 
 ## 検証範囲の注意
 
