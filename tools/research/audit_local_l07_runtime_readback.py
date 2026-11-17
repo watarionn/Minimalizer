@@ -13,9 +13,14 @@ import hashlib
 import json
 import ssl
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Mapping
 from urllib.request import Request, urlopen
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from tools.research.apply_local_l07_runtime_bundle import (
     EXPECTED_WORKER,
