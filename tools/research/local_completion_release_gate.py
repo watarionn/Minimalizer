@@ -2,8 +2,9 @@
 
 This gate consumes source-free receipts only.  It does not inspect or copy
 private images, masks, SVGs, device screenshots, or secrets.  A release is
-admitted only when every receipt refers to the same candidate and the current
-production Worker baseline; stale readiness summaries remain HOLD.
+admitted only when A quality, frozen Phase4/Phase5 evidence, B delivery, and
+current-device acceptance all refer to the same candidate and Worker baseline.
+Stale readiness summaries remain HOLD.
 """
 from __future__ import annotations
 
@@ -33,16 +34,39 @@ def _require_equal(
         failures.append(f"{key} mismatch")
 
 
+def _require_true(
+    failures: list[str], payload: Mapping[str, Any], names: tuple[str, ...], scope: str
+) -> None:
+    for name in names:
+        if payload.get(name) is not True:
+            failures.append(f"{scope} {name} is not PASS")
+
+
+def _bind(
+    failures: list[str], payload: Mapping[str, Any], scope: str, *, require_worker: bool
+) -> None:
+    if payload.get("status") != "PASS":
+        failures.append(f"{scope} status is not PASS")
+    if payload.get("candidate_receipt_sha256") != EXPECTED_CANDIDATE_RECEIPT_SHA256:
+        failures.append(f"{scope} candidate binding mismatch")
+    if require_worker and payload.get("production_worker_commit") != EXPECTED_PRODUCTION_WORKER_COMMIT:
+        failures.append(f"{scope} Worker binding mismatch")
+
+
 def assess_release_binding(
     *,
     candidate_receipt_sha256: str,
     production_worker_commit: str,
+    a: Mapping[str, Any],
+    phase4: Mapping[str, Any],
+    phase5: Mapping[str, Any],
     l04: Mapping[str, Any],
     l05: Mapping[str, Any],
     l07: Mapping[str, Any],
+    acceptance: Mapping[str, Any],
     owner_action_required: bool,
 ) -> ReleaseBindingAssessment:
-    """Return PASS only for one exact candidate and complete release evidence."""
+    """Return PASS only for the complete A/B release evidence chain."""
     failures: list[str] = []
     if candidate_receipt_sha256 != EXPECTED_CANDIDATE_RECEIPT_SHA256:
         failures.append("candidate receipt mismatch")
@@ -55,13 +79,78 @@ def assess_release_binding(
         ("release_authorized", True),
     ):
         _require_equal(failures, l04, key, expected)
+
+    _bind(failures, a, "A", require_worker=False)
+    _require_true(
+        failures,
+        a,
+        (
+            "six_capabilities",
+            "same_config_three_cases",
+            "source_only_inference",
+            "unknown_preserved",
+            "h04_pass",
+            "h06_pass",
+            "h08_pass",
+        ),
+        "A",
+    )
+    if a.get("human_labels_used_for_inference") is not False:
+        failures.append("A human_labels_used_for_inference is not false")
+
+    _bind(failures, phase4, "Phase4", require_worker=False)
+    _require_true(
+        failures,
+        phase4,
+        (
+            "independent_evaluator",
+            "output_frozen_before_scoring",
+            "semantic_review_complete",
+            "unknown_not_negative",
+            "source_alpha_bounds_pass",
+            "owner_exclusivity_pass",
+            "components4_pass",
+            "components8_pass",
+            "holes4_pass",
+            "holes8_pass",
+            "occlusion_and_critical_parts_pass",
+        ),
+        "Phase4",
+    )
+
+    _bind(failures, phase5, "Phase5", require_worker=False)
+    _require_true(
+        failures,
+        phase5,
+        (
+            "exact_replay",
+            "same_config_three_cases",
+            "source_sha_match",
+            "output_sha_match",
+        ),
+        "Phase5",
+    )
+
     for lane, payload in (("L05", l05), ("L07", l07)):
-        if payload.get("status") != "PASS":
-            failures.append(f"{lane} status is not PASS")
-        if payload.get("candidate_receipt_sha256") != EXPECTED_CANDIDATE_RECEIPT_SHA256:
-            failures.append(f"{lane} candidate binding mismatch")
-        if payload.get("production_worker_commit") != EXPECTED_PRODUCTION_WORKER_COMMIT:
-            failures.append(f"{lane} Worker binding mismatch")
+        _bind(failures, payload, lane, require_worker=True)
+
+    _bind(failures, acceptance, "device acceptance", require_worker=True)
+    _require_true(
+        failures,
+        acceptance,
+        (
+            "pc",
+            "iphone_safari",
+            "iphone_pwa",
+            "png",
+            "svg",
+            "offline_recovery",
+            "failure_paths",
+            "fallback",
+            "rollback",
+        ),
+        "device acceptance",
+    )
     if owner_action_required:
         failures.append("owner action required")
     return ReleaseBindingAssessment(
