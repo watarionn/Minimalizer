@@ -26,6 +26,8 @@ def _payloads():
         "phase4": {
             "status": "PASS", "candidate_receipt_sha256": C,
             "independent_evaluator": True, "output_frozen_before_scoring": True,
+            "unseen_data": True, "labels_unavailable_before_inference": True,
+            "review_json_used_in_inference": False,
             "semantic_review_complete": True, "unknown_not_negative": True,
             "source_alpha_bounds_pass": True, "owner_exclusivity_pass": True,
             "components4_pass": True, "components8_pass": True,

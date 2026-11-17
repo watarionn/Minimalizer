@@ -143,6 +143,8 @@ def assess_release_binding(
         phase4,
         (
             "independent_evaluator",
+            "unseen_data",
+            "labels_unavailable_before_inference",
             "output_frozen_before_scoring",
             "semantic_review_complete",
             "unknown_not_negative",
@@ -156,6 +158,8 @@ def assess_release_binding(
         ),
         "Phase4",
     )
+    if phase4.get("review_json_used_in_inference") is not False:
+        failures.append("Phase4 review_json_used_in_inference is not false")
 
     _bind(failures, phase5, "Phase5", require_worker=False)
     _require_true(
