@@ -30,6 +30,25 @@ node --check local_worker\frontend\sw.js
 
 ここで `STATIC_SW_PRIVACY_CONTRACT_PASS` にならない場合は反映しない。
 
+## 所有者による4ファイル反映
+
+staging manifestが `STAGING_READY` で、対象runtimeのHEADが
+`64cfeb76e5f8ff4e93b6810880c68f1996348ede` の場合だけ実行する。バックアップ先は
+新しい空ディレクトリを指定し、既存の `dist\` は対象にしない。
+
+```cmd
+set "BUNDLE=C:\Work\Temp\L07_RUNTIME_STAGING_20261117-v2"
+set "TARGET=C:\Work\Projects\_runtime\minimalizer-production"
+set "BACKUP=C:\Work\Temp\L07_RUNTIME_BACKUP_20261117-v2"
+cd /d C:\Work\Temp\minimalizer-l07-pinned-20261117
+python tools\research\apply_local_l07_runtime_bundle.py --bundle "%BUNDLE%" --target "%TARGET%" --backup "%BACKUP%" --owner-approved
+if errorlevel 1 (echo L07_APPLY_HOLD & exit /b 2)
+```
+
+出力が `APPLIED_PENDING_OWNER_RESTART_READBACK` でない場合は停止する。このコマンドは
+Worker再起動やhealth読み戻しを行わないため、出力JSONとバックアップを保存した後に、
+既存の所有者承認済み方法でruntimeを再起動し、下記の反映後確認へ進む。
+
 ## 所有者によるruntime反映後のcmd確認
 
 runtimeの既存未追跡`dist\`は削除・上書きしない。反映方法は既存の所有者承認済み手順だけを使う。
