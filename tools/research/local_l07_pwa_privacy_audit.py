@@ -69,10 +69,12 @@ def verify_serviceworker(source:str):
         raise PrivacyHold("SW_UNEXPECTED_EXTRA_FETCH_HANDLER")
     return {"status":"STATIC_SW_PRIVACY_CONTRACT_PASS",
             "generation":gm.group(1),
+            "generation_pinned":True,
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
             "cache_cleanup_namespace_scoped":False,
             "old_generation_retained_for_rollback":True,
+            "rollback_available":True,
             "offline_shell_fallback":True,
             "generation_transition_waits_for_navigation":True,
             "live_browser_e2e_verified":False}

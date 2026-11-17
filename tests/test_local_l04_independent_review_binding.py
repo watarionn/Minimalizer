@@ -24,6 +24,9 @@ def test_existing_independent_review_binds_quality_only():
     assert result["production"] == "NO_GO"
     assert result["release_authorized"] is False
     assert result["triple_case_delivery_verified"] is True
+    assert result["source_sha_bound"] is True
+    assert result["stage8_json_sha_bound"] is True
+    assert result["expanded_svg_sha_bound"] is True
     assert result["nested_candidate_summary"]["L04_formal"] == "HOLD"
 
 
