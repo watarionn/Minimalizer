@@ -287,6 +287,69 @@ def test_zerobase2_endpoint_exposes_route_evidence(monkeypatch):
     assert response.headers["x-minimalizer-input-bytes"] == "123"
 
 
+def test_formal_l04_svg_endpoint_returns_exact_bundle_artifact(monkeypatch):
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    monkeypatch.setattr(
+        worker,
+        "_formal_l04_case_for_source",
+        lambda _content: (
+            "H06",
+            b'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h1"/></svg>',
+            "1" * 64,
+        ),
+    )
+    monkeypatch.setattr(
+        worker,
+        "_run_zerobase2",
+        lambda _path: (_ for _ in ()).throw(AssertionError("formal SVG must not rerun pipeline")),
+    )
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "http://127.0.0.1:28764"},
+            files={"file": ("H06.png", b"signed-source", "image/png")},
+            data={"output_format": "svg"},
+        )
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("image/svg+xml")
+    assert response.headers["x-minimalizer-mode"] == "l04-formal-svg"
+    assert response.headers["x-minimalizer-l04-case"] == "H06"
+    assert response.content.startswith(b"<svg")
+
+
+def test_formal_l04_svg_does_not_fallback_to_png_pipeline(monkeypatch):
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+
+    def fail_closed(_content):
+        raise worker.HTTPException(
+            status_code=503,
+            detail="Formal L04 bundle is not releasable.",
+        )
+
+    monkeypatch.setattr(worker, "_formal_l04_case_for_source", fail_closed)
+    monkeypatch.setattr(
+        worker,
+        "_run_zerobase2",
+        lambda _path: (_ for _ in ()).throw(AssertionError("must not fallback")),
+    )
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "http://127.0.0.1:28764"},
+            files={"file": ("H06.png", b"signed-source", "image/png")},
+            data={"output_format": "svg"},
+        )
+    assert response.status_code == 503
+
+
 def test_zerobase2_endpoint_fails_closed_when_not_authorized(monkeypatch):
     class Decision:
         active_route = "minimalizer2"
@@ -361,3 +424,19 @@ def test_local_worker_parallel_job_guard_still_active(monkeypatch):
                 assert response.json()["detail"] == "Local Minimalizer worker is busy."
     finally:
         worker._process_lock.release()
+
+
+def test_health_reports_active_process_slot(monkeypatch):
+    monkeypatch.setattr(worker, "_process_started_at", worker.perf_counter() - 12.5)
+    monkeypatch.setattr(worker, "_process_endpoint", "zerobase2")
+    try:
+        with TestClient(worker.app) as client:
+            response = client.get("/health")
+        assert response.status_code == 200
+        process = response.json()["process"]
+        assert process["busy"] is True
+        assert process["busy_endpoint"] == "zerobase2"
+        assert process["busy_seconds"] >= 12
+    finally:
+        monkeypatch.setattr(worker, "_process_started_at", None)
+        monkeypatch.setattr(worker, "_process_endpoint", None)

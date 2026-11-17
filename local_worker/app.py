@@ -34,6 +34,12 @@ from minimalize_engine.v2 import (
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
 from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
 from minimalizer_zerobase.production.profile import REVIEWED_SA10_PROFILE
+from tools.research.local_l04_production_bundle import (
+    L04ProductionBundleHold,
+    find_case_for_source,
+    load_configured_release_bundle,
+    read_case_svg,
+)
 logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
@@ -77,9 +83,44 @@ ALLOWED_ORIGINS = tuple(dict.fromkeys((*DEFAULT_ORIGINS, *_extra_origins)))
 
 _runtime_lock = Lock()
 _process_lock = Lock()
+_process_state_lock = Lock()
+_process_started_at: float | None = None
+_process_endpoint: str | None = None
 _rembg_session = None
 _rtmlib_model = None
 _runtime_error: str | None = None
+
+
+def _acquire_process_slot(endpoint: str) -> bool:
+    global _process_started_at, _process_endpoint
+    if not _process_lock.acquire(blocking=False):
+        return False
+    with _process_state_lock:
+        _process_started_at = perf_counter()
+        _process_endpoint = endpoint
+    return True
+
+
+def _release_process_slot() -> None:
+    global _process_started_at, _process_endpoint
+    with _process_state_lock:
+        _process_started_at = None
+        _process_endpoint = None
+    _process_lock.release()
+
+
+def _process_status() -> dict[str, object]:
+    with _process_state_lock:
+        started_at = _process_started_at
+        endpoint = _process_endpoint
+    age = None if started_at is None else max(0.0, perf_counter() - started_at)
+    return {
+        "busy": started_at is not None,
+        "busy_seconds": None if age is None else round(age, 3),
+        "busy_endpoint": endpoint,
+    }
+
+
 def _rembg_session_options():
     import onnxruntime as ort
 
@@ -290,6 +331,7 @@ def health():
         "shading_flatten_guard": SHADING_FLATTEN_GUARD,
         "semantic_geometric_mass": GEOMETRIC_MASS_ENABLED,
         "runtime_error": _runtime_error,
+        "process": _process_status(),
     }
 
 
@@ -344,8 +386,67 @@ def _run_zerobase2(input_path: Path):
         return final_path.read_bytes(), summary
 
 
+def _formal_l04_case_for_source(content: bytes) -> tuple[str, bytes, str]:
+    """Return the exact approved SVG for a matching signed source."""
+    try:
+        bundle = load_configured_release_bundle()
+    except L04ProductionBundleHold as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 bundle is not releasable.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+            },
+        ) from exc
+    if bundle is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 SVG bundle is not configured.",
+            headers={"X-Minimalizer-L04-Release": "NO_GO"},
+        )
+    case = find_case_for_source(bundle, content)
+    if case is None:
+        raise HTTPException(
+            status_code=422,
+            detail="This source image is not one of the formally released L04 cases.",
+            headers={
+                "X-Minimalizer-L04-Failure": "SOURCE_NOT_IN_FORMAL_BUNDLE",
+                "X-Minimalizer-L04-Release": "GO",
+            },
+        )
+    try:
+        svg = read_case_svg(bundle, case)
+    except (OSError, KeyError, L04ProductionBundleHold) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 SVG artifact could not be read.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+            },
+        ) from exc
+    return case, svg, bundle["candidate_receipt_sha256"]
+
+
+def _formal_l04_case_if_available(content: bytes) -> str | None:
+    """Expose availability metadata without weakening the formal SVG route."""
+    try:
+        bundle = load_configured_release_bundle()
+    except (L04ProductionBundleHold, OSError, KeyError, TypeError, ValueError):
+        return None
+    if bundle is None:
+        return None
+    return find_case_for_source(bundle, content)
+
+
 @app.post("/api/zerobase2/minimalize")
-async def minimalize_zerobase2(file: UploadFile = File(...)):
+async def minimalize_zerobase2(
+    file: UploadFile = File(...),
+    output_format: str = Form("png"),
+):
+    if output_format not in {"png", "svg"}:
+        raise HTTPException(status_code=400, detail="Unsupported output format.")
     decision = _zerobase2_route_decision()
     if decision.active_route != ZEROBASE2_ROUTE:
         raise HTTPException(
@@ -355,7 +456,7 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
         )
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
-    if not _process_lock.acquire(blocking=False):
+    if not _acquire_process_slot("zerobase2"):
         raise HTTPException(status_code=429, detail="Local Minimalizer worker is busy.", headers={"Retry-After": "2"})
     started = perf_counter()
     try:
@@ -365,6 +466,20 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
+            if output_format == "svg":
+                case, svg, receipt_sha = _formal_l04_case_for_source(content)
+                return Response(
+                    content=svg,
+                    media_type="image/svg+xml",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="minimalized-{case}.svg"',
+                        "X-Minimalizer-Mode": "l04-formal-svg",
+                        "X-Minimalizer-Route": ZEROBASE2_ROUTE,
+                        "X-Minimalizer-L04-Release": "GO",
+                        "X-Minimalizer-L04-Case": case,
+                        "X-Minimalizer-L04-Candidate-Receipt-SHA256": receipt_sha,
+                    },
+                )
             # The owner-only PWA must not compete for RRM's global heavy slot
             # or depend on its 6 GiB free-RAM admission threshold.
             # _process_lock still enforces one active LocalWorker job.
@@ -380,7 +495,7 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
                     raise HTTPException(status_code=422, detail="ZeroBase2 quality Gate rejected this image at Phase 10 geometry.", headers=headers) from exc
                 raise HTTPException(status_code=503, detail="ZeroBase2 production route failed.", headers={"X-Minimalizer-Route": ZEROBASE2_ROUTE, "X-Minimalizer-Failure-Class": "runtime"}) from exc
     finally:
-        _process_lock.release()
+        _release_process_slot()
         await file.close()
     elapsed_ms = (perf_counter() - started) * 1000.0
     metrics = summary["phase12_metrics"]
@@ -406,6 +521,9 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             "X-Minimalizer-Shape-Count": str(metrics["primitive_count"]),
             "X-Minimalizer-Processing-Ms": f"{elapsed_ms:.1f}",
             "X-Minimalizer-Rollback-Available": str(decision.rollback_available).lower(),
+            "X-Minimalizer-L04-SVG-Available": str(
+                _formal_l04_case_if_available(content) is not None
+            ).lower(),
         },
     )
 
@@ -420,7 +538,7 @@ async def minimalize_local(
         raise HTTPException(status_code=400, detail="Unsupported preset.")
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
-    if not _process_lock.acquire(blocking=False):
+    if not _acquire_process_slot("v2"):
         raise HTTPException(
             status_code=429,
             detail="Local Minimalizer worker is busy.",
@@ -453,7 +571,7 @@ async def minimalize_local(
                     detail="Local high-quality Minimalizer failed.",
                 ) from exc
     finally:
-        _process_lock.release()
+        _release_process_slot()
         await file.close()
     metadata = result.metadata
     actual_shading_flatten = (
