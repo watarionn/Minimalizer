@@ -41,6 +41,10 @@
   `e3a4b368205fb7675cccd487a5bbcc5072abf829afabe78c462ed3d7f6080d41` は現行候補・Worker
   binding `PASS`。既存iPhone receipt `06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`
   は旧Worker `c68dc17…` のため `IPHONE_WORKER_COMMIT_MISMATCH`。後者は現行受入へ再利用しない。
+- 現行WorkerでiPhoneを再受入した後は、raw receiptの `production_commit` を
+  `64cfeb76e5f8ff4e93b6810880c68f1996348ede` にし、raw JSON SHAをbinding JSONへ記録して、
+  `audit_local_l05_current_worker_binding.py` を実行する。現行Worker・Safari・PWA・offline・
+  fallback・Drive readbackが揃ったreceiptだけがbinding `PASS`になる。
 
 ## 検証範囲の注意
 

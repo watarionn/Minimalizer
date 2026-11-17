@@ -94,6 +94,28 @@ def test_stale_iphone_receipt_is_not_rebound_to_current_worker():
         audit_current_worker_binding(receipt, _binding(raw), hashlib.sha256(raw).hexdigest())
 
 
+def test_current_iphone_receipt_can_pass_when_worker_commit_is_current():
+    receipt = {
+        "schema": "minimalizer/local-l05-l07/iphone-acceptance/v1",
+        "production_commit": WORKER,
+        "transport": "private_https",
+        "device": "iphone",
+        "owner_attestation": True,
+        "safari": {"png_result_visible": True, "zerobase2_success_visible": True, "evidence_sha256": _sha("safari")},
+        "pwa": {"png_result_visible": True, "zerobase2_success_visible": True, "evidence_sha256": _sha("pwa")},
+        "offline_restore": {"airplane_mode_round_trip_passed": True},
+        "fallback": {"zerobase2_503_visible": True, "local_v2_success_visible": True, "evidence_sha256": _sha("fallback")},
+        "private_drive_readback": True,
+    }
+    raw = json.dumps(receipt, sort_keys=True).encode()
+
+    result = audit_current_worker_binding(receipt, _binding(raw), hashlib.sha256(raw).hexdigest())
+
+    assert result["status"] == "PASS"
+    assert result["device"] == "iphone"
+    assert result["release_authorized"] is False
+
+
 def test_binding_cannot_claim_a_different_raw_receipt():
     receipt = _pc_receipt()
     raw = json.dumps(receipt, sort_keys=True).encode()
