@@ -10,12 +10,14 @@ from dataclasses import dataclass
 import re
 from typing import Iterable
 
+from tools.research.verify_local_l02_phase4_receipt import SOURCE_SHA256
+
 
 class TrainingManifestHold(ValueError):
     """Raised when the observer training manifest would contaminate holdout."""
 
 
-HOLDOUT_CASES = frozenset({"H04", "H06", "H08"})
+HOLDOUT_CASES = frozenset(SOURCE_SHA256)
 ALLOWED_SPLITS = frozenset({"train", "validation", "holdout"})
 REQUIRED_ANNOTATION_ROLES = frozenset(
     {
@@ -77,6 +79,10 @@ def _sample(sample: TrainingSample) -> None:
         raise TrainingManifestHold("UNDECLARED_HOLDOUT_CASE")
     if sample.split != "holdout" and sample.case_id in HOLDOUT_CASES:
         raise TrainingManifestHold("HOLDOUT_IN_TRAINING_DATA")
+    if sample.split == "holdout" and sample.source_sha256 != SOURCE_SHA256[sample.case_id]:
+        raise TrainingManifestHold("HOLDOUT_SOURCE_MISMATCH")
+    if sample.split != "holdout" and sample.source_sha256 in SOURCE_SHA256.values():
+        raise TrainingManifestHold("HOLDOUT_SOURCE_IN_TRAINING_DATA")
 
 
 def validate_training_manifest(manifest: TrainingManifest) -> dict[str, object]:
@@ -95,6 +101,7 @@ def validate_training_manifest(manifest: TrainingManifest) -> dict[str, object]:
         raise TrainingManifestHold("EMPTY_SAMPLES")
 
     sample_ids: set[str] = set()
+    source_splits: dict[str, str] = {}
     split_characters: dict[str, set[str]] = {split: set() for split in ALLOWED_SPLITS}
     holdout_cases: set[str] = set()
     for sample in manifest.samples:
@@ -102,12 +109,16 @@ def validate_training_manifest(manifest: TrainingManifest) -> dict[str, object]:
         if sample.sample_id in sample_ids:
             raise TrainingManifestHold("DUPLICATE_SAMPLE_ID")
         sample_ids.add(sample.sample_id)
+        if source_splits.setdefault(sample.source_sha256, sample.split) != sample.split:
+            raise TrainingManifestHold("SOURCE_LEAK_ACROSS_SPLITS")
         split_characters[sample.split].add(sample.character_id)
         if sample.split == "holdout":
             holdout_cases.add(sample.case_id)
 
     if holdout_cases != HOLDOUT_CASES:
         raise TrainingManifestHold("INCOMPLETE_HOLDOUT_CASES")
+    if not split_characters["train"] or not split_characters["validation"]:
+        raise TrainingManifestHold("EMPTY_TRAIN_OR_VALIDATION")
     if split_characters["holdout"] & (
         split_characters["train"] | split_characters["validation"]
     ):

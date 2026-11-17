@@ -1,4 +1,9 @@
+from dataclasses import replace
+from hashlib import sha256
+
 import pytest
+
+from tools.research.verify_local_l02_phase4_receipt import SOURCE_SHA256
 
 from tools.research.local_l02_observer_training_manifest import (
     HOLDOUT_CASES,
@@ -29,7 +34,7 @@ def _sample(sample_id, character_id, case_id, split):
         character_id=character_id,
         case_id=case_id,
         split=split,
-        source_sha256=SHA,
+        source_sha256=SOURCE_SHA256.get(case_id, sha256(case_id.encode()).hexdigest()),
         annotation_sha256=SHA,
     )
 
@@ -85,4 +90,35 @@ def test_unknown_role_cannot_be_dropped():
         annotation_roles=REQUIRED_ANNOTATION_ROLES - {"unknown"},
     )
     with pytest.raises(TrainingManifestHold, match="INCOMPLETE_ANNOTATION_ROLES"):
+        validate_training_manifest(_manifest(samples=samples))
+
+
+@pytest.mark.parametrize("split", ["train", "validation"])
+@pytest.mark.parametrize("case_id", sorted(HOLDOUT_CASES))
+def test_signed_holdout_bytes_with_unrelated_ids_are_rejected(split, case_id):
+    samples = _valid_samples()
+    samples.append(replace(_sample("alias", "other-person", "other-case", split),
+                           source_sha256=SOURCE_SHA256[case_id]))
+    with pytest.raises(TrainingManifestHold, match="HOLDOUT_SOURCE_IN_TRAINING_DATA"):
+        validate_training_manifest(_manifest(samples=samples))
+
+
+def test_swapped_holdout_source_is_rejected():
+    samples = _valid_samples()
+    samples[-1] = replace(samples[-1], source_sha256=SOURCE_SHA256["H06"])
+    with pytest.raises(TrainingManifestHold, match="HOLDOUT_SOURCE_MISMATCH"):
+        validate_training_manifest(_manifest(samples=samples))
+
+
+def test_renamed_train_image_in_validation_is_rejected():
+    samples = _valid_samples()
+    samples[1] = replace(samples[1], source_sha256=samples[0].source_sha256)
+    with pytest.raises(TrainingManifestHold, match="SOURCE_LEAK_ACROSS_SPLITS"):
+        validate_training_manifest(_manifest(samples=samples))
+
+
+@pytest.mark.parametrize("missing", ["train", "validation"])
+def test_train_and_validation_must_each_have_samples(missing):
+    samples = [sample for sample in _valid_samples() if sample.split != missing]
+    with pytest.raises(TrainingManifestHold, match="EMPTY_TRAIN_OR_VALIDATION"):
         validate_training_manifest(_manifest(samples=samples))
