@@ -22,8 +22,15 @@ class ObserverEvidenceHold(ValueError):
 
 
 REQUIRED_MASK_ROLES = frozenset({"outerwear", "underlayer", "sleeve", "arm"})
+REQUIRED_OCCLUSION_CAPABILITIES = frozenset(
+    {
+        "occlusion_outerwear_underlayer",
+        "occlusion_sleeve_arm",
+        "occlusion_garment_body",
+    }
+)
 REQUIRED_CAPABILITIES = frozenset(
-    {*REQUIRED_MASK_ROLES, "occlusion_relation", "instance_grouping"}
+    {*REQUIRED_MASK_ROLES, *REQUIRED_OCCLUSION_CAPABILITIES, "instance_grouping"}
 )
 REQUIRED_OCCLUSION_PAIRS = frozenset(
     {
@@ -192,7 +199,7 @@ def assess_observer_evidence(
             owner_arrays_used=False,
             unknown_not_treated_as_negative=True,
             observed_capabilities=tuple(sorted(seen_roles)),
-            missing_capabilities=missing + ("occlusion_relation", "instance_grouping"),
+            missing_capabilities=tuple(sorted(REQUIRED_CAPABILITIES - seen_roles)),
             reason="required role evidence is missing",
         )
 

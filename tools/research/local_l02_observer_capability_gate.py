@@ -22,7 +22,9 @@ REQUIRED_CAPABILITIES = frozenset(
         "underlayer",
         "sleeve",
         "arm",
-        "occlusion_relation",
+        "occlusion_outerwear_underlayer",
+        "occlusion_sleeve_arm",
+        "occlusion_garment_body",
         "instance_grouping",
     }
 )

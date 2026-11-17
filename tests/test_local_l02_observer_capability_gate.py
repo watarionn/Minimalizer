@@ -21,7 +21,16 @@ class ObserverCapabilityGateTests(unittest.TestCase):
         self.assertFalse(result["formal_probe_allowed"])
         self.assertEqual(
             result["missing_capabilities"],
-            ("arm", "instance_grouping", "occlusion_relation", "outerwear", "sleeve", "underlayer"),
+            (
+                "arm",
+                "instance_grouping",
+                "occlusion_garment_body",
+                "occlusion_outerwear_underlayer",
+                "occlusion_sleeve_arm",
+                "outerwear",
+                "sleeve",
+                "underlayer",
+            ),
         )
 
     def test_complete_contract_only_admits_research_probe(self):
@@ -34,7 +43,9 @@ class ObserverCapabilityGateTests(unittest.TestCase):
                 "underlayer",
                 "sleeve",
                 "arm",
-                "occlusion_relation",
+                "occlusion_outerwear_underlayer",
+                "occlusion_sleeve_arm",
+                "occlusion_garment_body",
                 "instance_grouping",
             ),
         )

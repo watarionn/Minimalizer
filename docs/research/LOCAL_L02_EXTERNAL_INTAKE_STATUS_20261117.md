@@ -47,5 +47,16 @@ SDKまたは学習入力が届いたら、非公開作業領域へ置き、次�
 4. capability gateが六能力、unknown、source境界、人物分離をPASSした場合だけ、
    Phase4用候補を作る。
 
+## source-free intake監査
+
+`tools/research/audit_local_l02_observer_intake.py` を追加した。`checkpoint` 経路は
+重みSHA、固定revision、六能力の個別出力契約、unknown分離、三例同一設定を確認する。
+`training` 経路はCubism Coreの必要ファイル・ディレクトリと、catalog importerの
+別人物train/validation/holdout境界を一括確認する。どちらも画像・マスク・NPZ・レビューを
+開かず、PASSしても研究probeだけを許可し、Phase4・Phase5・本番権限は付与しない。
+
+現時点のテストでは、この監査を含むAの関連テストが `89 passed`。実資材の到着判定は
+別途この監査を実行して行い、現在の未到着状態をPASSへ読み替えない。
+
 この記録はライセンス判定ではなく、Aの実行入力が現時点で未到着であることを
 固定するためのsource-free台帳である。
