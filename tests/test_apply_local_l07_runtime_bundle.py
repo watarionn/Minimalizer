@@ -4,6 +4,7 @@ import shutil
 
 import pytest
 
+from tools.research import apply_local_l07_runtime_bundle as apply_module
 from tools.research.apply_local_l07_runtime_bundle import apply_bundle
 from tools.research.prepare_local_l07_runtime_bundle import FILES, prepare
 
@@ -91,3 +92,35 @@ def test_apply_rejects_nonproduction_target_without_test_escape(tmp_path):
             owner_approved=True,
             expected_worker=worker,
         )
+
+
+def test_apply_restores_replaced_files_when_a_later_copy_fails(tmp_path, monkeypatch):
+    bundle = tmp_path / "bundle"
+    target = tmp_path / "target"
+    backup = tmp_path / "backup"
+    prepare(ROOT, bundle)
+    worker = _git_target(ROOT, target)
+    first = target / FILES[0]
+    second_source = (bundle / FILES[1]).resolve()
+    first.write_bytes(b"pre-existing runtime bytes")
+    original_copy2 = apply_module.shutil.copy2
+
+    def fail_on_second_source(source, destination):
+        if Path(source).resolve() == second_source:
+            raise OSError("INJECTED_COPY_FAILURE")
+        return original_copy2(source, destination)
+
+    monkeypatch.setattr(apply_module.shutil, "copy2", fail_on_second_source)
+    with pytest.raises(OSError, match="INJECTED_COPY_FAILURE"):
+        apply_bundle(
+            bundle,
+            target,
+            backup,
+            owner_approved=True,
+            allow_nonproduction_target=True,
+            expected_worker=worker,
+        )
+
+    assert first.read_bytes() == b"pre-existing runtime bytes"
+    assert (target / FILES[1]).read_bytes() == (ROOT / FILES[1]).read_bytes()
+    assert not (backup / "runtime-apply-manifest.json").exists()
