@@ -49,6 +49,23 @@ if errorlevel 1 (echo L07_APPLY_HOLD & exit /b 2)
 Worker再起動やhealth読み戻しを行わないため、出力JSONとバックアップを保存した後に、
 既存の所有者承認済み方法でruntimeを再起動し、下記の反映後確認へ進む。
 
+## 再起動後のruntime/health receipt生成
+
+再起動後にだけ実行する。これは読み取り専用で、4ファイルのSHA、Worker HEAD、SW世代、
+正式L04経路、private HTTPS healthを照合し、source-freeのruntime/health JSONを作る。
+
+```cmd
+set "RUNTIME_RECEIPT=C:\Work\Temp\L07_RUNTIME_RECEIPT.json"
+set "HEALTH_RECEIPT=C:\Work\Temp\L07_HEALTH_RECEIPT.json"
+cd /d C:\Work\Temp\minimalizer-l07-pinned-20261117
+python tools\research\audit_local_l07_runtime_readback.py --runtime-root "C:\Work\Projects\_runtime\minimalizer-production" --bundle "C:\Work\Temp\L07_RUNTIME_STAGING_20261117-v2" --health-url "https://ywshtmr.tail8fd68c.ts.net:28765/health" --runtime-output "%RUNTIME_RECEIPT%" --health-output "%HEALTH_RECEIPT%" --owner-action-confirmed --insecure
+if errorlevel 1 (echo L07_READBACK_HOLD & exit /b 3)
+type "%RUNTIME_RECEIPT%"
+type "%HEALTH_RECEIPT%"
+```
+
+このreadbackがPASSになるまで、L07 receiptを最終releaseへ結合しない。
+
 ## 所有者によるruntime反映後のcmd確認
 
 runtimeの既存未追跡`dist\`は削除・上書きしない。反映方法は既存の所有者承認済み手順だけを使う。
