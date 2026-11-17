@@ -32,6 +32,9 @@
   実機受入、回帰、保存の9 receiptをsource-freeに一括監査できる。
 - completion gate CLIの直接cmd起動経路を修正し、`python tools\research\audit_local_completion_release.py --help`
   を実行できることと、その回帰テストを追加した。
+- 旧L05 owner receiptを現行候補・Workerへ結び付ける
+  `audit_local_l05_current_worker_binding.py` を追加した。receipt本体のSHAを別binding
+  JSONへ固定し、現行Worker以外のiPhone receiptを自動HOLDにする。これはrelease許可ではない。
 
 ## 検証範囲の注意
 
