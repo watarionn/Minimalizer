@@ -1,0 +1,51 @@
+# Aレーン外部入力の現行到着状況 — 2026-11-17
+
+## 目的
+
+六能力observerまたは別人物データ学習を成立させるための外部入力について、
+到着済みの資材と未到着の資材を固定する。過去のH04/H06/H08評価資材を、
+学習入力や新規observerの根拠へ誤用しない。
+
+## 現行確認
+
+- ローカルに `Live2DCubismCore.h`、Windows x64のCore library、
+  `Samples/Common` は存在しない。
+- ローカルのCubismPartExtr作業コピーには、モデル資材と抽出コードはあるが、
+  Cubism Core SDKがないため実行可能な抽出結果を作れていない。
+- Google Driveの限定検索（`Cubism SDK`、`CubismPartExtr`、`Live2D`、
+  `六能力 observer`、`pairwise occlusion`、`H06 H08`）では、
+  新しいSDK、六能力checkpoint、別人物の注釈済み学習catalogは見つからなかった。
+- Driveで確認できた `L02_H06_H08_NEW_BLIND_AUDIT_20261108` は既存の
+  H06/H08評価用画像・NPZ・結果JSONであり、H04/H06/H08を学習・閾値決定へ
+  使用してはならない。
+
+## 未到着の実装入力
+
+次のいずれかが揃うまで、Aのobserver昇格はHOLDとする。
+
+### ルートI: 実行可能checkpoint
+
+- 固定revisionと重みSHA
+- 外衣、下層衣装、袖、腕、3組のpairwise遮蔽、人物内instanceの出力
+- unknownを陰性へ変換しない出力schema
+- 署名済み元画像だけでsource-only推論できる実行手順
+
+### ルートII: 別人物学習入力
+
+- Cubism Core SDKを使った別人物モデルの抽出結果、または同等の別人物データ
+- 9役割（6能力、3遮蔽、unknown）のpixel annotation
+- source署名、annotation SHA、人物単位のtrain/validation分離
+- H04/H06/H08をholdoutにしたtraining manifest
+
+## 次の所有者操作
+
+SDKまたは学習入力が届いたら、非公開作業領域へ置き、次の順で読む。
+
+1. SDK/header/libraryまたはcheckpointのSHAを記録する。
+2. `import_live2d_training_catalog.py` とtraining manifestで入力境界を検証する。
+3. H04/H06/H08を推論前に開かず、同一設定でsource-only一括推論する。
+4. capability gateが六能力、unknown、source境界、人物分離をPASSした場合だけ、
+   Phase4用候補を作る。
+
+この記録はライセンス判定ではなく、Aの実行入力が現時点で未到着であることを
+固定するためのsource-free台帳である。
