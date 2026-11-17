@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Minimalizer Public / R67〜R73 比較プレビュー</title>
+<style>
+  :root { font-family: -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif; color:#242424; background:#fafaf8; }
+  * {box-sizing:border-box;}
+  body{margin:0;padding:0 18px 52px;}
+  .wrap{max-width:1120px;margin:0 auto;}
+  header{padding:26px 0 28px;border-bottom:1px solid #c8c8c4;}
+  .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#666;margin:0 0 13px;}
+  h1{font-size:clamp(1.4rem,3vw,2.5rem);letter-spacing:-.025em;font-weight:650;margin:0 0 13px;}
+  h2{font-size:1.5rem;margin:32px 0 13px;}
+  p{font-size:.94rem;line-height:1.9;max-width:760px;}
+  a{color:#155e82;text-underline-offset:3px;}
+  .status{font-weight:650;}
+  .sample{border-top:1px solid #cacac6;margin-top:28px;padding-top:4px;}
+  .figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:12px 0 30px;}
+  figure{margin:0;min-width:0;}
+  .figures img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border:1px solid #ddd;image-rendering:pixelated;}
+  figcaption{font-size:.82rem;color:#535353;line-height:1.6;margin-top:8px;}
+  .magnify{display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:end;padding:20px 0;border-top:1px solid #deded9;}
+  .magnify h3{margin:0 0 10px;font-size:1rem;}
+  .zoomcell canvas{width:min(170px,100%);height:auto;aspect-ratio:1;background:white;border:1px solid #d5d5d5;image-rendering:pixelated;}
+  .magnifyControls{margin:0 0 22px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+  button{background:white;border:1px solid #aaa;color:#242424;font:inherit;font-size:.88rem;padding:8px 13px;cursor:pointer;border-radius:3px;min-height:40px;}
+  button:focus-visible,a:focus-visible{outline:3px solid #155e82;outline-offset:3px;}
+  button:hover{background:#f0f0eb;}
+  output{font-size:.83rem;color:#555;min-width:68px;}
+  .notes{border-top:1px solid #c8c8c4;padding-top:20px;margin-top:35px;font-size:.88rem;color:#4e4e4e;}
+  @media(max-width:750px){
+    .figures{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .figures figure:last-child{grid-column:span 2;max-width:360px;}
+    .magnify{grid-template-columns:1fr 1fr;gap:12px;}
+    .magnify h3{grid-column:span 2;}
+    .zoomcell canvas{width:100%;max-width:190px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Minimalizer Public / Research Preview / 2026.10.10</p>
+    <h1>R67〜R73 パーツ輪郭の比較</h1>
+    <p class="status">研究用の比較表示です。通常の画像変換処理は変更していません。</p>
+    <p>署名済みStage8の元の11パーツ合成と、元画像の色差・境界を調べて選んだ微小な輪郭候補を、実際の本番サイト上で見比べられます。顔の目・鼻・口などは新しく描いていません。ここに掲載する画像は元写真ではなく、既存の色とパーツマスクから作った比較画像です。</p>
+    <p><a href="../">通常のMinimalizerに戻る</a>　/　<a href="../?browserFallback=force&amp;browserFallbackQuality=facet">Facet品質モードを試す</a>　/　<a href="sa1041-preview.html">以前のSA10.41全体比較</a></p>
+  </header>
+  <main>
+    <section class="sample" data-case="gc001">
+      <h2>GC001</h2>
+      <p>実際に変わるのは <strong>12画素</strong>。右腕8・左腕3・服1。写真との数値的な差分は小さく改善しましたが、パーツの意味的な正しさは未承認です。</p>
+      <div class="figures">
+        <figure><img alt="GC001 元のStage8所有者マスク合成" src="public-r67-review-20261010/gc001-before.png"><figcaption>変更前：Stage8所有者マスク</figcaption></figure>
+        <figure><img alt="GC001 研究用の輪郭変更候補" src="public-r67-review-20261010/gc001-after.png"><figcaption>研究候補：R67〜R73</figcaption></figure>
+        <figure><img alt="GC001 差分画素を紫色で示した地図" src="public-r67-review-20261010/gc001-diff.png"><figcaption>差分位置：紫色が変更画素</figcaption></figure>
+      </div>
+      <div class="magnifyControls"><button type="button" data-move="-1">前の差分</button><button type="button" data-move="1">次の差分</button><output aria-live="polite">画像を読み込み中</output></div>
+      <div class="magnify"><h3>差分部分を20画素四方で拡大</h3><div class="zoomcell"><canvas width="180" height="180" data-stage="before" role="img" aria-label="GC001 変更前の輪郭拡大"></canvas><figcaption>変更前</figcaption></div><div class="zoomcell"><canvas width="180" height="180" data-stage="after" role="img" aria-label="GC001 研究候補の輪郭拡大"></canvas><figcaption>研究候補</figcaption></div></div>
+    </section>
+    <section class="sample" data-case="raden">
+      <h2>Raden</h2>
+      <p>実際に変わるのは <strong>7画素</strong>。右腕3・服4。左腕の変更は追加検証で除外しました。</p>
+      <div class="figures">
+        <figure><img alt="Raden 元のStage8所有者マスク合成" src="public-r67-review-20261010/raden-before.png"><figcaption>変更前：Stage8所有者マスク</figcaption></figure>
+        <figure><img alt="Raden 研究用の輪郭変更候補" src="public-r67-review-20261010/raden-after.png"><figcaption>研究候補：R67〜R73</figcaption></figure>
+        <figure><img alt="Raden 差分画素を紫色で示した地図" src="public-r67-review-20261010/raden-diff.png"><figcaption>差分位置：紫色が変更画素</figcaption></figure>
+      </div>
+      <div class="magnifyControls"><button type="button" data-move="-1">前の差分</button><button type="button" data-move="1">次の差分</button><output aria-live="polite">画像を読み込み中</output></div>
+      <div class="magnify"><h3>差分部分を20画素四方で拡大</h3><div class="zoomcell"><canvas width="180" height="180" data-stage="before" role="img" aria-label="Raden 変更前の輪郭拡大"></canvas><figcaption>変更前</figcaption></div><div class="zoomcell"><canvas width="180" height="180" data-stage="after" role="img" aria-label="Raden 研究候補の輪郭拡大"></canvas><figcaption>研究候補</figcaption></div></div>
+    </section>
+  </main>
+  <footer class="notes"><p>判定：研究段階・本番の通常変換への採用は未実施。R67〜R73は指定された2件のStage8所有者マスクの確認結果であり、任意の画像アップロードを処理する新エンジンではありません。画像は署名済み元写真から抽出済みの既存11色領域のみを使用し、元写真そのものを公開していません。</p><p>端末内で画像を読み込むだけの比較ページです。写真をアップロードしたり、外部の計算サーバーに送信したりしません。</p></footer>
+</div>
+<script>
+(() => {
+  const SIZE=340, WINDOW=20, MAG=180;
+  function load(url){
+    return new Promise((resolve,reject)=>{
+      const im=new Image(); im.onload=()=>resolve(im); im.onerror=()=>reject(new Error("比較画像を読み込めません")); im.src=url;
+    });
+  }
+  function pixels(im){
+    const c=document.createElement("canvas"); c.width=SIZE; c.height=SIZE;
+    const ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(im,0,0,SIZE,SIZE);
+    return ctx.getImageData(0,0,SIZE,SIZE).data;
+  }
+  function zoom(canvas,img,point){
+    const ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,MAG,MAG);
+    const half=WINDOW/2, x=Math.max(0,Math.min(SIZE-WINDOW,point[0]-half));
+    const y=Math.max(0,Math.min(SIZE-WINDOW,point[1]-half));
+    ctx.drawImage(img,x,y,WINDOW,WINDOW,0,0,MAG,MAG);
+    ctx.strokeStyle="#ad2b78";ctx.lineWidth=1;ctx.strokeRect(MAG/2-4,MAG/2-4,8,8);
+  }
+  document.querySelectorAll(".sample").forEach(async section=>{
+    const images=section.querySelectorAll(".figures img");
+    const buttons=section.querySelectorAll("button[data-move]");
+    const status=section.querySelector("output");
+    const beforeCanvas=section.querySelector('canvas[data-stage="before"]');
+    const afterCanvas=section.querySelector('canvas[data-stage="after"]');
+    try {
+      const [before,after]=await Promise.all([load(images[0].src),load(images[1].src)]);
+      const a=pixels(before),b=pixels(after),changes=[];
+      for(let pixel=0;pixel<SIZE*SIZE;pixel++){
+        const i=pixel*4;
+        if(a[i]!==b[i]||a[i+1]!==b[i+1]||a[i+2]!==b[i+2])changes.push([pixel%SIZE,Math.floor(pixel/SIZE)]);
+      }
+      if(!changes.length){status.textContent="差分0画素";buttons.forEach(b=>b.disabled=true);return;}
+      let index=0;
+      function draw(){
+        zoom(beforeCanvas,before,changes[index]);zoom(afterCanvas,after,changes[index]);
+        status.textContent=(index+1)+" / "+changes.length+"画素";
+      }
+      buttons.forEach(button=>button.addEventListener("click",()=>{
+        index=(index+Number(button.dataset.move)+changes.length)%changes.length;draw();
+      }));
+      images[0].addEventListener("click",event=>{
+        const rect=event.target.getBoundingClientRect();
+        const x=Math.max(0,Math.min(339,Math.floor((event.clientX-rect.left)*SIZE/rect.width)));
+        const y=Math.max(0,Math.min(339,Math.floor((event.clientY-rect.top)*SIZE/rect.height)));
+        let best=0,dist=Infinity;
+        changes.forEach(([xx,yy],i)=>{const d=(xx-x)**2+(yy-y)**2;if(d<dist){dist=d;best=i;}});
+        index=best;draw();
+      });
+      draw();
+    }catch(e){status.textContent="画像の読み込みに失敗しました。ページを更新してください。";}
+  });
+})();
+</script>
+</body>
+</html>
