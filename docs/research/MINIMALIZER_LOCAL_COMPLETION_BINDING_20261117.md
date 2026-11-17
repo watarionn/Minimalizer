@@ -137,6 +137,9 @@
   一つのsource-free receiptへ結合するが、owner反映済みの明示receiptがない限りHOLDにする。
   現行runtimeの監査結果は引き続き `SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK` である。
   L06/L07を含む選択テストは `47 passed`。
+- runtime readback CLIを追加し、staging 4ファイルSHA、Worker HEAD、SW世代、正式L04経路、
+  private HTTPS healthからruntime/health receiptを生成できるようにした。旧runtimeへ実行した
+  readbackは `HOLD / RUNTIME_FILE_SHA_MISMATCH` となり、反映済みとは扱っていない。
 - Aのローカル資材をメタデータだけ再確認し、19-part SAMの不足能力、Fashionpedia/Sapiens2の
   現行contract・三例receipt不足をsource-free台帳へ記録した。重みの存在だけでobserverを
   昇格させず、Aの現状は `CAPABILITY_HOLD` / `TRAINING_INPUT_HOLD` のままとした。
