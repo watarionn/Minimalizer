@@ -93,6 +93,11 @@
   `PASS`のままだが、`production=NO_GO`、`release_authorized=false`、Phase5昇格未許可だった。
   現行BのSW/route静的監査はgeneration `minimalizer-local-20261117-2`、世代固定・rollback保持・
   offline shellを `PASS` としたが、`live_iphone_e2e_verified=false`、実機受入には流用しない。
+- 同じ静的監査を本番runtime checkout `64cfeb76e5f8ff4e93b6810880c68f1996348ede` に適用すると、
+  `SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK` でFAILした。runtimeのSWは generation
+  `minimalizer-local-20261107-1` で、activate時に旧世代cacheを削除する。リポジトリ側の
+  `minimalizer-local-20261117-2` 契約とは不一致であり、runtimeの未追跡 `dist/` は変更していない。
+  現行Workerの健康状態PASSを、L07正式反映PASSへ読み替えない。
 
 ## 検証範囲の注意
 
