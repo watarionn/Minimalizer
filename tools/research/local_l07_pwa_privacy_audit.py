@@ -120,7 +120,22 @@ def audit(repo_root:Path):
 
 if __name__=="__main__":
     import argparse
+    import sys
     p=argparse.ArgumentParser()
     p.add_argument("repository_root",type=Path)
+    p.add_argument("--output",type=Path)
     a=p.parse_args()
-    print(json.dumps(audit(a.repository_root),ensure_ascii=False,sort_keys=True,indent=2))
+    try:
+        result=audit(a.repository_root)
+        result={"status":"PASS",**result}
+        exit_code=0
+    except PrivacyHold as exc:
+        result={"schema":"minimalizer/local-l07/privacy-static/v2",
+                "status":"HOLD","failures":[str(exc)],
+                "production_changes":False,"release_authorized":False}
+        exit_code=2
+    encoded=json.dumps(result,ensure_ascii=False,sort_keys=True,indent=2)+"\n"
+    if a.output is not None:
+        a.output.write_text(encoded,encoding="utf-8")
+    print(encoded,end="")
+    raise SystemExit(exit_code)

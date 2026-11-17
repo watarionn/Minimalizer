@@ -1,5 +1,7 @@
 """Synthetic fail-closed Local PWA cache policy tests. No real worker required."""
 import sys
+import json
+import subprocess
 from pathlib import Path
 import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"tools"/"research"))
@@ -96,6 +98,17 @@ def test_static_audit_never_claims_live_iphone_or_release():
     r=audit(ROOT)
     assert r["L07_actual_live_iphone"]=="NOT_TESTED"
     assert r["L08_release"]=="NOT_APPROVED"
+
+def test_cli_emits_machine_readable_pass_receipt(tmp_path):
+    script=ROOT/"tools/research/local_l07_pwa_privacy_audit.py"
+    output=tmp_path/"l07.json"
+    result=subprocess.run(
+        [sys.executable,str(script),str(ROOT),"--output",str(output)],
+        capture_output=True,text=True,check=False,
+    )
+    assert result.returncode==0
+    assert json.loads(result.stdout)["status"]=="PASS"
+    assert json.loads(output.read_text(encoding="utf-8"))["status"]=="PASS"
 
 def test_generation_mismatch_is_rejected():
     bad=ROUTE.replace("minimalizer-local-20261117-2","minimalizer-local-20261117-3")

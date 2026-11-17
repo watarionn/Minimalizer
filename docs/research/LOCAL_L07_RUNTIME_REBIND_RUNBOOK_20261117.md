@@ -24,7 +24,7 @@ source側のgeneration-pinned実装を本番へ反映する前後に、所有者
 ```cmd
 cd /d C:\Work\Temp\minimalizer-l07-pinned-20261117
 git rev-parse HEAD
-python tools\research\local_l07_pwa_privacy_audit.py .
+python tools\research\local_l07_pwa_privacy_audit.py . --output C:\Work\Temp\L07_SOURCE_AUDIT.json
 node --check local_worker\frontend\sw.js
 ```
 
@@ -37,7 +37,7 @@ runtimeの既存未追跡`dist\`は削除・上書きしない。反映方法は
 ```cmd
 cd /d C:\Work\Projects\_runtime\minimalizer-production
 git rev-parse HEAD
-python C:\Work\Temp\minimalizer-l07-pinned-20261117\tools\research\local_l07_pwa_privacy_audit.py .
+python C:\Work\Temp\minimalizer-l07-pinned-20261117\tools\research\local_l07_pwa_privacy_audit.py . --output C:\Work\Temp\L07_RUNTIME_AUDIT.json
 curl.exe -k -sS https://ywshtmr.tail8fd68c.ts.net:28765/health
 ```
 

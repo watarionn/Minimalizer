@@ -101,6 +101,11 @@
 - runtime再結合前後のowner-only確認手順を `docs/research/LOCAL_L07_RUNTIME_REBIND_RUNBOOK_20261117.md`
   に追加した。これは反映を実行せず、未追跡 `dist/` を保護したまま、SHA・SW監査・health・
   rollback・実機受入の順序を固定する。
+- L07静的監査CLIにfail-closed JSON出力を追加し、runtimeへ実行した結果を
+  `C:\Work\Temp\L07_RUNTIME_AUDIT_20261117.json` に保存した。結果は
+  `status=HOLD`、`release_authorized=false`、失敗理由は
+  `SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK`。source側とrelease gate関連の選択Pythonテストは
+  `39 passed`。
 
 ## 検証範囲の注意
 
