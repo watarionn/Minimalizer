@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `f39209e`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `533c370` |
+| B現行head | `90ec03b` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -71,6 +71,10 @@
   `381b0b5a…` への明示bindingを持たない。また同receiptの `phase5=NO_GO` と、別ファイルの
   Phase5入力監査 `phase5=READY` は同じ意味ではない。したがって、これらを現行候補の
   Phase4/Phase5正式PASSへ自動流用しない。現行候補へ結合した独立Phase4とPhase5 exact replayが必要である。
+- このbinding欠落を埋めるsource-free検証器
+  `tools/research/bind_local_l02_phase4_candidate.py` と4件のfail-closedテストを追加した。
+  三例のsource SHA・candidate配列SHAを明示するbinding manifestがない限り、採用候補
+  `381b0b5a…` へ結合せずHOLDにする。今回の検証はPython `28 passed`、release権限は付与しない。
 
 ## 検証範囲の注意
 
