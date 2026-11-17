@@ -104,6 +104,14 @@ training manifestがPASSした後にだけ学習し、固定checkpointで三例�
 したがって、既存重みのラベル名変更・複数observerの単純連結・破損重みの復元推測は行わず、
 実行可能な六能力checkpointまたは別人物学習データを次の実装入力として要求する。
 
+なお、ローカルのGroundingDINO + SAM2.1 Hiera Tiny source-only probe
+(`LangSAM20261110/run_receipt.json`, SHA-256
+`3f250f3374572a095cc1bc852de05c289d01ce41877616a52298d2fd1718ca38`) は、
+`human_inputs_read=false`、`source_only=true`で、arm/sleeveおよび衣装候補を出力する。
+しかし、出力receiptにpairwise遮蔽関係と人物内instance groupingがなく、衣装promptも
+underlayerの意味保証ではない。このため既存の六能力契約へは昇格せず、Aの実行入力は
+依然として未充足である。
+
 ## 完成判定
 
 次の順序を崩さない。
