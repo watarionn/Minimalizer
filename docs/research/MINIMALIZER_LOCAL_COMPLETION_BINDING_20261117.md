@@ -23,7 +23,16 @@
 - 現行WorkerへのPC private HTTPSは、PNG成功2経路、415/429/503、入力・出力SHA読戻しを再確認した。iPhoneは現行Workerで未受入。
 - L07候補はcache-first、世代固定、クエリ/URLエンコード別名固定、旧世代保持を実装した。
   この台帳のB候補SHAは、独立L04結合readbackまで含む現行PR #465の先端へ更新している。
-- 今回のL04結合テスト29件、L05/L07/release-bindingテスト36件、実SW Node 3件がPASS。
+- 今回のL04/L05/L07/release-bindingテスト64件、実SW Node 3件がPASS。
+
+## 検証範囲の注意
+
+- B変更に関係する選択テスト、実SW、構文検査、差分検査はPASS。
+- リポジトリ全体のpytestは、現行の基底環境と隔離QA環境の双方で、既存テストが
+  要求する任意依存（`scikit-learn`、`playwright`、`torch`、`fastapi`、
+  `scikit-image`等）の未導入によりcollection errorとなった。
+- このcollection errorをB実装のPASSや全体回帰PASSへ読み替えない。全体回帰を
+  正式PASSへするには、依存を固定したCI/QA環境を別途用意する必要がある。
 
 ## 完成結合ゲートの現状
 
