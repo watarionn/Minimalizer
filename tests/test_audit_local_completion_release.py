@@ -41,9 +41,15 @@ def _payloads():
             "candidate_receipt_sha256": C, "L04_formal": "PASS", "Golden": "PASS",
             "production": "GO", "release_authorized": True,
             "triple_case_delivery_verified": True,
+            "source_sha_bound": True, "stage8_json_sha_bound": True,
+            "expanded_svg_sha_bound": True,
         },
         "l05": {"status": "PASS", "candidate_receipt_sha256": C, "production_worker_commit": W},
-        "l07": {"status": "PASS", "candidate_receipt_sha256": C, "production_worker_commit": W},
+        "l07": {
+            "status": "PASS", "candidate_receipt_sha256": C,
+            "production_worker_commit": W, "generation_pinned": True,
+            "rollback_available": True,
+        },
         "acceptance": {
             "status": "PASS", "candidate_receipt_sha256": C, "production_worker_commit": W,
             "pc": True, "iphone_safari": True, "iphone_pwa": True, "png": True,

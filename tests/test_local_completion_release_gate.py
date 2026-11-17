@@ -53,6 +53,9 @@ def _evidence():
         "production": "GO",
         "release_authorized": True,
         "triple_case_delivery_verified": True,
+        "source_sha_bound": True,
+        "stage8_json_sha_bound": True,
+        "expanded_svg_sha_bound": True,
     }
     l05 = {
         "status": "PASS",
@@ -63,6 +66,8 @@ def _evidence():
         "status": "PASS",
         "candidate_receipt_sha256": EXPECTED_CANDIDATE_RECEIPT_SHA256,
         "production_worker_commit": EXPECTED_PRODUCTION_WORKER_COMMIT,
+        "generation_pinned": True,
+        "rollback_available": True,
     }
     acceptance = {
         "status": "PASS",

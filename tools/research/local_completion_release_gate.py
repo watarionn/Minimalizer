@@ -106,8 +106,17 @@ def assess_release_binding(
         _require_equal(failures, l04, key, expected)
     if l04.get("candidate_receipt_sha256") != EXPECTED_CANDIDATE_RECEIPT_SHA256:
         failures.append("L04 candidate binding mismatch")
-    if l04.get("triple_case_delivery_verified") is not True:
-        failures.append("L04 triple-case delivery is not PASS")
+    _require_true(
+        failures,
+        l04,
+        (
+            "triple_case_delivery_verified",
+            "source_sha_bound",
+            "stage8_json_sha_bound",
+            "expanded_svg_sha_bound",
+        ),
+        "L04",
+    )
 
     _bind(failures, a, "A", require_worker=False)
     _require_true(
@@ -163,6 +172,12 @@ def assess_release_binding(
 
     for lane, payload in (("L05", l05), ("L07", l07)):
         _bind(failures, payload, lane, require_worker=True)
+    _require_true(
+        failures,
+        l07,
+        ("generation_pinned", "rollback_available"),
+        "L07",
+    )
 
     _bind(failures, acceptance, "device acceptance", require_worker=True)
     _require_true(
