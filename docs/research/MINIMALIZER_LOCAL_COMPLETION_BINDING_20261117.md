@@ -66,6 +66,11 @@
   `production=NO_GO`、`release_authorized=false` であり、L04/Golden PASSだけで正式releaseへ
   進めない。別のL08 readiness receiptにあるiPhone証拠はWorker `c68dc17…` を参照するため、
   現行Worker証拠列へ結合しない。
+- 2026-11-11の独立Phase4 receiptは内部ケースの候補配列SHA
+  `36bbb780…`、`6034f911…`、`8daafac9…` を記録しているが、採用候補receipt
+  `381b0b5a…` への明示bindingを持たない。また同receiptの `phase5=NO_GO` と、別ファイルの
+  Phase5入力監査 `phase5=READY` は同じ意味ではない。したがって、これらを現行候補の
+  Phase4/Phase5正式PASSへ自動流用しない。現行候補へ結合した独立Phase4とPhase5 exact replayが必要である。
 
 ## 検証範囲の注意
 
