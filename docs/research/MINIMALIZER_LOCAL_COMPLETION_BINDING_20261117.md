@@ -61,6 +61,11 @@
   `zerobase2_authorized=true`、`runtime_error=null` だった。これはWorker反映とhealthの証拠であり、
   iPhone受入、Aの意味品質、正式releaseを完了扱いにはしない。runtime checkoutの既存未追跡
   `dist/` は変更していない。
+- 現行候補SHA `381b0b5a…` に結び付いたL04 v12独立readbackは、候補監査・B delivery・独立性を
+  `PASS`、`L04_formal=PASS`、`Golden=PASS` と記録している。ただし同じreadbackは
+  `production=NO_GO`、`release_authorized=false` であり、L04/Golden PASSだけで正式releaseへ
+  進めない。別のL08 readiness receiptにあるiPhone証拠はWorker `c68dc17…` を参照するため、
+  現行Worker証拠列へ結合しない。
 
 ## 検証範囲の注意
 
