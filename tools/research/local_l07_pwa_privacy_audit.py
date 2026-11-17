@@ -46,9 +46,8 @@ def verify_serviceworker(source:str):
     if ('constCACHE_PREFIX="minimalizer-local-shell-";' not in tight or
             'constCACHE=CACHE_PREFIX+GENERATION;' not in tight):
         raise PrivacyHold("SW_CACHE_NOT_GENERATION_PINNED")
-    if ('key.startsWith(CACHE_PREFIX)&&key!==CACHE' not in tight or
-            'keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE)' not in tight):
-        raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
+    if 'caches.delete(' in tight:
+        raise PrivacyHold("SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
     if "skipWaiting(" in code or "clients.claim(" in code:
@@ -56,19 +55,24 @@ def verify_serviceworker(source:str):
     for fragment in (
         'event.request.method!=="GET"',
         'url.origin!==self.location.origin',
-        '!ASSETS.includes(url.pathname)',
+            '!ASSETS.includes(canonical)',
         'cache.addAll(ASSETS)',
-        'constcacheRequest=newRequest(newURL(url.pathname,self.location.origin).href);',
-        'event.respondWith(fetch(event.request).catch(()=>caches.match(cacheRequest)))',
+        'constcacheRequest=newRequest(newURL(canonical,self.location.origin).href);',
+        'event.respondWith(caches.open(CACHE).then(cache=>cache.match(cacheRequest))',
     ):
         if fragment not in tight:raise PrivacyHold("SW_PRIVACY_GUARD_MISSING:"+fragment)
+    if 'fetch(event.request)' in tight:
+        raise PrivacyHold("SW_NETWORK_FALLBACK_BREAKS_GENERATION_PIN")
+    if 'self.addEventListener("activate"' in tight:
+        raise PrivacyHold("SW_ACTIVATE_CLEANUP_REQUIRES_REVIEW")
     if tight.count('self.addEventListener("fetch"')!=1:
         raise PrivacyHold("SW_UNEXPECTED_EXTRA_FETCH_HANDLER")
     return {"status":"STATIC_SW_PRIVACY_CONTRACT_PASS",
             "generation":gm.group(1),
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
-            "cache_cleanup_namespace_scoped":True,
+            "cache_cleanup_namespace_scoped":False,
+            "old_generation_retained_for_rollback":True,
             "offline_shell_fallback":True,
             "generation_transition_waits_for_navigation":True,
             "live_browser_e2e_verified":False}
