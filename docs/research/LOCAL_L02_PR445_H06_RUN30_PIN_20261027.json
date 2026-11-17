@@ -1,0 +1,9 @@
+{
+  "case": "H06",
+  "class_ids_sha256": "06e02c257d982a4da45ee8f77da8730d91615502eaa2cc9e438068e69e1e286a",
+  "composed_owner_sha256": "4be9ae240b8d32cc6b0923371f5c5b3a6159196ba819aa0b7044c06740a7b317",
+  "decoded_rgba_sha256": "c4c4891542c80d9d2f61c45c1b6794722e5dfceed837179ae83352995e4522b5",
+  "encoded_source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+  "schema": "minimalizer/local-l02/signed-run30-replay-pin/v1",
+  "stage": "RUN30_HISTORICAL"
+}
