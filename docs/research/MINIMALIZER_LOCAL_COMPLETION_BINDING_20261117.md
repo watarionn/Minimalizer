@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `b9c72162`（契約実装の基点 `a21f92f0`） |
-| B現行head | `5a6f3b2dd82391369dee630f5a334d6c6fd3f626` |
+| B現行head | `100cd207bdace40b266969695dff87382f1623c2` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -18,6 +18,11 @@
 - L04のH04/H06/H08三点セットは、元画像・Stage8 JSON・展開SVGのSHA照合が3/3で成立。
 - 既存の独立評価readbackは、同じ候補SHAに対してL04品質 `PASS`、Golden `PASS`を返す。内部candidate summaryの古いHOLDは、再レビューせずsource-free adapterで分離した。
 - Bの三点配信監査は3/3 `PASS`。これはAの意味品質を判定しない。
+- 既存の候補三点セットを非公開 `minimalizer-l04-production-bundle-20261117` へ再配置し、
+  manifest SHA `01584ca9f75e984c28a1ffc85faa468f9ab2f0f59c6d9e354ea7d6bc1ad7ab08` を固定した。
+  L04 production bundle loaderは候補SHA、H04/H06/H08各元画像・Stage8 JSON・展開SVGの
+  9 SHA、相互リンク、安全なSVGを照合して `PASS` を返した。ブラウザ再展開も3/3 `PASS`。
+  これは非公開bundleの準備完了であり、runtimeへの反映・実機受入を意味しない。
 - Aのsource-free外部入力到着台帳は `b9c72162` に更新され、六能力observer未到着の
   状態を現行B結合へ反映している。明示的な三組遮蔽契約、checkpoint/別人物学習の
   二経路intake監査、到着後のcmd runbookを追加したが、実資材はなお
@@ -68,6 +73,9 @@
   `production=NO_GO`、`release_authorized=false` であり、L04/Golden PASSだけで正式releaseへ
   進めない。別のL08 readiness receiptにあるiPhone証拠はWorker `c68dc17…` を参照するため、
   現行Worker証拠列へ結合しない。
+- 今回のowner許可に基づくprivate L04 bundle manifestは、L04専用の
+  `production=GO` / `release_authorized=true` としてloader検証を通過させた。ただし全体の
+  release gateはA Phase4/Phase5、L07 runtime、現行iPhone受入、L06結合が未完了のためHOLDである。
 - 2026-11-11の独立Phase4 receiptは内部ケースの候補配列SHA
   `36bbb780…`、`6034f911…`、`8daafac9…` を記録しているが、採用候補receipt
   `381b0b5a…` への明示bindingを持たない。また同receiptの `phase5=NO_GO` と、別ファイルの
