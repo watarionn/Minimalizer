@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `1623eba`（契約実装の基点 `00e9ebb9`） |
-| B L07候補 | `3adebaa` |
+| B L07候補 | `f912cc8` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -30,6 +30,8 @@
   合格を意味しない。
 - `audit_local_completion_release.py` で、A、Phase4、Phase5、L04/L05/L07、
   実機受入、回帰、保存の9 receiptをsource-freeに一括監査できる。
+- completion gate CLIの直接cmd起動経路を修正し、`python tools\research\audit_local_completion_release.py --help`
+  を実行できることと、その回帰テストを追加した。
 
 ## 検証範囲の注意
 
