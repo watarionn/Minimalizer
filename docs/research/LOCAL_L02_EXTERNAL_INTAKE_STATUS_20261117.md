@@ -19,6 +19,29 @@
   H06/H08評価用画像・NPZ・結果JSONであり、H04/H06/H08を学習・閾値決定へ
   使用してはならない。
 
+## ローカル資材のメタデータ再確認
+
+2026-11-17に、画像・マスク・NPZ・重みの内容を開かず、ファイル名、receipt JSON、
+仕様メタデータ、ファイルSHAだけを再確認した。
+
+- `SAM_BODY_PART_19_CAPABILITY_RECEIPT_20261110.json` は
+  `CAPABILITY_HOLD`。H04/H06/H08で確認できたのは `outerwear` と `sleeve`だけで、
+  `arm`、`underlayer`、遮蔽関係、`instance_grouping`が欠落し、`phase4=FAIL`、
+  `production=NO_GO`である。六能力observerとして採用しない。
+- Fashionpedia系checkpoint `checkpoint_best_ema.pth` は存在するが、SHA
+  `aafefc440ea8f3f388e894a898e4270a2eeb6e38a3c3ffd3751d07d0f30b26bb`に対応する
+  現行observer仕様JSON、固定revision、六能力の個別output contract、三例同一設定の
+  source-only receiptがない。候補重みの存在だけではintake PASSにしない。
+- 既存の `model.safetensors`（SHA
+  `47313d9daf8f759b803b0bf449a4719bcd5b5a46eacad343e99e9660f8cedec1`）と
+  Sapiens2 segmentation重み（SHA
+  `b85fdb50b7d6123a967d5ee4a505e222baff8d2f7ad6bbf353578c1a61dfbac9`）も、現行の
+  六能力・pairwise遮蔽・人物内instance契約を宣言する仕様またはreceiptがないため、
+  observer入力として採用しない。
+
+この再確認で「重みファイルがある」と「現行六能力observerが成立している」を分離した。
+現在のAは引き続き `TRAINING_INPUT_HOLD` / `CAPABILITY_HOLD` である。
+
 ## 未到着の実装入力
 
 次のいずれかが揃うまで、Aのobserver昇格はHOLDとする。
@@ -65,7 +88,8 @@ GitHubのA系Draft PR #447、#448、#449、#452と、`research/local-l02-*` の�
 ブランチ一覧を再確認した。いずれにも、現行契約を満たす実行可能checkpoint、Cubism
 SDK、または別人物の六能力training catalogは追加されていない。PR #449に記録された
 Phase4/Phase5の記述は旧候補の履歴であり、現行の六能力intake・現行候補SHA・現行
-Workerへ結合できないため採用しない。現行Aの正本はこのブランチの `1623eba` とする。
+Workerへ結合できないため採用しない。現行Aの正本はこのブランチの
+`a21f92f06aadfc0e4110e7bd6125f06fecab1a2f` とする。
 
 この記録はライセンス判定ではなく、Aの実行入力が現時点で未到着であることを
 固定するためのsource-free台帳である。
