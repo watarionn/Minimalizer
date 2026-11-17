@@ -9,7 +9,7 @@
 | main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
-| A observer契約更新 | `00e9ebb9` |
+| A observer契約・現行台帳 | `3a9d61d4`（契約実装の基点 `00e9ebb9`） |
 | B L07候補 | `7b6a52416efbfe57b2d9861cc3ceaf857882587d` |
 | B PR | `#465` Draft |
 
