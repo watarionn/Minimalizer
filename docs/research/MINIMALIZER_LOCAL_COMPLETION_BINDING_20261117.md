@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `390faa7dc1bbcc0f7a04db2484658c273bc2fa10`（契約実装の基点 `a21f92f0`） |
-| B現行head | `a885e20048e0159cfccec002a12fe6d415ca6580` |
+| B現行head | `891168a296574b20e9c16f9c4be19926a6955f06` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
