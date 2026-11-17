@@ -17,6 +17,8 @@ def test_prepare_is_non_mutating_and_binds_generation(tmp_path):
     assert manifest["release_authorized"] is False
     assert manifest["owner_apply_required"] is True
     assert manifest["generation"] == "minimalizer-local-20261117-2"
+    assert (output / "local_worker/app.py").is_file()
+    assert (output / "tools/research/local_l04_production_bundle.py").is_file()
     assert (output / "local_worker/frontend/sw.js").is_file()
     assert (output / "local_worker/frontend/local-route.js").is_file()
     assert (output / "runtime-staging-manifest.json").is_file()
@@ -34,6 +36,8 @@ def test_prepare_rejects_existing_nonempty_output(tmp_path):
 def test_prepare_rejects_generation_mismatch(tmp_path):
     source = tmp_path / "source"
     for relative in (
+        Path("local_worker/app.py"),
+        Path("tools/research/local_l04_production_bundle.py"),
         Path("local_worker/frontend/sw.js"),
         Path("local_worker/frontend/local-route.js"),
     ):
@@ -55,6 +59,8 @@ def test_prepare_rejects_generation_mismatch(tmp_path):
 def test_prepare_rejects_unsafe_service_worker(tmp_path):
     source = tmp_path / "source"
     for relative in (
+        Path("local_worker/app.py"),
+        Path("tools/research/local_l04_production_bundle.py"),
         Path("local_worker/frontend/sw.js"),
         Path("local_worker/frontend/local-route.js"),
     ):

@@ -19,6 +19,8 @@ from pathlib import Path
 
 SCHEMA = "minimalizer/local-l07/runtime-staging/v1"
 FILES = (
+    Path("local_worker/app.py"),
+    Path("tools/research/local_l04_production_bundle.py"),
     Path("local_worker/frontend/sw.js"),
     Path("local_worker/frontend/local-route.js"),
 )
@@ -61,9 +63,16 @@ def validate_source(root: Path) -> tuple[str, dict[str, str]]:
 
     sw = contents["local_worker/frontend/sw.js"]
     route = contents["local_worker/frontend/local-route.js"]
+    worker = contents["local_worker/app.py"]
+    bundle_loader = contents["tools/research/local_l04_production_bundle.py"]
     for token in FORBIDDEN:
         if token in sw:
             raise ValueError(f"forbidden Service Worker operation: {token}")
+    for token in ("output_format: str = Form(\"png\")", "_formal_l04_case_for_source"):
+        if token not in worker:
+            raise ValueError(f"formal L04 runtime path is missing: {token}")
+    if "MINIMALIZER_LOCAL_L04_RECEIPT_SHA256" not in bundle_loader:
+        raise ValueError("formal L04 bundle loader is not candidate-bound")
 
     sw_generations = GENERATION_RE.findall(sw)
     route_generations = GENERATION_RE.findall(route)
