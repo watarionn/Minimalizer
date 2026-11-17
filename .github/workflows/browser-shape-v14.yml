@@ -38,5 +38,5 @@ jobs:
       - name: Verify geometry, palette and fail-closed gates
         run: |
           python -m pytest tests/test_browser_shape_v14.py tests/test_browser_sharp_lite_v13.py -q
-      - name: Check stacked PR diff
-        run: git diff --check origin/feat/browser-sharp-lite-v13-20261008...HEAD
+      - name: Check PR diff against main
+        run: git diff --check origin/main...HEAD
