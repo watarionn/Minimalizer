@@ -50,6 +50,9 @@
   取り出してbinding JSONを生成し、旧Worker receiptは生成前に `HOLD` とする。raw receiptや
   画像・スクリーンショットはGitHubへ保存しない。追加テストを含む現行選択テストは
   Python `79 passed`、実SW `3 passed`。
+- 既存の実iPhone receipt（raw SHA
+  `06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`）をこのCLIへ渡した
+  実行は `EXIT=2 / IPHONE_WORKER_COMMIT_MISMATCH` となり、binding出力ファイルは生成されなかった。
 
 ## 検証範囲の注意
 
