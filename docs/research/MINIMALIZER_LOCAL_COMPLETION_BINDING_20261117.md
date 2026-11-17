@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `a21f92f0`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `658f949ca00cc9ba08884968bab644dd0603aecb` |
+| B現行head | `4ddc61c2f755ececad6568cda92c1faeac3e991a` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -108,6 +108,8 @@
   `39 passed`。
 - 最終release gateのL07条件に、静的な世代固定・rollbackだけでなく、現行Worker runtimeの
   SW監査PASSとruntime generation結合を追加した。source側だけのPASSで本番不一致を隠せない。
+- L07静的監査の出力にも `runtime_sw_audit_pass=false`、`runtime_generation_bound=false` を
+  明示し、source監査receiptをruntime受入receiptへ誤流用できないようにした。
 
 ## 検証範囲の注意
 
