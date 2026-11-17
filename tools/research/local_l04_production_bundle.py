@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -172,3 +173,53 @@ def load_release_bundle(
 
 
 __all__ = ["L04ProductionBundleHold", "load_release_bundle"]
+
+
+def find_case_for_source(bundle: dict[str, Any], source_bytes: bytes) -> str | None:
+    """Return the formal case whose signed source bytes match exactly."""
+    source_sha = _sha256(source_bytes)
+    cases = bundle.get("cases")
+    if not isinstance(cases, dict):
+        raise L04ProductionBundleHold("LOADED_BUNDLE_CASES_MISSING")
+    for case, entry in cases.items():
+        if isinstance(entry, dict) and entry.get("source_sha256") == source_sha:
+            return case
+    return None
+
+
+def read_case_svg(bundle: dict[str, Any], case: str) -> bytes:
+    """Read the exact expanded SVG selected by a previously verified bundle."""
+    cases = bundle.get("cases")
+    if not isinstance(cases, dict) or case not in cases:
+        raise L04ProductionBundleHold("CASE_NOT_IN_LOADED_BUNDLE:" + case)
+    path = Path(cases[case]["expanded_svg_path"])
+    data = path.read_bytes()
+    if _sha256(data) != cases[case]["expanded_svg_sha256"]:
+        raise L04ProductionBundleHold("LOADED_SVG_SHA_MISMATCH:" + case)
+    return data
+
+
+def load_configured_release_bundle() -> dict[str, Any] | None:
+    """Load the private bundle configured for a worker, or return None.
+
+    A configured but invalid bundle is not silently treated as a release.  The
+    caller can choose whether to surface the hold or leave the ordinary PNG
+    route available while the formal SVG route remains unavailable.
+    """
+    manifest = os.getenv("MINIMALIZER_LOCAL_L04_BUNDLE_MANIFEST", "").strip()
+    if not manifest:
+        return None
+    expected = os.getenv(
+        "MINIMALIZER_LOCAL_L04_RECEIPT_SHA256",
+        "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+    ).strip()
+    return load_release_bundle(
+        Path(manifest), expected_candidate_receipt_sha256=expected
+    )
+
+
+__all__ += [
+    "find_case_for_source",
+    "read_case_svg",
+    "load_configured_release_bundle",
+]

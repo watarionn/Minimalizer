@@ -34,6 +34,12 @@ from minimalize_engine.v2 import (
 from minimalize_engine.v2.pipeline import LayeredPersonConfig
 from minimalizer_zerobase.production import ZEROBASE2_ROUTE, ProductionRouteSwitch
 from minimalizer_zerobase.production.profile import REVIEWED_SA10_PROFILE
+from tools.research.local_l04_production_bundle import (
+    L04ProductionBundleHold,
+    find_case_for_source,
+    load_configured_release_bundle,
+    read_case_svg,
+)
 logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"
@@ -344,8 +350,67 @@ def _run_zerobase2(input_path: Path):
         return final_path.read_bytes(), summary
 
 
+def _formal_l04_case_for_source(content: bytes) -> tuple[str, bytes, str]:
+    """Return the exact approved SVG for a matching signed source."""
+    try:
+        bundle = load_configured_release_bundle()
+    except L04ProductionBundleHold as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 bundle is not releasable.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+            },
+        ) from exc
+    if bundle is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 SVG bundle is not configured.",
+            headers={"X-Minimalizer-L04-Release": "NO_GO"},
+        )
+    case = find_case_for_source(bundle, content)
+    if case is None:
+        raise HTTPException(
+            status_code=422,
+            detail="This source image is not one of the formally released L04 cases.",
+            headers={
+                "X-Minimalizer-L04-Failure": "SOURCE_NOT_IN_FORMAL_BUNDLE",
+                "X-Minimalizer-L04-Release": "GO",
+            },
+        )
+    try:
+        svg = read_case_svg(bundle, case)
+    except (OSError, KeyError, L04ProductionBundleHold) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 SVG artifact could not be read.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+            },
+        ) from exc
+    return case, svg, bundle["candidate_receipt_sha256"]
+
+
+def _formal_l04_case_if_available(content: bytes) -> str | None:
+    """Expose availability metadata without weakening the formal SVG route."""
+    try:
+        bundle = load_configured_release_bundle()
+    except (L04ProductionBundleHold, OSError, KeyError, TypeError, ValueError):
+        return None
+    if bundle is None:
+        return None
+    return find_case_for_source(bundle, content)
+
+
 @app.post("/api/zerobase2/minimalize")
-async def minimalize_zerobase2(file: UploadFile = File(...)):
+async def minimalize_zerobase2(
+    file: UploadFile = File(...),
+    output_format: str = Form("png"),
+):
+    if output_format not in {"png", "svg"}:
+        raise HTTPException(status_code=400, detail="Unsupported output format.")
     decision = _zerobase2_route_decision()
     if decision.active_route != ZEROBASE2_ROUTE:
         raise HTTPException(
@@ -365,6 +430,20 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
+            if output_format == "svg":
+                case, svg, receipt_sha = _formal_l04_case_for_source(content)
+                return Response(
+                    content=svg,
+                    media_type="image/svg+xml",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="minimalized-{case}.svg"',
+                        "X-Minimalizer-Mode": "l04-formal-svg",
+                        "X-Minimalizer-Route": ZEROBASE2_ROUTE,
+                        "X-Minimalizer-L04-Release": "GO",
+                        "X-Minimalizer-L04-Case": case,
+                        "X-Minimalizer-L04-Candidate-Receipt-SHA256": receipt_sha,
+                    },
+                )
             # The owner-only PWA must not compete for RRM's global heavy slot
             # or depend on its 6 GiB free-RAM admission threshold.
             # _process_lock still enforces one active LocalWorker job.
@@ -406,6 +485,9 @@ async def minimalize_zerobase2(file: UploadFile = File(...)):
             "X-Minimalizer-Shape-Count": str(metrics["primitive_count"]),
             "X-Minimalizer-Processing-Ms": f"{elapsed_ms:.1f}",
             "X-Minimalizer-Rollback-Available": str(decision.rollback_available).lower(),
+            "X-Minimalizer-L04-SVG-Available": str(
+                _formal_l04_case_if_available(content) is not None
+            ).lower(),
         },
     )
 

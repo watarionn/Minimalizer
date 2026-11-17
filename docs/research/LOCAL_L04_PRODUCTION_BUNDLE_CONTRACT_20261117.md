@@ -52,3 +52,14 @@ manifestだけを受け付けます。
 非公開Driveの読戻しを確認したうえで、manifestのSHAだけをsource-freeな
 台帳へ残します。manifestがPASSになるまで、通常入口へのPNG/SVG経路を
 有効化してはいけません。
+
+## Worker接続
+
+`POST /api/zerobase2/minimalize` は `output_format=svg` を受け付けます。
+この指定では、設定済みbundleの三点セットに入力元画像のSHAが一致した場合
+だけ、bundle内の展開SVGを返します。HOLD/NO_GO、bundle未設定、未登録の
+元画像では処理をPNGへフォールバックせず、失敗を返します。
+
+通常のPNG応答には、同じ入力について正式SVGが利用可能な場合だけ
+`X-Minimalizer-L04-SVG-Available: true` を付けます。PWAはその応答を見て
+SVG保存ボタンを表示し、保存時に同じ元画像を正式SVG経路へ再送します。
