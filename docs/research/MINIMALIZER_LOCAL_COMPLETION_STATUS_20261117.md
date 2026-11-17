@@ -96,13 +96,19 @@ training manifestがPASSした後にだけ学習し、固定checkpointで三例�
 - Sapiens2 segmentation重み：`b85fdb50b7d6123a967d5ee4a505e222baff8d2f7ad6bbf353578c1a61dfbac9`
   は人物/身体補助であり、外衣・下層衣装・袖・pairwise遮蔽・人物内instanceを一つの
   source-only出力として満たす契約ではない。
+- Fashionpedia/RF-DETR-Seg checkpoint：`aafefc440ea8f3f388e894a898e4270a2eeb6e38a3c3ffd3751d07d0f30b26bb`
+  は実行可能な候補で、外衣・袖・instance候補と下層衣装の観測を作れる。しかし、
+  既存のsource-only receiptは`Phase4=FAIL / L02=HOLD`であり、三組のpairwise遮蔽を
+  独立した画素関係として出力しない。`LayeredGarment`のarm接触判定だけを三組の遮蔽
+  authorityへ読み替えることはできない。
 - 衣装Mask R-CNN `partial`重み：`63a9f853b81943ac0900df267c6e598f6fe5c72c9a17e218e4e591e6d9e3d6f8`
   は取得途中の不完全ファイルである。
 - 衣装Mask R-CNN `corrupt`重み：`2a340709825c3bd913a28fb952524d9f2b2372336d20bb3e6435b5b2cf7f3fe2`
   は破損ファイルである。
 
-したがって、既存重みのラベル名変更・複数observerの単純連結・破損重みの復元推測は行わず、
-実行可能な六能力checkpointまたは別人物学習データを次の実装入力として要求する。
+したがって、既存重みのラベル名変更・複数observerの単純連結・arm接触の遮蔽読み替え・
+破損重みの復元推測は行わず、pairwise遮蔽を実測できるobserver追加、または別人物学習
+データを次の実装入力として要求する。
 
 なお、ローカルのGroundingDINO + SAM2.1 Hiera Tiny source-only probe
 (`LangSAM20261110/run_receipt.json`, SHA-256
