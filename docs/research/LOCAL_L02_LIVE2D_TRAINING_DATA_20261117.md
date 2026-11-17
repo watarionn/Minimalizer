@@ -52,3 +52,26 @@ masks, annotations, or model weights, and it does not run inference.
 - No H04/H06/H08 mask or review result has been used as training input.
 - Phase4 remains HOLD until a real private catalog, an independently fixed
   observer run, and the required visual/structural evaluation exist.
+
+## Local execution preflight (2026-11-17)
+
+The local Live2D sample checkout contains the separate-person models
+Haru, Hiyori, Mao, Mark, Natori, Ren, Rice, and Wanko. Some model metadata
+contains useful names such as arms, jacket, and shirt; those names are only
+metadata hints and do not certify pixel ownership, pairwise occlusion,
+unknown regions, or instance masks.
+
+The local `CubismPartExtr` checkout is not executable yet. Its required
+Cubism SDK `Core/` and `Samples/` directories are absent, and no local
+`clang++` or `vcpkg` toolchain/build output was found. Therefore no rendered
+drawable masks or source-bound training samples were created from it.
+
+The separate clothes Mask R-CNN checkout is also not an admissible substitute:
+its 23 garment classes do not provide arm/body instances, the three required
+pairwise occlusion relations, or an explicit unknown class. Its local
+checkpoint is incomplete/corrupt and it remains unused.
+
+The resulting state is `TRAINING_INPUT_NOT_READY`, not an observer candidate.
+The next admissible step is to provide the missing SDK/toolchain and a
+reviewed role-mapping/annotation manifest, then run extraction and validate
+the private catalog before any model training or H04/H06/H08 inference.
