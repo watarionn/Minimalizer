@@ -1,0 +1,12 @@
+{
+  "schema": "minimalizer/l02/owner-chat-authorization/v1",
+  "date_jst": "2026-11-08",
+  "source": "User explicitly stated in ChatGPT conversation: 認可します。残りの作業を終わらせて",
+  "authorization_scope": "Continue remaining L02 H06/H08 evidence work and authorized non-destructive project integration; does not waive independent blind reviewer or data provenance requirements",
+  "owner_statement_recorded": true,
+  "cryptographic_owner_signature_verified": false,
+  "independent_human_review_verified": false,
+  "commercial_use_decision": "USER_CONFIRMED_CLEARED",
+  "formal_gate": "HOLD_PENDING_INDEPENDENT_BLIND_HUMAN_REVIEW",
+  "production_release": "NOT_AUTHORIZED_BY_THIS_RECORD_ALONE"
+}
