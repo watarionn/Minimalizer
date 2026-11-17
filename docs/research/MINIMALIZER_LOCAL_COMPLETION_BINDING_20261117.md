@@ -98,6 +98,9 @@
   `minimalizer-local-20261107-1` で、activate時に旧世代cacheを削除する。リポジトリ側の
   `minimalizer-local-20261117-2` 契約とは不一致であり、runtimeの未追跡 `dist/` は変更していない。
   現行Workerの健康状態PASSを、L07正式反映PASSへ読み替えない。
+- runtime再結合前後のowner-only確認手順を `docs/research/LOCAL_L07_RUNTIME_REBIND_RUNBOOK_20261117.md`
+  に追加した。これは反映を実行せず、未追跡 `dist/` を保護したまま、SHA・SW監査・health・
+  rollback・実機受入の順序を固定する。
 
 ## 検証範囲の注意
 
