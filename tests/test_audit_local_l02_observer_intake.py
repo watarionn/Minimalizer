@@ -61,6 +61,11 @@ def test_checkpoint_intake_checks_weight_sha_and_keeps_research_boundary(tmp_pat
     assert result["status"] == "CAPABILITY_PASS_RESEARCH_ONLY"
     assert result["weights_sha256"] == weight_sha
     assert result["same_config_cases"] == ("H04", "H06", "H08")
+    assert set(result["observer_capabilities"]) == {
+        "outerwear", "underlayer", "sleeve", "arm",
+        "occlusion_outerwear_underlayer", "occlusion_sleeve_arm",
+        "occlusion_garment_body", "instance_grouping",
+    }
     assert result["phase4_or_production_authority"] is False
 
 

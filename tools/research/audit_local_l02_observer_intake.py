@@ -32,6 +32,7 @@ from tools.research.import_live2d_training_catalog import (
 from tools.research.local_l02_observer_capability_gate import (
     ObserverCapabilityHold,
     ObserverCapabilitySpec,
+    REQUIRED_CAPABILITIES,
     assess_observer_capability,
 )
 from tools.research.local_l02_observer_training_manifest import TrainingManifestHold
@@ -127,6 +128,7 @@ def audit_checkpoint_input(spec_path: str | Path, weights_path: str | Path) -> d
         "revision": capability["revision"],
         "weights_sha256": actual_sha,
         "output_contract": capability["observed_capabilities"],
+        "observer_capabilities": capability["observed_capabilities"],
         "missing_capabilities": capability["missing_capabilities"],
         "same_config_cases": CASES,
         "human_labels_used_for_inference": False,
@@ -174,6 +176,7 @@ def audit_training_input(sdk_root: str | Path, catalog_path: str | Path) -> dict
         "failures": tuple(failures),
         "sdk": sdk_report,
         "catalog": catalog_report or {},
+        "observer_capabilities": tuple(sorted(REQUIRED_CAPABILITIES)),
         "h04_h06_h08_opened": False,
         "phase4_or_production_authority": False,
     }
