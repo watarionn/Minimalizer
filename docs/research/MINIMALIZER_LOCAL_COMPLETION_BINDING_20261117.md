@@ -9,7 +9,7 @@
 | main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
-| A observer契約・現行台帳 | `b8c0edd4`（契約実装の基点 `a21f92f0`） |
+| A observer契約・現行台帳 | `8e3fd2e4`（契約実装の基点 `a21f92f0`） |
 | B現行head | `5a6f3b2dd82391369dee630f5a334d6c6fd3f626` |
 | B PR | `#465` Draft |
 
@@ -124,6 +124,9 @@
 - Aのローカル資材をメタデータだけ再確認し、19-part SAMの不足能力、Fashionpedia/Sapiens2の
   現行contract・三例receipt不足をsource-free台帳へ記録した。重みの存在だけでobserverを
   昇格させず、Aの現状は `CAPABILITY_HOLD` / `TRAINING_INPUT_HOLD` のままとした。
+- CubismPartExtrの新しいbuild領域を再確認したが、Core SDK、Samples、`PartExtr.exe`はなく、
+  既存presetのbuildも `MSB1009 / PartExtr.vcxproj` 不在で終了した。抽出実行可能状態や
+  別人物catalogの到着へ読み替えず、Aは引き続きHOLDとする。
 
 ## 完成目標の正本
 
