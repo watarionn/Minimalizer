@@ -83,9 +83,44 @@ ALLOWED_ORIGINS = tuple(dict.fromkeys((*DEFAULT_ORIGINS, *_extra_origins)))
 
 _runtime_lock = Lock()
 _process_lock = Lock()
+_process_state_lock = Lock()
+_process_started_at: float | None = None
+_process_endpoint: str | None = None
 _rembg_session = None
 _rtmlib_model = None
 _runtime_error: str | None = None
+
+
+def _acquire_process_slot(endpoint: str) -> bool:
+    global _process_started_at, _process_endpoint
+    if not _process_lock.acquire(blocking=False):
+        return False
+    with _process_state_lock:
+        _process_started_at = perf_counter()
+        _process_endpoint = endpoint
+    return True
+
+
+def _release_process_slot() -> None:
+    global _process_started_at, _process_endpoint
+    with _process_state_lock:
+        _process_started_at = None
+        _process_endpoint = None
+    _process_lock.release()
+
+
+def _process_status() -> dict[str, object]:
+    with _process_state_lock:
+        started_at = _process_started_at
+        endpoint = _process_endpoint
+    age = None if started_at is None else max(0.0, perf_counter() - started_at)
+    return {
+        "busy": started_at is not None,
+        "busy_seconds": None if age is None else round(age, 3),
+        "busy_endpoint": endpoint,
+    }
+
+
 def _rembg_session_options():
     import onnxruntime as ort
 
@@ -296,6 +331,7 @@ def health():
         "shading_flatten_guard": SHADING_FLATTEN_GUARD,
         "semantic_geometric_mass": GEOMETRIC_MASS_ENABLED,
         "runtime_error": _runtime_error,
+        "process": _process_status(),
     }
 
 
@@ -420,7 +456,7 @@ async def minimalize_zerobase2(
         )
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
-    if not _process_lock.acquire(blocking=False):
+    if not _acquire_process_slot("zerobase2"):
         raise HTTPException(status_code=429, detail="Local Minimalizer worker is busy.", headers={"Retry-After": "2"})
     started = perf_counter()
     try:
@@ -459,7 +495,7 @@ async def minimalize_zerobase2(
                     raise HTTPException(status_code=422, detail="ZeroBase2 quality Gate rejected this image at Phase 10 geometry.", headers=headers) from exc
                 raise HTTPException(status_code=503, detail="ZeroBase2 production route failed.", headers={"X-Minimalizer-Route": ZEROBASE2_ROUTE, "X-Minimalizer-Failure-Class": "runtime"}) from exc
     finally:
-        _process_lock.release()
+        _release_process_slot()
         await file.close()
     elapsed_ms = (perf_counter() - started) * 1000.0
     metrics = summary["phase12_metrics"]
@@ -502,7 +538,7 @@ async def minimalize_local(
         raise HTTPException(status_code=400, detail="Unsupported preset.")
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Uploaded file must be an image.")
-    if not _process_lock.acquire(blocking=False):
+    if not _acquire_process_slot("v2"):
         raise HTTPException(
             status_code=429,
             detail="Local Minimalizer worker is busy.",
@@ -535,7 +571,7 @@ async def minimalize_local(
                     detail="Local high-quality Minimalizer failed.",
                 ) from exc
     finally:
-        _process_lock.release()
+        _release_process_slot()
         await file.close()
     metadata = result.metadata
     actual_shading_flatten = (

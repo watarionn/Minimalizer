@@ -424,3 +424,19 @@ def test_local_worker_parallel_job_guard_still_active(monkeypatch):
                 assert response.json()["detail"] == "Local Minimalizer worker is busy."
     finally:
         worker._process_lock.release()
+
+
+def test_health_reports_active_process_slot(monkeypatch):
+    monkeypatch.setattr(worker, "_process_started_at", worker.perf_counter() - 12.5)
+    monkeypatch.setattr(worker, "_process_endpoint", "zerobase2")
+    try:
+        with TestClient(worker.app) as client:
+            response = client.get("/health")
+        assert response.status_code == 200
+        process = response.json()["process"]
+        assert process["busy"] is True
+        assert process["busy_endpoint"] == "zerobase2"
+        assert process["busy_seconds"] >= 12
+    finally:
+        monkeypatch.setattr(worker, "_process_started_at", None)
+        monkeypatch.setattr(worker, "_process_endpoint", None)
