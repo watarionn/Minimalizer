@@ -91,7 +91,18 @@ training manifestがPASSした後にだけ学習し、固定checkpointで三例�
 現在ローカルにはLive2Dモデル資材と抽出コードはあるが、Cubism Core SDK、C++ toolchain、
 抽出済みdrawable・pixel annotationが不足している。MHP v2もarm・粗い衣装・instanceの
 補助には使えるが、袖とpixel-level pairwise遮蔽が不足するため、そのまま最終observerには
-できない。
+できない。追加確認したローカル資材も次の理由で六能力observerには採用しない。
+
+- Sapiens2 segmentation重み：`b85fdb50b7d6123a967d5ee4a505e222baff8d2f7ad6bbf353578c1a61dfbac9`
+  は人物/身体補助であり、外衣・下層衣装・袖・pairwise遮蔽・人物内instanceを一つの
+  source-only出力として満たす契約ではない。
+- 衣装Mask R-CNN `partial`重み：`63a9f853b81943ac0900df267c6e598f6fe5c72c9a17e218e4e591e6d9e3d6f8`
+  は取得途中の不完全ファイルである。
+- 衣装Mask R-CNN `corrupt`重み：`2a340709825c3bd913a28fb952524d9f2b2372336d20bb3e6435b5b2cf7f3fe2`
+  は破損ファイルである。
+
+したがって、既存重みのラベル名変更・複数observerの単純連結・破損重みの復元推測は行わず、
+実行可能な六能力checkpointまたは別人物学習データを次の実装入力として要求する。
 
 ## 完成判定
 
