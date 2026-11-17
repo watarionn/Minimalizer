@@ -61,10 +61,12 @@ contains useful names such as arms, jacket, and shirt; those names are only
 metadata hints and do not certify pixel ownership, pairwise occlusion,
 unknown regions, or instance masks.
 
-The local `CubismPartExtr` checkout is not executable yet. Its required
-Cubism SDK `Core/` and `Samples/` directories are absent, and no local
-`clang++` or `vcpkg` toolchain/build output was found. Therefore no rendered
-drawable masks or source-bound training samples were created from it.
+The local `CubismPartExtr` checkout is not executable yet. The required
+Cubism SDK `Core/` and `Samples/` directories, native Core library, and
+`PartExtr.exe` are absent. Windows build directories and some vcpkg output now
+exist, but the existing `PartExtr` build attempt ended with `MSB1009` because
+`PartExtr.vcxproj` was missing. Therefore no rendered drawable masks or
+source-bound training samples were created from it.
 
 The separate clothes Mask R-CNN checkout is also not an admissible substitute:
 its 23 garment classes do not provide arm/body instances, the three required
