@@ -42,6 +42,25 @@
 この再確認で「重みファイルがある」と「現行六能力observerが成立している」を分離した。
 現在のAは引き続き `TRAINING_INPUT_HOLD` / `CAPABILITY_HOLD` である。
 
+## CubismPartExtrビルド再確認
+
+`CubismPartExtr-20261117` と `CubismPartExtr-win-codex-20261117` のbuild領域も
+メタデータだけ確認した。どちらにも `Core/include/Live2DCubismCore.h`、
+`Core/lib/windows/x86_64/Live2DCubismCore.lib`、`Samples/Common`、
+`PartExtr.exe` は存在しない。
+
+既存のWindows build presetを一度だけ再実行した結果は次のとおり。
+
+```text
+cmake --build build-win-codex4 --config Debug --target PartExtr --parallel 2
+EXIT=1
+MSB1009: プロジェクト ファイルが存在しません。スイッチ: PartExtr.vcxproj
+```
+
+別のbuild領域のvcpkgログにも、manifest baseline不足またはvcpkg registry ref取得失敗が
+残っている。したがってbuildディレクトリの存在をSDK到着や抽出実行可能状態へ読み替えない。
+現時点でsource-boundな別人物抽出・catalog生成・observer学習はまだ開始できない。
+
 ## 未到着の実装入力
 
 次のいずれかが揃うまで、Aのobserver昇格はHOLDとする。
