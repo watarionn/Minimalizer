@@ -9,8 +9,8 @@
 | main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
-| A observer契約・現行台帳 | `05a397f3`（契約実装の基点 `00e9ebb9`） |
-| B L07候補 | `a0df8be4d2ded58178704dc2c5791813fd713ecf` |
+| A observer契約・現行台帳 | `64488459`（契約実装の基点 `00e9ebb9`） |
+| B L07候補 | `3adebaa` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -18,12 +18,15 @@
 - L04のH04/H06/H08三点セットは、元画像・Stage8 JSON・展開SVGのSHA照合が3/3で成立。
 - 既存の独立評価readbackは、同じ候補SHAに対してL04品質 `PASS`、Golden `PASS`を返す。内部candidate summaryの古いHOLDは、再レビューせずsource-free adapterで分離した。
 - Bの三点配信監査は3/3 `PASS`。これはAの意味品質を判定しない。
-- Aのsource-free外部入力到着台帳は `05a397f3` に更新され、六能力observer未到着の
-  状態を現行B結合へ反映している。
+- Aのsource-free外部入力到着台帳は `64488459` に更新され、六能力observer未到着の
+  状態を現行B結合へ反映している。明示的な三組遮蔽契約と、checkpoint/別人物学習の
+  二経路intake監査を追加したが、実資材はなお `TRAINING_INPUT_HOLD` である。
 - 現行WorkerへのPC private HTTPSは、PNG成功2経路、415/429/503、入力・出力SHA読戻しを再確認した。iPhoneは現行Workerで未受入。
 - L07候補はcache-first、世代固定、クエリ/URLエンコード別名固定、旧世代保持を実装した。
   この台帳のB候補SHAは、独立L04結合readbackまで含む現行PR #465の先端へ更新している。
 - 今回のL04/L05/L07/release-binding/receipt-auditテスト69件、実SW Node 3件がPASS。
+  A側のobserver intake関連テスト89件もPASSしたが、これはAの実資材到着やPhase4
+  合格を意味しない。
 - `audit_local_completion_release.py` で、A、Phase4、Phase5、L04/L05/L07、
   実機受入、回帰、保存の9 receiptをsource-freeに一括監査できる。
 
