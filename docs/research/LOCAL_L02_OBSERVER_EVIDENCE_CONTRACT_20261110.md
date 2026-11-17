@@ -37,6 +37,10 @@ source alpha外の正値、SHA不一致、型・形状不一致は即時HOLDと�
 - 完全な証拠でも返すのは `CAPABILITY_PASS_RESEARCH_ONLY`
 - owner promotion、Phase4、Phase5、Golden、productionの権限は付与しない
 - 必須能力の欠落は `CAPABILITY_HOLD`
+- relation配列が全画素 `0=unknown` の場合は遮蔽能力の実測なしとして
+  `UNOBSERVED_OCCLUSION_RELATION` で停止する
+- instance IDが全画素 `0` の場合は人物内instance能力の実測なしとして
+  `UNOBSERVED_INSTANCE_GROUPING` で停止する
 - source alpha外の観測は fail-closed
 
 既存の `local_l02_observer_capability_gate.py` はobserverの宣言契約を検査し、今回の

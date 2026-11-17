@@ -103,3 +103,43 @@ def test_human_labels_and_frozen_owners_are_never_admitted():
             ),
             human_labels_used=True,
         )
+
+
+def test_all_unknown_occlusion_relation_is_not_a_capability():
+    alpha, roles, relations, grouping = _bundle()
+    unknown_relations = tuple(
+        PairwiseRelationObservation(
+            relation.role_a,
+            relation.role_b,
+            np.zeros_like(relation.values),
+            _sha(np.zeros_like(relation.values)),
+            relation.observer_id,
+        )
+        for relation in relations
+    )
+    with pytest.raises(ObserverEvidenceHold, match="UNOBSERVED_OCCLUSION_RELATION"):
+        assess_observer_evidence(
+            source_alpha=alpha,
+            role_observations=roles,
+            occlusion_relation=unknown_relations,
+            instance_grouping=ScalarObservation(
+                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+            ),
+        )
+
+
+def test_all_zero_instance_grouping_is_not_a_capability():
+    alpha, roles, relations, grouping = _bundle()
+    unknown_grouping = np.zeros_like(grouping)
+    with pytest.raises(ObserverEvidenceHold, match="UNOBSERVED_INSTANCE_GROUPING"):
+        assess_observer_evidence(
+            source_alpha=alpha,
+            role_observations=roles,
+            occlusion_relation=relations,
+            instance_grouping=ScalarObservation(
+                "instance_grouping",
+                unknown_grouping,
+                _sha(unknown_grouping),
+                "instance-observer",
+            ),
+        )

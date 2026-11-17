@@ -204,6 +204,8 @@ def assess_observer_evidence(
         _validate_sha(values, relation.expected_sha256, "OCCLUSION_RELATION_SHA_MISMATCH")
         if np.any(~np.isin(values, (-1, 0, 1))):
             raise ObserverEvidenceHold("INVALID_OCCLUSION_VALUES")
+        if not np.any(values != 0):
+            raise ObserverEvidenceHold("UNOBSERVED_OCCLUSION_RELATION")
         seen_pairs.add(pair)
         seen_observers.add(relation.observer_id)
     if seen_pairs != REQUIRED_OCCLUSION_PAIRS:
@@ -213,6 +215,9 @@ def assess_observer_evidence(
         "instance_grouping",
         np.dtype(np.uint32),
     )
+    assert instance_grouping is not None
+    if not np.any(instance_grouping.values > 0):
+        raise ObserverEvidenceHold("UNOBSERVED_INSTANCE_GROUPING")
     observed = tuple(sorted(REQUIRED_CAPABILITIES))
     return ObserverEvidenceAssessment(
         status="CAPABILITY_PASS_RESEARCH_ONLY",
