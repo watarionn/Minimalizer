@@ -122,7 +122,7 @@ GitHubのA系Draft PR #447、#448、#449、#452と、`research/local-l02-*` の�
 SDK、または別人物の六能力training catalogは追加されていない。PR #449に記録された
 Phase4/Phase5の記述は旧候補の履歴であり、現行の六能力intake・現行候補SHA・現行
 Workerへ結合できないため採用しない。現行Aの正本はこのブランチの
-`b5aa904188dc087837c6fa8e667e17a23be5fdb4` とする。
+`b9c721626bc5d4dd1c8500b0760d744574b0a3d2` とする。
 
 この記録はライセンス判定ではなく、Aの実行入力が現時点で未到着であることを
 固定するためのsource-free台帳である。
