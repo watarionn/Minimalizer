@@ -56,6 +56,11 @@
 - 現行WorkerでのiPhone受入からbinding監査までを一度で行うcmd手順を
   `docs/research/LOCAL_L05_IPHONE_CURRENT_WORKER_RECEIPT_RUNBOOK_20261117.md` に追加した。
   実機受入receiptが届くまでは、手順の実行結果を推測せずL05をHOLDとする。
+- 本番runtimeを再読し、checkout SHAは現行Worker `64cfeb76e5f8ff4e93b6810880c68f1996348ede`、
+  private HTTPS `/health` はHTTP `200`、`active_production_route=zerobase2`、
+  `zerobase2_authorized=true`、`runtime_error=null` だった。これはWorker反映とhealthの証拠であり、
+  iPhone受入、Aの意味品質、正式releaseを完了扱いにはしない。runtime checkoutの既存未追跡
+  `dist/` は変更していない。
 
 ## 検証範囲の注意
 
