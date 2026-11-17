@@ -116,6 +116,11 @@
   ブラウザ/性能receiptも同じ候補SHAへ結合されていない場合は、旧Approved18→78結果を
   現行候補へ流用せずHOLDにする。新adapterの選択テストは `43 passed`、`git diff --check`
   もPASSした。
+- L07のowner runtime結合adapterとreceipt手順を追加した。runtime Worker SHA、SW世代、
+  旧世代保持、rollback、health 200、`runtime_error=null`、`zerobase2_authorized=true`を
+  一つのsource-free receiptへ結合するが、owner反映済みの明示receiptがない限りHOLDにする。
+  現行runtimeの監査結果は引き続き `SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK` である。
+  L06/L07を含む選択テストは `47 passed`。
 
 ## 完成目標の正本
 
@@ -133,7 +138,7 @@
 | G4 | H08 owner認可を候補へ結合する | H08のowner authority receiptを、候補配列SHA・owner SHA・独立レビューへ明示結合 | HOLD（G3待ち） | `43d164…`を含む現行候補向けowner receiptがPASS。承認は品質判定を代替しない |
 | G5 | Phase5 exact replayを行う | Phase4 PASS候補と同じsource/config/outputを使い、別候補への差替えや再調整をしない | HOLD（G3/G4待ち） | 3例すべてのsource/candidate/output SHAと同一設定が一致し、Phase5 PASS |
 | G6 | L04正式三点セットを昇格する | 元画像・Stage8 JSON・展開SVGを各SHAで照合し、独立レビュー、Golden、production bundleを同一候補へ結合 | 部分PASS / 昇格HOLD | G3/G5後にL04 formal/Golden/production GO、三点SHA一致、release falseが解除 |
-| G7 | L07を本番runtimeへ安全に反映する | source監査→owner承認済み反映→runtime SHA/SW generation/hash再読込→rollback確認。`caches.delete`等を禁止 | source PASS / runtime HOLD | runtime監査PASS、世代結合、旧世代保持、rollback可能、health 200、runtime errorなし |
+| G7 | L07を本番runtimeへ安全に反映する | source監査→owner承認済み反映→runtime SHA/SW generation/hash再読込→rollback確認。`caches.delete`等を禁止 | adapter実装済み / runtime HOLD | runtime監査PASS、世代結合、旧世代保持、rollback可能、health 200、runtime errorなし |
 | G8 | L05を現行Workerで受入する | PC確認後、現行runtimeのiPhone Safari/PWAでPNG/SVG、機内モード復帰、429 Retry-After 2、503/fallback/再試行を実施 | PC PASS / iPhone HOLD | iPhone raw receiptのWorker SHAが `64cf…`、binding監査PASS、Drive readback PASS |
 | G9 | L06回帰と表示性能を結合する | Approved18→78、Golden、通常ブラウザ、PNG/SVG表示、性能を同一候補で確認 | adapter実装済み / 現行証拠HOLD | 現行候補・Workerへ結合した回帰receiptがPASS |
 | G10 | 最終release gateを通す | A、Phase4、Phase5、L04、L05、L07、L06、保存のreceiptを一括監査 | HOLD | `release_authorized=true`以外を正式採用しない |

@@ -43,7 +43,7 @@ release gateで確認できる状態にする。v5、旧候補、旧Workerの証
 | M4 owner承認 | H08 owner authorityを`43d164…`と候補へ結合 | owner receipt PASS | M3待ち |
 | M5 再現 | Phase5 exact replay | exact replay PASS | M3/M4待ち |
 | M6 L04昇格 | 三点SHA、独立L04、Golden、production | L04 formal/Golden/production GO | M5待ち |
-| M7 L07反映 | source監査、owner反映、runtime監査、rollback確認 | runtime L07 PASS | HOLD: runtime不一致 |
+| M7 L07反映 | source監査、owner反映、runtime監査、rollback確認をruntime binding adapterで結合 | runtime L07 PASS | adapter実装済み・runtime不一致 |
 | M8 L05受入 | current WorkerでPC/iPhone Safari/PWA・障害系 | current iPhone binding PASS | HOLD: iPhone未取得 |
 | M9 L06結合 | Approved18→78、ブラウザ、性能を現行候補へbinding adapterで結合 | current candidate regression PASS | adapter実装済み・現行証拠待ち |
 | M10 release | 9 receiptを一括監査 | `release_authorized=true` | HOLD |
@@ -117,6 +117,15 @@ M9 L06回帰・性能 ─────────────────┘
 3. `bind_local_l06_regression_candidate.py`で両receiptとbinding SHAを監査する。
 4. 旧summaryに候補SHAがない場合は `SUMMARY_CANDIDATE_BINDING_MISSING_OR_MISMATCH` のまま止め、
    旧結果を現行候補のL06 PASSへ読み替えない。
+
+### 6. L07 runtime結合
+
+1. owner承認済み手順でruntimeへ反映し、反映前後のWorker SHAを読み戻す。
+2. runtimeのSW世代、source世代、旧世代保持、rollback、cache境界をJSON receiptへ記録する。
+3. `/health`のHTTP 200、`runtime_error=null`、`zerobase2_authorized=true`を別receiptへ記録する。
+4. `bind_local_l07_runtime_release.py`で両receiptのSHAと候補/Worker SHAを結合する。
+5. runtime監査が旧SW削除やgeneration mismatchを返した場合は、owner反映を修復してから再実行し、
+   手作業でPASSへ変更しない。
 
 ## 現在の停止点
 
