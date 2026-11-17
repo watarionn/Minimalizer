@@ -24,7 +24,9 @@ def _bundle():
     for index, role in enumerate(("outerwear", "underlayer", "sleeve", "arm")):
         mask = np.zeros_like(alpha)
         mask[index // 2 : index // 2 + 2, index : index + 2] = True
-        masks.append(RoleObservation(role, mask, _sha(mask), f"observer-{role}"))
+        unknown = np.zeros_like(alpha)
+        unknown[4, 5] = True
+        masks.append(RoleObservation(role, mask, _sha(mask), f"observer-{role}", unknown))
     relation = np.zeros_like(alpha, dtype=np.int8)
     relation[1:3, 1:3] = 1
     grouping = np.zeros_like(alpha, dtype=np.uint32)
@@ -79,11 +81,43 @@ def test_missing_underlayer_is_a_hold_not_an_inference_default():
 
 def test_role_hash_drift_fails_closed():
     alpha, roles, relations, grouping = _bundle()
-    bad = (*roles[:-1], RoleObservation("arm", roles[-1].mask, "0" * 64, "observer-arm"))
+    bad = (*roles[:-1], RoleObservation(
+        "arm", roles[-1].mask, "0" * 64, "observer-arm", roles[-1].unknown
+    ))
     with pytest.raises(ObserverEvidenceHold, match="ROLE_MASK_SHA_MISMATCH"):
         assess_observer_evidence(
             source_alpha=alpha,
             role_observations=bad,
+            occlusion_relation=relations,
+            instance_grouping=ScalarObservation(
+                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+            ),
+        )
+
+
+def test_missing_role_unknown_mask_is_not_admitted():
+    alpha, roles, relations, grouping = _bundle()
+    roles = (*roles[:-1], RoleObservation("arm", roles[-1].mask, _sha(roles[-1].mask), "observer-arm"))
+    with pytest.raises(ObserverEvidenceHold, match="MISSING_ROLE_UNKNOWN_MASK"):
+        assess_observer_evidence(
+            source_alpha=alpha,
+            role_observations=roles,
+            occlusion_relation=relations,
+            instance_grouping=ScalarObservation(
+                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+            ),
+        )
+
+
+def test_role_positive_and_unknown_pixels_cannot_overlap():
+    alpha, roles, relations, grouping = _bundle()
+    role = roles[-1]
+    overlap = role.mask.copy()
+    roles = (*roles[:-1], RoleObservation(role.role, role.mask, _sha(role.mask), role.observer_id, overlap))
+    with pytest.raises(ObserverEvidenceHold, match="ROLE_MASK_UNKNOWN_OVERLAP"):
+        assess_observer_evidence(
+            source_alpha=alpha,
+            role_observations=roles,
             occlusion_relation=relations,
             instance_grouping=ScalarObservation(
                 "instance_grouping", grouping, _sha(grouping), "instance-observer"

@@ -40,6 +40,7 @@ class RoleObservation:
     mask: np.ndarray
     expected_sha256: str
     observer_id: str
+    unknown: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -142,9 +143,21 @@ def assess_observer_evidence(
             or mask.shape != shape
         ):
             raise ObserverEvidenceHold("INVALID_ROLE_MASK")
+        unknown = observation.unknown
+        if (
+            type(unknown) is not np.ndarray
+            or unknown.dtype != np.bool_
+            or unknown.ndim != 2
+            or unknown.shape != shape
+        ):
+            raise ObserverEvidenceHold("MISSING_ROLE_UNKNOWN_MASK")
         _validate_sha(mask, observation.expected_sha256, "ROLE_MASK_SHA_MISMATCH")
         if np.any(mask & ~source_alpha):
             raise ObserverEvidenceHold("ROLE_MASK_OUTSIDE_SOURCE_ALPHA")
+        if np.any(unknown & ~source_alpha):
+            raise ObserverEvidenceHold("ROLE_UNKNOWN_OUTSIDE_SOURCE_ALPHA")
+        if np.any(mask & unknown):
+            raise ObserverEvidenceHold("ROLE_MASK_UNKNOWN_OVERLAP")
         seen_roles.add(observation.role)
         seen_observers.add(observation.observer_id)
 
