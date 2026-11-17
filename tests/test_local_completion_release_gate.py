@@ -9,6 +9,11 @@ def _evidence():
     a = {
         "status": "PASS",
         "candidate_receipt_sha256": EXPECTED_CANDIDATE_RECEIPT_SHA256,
+        "observer_capabilities": [
+            "arm", "instance_grouping", "occlusion_garment_body",
+            "occlusion_outerwear_underlayer", "occlusion_sleeve_arm",
+            "outerwear", "sleeve", "underlayer",
+        ],
         "six_capabilities": True,
         "same_config_three_cases": True,
         "source_only_inference": True,
@@ -185,6 +190,21 @@ def test_missing_a_quality_gate_cannot_be_hidden_by_passing_b():
     )
     assert result.status == "HOLD"
     assert "A six_capabilities is not PASS" in result.failures
+
+
+def test_summary_flag_cannot_replace_exact_observer_contract():
+    a, phase4, phase5, l04, l05, l07, acceptance, regression, preservation = _evidence()
+    a.pop("observer_capabilities")
+    result = assess_release_binding(
+        candidate_receipt_sha256=EXPECTED_CANDIDATE_RECEIPT_SHA256,
+        production_worker_commit=EXPECTED_PRODUCTION_WORKER_COMMIT,
+        a=a, phase4=phase4, phase5=phase5,
+        l04=l04, l05=l05, l07=l07, acceptance=acceptance,
+        regression=regression, preservation=preservation,
+        owner_action_required=False,
+    )
+    assert result.status == "HOLD"
+    assert "A observer_capabilities contract is missing" in result.failures
 
 
 def test_phase4_and_phase5_are_required_before_release():

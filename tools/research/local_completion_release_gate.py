@@ -18,6 +18,16 @@ EXPECTED_CANDIDATE_RECEIPT_SHA256 = (
 EXPECTED_PRODUCTION_WORKER_COMMIT = (
     "64cfeb76e5f8ff4e93b6810880c68f1996348ede"
 )
+REQUIRED_OBSERVER_CAPABILITIES = (
+    "arm",
+    "instance_grouping",
+    "occlusion_garment_body",
+    "occlusion_outerwear_underlayer",
+    "occlusion_sleeve_arm",
+    "outerwear",
+    "sleeve",
+    "underlayer",
+)
 
 
 @dataclass(frozen=True)
@@ -40,6 +50,19 @@ def _require_true(
     for name in names:
         if payload.get(name) is not True:
             failures.append(f"{scope} {name} is not PASS")
+
+
+def _require_observer_capabilities(
+    failures: list[str], payload: Mapping[str, Any]
+) -> None:
+    """Require the exact A-lane capability contract, not only a summary flag."""
+    value = payload.get("observer_capabilities")
+    if not isinstance(value, (list, tuple)):
+        failures.append("A observer_capabilities contract is missing")
+        return
+    observed = tuple(sorted(item for item in value if isinstance(item, str)))
+    if observed != REQUIRED_OBSERVER_CAPABILITIES:
+        failures.append("A observer_capabilities contract mismatch")
 
 
 def _bind(
@@ -101,6 +124,7 @@ def assess_release_binding(
         ),
         "A",
     )
+    _require_observer_capabilities(failures, a)
     if a.get("human_labels_used_for_inference") is not False:
         failures.append("A human_labels_used_for_inference is not false")
 
@@ -196,6 +220,7 @@ def assess_release_binding(
 __all__ = [
     "EXPECTED_CANDIDATE_RECEIPT_SHA256",
     "EXPECTED_PRODUCTION_WORKER_COMMIT",
+    "REQUIRED_OBSERVER_CAPABILITIES",
     "ReleaseBindingAssessment",
     "assess_release_binding",
 ]

@@ -14,6 +14,11 @@ def _payloads():
     return {
         "a": {
             "status": "PASS", "candidate_receipt_sha256": C,
+            "observer_capabilities": [
+                "arm", "instance_grouping", "occlusion_garment_body",
+                "occlusion_outerwear_underlayer", "occlusion_sleeve_arm",
+                "outerwear", "sleeve", "underlayer",
+            ],
             "six_capabilities": True, "same_config_three_cases": True,
             "source_only_inference": True, "human_labels_used_for_inference": False,
             "unknown_preserved": True, "h04_pass": True, "h06_pass": True, "h08_pass": True,
