@@ -98,6 +98,8 @@ def test_static_audit_never_claims_live_iphone_or_release():
     r=audit(ROOT)
     assert r["L07_actual_live_iphone"]=="NOT_TESTED"
     assert r["L08_release"]=="NOT_APPROVED"
+    assert r["runtime_sw_audit_pass"] is False
+    assert r["runtime_generation_bound"] is False
 
 def test_cli_emits_machine_readable_pass_receipt(tmp_path):
     script=ROOT/"tools/research/local_l07_pwa_privacy_audit.py"

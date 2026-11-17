@@ -115,6 +115,8 @@ def audit(repo_root:Path):
             "serviceworker":serviceworker,
             "route":route_report,
             "production_changes":False,
+            "runtime_sw_audit_pass":False,
+            "runtime_generation_bound":False,
             "L07_actual_live_iphone":"NOT_TESTED",
             "L08_release":"NOT_APPROVED"}
 
