@@ -49,7 +49,8 @@ SDKまたは学習入力が届いたら、非公開作業領域へ置き、次�
 
 ## source-free intake監査
 
-`tools/research/audit_local_l02_observer_intake.py` を追加した。`checkpoint` 経路は
+`tools/research/audit_local_l02_observer_intake.py` を追加した。実行例と到着後の順序は
+`LOCAL_L02_OBSERVER_INTAKE_RUNBOOK_20261117.md` に固定した。`checkpoint` 経路は
 重みSHA、固定revision、六能力の個別出力契約、unknown分離、三例同一設定を確認する。
 `training` 経路はCubism Coreの必要ファイル・ディレクトリと、catalog importerの
 別人物train/validation/holdout境界を一括確認する。どちらも画像・マスク・NPZ・レビューを
