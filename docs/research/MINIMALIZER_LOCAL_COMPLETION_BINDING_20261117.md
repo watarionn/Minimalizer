@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `a21f92f0`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `b65735ba0313a67d776ffb9dfa6379a68ae95e1c` |
+| B現行head | `bed1936f636b6759eb3cf6a6a043e445023882f2` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -87,6 +87,8 @@
 - 最終release gateは、従来の `six_capabilities=true` 要約フラグだけでは通らないよう、
   A正本の8要素出力契約（外衣・下層衣装・袖・腕・3種の遮蔽・instance分離）を
   `observer_capabilities` として個別照合する実装へ更新した。新規テストを含めPython `25 passed`。
+- 同じ最終gateに、L04の元画像・Stage8 JSON・展開SVGの個別SHA結合と、L07の世代固定・
+  rollback可能性を必須化した。形式だけのL04/L07 PASSを正式releaseへ流用しない。
 
 ## 検証範囲の注意
 
