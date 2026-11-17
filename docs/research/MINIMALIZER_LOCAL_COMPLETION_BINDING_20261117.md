@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `f39209e`（契約実装の基点 `00e9ebb9`） |
-| B L07候補 | `f7dd365` |
+| B現行head | `ec961f6` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -32,7 +32,7 @@
   実機受入、回帰、保存の9 receiptをsource-freeに一括監査できる。
 - completion gate CLIの直接cmd起動経路を修正し、`python tools\research\audit_local_completion_release.py --help`
   を実行できることと、その回帰テストを追加した。
-- BのL04/L05/L07/release関連選択テストを現行headで再実行し、Python `75 passed`、
+- BのL04/L05/L07/release関連選択テストを現行headで再実行し、Python `79 passed`、
   実SW `3 passed`、SW構文検査、`git diff --check` がPASSした。
 - 旧L05 owner receiptを現行候補・Workerへ結び付ける
   `audit_local_l05_current_worker_binding.py` を追加した。receipt本体のSHAを別binding
@@ -45,6 +45,11 @@
   `64cfeb76e5f8ff4e93b6810880c68f1996348ede` にし、raw JSON SHAをbinding JSONへ記録して、
   `audit_local_l05_current_worker_binding.py` を実行する。現行Worker・Safari・PWA・offline・
   fallback・Drive readbackが揃ったreceiptだけがbinding `PASS`になる。
+- 現行Worker用のiPhone binding生成CLI
+  `tools/research/prepare_local_l05_iphone_binding.py` を追加した。raw receiptからSHAのみを
+  取り出してbinding JSONを生成し、旧Worker receiptは生成前に `HOLD` とする。raw receiptや
+  画像・スクリーンショットはGitHubへ保存しない。追加テストを含む現行選択テストは
+  Python `79 passed`、実SW `3 passed`。
 
 ## 検証範囲の注意
 
