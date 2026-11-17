@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `f39209e`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `ec961f6` |
+| B現行head | `533c370` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -53,6 +53,9 @@
 - 既存の実iPhone receipt（raw SHA
   `06f09cfba8958a7214a86157ea19ad64c49c3ba876e65ca2c908c9cf70b91fea`）をこのCLIへ渡した
   実行は `EXIT=2 / IPHONE_WORKER_COMMIT_MISMATCH` となり、binding出力ファイルは生成されなかった。
+- 現行WorkerでのiPhone受入からbinding監査までを一度で行うcmd手順を
+  `docs/research/LOCAL_L05_IPHONE_CURRENT_WORKER_RECEIPT_RUNBOOK_20261117.md` に追加した。
+  実機受入receiptが届くまでは、手順の実行結果を推測せずL05をHOLDとする。
 
 ## 検証範囲の注意
 
