@@ -44,7 +44,7 @@ release_authorized: false
 3. 独立Phase4をPASSさせる。
 4. H08 owner認可receiptとPhase5 exact replayを同一候補へ結合する。
 5. L04 formal/Goldenを同一候補でPASSさせる。
-6. L05/L07 receiptへ候補SHA・Worker SHAを明示結合する。
+6. L05/L07 receiptへ候補SHA・Worker SHAを明示結合する（結合ゲートは両方を要求する）。
 7. 本番反映、PC/iPhone受入、rollback読戻しを行う。
 
 この台帳は完成宣言ではなく、古い実験・別候補・別Workerの証拠を現行候補へ誤結合しないためのsource-free記録である。

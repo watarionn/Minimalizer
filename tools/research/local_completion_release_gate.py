@@ -60,6 +60,8 @@ def assess_release_binding(
             failures.append(f"{lane} status is not PASS")
         if payload.get("candidate_receipt_sha256") != EXPECTED_CANDIDATE_RECEIPT_SHA256:
             failures.append(f"{lane} candidate binding mismatch")
+        if payload.get("production_worker_commit") != EXPECTED_PRODUCTION_WORKER_COMMIT:
+            failures.append(f"{lane} Worker binding mismatch")
     if owner_action_required:
         failures.append("owner action required")
     return ReleaseBindingAssessment(
