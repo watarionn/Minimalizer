@@ -81,9 +81,21 @@ def apply_bundle(
     if not allow_nonproduction_target and target != PRODUCTION_TARGET.resolve():
         raise ValueError("PRODUCTION_TARGET_MISMATCH")
     manifest = _load_manifest(bundle)
+    if not target.is_dir():
+        raise ValueError("TARGET_DIRECTORY_MISSING")
     current_worker = _git_head(target)
     if current_worker != expected_worker:
         raise ValueError(f"WORKER_SHA_MISMATCH:{current_worker}")
+    records = tuple(manifest["files"])
+    destinations: list[tuple[dict[str, str], Path, Path]] = []
+    for record in records:
+        relative = Path(record["path"])
+        destination = target / relative
+        if not destination.parent.is_dir():
+            raise ValueError("TARGET_PARENT_MISSING:" + record["path"])
+        if destination.is_symlink() or (destination.exists() and not destination.is_file()):
+            raise ValueError("TARGET_FILE_NOT_REGULAR:" + record["path"])
+        destinations.append((record, destination, backup / relative))
     if backup.exists():
         if not backup.is_dir() or any(backup.iterdir()):
             raise ValueError("BACKUP_MUST_BE_NEW_EMPTY_DIRECTORY")
@@ -91,38 +103,40 @@ def apply_bundle(
         backup.mkdir(parents=True)
 
     applied: list[dict[str, str]] = []
-    for record in manifest["files"]:
-        relative = Path(record["path"])
-        source = bundle / relative
-        destination = target / relative
-        if not destination.parent.is_dir():
-            raise ValueError("TARGET_PARENT_MISSING:" + record["path"])
-        backup_path = backup / relative
-        if destination.is_file():
-            backup_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(destination, backup_path)
-        shutil.copy2(source, destination)
-        if _sha256(destination) != record["sha256"]:
-            raise ValueError("TARGET_SHA_MISMATCH:" + record["path"])
-        applied.append({"path": record["path"], "sha256": record["sha256"]})
+    try:
+        for record, destination, backup_path in destinations:
+            if destination.is_file():
+                backup_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(destination, backup_path)
+            shutil.copy2(bundle / Path(record["path"]), destination)
+            if _sha256(destination) != record["sha256"]:
+                raise ValueError("TARGET_SHA_MISMATCH:" + record["path"])
+            applied.append({"path": record["path"], "sha256": record["sha256"]})
 
-    result = {
-        "schema": SCHEMA,
-        "status": "APPLIED_PENDING_OWNER_RESTART_READBACK",
-        "owner_approved": True,
-        "runtime_mutation": True,
-        "worker_before": current_worker,
-        "worker_after": _git_head(target),
-        "backup_dir": str(backup),
-        "dist_touched": False,
-        "restart_performed": False,
-        "readback_performed": False,
-        "files": applied,
-    }
-    (backup / "runtime-apply-manifest.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    return result
+        result = {
+            "schema": SCHEMA,
+            "status": "APPLIED_PENDING_OWNER_RESTART_READBACK",
+            "owner_approved": True,
+            "runtime_mutation": True,
+            "worker_before": current_worker,
+            "worker_after": _git_head(target),
+            "backup_dir": str(backup),
+            "dist_touched": False,
+            "restart_performed": False,
+            "readback_performed": False,
+            "files": applied,
+        }
+        (backup / "runtime-apply-manifest.json").write_text(
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        return result
+    except Exception:
+        for _record, destination, backup_path in reversed(destinations):
+            if backup_path.is_file():
+                shutil.copy2(backup_path, destination)
+            elif destination.is_file():
+                destination.unlink()
+        raise
 
 
 def main() -> int:
