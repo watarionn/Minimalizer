@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `a21f92f0`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `6ce070132580a7f9f5fa41eb7a6ab13ba27fbc17` |
+| B現行head | `658f949ca00cc9ba08884968bab644dd0603aecb` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -106,6 +106,8 @@
   `status=HOLD`、`release_authorized=false`、失敗理由は
   `SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK`。source側とrelease gate関連の選択Pythonテストは
   `39 passed`。
+- 最終release gateのL07条件に、静的な世代固定・rollbackだけでなく、現行Worker runtimeの
+  SW監査PASSとruntime generation結合を追加した。source側だけのPASSで本番不一致を隠せない。
 
 ## 検証範囲の注意
 
