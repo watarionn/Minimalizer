@@ -9,8 +9,8 @@
 | main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
-| A observer契約・現行台帳 | `b9c72162`（契約実装の基点 `a21f92f0`） |
-| B現行head | `d93380dd4f3a9207bd686f43f767b930051fb048` |
+| A observer契約・現行台帳 | `ea2ef3e50af2c6396bd1b681ee6275df1fb6b5bf`（契約実装の基点 `a21f92f0`） |
+| B現行head | `a885e20048e0159cfccec002a12fe6d415ca6580` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -23,11 +23,15 @@
   L04 production bundle loaderは候補SHA、H04/H06/H08各元画像・Stage8 JSON・展開SVGの
   9 SHA、相互リンク、安全なSVGを照合して `PASS` を返した。ブラウザ再展開も3/3 `PASS`。
   これは非公開bundleの準備完了であり、runtimeへの反映・実機受入を意味しない。
+- B sourceの通常入口へH04を `output_format=svg` で実投入し、HTTP 200、
+  `l04-formal-svg`、候補receipt SHA、応答SVG SHAと承認済み展開SVG SHAの一致を確認した。
+  隔離実行環境の `rtmlib` 不足によりhealthはdegradedだったため、これはsource-route疎通PASSであり、
+  本番runtimeまたはL05受入PASSではない。
 - 現行runtimeの `local_worker/app.py` をsource比較したところ、正式L04 SVGの
   `output_format` 分岐とbundle loader接続がまだ無かった。したがって、runtime反映bundleは
   SW/local-routeだけでなく、このWorkerコードとL04 loaderを含む4ファイル構成へ修正した。
   現行runtimeのSVG要求がPNG処理へ流れた実測もあり、L04通常入口は反映後に再受入する。
-- Aのsource-free外部入力到着台帳は `b9c72162` に更新され、六能力observer未到着の
+- Aのsource-free外部入力到着台帳は `ea2ef3e5` に更新され、六能力observer未到着の
   状態を現行B結合へ反映している。明示的な三組遮蔽契約、checkpoint/別人物学習の
   二経路intake監査、到着後のcmd runbookを追加したが、実資材はなお
   `TRAINING_INPUT_HOLD` である。
