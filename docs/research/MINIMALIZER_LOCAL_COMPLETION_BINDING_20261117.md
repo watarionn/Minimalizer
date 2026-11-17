@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `f39209e`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `6a02e41c165b81207386929506512200ea67ca53` |
+| B現行head | `b65735ba0313a67d776ffb9dfa6379a68ae95e1c` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -78,6 +78,13 @@
 - 実在する旧Phase4 receiptと既存のcandidate-bound Phase4 input manifestをこの検証器へ渡した
   実行結果は `HOLD / INVALID_BINDING_SCHEMA` だった。既存manifestを正式bindingへ昇格させず、
   新しい明示binding manifestの到着を要求する。
+- 既存の `minimalizer-l02-candidate-bound-phase4-20261113-v8` は、Phase5入力監査だけを見ると
+  `READY` だが、H04/H06の候補SHAは最終独立評価receiptの配列SHAと異なる旧base候補であり、
+  H04/H06/H08のstage設定にも `observer_capability_status=HOLD`、
+  `observer_formal_phase4=FAIL` が残る。したがって現行候補のPhase4証拠へ昇格しない。
+- 最終release gateは、従来の `six_capabilities=true` 要約フラグだけでは通らないよう、
+  A正本の8要素出力契約（外衣・下層衣装・袖・腕・3種の遮蔽・instance分離）を
+  `observer_capabilities` として個別照合する実装へ更新した。新規テストを含めPython `25 passed`。
 
 ## 検証範囲の注意
 
