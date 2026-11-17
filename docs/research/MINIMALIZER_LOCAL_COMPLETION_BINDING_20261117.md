@@ -10,7 +10,7 @@
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
 | A observer契約・現行台帳 | `a21f92f0`（契約実装の基点 `00e9ebb9`） |
-| B現行head | `8da250ab04393a62f8d2c30d3fb2a8380d535289` |
+| B現行head | `5a6f3b2dd82391369dee630f5a334d6c6fd3f626` |
 | B PR | `#465` Draft |
 
 ## 今回確認したこと
@@ -112,6 +112,62 @@
   明示し、source監査receiptをruntime受入receiptへ誤流用できないようにした。
 - Phase4最終gateに、未見データ、推論前ラベル未使用、レビューJSON未使用を必須化し、
   candidate binding adapterの検証済みprovenanceを最終receiptへ引き継ぐようにした。
+
+## 完成目標の正本
+
+実装・手順・所有者操作を、次の目標IDと依存関係で管理する。各目標のPASSは、
+記載したreceiptまたは実行結果が現行候補 `381b0b5a…` と、必要な場合は本番Worker
+`64cfeb76…`へ明示的に結合されている場合だけ成立する。v5候補、旧Worker、旧候補の
+結果は再利用しない。
+
+| ID | 目標 | 主な実装・手順 | 現状 | 完了条件 |
+|---|---|---|---|---|
+| G0 | 基準を凍結する | main SHA、候補receipt SHA、Worker SHA、A/B branch、非公開成果物の保管境界を台帳へ固定 | PASS | source-free台帳と各SHAのreadbackが一致 |
+| G1 | 六能力observer入力を成立させる | 実行可能checkpoint、または別人物データ学習経路を到着させ、重み/SDK/catalog SHAを記録し、intake監査を実行 | HOLD | 外衣・下層衣装・袖・腕・3組遮蔽・instance分離、unknown分離、人物分離、固定revisionがPASS |
+| G2 | H04/H06/H08を同一設定で新規推論する | 署名済み元画像だけを推論入力にし、ラベル・評価マスク・レビューJSONを推論前に読まない。unknownを陰性化しない | HOLD（G1待ち） | 3例のsource SHA、設定SHA、candidate配列SHA、推論時provenanceが揃う |
+| G3 | Aの意味品質を独立Phase4でPASSさせる | 凍結候補を独立評価者へ渡し、4/8連結、穴、重要部位、遮蔽、排他的owner、正衣装保持を評価 | HOLD（G2待ち） | 未見、推論前ラベル未使用、評価者独立、意味評価完了、出力凍結、review JSON非入力、Phase4 PASS |
+| G4 | H08 owner認可を候補へ結合する | H08のowner authority receiptを、候補配列SHA・owner SHA・独立レビューへ明示結合 | HOLD（G3待ち） | `43d164…`を含む現行候補向けowner receiptがPASS。承認は品質判定を代替しない |
+| G5 | Phase5 exact replayを行う | Phase4 PASS候補と同じsource/config/outputを使い、別候補への差替えや再調整をしない | HOLD（G3/G4待ち） | 3例すべてのsource/candidate/output SHAと同一設定が一致し、Phase5 PASS |
+| G6 | L04正式三点セットを昇格する | 元画像・Stage8 JSON・展開SVGを各SHAで照合し、独立レビュー、Golden、production bundleを同一候補へ結合 | 部分PASS / 昇格HOLD | G3/G5後にL04 formal/Golden/production GO、三点SHA一致、release falseが解除 |
+| G7 | L07を本番runtimeへ安全に反映する | source監査→owner承認済み反映→runtime SHA/SW generation/hash再読込→rollback確認。`caches.delete`等を禁止 | source PASS / runtime HOLD | runtime監査PASS、世代結合、旧世代保持、rollback可能、health 200、runtime errorなし |
+| G8 | L05を現行Workerで受入する | PC確認後、現行runtimeのiPhone Safari/PWAでPNG/SVG、機内モード復帰、429 Retry-After 2、503/fallback/再試行を実施 | PC PASS / iPhone HOLD | iPhone raw receiptのWorker SHAが `64cf…`、binding監査PASS、Drive readback PASS |
+| G9 | L06回帰と表示性能を結合する | Approved18→78、Golden、通常ブラウザ、PNG/SVG表示、性能を同一候補で確認 | 既存結果あり / 結合HOLD | 現行候補・Workerへ結合した回帰receiptがPASS |
+| G10 | 最終release gateを通す | A、Phase4、Phase5、L04、L05、L07、L06、保存のreceiptを一括監査 | HOLD | `release_authorized=true`以外を正式採用しない |
+| G11 | owner shipと保存を完了する | owner承認、許可対象だけを本番反映、PC/iPhone readback、Drive読戻し、source-free台帳更新 | 未実施 | 本番SHA、成果物SHA、独立評価、実機受入、復旧結果が同一版で一致 |
+
+### 依存関係
+
+```text
+G0 基準凍結
+ ├─> G1 六能力observer入力 ─> G2 同一設定の新規推論 ─> G3 独立Phase4 PASS
+ │                                                    └─> G4 H08 owner認可
+ │                                                         └─> G5 Phase5 exact replay
+ │                                                              └─> G6 L04正式昇格
+ ├─> G7 L07 runtime再結合 ─> G8 現行Worker iPhone受入
+ └─> G9 L06回帰・性能
+
+G6 + G8 + G9 + 保存証拠 ─> G10 最終release gate ─> G11 owner ship/保存/完了
+```
+
+### 作業順序と停止条件
+
+1. まずG1を実資材到着まで進める。到着後はintake監査、SHA固定、source-only推論を一回の
+   連続した作業として行う。H04/H06/H08のラベルや評価マスクを推論入力へ戻さない。
+2. G2の候補を凍結してからG3/G4を一度だけ依頼する。小さな画素修正を反復せず、失敗した
+   owner・遮蔽・袖・下層衣装の構造原因を次の大きな実装単位へまとめる。
+3. G3 PASS後にG5を行い、その候補のままG6を正式昇格する。G3前のL04 PASSは配信三点の
+   整合性証拠であり、A品質の代替ではない。
+4. BではG7のruntime再結合をowner承認済み手順でのみ実施する。runtimeの未追跡`dist/`を
+   直接削除・上書きしない。G7 PASS前のiPhone結果は現行Worker受入へ流用しない。
+5. G8/G9とDrive読戻しを揃え、G10の一括監査がPASSになるまでmerge・正式releaseをしない。
+6. G10 PASS後にだけG11を行い、反映後のhealth、通常入口、PNG/SVG、rollbackを再読込する。
+
+### 現時点の次の一手
+
+今すぐ実行できるsource-free作業は、G0の台帳整合性維持、G1到着時のintake実行環境、
+G7 owner runtime再結合手順の保全、G9の現行候補binding準備までである。G1の実資材、
+現行runtimeのowner反映、現行WorkerでのiPhone操作は、所有者または外部入力が必要なため、
+証拠を推測してPASSにはしない。
 
 ## 検証範囲の注意
 
