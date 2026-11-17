@@ -69,6 +69,12 @@ observer` materials on 2026-11-17. No MHP archive or six-capability training
 checkpoint was identified; the returned items were unrelated or historical
 research notes. Existing private H04/H06/H08 evidence was not re-searched.
 
+The source-free preflight `tools/research/assess_mhp_v2_catalog.py` was run on
+the local catalog metadata. It counted 25,828 entries and reported available
+coarse `arm`, `outerwear`, and `underlayer` labels, with missing
+`sleeve`, `occlusion_relation`, and `instance_grouping`. It read no image or
+holdout data.
+
 ## Gate status
 
 ```text
