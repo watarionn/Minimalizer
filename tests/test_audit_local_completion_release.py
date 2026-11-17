@@ -1,5 +1,7 @@
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 from tools.research.audit_local_completion_release import audit_receipt_paths
 from tools.research.local_completion_release_gate import (
@@ -102,3 +104,18 @@ def test_malformed_receipt_is_fail_closed(tmp_path):
     )
     assert result["status"] == "HOLD"
     assert "phase4 receipt read failed:JSONDecodeError" in result["failures"]
+
+
+def test_direct_cmd_entrypoint_is_importable():
+    repo_root = Path(__file__).resolve().parents[1]
+    script = repo_root / "tools" / "research" / "audit_local_completion_release.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "Audit MinimalizerLocal completion" in result.stdout
+    assert "ModuleNotFoundError" not in result.stderr
