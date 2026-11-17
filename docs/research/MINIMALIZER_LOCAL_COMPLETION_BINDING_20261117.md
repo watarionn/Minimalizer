@@ -9,7 +9,7 @@
 | main | `22d36e88c0b9932cd44e209c8d8be4581098dc62` |
 | 採用候補receipt | `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a` |
 | 本番Worker基準 | `64cfeb76e5f8ff4e93b6810880c68f1996348ede` |
-| A observer契約・現行台帳 | `ea2ef3e50af2c6396bd1b681ee6275df1fb6b5bf`（契約実装の基点 `a21f92f0`） |
+| A observer契約・現行台帳 | `390faa7dc1bbcc0f7a04db2484658c273bc2fa10`（契約実装の基点 `a21f92f0`） |
 | B現行head | `a885e20048e0159cfccec002a12fe6d415ca6580` |
 | B PR | `#465` Draft |
 
@@ -31,7 +31,7 @@
   `output_format` 分岐とbundle loader接続がまだ無かった。したがって、runtime反映bundleは
   SW/local-routeだけでなく、このWorkerコードとL04 loaderを含む4ファイル構成へ修正した。
   現行runtimeのSVG要求がPNG処理へ流れた実測もあり、L04通常入口は反映後に再受入する。
-- Aのsource-free外部入力到着台帳は `ea2ef3e5` に更新され、六能力observer未到着の
+- Aのsource-free外部入力到着台帳は `390faa7d` に更新され、六能力observer未到着の
   状態を現行B結合へ反映している。明示的な三組遮蔽契約、checkpoint/別人物学習の
   二経路intake監査、到着後のcmd runbookを追加したが、実資材はなお
   `TRAINING_INPUT_HOLD` である。
