@@ -45,6 +45,10 @@
 
 両版で記録された候補SHAは、H08 owner認可receipt対象として固定した `43d164…` および本番L04採用receipt `381b0b5a…` と一致しない。したがって、この保管物の `PASS` を現行候補のPhase4 PASS、H08 owner認可、または本番許可へ読み替えない。画像・NPZ・マスクはDrive保管を維持し、GitHubにはこの照合結果とSHA対応だけを残す。
 
+同じ専用Drive直下の署名済みvisual reviewも照合した。評価者の独立性と推論前のラベル非参照は `はい` で、H04/H06/H08の正衣装保持、誤owner除去、遮蔽・重要部位保持も `はい` だった。ただし評価対象は旧候補（H04 `5b568993…`、H06 `87278640…`、H08 `8daafac9…`）である。またH06/H08の「変更結果を視覚的に受け入れられる＝いいえ」は画質劣化ではなく、通常倍率では変更箇所が小さすぎて判定しにくいという意味である。この評価を現行 `43d164…` や `381b0b5a…` の独立Phase4 receiptへ結合しない。
+
+専用Drive直下の現物一覧にも、六能力checkpoint、別人物train/validation catalog、またはそれらの学習receiptは見つからなかった。現時点で存在するのはCandidateBound、SourceOnly、独立observer、review packet、Sapiens2候補reviewなど既存研究物で、いずれも六能力正式入力ではない。次に必要なのは新しい閾値調整ではなく、六能力を満たすcheckpointか、9役割を持つ別人物catalogとtrainer実体の到着である。
+
 ## 現在の残作業
 
 この計画を満たす実observer checkpoint、署名済み学習メタデータ、train/validationの別人物データ、6能力を揃えたH04/H06/H08の同一設定推論、独立Phase4 PASSは未完了である。従ってこの計画のPASSは、キャンペーン全体の完了を意味しない。
