@@ -49,6 +49,8 @@
 
 専用Drive直下の現物一覧にも、六能力checkpoint、別人物train/validation catalog、またはそれらの学習receiptは見つからなかった。現時点で存在するのはCandidateBound、SourceOnly、独立observer、review packet、Sapiens2候補reviewなど既存研究物で、いずれも六能力正式入力ではない。次に必要なのは新しい閾値調整ではなく、六能力を満たすcheckpointか、9役割を持つ別人物catalogとtrainer実体の到着である。
 
+なお、ローカル保管のCandidateBound v3/v4/v5/v6/v8も追加照合した。v3/v4/v5/v6/v8はH04 `5b568993…`、H06 `87278640…`、H08 `8daafac9…`を繰り返し記録しており、H08固定対象 `43d164…`ではない。v5はユーザー指定どおり採用対象外とし、版番号だけを根拠に現行候補へ昇格しない。
+
 ## 現在の残作業
 
 この計画を満たす実observer checkpoint、署名済み学習メタデータ、train/validationの別人物データ、6能力を揃えたH04/H06/H08の同一設定推論、独立Phase4 PASSは未完了である。従ってこの計画のPASSは、キャンペーン全体の完了を意味しない。
