@@ -15,7 +15,7 @@
 | G6 L04三点セット | PASS（B配信範囲） | H04/H06/H08 PNG・SVG実入力3/3 HTTP 200、SVG SHA 3/3一致、candidate receipt/release GO 3/3 | A品質昇格とは分離 |
 | G7 L07 runtime | PASS（runtime範囲） | generation-pinned SW、health 200、ZeroBase2認可、rollback経路 | owner shipとは分離 |
 | G8 現行Worker iPhone | HOLD | Safari/PWA等の過去回答はあるが、Worker `64cf…`へ結合した現行raw receiptが未読戻し | 現行Workerで再受入 |
-| G9 L06回帰・性能 | HOLD（部分PASS） | Approved18=18/18、Approved78=78/78のローカルgateはPASS。ただしDiagnostic2現行summaryはFAILで、Approved18→78・Golden・ブラウザ性能をreceipt `381b0b5a…`へ結合したsource-free bindingは未成立 | Diagnostic2をPASSへ修復し、同一候補binding |
+| G9 L06回帰・性能 | HOLD（部分PASS） | Approved18=18/18、Approved78=78/78のローカルgateはPASS。別作業領域の再構築summaryにはDiagnostic2 PASS版もあるが、現行receipt SHAを持たず、現行Diagnostic2 summaryはFAILのまま。Approved18→78・Golden・ブラウザ性能をreceipt `381b0b5a…`へ結合したsource-free bindingは未成立 | 現行候補を明示したDiagnostic2 PASSと同一候補binding |
 | G10 最終release gate | HOLD | A、G8、G9が未完了 | 全receipt結合 |
 | G11 owner ship・保存 | HOLD | `release_authorized`を全体ゲートで確認できていない | owner反映・Drive読戻し |
 
