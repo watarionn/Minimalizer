@@ -8,6 +8,7 @@ readiness result; it never authorizes, deploys, or changes production.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -47,6 +48,85 @@ def _sha(value: object, field: str) -> str:
     if not isinstance(value, str) or _SHA256.fullmatch(value) is None:
         raise L08Hold(f"INVALID_SHA:{field}")
     return value.lower()
+
+
+def _sha256_file(path: Path, field: str) -> str:
+    if not path.is_file():
+        raise L08Hold(f"MISSING_FILE:{field}")
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _audit_l04_manifest(manifest_path: Path, candidate_sha: str) -> dict[str, Any]:
+    """Verify that the L04 manifest and every Stage8 JSON say the same thing.
+
+    The top-level manifest is not authoritative by itself.  A stale or
+    hand-edited manifest must not turn per-case HOLD/NO_GO Stage8 artifacts
+    into a release-ready result.
+    """
+
+    manifest = _json(manifest_path)
+    if manifest.get("schema") != "minimalizer/local-l04/production-bundle/v1":
+        raise L08Hold("L04_MANIFEST_SCHEMA")
+    if _sha(manifest.get("candidate_receipt_sha256"), "l04.candidate_receipt_sha256") != candidate_sha:
+        raise L08Hold("L04_CANDIDATE_BINDING")
+    if manifest.get("L04_formal") != "PASS" or manifest.get("Golden") != "PASS":
+        raise L08Hold("L04_MANIFEST_GATE")
+    production = manifest.get("production")
+    if production not in {"GO", "NO_GO"}:
+        raise L08Hold("L04_MANIFEST_PRODUCTION")
+    cases = manifest.get("cases")
+    if not isinstance(cases, Mapping) or set(cases) != {"H04", "H06", "H08"}:
+        raise L08Hold("L04_CASE_SET")
+
+    base = manifest_path.parent.resolve()
+    for case in ("H04", "H06", "H08"):
+        entry = cases[case]
+        if not isinstance(entry, Mapping):
+            raise L08Hold(f"L04_CASE_ENTRY:{case}")
+        source = entry.get("source")
+        stage8_ref = entry.get("stage8_json")
+        svg_ref = entry.get("expanded_svg")
+        if not isinstance(source, Mapping) or not isinstance(stage8_ref, Mapping) or not isinstance(svg_ref, Mapping):
+            raise L08Hold(f"L04_CASE_ARTIFACTS:{case}")
+        source_sha = _sha(source.get("sha256"), f"l04.{case}.source.sha256")
+        stage8_path_value = stage8_ref.get("path")
+        svg_path_value = svg_ref.get("path")
+        if not isinstance(stage8_path_value, str) or not isinstance(svg_path_value, str):
+            raise L08Hold(f"L04_CASE_PATHS:{case}")
+        stage8_path = (base / stage8_path_value).resolve()
+        svg_path = (base / svg_path_value).resolve()
+        if base not in stage8_path.parents or base not in svg_path.parents:
+            raise L08Hold(f"L04_CASE_PATH_ESCAPE:{case}")
+        if _sha256_file(stage8_path, f"l04.{case}.stage8") != _sha(stage8_ref.get("sha256"), f"l04.{case}.stage8.sha256"):
+            raise L08Hold(f"L04_STAGE8_FILE_SHA:{case}")
+        if _sha256_file(svg_path, f"l04.{case}.expanded_svg") != _sha(svg_ref.get("sha256"), f"l04.{case}.expanded_svg.sha256"):
+            raise L08Hold(f"L04_SVG_FILE_SHA:{case}")
+        stage8 = _json(stage8_path)
+        if stage8.get("signed_source_sha256") != source_sha:
+            raise L08Hold(f"L04_STAGE8_SOURCE_BINDING:{case}")
+        if stage8.get("expanded_svg_sha256") != svg_ref.get("sha256"):
+            raise L08Hold(f"L04_STAGE8_SVG_BINDING:{case}")
+        if stage8.get("formal_status") != "PASS":
+            raise L08Hold(f"L04_CASE_FORMAL_STATUS:{case}")
+        expected_release = "GO" if production == "GO" else "NO_GO"
+        if stage8.get("production_release") != expected_release:
+            raise L08Hold(f"L04_CASE_RELEASE_STATUS:{case}")
+        if stage8.get("source_only_inference") is not True:
+            raise L08Hold(f"L04_SOURCE_ONLY:{case}")
+        if stage8.get("human_labels_used_for_inference") is not False:
+            raise L08Hold(f"L04_LABEL_LEAK:{case}")
+        if stage8.get("unknown_pixels_treated_as_negative") is not False:
+            raise L08Hold(f"L04_UNKNOWN_POLICY:{case}")
+
+    return {
+        "manifest_sha256": _sha256_file(manifest_path, "l04.manifest"),
+        "production": production,
+        "cases": "H04,H06,H08",
+    }
 
 
 def _audit_a(receipt: Mapping[str, Any]) -> dict[str, Any]:
@@ -120,12 +200,14 @@ def audit_owner_release_readiness(
     pc_receipt_path: Path,
     iphone_receipt_path: Path,
     *,
+    l04_manifest_path: Path,
     production_commit: str,
     repository_root: Path,
 ) -> dict[str, Any]:
     if _COMMIT.fullmatch(production_commit) is None:
         raise L08Hold("EXPECTED_PRODUCTION_COMMIT_INVALID")
     a = _audit_a(_json(a_receipt_path))
+    l04 = _audit_l04_manifest(l04_manifest_path, a["candidate_receipt_sha256"])
     pc = _json(pc_receipt_path)
     try:
         pc_audit = audit_receipt(dict(pc))
@@ -152,6 +234,8 @@ def audit_owner_release_readiness(
         "A_L04_formal": a["L04_formal"],
         "A_Golden": a["Golden"],
         "candidate_receipt_sha256": a["candidate_receipt_sha256"],
+        "L04_manifest_sha256": l04["manifest_sha256"],
+        "L04_manifest_production": l04["production"],
         "B_L05_pc_e2e": "PASS",
         "B_L07_static": "PASS",
         "B_L05_L07_iphone": iphone,
@@ -166,6 +250,7 @@ def main() -> int:
     parser.add_argument("a_receipt", type=Path)
     parser.add_argument("pc_receipt", type=Path)
     parser.add_argument("iphone_receipt", type=Path)
+    parser.add_argument("--l04-manifest", type=Path, required=True)
     parser.add_argument("--production-commit", required=True)
     parser.add_argument("--repository-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -175,6 +260,7 @@ def main() -> int:
             args.a_receipt,
             args.pc_receipt,
             args.iphone_receipt,
+            l04_manifest_path=args.l04_manifest,
             production_commit=args.production_commit,
             repository_root=args.repository_root,
         )
