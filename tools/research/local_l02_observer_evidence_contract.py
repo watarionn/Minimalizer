@@ -130,7 +130,7 @@ def assess_observer_evidence(
         raise ObserverEvidenceHold("INVALID_ROLE_OBSERVATIONS")
 
     seen_roles: set[str] = set()
-    seen_observers: set[str] = set()
+    observer_ids: set[str] = set()
     for observation in role_observations:
         if not isinstance(observation, RoleObservation):
             raise ObserverEvidenceHold("INVALID_ROLE_OBSERVATION")
@@ -139,7 +139,6 @@ def assess_observer_evidence(
             or observation.role in seen_roles
             or not isinstance(observation.observer_id, str)
             or not observation.observer_id
-            or observation.observer_id in seen_observers
         ):
             raise ObserverEvidenceHold("INVALID_ROLE_OBSERVATION")
         mask = observation.mask
@@ -166,7 +165,7 @@ def assess_observer_evidence(
         if np.any(mask & unknown):
             raise ObserverEvidenceHold("ROLE_MASK_UNKNOWN_OVERLAP")
         seen_roles.add(observation.role)
-        seen_observers.add(observation.observer_id)
+        observer_ids.add(observation.observer_id)
 
     def validate_scalar(
         observation: ScalarObservation | None,
@@ -179,7 +178,6 @@ def assess_observer_evidence(
         if (
             type(observation.observer_id) is not str
             or not observation.observer_id
-            or observation.observer_id in seen_observers
         ):
             raise ObserverEvidenceHold("INVALID_SCALAR_OBSERVATION")
         values = observation.values
@@ -188,6 +186,9 @@ def assess_observer_evidence(
         _validate_sha(values, observation.expected_sha256, f"{capability.upper()}_SHA_MISMATCH")
         if allowed is not None and np.any(~np.isin(values, tuple(allowed))):
             raise ObserverEvidenceHold("INVALID_INSTANCE_VALUES")
+        if np.any((values != 0) & ~source_alpha):
+            raise ObserverEvidenceHold("INSTANCE_OUTSIDE_SOURCE_ALPHA")
+        observer_ids.add(observation.observer_id)
 
     missing = tuple(sorted(REQUIRED_MASK_ROLES - seen_roles))
     if missing:
@@ -215,7 +216,6 @@ def assess_observer_evidence(
         if (
             type(relation.observer_id) is not str
             or not relation.observer_id
-            or relation.observer_id in seen_observers
         ):
             raise ObserverEvidenceHold("INVALID_SCALAR_OBSERVATION")
         values = relation.values
@@ -224,10 +224,12 @@ def assess_observer_evidence(
         _validate_sha(values, relation.expected_sha256, "OCCLUSION_RELATION_SHA_MISMATCH")
         if np.any(~np.isin(values, (-1, 0, 1))):
             raise ObserverEvidenceHold("INVALID_OCCLUSION_VALUES")
+        if np.any((values != 0) & ~source_alpha):
+            raise ObserverEvidenceHold("OCCLUSION_OUTSIDE_SOURCE_ALPHA")
         if not np.any(values != 0):
             raise ObserverEvidenceHold("UNOBSERVED_OCCLUSION_RELATION")
         seen_pairs.add(pair)
-        seen_observers.add(relation.observer_id)
+        observer_ids.add(relation.observer_id)
     if seen_pairs != REQUIRED_OCCLUSION_PAIRS:
         raise ObserverEvidenceHold("INCOMPLETE_OCCLUSION_PAIRS")
     validate_scalar(
@@ -238,6 +240,8 @@ def assess_observer_evidence(
     assert instance_grouping is not None
     if not np.any(instance_grouping.values > 0):
         raise ObserverEvidenceHold("UNOBSERVED_INSTANCE_GROUPING")
+    if len(observer_ids) != 1:
+        raise ObserverEvidenceHold("MULTIPLE_OBSERVERS_IN_BUNDLE")
     observed = tuple(sorted(REQUIRED_CAPABILITIES))
     return ObserverEvidenceAssessment(
         status="CAPABILITY_PASS_RESEARCH_ONLY",

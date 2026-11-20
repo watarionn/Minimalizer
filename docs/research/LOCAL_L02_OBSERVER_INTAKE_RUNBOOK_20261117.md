@@ -76,6 +76,34 @@ python tools\research\audit_local_l02_observer_intake.py training --sdk-root <�
 `TRAINING_INPUT_PASS_RESEARCH_ONLY` のときだけ、別人物データで学習runnerを実行する。
 学習後は重みSHAと出力契約を固定し、H04/H06/H08を同一設定で一括推論する。
 
+## 固定checkpointの三例一括probe
+
+intake監査が `CAPABILITY_PASS_RESEARCH_ONLY` を返した後、次のsource-only adapterを実行する。
+adapterはレビューJSON、評価マスク、既存owner配列を引数に受け取らず、各ケースについて次のNPZキーだけを出力する。
+
+```text
+outerwear_mask / outerwear_unknown
+underlayer_mask / underlayer_unknown
+sleeve_mask / sleeve_unknown
+arm_mask / arm_unknown
+occlusion_outerwear_underlayer
+occlusion_sleeve_arm
+occlusion_garment_body
+instance_grouping
+```
+
+cmdでは署名済み元画像を指定して次を実行する。`<adapter.py>`は固定した推論adapter、
+`<spec.json>`と`<weights>`はintake監査に使った同じファイルである。出力先は非公開作業領域に置く。
+
+```text
+python tools\research\run_local_l02_observer_probe.py --spec <spec.json> --weights <weights> --adapter <adapter.py> --h04 <H04署名元画像> --h06 <H06署名元画像> --h08 <H08署名元画像> --output-dir <非公開probe出力フォルダ> --receipt <非公開probe receipt.json>
+```
+
+成功時は `PROBE_FROZEN_RESEARCH_ONLY` となり、三例のsource SHA、出力NPZ SHA、各配列SHA、
+共通推論設定SHAをreceiptへ記録する。出力NPZとreceiptは非公開Driveへ保存し、GitHubにはreceiptの
+source-free要約だけを残す。adapter失敗、source SHA不一致、unknownの欠落、遮蔽pairの欠落、
+instance groupingの空、またはalpha外出力が一つでもあれば全体をHOLDとし、Phase4へ進めない。
+
 ## intake PASS後の順序
 
 1. source-onlyで三例を新規推論し、推論receiptを凍結する。

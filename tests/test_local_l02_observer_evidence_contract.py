@@ -26,7 +26,7 @@ def _bundle():
         mask[index // 2 : index // 2 + 2, index : index + 2] = True
         unknown = np.zeros_like(alpha)
         unknown[4, 5] = True
-        masks.append(RoleObservation(role, mask, _sha(mask), f"observer-{role}", unknown))
+        masks.append(RoleObservation(role, mask, _sha(mask), "observer-v1", unknown))
     relation = np.zeros_like(alpha, dtype=np.int8)
     relation[1:3, 1:3] = 1
     grouping = np.zeros_like(alpha, dtype=np.uint32)
@@ -37,7 +37,7 @@ def _bundle():
             role_b,
             relation,
             _sha(relation),
-            f"depth-{role_a}-{role_b}",
+            "observer-v1",
         )
         for role_a, role_b in (
             ("outerwear", "underlayer"),
@@ -55,7 +55,7 @@ def test_complete_source_only_bundle_is_admitted_for_research_probe():
         role_observations=roles,
         occlusion_relation=relations,
         instance_grouping=ScalarObservation(
-            "instance_grouping", grouping, _sha(grouping), "instance-observer"
+            "instance_grouping", grouping, _sha(grouping), "observer-v1"
         ),
     )
     assert result.status == "CAPABILITY_PASS_RESEARCH_ONLY"
@@ -71,7 +71,7 @@ def test_missing_underlayer_is_a_hold_not_an_inference_default():
         role_observations=roles,
         occlusion_relation=relations,
         instance_grouping=ScalarObservation(
-            "instance_grouping", grouping, _sha(grouping), "instance-observer"
+            "instance_grouping", grouping, _sha(grouping), "observer-v1"
         ),
     )
     assert result.status == "CAPABILITY_HOLD"
@@ -82,7 +82,7 @@ def test_missing_underlayer_is_a_hold_not_an_inference_default():
 def test_role_hash_drift_fails_closed():
     alpha, roles, relations, grouping = _bundle()
     bad = (*roles[:-1], RoleObservation(
-        "arm", roles[-1].mask, "0" * 64, "observer-arm", roles[-1].unknown
+        "arm", roles[-1].mask, "0" * 64, "observer-v1", roles[-1].unknown
     ))
     with pytest.raises(ObserverEvidenceHold, match="ROLE_MASK_SHA_MISMATCH"):
         assess_observer_evidence(
@@ -90,21 +90,21 @@ def test_role_hash_drift_fails_closed():
             role_observations=bad,
             occlusion_relation=relations,
             instance_grouping=ScalarObservation(
-                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+                "instance_grouping", grouping, _sha(grouping), "observer-v1"
             ),
         )
 
 
 def test_missing_role_unknown_mask_is_not_admitted():
     alpha, roles, relations, grouping = _bundle()
-    roles = (*roles[:-1], RoleObservation("arm", roles[-1].mask, _sha(roles[-1].mask), "observer-arm"))
+    roles = (*roles[:-1], RoleObservation("arm", roles[-1].mask, _sha(roles[-1].mask), "observer-v1"))
     with pytest.raises(ObserverEvidenceHold, match="MISSING_ROLE_UNKNOWN_MASK"):
         assess_observer_evidence(
             source_alpha=alpha,
             role_observations=roles,
             occlusion_relation=relations,
             instance_grouping=ScalarObservation(
-                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+                "instance_grouping", grouping, _sha(grouping), "observer-v1"
             ),
         )
 
@@ -120,7 +120,7 @@ def test_role_positive_and_unknown_pixels_cannot_overlap():
             role_observations=roles,
             occlusion_relation=relations,
             instance_grouping=ScalarObservation(
-                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+                "instance_grouping", grouping, _sha(grouping), "observer-v1"
             ),
         )
 
@@ -133,7 +133,7 @@ def test_human_labels_and_frozen_owners_are_never_admitted():
             role_observations=roles,
             occlusion_relation=relations,
             instance_grouping=ScalarObservation(
-                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+                "instance_grouping", grouping, _sha(grouping), "observer-v1"
             ),
             human_labels_used=True,
         )
@@ -157,7 +157,7 @@ def test_all_unknown_occlusion_relation_is_not_a_capability():
             role_observations=roles,
             occlusion_relation=unknown_relations,
             instance_grouping=ScalarObservation(
-                "instance_grouping", grouping, _sha(grouping), "instance-observer"
+                "instance_grouping", grouping, _sha(grouping), "observer-v1"
             ),
         )
 
@@ -174,6 +174,6 @@ def test_all_zero_instance_grouping_is_not_a_capability():
                 "instance_grouping",
                 unknown_grouping,
                 _sha(unknown_grouping),
-                "instance-observer",
+                "observer-v1",
             ),
         )
