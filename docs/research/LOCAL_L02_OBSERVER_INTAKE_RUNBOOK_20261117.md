@@ -76,6 +76,18 @@ python tools\research\audit_local_l02_observer_intake.py training --sdk-root <�
 `TRAINING_INPUT_PASS_RESEARCH_ONLY` のときだけ、別人物データで学習runnerを実行する。
 学習後は重みSHAと出力契約を固定し、H04/H06/H08を同一設定で一括推論する。
 
+学習runnerは、catalog全体を監査した後、H04/H06/H08のholdout行を除いた一時training feedだけを
+trainerへ渡す。trainerの出力specと重みは直ちにcheckpoint intakeへ戻し、六能力が不足していれば
+checkpointを凍結しない。cmdでは次を実行する。
+
+```text
+python tools\research\run_local_l02_observer_training.py --sdk-root <非公開Cubism SDK> --catalog <非公開catalog.json> --trainer <非公開trainer.py> --output-dir <非公開checkpointフォルダ> --receipt <非公開training-receipt.json>
+```
+
+成功時は `TRAINING_CHECKPOINT_FROZEN_RESEARCH_ONLY` となる。receiptにはcatalog、training feed、
+trainer、weightsのSHAと、holdout除外、Phase4/HOLD、Phase5/NO_GOを記録する。出力された
+`observer_spec.json`と`observer_weights.bin`を、直後に上記の三例一括probeへ渡す。
+
 ## 固定checkpointの三例一括probe
 
 intake監査が `CAPABILITY_PASS_RESEARCH_ONLY` を返した後、次のsource-only adapterを実行する。
