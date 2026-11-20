@@ -118,6 +118,9 @@ def audit_checkpoint_input(spec_path: str | Path, weights_path: str | Path) -> d
             weights_sha256=actual_sha,
             output_contract=tuple(contract),
             source_only=True,
+            human_labels_used_for_inference=False,
+            unknown_policy=spec["unknown_policy"],
+            same_config_cases=tuple(same_config_cases),
         )
     )
     return {

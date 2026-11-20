@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "research
 from local_l02_observer_capability_gate import (  # noqa: E402
     ObserverCapabilityHold,
     ObserverCapabilitySpec,
+    REQUIRED_CAPABILITIES,
     assess_observer_capability,
     see_through_bodypart_spec,
 )
@@ -63,6 +64,39 @@ class ObserverCapabilityGateTests(unittest.TestCase):
             "x", "rev", "c" * 64, ("outerwear",), source_only=False
         )
         with self.assertRaisesRegex(ObserverCapabilityHold, "NON_SOURCE_ONLY_OBSERVER"):
+            assess_observer_capability(spec)
+
+    def test_human_labels_are_rejected_even_with_a_complete_contract(self):
+        spec = ObserverCapabilitySpec(
+            "x",
+            "rev",
+            "d" * 64,
+            tuple(sorted(REQUIRED_CAPABILITIES)),
+            human_labels_used_for_inference=True,
+        )
+        with self.assertRaisesRegex(ObserverCapabilityHold, "HUMAN_LABELS_IN_INFERENCE"):
+            assess_observer_capability(spec)
+
+    def test_unknown_policy_must_remain_separate_from_negative(self):
+        spec = ObserverCapabilitySpec(
+            "x",
+            "rev",
+            "e" * 64,
+            tuple(sorted(REQUIRED_CAPABILITIES)),
+            unknown_policy="unknown_is_negative",
+        )
+        with self.assertRaisesRegex(ObserverCapabilityHold, "UNKNOWN_NOT_SEPARATE_FROM_NEGATIVE"):
+            assess_observer_capability(spec)
+
+    def test_all_three_cases_are_required_for_same_config_claim(self):
+        spec = ObserverCapabilitySpec(
+            "x",
+            "rev",
+            "f" * 64,
+            tuple(sorted(REQUIRED_CAPABILITIES)),
+            same_config_cases=("H04", "H06"),
+        )
+        with self.assertRaisesRegex(ObserverCapabilityHold, "THREE_CASE_SAME_CONFIG_NOT_DECLARED"):
             assess_observer_capability(spec)
 
 

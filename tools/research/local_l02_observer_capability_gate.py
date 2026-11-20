@@ -28,6 +28,8 @@ REQUIRED_CAPABILITIES = frozenset(
         "instance_grouping",
     }
 )
+REQUIRED_CASES = ("H04", "H06", "H08")
+REQUIRED_UNKNOWN_POLICY = "separate_from_negative"
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,9 @@ class ObserverCapabilitySpec:
     weights_sha256: str
     output_contract: tuple[str, ...]
     source_only: bool = True
+    human_labels_used_for_inference: bool = False
+    unknown_policy: str = REQUIRED_UNKNOWN_POLICY
+    same_config_cases: tuple[str, ...] = REQUIRED_CASES
 
 
 def _normalise_contract(values: Iterable[str]) -> frozenset[str]:
@@ -58,6 +63,16 @@ def assess_observer_capability(spec: ObserverCapabilitySpec) -> dict[str, object
         raise ObserverCapabilityHold("UNSIGNED_OR_UNPINNED_WEIGHTS")
     if spec.source_only is not True:
         raise ObserverCapabilityHold("NON_SOURCE_ONLY_OBSERVER")
+    if spec.human_labels_used_for_inference is not False:
+        raise ObserverCapabilityHold("HUMAN_LABELS_IN_INFERENCE")
+    if spec.unknown_policy != REQUIRED_UNKNOWN_POLICY:
+        raise ObserverCapabilityHold("UNKNOWN_NOT_SEPARATE_FROM_NEGATIVE")
+    if (
+        type(spec.same_config_cases) is not tuple
+        or len(spec.same_config_cases) != len(REQUIRED_CASES)
+        or set(spec.same_config_cases) != set(REQUIRED_CASES)
+    ):
+        raise ObserverCapabilityHold("THREE_CASE_SAME_CONFIG_NOT_DECLARED")
 
     contract = _normalise_contract(spec.output_contract)
     missing = tuple(sorted(REQUIRED_CAPABILITIES - contract))
@@ -68,6 +83,7 @@ def assess_observer_capability(spec: ObserverCapabilitySpec) -> dict[str, object
             "revision": spec.revision,
             "missing_capabilities": missing,
             "observed_capabilities": tuple(sorted(contract)),
+            "same_config_cases": REQUIRED_CASES,
             "formal_probe_allowed": False,
             "reason": "observer output cannot distinguish every required semantic boundary",
         }
@@ -77,6 +93,7 @@ def assess_observer_capability(spec: ObserverCapabilitySpec) -> dict[str, object
         "revision": spec.revision,
         "missing_capabilities": (),
         "observed_capabilities": tuple(sorted(contract)),
+        "same_config_cases": REQUIRED_CASES,
         "formal_probe_allowed": True,
         "reason": "capability contract is present; Phase4 and owner authority remain separate gates",
     }
