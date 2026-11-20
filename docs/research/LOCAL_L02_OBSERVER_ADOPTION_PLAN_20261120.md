@@ -28,6 +28,12 @@
 5. 推論出力を凍結し、独立Phase4評価でowner排他、遮蔽、4/8連結、穴、重要部位、正衣装保持、誤owner除去を確認する。
 6. Phase4が独立PASSした同一候補だけをPhase5へ進める。公開・本番昇格は別の所有者受入を必要とする。
 
+## 既存資材で確認できた部分実績
+
+`C:\Work\Temp\minimalizer-h06-h08-inference-20261109\output\NEW_INFERENCE_RECEIPT.json` には、署名済みH06/H08元画像だけを入力にしたSegFormerの新規推論が記録されている。`SAPIENS2_BODY_PARTS_RECEIPT.json` には、H04/H06/H08に対するsource-onlyの腕・粗い衣装body-parts推論も記録されている。どちらも `human_masks_used_in_inference=false`、`unknown_as_negative=false` である。
+
+ただし、これらを6能力observerの成立とは扱わない。現在確認できるのは外衣、粗い衣装、腕の部分出力までで、下層衣装、袖、3種類の明示的なペア別遮蔽、人物内instanceを同一の正式出力契約として固定したcheckpointは未成立である。従ってG2は「新規推論の実行は確認済み、正式入力昇格はHOLD」とし、G1・Phase4・Phase5を飛び越えない。
+
 ## 現在の残作業
 
-この計画を満たす実observer checkpoint、署名済み学習メタデータ、train/validationの別人物データ、H04/H06/H08の新規推論、独立Phase4 PASSは未完了である。従ってこの計画のPASSは、キャンペーン全体の完了を意味しない。
+この計画を満たす実observer checkpoint、署名済み学習メタデータ、train/validationの別人物データ、6能力を揃えたH04/H06/H08の同一設定推論、独立Phase4 PASSは未完了である。従ってこの計画のPASSは、キャンペーン全体の完了を意味しない。
