@@ -13,16 +13,16 @@ SVG保存ボタンを隠していた。このためL06ブラウザreceiptはHOLD
 共有 `web/static/app.js` を含む5ファイル束を作成した。Service Worker世代は既存の
 `minimalizer-local-20261117-2`を維持する。stagingは次の場所にある。
 
-`C:\Work\Temp\minimalizer-l07-runtime-staging-20261120-v5`
+`C:\Work\Temp\minimalizer-l07-runtime-staging-20261120-v6`
 
-manifestの `source_commit` は `05f85ac5c46115690d711c4b65407a158af2e791`。
+manifestの `source_commit` は `086394f01c47726e0675d1c37cf621e63010ec2f`。
 この束は本番を変更せず、owner applyと再起動/readbackが必要である。
 
 ## owner PCでの反映
 
 ```cmd
 cd /d C:\Work\Temp\minimalizer-l07-pinned-20261117
-set "BUNDLE=C:\Work\Temp\minimalizer-l07-runtime-staging-20261120-v5"
+set "BUNDLE=C:\Work\Temp\minimalizer-l07-runtime-staging-20261120-v6"
 set "TARGET=C:\Work\Projects\_runtime\minimalizer-production"
 set "BACKUP=C:\Work\Temp\L07_RUNTIME_BACKUP_20261120-v5"
 python tools\research\apply_local_l07_runtime_bundle.py --bundle "%BUNDLE%" --target "%TARGET%" --backup "%BACKUP%" --owner-approved
