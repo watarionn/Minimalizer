@@ -1,7 +1,7 @@
 """Apply a prepared Local L07 bundle with owner-only safeguards.
 
 The command intentionally does not restart a worker, change git refs, or
-touch ``dist/``.  It backs up only the four files it replaces and reports
+touch ``dist/``.  It backs up only the manifest-listed files it replaces and reports
 that a separate owner-approved restart/readback is still required.
 """
 
@@ -50,7 +50,7 @@ def _load_manifest(bundle: Path) -> dict[str, Any]:
     if value.get("status") != "STAGING_READY":
         raise ValueError("STAGING_NOT_READY")
     records = value.get("files")
-    if not isinstance(records, list) or len(records) != 4:
+    if not isinstance(records, list) or len(records) != 5:
         raise ValueError("STAGING_FILE_SET_INVALID")
     for record in records:
         if not isinstance(record, dict) or not isinstance(record.get("path"), str):

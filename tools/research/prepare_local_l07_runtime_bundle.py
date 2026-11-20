@@ -21,6 +21,7 @@ SCHEMA = "minimalizer/local-l07/runtime-staging/v1"
 FILES = (
     Path("local_worker/app.py"),
     Path("tools/research/local_l04_production_bundle.py"),
+    Path("web/static/app.js"),
     Path("local_worker/frontend/sw.js"),
     Path("local_worker/frontend/local-route.js"),
 )
@@ -65,6 +66,7 @@ def validate_source(root: Path) -> tuple[str, dict[str, str]]:
     route = contents["local_worker/frontend/local-route.js"]
     worker = contents["local_worker/app.py"]
     bundle_loader = contents["tools/research/local_l04_production_bundle.py"]
+    shared_app = contents["web/static/app.js"]
     for token in FORBIDDEN:
         if token in sw:
             raise ValueError(f"forbidden Service Worker operation: {token}")
@@ -73,6 +75,9 @@ def validate_source(root: Path) -> tuple[str, dict[str, str]]:
             raise ValueError(f"formal L04 runtime path is missing: {token}")
     if "MINIMALIZER_LOCAL_L04_RECEIPT_SHA256" not in bundle_loader:
         raise ValueError("formal L04 bundle loader is not candidate-bound")
+    for token in ("x-minimalizer-l04-svg-available", "state.l04SvgAvailable"):
+        if token not in shared_app:
+            raise ValueError("shared browser app is missing formal L04 SVG download contract")
 
     sw_generations = GENERATION_RE.findall(sw)
     route_generations = GENERATION_RE.findall(route)

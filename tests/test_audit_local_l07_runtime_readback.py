@@ -70,7 +70,7 @@ def test_readback_binds_runtime_files_generation_and_health(tmp_path):
     assert runtime["candidate_receipt_sha256"].startswith("381b0b5a")
     assert runtime["generation"] == "minimalizer-local-20261117-2"
     assert runtime["runtime_generation_bound"] is True
-    assert len(runtime["runtime_file_sha256"]) == 4
+    assert len(runtime["runtime_file_sha256"]) == 5
     assert health == {
         "schema": "minimalizer/local-l07/health/v1",
         "status": "ready",
