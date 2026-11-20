@@ -34,6 +34,19 @@
 
 ただし、これらを6能力observerの成立とは扱わない。現在確認できるのは外衣、粗い衣装、腕の部分出力までで、下層衣装、袖、3種類の明示的なペア別遮蔽、人物内instanceを同一の正式出力契約として固定したcheckpointは未成立である。従ってG2は「新規推論の実行は確認済み、正式入力昇格はHOLD」とし、G1・Phase4・Phase5を飛び越えない。
 
+## 2026-11-20 CandidateBound保管物の照合結果
+
+非公開Driveの `L02_CandidateBound_Phase4_Phase5_20261113` にある `v1` と `v2` を、現行候補の識別子に対して読取照合した。両zipにはH04/H06/H08の `phase_04` と `phase_05`、三例のsource SHA、候補マスクSHA、機械的なmetricsが入っているが、次の現行識別子を正式に束ねるreceiptフィールドはない。
+
+| 保管物 | 読み取れた判定 | 現行版への扱い |
+| --- | --- | --- |
+| `minimalizer-l02-candidate-bound-phase4-20261113-v1.zip` | `PHASE5_INPUT_PREFLIGHT=PASS/READY`、H04 Phase5 metrics `pass=false` | 過去実験。正式候補へ昇格しない |
+| `minimalizer-l02-candidate-bound-phase4-20261113-v2.zip` | `PHASE5_INPUT_PREFLIGHT=PASS/READY`、H04/H06/H08のPhase5 metricsは機械的に `pass=true` | 過去実験。独立Phase4 receiptではない |
+
+両版で記録された候補SHAは、H08 owner認可receipt対象として固定した `43d164…` および本番L04採用receipt `381b0b5a…` と一致しない。したがって、この保管物の `PASS` を現行候補のPhase4 PASS、H08 owner認可、または本番許可へ読み替えない。画像・NPZ・マスクはDrive保管を維持し、GitHubにはこの照合結果とSHA対応だけを残す。
+
 ## 現在の残作業
 
 この計画を満たす実observer checkpoint、署名済み学習メタデータ、train/validationの別人物データ、6能力を揃えたH04/H06/H08の同一設定推論、独立Phase4 PASSは未完了である。従ってこの計画のPASSは、キャンペーン全体の完了を意味しない。
+
+次の実装着手点は、既存候補への微小な後処理を重ねることではない。6能力のうち欠落している下層衣装・袖・ペア別遮蔽・人物内instanceを同一出力契約で生成できるobserver checkpointまたは、別人物データで学習した導入候補を一つに固定し、同じsource-only receipt形式でH04/H06/H08を再推論することである。
