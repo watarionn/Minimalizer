@@ -23,6 +23,10 @@
 
 `LOCAL_L04_RUNTIME_E2E_AUDIT_20261120.md` と `audit_local_l04_runtime_e2e.py` のsource-free監査で、H04/H06/H08についてPNG・正式SVGのHTTP 200、入力source SHA、SVG SHA、candidate receipt、case、release GO、MIMEを確認済み。WebP MIME未指定415も再現し、`image/webp`指定でPASSした。
 
+## 2026-11-20 追加照合
+
+非公開DriveのMinimalizer研究フォルダを再読戻しした。L02 CandidateBoundはv1/v2、SourceOnlyは既存zipのみで、六能力checkpoint、別人物train/validation catalog、trainer実体、または現行候補 `381b0b5a…` に結合したL06 Phase14/browser-performance receiptは追加されていない。ローカル保管のCandidateBound v3/v4/v5/v6/v8も旧候補SHAを繰り返すだけで、H08固定対象 `43d164…`への現行候補結合はない。v5は履歴専用として採用対象外を維持する。この照合により、既存PASS要約を現行候補へ遡及結合せず、G1/G3/G9をHOLDのまま保護する。
+
 ## 完了宣言の条件
 
 この表のHOLDを、L04の配信PASSや既存iPhone回答で埋めてはならない。G1→G2→G3→G4→G5を完了し、現行Worker `64cf…`のG8、現行候補のG9、非公開Drive読戻しを揃えた後にだけG10を実行する。G10が `release_authorized=true` にならない限り、Draft解除・正式merge・本番完了宣言は行わない。
