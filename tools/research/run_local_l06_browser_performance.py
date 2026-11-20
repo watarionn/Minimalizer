@@ -131,7 +131,20 @@ def _case(driver: webdriver.Chrome, url: str, name: str, source: Path, timeout: 
     # its hash and size, never the body.
     svg_before = len(_download_info(download_dir))
     if not png_state["svg_visible"]:
-        raise RuntimeError(f"{name}: production SVG button is not visible")
+        return {
+            "source_sha256": source_sha,
+            "source_bytes": source.stat().st_size,
+            "source_name": source.name,
+            "browser_render_pass": bool(png_state["preview_visible"]),
+            "performance_pass": False,
+            "hold_reason": "FORMAL_L04_SVG_DOWNLOAD_BUTTON_HIDDEN",
+            "png_elapsed_ms": round((png_done - started) * 1000, 3),
+            "png_to_svg_elapsed_ms": None,
+            "total_elapsed_ms": round((png_done - started) * 1000, 3),
+            "ui": {key: value for key, value in png_state.items() if key != "fetches"},
+            "api_events": [event for event in png_state["fetches"] if "/api/" in event.get("url", "")],
+            "downloaded_artifacts": [],
+        }
     driver.find_element(By.ID, "download-svg").click()
     _wait(
         driver,
