@@ -1,8 +1,9 @@
 # Local private HTTPS current retry evidence — 2026-11-17
 
 This is a source-free operational recheck against the adopted production
-Worker. It records the failure path only; it does not promote the L04 bundle
-or replace the owner iPhone acceptance receipt.
+Worker. It records the current PC private-HTTPS evidence and failure paths;
+it does not promote the L04 bundle or replace the owner iPhone acceptance
+receipt.
 
 ## Binding
 
@@ -30,10 +31,30 @@ single-worker slot was occupied returned:
 The response is consistent with the fail-closed single-job concurrency
 contract. No retry loop was added to the worker by this recheck.
 
+The same signed H04 input was also replayed through both current PNG routes:
+
+- `zerobase2`: HTTP 200, `image/png`, output SHA-256
+  `b0b2717588ce8e01f4c95609bbe139dd161670b74da1898b6c359891d8d9567a`
+- `v2`: HTTP 200, `image/png`, output SHA-256
+  `e4d3cc859018677453bbd8364b3a9f1152c9e6c2fbffab22a2124586d07402a1`
+
+The input SHA in both responses matched the signed H04 source SHA above. The
+owner-side L05 receipt records input/output file readback and the following
+failure paths: invalid media type HTTP 415, busy HTTP 429 with
+`Retry-After: 2`, and invalid image HTTP 503. The existing receipt auditor
+reported `owner_pc_e2e_verified=true`, `png_routes_verified=true`,
+`failure_paths_verified=true`, and `file_readback_verified=true`.
+
+The current Worker adoption receipt separately records a v2 fallback replay
+with the same candidate and Worker binding. That is retained as fallback
+evidence, not silently treated as part of the new PC run.
+
 ## Gate interpretation
 
-This proves the current retry signal is present on the adopted Worker. It does
-not prove a successful output for this recheck, SVG delivery, L04 formal PASS,
-or current-commit iPhone acceptance. Existing successful replay and rollback
-evidence remains bound to its recorded receipts and must not be silently
-rebound to another commit.
+This proves current PC private-HTTPS PNG success, the retry signal, and the
+recorded failure paths on the adopted Worker. It does not prove SVG delivery,
+L04 formal PASS, or current-commit iPhone acceptance. The auditor therefore
+keeps `L05_formal=HOLD`, `production_release=NO_GO`, and
+`release_authorized=false`. Existing successful replay, fallback, and
+rollback evidence remains bound to its recorded receipts and must not be
+silently rebound to another commit.

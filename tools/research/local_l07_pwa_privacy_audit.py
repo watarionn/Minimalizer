@@ -46,9 +46,8 @@ def verify_serviceworker(source:str):
     if ('constCACHE_PREFIX="minimalizer-local-shell-";' not in tight or
             'constCACHE=CACHE_PREFIX+GENERATION;' not in tight):
         raise PrivacyHold("SW_CACHE_NOT_GENERATION_PINNED")
-    if ('key.startsWith(CACHE_PREFIX)&&key!==CACHE' not in tight or
-            'keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE)' not in tight):
-        raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
+    if 'caches.delete(' in tight:
+        raise PrivacyHold("SW_OLD_GENERATION_DELETION_BREAKS_ROLLBACK")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
     if "skipWaiting(" in code or "clients.claim(" in code:
@@ -56,19 +55,26 @@ def verify_serviceworker(source:str):
     for fragment in (
         'event.request.method!=="GET"',
         'url.origin!==self.location.origin',
-        '!ASSETS.includes(url.pathname)',
+            '!ASSETS.includes(canonical)',
         'cache.addAll(ASSETS)',
-        'constcacheRequest=newRequest(newURL(url.pathname,self.location.origin).href);',
-        'event.respondWith(fetch(event.request).catch(()=>caches.match(cacheRequest)))',
+        'constcacheRequest=newRequest(newURL(canonical,self.location.origin).href);',
+        'event.respondWith(caches.open(CACHE).then(cache=>cache.match(cacheRequest))',
     ):
         if fragment not in tight:raise PrivacyHold("SW_PRIVACY_GUARD_MISSING:"+fragment)
+    if 'fetch(event.request)' in tight:
+        raise PrivacyHold("SW_NETWORK_FALLBACK_BREAKS_GENERATION_PIN")
+    if 'self.addEventListener("activate"' in tight:
+        raise PrivacyHold("SW_ACTIVATE_CLEANUP_REQUIRES_REVIEW")
     if tight.count('self.addEventListener("fetch"')!=1:
         raise PrivacyHold("SW_UNEXPECTED_EXTRA_FETCH_HANDLER")
     return {"status":"STATIC_SW_PRIVACY_CONTRACT_PASS",
             "generation":gm.group(1),
+            "generation_pinned":True,
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
-            "cache_cleanup_namespace_scoped":True,
+            "cache_cleanup_namespace_scoped":False,
+            "old_generation_retained_for_rollback":True,
+            "rollback_available":True,
             "offline_shell_fallback":True,
             "generation_transition_waits_for_navigation":True,
             "live_browser_e2e_verified":False}
@@ -109,12 +115,29 @@ def audit(repo_root:Path):
             "serviceworker":serviceworker,
             "route":route_report,
             "production_changes":False,
+            "runtime_sw_audit_pass":False,
+            "runtime_generation_bound":False,
             "L07_actual_live_iphone":"NOT_TESTED",
             "L08_release":"NOT_APPROVED"}
 
 if __name__=="__main__":
     import argparse
+    import sys
     p=argparse.ArgumentParser()
     p.add_argument("repository_root",type=Path)
+    p.add_argument("--output",type=Path)
     a=p.parse_args()
-    print(json.dumps(audit(a.repository_root),ensure_ascii=False,sort_keys=True,indent=2))
+    try:
+        result=audit(a.repository_root)
+        result={"status":"PASS",**result}
+        exit_code=0
+    except PrivacyHold as exc:
+        result={"schema":"minimalizer/local-l07/privacy-static/v2",
+                "status":"HOLD","failures":[str(exc)],
+                "production_changes":False,"release_authorized":False}
+        exit_code=2
+    encoded=json.dumps(result,ensure_ascii=False,sort_keys=True,indent=2)+"\n"
+    if a.output is not None:
+        a.output.write_text(encoded,encoding="utf-8")
+    print(encoded,end="")
+    raise SystemExit(exit_code)
