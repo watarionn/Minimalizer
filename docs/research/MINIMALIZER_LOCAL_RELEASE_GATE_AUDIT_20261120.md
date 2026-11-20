@@ -7,7 +7,7 @@
 | ゲート | 判定 | 根拠 | 残り |
 |---|---|---|---|
 | G0 基準固定 | PASS | 候補・Worker・main SHAを固定 | なし |
-| G1 6能力observer入力 | HOLD | 現行公開候補は外衣・袖・腕のみ。導入計画はPASSだがcheckpoint/別人物catalog未到着 | 実observerまたは学習資材 |
+| G1 6能力observer入力 | HOLD | ローカルに `yolo12138/segformer-b2-human-parse-24` の部分checkpointはあるが、正式capability gateは `outerwear/sleeve/arm` のみPASSで、`underlayer`・3組のpairwise遮蔽・`instance_grouping` が不足。六能力checkpoint/別人物catalogは未到着 | 実observerまたは学習資材 |
 | G2 H04/H06/H08新規推論 | HOLD（入力実行は確認済み） | `minimalizer-h06-h08-inference-20261109/output/NEW_INFERENCE_RECEIPT.json` と Sapiens2 body-parts receiptで、署名元画像だけを使った新規推論は確認できる。ただし6能力observerの契約を満たさず、現行候補へのPhase4入力として昇格できない | G1の6能力observer成立後、同一設定で正式実行 |
 | G3 独立Phase4 | HOLD | 現行候補に対する意味品質の独立Phase4 receipt未成立 | G2後に一度だけ評価 |
 | G4 H08 owner認可 | HOLD | `43d164…`の固定はあるが、G3 PASS後の現行候補receiptへ未結合 | 現行候補向けowner receipt |
@@ -25,7 +25,7 @@
 
 ## 2026-11-20 追加照合
 
-非公開DriveのMinimalizer研究フォルダを再読戻しした。L02 CandidateBoundはv1/v2、SourceOnlyは既存zipのみで、六能力checkpoint、別人物train/validation catalog、trainer実体、または現行候補 `381b0b5a…` に結合したL06 Phase14/browser-performance receiptは追加されていない。ローカル保管のCandidateBound v3/v4/v5/v6/v8も旧候補SHAを繰り返すだけで、H08固定対象 `43d164…`への現行候補結合はない。v5は履歴専用として採用対象外を維持する。この照合により、既存PASS要約を現行候補へ遡及結合せず、G1/G3/G9をHOLDのまま保護する。
+非公開DriveのMinimalizer研究フォルダを再読戻しした。L02 CandidateBoundはv1/v2、SourceOnlyは既存zipのみで、六能力checkpoint、別人物train/validation catalog、trainer実体、または現行候補 `381b0b5a…` に結合したL06 Phase14/browser-performance receiptは追加されていない。ローカル保管のCandidateBound v3/v4/v5/v6/v8も旧候補SHAを繰り返すだけで、H08固定対象 `43d164…`への現行候補結合はない。v5は履歴専用として採用対象外を維持する。部分checkpointのH04/H06/H08 source-only実行は能力監査に留まり、正式probeへは昇格していない。この照合により、既存PASS要約を現行候補へ遡及結合せず、G1/G3/G9をHOLDのまま保護する。
 
 ## 完了宣言の条件
 
