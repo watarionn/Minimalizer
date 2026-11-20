@@ -1,0 +1,7 @@
+# Lane A L02 research and gate tests. Keep separate from the production
+# LocalWorker dependencies; this file contains no private model or dataset.
+numpy
+opencv-python-headless<5
+Pillow
+pytest
+scikit-learn
