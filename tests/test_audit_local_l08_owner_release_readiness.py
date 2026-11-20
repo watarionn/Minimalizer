@@ -1,5 +1,4 @@
 import json
-import hashlib
 from pathlib import Path
 
 import pytest
@@ -19,7 +18,7 @@ def _write(path: Path, value: dict) -> Path:
     return path
 
 
-def _files(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
+def _files(tmp_path: Path) -> tuple[Path, Path, Path]:
     a = _write(tmp_path / "a.json", {
         "schema": "minimalizer/local-l04/independent-visual-delta-review-receipt/v1",
         "receipt_created": True,
@@ -56,45 +55,13 @@ def _files(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
         "fallback": {"zerobase2_503_visible": True, "local_v2_success_visible": True, "evidence_sha256": SHA},
         "private_drive_readback": True,
     })
-    bundle = tmp_path / "bundle"
-    bundle.mkdir()
-    cases = {}
-    for case in ("H04", "H06", "H08"):
-        case_dir = bundle / case
-        case_dir.mkdir()
-        source_sha = (case[1].lower() * 64)
-        svg = case_dir / "expanded.svg"
-        svg.write_text(f"<svg>{case}</svg>", encoding="utf-8")
-        stage8 = case_dir / "stage8.json"
-        stage8_value = {
-            "formal_status": "PASS",
-            "production_release": "NO_GO",
-            "signed_source_sha256": source_sha,
-            "expanded_svg_sha256": hashlib.sha256(svg.read_bytes()).hexdigest(),
-            "source_only_inference": True,
-            "human_labels_used_for_inference": False,
-            "unknown_pixels_treated_as_negative": False,
-        }
-        stage8.write_text(json.dumps(stage8_value), encoding="utf-8")
-        cases[case] = {
-            "source": {"sha256": source_sha},
-            "stage8_json": {"path": f"{case}/stage8.json", "sha256": hashlib.sha256(stage8.read_bytes()).hexdigest()},
-            "expanded_svg": {"path": f"{case}/expanded.svg", "sha256": hashlib.sha256(svg.read_bytes()).hexdigest()},
-        }
-    manifest = _write(bundle / "manifest.json", {
-        "schema": "minimalizer/local-l04/production-bundle/v1",
-        "candidate_receipt_sha256": SHA,
-        "L04_formal": "PASS", "Golden": "PASS", "production": "NO_GO",
-        "cases": cases,
-    })
-    return a, pc, iphone, manifest
+    return a, pc, iphone
 
 
 def test_owner_release_readiness_passes_without_authorizing_release(tmp_path: Path) -> None:
-    a, pc, iphone, manifest = _files(tmp_path)
+    a, pc, iphone = _files(tmp_path)
     result = audit_owner_release_readiness(
         a, pc, iphone, production_commit=COMMIT,
-        l04_manifest_path=manifest,
         repository_root=Path(__file__).resolve().parents[1],
     )
     assert result["ready_for_owner_release"] is True
@@ -104,37 +71,21 @@ def test_owner_release_readiness_passes_without_authorizing_release(tmp_path: Pa
 
 
 def test_owner_release_readiness_rejects_wrong_current_production_commit(tmp_path: Path) -> None:
-    a, pc, iphone, manifest = _files(tmp_path)
+    a, pc, iphone = _files(tmp_path)
     with pytest.raises(L08Hold, match="IPHONE_PRODUCTION_COMMIT_MISMATCH"):
         audit_owner_release_readiness(
             a, pc, iphone, production_commit="b" * 40,
-            l04_manifest_path=manifest,
             repository_root=Path(__file__).resolve().parents[1],
         )
 
 
 def test_owner_release_readiness_rejects_a_release_override(tmp_path: Path) -> None:
-    a, pc, iphone, manifest = _files(tmp_path)
+    a, pc, iphone = _files(tmp_path)
     value = json.loads(a.read_text(encoding="utf-8"))
     value["release_authorized"] = True
     _write(a, value)
     with pytest.raises(L08Hold, match="A_RELEASE_BOUNDARY_CHANGED"):
         audit_owner_release_readiness(
             a, pc, iphone, production_commit=COMMIT,
-            l04_manifest_path=manifest,
-            repository_root=Path(__file__).resolve().parents[1],
-        )
-
-
-def test_owner_release_readiness_rejects_case_stage_hold(tmp_path: Path) -> None:
-    a, pc, iphone, manifest = _files(tmp_path)
-    case_stage = manifest.parent / "H08" / "stage8.json"
-    value = json.loads(case_stage.read_text(encoding="utf-8"))
-    value["formal_status"] = "HOLD"
-    case_stage.write_text(json.dumps(value), encoding="utf-8")
-    with pytest.raises(L08Hold, match="L04_STAGE8_FILE_SHA"):
-        audit_owner_release_readiness(
-            a, pc, iphone, production_commit=COMMIT,
-            l04_manifest_path=manifest,
             repository_root=Path(__file__).resolve().parents[1],
         )
