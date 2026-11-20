@@ -8,14 +8,14 @@
 |---|---|---|---|
 | G0 基準固定 | PASS | 候補・Worker・main SHAを固定 | なし |
 | G1 6能力observer入力 | HOLD | 現行公開候補は外衣・袖・腕のみ。導入計画はPASSだがcheckpoint/別人物catalog未到着 | 実observerまたは学習資材 |
-| G2 H04/H06/H08新規推論 | HOLD | 推論前ラベル非使用を保証する実observerが未成立 | G1後に同一設定で実行 |
+| G2 H04/H06/H08新規推論 | HOLD（入力実行は確認済み） | `minimalizer-h06-h08-inference-20261109/output/NEW_INFERENCE_RECEIPT.json` と Sapiens2 body-parts receiptで、署名元画像だけを使った新規推論は確認できる。ただし6能力observerの契約を満たさず、現行候補へのPhase4入力として昇格できない | G1の6能力observer成立後、同一設定で正式実行 |
 | G3 独立Phase4 | HOLD | 現行候補に対する意味品質の独立Phase4 receipt未成立 | G2後に一度だけ評価 |
 | G4 H08 owner認可 | HOLD | `43d164…`の固定はあるが、G3 PASS後の現行候補receiptへ未結合 | 現行候補向けowner receipt |
 | G5 Phase5 exact replay | HOLD | G3/G4待ち | 同一候補で再現 |
 | G6 L04三点セット | PASS（B配信範囲） | H04/H06/H08 PNG・SVG実入力3/3 HTTP 200、SVG SHA 3/3一致、candidate receipt/release GO 3/3 | A品質昇格とは分離 |
 | G7 L07 runtime | PASS（runtime範囲） | generation-pinned SW、health 200、ZeroBase2認可、rollback経路 | owner shipとは分離 |
 | G8 現行Worker iPhone | HOLD | Safari/PWA等の過去回答はあるが、Worker `64cf…`へ結合した現行raw receiptが未読戻し | 現行Workerで再受入 |
-| G9 L06回帰・性能 | HOLD | L04実入力処理時間は記録済みだが、Approved18→78・Golden・ブラウザ性能を現行候補へ束ねたreceiptが未成立 | 同一候補binding |
+| G9 L06回帰・性能 | HOLD（部分PASS） | Approved18=18/18、Approved78=78/78のローカルgateはPASS。ただしDiagnostic2現行summaryはFAILで、Approved18→78・Golden・ブラウザ性能をreceipt `381b0b5a…`へ結合したsource-free bindingは未成立 | Diagnostic2をPASSへ修復し、同一候補binding |
 | G10 最終release gate | HOLD | A、G8、G9が未完了 | 全receipt結合 |
 | G11 owner ship・保存 | HOLD | `release_authorized`を全体ゲートで確認できていない | owner反映・Drive読戻し |
 
