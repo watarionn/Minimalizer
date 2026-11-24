@@ -40,7 +40,7 @@ const elements = {
   engineBadge: document.querySelector("#engine-badge"),
 };
 
-const state = {file:null,sourceUrl:null,resultUrl:null,resultBlob:null,resultFilename:"minimalized.png",busy:false};
+const state = {file:null,sourceUrl:null,resultUrl:null,resultBlob:null,resultFilename:"minimalized.png",busy:false,l04SvgAvailable:false};
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -105,7 +105,7 @@ function updateModeUi() {
 
   elements.colorStripControls.hidden = !colorStrip;
   elements.colorStripOptions.hidden = !colorStrip;
-  elements.downloadSvg.hidden = !colorStrip;
+  elements.downloadSvg.hidden = !colorStrip && !state.l04SvgAvailable;
 
   elements.stripColors.disabled = state.busy || !colorStrip;
   elements.colorSimilarity.disabled = state.busy || !colorStrip || isCharacteristicSelection();
@@ -133,6 +133,7 @@ function clearResult(message = "") {
   if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
   state.resultUrl = null;
   state.resultBlob = null;
+  state.l04SvgAvailable = false;
   state.resultFilename = isColorStripMode() ? "color-strip.svg" : "minimalized.png";
   elements.resultPreview.removeAttribute("src");
   elements.resultPreview.hidden = true;
@@ -250,7 +251,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
   if (!state.file || state.busy) return;
 
   const colorStrip = isColorStripMode();
-  if (!colorStrip) outputFormat = "png";
+  if (!colorStrip && outputFormat !== "png" && outputFormat !== "svg") outputFormat = "png";
 
   const label = outputFormat.toUpperCase();
   const action = colorStrip ? "Color Stripを生成しています…" : "画像をミニマル化しています…";
@@ -268,7 +269,7 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
     if (colorStrip) {
       response = await requestBrowserColorStrip(outputFormat);
     } else {
-      const result = await compute.minimalize(state.file, setStatus);
+      const result = await compute.minimalize(state.file, setStatus, outputFormat);
       response = result.response;
       computeRoute = result.compute;
       fallbackReason = result.fallbackReason || "";
@@ -287,6 +288,10 @@ async function requestMinimalize(outputFormat, { preview = false, download = fal
       elements.resultPreview.hidden = false;
       elements.resultEmpty.hidden = true;
       elements.downloadRow.hidden = false;
+      if (!colorStrip && outputFormat === "png") {
+        state.l04SvgAvailable = response.headers.get("x-minimalizer-l04-svg-available") === "true";
+        updateModeUi();
+      }
 
       const responseMode = response.headers.get("x-minimalizer-mode");
       const responseRoute = response.headers.get("x-minimalizer-route");
@@ -383,8 +388,6 @@ elements.dropZone.addEventListener("drop", (event) => {
 });
 
 function downloadOrRequest(outputFormat) {
-  if (!isColorStripMode() && outputFormat === "svg") return;
-
   if (state.resultBlob && state.resultFilename.endsWith(`.${outputFormat}`)) {
     downloadBlob(state.resultBlob, state.resultFilename);
     setStatus(`${outputFormat.toUpperCase()}を保存しました。`);
