@@ -1,0 +1,62 @@
+{
+  "schema": "minimalizer/local-l06-current-candidate-binding/v1",
+  "observed_at_utc": "2026-11-24T10:31:00Z",
+  "repository_main_sha": "0673449ac1a45c8b479aaeb8229b0a60140470f7",
+  "worker_runtime_sha256": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "production_manifest": {
+    "sha256": "f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48",
+    "declared_candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+    "golden": "PASS",
+    "production": "GO",
+    "release_authorized": true,
+    "owner_production_authorization": true,
+    "candidate_binding": "PASS"
+  },
+  "owner_decision": {
+    "basis": "The user explicitly approved production adoption of receipt 381b0b5a… and excluded v5.",
+    "decision_reused": true,
+    "additional_visual_review_requested": false
+  },
+  "saved_regression_evidence": {
+    "approved18": {
+      "receipt_sha256": "58aed2cfab9af4bf43908ea67fa32e7be82815bbe23797b33803a15a546ceda1",
+      "pass": true,
+      "cases": 18,
+      "input_sha_pass": 18,
+      "approved_sha_pass": 18,
+      "structural_pass": 18,
+      "fresh_model_inference": false
+    },
+    "approved78": {
+      "receipt_sha256": "043f43e79c0b2c035b4a1bea2be82c300d506daf0f17b049cbfa8b932ac5c979",
+      "pass": true,
+      "references": 78,
+      "replay_complete": true,
+      "migration_gate_pass": true,
+      "calibration_gating": false,
+      "fresh_model_inference": false
+    }
+  },
+  "performance_observations_ms": {
+    "h04_headless_browser_png_preview": 766.0,
+    "h04_private_https_client_elapsed_png_after_restart": 283.2,
+    "h04_private_https_client_elapsed_svg_after_restart": 295.1,
+    "h06_private_https_client_elapsed_png_after_restart": 209.6,
+    "h06_private_https_client_elapsed_svg_after_restart": 277.7,
+    "h08_private_https_client_elapsed_png_after_restart": 198.7,
+    "h08_private_https_client_elapsed_svg_after_restart": 205.1,
+    "h06_private_https_png_server_processing": 554.1,
+    "h08_private_https_png_server_processing": 552.0,
+    "svg_processing_header_available": false,
+    "threshold_applied": false,
+    "interpretation": "Measurements are recorded for the exact candidate; no unsupported latency cap is imposed."
+  },
+  "p0_p1_improvements": "NOT_REMEASURED; H06/H08 outputs are byte-identical to the already evaluated and approved bundle.",
+  "remaining_acceptance_gates": [
+    "Physical iPhone Safari and installed PWA acceptance bound to the exact receipt 381b0b5a…",
+    "Private HTTPS Service Worker generation rollback readback; current rollback evidence is an isolated-origin simulation",
+    "Separate L02 six-capability observer trained on new person-group data and independent Phase4 PASS"
+  ],
+  "private_image_or_output_bytes_in_repository": false
+}

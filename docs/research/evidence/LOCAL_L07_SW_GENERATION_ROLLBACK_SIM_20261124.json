@@ -1,0 +1,28 @@
+{
+  "schema": "minimalizer/local-l07/sw-generation-rollback-simulation/v1",
+  "verified_at_jst": "2026-11-24T17:47:56.9389018+09:00",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "worker_runtime_base_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "repository_main_sha": "0673449ac1a45c8b479aaeb8229b0a60140470f7",
+  "service_worker_runtime_disk_sha256": "f65762ac292bf14e80b90d83963b2ca28033dd277e5d869d8504a5175ae266bb",
+  "service_worker_test_text_sha256": "8026553b866dd7d10848d238677a881fa0890c9fee7dd49852feaee9fe462dfb",
+  "generations": [
+    "minimalizer-local-20261124-1",
+    "minimalizer-local-20261124-2",
+    "minimalizer-local-20261124-1"
+  ],
+  "test_origin": "isolated ephemeral localhost",
+  "same_worker_logic_generation_constant_only": true,
+  "v1_to_v2_old_client_kept_control": true,
+  "v2_waited_until_old_client_closed": true,
+  "v1_and_v2_caches_coexisted": true,
+  "v2_activated_and_served_v2_shell": true,
+  "rollback_v1_waited_until_v2_client_closed": true,
+  "rollback_v1_activated_and_served_v1_shell": true,
+  "both_generation_caches_retained_during_rollback": true,
+  "test_registration_unregistered": true,
+  "test_caches_deleted_after_readback": true,
+  "production_worker_or_cache_touched": false,
+  "real_private_https_generation_rollback": false,
+  "iphone_rollback": false
+}

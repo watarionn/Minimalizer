@@ -1,0 +1,14 @@
+{
+  "schema": "minimalizer/local-l04-drive-readback/v1",
+  "verified_at_jst": "2026-11-24T17:37:40.7885165+09:00",
+  "bundle_filename": "Minimalizer_L04_receipt381b0b5a_production-bundle_v2_20261124.zip",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "drive_object_size_bytes": 964667,
+  "downloaded_readback_size_bytes": 964667,
+  "expected_bundle_sha256": "c489fb5b11c209c491faf5c6aa1d4bdd20652e9f26efad56f4ee871e9a671efe",
+  "downloaded_readback_sha256": "c489fb5b11c209c491faf5c6aa1d4bdd20652e9f26efad56f4ee871e9a671efe",
+  "readback_pass": true,
+  "private_file_id_published": false,
+  "private_asset_bytes_in_receipt": false,
+  "temporary_readback_copy_removed": true
+}

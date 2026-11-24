@@ -1,0 +1,53 @@
+{
+  "schema": "minimalizer/local-l07/private-https-origin-readback/v1",
+  "observed_at_utc": "2026-11-24T13:38:22Z",
+  "worker_runtime_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "worker_runtime_base_is_ancestor_of_main": true,
+  "repository_main_sha": "0673449ac1a45c8b479aaeb8229b0a60140470f7",
+  "live_worker": {
+    "pid": 28344,
+    "started_at_utc": "2026-11-24T13:07:27.2815418Z",
+    "started_after_applied_files_were_written": true
+  },
+  "applied_code_files_match_main_blobs": [
+    { "path": "local_worker/app.py", "git_blob_sha1": "2fdfb24cfe758dbc3cbb0e0b8ca6a52b4dcab859", "sha256": "26777576a7cd4ca39f7c15f4c8816a7aa87a4710cd78153b7e8df4b539f3c052" },
+    { "path": "local_worker/frontend/local-route.js", "git_blob_sha1": "e31aab7f1de1b940ed4ee81afbeee3196d0b1148", "sha256": "ec9f44afe355c03de88003568ce882fa560d2523a3c969668bd375bca4d0133d" },
+    { "path": "local_worker/frontend/sw.js", "git_blob_sha1": "3170f95bac114291eb07bbb5f0b30f1da2f6e146", "sha256": "f65762ac292bf14e80b90d83963b2ca28033dd277e5d869d8504a5175ae266bb" },
+    { "path": "web/static/app.js", "git_blob_sha1": "cb02635cfa5b3a527a05433443a8f82dc88d7602", "sha256": "3e281ddd44a83eb6e8e78386dc29a380c67531058bd6e0dbe3456e096016bc31" },
+    { "path": "tools/research/local_l04_production_bundle.py", "git_blob_sha1": "1940bf3424715bc315cfb5b7667e0c10fca186af", "sha256": "d832f2660ab1aae8cfc4cadb3fc9aa256c5bd3b772d2ec49ba5fe3508d0866eb" }
+  ],
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "production_manifest_sha256": "f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48",
+  "origin": {
+    "source": "owner-local protected origin configuration",
+    "value_written_to_public_ledger": false,
+    "configured_private_origin_match": true,
+    "https_port": 28765
+  },
+  "https_readback": [
+    { "path": "/", "status": 200, "content_type": "text/html; charset=utf-8", "bytes": 7865 },
+    { "path": "/health", "status": 200, "content_type": "application/json", "bytes": 517, "ready": true },
+    { "path": "/sw.js", "status": 200, "content_type": "application/javascript", "bytes": 2384, "generation": "minimalizer-local-20261124-1" },
+    { "path": "/manifest.webmanifest", "status": 200, "content_type": "application/manifest+json", "bytes": 1510 },
+    { "path": "/local-static/local-route.js", "status": 200, "content_type": "application/javascript", "bytes": 3912, "generation": "minimalizer-local-20261124-1" }
+  ],
+  "served_asset_body_matches_runtime_file": [
+    { "path": "/sw.js", "sha256": "f65762ac292bf14e80b90d83963b2ca28033dd277e5d869d8504a5175ae266bb", "exact_match": true },
+    { "path": "/local-static/local-route.js", "sha256": "ec9f44afe355c03de88003568ce882fa560d2523a3c969668bd375bca4d0133d", "exact_match": true },
+    { "path": "/static/app.js", "sha256": "3e281ddd44a83eb6e8e78386dc29a380c67531058bd6e0dbe3456e096016bc31", "exact_match": true }
+  ],
+  "cors_preflight": {
+    "path": "/api/v2/minimalize",
+    "method": "OPTIONS",
+    "status": 200,
+    "origin_echoed_from_configured_private_origin": true,
+    "allowed_methods": ["GET", "POST", "OPTIONS"],
+    "allowed_headers": ["content-type"]
+  },
+  "candidate_or_image_bytes_embedded": false,
+  "does_not_claim": [
+    "physical iPhone receipt-bound acceptance",
+    "real private HTTPS service-worker generation rollback",
+    "L02 semantic quality"
+  ]
+}

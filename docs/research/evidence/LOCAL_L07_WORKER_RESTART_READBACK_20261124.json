@@ -1,0 +1,26 @@
+{
+  "schema": "minimalizer/local-l07-worker-restart-readback/v1",
+  "observed_at_jst": "2026-11-24T19:37:14+09:00",
+  "worker_runtime_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "production_manifest_sha256": "f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48",
+  "restart": {
+    "old_worker_pid": 39948,
+    "new_worker_pid": 36136,
+    "new_worker_started_at_jst": "2026-11-24T19:37:14+09:00",
+    "supervisor_remained_running": true
+  },
+  "readback": {
+    "loopback_http_port": 28764,
+    "private_https_port": 28765,
+    "loopback_health_status": "ready",
+    "private_https_health_status": "ready",
+    "active_production_route": "zerobase2",
+    "zerobase2_authorized": true,
+    "runtime_error": null,
+    "worker_busy": false,
+    "listener_pid_matches_new_worker": true
+  },
+  "artifact_bytes_or_private_images_in_repository": false,
+  "quality_or_iphone_acceptance_claimed": false
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "minimalizer/local-l04-private-https-readback/v1",
+  "observed_at_utc": "2026-11-24T10:30:00Z",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "runtime_source_sha256": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "worker": {
+    "pid": 39948,
+    "started_at_local": "2026-11-24T19:07:53+09:00",
+    "ready_after_readback": true,
+    "route_after_readback": "zerobase2",
+    "busy_after_readback": false,
+    "runtime_error": null
+  },
+  "bundle_audit": {
+    "case_count": 3,
+    "verified_source_stage8_svg_png_members": 12,
+    "all_manifest_sha256_match": true,
+    "expanded_pngs_bound_to_expanded_svg_sha256": true
+  },
+  "h08_private_https_endpoint": {
+    "endpoint_path": "/api/zerobase2/minimalize",
+    "source_sha256_from_pinned_manifest_and_upload": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+    "stage8_json_sha256_from_pinned_manifest": "e87bd3c4a5f687b6ab155a4b76f0afab8b542bcb1934d38bef0259a4adb730f2",
+    "png": {
+      "http_status": 200,
+      "release_header": "GO",
+      "sha256": "9aa6aed7910a7a41b7568ff8975ff8bf6125180f672d61643238b203e4eedce7",
+      "matches_adopted_bundle": true
+    },
+    "svg": {
+      "http_status": 200,
+      "release_header": "GO",
+      "sha256": "712337aa48bdfad3bbda778b903478bc1b4cec1d42e110c95d249b8f82a4860c",
+      "matches_adopted_bundle": true
+    },
+    "case_header": "H08",
+    "route_header": "zerobase2",
+    "candidate_receipt_header_matches": true,
+    "svg_response_input_sha_header_present": false,
+    "same_candidate_png_svg_readback": "PASS"
+  },
+  "browser_ui": {
+    "private_pwa_page_loaded": true,
+    "source_file_selection_and_download": "NOT_VERIFIED",
+    "reason": "Chrome extension file chooser refused local file access because Allow access to file URLs is disabled"
+  },
+  "semantic_quality": {
+    "p0_p1_improvements": "NOT_ASSESSED",
+    "note": "This readback verifies exact artifact delivery only; it is not a new image-quality evaluation."
+  },
+  "remaining_gates": [
+    "PC browser file selection and user-visible PNG/SVG downloads",
+    "physical iPhone Safari and installed PWA acceptance on this runtime",
+    "offline return, error/retry/fallback/rollback acceptance on this runtime",
+    "L02 six-capability observer and independent Phase4 quality"
+  ],
+  "private_source_or_output_bytes_in_repository": false
+}
