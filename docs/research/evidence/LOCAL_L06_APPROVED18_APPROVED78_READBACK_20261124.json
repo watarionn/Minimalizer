@@ -36,8 +36,10 @@
     "fresh_source_model_inference": false,
     "approved18_description": "Gate revalidated 18 source/reference SHA pairs and 18 saved structural evaluations.",
     "approved78_description": "Formal gate revalidated saved 78-case Scene/Candidate evidence and MigrationGate; calibration metrics are diagnostic only.",
-    "current_l04_visual_golden_bound": false,
-    "current_l06_performance_status": "UNCLASSIFIED_HOLD",
+    "current_l04_visual_golden_bound": true,
+    "current_l04_visual_golden_basis": "The production manifest SHA-256 f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48 binds receipt 381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a, declares Golden PASS, and carries owner production authorization. The owner explicitly approved this receipt; the existing signed evaluation is reused without requesting another review.",
+    "current_l06_performance_status": "OBSERVED_NO_CAP",
+    "current_l06_performance_scope": "Exact receipt-bound measurements are recorded in the current candidate binding. No numeric latency cap has been adopted; these observations are not a threshold pass/fail claim.",
     "source_images_embedded": false,
     "rendered_images_embedded": false
   }

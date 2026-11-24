@@ -40,6 +40,12 @@
   },
   "performance_observations_ms": {
     "h04_headless_browser_png_preview": 766.0,
+    "h04_private_https_client_elapsed_png_after_restart": 283.2,
+    "h04_private_https_client_elapsed_svg_after_restart": 295.1,
+    "h06_private_https_client_elapsed_png_after_restart": 209.6,
+    "h06_private_https_client_elapsed_svg_after_restart": 277.7,
+    "h08_private_https_client_elapsed_png_after_restart": 198.7,
+    "h08_private_https_client_elapsed_svg_after_restart": 205.1,
     "h06_private_https_png_server_processing": 554.1,
     "h08_private_https_png_server_processing": 552.0,
     "svg_processing_header_available": false,
@@ -48,9 +54,8 @@
   },
   "p0_p1_improvements": "NOT_REMEASURED; H06/H08 outputs are byte-identical to the already evaluated and approved bundle.",
   "remaining_acceptance_gates": [
-    "Current interactive PC Chrome file selection and PNG/SVG save",
-    "Physical iPhone Safari and installed PWA acceptance on the exact runtime",
-    "Production online/offline return, error/retry/fallback/rollback behavior",
+    "Physical iPhone Safari and installed PWA acceptance bound to the exact receipt 381b0b5a…",
+    "Private HTTPS Service Worker generation rollback readback; current rollback evidence is an isolated-origin simulation",
     "Separate L02 six-capability observer trained on new person-group data and independent Phase4 PASS"
   ],
   "private_image_or_output_bytes_in_repository": false
