@@ -25,14 +25,14 @@
 - 監査出力: 集計件数とbundle fingerprintだけ。画像名・人物/担当者ID・座標は出さない
 - 非公開mask生成: source alpha、known範囲つき人物instance map、六つの排他的owner、意味物体instance map、物体IDへ結合した遮蔽edge、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
 - 人物単位split: 固定SHA順でtrain/validation/blind-testを割当て。同一人物群の交差なし、blind labelsは凍結まで隔離。manifestはsource/group IDsを含むため非公開保存
-- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、遮蔽edge対応、再現可能group split、train/validationだけの既定raster、凍結model SHAなしのblind拒否、拒否ケース、非公開出力）
+- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、遮蔽edge対応、再現可能group split、train/validationだけの既定raster、凍結checkpointなしのblind拒否、拒否ケース、非公開出力）
 - JS構文: `node --check` — PASS
 - Python構文: `py_compile` — PASS
 - 送信系Web API: HTML内に `fetch`、`XMLHttpRequest`、`WebSocket`、`sendBeacon` なし
 - 実画像P0/P1改善件数: 0件。新規学習画像がまだ入力されていないため、画像品質は未評価
 - ローカル画面の実ブラウザ操作確認: 未実施。Codexブラウザの安全ポリシーが `file://` を拒否した。回避操作はしていない
 
-このPASSは入力形式検査と合成入力によるsplit/mask生成までで、実画像データを処理したものではない。observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。既定rasterizerはblind-test maskを出力せず、凍結model SHAが必要な別操作だけがblind-testを展開する。
+このPASSは入力形式検査と合成入力によるsplit/mask生成までで、実画像データを処理したものではない。observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。既定rasterizerはblind-test maskを出力せず、凍結checkpointファイルを指定する別操作だけがblind-testを展開する。
 
 ## 次に必要な作業
 

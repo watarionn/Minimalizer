@@ -208,15 +208,17 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
                 with self.assertRaisesRegex(IntakeError, "outside the selected split"):
                     rasterize_dataset(self.root, private_masks, split_path)
                 stale_blind_mask.unlink()
-                with self.assertRaisesRegex(IntakeError, "frozen model SHA-256"):
+                with self.assertRaisesRegex(IntakeError, "frozen model checkpoint file"):
                     rasterize_dataset(self.root, private_masks, split_path, split_name="blind_test")
-            with tempfile.TemporaryDirectory() as blind_masks:
+            with tempfile.TemporaryDirectory() as blind_masks, tempfile.TemporaryDirectory() as model_dir:
+                model_path = Path(model_dir) / "frozen-observer.pt"
+                model_path.write_bytes(b"frozen model test fixture")
                 blind_receipt = rasterize_dataset(
-                    self.root, blind_masks, split_path, split_name="blind_test", frozen_model_sha256="a" * 64,
+                    self.root, blind_masks, split_path, split_name="blind_test", frozen_model_path=model_path,
                 )
                 self.assertEqual(blind_receipt["private_mask_files_written"], 1)
                 self.assertTrue(blind_receipt["blind_test_masks_emitted"])
-                self.assertEqual(blind_receipt["frozen_model_sha256"], "a" * 64)
+                self.assertEqual(blind_receipt["frozen_model_sha256"], hashlib.sha256(model_path.read_bytes()).hexdigest())
 
     def test_refuses_output_inside_git_worktree(self):
         repository = Path(__file__).resolve().parents[1]

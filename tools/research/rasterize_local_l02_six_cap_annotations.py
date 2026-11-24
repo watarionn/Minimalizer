@@ -188,7 +188,7 @@ def rasterize_dataset(
     split_manifest_path: str | Path,
     *,
     split_name: str = "train_validation",
-    frozen_model_sha256: str | None = None,
+    frozen_model_path: str | Path | None = None,
 ) -> dict[str, Any]:
     summary = audit_dataset(dataset_dir)
     if not summary["minimum_cross_person_annotation_coverage_present"]:
@@ -197,14 +197,21 @@ def rasterize_dataset(
     split_path = Path(split_manifest_path)
     if split_name not in {"train_validation", "train", "validation", "blind_test"}:
         raise IntakeError("unsupported dataset split")
-    if split_name == "blind_test" and (
-        not isinstance(frozen_model_sha256, str)
-        or len(frozen_model_sha256) != 64
-        or any(ch not in "0123456789abcdef" for ch in frozen_model_sha256.lower())
-    ):
-        raise IntakeError("blind-test labels require a frozen model SHA-256")
-    if split_name != "blind_test" and frozen_model_sha256 is not None:
-        raise IntakeError("frozen model SHA is only accepted for blind-test rasterization")
+    frozen_model_sha256 = None
+    if split_name == "blind_test":
+        if frozen_model_path is None:
+            raise IntakeError("blind-test labels require the frozen model checkpoint file")
+        model_path = Path(frozen_model_path).resolve()
+        _assert_private_output(model_path)
+        if not model_path.is_file():
+            raise IntakeError("frozen model checkpoint file does not exist")
+        model_digest = hashlib.sha256()
+        with model_path.open("rb") as model_file:
+            for chunk in iter(lambda: model_file.read(1024 * 1024), b""):
+                model_digest.update(chunk)
+        frozen_model_sha256 = model_digest.hexdigest()
+    elif frozen_model_path is not None:
+        raise IntakeError("frozen model checkpoint is only accepted for blind-test rasterization")
     try:
         output.relative_to(root)
     except ValueError:
@@ -304,11 +311,11 @@ def main() -> int:
     parser.add_argument("output_dir", help="Gitリポジトリ外の非公開マスク保存先")
     parser.add_argument("--split", choices=("train_validation", "train", "validation", "blind_test"),
                         default="train_validation", help="blind_testは凍結後の評価時だけ指定")
-    parser.add_argument("--frozen-model-sha256", help="blind_testを開く凍結model SHA-256")
+    parser.add_argument("--frozen-model", help="blind_testを開く凍結model checkpointファイル")
     args = parser.parse_args()
     print(json.dumps(rasterize_dataset(
         args.dataset_dir, args.output_dir, args.split_manifest,
-        split_name=args.split, frozen_model_sha256=args.frozen_model_sha256,
+        split_name=args.split, frozen_model_path=args.frozen_model,
     ), ensure_ascii=False, indent=2))
     return 0
 
