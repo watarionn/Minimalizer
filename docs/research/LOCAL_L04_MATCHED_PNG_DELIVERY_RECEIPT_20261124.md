@@ -11,6 +11,7 @@
 - 実装main commit: `191f93d85e248f02003ac9835e58484a6d5c177f`
 - private bundle ZIP SHA-256: `c489fb5b11c209c491faf5c6aa1d4bdd20652e9f26efad56f4ee871e9a671efe`
 - Drive読み戻し: ZIPのサイズ`964667` bytes、SHA-256がローカル値と一致
+- 2026-11-24にDrive上の同名bundleをメタデータ確認後、認証済みfetchで再読戻しした。サイズ`964667` bytes、SHA-256 `c489fb5b11c209c491faf5c6aa1d4bdd20652e9f26efad56f4ee871e9a671efe`でローカルbundleと一致。読戻しsource-free receiptは[LOCAL_L04_DRIVE_READBACK_20261124.json](evidence/LOCAL_L04_DRIVE_READBACK_20261124.json)、SHA-256 `c6c2e0d83a8024ccd3eb24172b6fa824c0b09416ffdfc0b9a4894c4afc4c19c8`。一時読戻しコピーはハッシュ照合後に削除し、Driveの非公開IDや画像データはGitHubへ記録していない。
 
 ## 三点セットとPNG派生物
 
