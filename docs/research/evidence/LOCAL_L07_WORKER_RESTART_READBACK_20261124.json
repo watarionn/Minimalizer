@@ -1,0 +1,30 @@
+{
+  "schema": "minimalizer/local-worker-restart-readback/v1",
+  "observed_at": "2026-11-24T09:54:30Z",
+  "worker_process_started_at": "2026-11-24T09:48:48Z",
+  "runtime_source_sha": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "l04_candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "supervisor_sha256": "88585ec9bf892fe69795376a02af9f5ad0971403386590c696bbd147041fb2db",
+  "readbacks": [
+    {
+      "transport": "loopback_http",
+      "runtime_error_present": false,
+      "active_route": "zerobase2",
+      "worker_ready": true,
+      "status_code": 200,
+      "busy": false,
+      "worker_status": "ready"
+    },
+    {
+      "transport": "private_https",
+      "runtime_error_present": false,
+      "active_route": "zerobase2",
+      "worker_ready": true,
+      "status_code": 200,
+      "busy": false,
+      "worker_status": "ready"
+    }
+  ],
+  "release_promotion": "none",
+  "source_artifacts_included": false
+}
