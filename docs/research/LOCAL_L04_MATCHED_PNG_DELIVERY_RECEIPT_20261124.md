@@ -41,7 +41,8 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - 2026-11-24、隔離したheadless Chrome `157.0.8103.79`で現行private HTTPSとSW generation `minimalizer-local-20261124-1`を用いたブラウザE2Eを実施。署名済みH04元画像を画面から選択し、変換プレビュー（453×1400）、PNG保存、SVG保存まで通常UI経路で完了。保存SHAはPNG `dc5467db…`、SVG `feda80bb…`でreceipt `381b0b5a…`のmanifest値に一致。
 - 同じブラウザでネットワークをofflineにし、SWキャッシュからshellを再表示。元画像の変換要求は画面に「LocalWorkerへ接続できません」と表示され、online復帰後に同じ画像を再送してプレビューとPNG/SVG保存に成功。previewまで`766 ms`。これは測定値の記録であり、合意済み閾値がないため正式L06 performance PASSとはしない。
 - ブラウザreadback source-free JSON: [LOCAL_L07_BROWSER_READBACK_20261124.json](evidence/LOCAL_L07_BROWSER_READBACK_20261124.json)、SHA-256 `ddf11b0cab0b7d938dc5b768d6f59ebb9d48032522f94f08e24eeeb5e12d94bc`。元画像・応答画像は含めていない。通常UI、SW offline shell、offline error、online retryはPASS。実GUI Chrome、実機iPhone Safari/PWA、SW世代更新後のrollback、Worker停止時のUI/fallbackはこの記録では未検証。
-- 既存Approved18回帰は18/18 PASS、Approved78回帰は78件・SHA/determinism MigrationGate PASS。ただし両コーパスreceiptをこのL04 release SHAへ結ぶsource-free bindingは未作成。
+- 2026-11-24にGitHub main `0673449a…` のgate実装でApproved18/78の既存証拠を再検証した。Approved18は入力SHA 18/18、approved-reference SHA 18/18、保存済み構造評価18/18でPASS。Approved78はScene/Candidate証拠78/78、replay complete、MigrationGate PASS。Source-free binding JSONは[LOCAL_L06_APPROVED18_APPROVED78_READBACK_20261124.json](evidence/LOCAL_L06_APPROVED18_APPROVED78_READBACK_20261124.json)、SHA-256 `3241e570a6410002738a0267dd991c80e0e98e88175266515eee40049e7c6248`。詳細gate receipts: [Approved18](evidence/LOCAL_L06_APPROVED18_GATE_20261124.json) / [Approved78](evidence/LOCAL_L06_APPROVED78_GATE_20261124.json)。実Workerの主要4 runtimeファイルは同じmain SHAのファイル内容と一致し、稼働PID `3556`、候補receipt `381b0b5a…`を同時に読み戻した。
+- このApproved18/78 gate再実行は保存済み評価・Scene/Candidateを照合するもので、78枚の新規モデル推論や新規人手Golden審査ではない。Approved78のcalibration metricも非gating。従って現行L04候補へ結び付いた視覚Goldenは未完了で、L06性能は`UNCLASSIFIED_HOLD`のまま維持する。
 - 既存`L06_BROWSER_PERFORMANCE_CURRENT_RUNTIME_HOLD`はreceipt SHA `381b0b5a…`結合済みだが、旧通常推論経路の性能FAIL（H04 22.6秒）でHOLD。上記の新PNG経路は短時間だが、現行L06の正式なrelease-bound性能receiptへ更新していない。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
 
@@ -58,7 +59,7 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 
 ## 残ゲートと次の変更
 
-1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。旧推論経路のHOLDを新しい固定成果物配信の測定値と分離し、正式性能判定に必要な基準を確定する。
+1. L06の視覚Goldenを現行L04候補 `381b0b5a…`へ結合する。Approved18/78の既存保存証拠は2026-11-24のsource-free receiptへ記録済みだが、新規推論や候補別の意味評価は未実施。旧推論経路のHOLDを固定成果物配信と分け、正式性能閾値も決める。
 2. 実GUI Chromeで同一候補の表示・保存、SW世代更新後のrollback、Worker停止時の障害表示・再接続/fallbackを確認する。headless ChromeでのH04 offline shell・障害表示・retry・PNG/SVGはsource-free readback済み。
 3. 本番反映後のiPhone Safari/PWAで、選択→変換→PNG/SVG保存、機内モード復帰、障害表示と再試行を所有者が受け入れる。
 4. Aの既存署名済みPhase4はH04/H06/H08の各候補SHAでPASSし、同じ候補のPhase5も本番コードで再現PASSした。ただしそのH04/H06 candidate SHAは現行L04 bundleのStage8 SHAと異なるため、同一候補のL04三点セットを作り直して照合する必要がある。既存評価者へレビューを再依頼しない。

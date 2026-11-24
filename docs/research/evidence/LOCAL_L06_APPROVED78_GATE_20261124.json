@@ -1,0 +1,840 @@
+{
+  "artifact_evidence": {
+    "case_count": 78,
+    "cases": [
+      {
+        "candidate_artifact": "artifacts/approved78/01/candidates.json",
+        "candidate_count": 114,
+        "candidate_sha256": "a36aadd83d363cf9b80d40c9d00830837dcc1869dcef99db38091806cb73209f",
+        "index": 1,
+        "name": "01_Kikirara-Vivi_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 19,
+        "scene_artifact": "artifacts/approved78/01/scene.json",
+        "scene_sha256": "1eb42d63b8fe101f5cfa29e5d2c7c83b3e11633659288c7751d804fc6697241f"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/02/candidates.json",
+        "candidate_count": 108,
+        "candidate_sha256": "9377f376186b5fd27aefeee2e8f27df7ae12d1f7d74ca012a46a48bd550a34f9",
+        "index": 2,
+        "name": "02_Isaki-Riona_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 18,
+        "scene_artifact": "artifacts/approved78/02/scene.json",
+        "scene_sha256": "82bd3341c02628791f29fb355888b0a82171573d7978eea9b31e219f6bb48a5d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/03/candidates.json",
+        "candidate_count": 156,
+        "candidate_sha256": "6c6e51e279fed81b16f3528a134486237848a9d882c51e4ae2afd9ca814a3a79",
+        "index": 3,
+        "name": "03_Koganei-Niko_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 26,
+        "scene_artifact": "artifacts/approved78/03/scene.json",
+        "scene_sha256": "09d10b3e5a03d0307a53684cc8620f55dec4b95e59fac3fc3001e51963317919"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/04/candidates.json",
+        "candidate_count": 120,
+        "candidate_sha256": "b904a58a19bf1e0566d3aeb30faabbc91b4c2bc466c7be95e38400d17f969df2",
+        "index": 4,
+        "name": "04_Vestia-Zeta_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 20,
+        "scene_artifact": "artifacts/approved78/04/scene.json",
+        "scene_sha256": "2496595b7b145176ab09368d9ef2d6c567cf1262c9eb80c962d52f4a45686a55"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/05/candidates.json",
+        "candidate_count": 210,
+        "candidate_sha256": "b2ced2484f5bd2006e061a726a4b02f802d29a663d3204ccffdb3a271c1da427",
+        "index": 5,
+        "name": "05_Todoroki-Hajime_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 35,
+        "scene_artifact": "artifacts/approved78/05/scene.json",
+        "scene_sha256": "64f33bff1ab24a2c7308b0e3111952539dfcba6a87ce1bdaddeb6ce2ee75ef23"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/06/candidates.json",
+        "candidate_count": 240,
+        "candidate_sha256": "baa24b2fa3cab85f028ddc2468f9fe890ca6081faaf5c04ce06ba18c13867729",
+        "index": 6,
+        "name": "06_Shishiro-Botan_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 40,
+        "scene_artifact": "artifacts/approved78/06/scene.json",
+        "scene_sha256": "565e9087629ba56208acb0954e240593692ba4649ca3bf6ef1af0b4211f92073"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/07/candidates.json",
+        "candidate_count": 132,
+        "candidate_sha256": "394fcc825143b4da8f3e91a9ec76dd9682a35fbe1d71d1c7b33057cc20f2b3c0",
+        "index": 7,
+        "name": "07_Shiori-Novella_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 22,
+        "scene_artifact": "artifacts/approved78/07/scene.json",
+        "scene_sha256": "41ab83bb244fbac0be2c2ed58a93781417bedd855f4c4b8a23439dc48ca05f47"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/08/candidates.json",
+        "candidate_count": 204,
+        "candidate_sha256": "6700ede83b288d97220dddad8457d1ffbc69837678ec847b41b3bf43c44adf26",
+        "index": 8,
+        "name": "08_Natsuiro-Matsuri_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 34,
+        "scene_artifact": "artifacts/approved78/08/scene.json",
+        "scene_sha256": "f9a13c63feb1804ebf01a75c66bd9b3a97011607ee30b9f772bdf7d64b61a44f"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/09/candidates.json",
+        "candidate_count": 156,
+        "candidate_sha256": "2a3ccc71f1bf74405e8f1ea197d4dd90fd15ba4a8acebab7917635b79e8c21c6",
+        "index": 9,
+        "name": "09_Otonose-Kanade_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 26,
+        "scene_artifact": "artifacts/approved78/09/scene.json",
+        "scene_sha256": "f61d26975effd6ff8ec96e27565a05429115ce874b9d9c95a366bbe7cef071d3"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/10/candidates.json",
+        "candidate_count": 174,
+        "candidate_sha256": "31a208e94def6a9a50c9ee27923c98c8199e467e53330123dd94d1634d06b65a",
+        "index": 10,
+        "name": "10_Mori-Calliope_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 29,
+        "scene_artifact": "artifacts/approved78/10/scene.json",
+        "scene_sha256": "869e9339f4af8ada7838373df52a1779748369eb914502584cae53d54062b155"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/11/candidates.json",
+        "candidate_count": 60,
+        "candidate_sha256": "0fb8fdedcbe90ace60fa09066961b1a77bbb08604f2f7669eb08641341f217af",
+        "index": 11,
+        "name": "11_Momosuzu-Nene_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 10,
+        "scene_artifact": "artifacts/approved78/11/scene.json",
+        "scene_sha256": "f9f4fa93e712684145431c345d168355cccc4559a98b8062f71e5ea6ac5ee0dd"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/12/candidates.json",
+        "candidate_count": 162,
+        "candidate_sha256": "17d4f151a51bebd718e988bcbfa917f0e097cb9aa8d41e69a19d396269961655",
+        "index": 12,
+        "name": "12_Koseki-Bijou_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 27,
+        "scene_artifact": "artifacts/approved78/12/scene.json",
+        "scene_sha256": "8438f7543ab7cec6169cfe7dc62b604bfc98b4c5635e6d0d1fc468501d92d100"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/13/candidates.json",
+        "candidate_count": 156,
+        "candidate_sha256": "89dbfc34ea4411c4624deb64fee346d19d392634fe6438133d889f08423fa0d9",
+        "index": 13,
+        "name": "13_Kobo-Kanaeru_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 26,
+        "scene_artifact": "artifacts/approved78/13/scene.json",
+        "scene_sha256": "bc2902e5a0e84c4bce88215f48ade9f0124d92ea144be6f7401e4914fa79540b"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/14/candidates.json",
+        "candidate_count": 126,
+        "candidate_sha256": "3ef4fc46cd627f863b3dee91b01e16e15a1a581f645a1bdcd78b495c6780f15a",
+        "index": 14,
+        "name": "14_Houshou-Marine_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 21,
+        "scene_artifact": "artifacts/approved78/14/scene.json",
+        "scene_sha256": "86a030474b2ec6180eb7ab471e94f04567bb9def4192e33865f5bb3e7e1c3dfb"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/15/candidates.json",
+        "candidate_count": 72,
+        "candidate_sha256": "29fdd49c72d10a9c5c3b9c00fcd4cb64e553590c4a497a65052c33d45e4850c0",
+        "index": 15,
+        "name": "15_Hakos-Baelz_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 12,
+        "scene_artifact": "artifacts/approved78/15/scene.json",
+        "scene_sha256": "26b30fe07aa4609fd500a6669244583d63620676b73a4616a8aaf6715f877a8e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/16/candidates.json",
+        "candidate_count": 144,
+        "candidate_sha256": "d513026b3530c3bee228ae3e8411ebd44309065bc92c4411fe7c8ba45c446598",
+        "index": 16,
+        "name": "16_Gigi-Murin_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 24,
+        "scene_artifact": "artifacts/approved78/16/scene.json",
+        "scene_sha256": "f63fbbd91a88c2b430d7ee6f0060f42a3a01f8f28f2325b7adfaf0ae079d55b0"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/17/candidates.json",
+        "candidate_count": 138,
+        "candidate_sha256": "1886bb88db452cd7bab9dfa7e5ec6f0f8ffde0b3ef86e9f61b1bdadf1e04b0e0",
+        "index": 17,
+        "name": "17_Aki-Rosenthal_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 23,
+        "scene_artifact": "artifacts/approved78/17/scene.json",
+        "scene_sha256": "755174bc8c791371473bef38a25e28903803e84435c1f52ec257f78f86b073b5"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/18/candidates.json",
+        "candidate_count": 168,
+        "candidate_sha256": "b1d7832a7a10a1375a59147033bf18c28e504ef001027d34435a1f2261677db8",
+        "index": 18,
+        "name": "18_Raora-Panthera_APPROVED_GEOMETRIC_REFERENCE",
+        "region_count": 28,
+        "scene_artifact": "artifacts/approved78/18/scene.json",
+        "scene_sha256": "24796bbfd64d242cc7bbeb95a7dc485a41b4ca949eee8f095f394cebf640de2e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/19/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "9f710c3b6d4e1ec54c8e4e23b92f5456ecd20de6157deca22a2a50d5fcb84d3d",
+        "index": 19,
+        "name": "19_Usada-Pekora_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/19/scene.json",
+        "scene_sha256": "cdde629e4dae28b3c97bb49e353b3a3bbbf5d9517af6b62f5830f9fa9050596d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/20/candidates.json",
+        "candidate_count": 30,
+        "candidate_sha256": "7430fde9ae0e3a08ed2355a0f7e8e07ffcd1e5c5ab166d19bbbcd73459b703a9",
+        "index": 20,
+        "name": "20_Houshou-Marine_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 5,
+        "scene_artifact": "artifacts/approved78/20/scene.json",
+        "scene_sha256": "4dc8d4dab5fa0b1eb80aa585a2169ed9612c30d6a3b148824effdf5776b03904"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/21/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "c2e348c04ca2b595e320aeab3db0ab1d1859e749a57f75cf4582b50b42c0e114",
+        "index": 21,
+        "name": "21_Shirogane-Noel_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/21/scene.json",
+        "scene_sha256": "e1a565a55ed9c12d97000e0042b464ef5d5025a05374c4a68a4bd603c69f634f"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/22/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "ee5df9440a0b5a9c09da861221499337a736d4ec921321d0c61cb6d4e6103bfd",
+        "index": 22,
+        "name": "22_Oozora-Subaru_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/22/scene.json",
+        "scene_sha256": "35f98e3f46288178562b34d2f81eb24ba1acd412d04d4cfd2926d480a2458052"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/23/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "4b1d65f76c6e2343a62dd629174c7cbd4f8b4b5017492bd056fc9cd2cc7ef0af",
+        "index": 23,
+        "name": "23_Tsunomaki-Watame_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/23/scene.json",
+        "scene_sha256": "5894b47a8e5ffc782057605bbad6c6b88683e82f6867bcdba518e5aad0a3c82c"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/24/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "18c7cc686c1c43a9a9650eede10c151a7dc0b82d7d509eb74374a14f30219fdb",
+        "index": 24,
+        "name": "24_Nakiri-Ayame_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/24/scene.json",
+        "scene_sha256": "4f163884c7321ef9aeff7e18858d6616326b21a183fb8d2fafc34d0f70a95af6"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/25/candidates.json",
+        "candidate_count": 54,
+        "candidate_sha256": "9e3dcc5769e18dccd57017945f17c753e1021f098895d415e0a2963c00d42bed",
+        "index": 25,
+        "name": "25_Mori-Calliope_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 9,
+        "scene_artifact": "artifacts/approved78/25/scene.json",
+        "scene_sha256": "e328db0902aa23d456582e1c199b25e30cb6c15f66b1f7addd34af4f4e4c3e94"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/26/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "cbbc4ebf36162fd54681a3ab53fe80338ebd40db4a1e0488ca375ff324906e5f",
+        "index": 26,
+        "name": "26_Ninomae-Inanis_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/26/scene.json",
+        "scene_sha256": "c912b412fd8158e0976355ab44a1753279ee7459e24373fff66b74b057fb1734"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/27/candidates.json",
+        "candidate_count": 30,
+        "candidate_sha256": "85095d32989a6159b539fe6aa01476143eea9e3be1fff486970a43f6799d4b77",
+        "index": 27,
+        "name": "27_Hakos-Baelz_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 5,
+        "scene_artifact": "artifacts/approved78/27/scene.json",
+        "scene_sha256": "c74945e78509b44d87f77e50c434099c5761eff289f84e9aaf4294bc01cb378a"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/28/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "296b666bd1446044a3d9d163eb6a9530b6ac483dbb12d9e008bdbc4be64a34ed",
+        "index": 28,
+        "name": "28_Fuwawa-Abyssgard_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/28/scene.json",
+        "scene_sha256": "707ccc367b89b3da1fe7045142c16f615d941a27bdbff32bf79eb3d9ad9fc94a"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/29/candidates.json",
+        "candidate_count": 42,
+        "candidate_sha256": "0fcc21c71da51e4fe789e6f4a83c0784e3507e75d7d35c374b647fd21e6791bd",
+        "index": 29,
+        "name": "29_La-Darknesss_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 7,
+        "scene_artifact": "artifacts/approved78/29/scene.json",
+        "scene_sha256": "eb0804e2a761d263d7fc517aed82a85d1f033b8ac250be3f0e2dc1ded8856cad"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/30/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "8246a54eb56a1384da5412a44cdccdb87b89e3ca6a47c54db046b82f1e6e0866",
+        "index": 30,
+        "name": "30_Shirakami-Fubuki_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/30/scene.json",
+        "scene_sha256": "9a1a6b46cda39f6c95f0876731f376ac64d3ac33e2a66f235f776da093bc8872"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/31/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "9f207d90e81c0dccc2ae78af4c56ce7b3119261411365a535794d8cc5d549a18",
+        "index": 31,
+        "name": "31_Inugami-Korone_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/31/scene.json",
+        "scene_sha256": "1c3c4acc68271f6829a72bbf97a8dd985f0160b10de7ad3e40fbd116560a4885"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/32/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "2b9a997633ec58214a0b1a2ae8617b8192fbcccdf6c8aecf150a3c165c686a42",
+        "index": 32,
+        "name": "32_Tokoyami-Towa_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/32/scene.json",
+        "scene_sha256": "4c0c8b33d169cad88cf90f25dcd2861c999cd7f18c1821e05b55ffb53ad8cafe"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/33/candidates.json",
+        "candidate_count": 6,
+        "candidate_sha256": "ebaba6920d17e2b737b7638a95701a8f0b105341c833c56921c44319f3ab26b8",
+        "index": 33,
+        "name": "33_Yukihana-Lamy_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 1,
+        "scene_artifact": "artifacts/approved78/33/scene.json",
+        "scene_sha256": "c727a1bd7e37f5ae66a703679e6bf39eb3a15777604491b940c4533c74261168"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/34/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "d69420fce5b4ca7b72fa39192ecf80ba0e1e4a3e1fb128d50a91ea7f05c34726",
+        "index": 34,
+        "name": "34_Omaru-Polka_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/34/scene.json",
+        "scene_sha256": "5ac18205d9932e6c3660f2007833aa31d5ee242c04417745e6e9bf114a025968"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/35/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "ae0f4e269b9f71c9ea41f87cb08021fdda3e21fed75add76427f392ec387af48",
+        "index": 35,
+        "name": "35_Takanashi-Kiara_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/35/scene.json",
+        "scene_sha256": "586b4976ccd22310cc90a684ed085ce433980e8a9a16b7e3b82cbd5fe0191d94"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/36/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "dbe2e854ec0533847d913f3a493384692922fcef6d7d56db6380eea88b572c1d",
+        "index": 36,
+        "name": "36_Ouro-Kronii_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/36/scene.json",
+        "scene_sha256": "cbb5bf270d61b185a150edfdd44b7cc12740ddc4143c470f95a953a6696f49ba"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/37/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "fed77279d9eb50e99dafee10fecae1315bcf980c10ae6ead1ef3680314c4a6e6",
+        "index": 37,
+        "name": "37_Kureiji-Ollie_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/37/scene.json",
+        "scene_sha256": "3cd88ba653d072f7b08711b2c4d319ab4fd251a55c43ac6f2f82b287661a6897"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/38/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "0ea638ced74fcc5c6e11da5358b5435326b68f7ba3f9fa40a5c5ad91a721d1e5",
+        "index": 38,
+        "name": "38_Kaela-Kovalskia_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/38/scene.json",
+        "scene_sha256": "3ea8b9c9c87796d4887e54e6d4207bc908dd5a8c21c919e0bc2879920cc84bd4"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/39/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "2085cef3704882826c6b14866ce7d555fbf830b9e3f74ba0d23b93564fb66d37",
+        "index": 39,
+        "name": "39_Sakura-Miko_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/39/scene.json",
+        "scene_sha256": "bc5a8dae122c2296acb7ca1b72f1ff997e364166736023b39c553babf0b11691"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/40/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "9c867d4efa77da4376f7c8fc8ce42a88437133f2173dcb10be9a98ba0eea320f",
+        "index": 40,
+        "name": "40_Hoshimachi-Suisei_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/40/scene.json",
+        "scene_sha256": "f4efbc4f610b29e87ed4ef1ee0fb4c5a43692a985f2e4fb2758e402319278795"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/41/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "cca5f4b47e80983f2ca9b78ae99cd411869275fbbbb78026e7ac0a604a6fb993",
+        "index": 41,
+        "name": "41_Robocosan_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/41/scene.json",
+        "scene_sha256": "4bdfb1e87d6cc348a863308d6cfd0b0df59bcc66282a7d58958387d6b621525e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/42/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "463691db22ae2ac1bba02ddc81bf28dd9ddc0d045aff8a3dd3d5d97d182f00f9",
+        "index": 42,
+        "name": "42_Himemori-Luna_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/42/scene.json",
+        "scene_sha256": "120c04860b50d3ab8318f52a04aa494509e16d474ebd760f9255e3ff4095c745"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/43/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "b83a54e815c35e05923407c1f778d2d7bb6071a05e4b5b77b964ff87270ea2ed",
+        "index": 43,
+        "name": "43_Kazama-Iroha_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/43/scene.json",
+        "scene_sha256": "80a0f6de75273f4425360dab23f5be6443d8f63a3d60d981f728263649ed020c"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/44/candidates.json",
+        "candidate_count": 54,
+        "candidate_sha256": "c218ced83b060f01dd05a3e5e6ed657feb5620a8e4d14e468bcb2fda6f45be73",
+        "index": 44,
+        "name": "44_Juufuutei-Raden_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 9,
+        "scene_artifact": "artifacts/approved78/44/scene.json",
+        "scene_sha256": "0c5fc3c793ce0b008647a998a60a47fce094b985f15a6e1a0189e0a4b65019ef"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/45/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "49dc01e7b71d81432eea9971b90cbcaa37fb887c7de8e99bcaf6a50d134ab8a5",
+        "index": 45,
+        "name": "45_Cecilia-Immergreen_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/45/scene.json",
+        "scene_sha256": "2892dafbbae3f0f89f721d771166f3db6a2e8e6f384adf056af9c2888f8d2a0e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/46/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "26a8a5b707d17834f45edec75d045a35f4339da31c9a7b8026d5be9d5f60fa75",
+        "index": 46,
+        "name": "46_Nerissa-Ravencroft_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/46/scene.json",
+        "scene_sha256": "7af9a31f07e6a3a271df7c58b67f4e6e650edd2d023dbd3cebf4e4334bb081a5"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/47/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "7b6943c810eb3a8a4cca19795b0072177e0884a91c20e425fad2c62c72d4d971",
+        "index": 47,
+        "name": "47_Pavolia-Reine_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/47/scene.json",
+        "scene_sha256": "d33e953bafd81e67e2a925ec481b99c092f701d46c4b0a77edafd28575f462a5"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/48/candidates.json",
+        "candidate_count": 66,
+        "candidate_sha256": "1efc8ab85dd3606455545dc19b5b5110c5bb8f2753c0b9d36657aa417a50040f",
+        "index": 48,
+        "name": "48_Elizabeth-Rose-Bloodflame_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 11,
+        "scene_artifact": "artifacts/approved78/48/scene.json",
+        "scene_sha256": "933eba6607090b86bc4b161564e0647c3400d9e256fbe7431cb91e3386ea3d2e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/49/candidates.json",
+        "candidate_count": 30,
+        "candidate_sha256": "6b3d5c1af16ff04bf380b5565ef3d0eba310617bb7724c573455aa06214e8ac9",
+        "index": 49,
+        "name": "49_Tokino-Sora_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 5,
+        "scene_artifact": "artifacts/approved78/49/scene.json",
+        "scene_sha256": "dbf6de1ac292e2e2592bc05a25bffc60d3165fc375e59b356b44ebe7d1a01361"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/50/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "2e87549fd2e0ca79981ff4005470b41a871338849142a0f8dc288ad4e14ac83a",
+        "index": 50,
+        "name": "50_Ookami-Mio_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/50/scene.json",
+        "scene_sha256": "6ea86f63daeeab88d85212b2a18aba5f8f688934514bbe201c5fb31013eff56f"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/51/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "c457bf6216675166c96101e5dd8960a9316ba3f6c12dbd1ab8e35320fefb9f24",
+        "index": 51,
+        "name": "51_Nekomata-Okayu_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/51/scene.json",
+        "scene_sha256": "813794cad4aac165b771aee619d8b83ab1fdb81b9910aca09f900832cc2d71f4"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/52/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "b42c4c4511e06ae2c8556627f0deefd164d4a229eb7c6a97f6b741d7fb2ebc6b",
+        "index": 52,
+        "name": "52_AZKi_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/52/scene.json",
+        "scene_sha256": "202e6765d959d1f2e039ef576be7ca94c5f1618631a4d3124301253fb9f149f2"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/53/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "39c946331838486201df76c5a93a06d4ed1e0be469f54cb370b2fb582fc3e898",
+        "index": 53,
+        "name": "53_Hakui-Koyori_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/53/scene.json",
+        "scene_sha256": "fedfb0aefa1ad4e8b2b0b3e0d20a3b2b70c987e211a973693307cb1e0993088e"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/54/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "cd0a69f80d7cafb02448dcb22a902b57eaa05b290373f864312c8c746312b9d2",
+        "index": 54,
+        "name": "54_Takane-Lui_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/54/scene.json",
+        "scene_sha256": "95c448abef93161ab841fdc71b287ed34efc59e30963da57aa29558e3d3b2968"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/55/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "5ff922d2ffcfc638511daf230edacdbfb976c68bb2d397631d22297c47e8f98b",
+        "index": 55,
+        "name": "55_Moona-Hoshinova_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/55/scene.json",
+        "scene_sha256": "07babb2be684f3b4f4bbc8f0c8ae0c67c60958cf57e03de742ffbc8aec8e2f5d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/56/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "1c44630a4d2da49b0ae0228ad1a5b741ae0cf382f6bad2622523c769ca76c0f6",
+        "index": 56,
+        "name": "56_Airani-Iofifteen_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/56/scene.json",
+        "scene_sha256": "4f7fa877e80110b60d408d0268f2147abf5787e9f34f2e25c0566ffbaf306f3f"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/57/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "832f5fcbf7db0404332c28f842a289ff68f8ebde1a088c7a6858eecf767b871b",
+        "index": 57,
+        "name": "57_Mococo-Abyssgard_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/57/scene.json",
+        "scene_sha256": "183468e6b3d99d8ab1d9a789b7c6f87d51ae3177a97b6a6475c7e42237a850ed"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/58/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "ce2f39af882961fffd72db66f1d3c43b5649f3467ab6fd777528be744f9cba3f",
+        "index": 58,
+        "name": "58_IRyS_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/58/scene.json",
+        "scene_sha256": "5072908d85f23493f661a8d6460f3e53175c9023f530db3adbaba3bba8fadeab"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/59/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "6db51d51866df361c659120a25110253f2c3947267e35c3910f7190b850a5d0b",
+        "index": 59,
+        "name": "59_Akai-Haato_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/59/scene.json",
+        "scene_sha256": "32fabde257492adf061211a1d7aae5e9b342f6343a2f2b898ceeedb87b1f40e7"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/60/candidates.json",
+        "candidate_count": 30,
+        "candidate_sha256": "11f85384ce27826663f3242100f6946d8583abc0c9ccc5788defc4b400725a3a",
+        "index": 60,
+        "name": "60_Yuzuki-Choco_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 5,
+        "scene_artifact": "artifacts/approved78/60/scene.json",
+        "scene_sha256": "2a4f986eeeabc403b2930b2391f088a767d279acf0b11f8bf31aa9f99367e820"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/61/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "4df14e9aad64388ba712032b9fa6911a4f1d157d0ba6449745a7d8b328df756a",
+        "index": 61,
+        "name": "61_Shiranui-Flare_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/61/scene.json",
+        "scene_sha256": "10883d72dc1543f8741707a9eb36097f2b8f22388b7cf835202715862bc2311d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/62/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "fba9c401c60c27c8dbddcb338b8666a8557ee29a813063f03e3548e8bdaf5c76",
+        "index": 62,
+        "name": "62_Anya-Melfissa_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/62/scene.json",
+        "scene_sha256": "e063aa9a52daed0f6fa4456a77c8b319b6e42d279061f3371c3c321a749b7098"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/63/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "3a28b398ef0660f5d8b9ccba0b5232fb4c4c0ca660cee9eb89e71488c12b24c6",
+        "index": 63,
+        "name": "63_Ayunda-Risu_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/63/scene.json",
+        "scene_sha256": "dad2157c51f1f3c2aee8db9ea5d2f20e19c85fab0c1c2ed1889ef679afa12362"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/64/candidates.json",
+        "candidate_count": 36,
+        "candidate_sha256": "c05ddb7b434ce43ff26e736e0b4adbb95cde6255f515fe776e95e913025f11dc",
+        "index": 64,
+        "name": "64_Ichijou-Ririka_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 6,
+        "scene_artifact": "artifacts/approved78/64/scene.json",
+        "scene_sha256": "a0119e14b1987902a704b1af1a8f1d3c26fcaeaf5e1e1eefbf564773549a9086"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/65/candidates.json",
+        "candidate_count": 6,
+        "candidate_sha256": "c5dc572082699303acb9492f46d63bf2fd4bf6ea88598b90153be41fa6400309",
+        "index": 65,
+        "name": "65_Mizumiya-Su_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 1,
+        "scene_artifact": "artifacts/approved78/65/scene.json",
+        "scene_sha256": "62d2c916f20cbf8fcbbd48a1927a768e75ea9e90f2f1e5e18273ac71299b729a"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/66/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "e34cb1a09c326622bdf5f7e0c74efd0d0ebb98b6959705e603e76ff6e69ec94b",
+        "index": 66,
+        "name": "66_Rindo-Chihaya_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/66/scene.json",
+        "scene_sha256": "b666ce600be8ec835fc07450f7f7f5c1410409da72a8ea679fd6b67af3161896"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/67/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "c5ee5b32183ce539c48b2747e8cffc38a1a4305e64446ab81e6b72fb02824cef",
+        "index": 67,
+        "name": "67_Hanazono-Sayaka_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/67/scene.json",
+        "scene_sha256": "00a08191165c3ad0146309923346c4c8078f0c6864b75a2de9ae9efdc54e8bb4"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/68/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "9b16c5d868c1ed2691e4b6d03c181cc4d4923d78fdea6b6a46b9366184120f63",
+        "index": 68,
+        "name": "68_Kazeshiro-Yuki_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/68/scene.json",
+        "scene_sha256": "c11fa444cc12be249451749551ea7ce93013c7df3dfeadca7722364e7befc73d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/69/candidates.json",
+        "candidate_count": 30,
+        "candidate_sha256": "8a6b13757aded4759a31c468c3f130fb253dbfc6dd31b48a2b13f54f96d36ad6",
+        "index": 69,
+        "name": "69_Izuki-Michiru_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 5,
+        "scene_artifact": "artifacts/approved78/69/scene.json",
+        "scene_sha256": "cfb8e79bd025cb9cf5cd704a30d74826398707cbea24ee5c14b0b7c787d4febe"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/70/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "809c3cce6356faf42f1b7b732c57358e2305e9127062f89695f5888d2e6c31c8",
+        "index": 70,
+        "name": "70_Sorashina-Sopia_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/70/scene.json",
+        "scene_sha256": "b3eb1f5657943053f6d1852061c14992d05b89b9bdb3006f7470ec4d1b2aadbf"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/71/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "49781387dd901a2800dc3d68bef8bc70e49426d18977b6ecb21343563e6e389b",
+        "index": 71,
+        "name": "71_Achichi-Mela_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/71/scene.json",
+        "scene_sha256": "62d0796fee943b6ae4560b4b8dc2863276a843845c271ce6c2ad938470467664"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/72/candidates.json",
+        "candidate_count": 24,
+        "candidate_sha256": "de1113fb02303204ab0977b9d34b5c3849d5894d5c547b86e885b2813116bbaa",
+        "index": 72,
+        "name": "72_Hyakuto-Kyoko_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 4,
+        "scene_artifact": "artifacts/approved78/72/scene.json",
+        "scene_sha256": "7decfd050a0dae11d1bb15be2a64e03831654a1400f056f2ecfac4e0198f3870"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/73/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "a3e3fe50908f3425c8892a0c07fbeef218f47bda18cf4041913cfb42d77810f6",
+        "index": 73,
+        "name": "73_Suzuna-Tsuzuri_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/73/scene.json",
+        "scene_sha256": "faaac31ef70cac61a2b1ece129fa95912c70e8ffa0c4be0efb27b5c396737a85"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/74/candidates.json",
+        "candidate_count": 18,
+        "candidate_sha256": "10d95bdeb3ab2359fa159a8fa5b220526b08fc2c944d1a95e5810a7d3765adba",
+        "index": 74,
+        "name": "74_Gawr-Gura_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 3,
+        "scene_artifact": "artifacts/approved78/74/scene.json",
+        "scene_sha256": "5216673739beed6e93c238bdff11b843ae9a06d9137465689ed398b891fcb6b5"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/75/candidates.json",
+        "candidate_count": 48,
+        "candidate_sha256": "5006a049c8db0038debb89d6ac2697b24f0f00691d91a0f0cc8891085f35a1f2",
+        "index": 75,
+        "name": "75_Ceres-Fauna_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 8,
+        "scene_artifact": "artifacts/approved78/75/scene.json",
+        "scene_sha256": "6011c6d764a6cc9742f95f5aa698de238361d4146bb7333f14a74a10bcecf28d"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/76/candidates.json",
+        "candidate_count": 66,
+        "candidate_sha256": "13da185bbb5bc409174423c17b8ac653d2805777fa86b019f91f0f7ec3e8fc48",
+        "index": 76,
+        "name": "76_Nanashi-Mumei_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 11,
+        "scene_artifact": "artifacts/approved78/76/scene.json",
+        "scene_sha256": "d94c0b48b7d5186b1ada518b326f3590786dc193ab68fbed7a3452467f37dfb9"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/77/candidates.json",
+        "candidate_count": 48,
+        "candidate_sha256": "67ea70bed2c255ef9f909eb61d226f530458285591ac0d40510bc1d2aa42b054",
+        "index": 77,
+        "name": "77_Tsukumo-Sana_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 8,
+        "scene_artifact": "artifacts/approved78/77/scene.json",
+        "scene_sha256": "22d827403d728c44e7cdef889fb1be123f90635e5e3dcb62e61f8511784da063"
+      },
+      {
+        "candidate_artifact": "artifacts/approved78/78/candidates.json",
+        "candidate_count": 12,
+        "candidate_sha256": "b51bf40b6908fe2698739b345a0702669363e6dace110f847c2b3378a5d8f3f4",
+        "index": 78,
+        "name": "78_Murasaki-Shion_APPROVED_GEOMETRIC_REFERENCE_20260918",
+        "region_count": 2,
+        "scene_artifact": "artifacts/approved78/78/scene.json",
+        "scene_sha256": "742af35886b01e85f86e5ef2a9a4da689bd1695f824cd149ec95e0c9115e9aea"
+      }
+    ],
+    "corpus_id": "Approved-78",
+    "revision": "2026-09-18"
+  },
+  "binding": {
+    "corpus_id": "Approved-78",
+    "reference_count": 78,
+    "revision": "2026-09-18"
+  },
+  "calibration_diagnostic": {
+    "foreground_only_saved_scene_artifacts": true,
+    "gating": false,
+    "metrics": {
+      "case_count": 78,
+      "mean_angularity": 0.339568345324,
+      "mean_complexity": 1.358273381295,
+      "mean_coverage": 0.99829872518,
+      "mean_semantic_cost": 0.5,
+      "mean_silhouette": 0.99829872518,
+      "primitive_type_rates": {
+        "capsule": 0.660431654676,
+        "rectangle": 0.339568345324
+      },
+      "region_count": 695,
+      "rejected_candidate_rate": 0.166666666667
+    },
+    "reason": "Phase 10 calibration contract prohibits hidden or guessed CalibrationTargets. Saved Approved-78 Scene artifacts expose only the foreground semantic role, so angularity/semantic-cost targets are reported diagnostically and are not reinterpreted as a formal migration Gate.",
+    "semantic_role_counts": {
+      "foreground": 695
+    },
+    "target_profile": null
+  },
+  "capture_path": "docs\\zerobase\\MIGRATION_APPROVED78_CAPTURE.json",
+  "comparison_path": "docs\\zerobase\\MIGRATION_APPROVED78_COMPARISON.json",
+  "failure_policy": "The Gate fails if any of the 78 saved cases is absent or if MigrationGate reports source/reference SHA, determinism, silhouette non-regression, or foreground-ratio non-regression failure.",
+  "formal_gate_contract": "Approved-78 formal Gate is MigrationGate over the complete 78-case SHA-bound deterministic replay evidence. The calibration harness remains an independent diagnostic unless an explicit canonical CalibrationTargets profile is supplied.",
+  "gate": "Approved-78-formal",
+  "manifest_path": "docs\\zerobase\\approved78_manifest.json",
+  "migration_gate": {
+    "legacy_mean_foreground_error": 0.4628,
+    "legacy_mean_silhouette_iou": 0.411292,
+    "reasons": [],
+    "reference_sha_verified": true,
+    "replay_cases": 78,
+    "replay_deterministic": true,
+    "source_sha_verified": true,
+    "switch_authorized": true,
+    "zerobase_mean_foreground_error": 0.162691,
+    "zerobase_mean_silhouette_iou": 0.534959
+  },
+  "migration_gate_pass": true,
+  "pass": true,
+  "phase": 14,
+  "replay_complete": true,
+  "schema_version": "1.0"
+}

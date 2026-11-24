@@ -1,0 +1,44 @@
+{
+  "schema": "minimalizer/local-l06-approved18-approved78-readback/v1",
+  "produced_at_jst": "2026-11-24T17:34:47.1569453+09:00",
+  "repository_main_sha": "0673449ac1a45c8b479aaeb8229b0a60140470f7",
+  "worker_runtime_base_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "worker_listener_pid": 3556,
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "runtime_files_match_repository_main": true,
+  "runtime_file_sha256": {
+    "local_worker/frontend/sw.js": "f65762ac292bf14e80b90d83963b2ca28033dd277e5d869d8504a5175ae266bb",
+    "local_worker/app.py": "26777576a7cd4ca39f7c15f4c8816a7aa87a4710cd78153b7e8df4b539f3c052",
+    "web/static/app.js": "3e281ddd44a83eb6e8e78386dc29a380c67531058bd6e0dbe3456e096016bc31",
+    "local_worker/frontend/local-route.js": "ec9f44afe355c03de88003568ce882fa560d2523a3c969668bd375bca4d0133d"
+  },
+  "approved18": {
+    "receipt_file": "LOCAL_L06_APPROVED18_GATE_20261124.json",
+    "receipt_sha256": "58aed2cfab9af4bf43908ea67fa32e7be82815bbe23797b33803a15a546ceda1",
+    "pass": true,
+    "cases": 18,
+    "input_sha_pass": 18,
+    "approved_sha_pass": 18,
+    "structural_pass": 18,
+    "gate_script_blob": "98c4fdba1583471960c1fcc477b58d6ca13d104b"
+  },
+  "approved78": {
+    "receipt_file": "LOCAL_L06_APPROVED78_GATE_20261124.json",
+    "receipt_sha256": "043f43e79c0b2c035b4a1bea2be82c300d506daf0f17b049cbfa8b932ac5c979",
+    "pass": true,
+    "references": 78,
+    "replay_complete": true,
+    "migration_gate_pass": true,
+    "calibration_gating": false,
+    "gate_script_blob": "95975c2658014953f992ab9738812b6d5ad8a121"
+  },
+  "scope": {
+    "fresh_source_model_inference": false,
+    "approved18_description": "Gate revalidated 18 source/reference SHA pairs and 18 saved structural evaluations.",
+    "approved78_description": "Formal gate revalidated saved 78-case Scene/Candidate evidence and MigrationGate; calibration metrics are diagnostic only.",
+    "current_l04_visual_golden_bound": false,
+    "current_l06_performance_status": "UNCLASSIFIED_HOLD",
+    "source_images_embedded": false,
+    "rendered_images_embedded": false
+  }
+}
