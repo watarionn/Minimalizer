@@ -14,7 +14,7 @@ ALLOWED_SHELL=frozenset((
     "/local-static/local-route.js", "/local-static/icon.svg",
 ))
 FORBIDDEN_ASSET_PREFIXES=("/api/","/uploads/","/private/","/artifacts/","/user/")
-BLOCKED_APIS=("cache.put(","caches.put(","cache.add(","importScripts(","eval(","new Function(")
+BLOCKED_APIS=("cache.put(","caches.put(","cache.add(","caches.delete(","cache.delete(","importScripts(","eval(","new Function(")
 GENERATION_RE=re.compile(r'const\s+GENERATION\s*=\s*["\']([^"\']+)["\']\s*;')
 ROUTE_GENERATION_RE=re.compile(r'SERVICE_WORKER_GENERATION\s*=\s*["\']([^"\']+)["\']')
 
@@ -46,9 +46,8 @@ def verify_serviceworker(source:str):
     if ('constCACHE_PREFIX="minimalizer-local-shell-";' not in tight or
             'constCACHE=CACHE_PREFIX+GENERATION;' not in tight):
         raise PrivacyHold("SW_CACHE_NOT_GENERATION_PINNED")
-    if ('key.startsWith(CACHE_PREFIX)&&key!==CACHE' not in tight or
-            'keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE)' not in tight):
-        raise PrivacyHold("SW_CACHE_CLEANUP_NOT_NAMESPACE_SCOPED")
+    if 'self.addEventListener("activate"' in tight:
+        raise PrivacyHold("SW_ACTIVATE_MUST_NOT_DELETE_PRIOR_GENERATION")
     if any(api.replace(" ","") in tight for api in BLOCKED_APIS):
         raise PrivacyHold("SW_DYNAMIC_CACHE_OR_SCRIPT_EXECUTION")
     if "skipWaiting(" in code or "clients.claim(" in code:
@@ -56,10 +55,12 @@ def verify_serviceworker(source:str):
     for fragment in (
         'event.request.method!=="GET"',
         'url.origin!==self.location.origin',
-        '!ASSETS.includes(url.pathname)',
+            'functioncanonicalShellPath(pathname)',
+            'constcanonical=canonicalShellPath(url.pathname);',
+            'if(canonical===null||!ASSETS.includes(canonical))return;',
         'cache.addAll(ASSETS)',
-        'constcacheRequest=newRequest(newURL(url.pathname,self.location.origin).href);',
-        'event.respondWith(fetch(event.request).catch(()=>caches.match(cacheRequest)))',
+            'constcacheRequest=newRequest(newURL(canonical,self.location.origin).href);',
+            'event.respondWith(caches.open(CACHE).then(cache=>cache.match(cacheRequest)).then(response=>{if(!response)thrownewError("Localshellgenerationisunavailable.");returnresponse;}))',
     ):
         if fragment not in tight:raise PrivacyHold("SW_PRIVACY_GUARD_MISSING:"+fragment)
     if tight.count('self.addEventListener("fetch"')!=1:
@@ -68,8 +69,10 @@ def verify_serviceworker(source:str):
             "generation":gm.group(1),
             "shell_asset_count":len(assets),
             "cache_user_images":False,"cache_api_responses":False,
-            "cache_cleanup_namespace_scoped":True,
-            "offline_shell_fallback":True,
+            "cache_cleanup_namespace_scoped":False,
+            "previous_generation_cache_retained":True,
+            "offline_shell_cache_first":True,
+            "fail_closed_on_missing_shell_asset":True,
             "generation_transition_waits_for_navigation":True,
             "live_browser_e2e_verified":False}
 
@@ -92,6 +95,10 @@ def verify_local_route(source:str):
         raise PrivacyHold("LOCAL_ROUTE_SW_UPDATE_CONTRACT_MISSING")
     if "MinimalizerBrowserFallback" in code or "browser-fallback.js" in code:
         raise PrivacyHold("LOCAL_ROUTE_BROWSER_DOWNGRADE")
+    if 'body.append("output_format", outputFormat || "png")' not in code:
+        raise PrivacyHold("LOCAL_ROUTE_OUTPUT_FORMAT_MISSING")
+    if 'if (outputFormat === "svg")' not in code:
+        raise PrivacyHold("LOCAL_ROUTE_SVG_FALLBACK_NOT_CLOSED")
     return {"status":"STATIC_LOCAL_ROUTE_ISOLATED",
             "service_worker_generation":gm.group(1),
             "no_browser_fallback":True,

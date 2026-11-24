@@ -38,6 +38,7 @@ from tools.research.local_l04_production_bundle import (
     L04ProductionBundleHold,
     find_case_for_source,
     load_configured_release_bundle,
+    read_case_png,
     read_case_svg,
 )
 logger = logging.getLogger(__name__)
@@ -440,6 +441,42 @@ def _formal_l04_case_if_available(content: bytes) -> str | None:
     return find_case_for_source(bundle, content)
 
 
+def _formal_l04_png_for_source(content: bytes):
+    """Return the pinned PNG derivative for an exact formal L04 source."""
+    try:
+        bundle = load_configured_release_bundle()
+    except (L04ProductionBundleHold, OSError, KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 bundle could not be verified.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+            },
+        ) from exc
+    if bundle is None:
+        return None
+    case = find_case_for_source(bundle, content)
+    if case is None:
+        return None
+    try:
+        png = read_case_png(bundle, case)
+    except (OSError, KeyError, L04ProductionBundleHold) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Formal L04 PNG derivative is unavailable or invalid.",
+            headers={
+                "X-Minimalizer-L04-Failure": str(exc),
+                "X-Minimalizer-L04-Release": "NO_GO",
+                "X-Minimalizer-L04-Case": case,
+            },
+        ) from exc
+    return (
+        case, png, bundle["candidate_receipt_sha256"], bundle["cases"][case],
+        bundle["rasterization"],
+    )
+
+
 @app.post("/api/zerobase2/minimalize")
 async def minimalize_zerobase2(
     file: UploadFile = File(...),
@@ -466,6 +503,36 @@ async def minimalize_zerobase2(
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded image is empty.")
             input_path.write_bytes(content)
+            if output_format == "png":
+                formal_png = _formal_l04_png_for_source(content)
+                if formal_png is not None:
+                    case, png, receipt_sha, artifacts, rasterization = formal_png
+                    return Response(
+                        content=png,
+                        media_type="image/png",
+                        headers={
+                            "Content-Disposition": f'attachment; filename="minimalized-{case}.png"',
+                            "X-Minimalizer-Mode": "l04-formal-png",
+                            "X-Minimalizer-Route": ZEROBASE2_ROUTE,
+                            "X-Minimalizer-L04-Release": "GO",
+                            "X-Minimalizer-L04-Case": case,
+                            "X-Minimalizer-L04-Candidate-Receipt-SHA256": receipt_sha,
+                            "X-Minimalizer-Engine": (
+                                "l04-expanded-svg-rasterization-"
+                                + str(rasterization["renderer"])
+                                + "-" + str(rasterization["version"])
+                            ),
+                            "X-Minimalizer-L04-SVG-SHA256": artifacts["expanded_svg_sha256"],
+                            "X-Minimalizer-L04-PNG-SHA256": artifacts["expanded_png_sha256"],
+                            "X-Minimalizer-Quality-Tier": "formal-candidate",
+                            "X-Minimalizer-L04-SVG-Available": "true",
+                            "X-Minimalizer-Input-SHA256": artifacts["source_sha256"],
+                            "X-Minimalizer-Input-Size": (
+                                f'{artifacts["expanded_png_width"]}x{artifacts["expanded_png_height"]}'
+                            ),
+                            "X-Minimalizer-Processing-Ms": f"{(perf_counter() - started) * 1000.0:.1f}",
+                        },
+                    )
             if output_format == "svg":
                 case, svg, receipt_sha = _formal_l04_case_for_source(content)
                 return Response(

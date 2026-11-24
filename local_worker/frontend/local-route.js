@@ -26,10 +26,14 @@ window.MinimalizerComputeRoute = Object.freeze({
   processingCopy: "LocalWorkerで画像の構造を解析中…",
   initialStatus: "本人専用LocalWorkerです。Browserへの自動切り替えは行いません。",
   resultLabel(response) {
+    if (response.headers.get("x-minimalizer-mode") === "l04-formal-png")
+      return "Minimalizer Local · L04正式候補";
     return response.headers.get("x-minimalizer-route") === "zerobase2"
       ? "Minimalizer Local · ZeroBase2 BEST" : "Minimalizer Local · V2 HIGH";
   },
   successMessage(response, reason) {
+    if (response.headers.get("x-minimalizer-mode") === "l04-formal-png")
+      return "L04正式候補からPNGを取得しました。";
     return response.headers.get("x-minimalizer-route") === "zerobase2"
       ? "ZeroBase2 BESTで処理が完了しました。"
       : (reason ? "ZeroBase2からLocal V2へ切り替えて処理しました (" + reason + ")。" : "Local V2で処理が完了しました。");
@@ -60,7 +64,7 @@ window.MinimalizerComputeRoute = Object.freeze({
   },
 });
 if ("serviceWorker" in navigator) {
-  const SERVICE_WORKER_GENERATION = "minimalizer-local-20261107-1";
+  const SERVICE_WORKER_GENERATION = "minimalizer-local-20261124-1";
   addEventListener("load", () => navigator.serviceWorker.register(
     "/sw.js?generation=" + encodeURIComponent(SERVICE_WORKER_GENERATION),
     {updateViaCache: "none"}

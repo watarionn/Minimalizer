@@ -440,3 +440,98 @@ def test_health_reports_active_process_slot(monkeypatch):
     finally:
         monkeypatch.setattr(worker, "_process_started_at", None)
         monkeypatch.setattr(worker, "_process_endpoint", None)
+
+
+def test_formal_l04_png_returns_pinned_svg_derivative_without_inference(monkeypatch):
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+
+    png = b"pinned-expanded-svg-png"
+    bundle = {
+        "candidate_receipt_sha256": "1" * 64,
+        "cases": {
+            "H06": {
+                "source_sha256": "2" * 64,
+                "expanded_svg_sha256": "3" * 64,
+                "expanded_png_sha256": "4" * 64,
+                "expanded_png_width": 2000,
+                "expanded_png_height": 2000,
+            }
+        },
+        "rasterization": {
+            "renderer": "@resvg/resvg-wasm",
+            "version": "2.6.2",
+        },
+    }
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    monkeypatch.setattr(worker, "load_configured_release_bundle", lambda: bundle)
+    monkeypatch.setattr(worker, "find_case_for_source", lambda loaded, content: "H06")
+    monkeypatch.setattr(worker, "read_case_png", lambda loaded, case: png)
+    monkeypatch.setattr(
+        worker,
+        "_run_zerobase2",
+        lambda path: (_ for _ in ()).throw(AssertionError("formal L04 must bypass inference")),
+    )
+
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "http://127.0.0.1:28764"},
+            files={"file": ("H06.webp", b"signed-source", "image/webp")},
+            data={"output_format": "png"},
+        )
+
+    assert response.status_code == 200
+    assert response.content == png
+    assert response.headers["content-type"].startswith("image/png")
+    assert response.headers["content-disposition"] == 'attachment; filename="minimalized-H06.png"'
+    assert response.headers["x-minimalizer-mode"] == "l04-formal-png"
+    assert response.headers["x-minimalizer-l04-case"] == "H06"
+    assert response.headers["x-minimalizer-l04-candidate-receipt-sha256"] == "1" * 64
+    assert response.headers["x-minimalizer-l04-svg-sha256"] == "3" * 64
+    assert response.headers["x-minimalizer-l04-png-sha256"] == "4" * 64
+    assert response.headers["x-minimalizer-l04-svg-available"] == "true"
+    assert response.headers["x-minimalizer-input-sha256"] == "2" * 64
+    assert response.headers["x-minimalizer-input-size"] == "2000x2000"
+
+
+def test_formal_l04_png_fails_closed_when_bundle_has_no_png(monkeypatch):
+    from tools.research.local_l04_production_bundle import L04ProductionBundleHold
+
+    class Decision:
+        active_route = "zerobase2"
+        rollback_available = True
+
+    bundle = {
+        "candidate_receipt_sha256": "1" * 64,
+        "cases": {"H06": {"source_sha256": "2" * 64}},
+        "rasterization": None,
+    }
+    monkeypatch.setattr(worker, "_zerobase2_route_decision", lambda: Decision())
+    monkeypatch.setattr(worker, "load_configured_release_bundle", lambda: bundle)
+    monkeypatch.setattr(worker, "find_case_for_source", lambda loaded, content: "H06")
+    monkeypatch.setattr(
+        worker,
+        "read_case_png",
+        lambda loaded, case: (_ for _ in ()).throw(
+            L04ProductionBundleHold("FORMAL_PNG_NOT_CONFIGURED:H06")
+        ),
+    )
+    monkeypatch.setattr(
+        worker,
+        "_run_zerobase2",
+        lambda path: (_ for _ in ()).throw(AssertionError("must not return a different candidate")),
+    )
+
+    with TestClient(worker.app) as client:
+        response = client.post(
+            "/api/zerobase2/minimalize",
+            headers={"Origin": "http://127.0.0.1:28764"},
+            files={"file": ("H06.webp", b"signed-source", "image/webp")},
+            data={"output_format": "png"},
+        )
+
+    assert response.status_code == 503
+    assert response.headers["x-minimalizer-l04-failure"] == "FORMAL_PNG_NOT_CONFIGURED:H06"
+    assert response.headers["x-minimalizer-l04-release"] == "NO_GO"
