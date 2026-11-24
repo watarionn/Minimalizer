@@ -103,6 +103,7 @@ def rasterize_one(source_bytes: bytes, annotation: dict[str, Any]) -> dict[str, 
         # Positive polygons are observed even when the rest of that class is
         # incomplete. Only a full-image review can turn remaining pixels negative.
         known[role] = alpha.copy() if role in complete_for else owners[role].copy()
+    known_person = alpha.copy() if "person" in complete_for else (person_map > 0)
     entity_ids = sorted(object_masks)
     if len(entity_ids) >= np.iinfo(np.uint16).max:
         raise IntakeError("too many annotated objects for the mask format")
@@ -150,6 +151,7 @@ def rasterize_one(source_bytes: bytes, annotation: dict[str, Any]) -> dict[str, 
     return {
         "source_alpha": alpha.astype(np.uint8),
         "person_instance_map": person_map,
+        "known_person": known_person.astype(np.uint8),
         "object_instance_map": object_map,
         "occlusion_entity_role_codes": entity_role_codes,
         "occlusion_entity_person_codes": entity_person_codes,
@@ -180,21 +182,99 @@ def _assert_private_output(output_dir: Path) -> None:
                     raise IntakeError("refusing to write private masks inside any Git working tree")
 
 
-def rasterize_dataset(dataset_dir: str | Path, output_dir: str | Path) -> dict[str, Any]:
+def rasterize_dataset(
+    dataset_dir: str | Path,
+    output_dir: str | Path,
+    split_manifest_path: str | Path,
+    *,
+    split_name: str = "train_validation",
+    frozen_model_sha256: str | None = None,
+) -> dict[str, Any]:
     summary = audit_dataset(dataset_dir)
     if not summary["minimum_cross_person_annotation_coverage_present"]:
         raise IntakeError("six-capability labels or three-person-group coverage are incomplete")
-    root, output = Path(dataset_dir), Path(output_dir)
+    root, output = Path(dataset_dir).resolve(), Path(output_dir).resolve()
+    split_path = Path(split_manifest_path)
+    if split_name not in {"train_validation", "train", "validation", "blind_test"}:
+        raise IntakeError("unsupported dataset split")
+    if split_name == "blind_test" and (
+        not isinstance(frozen_model_sha256, str)
+        or len(frozen_model_sha256) != 64
+        or any(ch not in "0123456789abcdef" for ch in frozen_model_sha256.lower())
+    ):
+        raise IntakeError("blind-test labels require a frozen model SHA-256")
+    if split_name != "blind_test" and frozen_model_sha256 is not None:
+        raise IntakeError("frozen model SHA is only accepted for blind-test rasterization")
+    try:
+        output.relative_to(root)
+    except ValueError:
+        pass
+    else:
+        raise IntakeError("mask output must be outside the input dataset folder")
     _assert_private_output(output)
-    output.mkdir(parents=True, exist_ok=True)
+    try:
+        split_doc = json.loads(split_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise IntakeError("private split manifest cannot be read") from exc
+    if (not isinstance(split_doc, dict)
+            or split_doc.get("schema") != "minimalizer/local-l02-person-group-split/v1"
+            or split_doc.get("dataset_fingerprint_sha256") != summary["dataset_fingerprint_sha256"]
+            or not isinstance(split_doc.get("group_assignments"), dict)
+            or not isinstance(split_doc.get("records"), list)):
+        raise IntakeError("split manifest does not bind to this dataset fingerprint")
+
     image_by_sha: dict[str, Path] = {}
     for path in root.rglob("*"):
         if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES:
             image_by_sha[hashlib.sha256(path.read_bytes()).hexdigest()] = path
-    count = 0
+
+    record_by_sha: dict[str, dict[str, str]] = {}
+    for record in split_doc.get("records", []):
+        if (not isinstance(record, dict)
+                or record.get("split") not in {"train", "validation", "blind_test"}
+                or not isinstance(record.get("source_sha256"), str)
+                or not isinstance(record.get("subject_group_id"), str)
+                or record["source_sha256"] in record_by_sha):
+            raise IntakeError("split manifest contains malformed or duplicate source records")
+        group_split = split_doc.get("group_assignments", {}).get(record["subject_group_id"])
+        if group_split != record["split"]:
+            raise IntakeError("split manifest assigns one person group to multiple splits")
+        record_by_sha[record["source_sha256"]] = record
+    if set(record_by_sha) != set(image_by_sha):
+        raise IntakeError("split manifest source set differs from the audited dataset")
+
+    annotations_by_sha: dict[str, dict[str, Any]] = {}
     for path in root.rglob("*.json"):
-        annotation = json.loads(path.read_text(encoding="utf-8"))
-        sha = annotation["image"]["source_sha256"]
+        try:
+            annotation = json.loads(path.read_text(encoding="utf-8"))
+            sha = annotation["image"]["source_sha256"]
+        except Exception as exc:
+            raise IntakeError("annotation changed after split generation") from exc
+        record = record_by_sha.get(sha)
+        if (record is None or annotation.get("subject_group_id") != record["subject_group_id"]):
+            raise IntakeError("split manifest person-group binding changed")
+        annotations_by_sha[sha] = annotation
+    if set(annotations_by_sha) != set(image_by_sha):
+        raise IntakeError("annotation source set differs from the audited dataset")
+
+    if split_name == "train_validation":
+        selected_splits = {"train", "validation"}
+    else:
+        selected_splits = {split_name}
+    selected_shas = {
+        sha for sha, record in record_by_sha.items() if record["split"] in selected_splits
+    }
+    output.mkdir(parents=True, exist_ok=True)
+    existing_mask_shas = {
+        path.stem.removeprefix("mask-")
+        for path in output.glob("mask-*.npz") if path.is_file()
+    }
+    if existing_mask_shas - selected_shas:
+        raise IntakeError("output directory contains masks outside the selected split; choose an empty output directory")
+
+    count = 0
+    for sha in sorted(selected_shas):
+        annotation = annotations_by_sha[sha]
         arrays = rasterize_one(image_by_sha[sha].read_bytes(), annotation)
         target = output / f"mask-{sha}.npz"
         np.savez_compressed(target, **arrays)
@@ -202,6 +282,8 @@ def rasterize_dataset(dataset_dir: str | Path, output_dir: str | Path) -> dict[s
     return {
         "schema": "minimalizer/local-l02-six-cap-raster-readback/v1",
         "dataset_fingerprint_sha256": summary["dataset_fingerprint_sha256"],
+        "split_manifest_sha256": hashlib.sha256(split_path.read_bytes()).hexdigest(),
+        "selected_splits": sorted(selected_splits),
         "image_count_rasterized": count,
         "person_group_count": summary["subject_group_count"],
         "private_mask_files_written": count,
@@ -209,15 +291,25 @@ def rasterize_dataset(dataset_dir: str | Path, output_dir: str | Path) -> dict[s
         "private_masks_written_inside_repository": False,
         "observer_trained": False,
         "quality_approved": False,
+        "blind_test_masks_emitted": split_name == "blind_test",
+        "blind_test_used_for_training_or_validation": False,
+        "frozen_model_sha256": frozen_model_sha256.lower() if split_name == "blind_test" else None,
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="非公開の六能力ポリゴンから学習用マスクを作ります")
     parser.add_argument("dataset_dir", help="元画像とラベルJSONの非公開フォルダー")
+    parser.add_argument("split_manifest", help="人物群split固定器が生成した非公開manifest")
     parser.add_argument("output_dir", help="Gitリポジトリ外の非公開マスク保存先")
+    parser.add_argument("--split", choices=("train_validation", "train", "validation", "blind_test"),
+                        default="train_validation", help="blind_testは凍結後の評価時だけ指定")
+    parser.add_argument("--frozen-model-sha256", help="blind_testを開く凍結model SHA-256")
     args = parser.parse_args()
-    print(json.dumps(rasterize_dataset(args.dataset_dir, args.output_dir), ensure_ascii=False, indent=2))
+    print(json.dumps(rasterize_dataset(
+        args.dataset_dir, args.output_dir, args.split_manifest,
+        split_name=args.split, frozen_model_sha256=args.frozen_model_sha256,
+    ), ensure_ascii=False, indent=2))
     return 0
 
 

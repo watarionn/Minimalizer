@@ -76,6 +76,7 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         arm = masks["owner_arm_left"].astype(bool)
         known_arm = masks["known_arm_left"].astype(bool)
         person = masks["person_instance_map"] > 0
+        known_person = masks["known_person"].astype(bool)
         objects = masks["object_instance_map"] > 0
         alpha = masks["source_alpha"].astype(bool)
         self.assertTrue(np.all(known_coat == alpha))
@@ -83,6 +84,7 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         self.assertFalse(np.any(owner & arm))
         self.assertTrue(np.all((masks["owner_outerwear"] + masks["owner_arm_left"]) <= 1))
         self.assertTrue(np.all(person <= alpha))
+        self.assertTrue(np.all(known_person == alpha))
         self.assertTrue(np.all(objects <= alpha))
         self.assertFalse(known_arm[0, 0])
         metadata = json.loads(str(masks["metadata_json"]))
@@ -92,6 +94,10 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         self.assertEqual(entities[int(edge[1]) - 1], "arm-left-1")
         self.assertIn("person-1", metadata["occlusion_entity_ids_in_edge_index_order"])
         self.assertEqual(masks["occlusion_relations_complete"].item(), 0)
+        partial = copy.deepcopy(self.doc)
+        partial["complete_for"] = ["outerwear"]
+        partial_masks = rasterize_one(self.source_bytes, partial)
+        self.assertTrue(np.array_equal(partial_masks["known_person"], partial_masks["person_instance_map"] > 0))
 
     def test_rejects_semantic_owner_overlap(self):
         bad = copy.deepcopy(self.doc)
@@ -177,18 +183,40 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as split_dir:
             written = write_split(self.root, split_dir)
             self.assertEqual(written["split_manifest_sha256"], split_summary["split_manifest_sha256"])
-            self.assertTrue((Path(split_dir) / "person-group-split.private.json").is_file())
-        with self.assertRaisesRegex(IntakeError, "outside the input dataset"):
-            write_split(self.root, self.root / "split-output")
-        with tempfile.TemporaryDirectory() as private_masks:
-            receipt = rasterize_dataset(self.root, private_masks)
-            self.assertEqual(receipt["private_mask_files_written"], 3)
-            self.assertFalse(receipt["observer_trained"])
-            self.assertFalse(receipt["output_paths_emitted"])
-            self.assertEqual(len(list(Path(private_masks).glob("mask-*.npz"))), 3)
-            with np.load(next(Path(private_masks).glob("mask-*.npz"))) as masks:
-                self.assertIn("owner_sleeve_left", masks.files)
-                self.assertIn("known_arm_right", masks.files)
+            split_path = Path(split_dir) / "person-group-split.private.json"
+            self.assertTrue(split_path.is_file())
+            with self.assertRaisesRegex(IntakeError, "outside the input dataset"):
+                write_split(self.root, self.root / "split-output")
+            with tempfile.TemporaryDirectory() as private_masks:
+                receipt = rasterize_dataset(self.root, private_masks, split_path)
+                self.assertEqual(receipt["private_mask_files_written"], 2)
+                self.assertEqual(receipt["selected_splits"], ["train", "validation"])
+                self.assertFalse(receipt["observer_trained"])
+                self.assertFalse(receipt["output_paths_emitted"])
+                self.assertFalse(receipt["blind_test_masks_emitted"])
+                self.assertFalse(receipt["blind_test_used_for_training_or_validation"])
+                self.assertEqual(len(list(Path(private_masks).glob("mask-*.npz"))), 2)
+                with np.load(next(Path(private_masks).glob("mask-*.npz"))) as masks:
+                    self.assertIn("owner_sleeve_left", masks.files)
+                    self.assertIn("known_arm_right", masks.files)
+                blind_sha = next(
+                    record["source_sha256"] for record in split_manifest["records"]
+                    if record["split"] == "blind_test"
+                )
+                stale_blind_mask = Path(private_masks) / f"mask-{blind_sha}.npz"
+                stale_blind_mask.touch()
+                with self.assertRaisesRegex(IntakeError, "outside the selected split"):
+                    rasterize_dataset(self.root, private_masks, split_path)
+                stale_blind_mask.unlink()
+                with self.assertRaisesRegex(IntakeError, "frozen model SHA-256"):
+                    rasterize_dataset(self.root, private_masks, split_path, split_name="blind_test")
+            with tempfile.TemporaryDirectory() as blind_masks:
+                blind_receipt = rasterize_dataset(
+                    self.root, blind_masks, split_path, split_name="blind_test", frozen_model_sha256="a" * 64,
+                )
+                self.assertEqual(blind_receipt["private_mask_files_written"], 1)
+                self.assertTrue(blind_receipt["blind_test_masks_emitted"])
+                self.assertEqual(blind_receipt["frozen_model_sha256"], "a" * 64)
 
     def test_refuses_output_inside_git_worktree(self):
         repository = Path(__file__).resolve().parents[1]

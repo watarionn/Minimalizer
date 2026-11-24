@@ -31,10 +31,16 @@ python tools\research\verify_local_l02_six_cap_dataset.py "C:\path\to\private-si
 
 ```cmd
 python tools\research\split_local_l02_six_cap_dataset.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split"
-python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-masks"
+python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split\person-group-split.private.json" "C:\path\outside-git\private-six-cap-train-validation-masks"
 ```
 
-各NPZにはsource alpha、人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力は拒否します。監査・分割・マスク生成のPASSは学習・品質承認を意味しません。
+通常のマスク生成はtrain/validationだけを対象にし、blind-testのNPZを出力しません。split integrityを確認するため画像SHAと人物グループの対応は読みますが、blind-testのowner maskは作りません。モデルを凍結し、独立評価者が評価する段階になった後だけ、model SHAを付けて別の空フォルダーへblind-testを生成します。
+
+```cmd
+python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split\person-group-split.private.json" "C:\path\outside-git\private-six-cap-blind-masks" --split blind_test --frozen-model-sha256 "凍結モデルの実際の64桁SHA-256"
+```
+
+各NPZにはsource alpha、known範囲つき人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力を拒否します。別splitのNPZが残る出力先も拒否するため、splitごとに空の出力先を使ってください。監査・分割・マスク生成のPASSは学習・品質承認を意味しません。
 
 マスクNPZには座標と個別画像由来のデータが含まれるため、非公開領域だけに保存してください。GitHubへ追加しないでください。
 
