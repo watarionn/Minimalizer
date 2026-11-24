@@ -51,6 +51,8 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - 既存`L06_BROWSER_PERFORMANCE_CURRENT_RUNTIME_HOLD`はreceipt SHA `381b0b5a…`結合済みだが、旧通常推論経路の性能FAIL（H04 22.6秒）でHOLD。上記の新PNG経路は短時間だが、現行L06の正式なrelease-bound性能receiptへ更新していない。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
 
+2026-11-24 20:09 JST、Worker PID `36136`だけを入れ替え、常駐supervisor PID `38552`を維持してPID `40596`で再起動した。20:15 JSTにloopback HTTP `28764`とprivate HTTPS `28765`の両healthが`ready`、`zerobase2` authorized、runtime errorなし、idleを再確認。Worker runtime `64cfeb76…`、採用receipt `381b0b5a…`、production manifest SHA `f9ab8fd7…`も照合した。source-free receiptは[LOCAL_L07_WORKER_RESTART_READBACK_20261124T2009.json](evidence/LOCAL_L07_WORKER_RESTART_READBACK_20261124T2009.json)。今回の確認は起動・readbackのみで、iPhone受入やL02意味品質を承認しない。
+
 ## A Phase4・Phase5の候補一致 readback（2026-11-24）
 
 - 既存の署名済み独立レビューreceipt SHA-256: `bab6a3b873cd7480c3b940202b4219203798d499b577a90cac45edf98a71022f`。固定source SHA、freeze receiptのcandidate SHA、署名・未見性・推論前ラベル非参照・評価者独立・意味評価を既存verifierで再照合し、H04/H06/H08全件 `Phase4=PASS`。
