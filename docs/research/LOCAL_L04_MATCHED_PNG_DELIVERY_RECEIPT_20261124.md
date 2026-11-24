@@ -78,3 +78,10 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - Downloadsに保存された最新ファイルのSHAはPNG `dc5467db8fdce139ad76cc88e3087e68037070d675cb7ea72180f51901167358`、SVG `feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4`。採用manifestのH04値と双方一致。
 - この確認時のWorker listener PIDは`17264`、supervisor PIDは`38552`、loopback healthは`ready`、runtime errorなし。runtime commit `64cfeb76…`、receipt `381b0b5a…`、manifest SHA `f9ab8fd7…`を結合したsource-free receiptは[LOCAL_L07_GUI_H04_RESTARTED_WORKER_20261124.json](evidence/LOCAL_L07_GUI_H04_RESTARTED_WORKER_20261124.json)。
 - このreadbackは再起動後のPCブラウザーでH04通常入口から同一PNG/SVG成果物が保存できることを示す。H06/H08の画面操作、iPhone受入、Aの意味品質、L06性能合格は示さない。
+
+## 現行private HTTPS Originの再読戻し（2026-11-24 13:38 UTC）
+
+- Worker起動設定に保存された所有者専用private HTTPS Originを使い、`/`、`/health`、`/sw.js`、`/manifest.webmanifest`、`/local-static/local-route.js`を再取得した。すべてHTTP 200、healthはready、SWとLocal routeはgeneration `minimalizer-local-20261124-1`。Origin値そのものは公開台帳へ記載していない。
+- 同じOriginを付けた`OPTIONS /api/v2/minimalize`はHTTP 200、CORS Origin echo一致、許可method `GET, POST, OPTIONS`、header `content-type`を確認。
+- source-free receiptは[evidence/LOCAL_L07_PRIVATE_HTTPS_ORIGIN_READBACK_20261124T1338Z.json](evidence/LOCAL_L07_PRIVATE_HTTPS_ORIGIN_READBACK_20261124T1338Z.json)。候補receipt `381b0b5a…`、Worker `64cfeb76…`、manifest `f9ab8fd7…`へ結合。
+- これはHTTPS配信・Origin/CORS・現行SW世代のreadbackであり、実機iPhone受入または本番HTTPS上の世代rollbackを主張しない。

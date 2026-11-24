@@ -1,0 +1,34 @@
+{
+  "schema": "minimalizer/local-l07/private-https-origin-readback/v1",
+  "observed_at_utc": "2026-11-24T13:38:22Z",
+  "worker_runtime_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "production_manifest_sha256": "f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48",
+  "origin": {
+    "source": "owner-local protected origin configuration",
+    "value_written_to_public_ledger": false,
+    "configured_private_origin_match": true,
+    "https_port": 28765
+  },
+  "https_readback": [
+    { "path": "/", "status": 200, "content_type": "text/html; charset=utf-8", "bytes": 7865 },
+    { "path": "/health", "status": 200, "content_type": "application/json", "bytes": 517, "ready": true },
+    { "path": "/sw.js", "status": 200, "content_type": "application/javascript", "bytes": 2384, "generation": "minimalizer-local-20261124-1" },
+    { "path": "/manifest.webmanifest", "status": 200, "content_type": "application/manifest+json", "bytes": 1510 },
+    { "path": "/local-static/local-route.js", "status": 200, "content_type": "application/javascript", "bytes": 3912, "generation": "minimalizer-local-20261124-1" }
+  ],
+  "cors_preflight": {
+    "path": "/api/v2/minimalize",
+    "method": "OPTIONS",
+    "status": 200,
+    "origin_echoed_from_configured_private_origin": true,
+    "allowed_methods": ["GET", "POST", "OPTIONS"],
+    "allowed_headers": ["content-type"]
+  },
+  "candidate_or_image_bytes_embedded": false,
+  "does_not_claim": [
+    "physical iPhone receipt-bound acceptance",
+    "real private HTTPS service-worker generation rollback",
+    "L02 semantic quality"
+  ]
+}
