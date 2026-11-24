@@ -1,0 +1,56 @@
+{
+  "schema": "minimalizer/phase14-closure-receipt/v1",
+  "recorded_at": "2026-11-17",
+  "repository_head": "1b9ec5490b9344b80b977218cab2a51ba2f65484",
+  "scope": "source-free regression and migration evidence only",
+  "private_source": {
+    "approved18_manifest": "tests/assets/approved18_manifest.json",
+    "input_drive_folder_id": "1ZcowQ6OX2tpHf6U4iMcHl9h-V-F3IwnL",
+    "approved_reference_drive_folder_id": "1oWUtdUAfLE4x8_T5VS5GQyHEHn7FQ35v",
+    "input_sha256_pass_count": 18,
+    "approved_reference_sha256_pass_count": 18,
+    "raw_bytes_committed": false
+  },
+  "settings": {
+    "level": 4,
+    "analysis_max_side": 320,
+    "preset": "approved_reference"
+  },
+  "gates": {
+    "diagnostic2_zero_base_visual": {
+      "pass": true,
+      "case_count": 2,
+      "human_visual_pass_count": 2,
+      "determinism_pass_count": 2,
+      "evidence_sha256": "81918a1723236eae5ef1907d136848fb83d562380481da998c41e55987dd47ae"
+    },
+    "approved18_production_regression": {
+      "pass": true,
+      "case_count": 18,
+      "input_sha_pass_count": 18,
+      "approved_sha_pass_count": 18,
+      "structural_gate_pass_count": 18,
+      "evaluation_sha256": "35a879a56b2ab96a795ecb9ba5726f7915e6c78f1d1c6c487fd1145bc6fab2df",
+      "gate_receipt_sha256": "3530bb92301c69bbd47d7073163ef311d743fd893d2cbd3e6215073fe1739b7d"
+    },
+    "approved78_formal_migration": {
+      "pass": true,
+      "reference_count": 78,
+      "replay_complete": true,
+      "migration_gate_pass": true,
+      "gate_receipt_sha256": "5bcf4cb3794d98bef2966273af100fa017015c59495c1d8b3ad6de03a3cdb316"
+    }
+  },
+  "closure": {
+    "pass": true,
+    "next_phase_authorized": 15,
+    "closure_receipt_sha256": "13cb8936a9e03bdd9a8a24761750f5a834359ebbe15a3997b8e20fdc9c3236c6"
+  },
+  "not_authorized_by_this_receipt": [
+    "L02 six-capability observer adoption",
+    "independent L02 Phase4 semantic quality PASS",
+    "formal L04 production GO",
+    "Golden publication",
+    "production release or owner device acceptance"
+  ]
+}
