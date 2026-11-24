@@ -72,3 +72,10 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 4. Aの既存署名済みPhase4はH04/H06/H08の各候補SHAでPASSし、同じ候補のPhase5も本番コードで再現PASSした。ただしそのH04/H06 candidate SHAは現行L04 bundleのStage8 SHAと異なるため、同一候補のL04三点セットを作り直して照合する必要がある。既存評価者へレビューを再依頼しない。
 5. 六能力observerは未導入。下層衣装・ペア別遮蔽・人物内instanceが欠けており、別人物学習catalog、trainer、checkpointもまだ見つかっていない。既知モデルの部分能力を六能力へ読み替えず、Phase4 PASS候補とは独立したゲートとして解消する。
 6. L04 release-bound性能receipt、SW offline/rollback/障害時の実ブラウザ受入、実機iPhone Safari/PWA受入、Drive readbackと最終SHA台帳は未完了。Bの配信完了はAの意味品質承認を代替しない。
+
+## 再起動後の実画面H04 readback（2026-11-24 20:48 JST）
+
+- LocalWorker再起動後の所有者専用private HTTPS通常画面で、固定H04入力（source SHA `7d5a6225…`、453×1400）を再変換した。画面は`ZeroBase2 BESTで処理が完了しました。`を表示し、同じ結果からPNGとSVGの保存操作も完了した。
+- Downloadsに保存された最新ファイルのSHAはPNG `dc5467db8fdce139ad76cc88e3087e68037070d675cb7ea72180f51901167358`、SVG `feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4`。採用manifestのH04値と双方一致。
+- この確認時のWorker listener PIDは`17264`、supervisor PIDは`38552`、loopback healthは`ready`、runtime errorなし。runtime commit `64cfeb76…`、receipt `381b0b5a…`、manifest SHA `f9ab8fd7…`を結合したsource-free receiptは[LOCAL_L07_GUI_H04_RESTARTED_WORKER_20261124.json](evidence/LOCAL_L07_GUI_H04_RESTARTED_WORKER_20261124.json)。
+- このreadbackは再起動後のPCブラウザーでH04通常入口から同一PNG/SVG成果物が保存できることを示す。H06/H08の画面操作、iPhone受入、Aの意味品質、L06性能合格は示さない。

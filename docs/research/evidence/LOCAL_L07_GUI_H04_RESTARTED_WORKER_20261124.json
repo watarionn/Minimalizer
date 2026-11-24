@@ -1,0 +1,38 @@
+{
+  "schema": "minimalizer/local-l07-gui-h04-restarted-worker/v1",
+  "observed_at_jst": "2026-11-24T20:48:50+09:00",
+  "browser": {
+    "origin_class": "owner-private-https",
+    "port": 28765,
+    "normal_entry": true,
+    "source_file": "source.png",
+    "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+    "source_dimensions": [453, 1400],
+    "result_label": "ZeroBase2 BEST",
+    "quality_label": "formal-candidate",
+    "ui_conversion_status": "ZeroBase2 BESTで処理が完了しました。",
+    "ui_svg_save_status": "SVGを保存しました。",
+    "ui_png_save_status": "PNGを保存しました。"
+  },
+  "artifacts": {
+    "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+    "production_manifest_sha256": "f9ab8fd733c15ec5d5b373940a7d10b4c8234d6ca1fa33a986e26bb6635ffe48",
+    "png_sha256": "dc5467db8fdce139ad76cc88e3087e68037070d675cb7ea72180f51901167358",
+    "svg_sha256": "feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4",
+    "png_matches_manifest": true,
+    "svg_matches_manifest": true
+  },
+  "worker": {
+    "runtime_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+    "supervisor_pid": 38552,
+    "listener_pid": 17264,
+    "loopback_health_status": "ready",
+    "runtime_error": null
+  },
+  "scope": {
+    "source_or_result_image_embedded": false,
+    "iphone_acceptance_claimed": false,
+    "l02_semantic_quality_claimed": false,
+    "l06_performance_pass_claimed": false
+  }
+}
