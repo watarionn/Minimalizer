@@ -1,0 +1,27 @@
+{
+  "schema": "minimalizer/local-l02/private-source-library-inventory/v1",
+  "observed_at_jst": "2026-11-24T21:30:00+09:00",
+  "scope": "Drive-synced Minimalizer/元画像 folder; metadata and visual spot-check only",
+  "counts": {
+    "character_group_directories": 83,
+    "images_in_character_group_directories": 609,
+    "additional_root_level_images": 50,
+    "visible_image_files_total": 659,
+    "archive_image_entries": 609,
+    "archive_sidecars_or_annotation_files": 0
+  },
+  "observations": {
+    "some_grouped_images_show_full_body_characters_with_clothing_and_arms": true,
+    "at_least_two_root_level_images_visually_show_multiple_people": true,
+    "human_six_cap_labels_found": false,
+    "images_used_for_training": false,
+    "h04_h06_h08_evaluation_sources_used": false
+  },
+  "integrity_limits": {
+    "archive_and_extracted_folder_content_hash_equivalence": "not_verified; bulk image reads stalled on Drive sync and were stopped",
+    "image_semantic_suitability": "only a small visual spot-check; no complete review",
+    "source_image_hashes_recorded": false
+  },
+  "status": "PRIVATE_UNLABELED_SOURCE_CANDIDATE",
+  "next_action": "Prepare a bounded private annotation batch from these existing sources, keep subject groups separate, and collect labels through the visual labeler. Do not place any images, labels, coordinates, masks, or image hashes in the repository."
+}
