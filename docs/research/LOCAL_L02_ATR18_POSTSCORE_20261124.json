@@ -1,0 +1,113 @@
+{
+  "schema": "minimalizer/local-l02/atr18-postscore-sourcefree/v1",
+  "evaluation_archive_sha256": "f4c28f6167cdac5e61945185d19783009e52a035c1ee1599a4e2eb73d68ff80f",
+  "archive_internal_manifest_verified": true,
+  "labels_used_for_inference": false,
+  "labels_used_only_for_postscore": true,
+  "unknown_pixels_scored_as_negative": false,
+  "scope": "exploratory broad garment-vs-non-garment proxy only; not six-capability or Phase4 approval",
+  "cases": [
+    {
+      "case": "H06",
+      "source_encoded_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+      "source_rgba_sha256": "c4c4891542c80d9d2f61c45c1b6794722e5dfceed837179ae83352995e4522b5",
+      "review_mask_sha256": "97669ce7b04c9f75e3e67122a467e3908ac1f0d8cc2bdbf4cfd223e5ecf44e75",
+      "class_map_sha256": "334b4037bf25eed152339a435a031bc2a073fff1459574470523b56046c980a3",
+      "labels_used_only_for_postscore": true,
+      "source_opaque_pixels": 602869,
+      "known_positive_pixels": 509055,
+      "known_negative_pixels": 92259,
+      "unknown_source_pixels": 1555,
+      "known_label_coverage": 0.9974206668447042,
+      "garment_class_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        17
+      ],
+      "known_only_confusion": {
+        "tp": 351957,
+        "fp": 25067,
+        "fn": 157098,
+        "tn": 67192
+      },
+      "precision": 0.9335135163809201,
+      "recall": 0.6913928750331496,
+      "iou": 0.6589449601401927,
+      "arm_predictions_on_known_negative": 1300,
+      "human_positive_topology": {
+        "components4": 3,
+        "components8": 1,
+        "holes4": 30,
+        "holes8": 22
+      },
+      "predicted_garment_topology": {
+        "components4": 37,
+        "components8": 31,
+        "holes4": 20,
+        "holes8": 14
+      },
+      "formal_quality": "UNASSESSED",
+      "Phase4": "FAIL",
+      "L02": "HOLD",
+      "production": "NO_GO"
+    },
+    {
+      "case": "H08",
+      "source_encoded_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+      "source_rgba_sha256": "5107f0eeb3b950b8e93ceb3fb6f98c52ecf6e2ce94d39c1ee606f3fad1e8026c",
+      "review_mask_sha256": "e73e3e083500ff7524fca3c1d0d91d1ce3845616230c80e9c992e1a726fe8f46",
+      "class_map_sha256": "a94d59e01e8cc0bfec7f97e6483d4766f29b46eddeeb4a9d6fa6f0013e61cf6a",
+      "labels_used_only_for_postscore": true,
+      "source_opaque_pixels": 536859,
+      "known_positive_pixels": 339594,
+      "known_negative_pixels": 194752,
+      "unknown_source_pixels": 2513,
+      "known_label_coverage": 0.9953190688802833,
+      "garment_class_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        17
+      ],
+      "known_only_confusion": {
+        "tp": 318085,
+        "fp": 85133,
+        "fn": 21509,
+        "tn": 109619
+      },
+      "precision": 0.7888660724471626,
+      "recall": 0.93666260299063,
+      "iou": 0.7489163627459521,
+      "arm_predictions_on_known_negative": 1666,
+      "human_positive_topology": {
+        "components4": 2,
+        "components8": 1,
+        "holes4": 18,
+        "holes8": 17
+      },
+      "predicted_garment_topology": {
+        "components4": 11,
+        "components8": 10,
+        "holes4": 16,
+        "holes8": 15
+      },
+      "formal_quality": "UNASSESSED",
+      "Phase4": "FAIL",
+      "L02": "HOLD",
+      "production": "NO_GO"
+    }
+  ],
+  "quality": "UNASSESSED",
+  "Phase4": "FAIL",
+  "L02": "HOLD",
+  "production": "NO_GO"
+}
