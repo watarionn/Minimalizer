@@ -18,6 +18,7 @@ from rasterize_local_l02_six_cap_annotations import (
     rasterize_dataset,
     rasterize_one,
 )
+from split_local_l02_six_cap_dataset import build_split, write_split
 
 
 class SixCapDatasetIntakeTests(unittest.TestCase):
@@ -166,6 +167,19 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         self.assertTrue(report["minimum_cross_person_annotation_coverage_present"])
         self.assertEqual(report["subject_group_count"], 3)
         self.assertFalse(report["observer_trained"])
+        split_manifest, split_summary = build_split(self.root)
+        self.assertEqual(split_summary["group_counts_by_split"], {
+            "train": 1, "validation": 1, "blind_test": 1,
+        })
+        self.assertFalse(split_summary["group_leakage"])
+        self.assertTrue(split_manifest["blind_test_labels_must_remain_sealed_until_model_freeze"])
+        self.assertEqual(build_split(self.root)[1]["split_manifest_sha256"], split_summary["split_manifest_sha256"])
+        with tempfile.TemporaryDirectory() as split_dir:
+            written = write_split(self.root, split_dir)
+            self.assertEqual(written["split_manifest_sha256"], split_summary["split_manifest_sha256"])
+            self.assertTrue((Path(split_dir) / "person-group-split.private.json").is_file())
+        with self.assertRaisesRegex(IntakeError, "outside the input dataset"):
+            write_split(self.root, self.root / "split-output")
         with tempfile.TemporaryDirectory() as private_masks:
             receipt = rasterize_dataset(self.root, private_masks)
             self.assertEqual(receipt["private_mask_files_written"], 3)

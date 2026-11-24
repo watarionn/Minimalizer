@@ -25,15 +25,16 @@ python tools\research\verify_local_l02_six_cap_dataset.py "C:\path\to\private-si
 
 `--output` のJSONには件数とデータ全体のfingerprintだけが入り、元画像名、人物ID、担当者ID、座標は入りません。評価用H04/H06/H08の署名済み画像SHAは拒否されます。この監査PASSは学習適格性や意味品質の承認ではありません。
 
-## 非公開学習マスクの生成
+## 人物単位のデータ分割と非公開学習マスクの生成
 
-監査が六能力・人物グループ・遮蔽ラベルの最低入力条件を満たした後に、元画像とJSONから非公開NPZマスクを生成できます。出力先はGit作業ツリーの外にしてください。コマンドプロンプトでリポジトリのルートから実行します。
+監査が六能力・人物グループ・遮蔽ラベルの最低入力条件を満たした後、人物グループ単位のtrain/validation/blind-test分割を固定します。各人物グループは一つのsplitにだけ割り当てられ、blind-testラベルはモデル凍結まで開かない運用にします。source-free summaryには人物IDや画像名が出ませんが、分割manifest自体にはそれらが含まれるため非公開で保存してください。
 
 ```cmd
+python tools\research\split_local_l02_six_cap_dataset.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split"
 python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-masks"
 ```
 
-各NPZにはsource alpha、人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力は拒否します。監査・マスク生成のPASSは学習・品質承認を意味しません。
+各NPZにはsource alpha、人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力は拒否します。監査・分割・マスク生成のPASSは学習・品質承認を意味しません。
 
 マスクNPZには座標と個別画像由来のデータが含まれるため、非公開領域だけに保存してください。GitHubへ追加しないでください。
 

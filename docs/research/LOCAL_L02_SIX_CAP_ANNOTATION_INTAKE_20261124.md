@@ -7,6 +7,7 @@
 - ラベル画面: `tools/research/local_l02_six_cap_labeler/index.html`
 - 日本語手順: `tools/research/local_l02_six_cap_labeler/README.md`
 - 入力監査: `tools/research/verify_local_l02_six_cap_dataset.py`
+- 人物群split固定: `tools/research/split_local_l02_six_cap_dataset.py`
 - 非公開owner mask生成: `tools/research/rasterize_local_l02_six_cap_annotations.py`
 - 回帰: `tests/test_local_l02_six_cap_dataset.py`
 - 初回実装Commit: `6e762c8b5aeeaf58df147e6a17384bd3ff095ca0`
@@ -23,7 +24,8 @@
 - 未描画画素: unknownを維持。`complete_for` に明示されたroleだけ全画面確認済み陰性になり得る
 - 監査出力: 集計件数とbundle fingerprintだけ。画像名・人物/担当者ID・座標は出さない
 - 非公開mask生成: source alpha、人物instance map、六つの排他的owner、意味物体instance map、物体IDへ結合した遮蔽edge、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
-- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、拒否ケース、非公開出力）
+- 人物単位split: 固定SHA順でtrain/validation/blind-testを割当て。同一人物群の交差なし、blind labelsは凍結まで隔離。manifestはsource/group IDsを含むため非公開保存
+- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、遮蔽edge対応、再現可能group split、拒否ケース、非公開出力）
 - JS構文: `node --check` — PASS
 - Python構文: `py_compile` — PASS
 - 送信系Web API: HTML内に `fetch`、`XMLHttpRequest`、`WebSocket`、`sendBeacon` なし
@@ -43,7 +45,7 @@
 
 ### 開発側（入力受領後）
 
-1. 実データを受領したら監査と非公開マスク生成を行い、人物グループ単位でtrain/validation/blind-testを固定する。
+1. 実データを受領したら監査、人物単位split固定、非公開マスク生成を順に行う。
 2. 学習前に全六能力の教師信号、排他的可視owner、4/8連結、穴、遮蔽矛盾、未知画素の扱いを検査する。学習・推論へH04/H06/H08の評価ラベルは渡さない。
 3. モデルと設定を凍結し、署名済みH04/H06/H08へ同一設定で新規推論する。独立Phase4が評価した後にだけ結果を開き、意味品質と正衣装保持/誤owner除去を確認する。
 4. 未見人物testとPhase4の具体的FAILだけを直す。PASS後にPhase5と後続L04/L06/実機ゲートへ進む。
