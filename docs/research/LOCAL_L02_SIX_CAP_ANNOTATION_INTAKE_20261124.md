@@ -9,7 +9,8 @@
 - 入力監査: `tools/research/verify_local_l02_six_cap_dataset.py`
 - 非公開owner mask生成: `tools/research/rasterize_local_l02_six_cap_annotations.py`
 - 回帰: `tests/test_local_l02_six_cap_dataset.py`
-- Commit: `6e762c8b5aeeaf58df147e6a17384bd3ff095ca0`
+- 初回実装Commit: `6e762c8b5aeeaf58df147e6a17384bd3ff095ca0`
+- 私有mask生成追加Commit: `505afe184e4810f70cc30d7d0cb5fb94069af0cc`
 - Draft PR: #473, `codex/l02-six-cap-labeler-20261124`
 
 対象能力は、外衣、下層衣装、解剖学的左右の袖、解剖学的左右の腕、人物instance、ペア別遮蔽。画像はブラウザ内で開き、ラベルJSONに画像を埋め込まない。人物グループID、担当者ID、座標、原画像は非公開データとして扱う。
