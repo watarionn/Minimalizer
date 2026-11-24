@@ -31,7 +31,7 @@
 - Python構文: `py_compile` — PASS
 - 送信系Web API: HTML内に `fetch`、`XMLHttpRequest`、`WebSocket`、`sendBeacon` なし
 - 実画像P0/P1改善件数: 0件。新規学習画像がまだ入力されていないため、画像品質は未評価
-- ローカル画面の実ブラウザ操作確認: 未実施。Codexブラウザの安全ポリシーが `file://` を拒否した。回避操作はしていない
+- 実ブラウザ表示: PC上のChromeでローカル `index.html` を開き、日本語の画像選択・6能力ラベル・unknown・遮蔽・保存UIを確認。画像選択、JSON保存、ダウンロード実操作は未確認
 - 実人物画像のmask構造監査: 未実施。非公開Driveの元画像/JSON受領待ち
 
 このPASSは入力形式検査と合成入力によるsplit/mask生成までで、実画像データを処理したものではない。observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。既定rasterizerはblind-test maskを出力せず、凍結checkpointファイルを指定する別操作だけがblind-testを展開する。
