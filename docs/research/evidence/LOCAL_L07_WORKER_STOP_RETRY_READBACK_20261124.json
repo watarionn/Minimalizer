@@ -1,0 +1,23 @@
+{
+  "schema": "minimalizer/local-l07/worker-stop-retry-readback/v1",
+  "candidate_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "worker_runtime_base_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "service_worker_generation": "minimalizer-local-20261124-1",
+  "case": "H04",
+  "worker_stop_guarded_idle": true,
+  "worker_listener_pid_before": 3556,
+  "worker_listener_pid_after": 37876,
+  "worker_auto_recovery_pass": true,
+  "failure_message": "LocalWorkerへ接続できません。TailscaleとPC側Workerを確認してください。 health 502",
+  "retry_pass": true,
+  "retry_preview_ms": 406.0,
+  "result_status": "L04正式候補からPNGを取得しました。",
+  "png_sha256": "dc5467db8fdce139ad76cc88e3087e68037070d675cb7ea72180f51901167358",
+  "svg_sha256": "feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4",
+  "expected_sha256": {
+    "png": "dc5467db8fdce139ad76cc88e3087e68037070d675cb7ea72180f51901167358",
+    "svg": "feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4"
+  },
+  "worker_health_ready_after": true,
+  "source_and_outputs_embedded": false
+}
