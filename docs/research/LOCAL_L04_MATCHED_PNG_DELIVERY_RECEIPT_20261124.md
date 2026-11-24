@@ -1,13 +1,14 @@
 # Local L04 PNG/SVG同一候補配信記録
 
 作成日: 2026-11-24  
-状態: `CODE_AND_PRIVATE_BUNDLE_READY / LIVE_PWA_ACCEPTANCE_PENDING`
+状態: `MERGED_AND_LIVE / PC_NORMAL_FLOW_PASS / IPHONE_AND_OFFLINE_ACCEPTANCE_PENDING`
 
 ## 固定対象
 
 - 候補receipt SHA-256: `381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a`
 - 実機Worker基準commit: `64cfeb76e5f8ff4e93b6810880c68f1996348ede`
-- 実装PR基準main commit: `22d36e88c0b9932cd44e209c8d8be4581098dc62`
+- 実装PR: `#467`（merged）
+- 実装main commit: `191f93d85e248f02003ac9835e58484a6d5c177f`
 - private bundle ZIP SHA-256: `c489fb5b11c209c491faf5c6aa1d4bdd20652e9f26efad56f4ee871e9a671efe`
 - Drive読み戻し: ZIPのサイズ`964667` bytes、SHA-256がローカル値と一致
 
@@ -26,17 +27,24 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - v1 manifestのSVG配信は維持し、v2 manifestでPNG派生物のSHA・元SVG SHA・寸法・renderer buildを検証する。
 - 正式入力SHAが一致したPNG要求は、推論を再実行せず、同じ候補のSHA固定PNGを返す。PNGが欠落・不一致なら別候補へfallbackせず503で停止する。
 - SVG要求は既存の展開SVGを返す。通常入口のPNG/SVG両方にreceipt SHAとケース識別子を含める。
-- 最新main基点のFocused tests: `60 passed`（LocalWorker、L04 source/Stage8/SVG gate、delivery audit、L07 privacy audit）。
+- PR commit `6630d9f140506242f82bba3dad148025f10529e0`のFocused tests: `60 passed`（LocalWorker、L04 source/Stage8/SVG gate、delivery audit、L07 privacy audit）。同じ差分をmain `191f93d8`へsquash mergeした。
 - real private inputsを用いたTestClient E2E: H04/H06/H08のPNG/SVG全6要求がHTTP 200、receipt SHAと各成果物SHAがmanifestに一致。
 - Node/Python構文確認: PASS。派生PNG再生成のSHA一致: 3/3。
-- Worker private HTTPS: 現在の旧v1 bundleからのH04 SVG取得はHTTP 200、SHA一致を確認。新v2 PNGコードはまだlive Workerへ適用していない。
-- L07 Service Worker: generation `minimalizer-local-20261124-1`へ更新。現行世代のcache-first、cache miss時fail-closed、前世代cache保持、activate時の削除なしを静的監査で確認。世代更新後のrollbackと実ブラウザ挙動は未確認。
+- 本番Workerは基準commit `64cfeb76e5f8ff4e93b6810880c68f1996348ede`上の専用runtimeで稼働。起動スクリプトを専用runtime・AppDataのv2 manifest・receipt `381b0b5a…`へ修復し、変更前の4コードファイルと起動スクリプトをprivate backupへ退避した。
+- 起動後のprivate HTTPS `/health`: `ready=true`。通常API入口でH04/H06/H08のPNG/SVG全6件がHTTP 200、receipt SHAおよび成果物SHA一致。
+- PNG HTTPS総時間: H04 `572.5 ms`、H06 `413.9 ms`、H08 `473.2 ms`。Worker計測はそれぞれ`315.8/227.0/268.2 ms`。
+- 実PC Chrome通常画面で署名済みH04を選択し、変換、プレビュー、PNG・SVG保存メッセージを確認。保存ファイルはPNG `dc5467db…`、SVG `feda80bb…`でmanifestと一致。
+- 不正なtext/plain入力はprivate HTTPS APIでHTTP `415` JSONとなった。通常画面での障害表示・再試行およびworker停止時の再接続/fallbackは未確認。
+- L07 Service Workerはgeneration `minimalizer-local-20261124-1`。静的監査`23 passed`、generation一致、cache-first、cache miss時fail-closed、旧generation cache削除なしを確認。Chrome内部診断URLはComputer UseのURL policyで拒否されたため、更新後generationのoffline実機挙動は未確認。
+- 既存Approved18回帰は18/18 PASS、Approved78回帰は78件・SHA/determinism MigrationGate PASS。ただし両コーパスreceiptをこのL04 release SHAへ結ぶsource-free bindingは未作成。
+- 既存`L06_BROWSER_PERFORMANCE_CURRENT_RUNTIME_HOLD`はreceipt SHA `381b0b5a…`結合済みだが、旧通常推論経路の性能FAIL（H04 22.6秒）でHOLD。上記の新PNG経路は短時間だが、現行L06の正式なrelease-bound性能receiptへ更新していない。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
 
 ## 残ゲートと次の変更
 
-1. このsource-free変更をDraft PR #467へ反映し、`64cfeb76…`の専用runtimeへレビュー後に適用する。
-2. v2 private bundleをWorker起動設定へ登録し、通常private HTTPS入口でH04/H06/H08のPNG/SVG SHAを再取得する。
-3. PCブラウザの通常画面で選択、PNG表示/保存、SVG保存を確認する。Service Worker世代更新とrollbackを維持する。
-4. L06 Golden・Approved18→78回帰・性能の現行候補bound結果を一つのrelease SHAへ結ぶ。iPhone Safari/PWAの本番後受入は別途必要。
-5. Aの六能力observerと独立Phase4/Phase5、L08の実機受入は未完了。これらをこの配信記録で代替しない。
+1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。新PNG経路の正式性能receiptを記録し、旧推論経路のHOLDを明確に分離する。
+2. PCのcurrent SW offline shell、worker再接続、障害表示・retry・fallback、rollbackの実ブラウザ受入を行う。
+3. 本番反映後のiPhone Safari/PWAで、選択→変換→PNG/SVG保存、機内モード復帰、障害表示と再試行を所有者が受け入れる。
+4. Aでは現行公開checkpointのH04/H06/H08 source-only出力が六能力中3能力に留まる。六能力checkpointまたは別人物データ・trainerが必要で、独立Phase4はFAIL、Phase5はNO_GOのまま。
+5. 所有者は既存署名済みblind評価を再利用する。所有者確認では、未見データ・推論前ラベル非参照・評価者独立・4項目の意味評価は全てYES。レビューの再依頼はしない。残るのは同じ署名済み結果を現在の凍結候補/receipt SHAへ結ぶsource-free receiptである。
+6. A Phase4 PASS後だけ同じ候補のPhase5を再現し、Golden・本番・L08受入を結合する。Bの配信完了はAの意味品質承認を代替しない。
