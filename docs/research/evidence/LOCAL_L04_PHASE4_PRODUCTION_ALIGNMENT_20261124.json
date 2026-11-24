@@ -1,0 +1,56 @@
+{
+  "schema": "minimalizer/local-l04/phase4-production-alignment/v1",
+  "observed_at_jst": "2026-11-24T21:00:27+09:00",
+  "baseline_production_receipt_sha256": "381b0b5a6b52c25472c063c5ca55b65755f3602ab451f569fd6d6a27a20b775a",
+  "baseline_production_status": "GO",
+  "worker_runtime_commit": "64cfeb76e5f8ff4e93b6810880c68f1996348ede",
+  "phase4_candidate_bundle_sha256": "5b8a6cb426fdd638b685140043dcdb60c43c5ddc308a051e1f01f596e4dc155e",
+  "cases": {
+    "H04": {
+      "source_sha256": "7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3",
+      "signed_source_matches_production": true,
+      "phase4_candidate_sha256": "36bbb7803fc8bc55186d78e02cb68d41487e7c784b53e0422cac971b39ae1840",
+      "production_candidate_sha256": "5b56899313d57b1677cb6c30676fe2e60c9fa141331a379aff7ee7a0e6101b5e",
+      "candidate_sha_matches": false,
+      "phase4_stage8_sha256": "98a9a2919ac2060344c097d26a46fcd8a51caa44eb60f95463f42b988a6b282f",
+      "production_stage8_sha256": "82a7df6ed4a7cbce068c9038cd8ce648448308df2134c07b8e61c1cff1d2c67b",
+      "stage8_sha_matches": false,
+      "phase4_expanded_svg_sha256": "b8fe4b919432de65db9c9b4eb629c8459ac690cba22a33c934ec930d5125ec18",
+      "production_expanded_svg_sha256": "feda80bb7405aa6758a839bf2bbef6147b64620d5a20b31c0d9ee7f694d627f4",
+      "expanded_svg_sha_matches": false
+    },
+    "H06": {
+      "source_sha256": "c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8",
+      "signed_source_matches_production": true,
+      "phase4_candidate_sha256": "6034f91150a49146a0ef8badd5d16c1ae5f659dc1db850a482426d01eda29335",
+      "production_candidate_sha256": "87278640b0761e6d3aa572cb37156f13ee09bc8c9ebaef133445ffec63bbfa76",
+      "candidate_sha_matches": false,
+      "phase4_stage8_sha256": "c3d64725c341a61f20f80ce74f8e2d1e5c410e0e1fe9b4e5e4bb083e949fde60",
+      "production_stage8_sha256": "e3a25866d40bf31582d9cc4bddba22c8055d31bef3930d32e9fca99d8b9782aa",
+      "stage8_sha_matches": false,
+      "phase4_expanded_svg_sha256": "d552a8d2cce91b6bf4d034963b5039dcd105b4fc06f15769a86a437428fb98c7",
+      "production_expanded_svg_sha256": "1493d7dbeecce0563baa0bb86bcb4230d01f10db14a4a69919d11b841a41ea16",
+      "expanded_svg_sha_matches": false
+    },
+    "H08": {
+      "source_sha256": "759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e",
+      "signed_source_matches_production": true,
+      "phase4_candidate_sha256": "8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091",
+      "production_candidate_sha256": "8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091",
+      "candidate_sha_matches": true,
+      "phase4_stage8_sha256": "2e890fcd60460901577e32f9cf25f9bf12a159430d398e5939814f3c5d698acb",
+      "production_stage8_sha256": "e87bd3c4a5f687b6ab155a4b76f0afab8b542bcb1934d38bef0259a4adb730f2",
+      "stage8_sha_matches": false,
+      "phase4_expanded_svg_sha256": "ee46847801f532ae8d97c9b4eb629c8459ac690cba22a33c934ec930d5125ec18",
+      "production_expanded_svg_sha256": "712337aa48bdfad3bbda778b903478bc1b4cec1d42e110c95d249b8f82a4860c",
+      "expanded_svg_sha_matches": false
+    }
+  },
+  "production_receipt_changed": false,
+  "private_images_masks_coordinates_or_review_media_in_repository": false,
+  "phase4_semantic_reviews_repeated": false,
+  "owner_visual_golden_required_for_new_svg_render": true,
+  "production_promotion_authorized_by_this_audit": false,
+  "l02_status": "HOLD",
+  "new_candidate_release_status": "NO_GO"
+}
