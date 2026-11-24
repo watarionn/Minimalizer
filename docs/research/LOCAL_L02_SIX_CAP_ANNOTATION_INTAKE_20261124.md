@@ -7,6 +7,7 @@
 - ラベル画面: `tools/research/local_l02_six_cap_labeler/index.html`
 - 日本語手順: `tools/research/local_l02_six_cap_labeler/README.md`
 - 入力監査: `tools/research/verify_local_l02_six_cap_dataset.py`
+- 非公開owner mask生成: `tools/research/rasterize_local_l02_six_cap_annotations.py`
 - 回帰: `tests/test_local_l02_six_cap_dataset.py`
 - Commit: `6e762c8b5aeeaf58df147e6a17384bd3ff095ca0`
 - Draft PR: #473, `codex/l02-six-cap-labeler-20261124`
@@ -20,14 +21,15 @@
 - 異常ポリゴン、重複ID、未知role、欠落object参照、重複原画像: 拒否
 - 未描画画素: unknownを維持。`complete_for` に明示されたroleだけ全画面確認済み陰性になり得る
 - 監査出力: 集計件数とbundle fingerprintだけ。画像名・人物/担当者ID・座標は出さない
-- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 6 PASS
+- 非公開mask生成: source alpha、人物instance map、六つの排他的owner、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
+- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、拒否ケース、非公開出力）
 - JS構文: `node --check` — PASS
 - Python構文: `py_compile` — PASS
 - 送信系Web API: HTML内に `fetch`、`XMLHttpRequest`、`WebSocket`、`sendBeacon` なし
 - 実画像P0/P1改善件数: 0件。新規学習画像がまだ入力されていないため、画像品質は未評価
 - ローカル画面の実ブラウザ操作確認: 未実施。Codexブラウザの安全ポリシーが `file://` を拒否した。回避操作はしていない
 
-このPASSは入力形式の検査だけで、observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。
+このPASSは入力形式検査と合成入力によるマスク生成までで、実画像データを処理したものではない。observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。
 
 ## 次に必要な作業
 
@@ -40,11 +42,11 @@
 
 ### 開発側（入力受領後）
 
-1. source SHAごとにマスクを生成する私有変換器を追加し、人物グループ単位でtrain/validation/blind-testを固定する。
+1. 実データを受領したら監査と非公開マスク生成を行い、人物グループ単位でtrain/validation/blind-testを固定する。
 2. 学習前に全六能力の教師信号、排他的可視owner、4/8連結、穴、遮蔽矛盾、未知画素の扱いを検査する。学習・推論へH04/H06/H08の評価ラベルは渡さない。
 3. モデルと設定を凍結し、署名済みH04/H06/H08へ同一設定で新規推論する。独立Phase4が評価した後にだけ結果を開き、意味品質と正衣装保持/誤owner除去を確認する。
 4. 未見人物testとPhase4の具体的FAILだけを直す。PASS後にPhase5と後続L04/L06/実機ゲートへ進む。
 
 ## 残ゲート
 
-L02 HOLD / Phase4 FAIL / Production NO_GO。現時点の次の具体的修正はモデル閾値ではなく、新規人物ラベルがある学習入力から六出力を作るprivate rasterize/train/evaluate pipelineである。データがない間はモデルを作ったと主張しない。
+L02 HOLD / Phase4 FAIL / Production NO_GO。source-bound private rasterizerまでは用意済み。残る次の具体的工程は、新規人物ラベルを非公開で受領して人物群分割・構造検査を通し、六出力を学習すること。データがない間はモデルを作ったと主張しない。
