@@ -22,7 +22,7 @@
 - 異常ポリゴン、重複ID、未知role、欠落object参照、重複原画像: 拒否
 - 未描画画素: unknownを維持。`complete_for` に明示されたroleだけ全画面確認済み陰性になり得る
 - 監査出力: 集計件数とbundle fingerprintだけ。画像名・人物/担当者ID・座標は出さない
-- 非公開mask生成: source alpha、人物instance map、六つの排他的owner、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
+- 非公開mask生成: source alpha、人物instance map、六つの排他的owner、意味物体instance map、物体IDへ結合した遮蔽edge、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
 - 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、拒否ケース、非公開出力）
 - JS構文: `node --check` — PASS
 - Python構文: `py_compile` — PASS

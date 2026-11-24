@@ -75,13 +75,22 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
         arm = masks["owner_arm_left"].astype(bool)
         known_arm = masks["known_arm_left"].astype(bool)
         person = masks["person_instance_map"] > 0
+        objects = masks["object_instance_map"] > 0
         alpha = masks["source_alpha"].astype(bool)
         self.assertTrue(np.all(known_coat == alpha))
         self.assertTrue(np.all(known_arm == arm))
         self.assertFalse(np.any(owner & arm))
         self.assertTrue(np.all((masks["owner_outerwear"] + masks["owner_arm_left"]) <= 1))
         self.assertTrue(np.all(person <= alpha))
+        self.assertTrue(np.all(objects <= alpha))
         self.assertFalse(known_arm[0, 0])
+        metadata = json.loads(str(masks["metadata_json"]))
+        entities = metadata["occlusion_entity_ids_in_edge_index_order"]
+        edge = masks["occlusion_relation_edge_index"][0]
+        self.assertEqual(entities[int(edge[0]) - 1], "coat-1")
+        self.assertEqual(entities[int(edge[1]) - 1], "arm-left-1")
+        self.assertIn("person-1", metadata["occlusion_entity_ids_in_edge_index_order"])
+        self.assertEqual(masks["occlusion_relations_complete"].item(), 0)
 
     def test_rejects_semantic_owner_overlap(self):
         bad = copy.deepcopy(self.doc)

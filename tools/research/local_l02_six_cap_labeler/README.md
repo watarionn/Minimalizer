@@ -33,7 +33,7 @@ python tools\research\verify_local_l02_six_cap_dataset.py "C:\path\to\private-si
 python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-masks"
 ```
 
-各NPZにはsource alpha、人物instance map、六つの排他的可視owner mask、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力は拒否します。監査・マスク生成のPASSは学習・品質承認を意味しません。
+各NPZにはsource alpha、人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力は拒否します。監査・マスク生成のPASSは学習・品質承認を意味しません。
 
 マスクNPZには座標と個別画像由来のデータが含まれるため、非公開領域だけに保存してください。GitHubへ追加しないでください。
 
