@@ -31,6 +31,33 @@ def test_success_and_offline_readback(monkeypatch, tmp_path):
     assert len(calls) == 1
 
 
+def test_drive_filesystem_without_hardlinks_uses_atomic_rename(monkeypatch, tmp_path):
+    data = _fixture(monkeypatch)
+    calls = []
+    original_rename = fetch.os.rename
+
+    def fake_urlopen(url, timeout):
+        return io.BytesIO(data)
+
+    def no_hardlinks(*args, **kwargs):
+        calls.append("link")
+        raise OSError(1, "hard links are not supported")
+
+    def tracked_rename(source, destination):
+        calls.append("rename")
+        return original_rename(source, destination)
+
+    monkeypatch.setattr(fetch, "urlopen", fake_urlopen)
+    monkeypatch.setattr(fetch.os, "link", no_hardlinks)
+    monkeypatch.setattr(fetch.os, "rename", tracked_rename)
+
+    result = fetch.fetch_pinned_atr_checkpoint(tmp_path)
+
+    assert result.read_bytes() == data
+    assert calls == ["link", "rename"]
+    assert sorted(path.name for path in tmp_path.iterdir()) == [fetch.FILENAME]
+
+
 def test_bad_hash_fails_without_model_or_partial_file(monkeypatch, tmp_path):
     _fixture(monkeypatch)
     monkeypatch.setattr(fetch, 'urlopen', lambda *a, **kw: io.BytesIO(b'bad' * 20))

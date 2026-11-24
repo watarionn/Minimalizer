@@ -90,6 +90,20 @@ def fetch_pinned_atr_checkpoint(destination_dir: Path) -> Path:
         except FileExistsError:
             if not _verify_file(target):
                 raise CheckpointHold('CONCURRENT_CHECKPOINT_MISMATCH')
+        except OSError:
+            # Drive for desktop and some virtual filesystems do not implement
+            # hard links. A same-directory rename still publishes the fully
+            # downloaded, SHA-verified temporary file atomically on those
+            # filesystems. Windows rename refuses an existing destination;
+            # if another writer won the race, accept it only after full verify.
+            try:
+                os.rename(temp_name, target)
+            except FileExistsError:
+                if not _verify_file(target):
+                    raise CheckpointHold('CONCURRENT_CHECKPOINT_MISMATCH')
+            except OSError as exc:
+                if not _verify_file(target):
+                    raise CheckpointHold('CHECKPOINT_PUBLISH_FAILED') from exc
         if not _verify_file(target):
             raise CheckpointHold('CHECKPOINT_READBACK_MISMATCH')
         return target
