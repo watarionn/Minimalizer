@@ -1,7 +1,7 @@
 # Local L04 PNG/SVG同一候補配信記録
 
 作成日: 2026-11-24  
-状態: `MERGED_AND_LIVE / PC_NORMAL_FLOW_PASS / A_PHASE4_PHASE5_REPLAY_PASS / IPHONE_AND_OFFLINE_ACCEPTANCE_PENDING`
+状態: `MERGED_AND_LIVE / API_H04-H06-H08_PNG_SVG_PASS / CHROMIUM_H04_OFFLINE_RETRY_PNG_SVG_PASS / IPHONE_ACCEPTANCE_PENDING / L06_PERFORMANCE_UNCLASSIFIED`
 
 ## 固定対象
 
@@ -37,7 +37,10 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - この再起動後readbackはAPIの候補・成果物一致を確認したもの。ブラウザ画面の選択/保存、Service Worker offline復帰、障害時UI、および正式L06性能判定をPASSにするものではない。新経路の測定値は旧L06のH04 `22.6 s`より大幅に短いが、採用済みの性能閾値がないため`performance_pass`は未判定のまま維持する。
 - 実PC Chrome通常画面で署名済みH04を選択し、変換、プレビュー、PNG・SVG保存メッセージを確認。保存ファイルはPNG `dc5467db…`、SVG `feda80bb…`でmanifestと一致。
 - 不正なtext/plain入力はprivate HTTPS APIでHTTP `415` JSONとなった。通常画面での障害表示・再試行およびworker停止時の再接続/fallbackは未確認。
-- L07 Service Workerはgeneration `minimalizer-local-20261124-1`。静的監査`23 passed`、generation一致、cache-first、cache miss時fail-closed、旧generation cache削除なしを確認。Chrome内部診断URLはComputer UseのURL policyで拒否されたため、更新後generationのoffline実機挙動は未確認。
+- L07 Service Workerはgeneration `minimalizer-local-20261124-1`。静的監査`23 passed`、generation一致、cache-first、cache miss時fail-closed、旧generation cache削除なしを確認。Chrome内部診断URLはComputer Useで開けなかったが、後述のheadless Chromeブラウザ試験で現行generationのoffline shellを確認した。世代更新後のrollbackは未確認。
+- 2026-11-24、隔離したheadless Chrome `157.0.8103.79`で現行private HTTPSとSW generation `minimalizer-local-20261124-1`を用いたブラウザE2Eを実施。署名済みH04元画像を画面から選択し、変換プレビュー（453×1400）、PNG保存、SVG保存まで通常UI経路で完了。保存SHAはPNG `dc5467db…`、SVG `feda80bb…`でreceipt `381b0b5a…`のmanifest値に一致。
+- 同じブラウザでネットワークをofflineにし、SWキャッシュからshellを再表示。元画像の変換要求は画面に「LocalWorkerへ接続できません」と表示され、online復帰後に同じ画像を再送してプレビューとPNG/SVG保存に成功。previewまで`766 ms`。これは測定値の記録であり、合意済み閾値がないため正式L06 performance PASSとはしない。
+- ブラウザreadback source-free JSON: [LOCAL_L07_BROWSER_READBACK_20261124.json](evidence/LOCAL_L07_BROWSER_READBACK_20261124.json)、SHA-256 `ddf11b0cab0b7d938dc5b768d6f59ebb9d48032522f94f08e24eeeb5e12d94bc`。元画像・応答画像は含めていない。通常UI、SW offline shell、offline error、online retryはPASS。実GUI Chrome、実機iPhone Safari/PWA、SW世代更新後のrollback、Worker停止時のUI/fallbackはこの記録では未検証。
 - 既存Approved18回帰は18/18 PASS、Approved78回帰は78件・SHA/determinism MigrationGate PASS。ただし両コーパスreceiptをこのL04 release SHAへ結ぶsource-free bindingは未作成。
 - 既存`L06_BROWSER_PERFORMANCE_CURRENT_RUNTIME_HOLD`はreceipt SHA `381b0b5a…`結合済みだが、旧通常推論経路の性能FAIL（H04 22.6秒）でHOLD。上記の新PNG経路は短時間だが、現行L06の正式なrelease-bound性能receiptへ更新していない。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
@@ -56,7 +59,7 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 ## 残ゲートと次の変更
 
 1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。旧推論経路のHOLDを新しい固定成果物配信の測定値と分離し、正式性能判定に必要な基準を確定する。
-2. PCのcurrent SW offline shell、worker再接続、障害表示・retry・fallback、rollbackの実ブラウザ受入を行う。
+2. 実GUI Chromeで同一候補の表示・保存、SW世代更新後のrollback、Worker停止時の障害表示・再接続/fallbackを確認する。headless ChromeでのH04 offline shell・障害表示・retry・PNG/SVGはsource-free readback済み。
 3. 本番反映後のiPhone Safari/PWAで、選択→変換→PNG/SVG保存、機内モード復帰、障害表示と再試行を所有者が受け入れる。
 4. Aの既存署名済みPhase4はH04/H06/H08の各候補SHAでPASSし、同じ候補のPhase5も本番コードで再現PASSした。ただしそのH04/H06 candidate SHAは現行L04 bundleのStage8 SHAと異なるため、同一候補のL04三点セットを作り直して照合する必要がある。既存評価者へレビューを再依頼しない。
 5. 六能力observerは未導入。下層衣装・ペア別遮蔽・人物内instanceが欠けており、別人物学習catalog、trainer、checkpointもまだ見つかっていない。既知モデルの部分能力を六能力へ読み替えず、Phase4 PASS候補とは独立したゲートとして解消する。
