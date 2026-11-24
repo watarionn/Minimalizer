@@ -1,7 +1,7 @@
 # Local L04 PNG/SVG同一候補配信記録
 
 作成日: 2026-11-24  
-状態: `MERGED_AND_LIVE / PC_NORMAL_FLOW_PASS / IPHONE_AND_OFFLINE_ACCEPTANCE_PENDING`
+状態: `MERGED_AND_LIVE / PC_NORMAL_FLOW_PASS / A_PHASE4_PHASE5_REPLAY_PASS / IPHONE_AND_OFFLINE_ACCEPTANCE_PENDING`
 
 ## 固定対象
 
@@ -40,11 +40,22 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - 既存`L06_BROWSER_PERFORMANCE_CURRENT_RUNTIME_HOLD`はreceipt SHA `381b0b5a…`結合済みだが、旧通常推論経路の性能FAIL（H04 22.6秒）でHOLD。上記の新PNG経路は短時間だが、現行L06の正式なrelease-bound性能receiptへ更新していない。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
 
+## A Phase4・Phase5の候補一致 readback（2026-11-24）
+
+- 既存の署名済み独立レビューreceipt SHA-256: `bab6a3b873cd7480c3b940202b4219203798d499b577a90cac45edf98a71022f`。固定source SHA、freeze receiptのcandidate SHA、署名・未見性・推論前ラベル非参照・評価者独立・意味評価を既存verifierで再照合し、H04/H06/H08全件 `Phase4=PASS`。
+- H04 candidate SHA `36bbb7803fc8bc55186d78e02cb68d41487e7c784b53e0422cac971b39ae1840`、H06 `6034f91150a49146a0ef8badd5d16c1ae5f659dc1db850a482426d01eda29335`、H08 `8daafac9aabac48635d73b393a8220dd64f88b3a2ef6d7c06ae76b52b049f091`。三例ともレビューreceiptと同一の候補SHA。
+- H08 owner-authority receipt SHA-256: `50207cf17d22cca5c962500a4490de65f83073b2a031313521331dd304caae99`。凍結owner `43d164d9…` からレビュー対象candidate `8daafac9…` への昇格承認に結合し、Golden/productionは引き続き未認可。
+- 上記Phase4 candidateと同一のsource SHA・candidate SHAを持つprivate Phase4 bundleについて、Phase5入力監査を再実行し3/3 `READY`。監査receipt SHA-256: `06439a61c1cc71c7eef3c103fb9207bf6bd769f203da4f732aa6bf0514d0aee8`。
+- SHA固定元画像を使い、`scripts/zerobase2_phase5_structure.py`（Git blob `2b810f4029be35eea9929020023566b34c1257e`）でH04/H06/H08 Phase5を隔離出力先へ再実行。3例すべて `pass=true`、孤立主要部位0、missing arm/core/accessory attachmentなし、occlusion cycle 0。再生成graph SHAはH04 `ff50ac3d…`、H06 `3842e0f3…`、H08 `8d3feeb6…`で、既存の同一候補Phase5 graph SHAと全件一致。
+- 4/8連結と穴の既存candidate-freeze比較も照合済み。H04のcomponent数5/5・hole数2/2は不変。H06は4連結9、8連結8、4連結hole25、8連結hole17が不変。H08はowner 1でcomponent 29/22・hole 3/1、owner 2でcomponent 14/11・hole 3/1が不変。独立レビューは正衣装保持、誤owner除去、袖owner排他、遮蔽・重要部位保持、未知を陰性扱いしないことを三例すべて確認。
+- **このA結果は現行L04 production bundleと未一致。** production bundleのStage8 candidate SHAはH04 `5b568993…`、H06 `87278640…`、H08 `8daafac9…`。したがって独立Phase4/Phase5 PASSを、receipt `381b0b5a…` のH04/H06へ遡及適用しない。現行bundle/Workerは変更していない。
+- 6能力observerの未完了も別ゲートとして残る。既存checkpointは外衣・袖・腕までで、下層衣装・ペア別遮蔽3種・人物内instanceを同一observer契約で出力しない。今回のPhase4/Phase5再現はこの不足を埋めたものではない。
+
 ## 残ゲートと次の変更
 
 1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。新PNG経路の正式性能receiptを記録し、旧推論経路のHOLDを明確に分離する。
 2. PCのcurrent SW offline shell、worker再接続、障害表示・retry・fallback、rollbackの実ブラウザ受入を行う。
 3. 本番反映後のiPhone Safari/PWAで、選択→変換→PNG/SVG保存、機内モード復帰、障害表示と再試行を所有者が受け入れる。
-4. Aでは現行公開checkpointのH04/H06/H08 source-only出力が六能力中3能力に留まる。六能力checkpointまたは別人物データ・trainerが必要で、独立Phase4はFAIL、Phase5はNO_GOのまま。
-5. 所有者は既存署名済みblind評価を再利用する。所有者確認では、未見データ・推論前ラベル非参照・評価者独立・4項目の意味評価は全てYES。レビューの再依頼はしない。残るのは同じ署名済み結果を現在の凍結候補/receipt SHAへ結ぶsource-free receiptである。
-6. A Phase4 PASS後だけ同じ候補のPhase5を再現し、Golden・本番・L08受入を結合する。Bの配信完了はAの意味品質承認を代替しない。
+4. Aの既存署名済みPhase4はH04/H06/H08の各候補SHAでPASSし、同じ候補のPhase5も本番コードで再現PASSした。ただしそのH04/H06 candidate SHAは現行L04 bundleのStage8 SHAと異なるため、同一候補のL04三点セットを作り直して照合する必要がある。既存評価者へレビューを再依頼しない。
+5. 六能力observerは未導入。下層衣装・ペア別遮蔽・人物内instanceが欠けており、別人物学習catalog、trainer、checkpointもまだ見つかっていない。既知モデルの部分能力を六能力へ読み替えず、Phase4 PASS候補とは独立したゲートとして解消する。
+6. L04 release-bound性能receipt、SW offline/rollback/障害時の実ブラウザ受入、実機iPhone Safari/PWA受入、Drive readbackと最終SHA台帳は未完了。Bの配信完了はAの意味品質承認を代替しない。
