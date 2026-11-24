@@ -26,15 +26,16 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - v1 manifestのSVG配信は維持し、v2 manifestでPNG派生物のSHA・元SVG SHA・寸法・renderer buildを検証する。
 - 正式入力SHAが一致したPNG要求は、推論を再実行せず、同じ候補のSHA固定PNGを返す。PNGが欠落・不一致なら別候補へfallbackせず503で停止する。
 - SVG要求は既存の展開SVGを返す。通常入口のPNG/SVG両方にreceipt SHAとケース識別子を含める。
-- 最新main基点のFocused tests: `37 passed`（LocalWorker、L04 source/Stage8/SVG gate、delivery audit）。
+- 最新main基点のFocused tests: `60 passed`（LocalWorker、L04 source/Stage8/SVG gate、delivery audit、L07 privacy audit）。
 - real private inputsを用いたTestClient E2E: H04/H06/H08のPNG/SVG全6要求がHTTP 200、receipt SHAと各成果物SHAがmanifestに一致。
 - Node/Python構文確認: PASS。派生PNG再生成のSHA一致: 3/3。
 - Worker private HTTPS: 現在の旧v1 bundleからのH04 SVG取得はHTTP 200、SHA一致を確認。新v2 PNGコードはまだlive Workerへ適用していない。
+- L07 Service Worker: generation `minimalizer-local-20261124-1`へ更新。現行世代のcache-first、cache miss時fail-closed、前世代cache保持、activate時の削除なしを静的監査で確認。世代更新後のrollbackと実ブラウザ挙動は未確認。
 - 画像semantic P0/P1改善数: 0。これは配信整合性の変更であり、Aの意味品質を主張しない。
 
 ## 残ゲートと次の変更
 
-1. このsource-freeコードをPR化し、`64cfeb76…`の専用runtimeへ安全に適用する。
+1. このsource-free変更をDraft PR #467へ反映し、`64cfeb76…`の専用runtimeへレビュー後に適用する。
 2. v2 private bundleをWorker起動設定へ登録し、通常private HTTPS入口でH04/H06/H08のPNG/SVG SHAを再取得する。
 3. PCブラウザの通常画面で選択、PNG表示/保存、SVG保存を確認する。Service Worker世代更新とrollbackを維持する。
 4. L06 Golden・Approved18→78回帰・性能の現行候補bound結果を一つのrelease SHAへ結ぶ。iPhone Safari/PWAの本番後受入は別途必要。

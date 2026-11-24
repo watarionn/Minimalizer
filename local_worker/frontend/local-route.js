@@ -64,7 +64,7 @@ window.MinimalizerComputeRoute = Object.freeze({
   },
 });
 if ("serviceWorker" in navigator) {
-  const SERVICE_WORKER_GENERATION = "minimalizer-local-20261107-1";
+  const SERVICE_WORKER_GENERATION = "minimalizer-local-20261124-1";
   addEventListener("load", () => navigator.serviceWorker.register(
     "/sw.js?generation=" + encodeURIComponent(SERVICE_WORKER_GENERATION),
     {updateViaCache: "none"}
