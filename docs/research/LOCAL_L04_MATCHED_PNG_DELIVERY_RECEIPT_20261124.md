@@ -82,6 +82,7 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 ## 現行private HTTPS Originの再読戻し（2026-11-24 13:38 UTC）
 
 - Worker起動設定に保存された所有者専用private HTTPS Originを使い、`/`、`/health`、`/sw.js`、`/manifest.webmanifest`、`/local-static/local-route.js`を再取得した。すべてHTTP 200、healthはready、SWとLocal routeはgeneration `minimalizer-local-20261124-1`。Origin値そのものは公開台帳へ記載していない。
+- Worker runtime base `64cfeb76…`はmain `0673449a…`の祖先で、実行中Worker PID `28344`は適用済みコードファイルの更新後に起動。稼働に関係する5ファイルのGit blob SHAは現在のmainと一致し、HTTPSから返る`sw.js`、`local-route.js`、`app.js`の本文SHAもローカルの適用済みファイルと完全一致した。これにより、dirtyな古いruntime checkoutのbase SHAだけでなく、実際に配信されるコードをGitHub mainへ結び付けた。
 - 同じOriginを付けた`OPTIONS /api/v2/minimalize`はHTTP 200、CORS Origin echo一致、許可method `GET, POST, OPTIONS`、header `content-type`を確認。
 - source-free receiptは[evidence/LOCAL_L07_PRIVATE_HTTPS_ORIGIN_READBACK_20261124T1338Z.json](evidence/LOCAL_L07_PRIVATE_HTTPS_ORIGIN_READBACK_20261124T1338Z.json)。候補receipt `381b0b5a…`、Worker `64cfeb76…`、manifest `f9ab8fd7…`へ結合。
 - これはHTTPS配信・Origin/CORS・現行SW世代のreadbackであり、実機iPhone受入または本番HTTPS上の世代rollbackを主張しない。
