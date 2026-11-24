@@ -24,15 +24,19 @@
 - 未描画画素: unknownを維持。`complete_for` に明示されたroleだけ全画面確認済み陰性になり得る
 - 監査出力: 集計件数とbundle fingerprintだけ。画像名・人物/担当者ID・座標は出さない
 - 非公開mask生成: source alpha、known範囲つき人物instance map、六つの排他的owner、意味物体instance map、物体IDへ結合した遮蔽edge、known/unknownを生成。人物外ラベル・owner重複・Git作業ツリー内出力を拒否
+- mask構造監査: `tools/research/audit_local_l02_owner_mask_bundle.py`。train/validationのSHA対応、instance番号、unknown保持、六owner排他、物体mask対応、遮蔽参照・循環、4/8連結と穴数をsource-free集計で確認。blind-test maskは読まない
 - 人物単位split: 固定SHA順でtrain/validation/blind-testを割当て。同一人物群の交差なし、blind labelsは凍結まで隔離。manifestはsource/group IDsを含むため非公開保存
-- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 10 PASS（unknown保持、exclusive owner、遮蔽edge対応、再現可能group split、train/validationだけの既定raster、凍結checkpointなしのblind拒否、拒否ケース、非公開出力）
+- 回帰: `python -m unittest tests.test_local_l02_six_cap_dataset -v` — 11 PASS（unknown保持、exclusive owner、遮蔽edge対応、再現可能group split、train/validationだけの既定raster、凍結checkpointなしのblind拒否、構造監査、4/8連結・穴、遮蔽循環拒否、非公開出力）
 - JS構文: `node --check` — PASS
 - Python構文: `py_compile` — PASS
 - 送信系Web API: HTML内に `fetch`、`XMLHttpRequest`、`WebSocket`、`sendBeacon` なし
 - 実画像P0/P1改善件数: 0件。新規学習画像がまだ入力されていないため、画像品質は未評価
 - ローカル画面の実ブラウザ操作確認: 未実施。Codexブラウザの安全ポリシーが `file://` を拒否した。回避操作はしていない
+- 実人物画像のmask構造監査: 未実施。非公開Driveの元画像/JSON受領待ち
 
 このPASSは入力形式検査と合成入力によるsplit/mask生成までで、実画像データを処理したものではない。observerの学習・精度・owner意味・Phase4/5・Golden・Productionを承認しない。既定rasterizerはblind-test maskを出力せず、凍結checkpointファイルを指定する別操作だけがblind-testを展開する。
+
+構造監査は、instance配列と既知/未知マスクの整合、owner排他、遮蔽edgeの循環、4/8連結成分数・穴数を検査する。PASSはannotationの意味的正しさを保証せず、学習・評価・昇格のゲートを置き換えない。
 
 ## 次に必要な作業
 

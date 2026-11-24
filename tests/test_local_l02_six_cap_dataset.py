@@ -19,6 +19,10 @@ from rasterize_local_l02_six_cap_annotations import (
     rasterize_one,
 )
 from split_local_l02_six_cap_dataset import build_split, write_split
+from audit_local_l02_owner_mask_bundle import (
+    _component_and_hole_counts,
+    audit_mask_bundle,
+)
 
 
 class SixCapDatasetIntakeTests(unittest.TestCase):
@@ -56,6 +60,16 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_topology_metrics_report_connectivity_and_holes(self):
+        diagonal = np.zeros((4, 4), dtype=np.uint8)
+        diagonal[1, 1] = diagonal[2, 2] = 1
+        self.assertEqual(_component_and_hole_counts(diagonal, 4), (2, 0))
+        self.assertEqual(_component_and_hole_counts(diagonal, 8), (1, 0))
+        ring = np.ones((3, 3), dtype=np.uint8)
+        ring[1, 1] = 0
+        self.assertEqual(_component_and_hole_counts(ring, 4), (1, 1))
+        self.assertEqual(_component_and_hole_counts(ring, 8), (1, 1))
 
     def test_accepts_source_bound_annotation_and_emits_no_private_ids_or_paths(self):
         report = audit_dataset(self.root)
@@ -199,6 +213,23 @@ class SixCapDatasetIntakeTests(unittest.TestCase):
                 with np.load(next(Path(private_masks).glob("mask-*.npz"))) as masks:
                     self.assertIn("owner_sleeve_left", masks.files)
                     self.assertIn("known_arm_right", masks.files)
+                structure = audit_mask_bundle(private_masks, split_path)
+                self.assertTrue(structure["structural_audit_pass"])
+                self.assertFalse(structure["semantic_quality_approved"])
+                self.assertFalse(structure["observer_trained"])
+                self.assertEqual(structure["train_validation_image_count"], 2)
+                self.assertFalse(structure["blind_test_masks_in_scope"])
+                self.assertEqual(structure["images_with_complete_occlusion_review"], 2)
+                mask_path = next(Path(private_masks).glob("mask-*.npz"))
+                with np.load(mask_path, allow_pickle=False) as archive:
+                    corrupted = {key: archive[key] for key in archive.files}
+                corrupted["occlusion_relation_edge_index"] = np.asarray([[1, 2], [2, 1]], dtype=np.uint16)
+                np.savez_compressed(mask_path, **corrupted)
+                with self.assertRaisesRegex(IntakeError, "cycle"):
+                    audit_mask_bundle(private_masks, split_path)
+                np.savez_compressed(mask_path, **{key: value for key, value in corrupted.items()
+                                                   if key != "occlusion_relation_edge_index"},
+                                    occlusion_relation_edge_index=np.asarray([[1, 2]], dtype=np.uint16))
                 blind_sha = next(
                     record["source_sha256"] for record in split_manifest["records"]
                     if record["split"] == "blind_test"

@@ -32,6 +32,7 @@ python tools\research\verify_local_l02_six_cap_dataset.py "C:\path\to\private-si
 ```cmd
 python tools\research\split_local_l02_six_cap_dataset.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split"
 python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\private-six-cap-dataset" "C:\path\outside-git\private-six-cap-split\person-group-split.private.json" "C:\path\outside-git\private-six-cap-train-validation-masks"
+python tools\research\audit_local_l02_owner_mask_bundle.py "C:\path\outside-git\private-six-cap-train-validation-masks" "C:\path\outside-git\private-six-cap-split\person-group-split.private.json"
 ```
 
 通常のマスク生成はtrain/validationだけを対象にし、blind-testのNPZを出力しません。split integrityを確認するため画像SHAと人物グループの対応は読みますが、blind-testのowner maskは作りません。モデルを凍結し、独立評価者が評価する段階になった後だけ、凍結checkpointファイルを指定して別の空フォルダーへblind-testを生成します。checkpointのSHA-256はツールが計算して記録します。
@@ -41,6 +42,8 @@ python tools\research\rasterize_local_l02_six_cap_annotations.py "C:\path\to\pri
 ```
 
 各NPZにはsource alpha、known範囲つき人物instance map、六つの排他的可視owner mask、意味物体instance map、物体IDに結びついた遮蔽edge、クラスごとのknown mask、source SHA付きメタデータが入ります。`complete_for` で全画面確認した種類だけがsource alpha全域を既知画素とし、それ以外は描画済み陽性部分だけを既知にします。人物外への部位ラベル、複数ownerの画素重複、評価元画像、Git作業ツリー内出力を拒否します。別splitのNPZが残る出力先も拒否するため、splitごとに空の出力先を使ってください。監査・分割・マスク生成のPASSは学習・品質承認を意味しません。
+
+マスク生成後の構造監査は、split manifestとSHA一致、person/object instance番号の連続性、六ownerの排他性、maskから物体instanceへの逆引き、遮蔽edgeの参照先と循環、人物・ownerごとの4/8連結成分数および穴数をsource-free集計で確認します。blind-test maskは監査対象外です。これはラベル構造を検査するだけで、意味ラベルの正しさ、十分な学習量、observer精度を承認しません。
 
 マスクNPZには座標と個別画像由来のデータが含まれるため、非公開領域だけに保存してください。GitHubへ追加しないでください。
 
