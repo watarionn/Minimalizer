@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minimalizer 6能力ラベル作成</title>
+  <style>
+    :root { color-scheme: light; font: 15px/1.5 system-ui, sans-serif; color: #202124; background: #f4f5f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { padding: 14px 20px; color: white; background: #202124; }
+    header h1 { margin: 0; font-size: 20px; }
+    header p { margin: 4px 0 0; color: #d8dadd; font-size: 13px; }
+    main { display: grid; grid-template-columns: minmax(310px, 370px) minmax(0, 1fr); gap: 14px; padding: 14px; max-width: 1700px; margin: auto; }
+    section { background: white; border: 1px solid #d9dcdf; border-radius: 10px; padding: 14px; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    h3 { margin: 16px 0 7px; font-size: 14px; }
+    label { display: block; margin: 9px 0 4px; font-weight: 600; font-size: 13px; }
+    input[type=text], select { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid #b9bec3; border-radius: 6px; background: white; font: inherit; }
+    input[type=file] { width: 100%; font: inherit; }
+    button { min-height: 38px; padding: 7px 11px; border: 1px solid #aeb4ba; border-radius: 6px; background: #fff; color: #202124; font: inherit; cursor: pointer; }
+    button:hover { background: #f0f3f5; }
+    button.primary { border-color: #202124; background: #202124; color: white; }
+    button.danger { color: #9d1c1c; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .row { display: flex; gap: 7px; align-items: center; }
+    .row > * { flex: 1; }
+    .small { color: #5f6368; font-size: 12px; }
+    .notice { margin: 8px 0; padding: 9px 10px; border-radius: 6px; background: #eef4fa; font-size: 12px; }
+    .notice.warn { background: #fff3cd; }
+    .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+    .checks label { display: flex; align-items: flex-start; gap: 6px; margin: 3px 0; font-weight: 400; }
+    #canvas-wrap { min-height: 64vh; height: calc(100vh - 170px); display: flex; align-items: center; justify-content: center; overflow: auto; background: #e7e8e9; border-radius: 7px; }
+    #stage { display: block; width: 100%; height: 100%; touch-action: none; }
+    #stage image, #stage polygon, #stage text, #stage circle, #stage line { pointer-events: none; }
+    #stage polygon { stroke: white; stroke-width: 2; vector-effect: non-scaling-stroke; fill-opacity: .48; }
+    #stage polygon.active { fill: #00a8ff; stroke: #004c78; stroke-dasharray: 5 3; }
+    #stage text { font: 18px system-ui, sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; fill: #111; pointer-events: none; }
+    #regions { display: grid; gap: 6px; }
+    .region { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 7px 8px; border: 1px solid #e1e3e5; border-radius: 6px; font-size: 12px; }
+    #sha { word-break: break-all; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } #canvas-wrap { height: 65vh; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Minimalizer 6能力ラベル作成</h1>
+  <p>新しい人物データ用の研究ツール。画像はこの端末内だけで処理します。</p>
+</header>
+<main>
+  <section>
+    <h2>1. 画像と人物を指定</h2>
+    <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp">
+    <label for="subject">人物・キャラクターの分割ID</label>
+    <input id="subject" type="text" placeholder="例: character-set-01 / person-004">
+    <label for="annotator">ラベル担当ID（任意）</label>
+    <input id="annotator" type="text" placeholder="例: reviewer-1">
+    <div class="notice">推論結果やH04/H06/H08の評価マスクは読み込みません。ここで描く範囲だけをラベルにし、描いていない画素は未知のままです。</div>
+    <div id="sha" class="small">画像未選択</div>
+
+    <h2 style="margin-top:18px">2. 領域を描く</h2>
+    <label for="role">領域の種類</label>
+    <select id="role">
+      <option value="person">人物instanceの可視領域</option>
+      <option value="outerwear">外衣</option>
+      <option value="underlayer">下層衣装</option>
+      <option value="sleeve_left">左袖</option>
+      <option value="sleeve_right">右袖</option>
+      <option value="arm_left">左腕</option>
+      <option value="arm_right">右腕</option>
+    </select>
+    <div class="row">
+      <div><label for="personId">人物ID</label><input id="personId" type="text" value="person-1"></div>
+      <div><label for="objectId">物体ID</label><input id="objectId" type="text" value="object-1"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="undoPoint">点を戻す</button>
+      <button id="cancelPolygon">描画取消</button>
+      <button id="finishPolygon" class="primary">領域を確定</button>
+    </div>
+    <p class="small">画像上を順にクリックして輪郭を置きます。袖・腕・人物は左右別に選択します。離れた部分は同じ物体IDで別々に描けます。最後の点を置いたら「領域を確定」を押してください。</p>
+    <div id="regions"></div>
+
+    <h3>全画面確認済みのラベル</h3>
+    <p class="small">その種類を画像全体で確認し終えた場合だけチェックしてください。チェックした種類では描かなかった画素を確認済み陰性として扱えます。未チェック領域は未知のままです。</p>
+    <div id="coverage" class="checks"></div>
+    <label class="checks"><span><input id="relationsComplete" type="checkbox"> 遮蔽関係を全て確認済み</span></label>
+
+    <h3>ペア別遮蔽</h3>
+    <div class="row">
+      <div><label for="occluder">手前（隠す側）</label><select id="occluder"></select></div>
+      <div><label for="occluded">奥（隠される側）</label><select id="occluded"></select></div>
+      <button id="addRelation" style="align-self:end">関係追加</button>
+    </div>
+    <div id="relations" class="small"></div>
+
+    <h3>保存・再開</h3>
+    <div class="row">
+      <button id="save" class="primary" disabled>ラベルを保存</button>
+      <label class="small" style="margin:0"><input id="resumeFile" type="file" accept="application/json,.json"> 保存済みラベルを開く</label>
+    </div>
+    <div id="status" class="notice" role="status">画像を選択してください。</div>
+  </section>
+
+  <section>
+    <h2>画像</h2>
+    <div id="canvas-wrap"><svg id="stage" xmlns="http://www.w3.org/2000/svg" aria-label="画像上に多角形ラベルを描く"></svg></div>
+  </section>
+</main>
+<script>
+(() => {
+  'use strict';
+  const E = id => document.getElementById(id);
+  const ROLES = [
+    ['person','人物instance'],['outerwear','外衣'],['underlayer','下層衣装'],
+    ['sleeve_left','左袖'],['sleeve_right','右袖'],['arm_left','左腕'],['arm_right','右腕']
+  ];
+  const COLORS = {person:'#7d8aa5',outerwear:'#ef9e33',underlayer:'#35a2db',sleeve_left:'#d44b76',sleeve_right:'#ad367a',arm_left:'#37aa62',arm_right:'#1f8b45'};
+  const EVAL_SOURCE_SHA = new Set([
+    '7d5a62251326e7b2c6ab058fb6bc76af12a8c0b442444344044a79a97ebae0d3',
+    'c32014932927fd6b290e2f9ec5970ef2bbb92650ab2ff758574076f0dc3352b8',
+    '759b4ed81a49b0e9fce31e6134189a7169ec3c134c3fc97d22d4d0fd6a344a9e'
+  ]);
+  const NS='http://www.w3.org/2000/svg';
+  let image=null, imageUrl=null, sourceSha=null, width=0, height=0, regions=[], relations=[], points=[];
+  const roleName = role => (ROLES.find(x=>x[0]===role)||[role,role])[1];
+  function setStatus(message, warn=false) { const el=E('status'); el.textContent=message; el.className='notice'+(warn?' warn':''); }
+  function hashHex(buffer) { return [...new Uint8Array(buffer)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+  function resetStage() { E('stage').replaceChildren(); if(imageUrl) URL.revokeObjectURL(imageUrl); imageUrl=null; }
+  function nextId(prefix, values) { const used=new Set(values);let n=1;while(used.has(`${prefix}-${n}`))n++;return `${prefix}-${n}`; }
+  function objectCenter(id) { const rs=regions.filter(r=>r.object_id===id);if(!rs.length)return null;const cs=rs.map(r=>centroid(r.points));return{x:cs.reduce((s,p)=>s+p.x,0)/cs.length,y:cs.reduce((s,p)=>s+p.y,0)/cs.length}; }
+  function draw() {
+    const svg=E('stage');
+    svg.setAttribute('viewBox',`0 0 ${width||1} ${height||1}`);
+    svg.replaceChildren();
+    const defs=document.createElementNS(NS,'defs');const marker=document.createElementNS(NS,'marker');marker.setAttribute('id','arrowhead');marker.setAttribute('markerWidth','8');marker.setAttribute('markerHeight','8');marker.setAttribute('refX','7');marker.setAttribute('refY','3');marker.setAttribute('orient','auto');const arrow=document.createElementNS(NS,'path');arrow.setAttribute('d','M0,0 L0,6 L8,3 z');arrow.setAttribute('fill','#ffb000');marker.append(arrow);defs.append(marker);svg.append(defs);
+    if(imageUrl) { const im=document.createElementNS(NS,'image'); im.setAttribute('href',imageUrl); im.setAttribute('width',width); im.setAttribute('height',height); im.setAttribute('preserveAspectRatio','none'); svg.append(im); }
+    for(const r of regions) {
+      const p=document.createElementNS(NS,'polygon'); p.setAttribute('points',r.points.map(q=>`${q.x},${q.y}`).join(' ')); p.setAttribute('fill',COLORS[r.role]); p.setAttribute('stroke',COLORS[r.role]); p.dataset.id=r.region_id; svg.append(p);
+      const c=centroid(r.points); const t=document.createElementNS(NS,'text'); t.setAttribute('x',c.x); t.setAttribute('y',c.y); t.textContent=`${r.object_id} · ${roleName(r.role)}`; svg.append(t);
+    }
+    for(const edge of relations) { const a=objectCenter(edge.occluder_id),b=objectCenter(edge.occluded_id);if(!a||!b)continue;const line=document.createElementNS(NS,'line');line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);line.setAttribute('stroke','#d18400');line.setAttribute('stroke-width',Math.max(2,width/400));line.setAttribute('stroke-dasharray',`${Math.max(5,width/80)} ${Math.max(3,width/160)}`);line.setAttribute('marker-end','url(#arrowhead)');svg.append(line); }
+    if(points.length) { const p=document.createElementNS(NS,'polygon'); p.setAttribute('points',points.map(q=>`${q.x},${q.y}`).join(' ')); p.setAttribute('class','active'); svg.append(p); for(const q of points){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',q.x);c.setAttribute('cy',q.y);c.setAttribute('r',Math.max(3,width/500));c.setAttribute('fill','#004c78');svg.append(c);} }
+    renderLists();
+  }
+  function centroid(ps) { return {x:ps.reduce((s,p)=>s+p.x,0)/ps.length,y:ps.reduce((s,p)=>s+p.y,0)/ps.length}; }
+  function renderLists() {
+    const box=E('regions'); box.replaceChildren();
+    for(const r of regions) { const row=document.createElement('div'); row.className='region'; const label=document.createElement('span'); label.textContent=`${r.region_id}: ${r.object_id} / ${r.person_id} / ${roleName(r.role)} (${r.points.length}点)`; const b=document.createElement('button'); b.textContent='削除'; b.className='danger'; b.onclick=()=>{regions=regions.filter(x=>x.region_id!==r.region_id);if(!regions.some(x=>x.object_id===r.object_id))relations=relations.filter(x=>x.occluder_id!==r.object_id&&x.occluded_id!==r.object_id);renderLists();draw();}; row.append(label,b);box.append(row); }
+    const ids=[...new Set(regions.map(r=>r.object_id))];
+    for(const id of ['occluder','occluded']) { const s=E(id); const old=s.value;s.replaceChildren(); for(const value of ids){const o=document.createElement('option');o.value=value;o.textContent=value;s.append(o);} if(ids.includes(old))s.value=old; }
+    const rel=E('relations'); rel.replaceChildren();
+    for(const edge of relations) { const row=document.createElement('div'); row.className='region';const label=document.createElement('span');label.textContent=`${edge.occluder_id} が ${edge.occluded_id} を遮蔽`;const b=document.createElement('button');b.className='danger';b.textContent='削除';b.onclick=()=>{relations=relations.filter(x=>x!==edge);renderLists();};row.append(label,b);rel.append(row); }
+    const hasConfirmedLabels=E('coverage').querySelector('input:checked')!==null;
+    E('save').disabled=!image||!E('subject').value.trim()||(regions.length===0&&!hasConfirmedLabels);
+  }
+  function svgPoint(event) { const svg=E('stage'),p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return{x:Math.max(0,Math.min(width,q.x)),y:Math.max(0,Math.min(height,q.y))}; }
+  E('imageFile').addEventListener('change',async e=>{
+    const file=e.target.files[0]; if(!file)return;
+    try { const bytes=await file.arrayBuffer();const sha=hashHex(await crypto.subtle.digest('SHA-256',bytes));if(EVAL_SOURCE_SHA.has(sha)){setStatus('評価用H04/H06/H08画像は学習データへ入れられません。別人物の画像を選択してください。',true);e.target.value='';return;}
+      const blob=new Blob([bytes],{type:file.type});resetStage();image=null;sourceSha=null;width=0;height=0;renderLists();imageUrl=URL.createObjectURL(blob);image=new Image();image.onload=()=>{width=image.naturalWidth;height=image.naturalHeight;sourceSha=sha;draw();E('sha').textContent=`${file.name} · ${width}×${height} · SHA-256 ${sha}`;setStatus('画像は端末内で開きました。画像データは送信されません。');};image.onerror=()=>{image=null;sourceSha=null;width=0;height=0;resetStage();renderLists();setStatus('画像を読み込めませんでした。PNG・JPEG・WebPを確認してください。',true);};image.src=imageUrl;
+    } catch(err){setStatus(`画像を開けません: ${err.message}`,true);}
+  });
+  E('stage').addEventListener('click',e=>{if(!image)return;points.push(svgPoint(e));draw();});
+  E('undoPoint').onclick=()=>{points.pop();draw();}; E('cancelPolygon').onclick=()=>{points=[];draw();};
+  E('finishPolygon').onclick=()=>{
+    if(!image||points.length<3){setStatus('領域には3点以上必要です。',true);return;}
+    const objectId=E('objectId').value.trim(),personId=E('personId').value.trim(),role=E('role').value;
+    if(!objectId||!personId){setStatus('人物IDと物体IDを入力してください。',true);return;}
+    const existing=regions.find(r=>r.object_id===objectId);if(existing&&(existing.person_id!==personId||existing.role!==role)){setStatus('同じ物体IDには同じ人物ID・ラベルを使ってください。',true);return;}
+    const area=points.reduce((a,p,i)=>{const q=points[(i+1)%points.length];return a+p.x*q.y-q.x*p.y;},0);
+    if(Math.abs(area)<2){setStatus('領域が小さすぎるか、形が閉じていません。',true);return;}
+    regions.push({region_id:nextId('region',regions.map(r=>r.region_id)),object_id:objectId,person_id:personId,role,points:points.map(p=>({x:+p.x.toFixed(2),y:+p.y.toFixed(2)}))});
+    points=[];E('objectId').value=nextId('object',regions.map(r=>r.object_id));draw();setStatus('領域を追加しました。離れた部分は同じ物体IDで続けてください。');
+  };
+  E('addRelation').onclick=()=>{const a=E('occluder').value,b=E('occluded').value;if(!a||!b||a===b){setStatus('遮蔽関係は異なる2つの物体で指定してください。',true);return;}if(relations.some(r=>r.occluder_id===a&&r.occluded_id===b)){setStatus('この遮蔽関係はすでにあります。',true);return;}relations.push({occluder_id:a,occluded_id:b,relation:'occludes'});renderLists();setStatus('遮蔽関係を追加しました。');};
+  const cov=E('coverage');for(const [role,label] of ROLES){const l=document.createElement('label');const c=document.createElement('input');c.type='checkbox';c.value=role;c.addEventListener('change',renderLists);l.append(c,document.createTextNode(`${label}を全画面確認`));cov.append(l);}
+  E('subject').addEventListener('input',renderLists);
+  E('save').onclick=()=>{
+    if(!image||!sourceSha)return;
+    const complete=[...E('coverage').querySelectorAll('input:checked')].map(x=>x.value);
+    const payload={schema:'minimalizer/local-l02-six-cap-annotation/v1',image:{source_sha256:sourceSha,width,height,coordinate_space:'source_image_pixels'},subject_group_id:E('subject').value.trim(),annotator_id:E('annotator').value.trim()||null,regions,complete_for:complete,occlusion_relations:relations,occlusion_relations_complete:E('relationsComplete').checked,unknown_policy:'unmarked pixels remain unknown; only complete_for permits class-specific known negatives',created_at:new Date().toISOString()};
+    const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`annotation-${sourceSha.slice(0,12)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);setStatus('ラベルJSONを保存しました。元画像とともに非公開Driveへ保存してください。');
+  };
+  E('resumeFile').addEventListener('change',async e=>{
+    const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(d.schema!=='minimalizer/local-l02-six-cap-annotation/v1')throw Error('対応しないラベル形式');if(!sourceSha)throw Error('先に元画像を選択してください');if(d.image?.source_sha256!==sourceSha||d.image?.width!==width||d.image?.height!==height)throw Error('元画像SHAまたは画像サイズが一致しません');if(!Array.isArray(d.regions)||!Array.isArray(d.complete_for)||!Array.isArray(d.occlusion_relations)||typeof d.subject_group_id!=='string'||!d.subject_group_id.trim())throw Error('領域・確認範囲・人物グループIDの形式が不正です');const roleSet=new Set(ROLES.map(x=>x[0]));const objectSet=new Set(),objectRoles=new Map(),regionIds=new Set();for(const r of d.regions){if(!r||typeof r.region_id!=='string'||!r.region_id||regionIds.has(r.region_id)||typeof r.object_id!=='string'||!r.object_id||typeof r.person_id!=='string'||!r.person_id||!roleSet.has(r.role)||!Array.isArray(r.points)||r.points.length<3||r.points.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.y<0||p.x>width||p.y>height))throw Error('領域データが不正です');if(objectRoles.has(r.object_id)&&objectRoles.get(r.object_id)!==`${r.person_id}/${r.role}`)throw Error('同じ物体IDに複数人物または複数ラベルがあります');regionIds.add(r.region_id);objectSet.add(r.object_id);objectRoles.set(r.object_id,`${r.person_id}/${r.role}`);}if(d.complete_for.some(role=>!roleSet.has(role))||d.occlusion_relations.some(x=>!objectSet.has(x.occluder_id)||!objectSet.has(x.occluded_id)||x.occluder_id===x.occluded_id||x.relation!=='occludes'))throw Error('確認範囲または遮蔽関係の参照先が不正です');regions=d.regions;relations=d.occlusion_relations;E('subject').value=d.subject_group_id;E('annotator').value=d.annotator_id||'';for(const c of E('coverage').querySelectorAll('input'))c.checked=d.complete_for.includes(c.value);E('relationsComplete').checked=!!d.occlusion_relations_complete;draw();setStatus('保存済みラベルを読み込みました。');}catch(err){setStatus(err.message,true);}finally{e.target.value='';}
+  });
+  renderLists();
+})();
+</script>
+</body>
+</html>
