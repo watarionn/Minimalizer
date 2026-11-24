@@ -1,0 +1,43 @@
+{
+  "schema": "minimalizer/local-l02/six-cap-data-inventory/v1",
+  "observed_at_jst": "2026-11-24T21:07:34+09:00",
+  "scope": "three previously identified Minimalizer private Drive sync folders only",
+  "inventories": [
+    {
+      "label": "L02 Sapiens2 candidate review",
+      "file_count": 47,
+      "image_count": 3,
+      "json_count": 16,
+      "npz_count": 16,
+      "model_weight_count": 0,
+      "six_cap_annotation_schema_count": 0,
+      "image_scope": "existing H04/H06/H08 evaluation cases",
+      "eligible_for_six_cap_training": false
+    },
+    {
+      "label": "L02 Sapiens2 source-only",
+      "file_count": 4,
+      "image_count": 0,
+      "json_count": 1,
+      "npz_count": 3,
+      "model_weight_count": 0,
+      "six_cap_annotation_schema_count": 0,
+      "eligible_for_six_cap_training": false
+    },
+    {
+      "label": "L04 Phase4 candidate bundle",
+      "file_count": 1,
+      "archive_count": 1,
+      "contained_source_image_count": 3,
+      "image_scope": "existing H04/H06/H08 evaluation cases",
+      "eligible_for_six_cap_training": false
+    }
+  ],
+  "training_input_found": false,
+  "six_cap_annotation_pairs_found": 0,
+  "model_weights_found": 0,
+  "evaluation_sources_used_for_training": false,
+  "private_images_masks_coordinates_or_npz_in_repository": false,
+  "l02_status": "HOLD",
+  "next_required_input": "new-person source images and six-cap annotations in private Drive"
+}
