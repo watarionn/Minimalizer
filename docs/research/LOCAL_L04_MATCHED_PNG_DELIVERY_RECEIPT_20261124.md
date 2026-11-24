@@ -33,6 +33,8 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 - 本番Workerは基準commit `64cfeb76e5f8ff4e93b6810880c68f1996348ede`上の専用runtimeで稼働。起動スクリプトを専用runtime・AppDataのv2 manifest・receipt `381b0b5a…`へ修復し、変更前の4コードファイルと起動スクリプトをprivate backupへ退避した。
 - 起動後のprivate HTTPS `/health`: `ready=true`。通常API入口でH04/H06/H08のPNG/SVG全6件がHTTP 200、receipt SHAおよび成果物SHA一致。
 - PNG HTTPS総時間: H04 `572.5 ms`、H06 `413.9 ms`、H08 `473.2 ms`。Worker計測はそれぞれ`315.8/227.0/268.2 ms`。
+- 2026-11-24のWorker再起動後、旧worker/manager PID `32676/32788`から新worker PID `12164`へ移行し、private HTTPS `/health`は再び`ready=true`。同一の通常API入口へ6要求を送り、PNG/SVG全件HTTP 200、receipt `381b0b5a…`、H04/H06/H08識別子、manifest成果物SHAを照合した。再起動後のclient elapsedはH04 PNG/SVG `283.2/295.1 ms`、H06 `209.6/277.7 ms`、H08 `198.7/205.1 ms`。source-free readback receipt SHA-256 `31a49b554f1a7e77d739c734c1b5c1d305658cd3d8152b3ffb9f7ba3d2e9fe1f`（6要求・3ケース、原画像/応答画像はreceiptへ埋め込みなし）。
+- この再起動後readbackはAPIの候補・成果物一致を確認したもの。ブラウザ画面の選択/保存、Service Worker offline復帰、障害時UI、および正式L06性能判定をPASSにするものではない。新経路の測定値は旧L06のH04 `22.6 s`より大幅に短いが、採用済みの性能閾値がないため`performance_pass`は未判定のまま維持する。
 - 実PC Chrome通常画面で署名済みH04を選択し、変換、プレビュー、PNG・SVG保存メッセージを確認。保存ファイルはPNG `dc5467db…`、SVG `feda80bb…`でmanifestと一致。
 - 不正なtext/plain入力はprivate HTTPS APIでHTTP `415` JSONとなった。通常画面での障害表示・再試行およびworker停止時の再接続/fallbackは未確認。
 - L07 Service Workerはgeneration `minimalizer-local-20261124-1`。静的監査`23 passed`、generation一致、cache-first、cache miss時fail-closed、旧generation cache削除なしを確認。Chrome内部診断URLはComputer UseのURL policyで拒否されたため、更新後generationのoffline実機挙動は未確認。
@@ -53,7 +55,7 @@ PNGは展開SVGから`@resvg/resvg-wasm` 2.6.2、WASM SHA-256 `22bf6e9f9a100d972
 
 ## 残ゲートと次の変更
 
-1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。新PNG経路の正式性能receiptを記録し、旧推論経路のHOLDを明確に分離する。
+1. L06 Golden/Approved18→78のevidenceをrelease `191f93d8`とreceipt `381b0b5a…`へ結ぶsource-free bindingを作る。旧推論経路のHOLDを新しい固定成果物配信の測定値と分離し、正式性能判定に必要な基準を確定する。
 2. PCのcurrent SW offline shell、worker再接続、障害表示・retry・fallback、rollbackの実ブラウザ受入を行う。
 3. 本番反映後のiPhone Safari/PWAで、選択→変換→PNG/SVG保存、機内モード復帰、障害表示と再試行を所有者が受け入れる。
 4. Aの既存署名済みPhase4はH04/H06/H08の各候補SHAでPASSし、同じ候補のPhase5も本番コードで再現PASSした。ただしそのH04/H06 candidate SHAは現行L04 bundleのStage8 SHAと異なるため、同一候補のL04三点セットを作り直して照合する必要がある。既存評価者へレビューを再依頼しない。
